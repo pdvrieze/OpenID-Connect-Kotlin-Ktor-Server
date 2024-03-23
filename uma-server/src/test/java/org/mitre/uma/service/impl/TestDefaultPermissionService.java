@@ -16,8 +16,6 @@
 
 package org.mitre.uma.service.impl;
 
-import static org.mockito.Matchers.anySetOf;
-
 import java.util.Set;
 import java.util.UUID;
 
@@ -30,10 +28,10 @@ import org.mitre.uma.model.ResourceSet;
 import org.mitre.uma.repository.PermissionRepository;
 import org.mockito.AdditionalAnswers;
 import org.mockito.InjectMocks;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.springframework.security.oauth2.common.exceptions.InsufficientScopeException;
 
@@ -93,9 +91,9 @@ public class TestDefaultPermissionService {
 		rs2.setScopes(scopes2);
 
 		// have the repository just pass the argument through
-		when(permissionRepository.save(Matchers.any(PermissionTicket.class))).then(AdditionalAnswers.returnsFirstArg());
+		when(permissionRepository.save(ArgumentMatchers.any(PermissionTicket.class))).then(AdditionalAnswers.returnsFirstArg());
 
-		when(scopeService.scopesMatch(anySetOf(String.class), anySetOf(String.class))).then(new Answer<Boolean>() {
+		when(scopeService.scopesMatch(ArgumentMatchers.anySet(), ArgumentMatchers.anySet())).then(new Answer<Boolean>() {
 
 			@Override
 			public Boolean answer(InvocationOnMock invocation) throws Throwable {

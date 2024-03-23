@@ -17,28 +17,19 @@
  *******************************************************************************/
 package org.mitre.oauth2.service.impl;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mitre.oauth2.model.AuthenticationHolderEntity;
-import org.mitre.oauth2.model.ClientDetailsEntity;
-import org.mitre.oauth2.model.OAuth2AccessTokenEntity;
-import org.mitre.oauth2.model.OAuth2RefreshTokenEntity;
-import org.mitre.oauth2.model.SystemScope;
+import org.mitre.oauth2.model.*;
 import org.mitre.oauth2.repository.AuthenticationHolderRepository;
 import org.mitre.oauth2.repository.OAuth2TokenRepository;
 import org.mitre.oauth2.service.ClientDetailsEntityService;
 import org.mitre.oauth2.service.SystemScopeService;
 import org.mockito.InjectMocks;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
@@ -49,26 +40,19 @@ import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.token.TokenEnhancer;
 
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+
 import static com.google.common.collect.Sets.newHashSet;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.*;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anySet;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.mockito.Mockito.*;
 
 /**
  * @author wkim
@@ -191,7 +175,8 @@ public class TestDefaultOAuth2ProviderTokenService {
 
 		// we're not testing restricted or reserved scopes here, just pass through
 		when(scopeService.removeReservedScopes(anySet())).then(returnsFirstArg());
-		when(scopeService.removeRestrictedAndReservedScopes(anySet())).then(returnsFirstArg());
+		// unused by mockito (causs unnecessary stubbing exception
+//		when(scopeService.removeRestrictedAndReservedScopes(anySet())).then(returnsFirstArg());
 
 		when(tokenEnhancer.enhance(any(OAuth2AccessTokenEntity.class), any(OAuth2Authentication.class)))
 		.thenAnswer(new Answer<OAuth2AccessTokenEntity>(){
@@ -266,7 +251,7 @@ public class TestDefaultOAuth2ProviderTokenService {
 
 		verify(clientDetailsService).loadClientByClientId(anyString());
 		verify(authenticationHolderRepository).save(any(AuthenticationHolderEntity.class));
-		verify(tokenEnhancer).enhance(any(OAuth2AccessTokenEntity.class), Matchers.eq(authentication));
+		verify(tokenEnhancer).enhance(any(OAuth2AccessTokenEntity.class), eq(authentication));
 		verify(tokenRepository).saveAccessToken(any(OAuth2AccessTokenEntity.class));
 		verify(scopeService, atLeastOnce()).removeReservedScopes(anySet());
 

@@ -16,7 +16,7 @@
 
 package org.mitre.uma.service.impl;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -26,7 +26,7 @@ import org.mitre.uma.repository.ResourceSetRepository;
 import org.mockito.AdditionalAnswers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.mockito.Mockito.when;
 
@@ -49,7 +49,8 @@ public class TestDefaultResourceSetService {
 	@Before
 	public void setUp() throws Exception {
 
-		when(repository.save(any(ResourceSet.class))).then(AdditionalAnswers.returnsFirstArg());
+		// unused by mockito (causs unnecessary stubbing exception
+//		when(repository.save(any(ResourceSet.class))).then(AdditionalAnswers.returnsFirstArg());
 
 	}
 

@@ -15,10 +15,10 @@
  *******************************************************************************/
 package org.mitre.openid.connect.service.impl;
 
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.isA;
-import static org.mockito.Matchers.isNull;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.ArgumentMatchers.isNull;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -61,7 +61,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -280,7 +280,8 @@ public class TestMITREidDataService_1_3 {
 		when(mockedClient1.getClientId()).thenReturn("mocked_client_1");
 
 		AuthenticationHolderEntity mockedAuthHolder1 = mock(AuthenticationHolderEntity.class);
-		when(mockedAuthHolder1.getId()).thenReturn(1L);
+		// unused by mockito (causs unnecessary stubbing exception
+//		when(mockedAuthHolder1.getId()).thenReturn(1L);
 
 		OAuth2RefreshTokenEntity token1 = new OAuth2RefreshTokenEntity();
 		token1.setId(1L);
@@ -296,7 +297,8 @@ public class TestMITREidDataService_1_3 {
 		when(mockedClient2.getClientId()).thenReturn("mocked_client_2");
 
 		AuthenticationHolderEntity mockedAuthHolder2 = mock(AuthenticationHolderEntity.class);
-		when(mockedAuthHolder2.getId()).thenReturn(2L);
+		// unused by mockito (causs unnecessary stubbing exception
+//		when(mockedAuthHolder2.getId()).thenReturn(2L);
 
 		OAuth2RefreshTokenEntity token2 = new OAuth2RefreshTokenEntity();
 		token2.setId(2L);
@@ -360,7 +362,8 @@ public class TestMITREidDataService_1_3 {
 			@Override
 			public AuthenticationHolderEntity answer(InvocationOnMock invocation) throws Throwable {
 				AuthenticationHolderEntity _auth = mock(AuthenticationHolderEntity.class);
-				when(_auth.getId()).thenReturn(id);
+				// unused by mockito (causs unnecessary stubbing exception
+//				when(_auth.getId()).thenReturn(id);
 				id++;
 				return _auth;
 			}
@@ -545,13 +548,16 @@ public class TestMITREidDataService_1_3 {
 		Date expirationDate2 = formatter.parse(expiration2, Locale.ENGLISH);
 
 		ClientDetailsEntity mockedClient2 = mock(ClientDetailsEntity.class);
-		when(mockedClient2.getClientId()).thenReturn("mocked_client_2");
+		// unused by mockito (causs unnecessary stubbing exception
+//		when(mockedClient2.getClientId()).thenReturn("mocked_client_2");
 
 		AuthenticationHolderEntity mockedAuthHolder2 = mock(AuthenticationHolderEntity.class);
-		when(mockedAuthHolder2.getId()).thenReturn(2L);
+		// unused by mockito (causs unnecessary stubbing exception
+//		when(mockedAuthHolder2.getId()).thenReturn(2L);
 
 		OAuth2RefreshTokenEntity mockRefreshToken2 = mock(OAuth2RefreshTokenEntity.class);
-		when(mockRefreshToken2.getId()).thenReturn(1L);
+		// unused by mockito (causs unnecessary stubbing exception
+//		when(mockRefreshToken2.getId()).thenReturn(1L);
 
 		OAuth2AccessTokenEntity token2 = new OAuth2AccessTokenEntity();
 		token2.setId(2L);
@@ -622,7 +628,8 @@ public class TestMITREidDataService_1_3 {
 			@Override
 			public AuthenticationHolderEntity answer(InvocationOnMock invocation) throws Throwable {
 				AuthenticationHolderEntity _auth = mock(AuthenticationHolderEntity.class);
-				when(_auth.getId()).thenReturn(id);
+				// unused by mockito (causs unnecessary stubbing exception
+//				when(_auth.getId()).thenReturn(id);
 				id++;
 				return _auth;
 			}

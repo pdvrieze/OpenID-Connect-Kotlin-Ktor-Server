@@ -33,10 +33,10 @@ import org.mitre.openid.connect.model.PairwiseIdentifier;
 import org.mitre.openid.connect.model.UserInfo;
 import org.mitre.openid.connect.repository.PairwiseIdentifierRepository;
 import org.mockito.InjectMocks;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -153,7 +153,7 @@ public class TestUUIDPairwiseIdentiferService {
 	public void testGetIdentifier_newEqual() {
 
 		String pairwise1 = service.getIdentifier(userInfoRegular, pairwiseClient1);
-		Mockito.verify(pairwiseIdentifierRepository, Mockito.atLeast(1)).save(Matchers.any(PairwiseIdentifier.class));
+		Mockito.verify(pairwiseIdentifierRepository, Mockito.atLeast(1)).save(ArgumentMatchers.any(PairwiseIdentifier.class));
 
 		PairwiseIdentifier pairwiseId = new PairwiseIdentifier();
 		pairwiseId.setUserSub(regularSub);

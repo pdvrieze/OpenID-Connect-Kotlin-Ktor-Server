@@ -23,10 +23,10 @@ import org.junit.runner.RunWith;
 import org.mitre.oauth2.model.RegisteredClient;
 import org.mitre.openid.connect.config.ServerConfiguration;
 import org.mockito.InjectMocks;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -65,7 +65,8 @@ public class TestHybridClientConfigurationService {
 
 		Mockito.reset(mockDynamicService, mockStaticService);
 
-		Mockito.when(mockServerConfig.getIssuer()).thenReturn(issuer);
+		// unused by mockito (causs unnecessary stubbing exception
+//		Mockito.when(mockServerConfig.getIssuer()).thenReturn(issuer);
 
 	}
 
@@ -77,7 +78,7 @@ public class TestHybridClientConfigurationService {
 		RegisteredClient result = hybridService.getClientConfiguration(mockServerConfig);
 
 		Mockito.verify(mockStaticService).getClientConfiguration(mockServerConfig);
-		Mockito.verify(mockDynamicService, Mockito.never()).getClientConfiguration(Matchers.any(ServerConfiguration.class));
+		Mockito.verify(mockDynamicService, Mockito.never()).getClientConfiguration(ArgumentMatchers.any(ServerConfiguration.class));
 		assertEquals(mockClient, result);
 	}
 
@@ -101,12 +102,14 @@ public class TestHybridClientConfigurationService {
 	public void getClientConfiguration_noIssuer() {
 
 		// The mockServerConfig is known to both services
-		Mockito.when(mockStaticService.getClientConfiguration(mockServerConfig)).thenReturn(mockClient);
-		Mockito.when(mockDynamicService.getClientConfiguration(mockServerConfig)).thenReturn(mockClient);
+		// unused by mockito (causs unnecessary stubbing exception
+//		Mockito.when(mockStaticService.getClientConfiguration(mockServerConfig)).thenReturn(mockClient);
+//		Mockito.when(mockDynamicService.getClientConfiguration(mockServerConfig)).thenReturn(mockClient);
 
 		// But oh noes! We're going to ask it to find us some other issuer
+		// unused by mockito (causs unnecessary stubbing exception
 		ServerConfiguration badIssuer = Mockito.mock(ServerConfiguration.class);
-		Mockito.when(badIssuer.getIssuer()).thenReturn("www.badexample.com");
+//		Mockito.when(badIssuer.getIssuer()).thenReturn("www.badexample.com");
 
 		RegisteredClient result = hybridService.getClientConfiguration(badIssuer);
 

@@ -26,7 +26,7 @@ import org.junit.runner.RunWith;
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.util.Base64URL;
