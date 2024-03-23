@@ -41,10 +41,6 @@ class AuthorizationCodeEntity {
 
     /**
      * The authentication in place when this token was created.
-     * @return the authentication
-     */
-    /**
-     * @param authentication the authentication to set
      */
     @get:JoinColumn(name = "auth_holder_id")
     @get:ManyToOne
@@ -64,7 +60,11 @@ class AuthorizationCodeEntity {
      * @param authenticationHolder    the AuthoriztionRequestHolder associated with the original code request
      * @param expiration The expiration date
      */
-    constructor(code: String?, authenticationHolder: AuthenticationHolderEntity?, expiration: Date?) {
+    constructor(
+        code: String? = null,
+        authenticationHolder: AuthenticationHolderEntity? = null,
+        expiration: Date? = null,
+    ) {
         this.code = code
         this.authenticationHolder = authenticationHolder
         this.expiration = expiration
