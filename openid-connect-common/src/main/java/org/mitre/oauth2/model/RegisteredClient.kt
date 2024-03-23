@@ -30,7 +30,7 @@ import java.util.*
 /**
  * @author jricher
  */
-class RegisteredClient(
+class RegisteredClient @JvmOverloads constructor(
     var client: ClientDetailsEntity = ClientDetailsEntity(),// these fields are needed in addition to the ones in ClientDetailsEntity
     var registrationAccessToken: String? = null, var registrationClientUri: String? = null
 ) {
