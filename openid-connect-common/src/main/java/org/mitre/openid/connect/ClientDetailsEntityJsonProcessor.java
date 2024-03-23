@@ -263,12 +263,6 @@ public class ClientDetailsEntityJsonProcessor {
 		}
 	}
 
-	/**
-	 * @param c
-	 * @param token
-	 * @param registrationUri
-	 * @return
-	 */
 	public static JsonObject serialize(RegisteredClient c) {
 
 		if (c.getSource() != null) {
