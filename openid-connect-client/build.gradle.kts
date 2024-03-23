@@ -18,7 +18,7 @@ dependencies {
     implementation(libs.javax.ann)
 
     testImplementation(libs.junit4)
-    testImplementation(libs.mockito.all)
+    testImplementation(libs.mockito.core)
 }
 
 tasks.named<Test>("test") {

@@ -52,7 +52,7 @@ dependencies {
 */
 
     testImplementation(libs.junit4)
-    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.inline)
     testImplementation(libs.spring.test)
 //    testImplementation(libs.hamcrest.all)
     testImplementation(libs.hamcrest.core)
