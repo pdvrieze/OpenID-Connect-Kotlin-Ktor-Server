@@ -7,39 +7,35 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.oauth2.service;
+ */
+package org.mitre.oauth2.service
 
-import java.util.Collection;
+import org.mitre.oauth2.model.ClientDetailsEntity
+import org.springframework.security.oauth2.common.exceptions.OAuth2Exception
+import org.springframework.security.oauth2.provider.ClientDetailsService
 
-import org.mitre.oauth2.model.ClientDetailsEntity;
-import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
-import org.springframework.security.oauth2.provider.ClientDetailsService;
+interface ClientDetailsEntityService : ClientDetailsService {
+    fun saveNewClient(client: ClientDetailsEntity?): ClientDetailsEntity?
 
-public interface ClientDetailsEntityService extends ClientDetailsService {
+    fun getClientById(id: Long?): ClientDetailsEntity?
 
-	public ClientDetailsEntity saveNewClient(ClientDetailsEntity client);
+    @Throws(OAuth2Exception::class)
+    override fun loadClientByClientId(clientId: String): ClientDetailsEntity?
 
-	public ClientDetailsEntity getClientById(Long id);
+    fun deleteClient(client: ClientDetailsEntity)
 
-	@Override
-	public ClientDetailsEntity loadClientByClientId(String clientId) throws OAuth2Exception;
+    fun updateClient(oldClient: ClientDetailsEntity, newClient: ClientDetailsEntity): ClientDetailsEntity?
 
-	public void deleteClient(ClientDetailsEntity client);
+    val allClients: Collection<ClientDetailsEntity>
 
-	public ClientDetailsEntity updateClient(ClientDetailsEntity oldClient, ClientDetailsEntity newClient);
+    fun generateClientId(client: ClientDetailsEntity): ClientDetailsEntity
 
-	public Collection<ClientDetailsEntity> getAllClients();
-
-	public ClientDetailsEntity generateClientId(ClientDetailsEntity client);
-
-	public ClientDetailsEntity generateClientSecret(ClientDetailsEntity client);
-
+    fun generateClientSecret(client: ClientDetailsEntity): ClientDetailsEntity
 }

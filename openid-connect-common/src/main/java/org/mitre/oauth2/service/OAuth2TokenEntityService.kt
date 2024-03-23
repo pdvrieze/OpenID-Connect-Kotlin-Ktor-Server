@@ -7,57 +7,51 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.oauth2.service;
+ */
+package org.mitre.oauth2.service
 
-import java.util.List;
-import java.util.Set;
+import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.OAuth2AccessTokenEntity
+import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
+import org.springframework.security.oauth2.provider.OAuth2Authentication
+import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices
+import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices
 
-import org.mitre.oauth2.model.ClientDetailsEntity;
-import org.mitre.oauth2.model.OAuth2AccessTokenEntity;
-import org.mitre.oauth2.model.OAuth2RefreshTokenEntity;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
-import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
+interface OAuth2TokenEntityService : AuthorizationServerTokenServices, ResourceServerTokenServices {
+    override fun readAccessToken(accessTokenValue: String): OAuth2AccessTokenEntity
 
-public interface OAuth2TokenEntityService extends AuthorizationServerTokenServices, ResourceServerTokenServices {
+    fun getRefreshToken(refreshTokenValue: String): OAuth2RefreshTokenEntity?
 
-	@Override
-	public OAuth2AccessTokenEntity readAccessToken(String accessTokenValue);
+    fun revokeRefreshToken(refreshToken: OAuth2RefreshTokenEntity)
 
-	public OAuth2RefreshTokenEntity getRefreshToken(String refreshTokenValue);
+    fun revokeAccessToken(accessToken: OAuth2AccessTokenEntity)
 
-	public void revokeRefreshToken(OAuth2RefreshTokenEntity refreshToken);
+    fun getAccessTokensForClient(client: ClientDetailsEntity): List<OAuth2AccessTokenEntity>
 
-	public void revokeAccessToken(OAuth2AccessTokenEntity accessToken);
+    fun getRefreshTokensForClient(client: ClientDetailsEntity): List<OAuth2RefreshTokenEntity>
 
-	public List<OAuth2AccessTokenEntity> getAccessTokensForClient(ClientDetailsEntity client);
+    fun clearExpiredTokens()
 
-	public List<OAuth2RefreshTokenEntity> getRefreshTokensForClient(ClientDetailsEntity client);
+    fun saveAccessToken(accessToken: OAuth2AccessTokenEntity): OAuth2AccessTokenEntity
 
-	public void clearExpiredTokens();
+    fun saveRefreshToken(refreshToken: OAuth2RefreshTokenEntity): OAuth2RefreshTokenEntity
 
-	public OAuth2AccessTokenEntity saveAccessToken(OAuth2AccessTokenEntity accessToken);
+    override fun getAccessToken(authentication: OAuth2Authentication): OAuth2AccessTokenEntity
 
-	public OAuth2RefreshTokenEntity saveRefreshToken(OAuth2RefreshTokenEntity refreshToken);
+    fun getAccessTokenById(id: java.lang.Long): OAuth2AccessTokenEntity?
 
-	@Override
-	public OAuth2AccessTokenEntity getAccessToken(OAuth2Authentication authentication);
+    fun getRefreshTokenById(id: java.lang.Long): OAuth2RefreshTokenEntity?
 
-	public OAuth2AccessTokenEntity getAccessTokenById(Long id);
+    fun getAllAccessTokensForUser(name: String): Set<OAuth2AccessTokenEntity>
 
-	public OAuth2RefreshTokenEntity getRefreshTokenById(Long id);
+    fun getAllRefreshTokensForUser(name: String): Set<OAuth2RefreshTokenEntity>
 
-	public Set<OAuth2AccessTokenEntity> getAllAccessTokensForUser(String name);
-
-	public Set<OAuth2RefreshTokenEntity> getAllRefreshTokensForUser(String name);
-
-	public OAuth2AccessTokenEntity getRegistrationAccessTokenForClient(ClientDetailsEntity client);
+    fun getRegistrationAccessTokenForClient(client: ClientDetailsEntity): OAuth2AccessTokenEntity?
 }

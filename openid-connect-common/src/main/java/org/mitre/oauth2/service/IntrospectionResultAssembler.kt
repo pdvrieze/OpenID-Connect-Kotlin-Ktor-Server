@@ -5,60 +5,79 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.oauth2.service;
+ */
+package org.mitre.oauth2.service
 
-import java.text.SimpleDateFormat;
-import java.util.Map;
-import java.util.Set;
-
-import javax.swing.text.DateFormatter;
-
-import org.mitre.oauth2.model.OAuth2AccessTokenEntity;
-import org.mitre.oauth2.model.OAuth2RefreshTokenEntity;
-import org.mitre.openid.connect.model.UserInfo;
+import org.mitre.oauth2.model.OAuth2AccessTokenEntity
+import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
+import org.mitre.openid.connect.model.UserInfo
+import java.text.SimpleDateFormat
+import javax.swing.text.DateFormatter
 
 /**
  * Strategy interface for assembling a token introspection result.
  */
-public interface IntrospectionResultAssembler {
+interface IntrospectionResultAssembler {
+    /**
+     * Assemble a token introspection result from the given access token and user info.
+     *
+     * @param accessToken the access token
+     * @param userInfo the user info
+     * @param authScopes the scopes the client is authorized for
+     * @return the token introspection result
+     */
+    fun assembleFrom(
+        accessToken: OAuth2AccessTokenEntity, userInfo: UserInfo, authScopes: Set<String>
+    ): Map<String, Any>
 
-	public String TOKEN_TYPE = "token_type";
-	public String CLIENT_ID = "client_id";
-	public String USER_ID = "user_id";
-	public String SUB = "sub";
-	public String EXP = "exp";
-	public String EXPIRES_AT = "expires_at";
-	public String SCOPE_SEPARATOR = " ";
-	public String SCOPE = "scope";
-	public String ACTIVE = "active";
-	public DateFormatter dateFormat = new DateFormatter(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ"));
+    /**
+     * Assemble a token introspection result from the given refresh token and user info.
+     *
+     * @param refreshToken the refresh token
+     * @param userInfo the user info
+     * @param authScopes the scopes the client is authorized for
+     * @return the token introspection result
+     */
+    fun assembleFrom(
+        refreshToken: OAuth2RefreshTokenEntity, userInfo: UserInfo, authScopes: Set<String>
+    ): Map<String, Any>
 
-	/**
-	 * Assemble a token introspection result from the given access token and user info.
-	 *
-	 * @param accessToken the access token
-	 * @param userInfo the user info
-	 * @param authScopes the scopes the client is authorized for
-	 * @return the token introspection result
-	 */
-	Map<String, Object> assembleFrom(OAuth2AccessTokenEntity accessToken, UserInfo userInfo, Set<String> authScopes);
+    companion object {
+        @JvmField
+        val TOKEN_TYPE: String = "token_type"
 
-	/**
-	 * Assemble a token introspection result from the given refresh token and user info.
-	 *
-	 * @param refreshToken the refresh token
-	 * @param userInfo the user info
-	 * @param authScopes the scopes the client is authorized for
-	 * @return the token introspection result
-	 */
-	Map<String, Object> assembleFrom(OAuth2RefreshTokenEntity refreshToken, UserInfo userInfo, Set<String> authScopes);
+        @JvmField
+        val CLIENT_ID: String = "client_id"
 
+        @JvmField
+        val USER_ID: String = "user_id"
+
+        @JvmField
+        val SUB: String = "sub"
+
+        @JvmField
+        val EXP: String = "exp"
+
+        @JvmField
+        val EXPIRES_AT: String = "expires_at"
+
+        @JvmField
+        val SCOPE_SEPARATOR: String = " "
+
+        @JvmField
+        val SCOPE: String = "scope"
+
+        @JvmField
+        val ACTIVE: String = "active"
+
+        @JvmField
+        val dateFormat: DateFormatter = DateFormatter(SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ"))
+    }
 }

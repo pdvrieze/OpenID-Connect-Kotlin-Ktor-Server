@@ -7,113 +7,109 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
+ */
 /**
  *
  */
-package org.mitre.oauth2.service;
+package org.mitre.oauth2.service
 
-import java.util.Set;
-
-import org.mitre.oauth2.model.SystemScope;
-
-import com.google.common.collect.Sets;
+import com.google.common.collect.Sets
+import org.mitre.oauth2.model.SystemScope
 
 /**
  * @author jricher
- *
  */
-public interface SystemScopeService {
+interface SystemScopeService {
+    val all: Set<SystemScope>
 
-	public static final String OFFLINE_ACCESS = "offline_access";
-	public static final String OPENID_SCOPE = "openid";
-	public static final String REGISTRATION_TOKEN_SCOPE = "registration-token"; // this scope manages dynamic client registrations
-	public static final String RESOURCE_TOKEN_SCOPE = "resource-token"; // this scope manages client-style protected resources
-	public static final String UMA_PROTECTION_SCOPE = "uma_protection";
-	public static final String UMA_AUTHORIZATION_SCOPE = "uma_authorization";
+    /**
+     * Get all scopes that are defaulted to new clients on this system
+     * @return
+     */
+    val defaults: Set<SystemScope>
 
-	public static final Set<SystemScope> reservedScopes =
-			Sets.newHashSet(
-					new SystemScope(REGISTRATION_TOKEN_SCOPE),
-					new SystemScope(RESOURCE_TOKEN_SCOPE)
-					);
+    /**
+     * Get all the reserved system scopes. These can't be used
+     * by clients directly, but are instead tied to special system
+     * tokens like id tokens and registration access tokens.
+     *
+     * @return
+     */
+    val reserved: Set<SystemScope>
 
-	public Set<SystemScope> getAll();
+    /**
+     * Get all the registered scopes that are restricted.
+     * @return
+     */
+    val restricted: Set<SystemScope>
 
-	/**
-	 * Get all scopes that are defaulted to new clients on this system
-	 * @return
-	 */
-	public Set<SystemScope> getDefaults();
+    /**
+     * Get all the registered scopes that aren't restricted.
+     * @return
+     */
+    val unrestricted: Set<SystemScope>
 
-	/**
-	 * Get all the reserved system scopes. These can't be used
-	 * by clients directly, but are instead tied to special system
-	 * tokens like id tokens and registration access tokens.
-	 *
-	 * @return
-	 */
-	public Set<SystemScope> getReserved();
+    fun getById(id: java.lang.Long): SystemScope?
 
-	/**
-	 * Get all the registered scopes that are restricted.
-	 * @return
-	 */
-	public Set<SystemScope> getRestricted();
+    fun getByValue(value: String): SystemScope?
 
-	/**
-	 * Get all the registered scopes that aren't restricted.
-	 * @return
-	 */
-	public Set<SystemScope> getUnrestricted();
+    fun remove(scope: SystemScope)
 
-	public SystemScope getById(Long id);
+    fun save(scope: SystemScope): SystemScope
 
-	public SystemScope getByValue(String value);
+    /**
+     * Translate the set of scope strings into a set of SystemScope objects.
+     * @param scope
+     * @return
+     */
+    fun fromStrings(scope: Set<String>): Set<SystemScope>
 
-	public void remove(SystemScope scope);
+    /**
+     * Pluck the scope values from the set of SystemScope objects and return a list of strings
+     * @param scope
+     * @return
+     */
+    fun toStrings(scope: Set<SystemScope>): Set<String>
 
-	public SystemScope save(SystemScope scope);
+    /**
+     * Test whether the scopes in both sets are compatible. All scopes in "actual" must exist in "expected".
+     */
+    fun scopesMatch(expected: Set<String>, actual: Set<String>): Boolean
 
-	/**
-	 * Translate the set of scope strings into a set of SystemScope objects.
-	 * @param scope
-	 * @return
-	 */
-	public Set<SystemScope> fromStrings(Set<String> scope);
+    /**
+     * Remove any system-reserved or registered restricted scopes from the
+     * set and return the result.
+     * @param scopes
+     * @return
+     */
+    fun removeRestrictedAndReservedScopes(scopes: Set<SystemScope>): Set<SystemScope>
 
-	/**
-	 * Pluck the scope values from the set of SystemScope objects and return a list of strings
-	 * @param scope
-	 * @return
-	 */
-	public Set<String> toStrings(Set<SystemScope> scope);
+    /**
+     * Remove any system-reserved scopes from the set and return the result.
+     * @param scopes
+     * @return
+     */
+    fun removeReservedScopes(scopes: Set<SystemScope>): Set<SystemScope>
 
-	/**
-	 * Test whether the scopes in both sets are compatible. All scopes in "actual" must exist in "expected".
-	 */
-	public boolean scopesMatch(Set<String> expected, Set<String> actual);
+    companion object {
+        const val OFFLINE_ACCESS: String = "offline_access"
+        const val OPENID_SCOPE: String = "openid"
+        const val REGISTRATION_TOKEN_SCOPE: String =
+            "registration-token" // this scope manages dynamic client registrations
+        const val RESOURCE_TOKEN_SCOPE: String = "resource-token" // this scope manages client-style protected resources
+        const val UMA_PROTECTION_SCOPE: String = "uma_protection"
+        const val UMA_AUTHORIZATION_SCOPE: String = "uma_authorization"
 
-	/**
-	 * Remove any system-reserved or registered restricted scopes from the
-	 * set and return the result.
-	 * @param scopes
-	 * @return
-	 */
-	public Set<SystemScope> removeRestrictedAndReservedScopes(Set<SystemScope> scopes);
-
-	/**
-	 * Remove any system-reserved scopes from the set and return the result.
-	 * @param scopes
-	 * @return
-	 */
-	public Set<SystemScope> removeReservedScopes(Set<SystemScope> scopes);
-
+        val reservedScopes: Set<SystemScope> = Sets.newHashSet(
+            SystemScope(REGISTRATION_TOKEN_SCOPE),
+            SystemScope(RESOURCE_TOKEN_SCOPE)
+        )
+    }
 }

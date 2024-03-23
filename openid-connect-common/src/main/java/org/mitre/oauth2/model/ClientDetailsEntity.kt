@@ -79,7 +79,7 @@ open class ClientDetailsEntity : ClientDetails {
 
     @get:Column(name = "token_endpoint_auth_method")
     @get:Enumerated(EnumType.STRING)
-    open var tokenEndpointAuthMethod: AuthMethod = AuthMethod.SECRET_BASIC // token_endpoint_auth_method
+    open var tokenEndpointAuthMethod: AuthMethod? = AuthMethod.SECRET_BASIC // token_endpoint_auth_method
     private var scope: Set<String> = HashSet() // scope
 
     @get:Column(name = "grant_type")

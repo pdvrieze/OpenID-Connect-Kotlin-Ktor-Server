@@ -196,7 +196,7 @@ public class DefaultSystemScopeService implements SystemScopeService {
 
 	@Override
 	public Set<SystemScope> getReserved() {
-		return reservedScopes;
+		return SystemScopeService.Companion.getReservedScopes();
 	}
 
 	@Override

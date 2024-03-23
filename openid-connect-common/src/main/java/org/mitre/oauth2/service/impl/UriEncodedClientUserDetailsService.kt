@@ -5,104 +5,83 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.oauth2.service.impl;
+ */
+package org.mitre.oauth2.service.impl
 
-import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
-import java.security.SecureRandom;
-import java.util.Collection;
-import java.util.HashSet;
-
-import org.mitre.oauth2.model.ClientDetailsEntity;
-import org.mitre.oauth2.model.ClientDetailsEntity.AuthMethod;
-import org.mitre.oauth2.service.ClientDetailsEntityService;
-import org.mitre.openid.connect.config.ConfigurationPropertiesBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
-import org.springframework.stereotype.Service;
-import org.springframework.web.util.UriUtils;
-
-import com.google.common.base.Strings;
+import com.google.common.base.Strings
+import org.mitre.oauth2.model.ClientDetailsEntity.AuthMethod
+import org.mitre.oauth2.service.ClientDetailsEntityService
+import org.mitre.openid.connect.config.ConfigurationPropertiesBean
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.core.userdetails.User
+import org.springframework.security.core.userdetails.UserDetails
+import org.springframework.security.core.userdetails.UserDetailsService
+import org.springframework.security.core.userdetails.UsernameNotFoundException
+import org.springframework.security.oauth2.common.exceptions.InvalidClientException
+import org.springframework.stereotype.Service
+import org.springframework.web.util.UriUtils
+import java.math.BigInteger
+import java.security.SecureRandom
 
 /**
  * Loads client details based on URI encoding as passed in from basic auth.
  *
- *  Should only get called if non-encoded provider fails.
+ * Should only get called if non-encoded provider fails.
  *
  * @author AANGANES
- *
  */
 @Service("uriEncodedClientUserDetailsService")
-public class UriEncodedClientUserDetailsService implements UserDetailsService {
+class UriEncodedClientUserDetailsService : UserDetailsService {
+    @Autowired
+    lateinit var clientDetailsService: ClientDetailsEntityService
+        protected set
 
-	private static GrantedAuthority ROLE_CLIENT = new SimpleGrantedAuthority("ROLE_CLIENT");
+    @Autowired
+    private lateinit var config: ConfigurationPropertiesBean
 
-	@Autowired
-	private ClientDetailsEntityService clientDetailsService;
+    @Throws(UsernameNotFoundException::class)
+    override fun loadUserByUsername(clientId: String): UserDetails {
+        try {
+            val decodedClientId = UriUtils.decode(clientId, "UTF-8")
 
-	@Autowired
-	private ConfigurationPropertiesBean config;
+            val client = clientDetailsService.loadClientByClientId(decodedClientId)
+                ?: throw UsernameNotFoundException("Client not found: $clientId")
 
-	@Override
-	public UserDetails loadUserByUsername(String clientId) throws  UsernameNotFoundException {
+            var encodedPassword = UriUtils.encodePathSegment(Strings.nullToEmpty(client.clientSecret), "UTF-8")
 
-		try {
-			String decodedClientId = UriUtils.decode(clientId, "UTF-8");
+            if (config.isHeartMode ||  // if we're running HEART mode turn off all client secrets
+                (client.tokenEndpointAuthMethod != null &&
+                        (client.tokenEndpointAuthMethod == AuthMethod.PRIVATE_KEY || client.tokenEndpointAuthMethod == AuthMethod.SECRET_JWT))
+            ) {
+                // Issue a random password each time to prevent password auth from being used (or skipped)
+                // for private key or shared key clients, see #715
 
-			ClientDetailsEntity client = clientDetailsService.loadClientByClientId(decodedClientId);
+                encodedPassword = BigInteger(512, SecureRandom()).toString(16)
+            }
 
-			if (client != null) {
+            val enabled = true
+            val accountNonExpired = true
+            val credentialsNonExpired = true
+            val accountNonLocked = true
+            val authorities: MutableCollection<GrantedAuthority> = HashSet(client.authorities)
+            authorities.add(ROLE_CLIENT)
 
-				String encodedPassword = UriUtils.encodePathSegment(Strings.nullToEmpty(client.getClientSecret()), "UTF-8");
+            return User(decodedClientId, encodedPassword, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, authorities)
+        } catch (e: InvalidClientException) {
+            throw UsernameNotFoundException("Client not found: $clientId")
+        }
+    }
 
-				if (config.isHeartMode() || // if we're running HEART mode turn off all client secrets
-						(client.getTokenEndpointAuthMethod() != null &&
-							(client.getTokenEndpointAuthMethod().equals(AuthMethod.PRIVATE_KEY) ||
-								client.getTokenEndpointAuthMethod().equals(AuthMethod.SECRET_JWT)))) {
-
-					// Issue a random password each time to prevent password auth from being used (or skipped)
-					// for private key or shared key clients, see #715
-
-					encodedPassword = new BigInteger(512, new SecureRandom()).toString(16);
-				}
-
-				boolean enabled = true;
-				boolean accountNonExpired = true;
-				boolean credentialsNonExpired = true;
-				boolean accountNonLocked = true;
-				Collection<GrantedAuthority> authorities = new HashSet<>(client.getAuthorities());
-				authorities.add(ROLE_CLIENT);
-
-				return new User(decodedClientId, encodedPassword, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, authorities);
-			} else {
-				throw new UsernameNotFoundException("Client not found: " + clientId);
-			}
-		} catch (InvalidClientException e) {
-			throw new UsernameNotFoundException("Client not found: " + clientId);
-		}
-
-	}
-
-	public ClientDetailsEntityService getClientDetailsService() {
-		return clientDetailsService;
-	}
-
-	public void setClientDetailsService(ClientDetailsEntityService clientDetailsService) {
-		this.clientDetailsService = clientDetailsService;
-	}
-
+    companion object {
+        private val ROLE_CLIENT: GrantedAuthority = SimpleGrantedAuthority("ROLE_CLIENT")
+    }
 }
