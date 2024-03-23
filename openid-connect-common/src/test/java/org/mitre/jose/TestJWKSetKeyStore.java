@@ -126,7 +126,7 @@ public class TestJWKSetKeyStore {
 		boolean thrown = false;
 		try {
 			new JWKSetKeyStore(null);
-		} catch (IllegalArgumentException e) {
+		} catch (NullPointerException | IllegalArgumentException e) {
 			thrown = true;
 		}
 		assertTrue(thrown);

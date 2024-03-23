@@ -7,235 +7,146 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
+ */
 /**
  *
  */
-package org.mitre.oauth2.model;
+package org.mitre.oauth2.model
 
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
+import javax.persistence.*
 
 /**
  * @author jricher
- *
  */
 @Entity
 @Table(name = "system_scope")
-@NamedQueries({
-	@NamedQuery(name = SystemScope.QUERY_ALL, query = "select s from SystemScope s ORDER BY s.id"),
-	@NamedQuery(name = SystemScope.QUERY_BY_VALUE, query = "select s from SystemScope s WHERE s.value = :" + SystemScope.PARAM_VALUE)
-})
-public class SystemScope {
+@NamedQueries(NamedQuery(name = SystemScope.QUERY_ALL, query = "select s from SystemScope s ORDER BY s.id"), NamedQuery(name = SystemScope.QUERY_BY_VALUE, query = "select s from SystemScope s WHERE s.value = :" + SystemScope.PARAM_VALUE))
+class SystemScope {
+    @get:Column(name = "id")
+    @get:GeneratedValue(strategy = GenerationType.IDENTITY)
+    @get:Id
+    var id: Long? = null
 
-	public static final String QUERY_BY_VALUE = "SystemScope.getByValue";
-	public static final String QUERY_ALL = "SystemScope.findAll";
+    @get:Column(name = "scope")
+    @get:Basic
+    var value: String? = null // scope value
 
-	public static final String PARAM_VALUE = "value";
+    @get:Column(name = "description")
+    @get:Basic
+    var description: String? = null // human-readable description
 
-	private Long id;
-	private String value; // scope value
-	private String description; // human-readable description
-	private String icon; // class of the icon to display on the auth page
-	private boolean defaultScope = false; // is this a default scope for newly-registered clients?
-	private boolean restricted = false; // is this scope restricted to admin-only registration access?
+    @get:Column(name = "icon")
+    @get:Basic
+    var icon: String? = null // class of the icon to display on the auth page
 
-	/**
-	 * Make a blank system scope with no value
-	 */
-	public SystemScope() {
+    @get:Column(name = "default_scope")
+    @get:Basic
+    var isDefaultScope: Boolean = false // is this a default scope for newly-registered clients?
 
-	}
+    @get:Column(name = "restricted")
+    @get:Basic
+    var isRestricted: Boolean = false // is this scope restricted to admin-only registration access?
 
-	/**
-	 * Make a system scope with the given scope value
-	 * @param value
-	 */
-	public SystemScope(String value) {
-		this.value = value;
-	}
+    /**
+     * Make a blank system scope with no value
+     */
+    constructor()
 
-	/**
-	 * @return the id
-	 */
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id")
-	public Long getId() {
-		return id;
-	}
-	/**
-	 * @param id the id to set
-	 */
-	public void setId(Long id) {
-		this.id = id;
-	}
-	/**
-	 * @return the value
-	 */
-	@Basic
-	@Column(name = "scope")
-	public String getValue() {
-		return value;
-	}
-	/**
-	 * @param value the value to set
-	 */
-	public void setValue(String value) {
-		this.value = value;
-	}
-	/**
-	 * @return the description
-	 */
-	@Basic
-	@Column(name = "description")
-	public String getDescription() {
-		return description;
-	}
-	/**
-	 * @param description the description to set
-	 */
-	public void setDescription(String description) {
-		this.description = description;
-	}
-	/**
-	 * @return the icon
-	 */
-	@Basic
-	@Column(name = "icon")
-	public String getIcon() {
-		return icon;
-	}
-	/**
-	 * @param icon the icon to set
-	 */
-	public void setIcon(String icon) {
-		this.icon = icon;
-	}
+    /**
+     * Make a system scope with the given scope value
+     * @param value
+     */
+    constructor(value: String?) {
+        this.value = value
+    }
 
-	/**
-	 * @return the defaultScope
-	 */
-	@Basic
-	@Column(name = "default_scope")
-	public boolean isDefaultScope() {
-		return defaultScope;
-	}
-
-	/**
-	 * @param defaultScope the defaultScope to set
-	 */
-	public void setDefaultScope(boolean defaultScope) {
-		this.defaultScope = defaultScope;
-	}
-
-	/**
-	 * @return the restricted
-	 */
-	@Basic
-	@Column(name = "restricted")
-	public boolean isRestricted() {
-		return restricted;
-	}
-
-	/**
-	 * @param restricted the restricted to set
-	 */
-	public void setRestricted(boolean restricted) {
-		this.restricted = restricted;
-	}
-
-	/* (non-Javadoc)
+    /* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
 	 */
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + (defaultScope ? 1231 : 1237);
-		result = prime * result
-				+ ((description == null) ? 0 : description.hashCode());
-		result = prime * result + ((icon == null) ? 0 : icon.hashCode());
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		result = prime * result + (restricted ? 1231 : 1237);
-		result = prime * result + ((value == null) ? 0 : value.hashCode());
-		return result;
-	}
+    override fun hashCode(): Int {
+        val prime = 31
+        var result = 1
+        result = prime * result + (if (isDefaultScope) 1231 else 1237)
+        result = (prime * result
+                + (if ((description == null)) 0 else description.hashCode()))
+        result = prime * result + (if ((icon == null)) 0 else icon.hashCode())
+        result = prime * result + (if ((id == null)) 0 else id.hashCode())
+        result = prime * result + (if (isRestricted) 1231 else 1237)
+        result = prime * result + (if ((value == null)) 0 else value.hashCode())
+        return result
+    }
 
-	/* (non-Javadoc)
+    /* (non-Javadoc)
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		SystemScope other = (SystemScope) obj;
-		if (defaultScope != other.defaultScope) {
-			return false;
-		}
-		if (description == null) {
-			if (other.description != null) {
-				return false;
-			}
-		} else if (!description.equals(other.description)) {
-			return false;
-		}
-		if (icon == null) {
-			if (other.icon != null) {
-				return false;
-			}
-		} else if (!icon.equals(other.icon)) {
-			return false;
-		}
-		if (id == null) {
-			if (other.id != null) {
-				return false;
-			}
-		} else if (!id.equals(other.id)) {
-			return false;
-		}
-		if (restricted != other.restricted) {
-			return false;
-		}
-		if (value == null) {
-			if (other.value != null) {
-				return false;
-			}
-		} else if (!value.equals(other.value)) {
-			return false;
-		}
-		return true;
-	}
+    override fun equals(other: Any?): Boolean {
+        if (this === other) {
+            return true
+        }
+        if (other == null) {
+            return false
+        }
+        if (javaClass != other.javaClass) {
+            return false
+        }
+        other as SystemScope
+        if (isDefaultScope != other.isDefaultScope) {
+            return false
+        }
+        if (description == null) {
+            if (other.description != null) {
+                return false
+            }
+        } else if (description != other.description) {
+            return false
+        }
+        if (icon == null) {
+            if (other.icon != null) {
+                return false
+            }
+        } else if (icon != other.icon) {
+            return false
+        }
+        if (id == null) {
+            if (other.id != null) {
+                return false
+            }
+        } else if (id != other.id) {
+            return false
+        }
+        if (isRestricted != other.isRestricted) {
+            return false
+        }
+        if (value == null) {
+            if (other.value != null) {
+                return false
+            }
+        } else if (value != other.value) {
+            return false
+        }
+        return true
+    }
 
-	/* (non-Javadoc)
+    /* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
-	@Override
-	public String toString() {
-		return "SystemScope [id=" + id + ", value=" + value + ", description="
-				+ description + ", icon=" + icon + ", defaultScope="
-				+ defaultScope + ", restricted=" + restricted + "]";
-	}
+    override fun toString(): String {
+        return ("SystemScope [id=" + id + ", value=" + value + ", description="
+                + description + ", icon=" + icon + ", defaultScope="
+                + isDefaultScope + ", restricted=" + isRestricted + "]")
+    }
 
+    companion object {
+        const val QUERY_BY_VALUE: String = "SystemScope.getByValue"
+        const val QUERY_ALL: String = "SystemScope.findAll"
+
+        const val PARAM_VALUE: String = "value"
+    }
 }

@@ -5,37 +5,34 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
+ */
+package org.mitre.jwt.signer.service.impl
 
-package org.mitre.jwt.signer.service.impl;
-
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-
-import org.mitre.jose.keystore.JWKSetKeyStore;
-import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService;
-import org.mitre.jwt.encryption.service.impl.DefaultJWTEncryptionAndDecryptionService;
-import org.mitre.jwt.signer.service.JWTSigningAndValidationService;
-import org.mitre.oauth2.model.ClientDetailsEntity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import com.google.common.base.Strings;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.util.concurrent.UncheckedExecutionException;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.jwk.JWKSet;
+import com.google.common.base.Strings
+import com.google.common.cache.CacheBuilder
+import com.google.common.cache.CacheLoader
+import com.google.common.cache.LoadingCache
+import com.google.common.util.concurrent.UncheckedExecutionException
+import com.nimbusds.jose.JWSAlgorithm
+import com.nimbusds.jose.jwk.JWKSet
+import org.mitre.jose.keystore.JWKSetKeyStore
+import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
+import org.mitre.jwt.encryption.service.impl.DefaultJWTEncryptionAndDecryptionService
+import org.mitre.jwt.signer.service.JWTSigningAndValidationService
+import org.mitre.oauth2.model.ClientDetailsEntity
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Service
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.TimeUnit
 
 /**
  *
@@ -43,113 +40,88 @@ import com.nimbusds.jose.jwk.JWKSet;
  * that client's registered key types.
  *
  * @author jricher
- *
  */
 @Service
-public class ClientKeyCacheService {
+class ClientKeyCacheService {
+    @Autowired
+    private val jwksUriCache = JWKSetCacheService()
 
-	private static Logger logger = LoggerFactory.getLogger(ClientKeyCacheService.class);
+    @Autowired
+    private val symmetricCache = SymmetricKeyJWTValidatorCacheService()
 
-	@Autowired
-	private JWKSetCacheService jwksUriCache = new JWKSetCacheService();
+    // cache of validators for by-value JWKs
+    private val jwksValidators: LoadingCache<JWKSet, JWTSigningAndValidationService>
 
-	@Autowired
-	private SymmetricKeyJWTValidatorCacheService symmetricCache = new SymmetricKeyJWTValidatorCacheService();
+    // cache of encryptors for by-value JWKs
+    private val jwksEncrypters: LoadingCache<JWKSet, JWTEncryptionAndDecryptionService>
 
-	// cache of validators for by-value JWKs
-	private LoadingCache<JWKSet, JWTSigningAndValidationService> jwksValidators;
-
-	// cache of encryptors for by-value JWKs
-	private LoadingCache<JWKSet, JWTEncryptionAndDecryptionService> jwksEncrypters;
-
-	public ClientKeyCacheService() {
-		this.jwksValidators = CacheBuilder.newBuilder()
-				.expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
-				.maximumSize(100)
-				.build(new JWKSetVerifierBuilder());
-		this.jwksEncrypters = CacheBuilder.newBuilder()
-				.expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
-				.maximumSize(100)
-				.build(new JWKSetEncryptorBuilder());
-	}
+    init {
+        this.jwksValidators = CacheBuilder.newBuilder()
+            .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
+            .maximumSize(100)
+            .build(JWKSetVerifierBuilder())
+        this.jwksEncrypters = CacheBuilder.newBuilder()
+            .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
+            .maximumSize(100)
+            .build(JWKSetEncryptorBuilder())
+    }
 
 
-	public JWTSigningAndValidationService getValidator(ClientDetailsEntity client, JWSAlgorithm alg) {
+    fun getValidator(client: ClientDetailsEntity, alg: JWSAlgorithm): JWTSigningAndValidationService? {
+        try {
+            return when (alg) {
+                JWSAlgorithm.RS256, JWSAlgorithm.RS384, JWSAlgorithm.RS512, JWSAlgorithm.ES256, JWSAlgorithm.ES384, JWSAlgorithm.ES512, JWSAlgorithm.PS256, JWSAlgorithm.PS384, JWSAlgorithm.PS512 -> {
+                    // asymmetric key
 
-		try {
-			if (alg.equals(JWSAlgorithm.RS256)
-					|| alg.equals(JWSAlgorithm.RS384)
-					|| alg.equals(JWSAlgorithm.RS512)
-					|| alg.equals(JWSAlgorithm.ES256)
-					|| alg.equals(JWSAlgorithm.ES384)
-					|| alg.equals(JWSAlgorithm.ES512)
-					|| alg.equals(JWSAlgorithm.PS256)
-					|| alg.equals(JWSAlgorithm.PS384)
-					|| alg.equals(JWSAlgorithm.PS512)) {
+                    client.jwks?.let { jwksValidators[it] }
+                        ?: client.jwksUri?.takeIf { it.isNotEmpty() }?.let { jwksUriCache.getValidator(it) }
+                }
+                JWSAlgorithm.HS256, JWSAlgorithm.HS384, JWSAlgorithm.HS512 -> {
+                    // symmetric key
 
-				// asymmetric key
-				if (client.getJwks() != null) {
-					return jwksValidators.get(client.getJwks());
-				} else if (!Strings.isNullOrEmpty(client.getJwksUri())) {
-					return jwksUriCache.getValidator(client.getJwksUri());
-				} else {
-					return null;
-				}
+                    symmetricCache.getSymmetricValidtor(client)
+                }
+                else -> null
+            }
+        } catch (e: UncheckedExecutionException) {
+            logger.error("Problem loading client validator", e)
+            return null
+        } catch (e: ExecutionException) {
+            logger.error("Problem loading client validator", e)
+            return null
+        }
+    }
 
-			} else if (alg.equals(JWSAlgorithm.HS256)
-					|| alg.equals(JWSAlgorithm.HS384)
-					|| alg.equals(JWSAlgorithm.HS512)) {
-
-				// symmetric key
-
-				return symmetricCache.getSymmetricValidtor(client);
-
-			} else {
-
-				return null;
-			}
-		} catch (UncheckedExecutionException | ExecutionException e) {
-			logger.error("Problem loading client validator", e);
-			return null;
-		}
-
-	}
-
-	public JWTEncryptionAndDecryptionService getEncrypter(ClientDetailsEntity client) {
-
-		try {
-			if (client.getJwks() != null) {
-				return jwksEncrypters.get(client.getJwks());
-			} else if (!Strings.isNullOrEmpty(client.getJwksUri())) {
-				return jwksUriCache.getEncrypter(client.getJwksUri());
-			} else {
-				return null;
-			}
-		} catch (UncheckedExecutionException | ExecutionException e) {
-			logger.error("Problem loading client encrypter", e);
-			return null;
-		}
-
-	}
+    fun getEncrypter(client: ClientDetailsEntity): JWTEncryptionAndDecryptionService? {
+        try {
+            return client.jwks?.let { jwksEncrypters[it] }
+                ?: client.jwksUri?.takeIf { it.isNotEmpty() }?.let { jwksUriCache.getEncrypter(it) }
+        } catch (e: UncheckedExecutionException) {
+            logger.error("Problem loading client encrypter", e)
+            return null
+        } catch (e: ExecutionException) {
+            logger.error("Problem loading client encrypter", e)
+            return null
+        }
+    }
 
 
-	private class JWKSetEncryptorBuilder extends CacheLoader<JWKSet, JWTEncryptionAndDecryptionService> {
+    private inner class JWKSetEncryptorBuilder : CacheLoader<JWKSet, JWTEncryptionAndDecryptionService>() {
+        @Throws(Exception::class)
+        override fun load(key: JWKSet): JWTEncryptionAndDecryptionService {
+            return DefaultJWTEncryptionAndDecryptionService(JWKSetKeyStore(key))
+        }
+    }
 
-		@Override
-		public JWTEncryptionAndDecryptionService load(JWKSet key) throws Exception {
-			return new DefaultJWTEncryptionAndDecryptionService(new JWKSetKeyStore(key));
-		}
-
-	}
-
-	private class JWKSetVerifierBuilder extends CacheLoader<JWKSet, JWTSigningAndValidationService> {
-
-		@Override
-		public JWTSigningAndValidationService load(JWKSet key) throws Exception {
-			return new DefaultJWTSigningAndValidationService(new JWKSetKeyStore(key));
-		}
-
-	}
+    private inner class JWKSetVerifierBuilder : CacheLoader<JWKSet, JWTSigningAndValidationService>() {
+        @Throws(Exception::class)
+        override fun load(key: JWKSet): JWTSigningAndValidationService {
+            return DefaultJWTSigningAndValidationService(JWKSetKeyStore(key))
+        }
+    }
 
 
+    companion object {
+        private val logger: Logger = LoggerFactory.getLogger(ClientKeyCacheService::class.java)
+    }
 }

@@ -10,3 +10,5 @@ bin
 /target
 .springBeans
 nb-configuration.xml
+/.gradle
+build

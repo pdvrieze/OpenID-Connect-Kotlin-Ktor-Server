@@ -319,11 +319,11 @@ public class TestDefaultJWTEncryptionAndDecryptionService {
 	@Test
 	public void setThenGetDefAlg() throws ParseException {
 
-		service.setDefaultAlgorithm(JWEAlgorithm.A128KW);
-		assertEquals(JWEAlgorithm.A128KW, service.getDefaultAlgorithm());
+		service.defaultAlgorithm = JWEAlgorithm.A128KW;
+		assertEquals(JWEAlgorithm.A128KW, service.defaultAlgorithm);
 
-		service.setDefaultAlgorithm(JWEAlgorithm.RSA_OAEP);
-		assertEquals(JWEAlgorithm.RSA_OAEP, service.getDefaultAlgorithm());
+		service.defaultAlgorithm = JWEAlgorithm.RSA_OAEP;
+		assertEquals(JWEAlgorithm.RSA_OAEP, service.defaultAlgorithm);
 	}
 
 

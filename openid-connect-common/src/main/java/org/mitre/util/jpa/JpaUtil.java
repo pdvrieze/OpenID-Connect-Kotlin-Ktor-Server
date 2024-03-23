@@ -55,7 +55,7 @@ public class JpaUtil {
 	 */
 	public static <T> List<T> getResultPage(TypedQuery<T> query, PageCriteria pageCriteria){
 		query.setMaxResults(pageCriteria.getPageSize());
-		query.setFirstResult(pageCriteria.getPageNumber()*pageCriteria.getPageSize());
+		query.setFirstResult(pageCriteria.getPageNumber() * pageCriteria.getPageSize());
 
 		return query.getResultList();
 	}

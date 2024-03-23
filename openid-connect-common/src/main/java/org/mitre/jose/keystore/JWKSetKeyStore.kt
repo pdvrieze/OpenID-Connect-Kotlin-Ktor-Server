@@ -7,118 +7,71 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
+ */
 /**
  *
  */
-package org.mitre.jose.keystore;
+package org.mitre.jose.keystore
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.text.ParseException;
-import java.util.List;
-
-import org.springframework.core.io.Resource;
-
-import com.google.common.base.Charsets;
-import com.google.common.io.CharStreams;
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.JWKSet;
+import com.google.common.base.Charsets
+import com.google.common.io.CharStreams
+import com.nimbusds.jose.jwk.JWK
+import com.nimbusds.jose.jwk.JWKSet
+import org.springframework.core.io.Resource
+import java.io.IOException
+import java.io.InputStreamReader
+import java.text.ParseException
 
 /**
  * @author jricher
- *
  */
-public class JWKSetKeyStore {
+class JWKSetKeyStore() {
 
-	private JWKSet jwkSet;
+    var jwkSet: JWKSet? = null
+        set(value) {
+            field = value
+            initializeJwkSet()
+        }
 
-	private Resource location;
+    var location: Resource? = null
+        set(value) {
+            field = value
+            initializeJwkSet()
+        }
 
-	public JWKSetKeyStore() {
+    constructor(jwkSet: JWKSet) : this() {
+        this.jwkSet = jwkSet
+    }
 
-	}
+    private fun initializeJwkSet(): JWKSet = when (val j = jwkSet) {
+        null -> {
+            val location = requireNotNull(location) { "Key store must be initialized with at least one of a jwkSet or a location." }
+            require(location.exists() && location.isReadable) { "Key Set resource could not be read: $location" }
+            try {
+                // read in the file from disk
+                val s = InputStreamReader(location.inputStream, Charsets.UTF_8).readText()
 
-	public JWKSetKeyStore(JWKSet jwkSet) {
-		this.jwkSet = jwkSet;
-		initializeJwkSet();
-	}
+                // parse it into a jwkSet object
+                JWKSet.parse(s).also { jwkSet = it }
+            } catch (e: IOException) {
+                throw IllegalArgumentException("Key Set resource could not be read: $location")
+            } catch (e: ParseException) {
+                throw IllegalArgumentException("Key Set resource could not be parsed: $location")
+            }
+        }
+        else -> j
+    }
 
-	private void initializeJwkSet() {
-
-		if (jwkSet == null) {
-			if (location != null) {
-
-				if (location.exists() && location.isReadable()) {
-
-					try {
-						// read in the file from disk
-						String s = CharStreams.toString(new InputStreamReader(location.getInputStream(), Charsets.UTF_8));
-
-						// parse it into a jwkSet object
-						jwkSet = JWKSet.parse(s);
-					} catch (IOException e) {
-						throw new IllegalArgumentException("Key Set resource could not be read: " + location);
-					} catch (ParseException e) {
-						throw new IllegalArgumentException("Key Set resource could not be parsed: " + location);                    }
-
-				} else {
-					throw new IllegalArgumentException("Key Set resource could not be read: " + location);
-				}
-
-			} else {
-				throw new IllegalArgumentException("Key store must be initialized with at least one of a jwkSet or a location.");
-			}
-		}
-	}
-
-	/**
-	 * @return the jwkSet
-	 */
-	public JWKSet getJwkSet() {
-		return jwkSet;
-	}
-
-	/**
-	 * @param jwkSet the jwkSet to set
-	 */
-	public void setJwkSet(JWKSet jwkSet) {
-		this.jwkSet = jwkSet;
-		initializeJwkSet();
-	}
-
-	/**
-	 * @return the location
-	 */
-	public Resource getLocation() {
-		return location;
-	}
-
-	/**
-	 * @param location the location to set
-	 */
-	public void setLocation(Resource location) {
-		this.location = location;
-		initializeJwkSet();
-	}
-
-	/**
-	 * Get the list of keys in this keystore. This is a passthrough to the underlying JWK Set
-	 */
-	public List<JWK> getKeys() {
-		if (jwkSet == null) {
-			initializeJwkSet();
-		}
-		return jwkSet.getKeys();
-	}
-
-
-
+    /**
+     * Get the list of keys in this keystore. This is a passthrough to the underlying JWK Set
+     */
+    val keys: List<JWK>
+        get() = (jwkSet ?: initializeJwkSet()).keys
 }

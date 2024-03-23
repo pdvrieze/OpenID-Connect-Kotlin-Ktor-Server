@@ -5,25 +5,22 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
+ */
+package org.mitre.oauth2.model.convert
 
-package org.mitre.oauth2.model.convert;
-
-import java.io.Serializable;
-import java.util.Date;
-
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import java.io.Serializable
+import java.util.*
+import javax.persistence.AttributeConverter
+import javax.persistence.Converter
 
 /**
  * Translates a Serializable object of certain primitive types
@@ -33,32 +30,30 @@ import org.slf4j.LoggerFactory;
  * This class does allow some extension data to be lost.
  *
  * @author jricher
- *
  */
 @Converter
-public class SerializableStringConverter implements AttributeConverter<Serializable, String> {
+class SerializableStringConverter : AttributeConverter<Serializable?, String?> {
+    override fun convertToDatabaseColumn(attribute: Serializable?): String? {
+        return when (attribute) {
+            null -> null
+            is String -> attribute
 
-	private static Logger logger = LoggerFactory.getLogger(SerializableStringConverter.class);
+            is Long -> attribute.toString()
 
-	@Override
-	public String convertToDatabaseColumn(Serializable attribute) {
-		if (attribute == null) {
-			return null;
-		} else if (attribute instanceof String) {
-			return (String) attribute;
-		} else if (attribute instanceof Long) {
-			return attribute.toString();
-		} else if (attribute instanceof Date) {
-			return Long.toString(((Date)attribute).getTime());
-		} else {
-			logger.warn("Dropping data from request: " + attribute + " :: " + attribute.getClass());
-			return null;
-		}
-	}
+            is Date -> attribute.time.toString()
 
-	@Override
-	public Serializable convertToEntityAttribute(String dbData) {
-		return dbData;
-	}
+            else -> {
+                logger.warn("Dropping data from request: " + attribute + " :: " + attribute.javaClass)
+                null
+            }
+        }
+    }
 
+    override fun convertToEntityAttribute(dbData: String?): Serializable? {
+        return dbData
+    }
+
+    companion object {
+        private val logger: Logger = LoggerFactory.getLogger(SerializableStringConverter::class.java)
+    }
 }
