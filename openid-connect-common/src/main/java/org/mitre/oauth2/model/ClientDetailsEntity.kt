@@ -86,12 +86,7 @@ open class ClientDetailsEntity : ClientDetails {
     @get:CollectionTable(name = "client_grant_type", joinColumns = [JoinColumn(name = "owner_id")])
     @get:ElementCollection(fetch = FetchType.EAGER)
     open var grantTypes: Set<String> = HashSet() // grant_types
-    /**
-     * @return the responseTypes
-     */
-    /**
-     * @param responseTypes the responseTypes to set
-     */
+
     @get:Column(name = "response_type")
     @get:CollectionTable(name = "client_response_type", joinColumns = [JoinColumn(name = "owner_id")])
     @get:ElementCollection(fetch = FetchType.EAGER)
