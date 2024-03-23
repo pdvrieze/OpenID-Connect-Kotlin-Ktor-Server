@@ -45,7 +45,7 @@ open class ClientDetailsEntity : ClientDetails {
     @get:Column(name = "id")
     @get:GeneratedValue(strategy = GenerationType.IDENTITY)
     @get:Id
-    open var id: Long? = null
+    var id: Long? = null
 
     /** Fields from the OAuth2 Dynamic Registration Specification  */
     private var clientId: String? = null // client_id
@@ -375,8 +375,8 @@ open class ClientDetailsEntity : ClientDetails {
      */
     @Basic
     @Column(name = "client_id")
-    override fun getClientId(): String {
-        return clientId!!
+    override fun getClientId(): String? {
+        return clientId
     }
 
     /**
@@ -391,8 +391,8 @@ open class ClientDetailsEntity : ClientDetails {
      */
     @Basic
     @Column(name = "client_secret")
-    override fun getClientSecret(): String {
-        return clientSecret!!
+    override fun getClientSecret(): String? {
+        return clientSecret
     }
 
     /**

@@ -108,5 +108,7 @@ jaxb-runtime = { module = "org.glassfish.jaxb:jaxb-runtime", version = "2.3.0-b1
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-plugins-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
+kotlin-plugins-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kotlin" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 ktor = { id = "io.ktor.plugin", version.ref = "ktor" }

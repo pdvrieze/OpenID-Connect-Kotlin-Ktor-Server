@@ -1,5 +1,7 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.plugins.spring)
+    alias(libs.plugins.kotlin.plugins.jpa)
 }
 
 base {
@@ -25,37 +27,13 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.jwt)
 
-/*
-    implementation(libs.spring.core) {
-        exclude("commons-logging:commons-logging")
-    }
-    implementation(libs.spring.webmvc)
-//    implementation(libs.spring.security)
-    implementation(libs.spring.oauth)
-
-    implementation(libs.guava)
-    implementation(libs.commons.httpclient)
-    implementation(libs.jwt)
-    implementation(libs.persistence)
-    implementation(libs.slf4j.api)
-    implementation(libs.gson)
-    implementation(libs.jaxb.api)
-    implementation(libs.jaxb.bindapi)
-    implementation(libs.jaxb.runtime)
-    implementation(libs.jackson.databind)
-    implementation(libs.jackson.annotations)
-    implementation(libs.servlet.api)
-    implementation(libs.persistence)
-    implementation(libs.javax.persistence)
-    implementation(libs.javax.ann)
-    implementation(libs.bcprov)
-*/
-
     testImplementation(libs.junit4)
     testImplementation(libs.mockito.inline)
     testImplementation(libs.spring.test)
 //    testImplementation(libs.hamcrest.all)
     testImplementation(libs.hamcrest.core)
+    testRuntimeOnly(libs.eclipse.persistence.jpa)
+    testRuntimeOnly(libs.eclipse.persistence.core)
 }
 
 tasks.named<Test>("test") {

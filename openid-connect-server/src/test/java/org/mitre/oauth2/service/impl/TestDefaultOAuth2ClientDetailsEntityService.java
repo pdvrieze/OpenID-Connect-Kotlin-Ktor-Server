@@ -66,7 +66,7 @@ import static org.mockito.ArgumentMatchers.any;
  * @author wkim
  *
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class TestDefaultOAuth2ClientDetailsEntityService {
 
 	@Mock
@@ -339,6 +339,7 @@ public class TestDefaultOAuth2ClientDetailsEntityService {
 	public void updateClient_yesOfflineAccess() {
 
 		ClientDetailsEntity oldClient = new ClientDetailsEntity();
+		oldClient.setId(1L); // Needs a hard-coded id as there is no jpa
 		ClientDetailsEntity client = new ClientDetailsEntity();
 
 		Set<String> grantTypes = new HashSet<>();
@@ -356,6 +357,7 @@ public class TestDefaultOAuth2ClientDetailsEntityService {
 	public void updateClient_noOfflineAccess() {
 
 		ClientDetailsEntity oldClient = new ClientDetailsEntity();
+		oldClient.setId(1L); // Needs a hard-coded id as there is no jpa
 
 		oldClient.getScope().add(SystemScopeService.OFFLINE_ACCESS);
 
