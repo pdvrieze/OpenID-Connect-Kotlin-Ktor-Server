@@ -7,37 +7,32 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
+ */
 /**
  *
  */
-package org.mitre.oauth2.repository;
+package org.mitre.oauth2.repository
 
-import java.util.Set;
-
-import org.mitre.oauth2.model.SystemScope;
+import org.mitre.oauth2.model.SystemScope
 
 /**
  * @author jricher
- *
  */
-public interface SystemScopeRepository {
+interface SystemScopeRepository {
+	val all: Set<SystemScope>
 
-	public Set<SystemScope> getAll();
+    fun getById(id: java.lang.Long): SystemScope?
 
-	public SystemScope getById(Long id);
+    fun getByValue(value: String): SystemScope?
 
-	public SystemScope getByValue(String value);
+    fun remove(scope: SystemScope)
 
-	public void remove(SystemScope scope);
-
-	public SystemScope save(SystemScope scope);
-
+    fun save(scope: SystemScope): SystemScope?
 }

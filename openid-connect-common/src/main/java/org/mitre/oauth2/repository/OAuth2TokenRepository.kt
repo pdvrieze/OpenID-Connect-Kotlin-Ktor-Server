@@ -7,94 +7,89 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.oauth2.repository;
+ */
+package org.mitre.oauth2.repository
 
-import java.util.List;
-import java.util.Set;
+import org.mitre.data.PageCriteria
+import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.OAuth2AccessTokenEntity
+import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
+import org.mitre.openid.connect.model.ApprovedSite
+import org.mitre.uma.model.ResourceSet
 
-import org.mitre.data.PageCriteria;
-import org.mitre.oauth2.model.ClientDetailsEntity;
-import org.mitre.oauth2.model.OAuth2AccessTokenEntity;
-import org.mitre.oauth2.model.OAuth2RefreshTokenEntity;
-import org.mitre.openid.connect.model.ApprovedSite;
-import org.mitre.uma.model.ResourceSet;
+interface OAuth2TokenRepository {
+    fun saveAccessToken(token: OAuth2AccessTokenEntity): OAuth2AccessTokenEntity?
 
-public interface OAuth2TokenRepository {
+    fun getRefreshTokenByValue(refreshTokenValue: String): OAuth2RefreshTokenEntity?
 
-	public OAuth2AccessTokenEntity saveAccessToken(OAuth2AccessTokenEntity token);
+    fun getRefreshTokenById(Id: java.lang.Long): OAuth2RefreshTokenEntity?
 
-	public OAuth2RefreshTokenEntity getRefreshTokenByValue(String refreshTokenValue);
+    fun clearAccessTokensForRefreshToken(refreshToken: OAuth2RefreshTokenEntity)
 
-	public OAuth2RefreshTokenEntity getRefreshTokenById(Long Id);
+    fun removeRefreshToken(refreshToken: OAuth2RefreshTokenEntity)
 
-	public void clearAccessTokensForRefreshToken(OAuth2RefreshTokenEntity refreshToken);
+    fun saveRefreshToken(refreshToken: OAuth2RefreshTokenEntity): OAuth2RefreshTokenEntity?
 
-	public void removeRefreshToken(OAuth2RefreshTokenEntity refreshToken);
+    fun getAccessTokenByValue(accessTokenValue: String?): OAuth2AccessTokenEntity?
 
-	public OAuth2RefreshTokenEntity saveRefreshToken(OAuth2RefreshTokenEntity refreshToken);
+    fun getAccessTokenById(id: java.lang.Long): OAuth2AccessTokenEntity?
 
-	public OAuth2AccessTokenEntity getAccessTokenByValue(String accessTokenValue);
+    fun removeAccessToken(accessToken: OAuth2AccessTokenEntity)
 
-	public OAuth2AccessTokenEntity getAccessTokenById(Long id);
+    fun clearTokensForClient(client: ClientDetailsEntity)
 
-	public void removeAccessToken(OAuth2AccessTokenEntity accessToken);
+    fun getAccessTokensForClient(client: ClientDetailsEntity): List<OAuth2AccessTokenEntity>
 
-	public void clearTokensForClient(ClientDetailsEntity client);
+    fun getRefreshTokensForClient(client: ClientDetailsEntity): List<OAuth2RefreshTokenEntity>
 
-	public List<OAuth2AccessTokenEntity> getAccessTokensForClient(ClientDetailsEntity client);
+    fun getAccessTokensByUserName(name: String): Set<OAuth2AccessTokenEntity>
 
-	public List<OAuth2RefreshTokenEntity> getRefreshTokensForClient(ClientDetailsEntity client);
-	
-	public Set<OAuth2AccessTokenEntity> getAccessTokensByUserName(String name);
-	
-	public Set<OAuth2RefreshTokenEntity> getRefreshTokensByUserName(String name);
+    fun getRefreshTokensByUserName(name: String?): Set<OAuth2RefreshTokenEntity>
 
-	public Set<OAuth2AccessTokenEntity> getAllAccessTokens();
+    val allAccessTokens: Set<OAuth2AccessTokenEntity>
 
-	public Set<OAuth2RefreshTokenEntity> getAllRefreshTokens();
+    val allRefreshTokens: Set<OAuth2RefreshTokenEntity>
 
-	public Set<OAuth2AccessTokenEntity> getAllExpiredAccessTokens();
+    val allExpiredAccessTokens: Set<OAuth2AccessTokenEntity>
 
-	public Set<OAuth2AccessTokenEntity> getAllExpiredAccessTokens(PageCriteria pageCriteria);
+    fun getAllExpiredAccessTokens(pageCriteria: PageCriteria): Set<OAuth2AccessTokenEntity>
 
-	public Set<OAuth2RefreshTokenEntity> getAllExpiredRefreshTokens();
+    val allExpiredRefreshTokens: Set<OAuth2RefreshTokenEntity>
 
-	public Set<OAuth2RefreshTokenEntity> getAllExpiredRefreshTokens(PageCriteria pageCriteria);
+    fun getAllExpiredRefreshTokens(pageCriteria: PageCriteria): Set<OAuth2RefreshTokenEntity>
 
-	public Set<OAuth2AccessTokenEntity> getAccessTokensForResourceSet(ResourceSet rs);
+    fun getAccessTokensForResourceSet(rs: ResourceSet): Set<OAuth2AccessTokenEntity>
 
-	/**
-	 * removes duplicate access tokens.
-	 *
-	 * @deprecated this method was added to return the remove duplicate access tokens values
-	 * so that {code removeAccessToken(OAuth2AccessTokenEntity o)} would not to fail. the
-	 * removeAccessToken method has been updated so as it will not fail in the event that an
-	 * accessToken has been duplicated, so this method is unnecessary.
-	 *
-	 */
-	@Deprecated
-	public void clearDuplicateAccessTokens();
+    /**
+     * removes duplicate access tokens.
+     *
+     */
+    @Deprecated(
+        """this method was added to return the remove duplicate access tokens values
+	  so that {code removeAccessToken(OAuth2AccessTokenEntity o)} would not to fail. the
+	  removeAccessToken method has been updated so as it will not fail in the event that an
+	  accessToken has been duplicated, so this method is unnecessary."""
+    )
+    fun clearDuplicateAccessTokens()
 
-	/**
-	 * removes duplicate refresh tokens.
-	 *
-	 * @deprecated this method was added to return the remove duplicate refresh token value
-	 * so that {code removeRefreshToken(OAuth2RefreshTokenEntity o)} would not to fail. the
-	 * removeRefreshToken method has been updated so as it will not fail in the event that
-	 * refreshToken has been duplicated, so this method is unnecessary.
-	 *
-	 */
-	@Deprecated
-	public void clearDuplicateRefreshTokens();
+    /**
+     * removes duplicate refresh tokens.
+     *
+     */
+    @Deprecated(
+        """this method was added to return the remove duplicate refresh token value
+	  so that {code removeRefreshToken(OAuth2RefreshTokenEntity o)} would not to fail. the
+	  removeRefreshToken method has been updated so as it will not fail in the event that
+	  refreshToken has been duplicated, so this method is unnecessary."""
+    )
+    fun clearDuplicateRefreshTokens()
 
-	public List<OAuth2AccessTokenEntity> getAccessTokensForApprovedSite(ApprovedSite approvedSite);
-
+    fun getAccessTokensForApprovedSite(approvedSite: ApprovedSite?): List<OAuth2AccessTokenEntity?>?
 }

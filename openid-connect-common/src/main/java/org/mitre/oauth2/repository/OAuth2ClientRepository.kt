@@ -7,33 +7,28 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.oauth2.repository;
+ */
+package org.mitre.oauth2.repository
 
-import java.util.Collection;
+import org.mitre.oauth2.model.ClientDetailsEntity
 
-import org.mitre.oauth2.model.ClientDetailsEntity;
+interface OAuth2ClientRepository {
+    fun getById(id: java.lang.Long): ClientDetailsEntity?
 
-public interface OAuth2ClientRepository {
+    fun getClientByClientId(clientId: String): ClientDetailsEntity?
 
-	public ClientDetailsEntity getById(Long id);
+    fun saveClient(client: ClientDetailsEntity): ClientDetailsEntity
 
-	public ClientDetailsEntity getClientByClientId(String clientId);
+    fun deleteClient(client: ClientDetailsEntity)
 
-	public ClientDetailsEntity saveClient(ClientDetailsEntity client);
+    fun updateClient(id: java.lang.Long, client: ClientDetailsEntity): ClientDetailsEntity?
 
-	public void deleteClient(ClientDetailsEntity client);
-
-	public ClientDetailsEntity updateClient(Long id, ClientDetailsEntity client);
-
-	public Collection<ClientDetailsEntity> getAllClients();
-
-
+	val allClients: Collection<ClientDetailsEntity>
 }
