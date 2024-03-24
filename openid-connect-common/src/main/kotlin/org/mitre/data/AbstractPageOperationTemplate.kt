@@ -43,7 +43,7 @@ abstract class AbstractPageOperationTemplate<T> @JvmOverloads constructor(
      */
     var isSwallowExceptions: Boolean = true
 
-    @Deprecated("Compatibility with original implementation", ReplaceWith("AbstractPageOperationTemplate(operationName, maxPages, maxTime"))
+    @Deprecated("Compatibility with original implementation", ReplaceWith("AbstractPageOperationTemplate<T>(operationName, maxPages, maxTime)"))
     constructor(maxPages: Int, maxTime: Long, operationName: String): this (operationName, maxPages, maxTime)
 
     /**

@@ -5,183 +5,177 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.jose;
+ */
+package org.mitre.jose
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.mitre.jose.keystore.JWKSetKeyStore;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
-
-import com.nimbusds.jose.JWEAlgorithm;
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.KeyUse;
-import com.nimbusds.jose.jwk.RSAKey;
-import com.nimbusds.jose.util.Base64URL;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
+import com.nimbusds.jose.JWEAlgorithm
+import com.nimbusds.jose.jwk.JWK
+import com.nimbusds.jose.jwk.JWKSet
+import com.nimbusds.jose.jwk.KeyUse
+import com.nimbusds.jose.jwk.RSAKey
+import com.nimbusds.jose.util.Base64URL
+import org.junit.After
+import org.junit.Assert
+import org.junit.Before
+import org.junit.Test
+import org.junit.jupiter.api.fail
+import org.mitre.jose.keystore.JWKSetKeyStore
+import org.springframework.core.io.FileSystemResource
+import org.springframework.core.io.Resource
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.util.*
 
 /**
  * @author tsitkov
- *
  */
+class TestJWKSetKeyStore {
+    private val RSAkid = "rsa_1"
+    private val RSAjwk: JWK = RSAKey(
+        Base64URL(
+            "oahUIoWw0K0usKNuOR6H4wkf4oBUXHTxRvgb48E-BVvxkeDNjbC4he8rUW" +
+                    "cJoZmds2h7M70imEVhRU5djINXtqllXI4DFqcI1DgjT9LewND8MW2Krf3S" +
+                    "psk_ZkoFnilakGygTwpZ3uesH-PFABNIUYpOiN15dsQRkgr0vEhxN92i2a" +
+                    "sbOenSZeyaxziK72UwxrrKoExv6kc5twXTq4h-QChLOln0_mtUZwfsRaMS" +
+                    "tPs6mS6XrgxnxbWhojf663tuEQueGC-FCMfra36C9knDFGzKsNa7LZK2dj" +
+                    "YgyD3JR_MB_4NUJW_TqOQtwHYbxevoJArm-L5StowjzGy-_bq6Gw"
+        ),  // n
+        Base64URL("AQAB"),  // e
+        Base64URL(
+            "kLdtIj6GbDks_ApCSTYQtelcNttlKiOyPzMrXHeI-yk1F7-kpDxY4-WY5N" +
+                    "WV5KntaEeXS1j82E375xxhWMHXyvjYecPT9fpwR_M9gV8n9Hrh2anTpTD9" +
+                    "3Dt62ypW3yDsJzBnTnrYu1iwWRgBKrEYY46qAZIrA2xAwnm2X7uGR1hghk" +
+                    "qDp0Vqj3kbSCz1XyfCs6_LehBwtxHIyh8Ripy40p24moOAbgxVw3rxT_vl" +
+                    "t3UVe4WO3JkJOzlpUf-KTVI2Ptgm-dARxTEtE-id-4OJr0h-K-VFs3VSnd" +
+                    "VTIznSxfyrj8ILL6MG_Uv8YAu7VILSB3lOW085-4qE3DzgrTjgyQ"
+        ),  // d
+        KeyUse.ENCRYPTION, null, JWEAlgorithm.RSA_OAEP, RSAkid, null, null, null, null, null
+    )
 
-public class TestJWKSetKeyStore {
-
-	private String RSAkid = "rsa_1";
-	private JWK RSAjwk = new RSAKey(
-			new Base64URL("oahUIoWw0K0usKNuOR6H4wkf4oBUXHTxRvgb48E-BVvxkeDNjbC4he8rUW" +
-					"cJoZmds2h7M70imEVhRU5djINXtqllXI4DFqcI1DgjT9LewND8MW2Krf3S" +
-					"psk_ZkoFnilakGygTwpZ3uesH-PFABNIUYpOiN15dsQRkgr0vEhxN92i2a" +
-					"sbOenSZeyaxziK72UwxrrKoExv6kc5twXTq4h-QChLOln0_mtUZwfsRaMS" +
-					"tPs6mS6XrgxnxbWhojf663tuEQueGC-FCMfra36C9knDFGzKsNa7LZK2dj" +
-					"YgyD3JR_MB_4NUJW_TqOQtwHYbxevoJArm-L5StowjzGy-_bq6Gw"), // n
-			new Base64URL("AQAB"), // e
-			new Base64URL("kLdtIj6GbDks_ApCSTYQtelcNttlKiOyPzMrXHeI-yk1F7-kpDxY4-WY5N" +
-					"WV5KntaEeXS1j82E375xxhWMHXyvjYecPT9fpwR_M9gV8n9Hrh2anTpTD9" +
-					"3Dt62ypW3yDsJzBnTnrYu1iwWRgBKrEYY46qAZIrA2xAwnm2X7uGR1hghk" +
-					"qDp0Vqj3kbSCz1XyfCs6_LehBwtxHIyh8Ripy40p24moOAbgxVw3rxT_vl" +
-					"t3UVe4WO3JkJOzlpUf-KTVI2Ptgm-dARxTEtE-id-4OJr0h-K-VFs3VSnd" +
-					"VTIznSxfyrj8ILL6MG_Uv8YAu7VILSB3lOW085-4qE3DzgrTjgyQ"), // d
-			KeyUse.ENCRYPTION, null, JWEAlgorithm.RSA_OAEP, RSAkid, null, null, null, null, null);
-
-	private String RSAkid_rsa2 = "rsa_2";
-	private JWK RSAjwk_rsa2 = new RSAKey(
-			new Base64URL("oahUIoWw0K0usKNuOR6H4wkf4oBUXHTxRvgb48E-BVvxkeDNjbC4he8rUW" +
-					"cJoZmds2h7M70imEVhRU5djINXtqllXI4DFqcI1DgjT9LewND8MW2Krf3S" +
-					"psk_ZkoFnilakGygTwpZ3uesH-PFABNIUYpOiN15dsQRkgr0vEhxN92i2a" +
-					"sbOenSZeyaxziK72UwxrrKoExv6kc5twXTq4h-QChLOln0_mtUZwfsRaMS" +
-					"tPs6mS6XrgxnxbWhojf663tuEQueGC-FCMfra36C9knDFGzKsNa7LZK2dj" +
-					"YgyD3JR_MB_4NUJW_TqOQtwHYbxevoJArm-L5StowjzGy-_bq6Gw"), // n
-			new Base64URL("AQAB"), // e
-			new Base64URL("kLdtIj6GbDks_ApCSTYQtelcNttlKiOyPzMrXHeI-yk1F7-kpDxY4-WY5N" +
-					"WV5KntaEeXS1j82E375xxhWMHXyvjYecPT9fpwR_M9gV8n9Hrh2anTpTD9" +
-					"3Dt62ypW3yDsJzBnTnrYu1iwWRgBKrEYY46qAZIrA2xAwnm2X7uGR1hghk" +
-					"qDp0Vqj3kbSCz1XyfCs6_LehBwtxHIyh8Ripy40p24moOAbgxVw3rxT_vl" +
-					"t3UVe4WO3JkJOzlpUf-KTVI2Ptgm-dARxTEtE-id-4OJr0h-K-VFs3VSnd" +
-					"VTIznSxfyrj8ILL6MG_Uv8YAu7VILSB3lOW085-4qE3DzgrTjgyQ"), // d
-			KeyUse.ENCRYPTION, null, JWEAlgorithm.RSA1_5, RSAkid_rsa2, null, null, null, null, null);
-
-
-	List<JWK> keys_list = new LinkedList<>();
-	private JWKSet jwkSet;
-	private String ks_file = "ks.txt";
-	private String ks_file_badJWK = "ks_badJWK.txt";
-
-	@Before
-	public void prepare() throws IOException {
-
-		keys_list.add(RSAjwk);
-		keys_list.add(RSAjwk_rsa2);
-		jwkSet = new JWKSet(keys_list);
-		jwkSet.getKeys();
-
-		byte jwtbyte[] = jwkSet.toString().getBytes();
-		FileOutputStream out = new FileOutputStream(ks_file);
-		out.write(jwtbyte);
-		out.close();
-	}
-
-	@After
-	public void cleanup() throws IOException {
-
-		File f1 = new File(ks_file);
-		if (f1.exists()) {
-			f1.delete();
-		}
-		File f2 = new File(ks_file_badJWK);
-		if (f2.exists()) {
-			f2.delete();
-		}
-	}
-
-	/* Constructors with no valid Resource setup */
-	@Test
-	public void ksConstructorTest() {
-
-		JWKSetKeyStore ks = new JWKSetKeyStore(jwkSet);
-		assertEquals(ks.getJwkSet(), jwkSet);
-
-		JWKSetKeyStore ks_empty= new JWKSetKeyStore();
-		assertEquals(ks_empty.getJwkSet(), null);
-
-		boolean thrown = false;
-		try {
-			new JWKSetKeyStore(null);
-		} catch (NullPointerException | IllegalArgumentException e) {
-			thrown = true;
-		}
-		assertTrue(thrown);
-	}
-
-	/* Misformatted JWK */
-	@Test(expected=IllegalArgumentException.class)
-	public void ksBadJWKinput() throws IOException {
-
-		byte jwtbyte[] = RSAjwk.toString().getBytes();
-		FileOutputStream out = new FileOutputStream(ks_file_badJWK);
-		out.write(jwtbyte);
-		out.close();
-
-		JWKSetKeyStore ks_badJWK = new JWKSetKeyStore();
-		Resource loc = new FileSystemResource(ks_file_badJWK);
-		assertTrue(loc.exists());
-
-		ks_badJWK.setLocation(loc);
-		assertEquals(loc.getFilename(), ks_file_badJWK);
-
-		ks_badJWK = new JWKSetKeyStore(null);
-	}
-
-	/* Empty constructor with valid Resource */
-	@Test
-	public void ksEmptyConstructorkLoc() {
-
-		JWKSetKeyStore ks = new JWKSetKeyStore();
-
-		File file = new File(ks_file);
-
-		Resource loc = new FileSystemResource(file);
-		assertTrue(loc.exists());
-		assertTrue(loc.isReadable());
-
-		ks.setLocation(loc);
-
-		assertEquals(loc.getFilename(),ks.getLocation().getFilename());
-	}
+    private val RSAkid_rsa2 = "rsa_2"
+    private val RSAjwk_rsa2: JWK = RSAKey(
+        Base64URL(
+            "oahUIoWw0K0usKNuOR6H4wkf4oBUXHTxRvgb48E-BVvxkeDNjbC4he8rUW" +
+                    "cJoZmds2h7M70imEVhRU5djINXtqllXI4DFqcI1DgjT9LewND8MW2Krf3S" +
+                    "psk_ZkoFnilakGygTwpZ3uesH-PFABNIUYpOiN15dsQRkgr0vEhxN92i2a" +
+                    "sbOenSZeyaxziK72UwxrrKoExv6kc5twXTq4h-QChLOln0_mtUZwfsRaMS" +
+                    "tPs6mS6XrgxnxbWhojf663tuEQueGC-FCMfra36C9knDFGzKsNa7LZK2dj" +
+                    "YgyD3JR_MB_4NUJW_TqOQtwHYbxevoJArm-L5StowjzGy-_bq6Gw"
+        ),  // n
+        Base64URL("AQAB"),  // e
+        Base64URL(
+            "kLdtIj6GbDks_ApCSTYQtelcNttlKiOyPzMrXHeI-yk1F7-kpDxY4-WY5N" +
+                    "WV5KntaEeXS1j82E375xxhWMHXyvjYecPT9fpwR_M9gV8n9Hrh2anTpTD9" +
+                    "3Dt62ypW3yDsJzBnTnrYu1iwWRgBKrEYY46qAZIrA2xAwnm2X7uGR1hghk" +
+                    "qDp0Vqj3kbSCz1XyfCs6_LehBwtxHIyh8Ripy40p24moOAbgxVw3rxT_vl" +
+                    "t3UVe4WO3JkJOzlpUf-KTVI2Ptgm-dARxTEtE-id-4OJr0h-K-VFs3VSnd" +
+                    "VTIznSxfyrj8ILL6MG_Uv8YAu7VILSB3lOW085-4qE3DzgrTjgyQ"
+        ),  // d
+        KeyUse.ENCRYPTION, null, JWEAlgorithm.RSA1_5, RSAkid_rsa2, null, null, null, null, null
+    )
 
 
-	@Test
-	public void ksSetJwkSet() throws IllegalArgumentException {
+    var keys_list: MutableList<JWK> = LinkedList()
+    private lateinit var jwkSet: JWKSet
+    private val ks_file = "ks.txt"
+    private val ks_file_badJWK = "ks_badJWK.txt"
 
-		JWKSetKeyStore ks = new JWKSetKeyStore();
-		boolean thrown = false;
-		try {
-			ks.setJwkSet(null);
-		} catch (IllegalArgumentException e) {
-			thrown = true;
-		}
-		assertTrue(thrown);
+    @Before
+    @Throws(IOException::class)
+    fun prepare() {
+        keys_list.add(RSAjwk)
+        keys_list.add(RSAjwk_rsa2)
+        jwkSet = JWKSet(keys_list)
+        jwkSet.keys
 
-		ks.setJwkSet(jwkSet);;
-		assertEquals(ks.getJwkSet(), jwkSet);
-	}
+        val jwtbyte = jwkSet.toString().toByteArray()
+        val out = FileOutputStream(ks_file)
+        out.write(jwtbyte)
+        out.close()
+    }
+
+    @After
+    @Throws(IOException::class)
+    fun cleanup() {
+        val f1 = File(ks_file)
+        if (f1.exists()) {
+            f1.delete()
+        }
+        val f2 = File(ks_file_badJWK)
+        if (f2.exists()) {
+            f2.delete()
+        }
+    }
+
+    /* Constructors with no valid Resource setup */
+    @Test
+    fun ksConstructorTest() {
+        val ks = JWKSetKeyStore(jwkSet)
+        Assert.assertEquals(ks.jwkSet, jwkSet)
+
+        val ks_empty = JWKSetKeyStore()
+        Assert.assertEquals(ks_empty.jwkSet, null)
+    }
+
+    /* Misformatted JWK */
+    @Test(expected = IllegalArgumentException::class)
+    @Throws(IOException::class)
+    fun ksBadJWKinput() {
+        val jwtbyte = RSAjwk.toString().toByteArray()
+        val out = FileOutputStream(ks_file_badJWK)
+        out.write(jwtbyte)
+        out.close()
+
+        var ks_badJWK = JWKSetKeyStore()
+        val loc: Resource = FileSystemResource(ks_file_badJWK)
+        Assert.assertTrue(loc.exists())
+
+        ks_badJWK.location = loc
+        Assert.assertEquals(loc.filename, ks_file_badJWK)
+
+        fail("This should not be reached")
+//        ks_badJWK = JWKSetKeyStore((null as JWKSet))
+    }
+
+    /* Empty constructor with valid Resource */
+    @Test
+    fun ksEmptyConstructorkLoc() {
+        val ks = JWKSetKeyStore()
+
+        val file = File(ks_file)
+
+        val loc: Resource = FileSystemResource(file)
+        Assert.assertTrue(loc.exists())
+        Assert.assertTrue(loc.isReadable)
+
+        ks.location = loc
+
+        Assert.assertEquals(loc.filename, ks.location!!.filename)
+    }
+
+
+    @Test
+    @Throws(IllegalArgumentException::class)
+    fun ksSetJwkSet() {
+        val ks = JWKSetKeyStore()
+        var thrown = false
+        try {
+            ks.jwkSet = null
+        } catch (e: IllegalArgumentException) {
+            thrown = true
+        }
+        Assert.assertTrue(thrown)
+
+        ks.jwkSet = jwkSet
+
+        Assert.assertEquals(ks.jwkSet, jwkSet)
+    }
 }

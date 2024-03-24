@@ -33,8 +33,12 @@ dependencies {
     implementation(libs.bcprov)
 
     testImplementation(libs.junit4)
+    testImplementation(libs.junit.jupiter.api)
+    testRuntimeOnly(libs.junit.jupiter.engine)
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
+
 }
 
 tasks.named<Test>("test") {
-    useJUnit()
+    useJUnitPlatform()
 }

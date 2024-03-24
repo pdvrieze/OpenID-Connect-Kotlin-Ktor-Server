@@ -19,6 +19,9 @@ dependencies {
 
     testImplementation(libs.junit4)
     testImplementation(libs.mockito.core)
+    testImplementation(libs.junit.jupiter.api)
+    testRuntimeOnly(libs.junit.jupiter.engine)
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
 }
 
 tasks.named<Test>("test") {

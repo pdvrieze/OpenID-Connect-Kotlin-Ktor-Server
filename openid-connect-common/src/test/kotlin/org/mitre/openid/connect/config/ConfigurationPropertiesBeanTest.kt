@@ -7,142 +7,140 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
+ */
 /**
  *
  */
-package org.mitre.openid.connect.config;
+package org.mitre.openid.connect.config
 
-import org.junit.Test;
-import org.springframework.beans.factory.BeanCreationException;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.fail
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.springframework.beans.factory.BeanCreationException
 
 /**
  * @author jricher
- *
  */
-public class ConfigurationPropertiesBeanTest {
+class ConfigurationPropertiesBeanTest {
+    /**
+     * Test getters and setters for configuration object.
+     */
+    @Test
+    fun testConfigurationPropertiesBean() {
+        // make sure the values that go in come back out unchanged
 
-	/**
-	 * Test getters and setters for configuration object.
-	 */
-	@Test
-	public void testConfigurationPropertiesBean() {
+        val bean = ConfigurationPropertiesBean()
 
-		// make sure the values that go in come back out unchanged
-		ConfigurationPropertiesBean bean = new ConfigurationPropertiesBean();
+        val iss = "http://localhost:8080/openid-connect-server/"
+        val title = "OpenID Connect Server"
+        val logoUrl = "/images/logo.png"
 
-		String iss = "http://localhost:8080/openid-connect-server/";
-		String title = "OpenID Connect Server";
-		String logoUrl = "/images/logo.png";
+        bean.issuer = iss
+        bean.topbarTitle = title
+        bean.logoImageUrl = logoUrl
+        bean.isForceHttps = true
 
-		bean.setIssuer(iss);
-		bean.setTopbarTitle(title);
-		bean.setLogoImageUrl(logoUrl);
-		bean.setForceHttps(true);
+        assertEquals(iss, bean.issuer)
+        assertEquals(title, bean.topbarTitle)
+        assertEquals(logoUrl, bean.logoImageUrl)
+        assertEquals(true, bean.isForceHttps)
+    }
 
-		assertEquals(iss, bean.getIssuer());
-		assertEquals(title, bean.getTopbarTitle());
-		assertEquals(logoUrl, bean.getLogoImageUrl());
-		assertEquals(true, bean.isForceHttps());
-	}
+    @Test
+    fun testCheckForHttpsIssuerHttpDefaultFlag() {
+        val bean = ConfigurationPropertiesBean()
 
-	@Test
-	public void testCheckForHttpsIssuerHttpDefaultFlag() {
-		ConfigurationPropertiesBean bean = new ConfigurationPropertiesBean();
+        // issuer is http
+        // leave as default, which is unset/false
+        try {
+            bean.issuer = "http://localhost:8080/openid-connect-server/"
+            bean.checkConfigConsistency()
+        } catch (e: BeanCreationException) {
+            fail("Unexpected BeanCreationException for http issuer with default forceHttps, message:" + e.message)
+        }
+    }
 
-		// issuer is http
-		// leave as default, which is unset/false
-		try {
-			bean.setIssuer("http://localhost:8080/openid-connect-server/");
-			bean.checkConfigConsistency();
-		} catch (BeanCreationException e) {
-			fail("Unexpected BeanCreationException for http issuer with default forceHttps, message:" + e.getMessage());
-		}
-	}
+    @Test
+    fun testCheckForHttpsIssuerHttpFalseFlag() {
+        val bean = ConfigurationPropertiesBean()
+        // issuer is http
+        // set to false
+        try {
+            bean.issuer = "http://localhost:8080/openid-connect-server/"
+            bean.isForceHttps = false
+            bean.checkConfigConsistency()
+        } catch (e: BeanCreationException) {
+            fail("Unexpected BeanCreationException for http issuer with forceHttps=false, message:" + e.message)
+        }
+    }
 
-	@Test
-	public void testCheckForHttpsIssuerHttpFalseFlag() {
-		ConfigurationPropertiesBean bean = new ConfigurationPropertiesBean();
-		// issuer is http
-		// set to false
-		try {
-			bean.setIssuer("http://localhost:8080/openid-connect-server/");
-			bean.setForceHttps(false);
-			bean.checkConfigConsistency();
-		} catch (BeanCreationException e) {
-			fail("Unexpected BeanCreationException for http issuer with forceHttps=false, message:" + e.getMessage());
-		}
-	}
+    @Test
+    fun testCheckForHttpsIssuerHttpTrueFlag() {
+        assertThrows<BeanCreationException> {
+            val bean = ConfigurationPropertiesBean()
+            // issuer is http
+            // set to true
+            bean.issuer = "http://localhost:8080/openid-connect-server/"
+            bean.isForceHttps = true
+            bean.checkConfigConsistency()
+        }
+    }
 
-	@Test(expected = BeanCreationException.class)
-	public void testCheckForHttpsIssuerHttpTrueFlag() {
-		ConfigurationPropertiesBean bean = new ConfigurationPropertiesBean();
-		// issuer is http
-		// set to true
-		bean.setIssuer("http://localhost:8080/openid-connect-server/");
-		bean.setForceHttps(true);
-		bean.checkConfigConsistency();
-	}
+    @Test
+    fun testCheckForHttpsIssuerHttpsDefaultFlag() {
+        val bean = ConfigurationPropertiesBean()
+        // issuer is https
+        // leave as default, which is unset/false
+        try {
+            bean.issuer = "https://localhost:8080/openid-connect-server/"
+            bean.checkConfigConsistency()
+        } catch (e: BeanCreationException) {
+            fail("Unexpected BeanCreationException for https issuer with default forceHttps, message:" + e.message)
+        }
+    }
 
-	@Test
-	public void testCheckForHttpsIssuerHttpsDefaultFlag() {
-		ConfigurationPropertiesBean bean = new ConfigurationPropertiesBean();
-		// issuer is https
-		// leave as default, which is unset/false
-		try {
-			bean.setIssuer("https://localhost:8080/openid-connect-server/");
-			bean.checkConfigConsistency();
-		} catch (BeanCreationException e) {
-			fail("Unexpected BeanCreationException for https issuer with default forceHttps, message:" + e.getMessage());
-		}
-	}
+    @Test
+    fun testCheckForHttpsIssuerHttpsFalseFlag() {
+        val bean = ConfigurationPropertiesBean()
+        // issuer is https
+        // set to false
+        try {
+            bean.issuer = "https://localhost:8080/openid-connect-server/"
+            bean.isForceHttps = false
+            bean.checkConfigConsistency()
+        } catch (e: BeanCreationException) {
+            fail("Unexpected BeanCreationException for https issuer with forceHttps=false, message:" + e.message)
+        }
+    }
 
-	@Test
-	public void testCheckForHttpsIssuerHttpsFalseFlag() {
-		ConfigurationPropertiesBean bean = new ConfigurationPropertiesBean();
-		// issuer is https
-		// set to false
-		try {
-			bean.setIssuer("https://localhost:8080/openid-connect-server/");
-			bean.setForceHttps(false);
-			bean.checkConfigConsistency();
-		} catch (BeanCreationException e) {
-			fail("Unexpected BeanCreationException for https issuer with forceHttps=false, message:" + e.getMessage());
-		}
-	}
+    @Test
+    fun testCheckForHttpsIssuerHttpsTrueFlag() {
+        val bean = ConfigurationPropertiesBean()
+        // issuer is https
+        // set to true
+        try {
+            bean.issuer = "https://localhost:8080/openid-connect-server/"
+            bean.isForceHttps = true
+            bean.checkConfigConsistency()
+        } catch (e: BeanCreationException) {
+            fail("Unexpected BeanCreationException for https issuer with forceHttps=true, message:" + e.message)
+        }
+    }
 
-	@Test
-	public void testCheckForHttpsIssuerHttpsTrueFlag() {
-		ConfigurationPropertiesBean bean = new ConfigurationPropertiesBean();
-		// issuer is https
-		// set to true
-		try {
-			bean.setIssuer("https://localhost:8080/openid-connect-server/");
-			bean.setForceHttps(true);
-			bean.checkConfigConsistency();
-		} catch (BeanCreationException e) {
-			fail("Unexpected BeanCreationException for https issuer with forceHttps=true, message:" + e.getMessage());
-		}
-
-	}
-
-	@Test
-	public void testShortTopbarTitle() {
-		ConfigurationPropertiesBean bean = new ConfigurationPropertiesBean();
-		bean.setTopbarTitle("LONG");
-		assertEquals("LONG", bean.getShortTopbarTitle());
-		bean.setShortTopbarTitle("SHORT");
-		assertEquals("SHORT", bean.getShortTopbarTitle());
-	}
-
+    @Test
+    fun testShortTopbarTitle() {
+        val bean = ConfigurationPropertiesBean()
+        bean.topbarTitle = "LONG"
+        assertEquals("LONG", bean.shortTopbarTitle)
+        bean.shortTopbarTitle = "SHORT"
+        assertEquals("SHORT", bean.shortTopbarTitle)
+    }
 }

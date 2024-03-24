@@ -74,8 +74,8 @@ class DefaultJWTEncryptionAndDecryptionService : JWTEncryptionAndDecryptionServi
      * @throws InvalidKeySpecException
      * @throws JOSEException
      */
-    constructor(keys: MutableMap<String, JWK>) {
-        this.keys = keys
+    constructor(keys: Map<String, JWK>) {
+        this.keys = keys.toMutableMap()
         buildEncryptersAndDecrypters()
     }
 
