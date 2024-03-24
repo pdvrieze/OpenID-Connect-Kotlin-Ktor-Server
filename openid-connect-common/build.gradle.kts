@@ -32,10 +32,11 @@ dependencies {
     implementation(libs.javax.ann)
     implementation(libs.bcprov)
 
-    testImplementation(libs.junit4)
+//    testImplementation(libs.junit4)
+    testImplementation(libs.hamcrest.core)
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)
-    testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
+//    testRuntimeOnly(libs.junit.jupiter.vintage)
 
 }
 

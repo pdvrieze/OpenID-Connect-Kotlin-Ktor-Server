@@ -31,7 +31,7 @@ import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.openid.connect.ClientDetailsEntityJsonProcessor.parse
 import org.mitre.openid.connect.ClientDetailsEntityJsonProcessor.parseRegistered
 import org.mitre.openid.connect.ClientDetailsEntityJsonProcessor.serialize
-import java.sql.Date
+import java.util.*
 
 /**
  * @author jricher

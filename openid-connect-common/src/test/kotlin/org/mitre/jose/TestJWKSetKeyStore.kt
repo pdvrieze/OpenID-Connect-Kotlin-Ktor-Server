@@ -21,17 +21,18 @@ import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jose.jwk.KeyUse
 import com.nimbusds.jose.jwk.RSAKey
 import com.nimbusds.jose.util.Base64URL
-import org.junit.After
-import org.junit.Assert
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.fail
 import org.mitre.jose.keystore.JWKSetKeyStore
 import org.springframework.core.io.FileSystemResource
 import org.springframework.core.io.Resource
 import java.io.File
 import java.io.FileOutputStream
-import java.io.IOException
 import java.util.*
 
 /**
@@ -88,8 +89,7 @@ class TestJWKSetKeyStore {
     private val ks_file = "ks.txt"
     private val ks_file_badJWK = "ks_badJWK.txt"
 
-    @Before
-    @Throws(IOException::class)
+    @BeforeEach
     fun prepare() {
         keys_list.add(RSAjwk)
         keys_list.add(RSAjwk_rsa2)
@@ -102,8 +102,7 @@ class TestJWKSetKeyStore {
         out.close()
     }
 
-    @After
-    @Throws(IOException::class)
+    @AfterEach
     fun cleanup() {
         val f1 = File(ks_file)
         if (f1.exists()) {
@@ -119,29 +118,31 @@ class TestJWKSetKeyStore {
     @Test
     fun ksConstructorTest() {
         val ks = JWKSetKeyStore(jwkSet)
-        Assert.assertEquals(ks.jwkSet, jwkSet)
+        assertEquals(ks.jwkSet, jwkSet)
 
         val ks_empty = JWKSetKeyStore()
-        Assert.assertEquals(ks_empty.jwkSet, null)
+        assertEquals(ks_empty.jwkSet, null)
     }
 
     /* Misformatted JWK */
-    @Test(expected = IllegalArgumentException::class)
-    @Throws(IOException::class)
+    @Test
     fun ksBadJWKinput() {
-        val jwtbyte = RSAjwk.toString().toByteArray()
-        val out = FileOutputStream(ks_file_badJWK)
-        out.write(jwtbyte)
-        out.close()
+        assertThrows<IllegalArgumentException> {
+            val jwtbyte = RSAjwk.toString().toByteArray()
+            val out = FileOutputStream(ks_file_badJWK)
+            out.write(jwtbyte)
+            out.close()
 
-        var ks_badJWK = JWKSetKeyStore()
-        val loc: Resource = FileSystemResource(ks_file_badJWK)
-        Assert.assertTrue(loc.exists())
+            var ks_badJWK = JWKSetKeyStore()
+            val loc: Resource = FileSystemResource(ks_file_badJWK)
+            assertTrue(loc.exists())
 
-        ks_badJWK.location = loc
-        Assert.assertEquals(loc.filename, ks_file_badJWK)
+            ks_badJWK.location = loc
+            assertEquals(loc.filename, ks_file_badJWK)
 
-        fail("This should not be reached")
+            fail("This should not be reached")
+        }
+
 //        ks_badJWK = JWKSetKeyStore((null as JWKSet))
     }
 
@@ -153,29 +154,25 @@ class TestJWKSetKeyStore {
         val file = File(ks_file)
 
         val loc: Resource = FileSystemResource(file)
-        Assert.assertTrue(loc.exists())
-        Assert.assertTrue(loc.isReadable)
+        assertTrue(loc.exists())
+        assertTrue(loc.isReadable)
 
         ks.location = loc
 
-        Assert.assertEquals(loc.filename, ks.location!!.filename)
+        assertEquals(loc.filename, ks.location!!.filename)
     }
 
 
     @Test
-    @Throws(IllegalArgumentException::class)
     fun ksSetJwkSet() {
         val ks = JWKSetKeyStore()
         var thrown = false
-        try {
+        assertThrows<IllegalArgumentException> {
             ks.jwkSet = null
-        } catch (e: IllegalArgumentException) {
-            thrown = true
         }
-        Assert.assertTrue(thrown)
 
         ks.jwkSet = jwkSet
 
-        Assert.assertEquals(ks.jwkSet, jwkSet)
+        assertEquals(ks.jwkSet, jwkSet)
     }
 }

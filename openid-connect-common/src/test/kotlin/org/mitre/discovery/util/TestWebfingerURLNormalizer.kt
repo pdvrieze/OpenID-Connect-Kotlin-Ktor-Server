@@ -18,8 +18,8 @@
 package org.mitre.discovery.util
 
 import com.google.common.collect.ImmutableMap
-import org.junit.Assert
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 import org.mitre.discovery.util.WebfingerURLNormalizer.normalizeResource
 import org.mitre.discovery.util.WebfingerURLNormalizer.serializeURL
 
@@ -154,11 +154,11 @@ class TestWebfingerURLNormalizer {
     @Test
     fun normalizeResource_novTest() {
         for (input in inputToNormalized.keys) {
-            val actualNormalized = normalizeResource(input)
+            val actualNormalized = checkNotNull(normalizeResource(input))
 
             val expectedNormalized = inputToNormalized[input]
 
-            Assert.assertEquals("Identifer/Normalized failed.", expectedNormalized, serializeURL(actualNormalized!!))
+            assertEquals(expectedNormalized, serializeURL(actualNormalized), "Identifer/Normalized failed.")
         }
     }
 }

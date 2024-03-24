@@ -34,12 +34,12 @@ import com.nimbusds.jose.util.JSONObjectUtils
 import com.nimbusds.jwt.EncryptedJWT
 import com.nimbusds.jwt.JWTClaimsSet
 import org.hamcrest.CoreMatchers
-import org.junit.Assert
-import org.junit.Assume
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.ExpectedException
+import org.hamcrest.MatcherAssert.assertThat
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assumptions.assumeTrue
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.mitre.jose.keystore.JWKSetKeyStore
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -58,11 +58,7 @@ class TestDefaultJWTEncryptionAndDecryptionService {
 
     private val issuer = "www.example.net"
     private val subject = "example_user"
-    private var claimsSet: JWTClaimsSet? = null
-
-    @JvmField
-    @Rule
-    var exception: ExpectedException = ExpectedException.none()
+    private lateinit var claimsSet: JWTClaimsSet
 
     // Example data taken from rfc7516 appendix A
     private val compactSerializedJwe = "eyJhbGciOiJSU0EtT0FFUCIsImVuYyI6IkEyNTZHQ00ifQ." +
@@ -155,7 +151,7 @@ class TestDefaultJWTEncryptionAndDecryptionService {
     private lateinit var service_ks: DefaultJWTEncryptionAndDecryptionService
 
 
-    @Before
+    @BeforeEach
     @Throws(NoSuchAlgorithmException::class, InvalidKeySpecException::class, JOSEException::class)
     fun prepare() {
         service = DefaultJWTEncryptionAndDecryptionService(keys)
@@ -181,54 +177,54 @@ class TestDefaultJWTEncryptionAndDecryptionService {
     @Test
     @Throws(ParseException::class, NoSuchAlgorithmException::class)
     fun decrypt_RSA() {
-        Assume.assumeTrue(
+        assumeTrue(
             (JCASupport.isSupported(JWEAlgorithm.RSA_OAEP) // check for algorithm support
                     && JCASupport.isSupported(EncryptionMethod.A256GCM)) && Cipher.getMaxAllowedKeyLength("RC5") >= 256
         ) // check for unlimited crypto strength
 
-        service!!.defaultDecryptionKeyId = RSAkid
-        service!!.defaultEncryptionKeyId = RSAkid
+        service.defaultDecryptionKeyId = RSAkid
+        service.defaultEncryptionKeyId = RSAkid
 
         val jwt = JWEObject.parse(compactSerializedJwe)
 
-        Assert.assertThat(jwt.payload, CoreMatchers.nullValue()) // observe..nothing is there
+        assertThat(jwt.payload, CoreMatchers.nullValue()) // observe..nothing is there
 
-        service!!.decryptJwt(jwt)
+        service.decryptJwt(jwt)
         val result = jwt.payload.toString() // and voila! decrypto-magic
 
-        Assert.assertEquals(plainText, result)
+        assertEquals(plainText, result)
     }
 
 
     @Test
     @Throws(ParseException::class, NoSuchAlgorithmException::class)
     fun encryptThenDecrypt_RSA() {
-        Assume.assumeTrue(
+        assumeTrue(
             (JCASupport.isSupported(JWEAlgorithm.RSA_OAEP) // check for algorithm support
                     && JCASupport.isSupported(EncryptionMethod.A256GCM)) && Cipher.getMaxAllowedKeyLength("RC5") >= 256
         ) // check for unlimited crypto strength
 
-        service!!.defaultDecryptionKeyId = RSAkid
-        service!!.defaultEncryptionKeyId = RSAkid
+        service.defaultDecryptionKeyId = RSAkid
+        service.defaultEncryptionKeyId = RSAkid
 
-        Assert.assertEquals(RSAkid, service!!.defaultEncryptionKeyId)
-        Assert.assertEquals(RSAkid, service!!.defaultDecryptionKeyId)
+        assertEquals(RSAkid, service.defaultEncryptionKeyId)
+        assertEquals(RSAkid, service.defaultDecryptionKeyId)
 
         val header = JWEHeader(JWEAlgorithm.RSA_OAEP, EncryptionMethod.A256GCM)
 
         val jwt = EncryptedJWT(header, claimsSet)
 
-        service!!.encryptJwt(jwt)
+        service.encryptJwt(jwt)
         val serialized = jwt.serialize()
 
         val encryptedJwt = EncryptedJWT.parse(serialized)
-        Assert.assertThat(encryptedJwt.jwtClaimsSet, CoreMatchers.nullValue())
-        service!!.decryptJwt(encryptedJwt)
+        assertThat(encryptedJwt.jwtClaimsSet, CoreMatchers.nullValue())
+        service.decryptJwt(encryptedJwt)
 
         val resultClaims = encryptedJwt.jwtClaimsSet
 
-        Assert.assertEquals(claimsSet!!.issuer, resultClaims.issuer)
-        Assert.assertEquals(claimsSet!!.subject, resultClaims.subject)
+        assertEquals(claimsSet.issuer, resultClaims.issuer)
+        assertEquals(claimsSet.subject, resultClaims.subject)
     }
 
 
@@ -236,96 +232,96 @@ class TestDefaultJWTEncryptionAndDecryptionService {
     @Test
     @Throws(ParseException::class, NoSuchAlgorithmException::class)
     fun encryptThenDecrypt_nullID() {
-        Assume.assumeTrue(
+        assumeTrue(
             (JCASupport.isSupported(JWEAlgorithm.RSA_OAEP) // check for algorithm support
                     && JCASupport.isSupported(EncryptionMethod.A256GCM)) && Cipher.getMaxAllowedKeyLength("RC5") >= 256
         ) // check for unlimited crypto strength
 
-        service!!.defaultDecryptionKeyId = null
-        service!!.defaultEncryptionKeyId = null
+        service.defaultDecryptionKeyId = null
+        service.defaultEncryptionKeyId = null
 
-        Assert.assertEquals(RSAkid, service!!.defaultEncryptionKeyId)
-        Assert.assertEquals(RSAkid, service!!.defaultDecryptionKeyId)
+        assertEquals(RSAkid, service.defaultEncryptionKeyId)
+        assertEquals(RSAkid, service.defaultDecryptionKeyId)
 
         val header = JWEHeader(JWEAlgorithm.RSA_OAEP, EncryptionMethod.A256GCM)
 
         val jwt = EncryptedJWT(header, claimsSet)
 
-        service!!.encryptJwt(jwt)
+        service.encryptJwt(jwt)
         val serialized = jwt.serialize()
 
         val encryptedJwt = EncryptedJWT.parse(serialized)
-        Assert.assertThat(encryptedJwt.jwtClaimsSet, CoreMatchers.nullValue())
-        service!!.decryptJwt(encryptedJwt)
+        assertThat(encryptedJwt.jwtClaimsSet, CoreMatchers.nullValue())
+        service.decryptJwt(encryptedJwt)
 
         val resultClaims = encryptedJwt.jwtClaimsSet
 
-        Assert.assertEquals(claimsSet!!.issuer, resultClaims.issuer)
-        Assert.assertEquals(claimsSet!!.subject, resultClaims.subject)
+        assertEquals(claimsSet.issuer, resultClaims.issuer)
+        assertEquals(claimsSet.subject, resultClaims.subject)
     }
 
 
     @Test
     @Throws(NoSuchAlgorithmException::class)
     fun encrypt_nullID_oneKey() {
-        Assume.assumeTrue(
+        assumeTrue(
             (JCASupport.isSupported(JWEAlgorithm.RSA_OAEP) // check for algorithm support
                     && JCASupport.isSupported(EncryptionMethod.A256GCM)) && Cipher.getMaxAllowedKeyLength("RC5") >= 256
         ) // check for unlimited crypto strength
 
-        exception.expect(IllegalStateException::class.java)
+        assertThrows<IllegalStateException> {
+            service_2.defaultEncryptionKeyId = null
+            assertEquals(null, service_2.defaultEncryptionKeyId)
 
-        service_2!!.defaultEncryptionKeyId = null
-        Assert.assertEquals(null, service_2!!.defaultEncryptionKeyId)
+            val header = JWEHeader(JWEAlgorithm.RSA_OAEP, EncryptionMethod.A256GCM)
 
-        val header = JWEHeader(JWEAlgorithm.RSA_OAEP, EncryptionMethod.A256GCM)
+            val jwt = EncryptedJWT(header, claimsSet)
 
-        val jwt = EncryptedJWT(header, claimsSet)
-
-        service_2!!.encryptJwt(jwt)
-        Assert.assertEquals(null, service_2!!.defaultEncryptionKeyId)
+            service_2.encryptJwt(jwt)
+            assertEquals(null, service_2.defaultEncryptionKeyId)
+        }
     }
 
 
     @Test
     @Throws(ParseException::class, NoSuchAlgorithmException::class)
     fun decrypt_nullID() {
-        Assume.assumeTrue(
+        assumeTrue(
             (JCASupport.isSupported(JWEAlgorithm.RSA_OAEP) // check for algorithm support
                     && JCASupport.isSupported(EncryptionMethod.A256GCM)) && Cipher.getMaxAllowedKeyLength("RC5") >= 256
         ) // check for unlimited crypto strength
 
+        assertThrows<IllegalStateException> {
+            service_2.defaultEncryptionKeyId = RSAkid
+            service_2.defaultDecryptionKeyId = null
 
-        exception.expect(IllegalStateException::class.java)
+            assertEquals(RSAkid, service_2.defaultEncryptionKeyId)
+            assertEquals(null, service_2.defaultDecryptionKeyId)
 
-        service_2!!.defaultEncryptionKeyId = RSAkid
-        service_2!!.defaultDecryptionKeyId = null
+            val header = JWEHeader(JWEAlgorithm.RSA_OAEP, EncryptionMethod.A256GCM)
 
-        Assert.assertEquals(RSAkid, service_2!!.defaultEncryptionKeyId)
-        Assert.assertEquals(null, service_2!!.defaultDecryptionKeyId)
+            val jwt = EncryptedJWT(header, claimsSet)
+            service_2.encryptJwt(jwt)
+            val serialized = jwt.serialize()
 
-        val header = JWEHeader(JWEAlgorithm.RSA_OAEP, EncryptionMethod.A256GCM)
+            val encryptedJwt = EncryptedJWT.parse(serialized)
+            assertThat(encryptedJwt.jwtClaimsSet, CoreMatchers.nullValue())
 
-        val jwt = EncryptedJWT(header, claimsSet)
-        service_2!!.encryptJwt(jwt)
-        val serialized = jwt.serialize()
+            assertEquals(null, service_2.defaultDecryptionKeyId)
+            service_2.decryptJwt(encryptedJwt)
+        }
 
-        val encryptedJwt = EncryptedJWT.parse(serialized)
-        Assert.assertThat(encryptedJwt.jwtClaimsSet, CoreMatchers.nullValue())
-
-        Assert.assertEquals(null, service_2!!.defaultDecryptionKeyId)
-        service_2!!.decryptJwt(encryptedJwt)
     }
 
 
     @Test
     @Throws(ParseException::class)
     fun setThenGetDefAlg() {
-        service!!.defaultAlgorithm = JWEAlgorithm.A128KW
-        Assert.assertEquals(JWEAlgorithm.A128KW, service!!.defaultAlgorithm)
+        service.defaultAlgorithm = JWEAlgorithm.A128KW
+        assertEquals(JWEAlgorithm.A128KW, service.defaultAlgorithm)
 
-        service!!.defaultAlgorithm = JWEAlgorithm.RSA_OAEP
-        Assert.assertEquals(JWEAlgorithm.RSA_OAEP, service!!.defaultAlgorithm)
+        service.defaultAlgorithm = JWEAlgorithm.RSA_OAEP
+        assertEquals(JWEAlgorithm.RSA_OAEP, service.defaultAlgorithm)
     }
 
 
@@ -333,41 +329,41 @@ class TestDefaultJWTEncryptionAndDecryptionService {
     @Test
     fun getAllPubkeys() {
         val keys2check = service_2.allPublicKeys
-        Assert.assertEquals(
+        assertEquals(
             JSONObjectUtils.getString(RSAjwk.toPublicJWK().toJSONObject(), "e"),
             JSONObjectUtils.getString(keys2check[RSAkid]!!.toJSONObject(), "e")
         )
-        Assert.assertEquals(
+        assertEquals(
             JSONObjectUtils.getString(RSAjwk_2.toPublicJWK().toJSONObject(), "e"),
             JSONObjectUtils.getString(keys2check[RSAkid_2]!!.toJSONObject(), "e")
         )
 
-        Assert.assertTrue(service_3.allPublicKeys.isEmpty())
+        assertTrue(service_3.allPublicKeys.isEmpty())
     }
 
 
     @Throws(ParseException::class)
     @Test
     fun getAllCryptoAlgsSupported() {
-        Assert.assertTrue(service_4.allEncryptionAlgsSupported.contains(JWEAlgorithm.RSA_OAEP))
-        Assert.assertTrue(service_4.allEncryptionAlgsSupported.contains(JWEAlgorithm.RSA1_5))
-        Assert.assertTrue(service_4.allEncryptionAlgsSupported.contains(JWEAlgorithm.DIR))
-        Assert.assertTrue(service_4.allEncryptionEncsSupported.contains(EncryptionMethod.A128CBC_HS256))
-        Assert.assertTrue(service_4.allEncryptionEncsSupported.contains(EncryptionMethod.A128GCM))
-        Assert.assertTrue(service_4.allEncryptionEncsSupported.contains(EncryptionMethod.A192CBC_HS384))
-        Assert.assertTrue(service_4.allEncryptionEncsSupported.contains(EncryptionMethod.A192GCM))
-        Assert.assertTrue(service_4.allEncryptionEncsSupported.contains(EncryptionMethod.A256GCM))
-        Assert.assertTrue(service_4.allEncryptionEncsSupported.contains(EncryptionMethod.A256CBC_HS512))
+        assertTrue(JWEAlgorithm.RSA_OAEP in service_4.allEncryptionAlgsSupported)
+        assertTrue(JWEAlgorithm.RSA1_5 in service_4.allEncryptionAlgsSupported)
+        assertTrue(JWEAlgorithm.DIR in service_4.allEncryptionAlgsSupported)
+        assertTrue(EncryptionMethod.A128CBC_HS256 in service_4.allEncryptionEncsSupported)
+        assertTrue(EncryptionMethod.A128GCM in service_4.allEncryptionEncsSupported)
+        assertTrue(EncryptionMethod.A192CBC_HS384 in service_4.allEncryptionEncsSupported)
+        assertTrue(EncryptionMethod.A192GCM in service_4.allEncryptionEncsSupported)
+        assertTrue(EncryptionMethod.A256GCM in service_4.allEncryptionEncsSupported)
+        assertTrue(EncryptionMethod.A256CBC_HS512 in service_4.allEncryptionEncsSupported)
 
-        Assert.assertTrue(service_ks.allEncryptionAlgsSupported.contains(JWEAlgorithm.RSA_OAEP))
-        Assert.assertTrue(service_ks.allEncryptionAlgsSupported.contains(JWEAlgorithm.RSA1_5))
-        Assert.assertTrue(service_ks.allEncryptionAlgsSupported.contains(JWEAlgorithm.DIR))
-        Assert.assertTrue(service_ks.allEncryptionEncsSupported.contains(EncryptionMethod.A128CBC_HS256))
-        Assert.assertTrue(service_ks.allEncryptionEncsSupported.contains(EncryptionMethod.A128GCM))
-        Assert.assertTrue(service_ks.allEncryptionEncsSupported.contains(EncryptionMethod.A192CBC_HS384))
-        Assert.assertTrue(service_ks.allEncryptionEncsSupported.contains(EncryptionMethod.A192GCM))
-        Assert.assertTrue(service_ks.allEncryptionEncsSupported.contains(EncryptionMethod.A256GCM))
-        Assert.assertTrue(service_ks.allEncryptionEncsSupported.contains(EncryptionMethod.A256CBC_HS512))
+        assertTrue(JWEAlgorithm.RSA_OAEP in service_ks.allEncryptionAlgsSupported)
+        assertTrue(JWEAlgorithm.RSA1_5 in service_ks.allEncryptionAlgsSupported)
+        assertTrue(JWEAlgorithm.DIR in service_ks.allEncryptionAlgsSupported)
+        assertTrue(EncryptionMethod.A128CBC_HS256 in service_ks.allEncryptionEncsSupported)
+        assertTrue(EncryptionMethod.A128GCM in service_ks.allEncryptionEncsSupported)
+        assertTrue(EncryptionMethod.A192CBC_HS384 in service_ks.allEncryptionEncsSupported)
+        assertTrue(EncryptionMethod.A192GCM in service_ks.allEncryptionEncsSupported)
+        assertTrue(EncryptionMethod.A256GCM in service_ks.allEncryptionEncsSupported)
+        assertTrue(EncryptionMethod.A256CBC_HS512 in service_ks.allEncryptionEncsSupported)
     }
 
 
@@ -376,19 +372,19 @@ class TestDefaultJWTEncryptionAndDecryptionService {
     fun getDefaultCryptoKeyId() {
         // Test set/getDefaultEn/DecryptionKeyId
 
-        Assert.assertEquals(null, service_4.defaultEncryptionKeyId)
-        Assert.assertEquals(null, service_4.defaultDecryptionKeyId)
+        assertNull(service_4.defaultEncryptionKeyId)
+        assertEquals(null, service_4.defaultDecryptionKeyId)
         service_4.defaultEncryptionKeyId = RSAkid
         service_4.defaultDecryptionKeyId = AESkid
-        Assert.assertEquals(RSAkid, service_4.defaultEncryptionKeyId)
-        Assert.assertEquals(AESkid, service_4.defaultDecryptionKeyId)
+        assertEquals(RSAkid, service_4.defaultEncryptionKeyId)
+        assertEquals(AESkid, service_4.defaultDecryptionKeyId)
 
-        Assert.assertEquals(null, service_ks.defaultEncryptionKeyId)
-        Assert.assertEquals(null, service_ks.defaultDecryptionKeyId)
+        assertEquals(null, service_ks.defaultEncryptionKeyId)
+        assertEquals(null, service_ks.defaultDecryptionKeyId)
         service_ks.defaultEncryptionKeyId = RSAkid
         service_ks.defaultDecryptionKeyId = AESkid
-        Assert.assertEquals(RSAkid, service_ks.defaultEncryptionKeyId)
-        Assert.assertEquals(AESkid, service_ks.defaultDecryptionKeyId)
+        assertEquals(RSAkid, service_ks.defaultEncryptionKeyId)
+        assertEquals(AESkid, service_ks.defaultDecryptionKeyId)
     }
 
     companion object {

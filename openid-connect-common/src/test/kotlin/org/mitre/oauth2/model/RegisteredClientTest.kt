@@ -23,8 +23,8 @@ package org.mitre.oauth2.model
 import com.google.common.collect.ImmutableSet
 import com.nimbusds.jose.EncryptionMethod
 import com.nimbusds.jose.JWEAlgorithm
-import org.junit.Test
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 import org.mitre.oauth2.model.RegisteredClient
 import java.sql.Date
 
@@ -80,7 +80,7 @@ class RegisteredClientTest {
     }
 
     /**
-     * Test method for [org.mitre.oauth2.model.RegisteredClient.RegisteredClient].
+     * Test method for [org.mitre.oauth2.model.RegisteredClient].
      */
     @Test
     fun testRegisteredClientClientDetailsEntity() {
@@ -130,7 +130,7 @@ class RegisteredClientTest {
     }
 
     /**
-     * Test method for [org.mitre.oauth2.model.RegisteredClient.RegisteredClient].
+     * Test method for [org.mitre.oauth2.model.RegisteredClient].
      */
     @Test
     fun testRegisteredClientClientDetailsEntityStringString() {
