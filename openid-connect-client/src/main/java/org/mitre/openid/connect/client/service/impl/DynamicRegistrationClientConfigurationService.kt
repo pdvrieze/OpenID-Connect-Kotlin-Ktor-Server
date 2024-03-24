@@ -7,213 +7,176 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.openid.connect.client.service.impl;
+ */
+package org.mitre.openid.connect.client.service.impl
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.UncheckedExecutionException;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.mitre.oauth2.model.RegisteredClient;
-import org.mitre.openid.connect.ClientDetailsEntityJsonProcessor;
-import org.mitre.openid.connect.client.service.ClientConfigurationService;
-import org.mitre.openid.connect.client.service.RegisteredClientService;
-import org.mitre.openid.connect.config.ServerConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.security.authentication.AuthenticationServiceException;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
-
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
+import com.google.common.cache.CacheBuilder
+import com.google.common.cache.CacheLoader
+import com.google.common.cache.LoadingCache
+import com.google.common.collect.Lists
+import com.google.common.util.concurrent.UncheckedExecutionException
+import com.google.gson.Gson
+import org.apache.http.client.HttpClient
+import org.apache.http.impl.client.HttpClientBuilder
+import org.mitre.oauth2.model.RegisteredClient
+import org.mitre.openid.connect.ClientDetailsEntityJsonProcessor.parseRegistered
+import org.mitre.openid.connect.ClientDetailsEntityJsonProcessor.serialize
+import org.mitre.openid.connect.client.service.ClientConfigurationService
+import org.mitre.openid.connect.client.service.RegisteredClientService
+import org.mitre.openid.connect.config.ServerConfiguration
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.springframework.http.HttpEntity
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpMethod
+import org.springframework.http.MediaType
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
+import org.springframework.security.authentication.AuthenticationServiceException
+import org.springframework.security.oauth2.common.OAuth2AccessToken
+import org.springframework.security.oauth2.common.exceptions.InvalidClientException
+import org.springframework.web.client.RestClientException
+import org.springframework.web.client.RestTemplate
+import java.util.concurrent.ExecutionException
 
 /**
  * @author jricher
- *
  */
-public class DynamicRegistrationClientConfigurationService implements ClientConfigurationService {
+class DynamicRegistrationClientConfigurationService @JvmOverloads constructor(
+    httpClient: HttpClient? = HttpClientBuilder.create().useSystemProperties().build()
+) : ClientConfigurationService {
+    private val clients: LoadingCache<ServerConfiguration, RegisteredClient?> =
+        CacheBuilder.newBuilder().build(DynamicClientRegistrationLoader(httpClient))
 
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger logger = LoggerFactory.getLogger(DynamicRegistrationClientConfigurationService.class);
+    var registeredClientService: RegisteredClientService = InMemoryRegisteredClientService()
 
-	private LoadingCache<ServerConfiguration, RegisteredClient> clients;
+    private var template: RegisteredClient? = null
 
-	private RegisteredClientService registeredClientService = new InMemoryRegisteredClientService();
+    var whitelist: Set<String?> = HashSet()
+    var blacklist: Set<String?> = HashSet()
 
-	private RegisteredClient template;
+    override fun getClientConfiguration(issuer: ServerConfiguration?): RegisteredClient? {
+        try {
+            if (!whitelist.isEmpty() && !whitelist.contains(issuer!!.issuer)) {
+                throw AuthenticationServiceException("Whitelist was nonempty, issuer was not in whitelist: $issuer")
+            }
 
-	private Set<String> whitelist = new HashSet<>();
-	private Set<String> blacklist = new HashSet<>();
+            if (blacklist.contains(issuer!!.issuer)) {
+                throw AuthenticationServiceException("Issuer was in blacklist: $issuer")
+            }
 
-	public DynamicRegistrationClientConfigurationService() {
-		this(HttpClientBuilder.create().useSystemProperties().build());
-	}
+            return clients[issuer]
+        } catch (e: UncheckedExecutionException) {
+            logger.warn("Unable to get client configuration", e)
+            return null
+        } catch (e: ExecutionException) {
+            logger.warn("Unable to get client configuration", e)
+            return null
+        }
+    }
 
-	public DynamicRegistrationClientConfigurationService(HttpClient httpClient) {
-		clients = CacheBuilder.newBuilder().build(new DynamicClientRegistrationLoader(httpClient));
-	}
+    fun getTemplate(): RegisteredClient? {
+        return template
+    }
 
-	@Override
-	public RegisteredClient getClientConfiguration(ServerConfiguration issuer) {
-		try {
-			if (!whitelist.isEmpty() && !whitelist.contains(issuer.getIssuer())) {
-				throw new AuthenticationServiceException("Whitelist was nonempty, issuer was not in whitelist: " + issuer);
-			}
+    fun setTemplate(template: RegisteredClient?) {
+        // make sure the template doesn't have unwanted fields set on it
+        template?.apply {
+            clientId = null
+            clientSecret = null
+            registrationClientUri = null
+            registrationAccessToken = null
+        }
 
-			if (blacklist.contains(issuer.getIssuer())) {
-				throw new AuthenticationServiceException("Issuer was in blacklist: " + issuer);
-			}
-
-			return clients.get(issuer);
-		} catch (UncheckedExecutionException | ExecutionException e) {
-			logger.warn("Unable to get client configuration", e);
-			return null;
-		}
-	}
-
-	public RegisteredClient getTemplate() {
-		return template;
-	}
-
-	public void setTemplate(RegisteredClient template) {
-		// make sure the template doesn't have unwanted fields set on it
-		if (template != null) {
-			template.setClientId(null);
-			template.setClientSecret(null);
-			template.setRegistrationClientUri(null);
-			template.setRegistrationAccessToken(null);
-		}
-		this.template = template;
-	}
-
-	public RegisteredClientService getRegisteredClientService() {
-		return registeredClientService;
-	}
-
-	public void setRegisteredClientService(RegisteredClientService registeredClientService) {
-		this.registeredClientService = registeredClientService;
-	}
+        this.template = template
+    }
 
 
-	public Set<String> getWhitelist() {
-		return whitelist;
-	}
+    /**
+     * Loader class that fetches the client information.
+     *
+     * If a client has been registered (ie, it's known to the RegisteredClientService), then this
+     * will fetch the client's configuration from the server.
+     *
+     * @author jricher
+     */
+    inner class DynamicClientRegistrationLoader @JvmOverloads constructor(
+        httpClient: HttpClient? = HttpClientBuilder.create().useSystemProperties().build()
+    ) : CacheLoader<ServerConfiguration, RegisteredClient?>() {
+        private val httpFactory = HttpComponentsClientHttpRequestFactory(httpClient)
+        private val gson = Gson() // note that this doesn't serialize nulls by default
 
-	public void setWhitelist(Set<String> whitelist) {
-		this.whitelist = whitelist;
-	}
-
-	public Set<String> getBlacklist() {
-		return blacklist;
-	}
-
-	public void setBlacklist(Set<String> blacklist) {
-		this.blacklist = blacklist;
-	}
-
-
-	/**
-	 * Loader class that fetches the client information.
-	 *
-	 * If a client has been registered (ie, it's known to the RegisteredClientService), then this
-	 * will fetch the client's configuration from the server.
-	 *
-	 * @author jricher
-	 *
-	 */
-	public class DynamicClientRegistrationLoader extends CacheLoader<ServerConfiguration, RegisteredClient> {
-		private HttpComponentsClientHttpRequestFactory httpFactory;
-		private Gson gson = new Gson(); // note that this doesn't serialize nulls by default
-
-		public DynamicClientRegistrationLoader() {
-			this(HttpClientBuilder.create().useSystemProperties().build());
-		}
-
-		public DynamicClientRegistrationLoader(HttpClient httpClient) {
-			this.httpFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
-		}
-
-		@Override
-		public RegisteredClient load(ServerConfiguration serverConfig) throws Exception {
-			RestTemplate restTemplate = new RestTemplate(httpFactory);
+        @Throws(Exception::class)
+        override fun load(serverConfig: ServerConfiguration): RegisteredClient? {
+            val restTemplate = RestTemplate(httpFactory)
 
 
-			RegisteredClient knownClient = registeredClientService.getByIssuer(serverConfig.getIssuer());
-			if (knownClient == null) {
+            val knownClient = registeredClientService.getByIssuer(serverConfig.issuer!!)
+            if (knownClient == null) {
+                // dynamically register this client
 
-				// dynamically register this client
-				JsonObject jsonRequest = ClientDetailsEntityJsonProcessor.serialize(template);
-				String serializedClient = gson.toJson(jsonRequest);
+                val jsonRequest = serialize(template!!)
+                val serializedClient = gson.toJson(jsonRequest)
 
-				HttpHeaders headers = new HttpHeaders();
-				headers.setContentType(MediaType.APPLICATION_JSON);
-				headers.setAccept(Lists.newArrayList(MediaType.APPLICATION_JSON));
+                val headers = HttpHeaders()
+                headers.contentType = MediaType.APPLICATION_JSON
+                headers.accept = Lists.newArrayList(MediaType.APPLICATION_JSON)
 
-				HttpEntity<String> entity = new HttpEntity<>(serializedClient, headers);
+                val entity = HttpEntity(serializedClient, headers)
 
-				try {
-					String registered = restTemplate.postForObject(serverConfig.getRegistrationEndpointUri(), entity, String.class);
+                try {
+                    val registered =
+                        restTemplate.postForObject(serverConfig.registrationEndpointUri, entity, String::class.java)
 
-					RegisteredClient client = ClientDetailsEntityJsonProcessor.parseRegistered(registered);
+                    val client = parseRegistered(registered)
 
-					// save this client for later
-					registeredClientService.save(serverConfig.getIssuer(), client);
+                    // save this client for later
+                    registeredClientService.save(serverConfig.issuer!!, client!!)
 
-					return client;
-				} catch (RestClientException rce) {
-					throw new InvalidClientException("Error registering client with server");
-				}
-			} else {
+                    return client
+                } catch (rce: RestClientException) {
+                    throw InvalidClientException("Error registering client with server")
+                }
+            } else {
+                if (knownClient.clientId != null) {
+                    // it's got a client ID from the store, don't bother trying to load it
+                    return knownClient
+                } else {
+                    // load this client's information from the server
 
-				if (knownClient.getClientId() == null) {
+                    val headers = HttpHeaders()
+                    headers["Authorization"] =
+                        String.format("%s %s", OAuth2AccessToken.BEARER_TYPE, knownClient.registrationAccessToken)
+                    headers.accept = Lists.newArrayList(MediaType.APPLICATION_JSON)
 
-					// load this client's information from the server
-					HttpHeaders headers = new HttpHeaders();
-					headers.set("Authorization", String.format("%s %s", OAuth2AccessToken.BEARER_TYPE, knownClient.getRegistrationAccessToken()));
-					headers.setAccept(Lists.newArrayList(MediaType.APPLICATION_JSON));
+                    val entity = HttpEntity<String>(headers)
 
-					HttpEntity<String> entity = new HttpEntity<>(headers);
+                    try {
+                        val registered =
+                            restTemplate.exchange(knownClient.registrationClientUri, HttpMethod.GET, entity, String::class.java).body
 
-					try {
-						String registered = restTemplate.exchange(knownClient.getRegistrationClientUri(), HttpMethod.GET, entity, String.class).getBody();
-						// TODO: handle HTTP errors
+                        // TODO: handle HTTP errors
+                        val client = parseRegistered(registered)
 
-						RegisteredClient client = ClientDetailsEntityJsonProcessor.parseRegistered(registered);
+                        return client
+                    } catch (rce: RestClientException) {
+                        throw InvalidClientException("Error loading previously registered client information from server")
+                    }
+                }
+            }
+        }
+    }
 
-						return client;
-					} catch (RestClientException rce) {
-						throw new InvalidClientException("Error loading previously registered client information from server");
-					}
-				} else {
-					// it's got a client ID from the store, don't bother trying to load it
-					return knownClient;
-				}
-			}
-		}
-
-	}
-
+    companion object {
+        /**
+         * Logger for this class
+         */
+        private val logger: Logger = LoggerFactory.getLogger(DynamicRegistrationClientConfigurationService::class.java)
+    }
 }
