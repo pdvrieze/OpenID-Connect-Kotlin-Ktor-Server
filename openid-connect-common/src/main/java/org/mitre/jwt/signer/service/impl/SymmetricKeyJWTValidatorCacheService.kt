@@ -56,8 +56,6 @@ class SymmetricKeyJWTValidatorCacheService {
     /**
      * Create a symmetric signing and validation service for the given client
      *
-     * @param client
-     * @return
      */
     fun getSymmetricValidtor(client: ClientDetailsEntity?): JWTSigningAndValidationService? {
         if (client == null) {

@@ -20,31 +20,8 @@
  */
 package org.mitre.openid.connect.filter;
 
-import static org.mitre.openid.connect.request.ConnectRequestParameters.ERROR;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.LOGIN_HINT;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.LOGIN_REQUIRED;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.MAX_AGE;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.PROMPT;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.PROMPT_LOGIN;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.PROMPT_NONE;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.PROMPT_SEPARATOR;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.STATE;
-
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
+import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import org.apache.http.client.utils.URIBuilder;
 import org.mitre.oauth2.model.ClientDetailsEntity;
 import org.mitre.oauth2.service.ClientDetailsEntityService;
@@ -65,8 +42,30 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.GenericFilterBean;
 
-import com.google.common.base.Splitter;
-import com.google.common.base.Strings;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.mitre.openid.connect.request.ConnectRequestParameters.ERROR;
+import static org.mitre.openid.connect.request.ConnectRequestParameters.LOGIN_HINT;
+import static org.mitre.openid.connect.request.ConnectRequestParameters.LOGIN_REQUIRED;
+import static org.mitre.openid.connect.request.ConnectRequestParameters.MAX_AGE;
+import static org.mitre.openid.connect.request.ConnectRequestParameters.PROMPT;
+import static org.mitre.openid.connect.request.ConnectRequestParameters.PROMPT_LOGIN;
+import static org.mitre.openid.connect.request.ConnectRequestParameters.PROMPT_NONE;
+import static org.mitre.openid.connect.request.ConnectRequestParameters.PROMPT_SEPARATOR;
+import static org.mitre.openid.connect.request.ConnectRequestParameters.STATE;
 
 /**
  * @author jricher
@@ -243,8 +242,6 @@ public class AuthorizationRequestFilter extends GenericFilterBean {
 	}
 
 	/**
-	 * @param parameterMap
-	 * @return
 	 */
 	private Map<String, String> createRequestMap(Map<String, String[]> parameterMap) {
 		Map<String, String> requestMap = new HashMap<>();

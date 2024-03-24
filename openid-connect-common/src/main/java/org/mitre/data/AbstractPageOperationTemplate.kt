@@ -114,7 +114,6 @@ abstract class AbstractPageOperationTemplate<T> @JvmOverloads constructor(
 
     /**
      * Method responsible for final report of progress.
-     * @return
      */
     protected fun finalReport(
         operationsCompleted: Int,

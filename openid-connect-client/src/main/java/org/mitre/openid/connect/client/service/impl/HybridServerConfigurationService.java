@@ -20,11 +20,11 @@
  */
 package org.mitre.openid.connect.client.service.impl;
 
-import java.util.Map;
-import java.util.Set;
-
 import org.mitre.openid.connect.client.service.ServerConfigurationService;
 import org.mitre.openid.connect.config.ServerConfiguration;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Houses both a static server configuration and a dynamic server configuration
@@ -60,7 +60,6 @@ public class HybridServerConfigurationService implements ServerConfigurationServ
 
 
 	/**
-	 * @return
 	 * @see org.mitre.openid.connect.client.service.impl.StaticServerConfigurationService#getServers()
 	 */
 	public Map<String, ServerConfiguration> getServers() {
@@ -69,7 +68,6 @@ public class HybridServerConfigurationService implements ServerConfigurationServ
 
 
 	/**
-	 * @param servers
 	 * @see org.mitre.openid.connect.client.service.impl.StaticServerConfigurationService#setServers(java.util.Map)
 	 */
 	public void setServers(Map<String, ServerConfiguration> servers) {
@@ -78,7 +76,6 @@ public class HybridServerConfigurationService implements ServerConfigurationServ
 
 
 	/**
-	 * @return
 	 * @see org.mitre.openid.connect.client.service.impl.DynamicServerConfigurationService#getWhitelist()
 	 */
 	public Set<String> getWhitelist() {
@@ -87,7 +84,6 @@ public class HybridServerConfigurationService implements ServerConfigurationServ
 
 
 	/**
-	 * @param whitelist
 	 * @see org.mitre.openid.connect.client.service.impl.DynamicServerConfigurationService#setWhitelist(java.util.Set)
 	 */
 	public void setWhitelist(Set<String> whitelist) {
@@ -96,7 +92,6 @@ public class HybridServerConfigurationService implements ServerConfigurationServ
 
 
 	/**
-	 * @return
 	 * @see org.mitre.openid.connect.client.service.impl.DynamicServerConfigurationService#getBlacklist()
 	 */
 	public Set<String> getBlacklist() {
@@ -105,7 +100,6 @@ public class HybridServerConfigurationService implements ServerConfigurationServ
 
 
 	/**
-	 * @param blacklist
 	 * @see org.mitre.openid.connect.client.service.impl.DynamicServerConfigurationService#setBlacklist(java.util.Set)
 	 */
 	public void setBlacklist(Set<String> blacklist) {

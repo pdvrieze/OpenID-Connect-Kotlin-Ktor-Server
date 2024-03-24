@@ -20,13 +20,13 @@
  */
 package org.mitre.openid.connect.client.service.impl;
 
-import java.util.Map;
-import java.util.Set;
-
 import org.mitre.oauth2.model.RegisteredClient;
 import org.mitre.openid.connect.client.service.ClientConfigurationService;
 import org.mitre.openid.connect.client.service.RegisteredClientService;
 import org.mitre.openid.connect.config.ServerConfiguration;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Houses both a static client configuration and a dynamic client configuration
@@ -61,7 +61,6 @@ public class HybridClientConfigurationService implements ClientConfigurationServ
 	}
 
 	/**
-	 * @return
 	 * @see org.mitre.openid.connect.client.service.impl.StaticClientConfigurationService#getClients()
 	 */
 	public Map<String, RegisteredClient> getClients() {
@@ -69,7 +68,6 @@ public class HybridClientConfigurationService implements ClientConfigurationServ
 	}
 
 	/**
-	 * @param clients
 	 * @see org.mitre.openid.connect.client.service.impl.StaticClientConfigurationService#setClients(java.util.Map)
 	 */
 	public void setClients(Map<String, RegisteredClient> clients) {
@@ -77,7 +75,6 @@ public class HybridClientConfigurationService implements ClientConfigurationServ
 	}
 
 	/**
-	 * @return
 	 * @see org.mitre.openid.connect.client.service.impl.DynamicRegistrationClientConfigurationService#getTemplate()
 	 */
 	public RegisteredClient getTemplate() {
@@ -85,7 +82,6 @@ public class HybridClientConfigurationService implements ClientConfigurationServ
 	}
 
 	/**
-	 * @param template
 	 * @see org.mitre.openid.connect.client.service.impl.DynamicRegistrationClientConfigurationService#setTemplate(org.mitre.oauth2.model.RegisteredClient)
 	 */
 	public void setTemplate(RegisteredClient template) {
@@ -93,7 +89,6 @@ public class HybridClientConfigurationService implements ClientConfigurationServ
 	}
 
 	/**
-	 * @return
 	 * @see org.mitre.openid.connect.client.service.impl.DynamicRegistrationClientConfigurationService#getRegisteredClientService()
 	 */
 	public RegisteredClientService getRegisteredClientService() {
@@ -101,7 +96,6 @@ public class HybridClientConfigurationService implements ClientConfigurationServ
 	}
 
 	/**
-	 * @param registeredClientService
 	 * @see org.mitre.openid.connect.client.service.impl.DynamicRegistrationClientConfigurationService#setRegisteredClientService(org.mitre.openid.connect.client.service.RegisteredClientService)
 	 */
 	public void setRegisteredClientService(RegisteredClientService registeredClientService) {
@@ -109,7 +103,6 @@ public class HybridClientConfigurationService implements ClientConfigurationServ
 	}
 
 	/**
-	 * @return
 	 * @see org.mitre.openid.connect.client.service.impl.DynamicRegistrationClientConfigurationService#getWhitelist()
 	 */
 	public Set<String> getWhitelist() {
@@ -117,7 +110,6 @@ public class HybridClientConfigurationService implements ClientConfigurationServ
 	}
 
 	/**
-	 * @param whitelist
 	 * @see org.mitre.openid.connect.client.service.impl.DynamicRegistrationClientConfigurationService#setWhitelist(java.util.Set)
 	 */
 	public void setWhitelist(Set<String> whitelist) {
@@ -125,7 +117,6 @@ public class HybridClientConfigurationService implements ClientConfigurationServ
 	}
 
 	/**
-	 * @return
 	 * @see org.mitre.openid.connect.client.service.impl.DynamicRegistrationClientConfigurationService#getBlacklist()
 	 */
 	public Set<String> getBlacklist() {
@@ -133,7 +124,6 @@ public class HybridClientConfigurationService implements ClientConfigurationServ
 	}
 
 	/**
-	 * @param blacklist
 	 * @see org.mitre.openid.connect.client.service.impl.DynamicRegistrationClientConfigurationService#setBlacklist(java.util.Set)
 	 */
 	public void setBlacklist(Set<String> blacklist) {

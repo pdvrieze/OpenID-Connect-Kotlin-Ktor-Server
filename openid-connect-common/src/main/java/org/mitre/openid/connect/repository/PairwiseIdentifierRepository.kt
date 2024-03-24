@@ -29,16 +29,12 @@ interface PairwiseIdentifierRepository {
     /**
      * Get a pairwise identifier by its associated user subject and sector identifier.
      *
-     * @param sub
-     * @param sectorIdentifierUri
-     * @return
      */
     fun getBySectorIdentifier(sub: String, sectorIdentifierUri: String): PairwiseIdentifier?
 
     /**
      * Save a pairwise identifier to the database.
      *
-     * @param pairwise
      */
     fun save(pairwise: PairwiseIdentifier)
 }

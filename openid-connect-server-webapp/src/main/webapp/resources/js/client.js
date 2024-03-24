@@ -809,7 +809,6 @@ var ClientFormView = Backbone.View.extend({
 	 * Set up the form based on the current state of the tokenEndpointAuthMethod
 	 * parameter
 	 * 
-	 * @param event
 	 */
 	toggleClientCredentials: function() {
 
@@ -857,7 +856,6 @@ var ClientFormView = Backbone.View.extend({
 	/**
 	 * Set up the form based on the "Generate" checkbox
 	 * 
-	 * @param event
 	 */
 	toggleGenerateClientSecret: function() {
 
@@ -877,7 +875,6 @@ var ClientFormView = Backbone.View.extend({
 	/**
 	 * Handle whether or not to display the client secret
 	 * 
-	 * @param event
 	 */
 	toggleDisplayClientSecret: function() {
 

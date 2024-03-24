@@ -20,13 +20,12 @@
  */
 package org.mitre.openid.connect.assertion;
 
-import java.text.ParseException;
-import java.util.Collection;
-
+import com.nimbusds.jwt.JWT;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 
-import com.nimbusds.jwt.JWT;
+import java.text.ParseException;
+import java.util.Collection;
 
 /**
  * @author jricher
@@ -43,8 +42,6 @@ public class JWTBearerAssertionAuthenticationToken extends AbstractAuthenticatio
 
 	/**
 	 * Create an unauthenticated token with the given subject and jwt
-	 * @param subject
-	 * @param jwt
 	 */
 	public JWTBearerAssertionAuthenticationToken(JWT jwt) {
 		super(null);
@@ -61,9 +58,6 @@ public class JWTBearerAssertionAuthenticationToken extends AbstractAuthenticatio
 
 	/**
 	 * Create an authenticated token with the given clientID, jwt, and authorities set
-	 * @param subject
-	 * @param jwt
-	 * @param authorities
 	 */
 	public JWTBearerAssertionAuthenticationToken(JWT jwt, Collection<? extends GrantedAuthority> authorities) {
 		super(authorities);

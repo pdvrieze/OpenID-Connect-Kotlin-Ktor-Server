@@ -16,12 +16,6 @@
 
 package org.mitre.uma.service.impl;
 
-import java.util.Collection;
-
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
-
 import org.mitre.oauth2.model.RegisteredClient;
 import org.mitre.openid.connect.client.service.RegisteredClientService;
 import org.mitre.uma.model.SavedRegisteredClient;
@@ -29,6 +23,12 @@ import org.mitre.uma.service.SavedRegisteredClientService;
 import org.mitre.util.jpa.JpaUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+
+import java.util.Collection;
 
 /**
  * @author jricher
@@ -84,7 +84,6 @@ public class JpaRegisteredClientService implements RegisteredClientService, Save
 	}
 
 	/**
-	 * @return
 	 */
 	@Override
 	public Collection<SavedRegisteredClient> getAll() {

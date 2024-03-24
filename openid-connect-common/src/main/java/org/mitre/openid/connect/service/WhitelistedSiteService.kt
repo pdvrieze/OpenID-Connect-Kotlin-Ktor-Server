@@ -35,7 +35,6 @@ interface WhitelistedSiteService {
     /**
      * Returns the WhitelistedSite for the given id
      *
-     * @param id
      * id the id of the WhitelistedSite
      * @return a valid WhitelistedSite if it exists, null otherwise
      */
@@ -53,7 +52,6 @@ interface WhitelistedSiteService {
     /**
      * Removes the given WhitelistedSite from the repository
      *
-     * @param whitelistedSite
      * the WhitelistedSite object to remove
      */
     fun remove(whitelistedSite: WhitelistedSite)

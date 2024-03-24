@@ -35,9 +35,6 @@ public class IssuerServiceResponse {
 	private String redirectUrl;
 
 	/**
-	 * @param issuer
-	 * @param loginHint
-	 * @param targetLinkUri
 	 */
 	public IssuerServiceResponse(String issuer, String loginHint, String targetLinkUri) {
 		this.issuer = issuer;
@@ -46,7 +43,6 @@ public class IssuerServiceResponse {
 	}
 
 	/**
-	 * @param redirectUrl
 	 */
 	public IssuerServiceResponse(String redirectUrl) {
 		this.redirectUrl = redirectUrl;

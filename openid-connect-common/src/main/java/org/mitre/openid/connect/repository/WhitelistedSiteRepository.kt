@@ -35,7 +35,6 @@ interface WhitelistedSiteRepository {
     /**
      * Returns the WhitelistedSite for the given id
      *
-     * @param id
      * id the id of the WhitelistedSite
      * @return a valid WhitelistedSite if it exists, null otherwise
      */
@@ -60,7 +59,6 @@ interface WhitelistedSiteRepository {
     /**
      * Removes the given IdToken from the repository
      *
-     * @param whitelistedSite
      * the WhitelistedSite object to remove
      */
     fun remove(whitelistedSite: WhitelistedSite)
@@ -68,16 +66,11 @@ interface WhitelistedSiteRepository {
     /**
      * Persists a WhitelistedSite
      *
-     * @param whitelistedSite
-     * @return
      */
     fun save(whiteListedSite: WhitelistedSite): WhitelistedSite
 
     /**
      * Persist changes to a whitelistedSite. The ID of oldWhitelistedSite is retained.
-     * @param oldWhitelistedSite
-     * @param whitelistedSite
-     * @return
      */
     fun update(oldWhitelistedSite: WhitelistedSite, whitelistedSite: WhitelistedSite): WhitelistedSite
 }

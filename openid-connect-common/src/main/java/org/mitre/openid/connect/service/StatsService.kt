@@ -38,7 +38,6 @@ interface StatsService {
      * Calculate the usage count for a single client
      *
      * @param clientId the id of the client to search on
-     * @return
      */
     fun getCountForClientId(clientId: String): ClientStat?
 

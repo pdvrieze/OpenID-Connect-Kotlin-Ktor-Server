@@ -17,7 +17,6 @@
  */
 package org.mitre.oauth2.model
 
-import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.convert.SerializableStringConverter
 import org.mitre.oauth2.model.convert.SimpleGrantedAuthorityStringConverter
 import org.springframework.security.core.GrantedAuthority
@@ -118,7 +117,6 @@ class AuthenticationHolderEntity {
         }
 
     /**
-     * @return
      */
     private fun createOAuth2Request(): OAuth2Request {
         return OAuth2Request(requestParameters, clientId, authorities, isApproved, scope, resourceIds, redirectUri, responseTypes, extensions)

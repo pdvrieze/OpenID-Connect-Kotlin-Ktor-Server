@@ -17,14 +17,21 @@
  *******************************************************************************/
 package org.mitre.openid.connect.service.impl;
 
-import static org.mitre.openid.connect.request.ConnectRequestParameters.MAX_AGE;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.NONCE;
-
-import java.util.Date;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import com.nimbusds.jose.Algorithm;
+import com.nimbusds.jose.JWEHeader;
+import com.nimbusds.jose.JWEObject;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.util.Base64URL;
+import com.nimbusds.jwt.EncryptedJWT;
+import com.nimbusds.jwt.JWT;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.PlainJWT;
+import com.nimbusds.jwt.SignedJWT;
 import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService;
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService;
 import org.mitre.jwt.signer.service.impl.ClientKeyCacheService;
@@ -48,21 +55,13 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.stereotype.Service;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.nimbusds.jose.Algorithm;
-import com.nimbusds.jose.JWEHeader;
-import com.nimbusds.jose.JWEObject;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.util.Base64URL;
-import com.nimbusds.jwt.EncryptedJWT;
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.PlainJWT;
-import com.nimbusds.jwt.SignedJWT;
+import java.util.Date;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
+import static org.mitre.openid.connect.request.ConnectRequestParameters.MAX_AGE;
+import static org.mitre.openid.connect.request.ConnectRequestParameters.NONCE;
 /**
  * Default implementation of service to create specialty OpenID Connect tokens.
  *
@@ -212,8 +211,6 @@ public class DefaultOIDCTokenService implements OIDCTokenService {
 	}
 
 	/**
-	 * @param client
-	 * @return
 	 * @throws AuthenticationException
 	 */
 	@Override
@@ -224,8 +221,6 @@ public class DefaultOIDCTokenService implements OIDCTokenService {
 	}
 
 	/**
-	 * @param client
-	 * @return
 	 */
 	@Override
 	public OAuth2AccessTokenEntity createResourceAccessToken(ClientDetailsEntity client) {

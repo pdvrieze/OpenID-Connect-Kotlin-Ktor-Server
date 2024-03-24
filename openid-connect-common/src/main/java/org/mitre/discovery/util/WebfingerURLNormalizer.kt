@@ -54,7 +54,6 @@ object WebfingerURLNormalizer {
 
     /**
      * Normalize the resource string as per OIDC Discovery.
-     * @param identifier
      * @return the normalized string, or null if the string can't be normalized
      */
 	@JvmStatic

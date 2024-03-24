@@ -17,27 +17,22 @@
  *******************************************************************************/
 package org.mitre.openid.connect.client;
 
-import static org.mitre.oauth2.model.ClientDetailsEntity.AuthMethod.PRIVATE_KEY;
-import static org.mitre.oauth2.model.ClientDetailsEntity.AuthMethod.SECRET_BASIC;
-import static org.mitre.oauth2.model.ClientDetailsEntity.AuthMethod.SECRET_JWT;
-
-import java.io.IOException;
-import java.math.BigInteger;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.text.ParseException;
-import java.util.Date;
-import java.util.Map;
-import java.util.UUID;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
+import com.google.common.base.Strings;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.nimbusds.jose.Algorithm;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.util.Base64;
+import com.nimbusds.jose.util.Base64URL;
+import com.nimbusds.jwt.JWT;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.JWTParser;
+import com.nimbusds.jwt.PlainJWT;
+import com.nimbusds.jwt.SignedJWT;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -70,22 +65,26 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriUtils;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.nimbusds.jose.Algorithm;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.util.Base64;
-import com.nimbusds.jose.util.Base64URL;
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.JWTParser;
-import com.nimbusds.jwt.PlainJWT;
-import com.nimbusds.jwt.SignedJWT;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import java.io.IOException;
+import java.math.BigInteger;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.text.ParseException;
+import java.util.Date;
+import java.util.Map;
+import java.util.UUID;
+
+import static org.mitre.oauth2.model.ClientDetailsEntity.AuthMethod.PRIVATE_KEY;
+import static org.mitre.oauth2.model.ClientDetailsEntity.AuthMethod.SECRET_BASIC;
+import static org.mitre.oauth2.model.ClientDetailsEntity.AuthMethod.SECRET_JWT;
 
 /**
  * OpenID Connect Authentication Filter class
@@ -206,10 +205,8 @@ public class OIDCAuthenticationFilter extends AbstractAuthenticationProcessingFi
 	/**
 	 * Initiate an Authorization request
 	 *
-	 * @param request
 	 *            The request from which to extract parameters and perform the
 	 *            authentication
-	 * @param response
 	 * @throws IOException
 	 *             If an input or output exception occurs
 	 */
@@ -301,7 +298,6 @@ public class OIDCAuthenticationFilter extends AbstractAuthenticationProcessingFi
 	}
 
 	/**
-	 * @param request
 	 *            The request from which to extract parameters and perform the
 	 *            authentication
 	 * @return The authenticated user token, or null if authentication is
@@ -636,10 +632,8 @@ public class OIDCAuthenticationFilter extends AbstractAuthenticationProcessingFi
 	/**
 	 * Handle Authorization Endpoint error
 	 *
-	 * @param request
 	 *            The request from which to extract parameters and handle the
 	 *            error
-	 * @param response
 	 *            The response, needed to do a redirect to display the error
 	 * @throws IOException
 	 *             If an input or output exception occurs
@@ -655,9 +649,6 @@ public class OIDCAuthenticationFilter extends AbstractAuthenticationProcessingFi
 
 	/**
 	 * Get the named stored session variable as a string. Return null if not found or not a string.
-	 * @param session
-	 * @param key
-	 * @return
 	 */
 	private static String getStoredSessionString(HttpSession session, String key) {
 		Object o = session.getAttribute(key);
@@ -670,8 +661,6 @@ public class OIDCAuthenticationFilter extends AbstractAuthenticationProcessingFi
 
 	/**
 	 * Create a cryptographically random nonce and store it in the session
-	 * @param session
-	 * @return
 	 */
 	protected static String createNonce(HttpSession session) {
 		String nonce = new BigInteger(50, new SecureRandom()).toString(16);
@@ -682,8 +671,6 @@ public class OIDCAuthenticationFilter extends AbstractAuthenticationProcessingFi
 
 	/**
 	 * Get the nonce we stored in the session
-	 * @param session
-	 * @return
 	 */
 	protected static String getStoredNonce(HttpSession session) {
 		return getStoredSessionString(session, NONCE_SESSION_VARIABLE);
@@ -691,8 +678,6 @@ public class OIDCAuthenticationFilter extends AbstractAuthenticationProcessingFi
 
 	/**
 	 * Create a cryptographically random state and store it in the session
-	 * @param session
-	 * @return
 	 */
 	protected static String createState(HttpSession session) {
 		String state = new BigInteger(50, new SecureRandom()).toString(16);
@@ -703,8 +688,6 @@ public class OIDCAuthenticationFilter extends AbstractAuthenticationProcessingFi
 
 	/**
 	 * Get the state we stored in the session
-	 * @param session
-	 * @return
 	 */
 	protected static String getStoredState(HttpSession session) {
 		return getStoredSessionString(session, STATE_SESSION_VARIABLE);
@@ -712,8 +695,6 @@ public class OIDCAuthenticationFilter extends AbstractAuthenticationProcessingFi
 
 	/**
 	 * Create a random code challenge and store it in the session
-	 * @param session
-	 * @return
 	 */
 	protected static String createCodeVerifier(HttpSession session) {
 		String challenge = new BigInteger(50, new SecureRandom()).toString(16);
@@ -723,8 +704,6 @@ public class OIDCAuthenticationFilter extends AbstractAuthenticationProcessingFi
 
 	/**
 	 * Retrieve the stored challenge from our session
-	 * @param session
-	 * @return
 	 */
 	protected static String getStoredCodeVerifier(HttpSession session) {
 		return getStoredSessionString(session, CODE_VERIFIER_SESSION_VARIABLE);

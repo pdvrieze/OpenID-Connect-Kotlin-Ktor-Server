@@ -16,8 +16,6 @@
 
 package org.mitre.oauth2.token;
 
-import java.util.Date;
-
 import org.mitre.oauth2.exception.AuthorizationPendingException;
 import org.mitre.oauth2.exception.DeviceCodeExpiredException;
 import org.mitre.oauth2.model.DeviceCode;
@@ -33,6 +31,8 @@ import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.token.AbstractTokenGranter;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.stereotype.Component;
+
+import java.util.Date;
 
 /**
  * Implements https://tools.ietf.org/html/draft-ietf-oauth-device-flow
@@ -51,10 +51,6 @@ public class DeviceTokenGranter extends AbstractTokenGranter {
 	private DeviceCodeService deviceCodeService;
 
 	/**
-	 * @param tokenServices
-	 * @param clientDetailsService
-	 * @param requestFactory
-	 * @param grantType
 	 */
 	protected DeviceTokenGranter(AuthorizationServerTokenServices tokenServices, ClientDetailsService clientDetailsService, OAuth2RequestFactory requestFactory) {
 		super(tokenServices, clientDetailsService, requestFactory, GRANT_TYPE);

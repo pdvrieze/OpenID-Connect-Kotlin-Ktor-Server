@@ -23,8 +23,6 @@ import org.mitre.openid.connect.model.CachedImage
  */
 interface ClientLogoLoadingService {
     /**
-     * @param client
-     * @return
      */
     fun getLogo(client: ClientDetailsEntity): CachedImage?
 }

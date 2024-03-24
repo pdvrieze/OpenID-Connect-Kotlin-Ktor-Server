@@ -17,21 +17,9 @@
  *******************************************************************************/
 package org.mitre.openid.connect.token;
 
-import static org.mitre.openid.connect.request.ConnectRequestParameters.APPROVED_SITE;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.PROMPT;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.PROMPT_CONSENT;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.PROMPT_SEPARATOR;
-
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.servlet.http.HttpSession;
-
+import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 import org.mitre.oauth2.service.SystemScopeService;
 import org.mitre.openid.connect.model.ApprovedSite;
 import org.mitre.openid.connect.model.WhitelistedSite;
@@ -48,9 +36,20 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import com.google.common.base.Splitter;
-import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
+import javax.servlet.http.HttpSession;
+
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.mitre.openid.connect.request.ConnectRequestParameters.APPROVED_SITE;
+import static org.mitre.openid.connect.request.ConnectRequestParameters.PROMPT;
+import static org.mitre.openid.connect.request.ConnectRequestParameters.PROMPT_CONSENT;
+import static org.mitre.openid.connect.request.ConnectRequestParameters.PROMPT_SEPARATOR;
 
 /**
  * Custom User Approval Handler implementation which uses a concept of a whitelist,
@@ -242,7 +241,6 @@ public class TofuUserApprovalHandler implements UserApprovalHandler {
 	 * Get the auth time out of the current session and add it to the
 	 * auth request in the extensions map.
 	 *
-	 * @param authorizationRequest
 	 */
 	private void setAuthTime(AuthorizationRequest authorizationRequest) {
 		// Get the session auth time, if we have it, and store it in the request

@@ -44,16 +44,12 @@ interface ApprovedSiteRepository {
      * Return a collection of ApprovedSite managed by this repository matching the
      * provided client ID and user ID
      *
-     * @param clientId
-     * @param userId
-     * @return
      */
     fun getByClientIdAndUserId(clientId: String?, userId: String?): Collection<ApprovedSite>?
 
     /**
      * Removes the given ApprovedSite from the repository
      *
-     * @param aggregator
      * the ApprovedSite object to remove
      */
     fun remove(approvedSite: ApprovedSite)
@@ -61,7 +57,6 @@ interface ApprovedSiteRepository {
     /**
      * Persists an ApprovedSite
      *
-     * @param aggregator
      * valid ApprovedSite instance
      * @return the persisted entity
      */
@@ -69,15 +64,11 @@ interface ApprovedSiteRepository {
 
     /**
      * Get all sites approved by this user
-     * @param userId
-     * @return
      */
     fun getByUserId(userId: String): Collection<ApprovedSite>
 
     /**
      * Get all sites associated with this client
-     * @param clientId
-     * @return
      */
     fun getByClientId(clientId: String): Collection<ApprovedSite>
 }

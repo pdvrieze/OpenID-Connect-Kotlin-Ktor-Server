@@ -20,12 +20,12 @@
  */
 package org.mitre.openid.connect.client.service;
 
-import java.util.Map;
+import org.mitre.oauth2.model.RegisteredClient;
+import org.mitre.openid.connect.config.ServerConfiguration;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.mitre.oauth2.model.RegisteredClient;
-import org.mitre.openid.connect.config.ServerConfiguration;
+import java.util.Map;
 
 /**
  *
@@ -41,20 +41,12 @@ public interface AuthRequestOptionsService {
 	/**
 	 * The set of options needed at the authorization endpoint.
 	 *
-	 * @param server
-	 * @param client
-	 * @param request
-	 * @return
 	 */
 	public Map<String, String> getOptions(ServerConfiguration server, RegisteredClient client, HttpServletRequest request);
 
 	/**
 	 * The set of options needed at the token endpoint.
 	 *
-	 * @param server
-	 * @param client
-	 * @param request
-	 * @return
 	 */
 	public Map<String, String> getTokenOptions(ServerConfiguration server, RegisteredClient client, HttpServletRequest request);
 

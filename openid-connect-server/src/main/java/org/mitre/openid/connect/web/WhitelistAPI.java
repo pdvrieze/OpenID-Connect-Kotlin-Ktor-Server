@@ -20,9 +20,10 @@
  */
 package org.mitre.openid.connect.web;
 
-import java.security.Principal;
-import java.util.Collection;
-
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
 import org.mitre.openid.connect.model.WhitelistedSite;
 import org.mitre.openid.connect.service.WhitelistedSiteService;
 import org.mitre.openid.connect.view.HttpCodeView;
@@ -41,10 +42,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
+import java.security.Principal;
+import java.util.Collection;
 
 /**
  * @author jricher
@@ -70,8 +69,6 @@ public class WhitelistAPI {
 
 	/**
 	 * Get a list of all whitelisted sites
-	 * @param m
-	 * @return
 	 */
 	@RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public String getAllWhitelistedSites(ModelMap m) {
@@ -85,10 +82,6 @@ public class WhitelistAPI {
 
 	/**
 	 * Create a new whitelisted site
-	 * @param jsonString
-	 * @param m
-	 * @param p
-	 * @return
 	 */
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	@RequestMapping(method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)

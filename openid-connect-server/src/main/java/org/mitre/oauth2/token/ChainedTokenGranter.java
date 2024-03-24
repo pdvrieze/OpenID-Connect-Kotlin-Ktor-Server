@@ -20,9 +20,7 @@
  */
 package org.mitre.oauth2.token;
 
-import java.util.HashSet;
-import java.util.Set;
-
+import com.google.common.collect.Sets;
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity;
 import org.mitre.oauth2.service.ClientDetailsEntityService;
 import org.mitre.oauth2.service.OAuth2TokenEntityService;
@@ -37,7 +35,8 @@ import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.token.AbstractTokenGranter;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.Sets;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author jricher
@@ -52,9 +51,6 @@ public class ChainedTokenGranter extends AbstractTokenGranter {
 	private OAuth2TokenEntityService tokenServices;
 
 	/**
-	 * @param tokenServices
-	 * @param clientDetailsService
-	 * @param GRANT_TYPE
 	 */
 	@Autowired
 	public ChainedTokenGranter(OAuth2TokenEntityService tokenServices, ClientDetailsEntityService clientDetailsService, OAuth2RequestFactory requestFactory) {

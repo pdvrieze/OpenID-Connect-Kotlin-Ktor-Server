@@ -17,9 +17,8 @@
  *******************************************************************************/
 package org.mitre.openid.connect.client.keypublisher;
 
-import java.util.Map;
-import java.util.UUID;
-
+import com.google.common.base.Strings;
+import com.nimbusds.jose.jwk.JWK;
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService;
 import org.mitre.openid.connect.view.JWKSetView;
 import org.springframework.beans.BeansException;
@@ -29,8 +28,8 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.google.common.base.Strings;
-import com.nimbusds.jose.jwk.JWK;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * @author jricher
@@ -88,7 +87,6 @@ public class ClientKeyPublisher implements BeanDefinitionRegistryPostProcessor {
 
 	/**
 	 * Return a view to publish all keys in JWK format. Only used if jwkPublishUrl is set.
-	 * @return
 	 */
 	public ModelAndView publishClientJwk() {
 

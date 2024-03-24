@@ -20,8 +20,6 @@ package org.mitre.openid.connect.service
  */
 interface LoginHintExtracter {
     /**
-     * @param loginHint
-     * @return
      */
     fun extractHint(loginHint: String?): String?
 }

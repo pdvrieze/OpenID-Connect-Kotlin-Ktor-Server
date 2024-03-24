@@ -17,17 +17,13 @@
  *******************************************************************************/
 package org.mitre.oauth2.service.impl;
 
-import java.math.BigInteger;
-import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-
+import com.google.common.base.Strings;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.UncheckedExecutionException;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -57,13 +53,16 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.google.common.base.Strings;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.util.concurrent.UncheckedExecutionException;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
+import java.math.BigInteger;
+import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class DefaultOAuth2ClientDetailsEntityService implements ClientDetailsEntityService {
@@ -154,7 +153,6 @@ public class DefaultOAuth2ClientDetailsEntityService implements ClientDetailsEnt
 
 	/**
 	 * Make sure the client has only one type of key registered
-	 * @param client
 	 */
 	private void ensureKeyConsistency(ClientDetailsEntity client) {
 		if (client.getJwksUri() != null && client.getJwks() != null) {
@@ -177,7 +175,6 @@ public class DefaultOAuth2ClientDetailsEntityService implements ClientDetailsEnt
 
 	/**
 	 * Load the sector identifier URI if it exists and check the redirect URIs against it
-	 * @param client
 	 */
 	private void checkSectorIdentifierUri(ClientDetailsEntity client) {
 		if (!Strings.isNullOrEmpty(client.getSectorIdentifierUri())) {
@@ -200,7 +197,6 @@ public class DefaultOAuth2ClientDetailsEntityService implements ClientDetailsEnt
 
 	/**
 	 * Make sure the client has the appropriate scope and grant type.
-	 * @param client
 	 */
 	private void ensureRefreshTokenConsistency(ClientDetailsEntity client) {
 		if (client.getAuthorizedGrantTypes().contains("refresh_token")
@@ -217,7 +213,6 @@ public class DefaultOAuth2ClientDetailsEntityService implements ClientDetailsEnt
 	 *  - A key must be registered
 	 *  - A client secret must not be generated
 	 *  - authorization_code and client_credentials must use the private_key authorization method
-	 * @param client
 	 */
 	private void checkHeartMode(ClientDetailsEntity client) {
 		if (config.isHeartMode()) {

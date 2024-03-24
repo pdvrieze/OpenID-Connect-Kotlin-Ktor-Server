@@ -53,8 +53,6 @@ interface MITREidDataServiceExtension {
 
     /**
      * Return
-     * @param mitreidConnect13
-     * @return
      */
     fun supportsVersion(version: String): Boolean
 }

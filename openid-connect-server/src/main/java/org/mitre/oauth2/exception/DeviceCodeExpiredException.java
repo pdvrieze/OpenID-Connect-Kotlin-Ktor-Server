@@ -25,7 +25,6 @@ import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 public class DeviceCodeExpiredException extends OAuth2Exception {
 
 	/**
-	 * @param msg
 	 */
 	public DeviceCodeExpiredException(String msg) {
 		super(msg);

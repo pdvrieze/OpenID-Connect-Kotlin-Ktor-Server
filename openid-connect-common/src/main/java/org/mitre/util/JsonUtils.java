@@ -20,19 +20,6 @@
  */
 package org.mitre.util;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.mitre.oauth2.model.PKCEAlgorithm;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
@@ -46,6 +33,18 @@ import com.google.gson.stream.JsonWriter;
 import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWSAlgorithm;
+import org.mitre.oauth2.model.PKCEAlgorithm;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A collection of null-safe converters from common classes and JSON elements, using GSON.
@@ -65,8 +64,6 @@ public class JsonUtils {
 
 	/**
 	 * Translate a set of strings to a JSON array, empty array returned as null
-	 * @param value
-	 * @return
 	 */
 	public static JsonElement getAsArray(Set<String> value) {
 		return getAsArray(value, false);
@@ -75,9 +72,6 @@ public class JsonUtils {
 
 	/**
 	 * Translate a set of strings to a JSON array, optionally preserving the empty array. Otherwise (default) empty array is returned as null.
-	 * @param value
-	 * @param preserveEmpty
-	 * @return
 	 */
 	public static JsonElement getAsArray(Set<String> value, boolean preserveEmpty) {
 		if (!preserveEmpty && value != null && value.isEmpty()) {
@@ -142,9 +136,6 @@ public class JsonUtils {
 
 	/**
 	 * Gets the value of the given member as a PKCE Algorithm, null if it doesn't exist
-	 * @param o
-	 * @param member
-	 * @return
 	 */
 	public static PKCEAlgorithm getAsPkceAlgorithm(JsonObject o, String member) {
 		String s = getAsString(o, member);

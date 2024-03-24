@@ -22,7 +22,12 @@ import com.nimbusds.jose.JOSEException
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.JWSSigner
 import com.nimbusds.jose.JWSVerifier
-import com.nimbusds.jose.crypto.*
+import com.nimbusds.jose.crypto.ECDSASigner
+import com.nimbusds.jose.crypto.ECDSAVerifier
+import com.nimbusds.jose.crypto.MACSigner
+import com.nimbusds.jose.crypto.MACVerifier
+import com.nimbusds.jose.crypto.RSASSASigner
+import com.nimbusds.jose.crypto.RSASSAVerifier
 import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jose.jwk.JWK
 import com.nimbusds.jose.jwk.OctetSequenceKey
@@ -35,7 +40,6 @@ import org.slf4j.LoggerFactory
 import java.security.NoSuchAlgorithmException
 import java.security.spec.InvalidKeySpecException
 import java.util.*
-import kotlin.collections.HashMap
 
 class DefaultJWTSigningAndValidationService : JWTSigningAndValidationService {
     // map of identifier to signer
@@ -50,7 +54,6 @@ class DefaultJWTSigningAndValidationService : JWTSigningAndValidationService {
     override var defaultSignerKeyId: String? = null
 
     /**
-     * @return
      */
     override var defaultSigningAlgorithm: JWSAlgorithm? = null
         private set
@@ -62,7 +65,6 @@ class DefaultJWTSigningAndValidationService : JWTSigningAndValidationService {
      * Build this service based on the keys given. All public keys will be used
      * to make verifiers, all private keys will be used to make signers.
      *
-     * @param keys
      * A map of key identifier to key
      *
      * @throws InvalidKeySpecException If the keys in the JWKs are not valid

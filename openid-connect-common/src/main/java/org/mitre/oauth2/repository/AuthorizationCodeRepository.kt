@@ -45,7 +45,6 @@ interface AuthorizationCodeRepository {
     /**
      * Remove an authorization code from the repository
      *
-     * @param authorizationCodeEntity
      */
     fun remove(authorizationCodeEntity: AuthorizationCodeEntity)
 

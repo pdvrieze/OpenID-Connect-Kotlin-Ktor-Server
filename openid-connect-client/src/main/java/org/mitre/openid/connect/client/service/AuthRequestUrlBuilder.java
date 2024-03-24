@@ -20,10 +20,10 @@
  */
 package org.mitre.openid.connect.client.service;
 
-import java.util.Map;
-
 import org.mitre.oauth2.model.RegisteredClient;
 import org.mitre.openid.connect.config.ServerConfiguration;
+
+import java.util.Map;
 
 /**
  * Builds a URL string to the IdP's authorization endpoint.
@@ -34,13 +34,6 @@ import org.mitre.openid.connect.config.ServerConfiguration;
 public interface AuthRequestUrlBuilder {
 
 	/**
-	 * @param serverConfig
-	 * @param clientConfig
-	 * @param redirectUri
-	 * @param nonce
-	 * @param state
-	 * @param loginHint
-	 * @return
 	 */
 	public String buildAuthRequestUrl(ServerConfiguration serverConfig, RegisteredClient clientConfig, String redirectUri, String nonce, String state, Map<String, String> options, String loginHint);
 

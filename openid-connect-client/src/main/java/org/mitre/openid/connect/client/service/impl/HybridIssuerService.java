@@ -17,14 +17,13 @@
  *******************************************************************************/
 package org.mitre.openid.connect.client.service.impl;
 
-import java.util.Set;
-
-import javax.servlet.http.HttpServletRequest;
-
+import com.google.common.collect.Sets;
 import org.mitre.openid.connect.client.model.IssuerServiceResponse;
 import org.mitre.openid.connect.client.service.IssuerService;
 
-import com.google.common.collect.Sets;
+import javax.servlet.http.HttpServletRequest;
+
+import java.util.Set;
 
 /**
  *
@@ -38,7 +37,6 @@ import com.google.common.collect.Sets;
 public class HybridIssuerService implements IssuerService {
 
 	/**
-	 * @return
 	 * @see org.mitre.openid.connect.client.service.impl.ThirdPartyIssuerService#getAccountChooserUrl()
 	 */
 	public String getAccountChooserUrl() {
@@ -46,7 +44,6 @@ public class HybridIssuerService implements IssuerService {
 	}
 
 	/**
-	 * @param accountChooserUrl
 	 * @see org.mitre.openid.connect.client.service.impl.ThirdPartyIssuerService#setAccountChooserUrl(java.lang.String)
 	 */
 	public void setAccountChooserUrl(String accountChooserUrl) {
@@ -54,7 +51,6 @@ public class HybridIssuerService implements IssuerService {
 	}
 
 	/**
-	 * @return
 	 * @see org.mitre.openid.connect.client.service.impl.WebfingerIssuerService#isForceHttps()
 	 */
 	public boolean isForceHttps() {
@@ -62,7 +58,6 @@ public class HybridIssuerService implements IssuerService {
 	}
 
 	/**
-	 * @param forceHttps
 	 * @see org.mitre.openid.connect.client.service.impl.WebfingerIssuerService#setForceHttps(boolean)
 	 */
 	public void setForceHttps(boolean forceHttps) {

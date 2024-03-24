@@ -65,8 +65,6 @@ class JWKSetCacheService {
             .build(JWKSetEncryptorFetcher(HttpClientBuilder.create().useSystemProperties().build()))
 
     /**
-     * @param jwksUri
-     * @return
      * @throws ExecutionException
      * @see com.google.common.cache.Cache.get
      */

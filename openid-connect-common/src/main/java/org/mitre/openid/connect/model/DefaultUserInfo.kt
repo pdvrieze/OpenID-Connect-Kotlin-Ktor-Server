@@ -270,8 +270,6 @@ class DefaultUserInfo : UserInfo {
 
         /**
          * Parse a JsonObject into a UserInfo.
-         * @param o
-         * @return
          */
         @JvmStatic
         fun fromJson(obj: JsonObject): UserInfo {

@@ -16,11 +16,11 @@
 
 package org.mitre.uma.service;
 
-import java.util.Set;
-
 import org.mitre.uma.model.PermissionTicket;
 import org.mitre.uma.model.ResourceSet;
 import org.springframework.security.oauth2.common.exceptions.InsufficientScopeException;
+
+import java.util.Set;
 
 
 /**
@@ -49,8 +49,6 @@ public interface PermissionService {
 	/**
 	 * Save the updated permission ticket to the database. Does not create a new ticket.
 	 *
-	 * @param ticket
-	 * @return
 	 */
 	public PermissionTicket updateTicket(PermissionTicket ticket);
 

@@ -31,7 +31,6 @@ interface SystemScopeService {
 
     /**
      * Get all scopes that are defaulted to new clients on this system
-     * @return
      */
     val defaults: Set<SystemScope>
 
@@ -40,19 +39,16 @@ interface SystemScopeService {
      * by clients directly, but are instead tied to special system
      * tokens like id tokens and registration access tokens.
      *
-     * @return
      */
     val reserved: Set<SystemScope>
 
     /**
      * Get all the registered scopes that are restricted.
-     * @return
      */
     val restricted: Set<SystemScope>
 
     /**
      * Get all the registered scopes that aren't restricted.
-     * @return
      */
     val unrestricted: Set<SystemScope>
 
@@ -66,15 +62,11 @@ interface SystemScopeService {
 
     /**
      * Translate the set of scope strings into a set of SystemScope objects.
-     * @param scope
-     * @return
      */
     fun fromStrings(scope: Set<String>): Set<SystemScope>
 
     /**
      * Pluck the scope values from the set of SystemScope objects and return a list of strings
-     * @param scope
-     * @return
      */
     fun toStrings(scope: Set<SystemScope>): Set<String>
 
@@ -86,15 +78,11 @@ interface SystemScopeService {
     /**
      * Remove any system-reserved or registered restricted scopes from the
      * set and return the result.
-     * @param scopes
-     * @return
      */
     fun removeRestrictedAndReservedScopes(scopes: Set<SystemScope>): Set<SystemScope>
 
     /**
      * Remove any system-reserved scopes from the set and return the result.
-     * @param scopes
-     * @return
      */
     fun removeReservedScopes(scopes: Set<SystemScope>): Set<SystemScope>
 

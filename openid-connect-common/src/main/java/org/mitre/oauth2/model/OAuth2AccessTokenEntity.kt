@@ -176,7 +176,6 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
 
     /**
      * Add the ID Token to the additionalInformation map for a token response.
-     * @param idToken
      */
     @Transient
     fun setIdToken(idToken: JWT?) {

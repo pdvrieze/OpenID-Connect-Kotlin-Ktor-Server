@@ -16,14 +16,11 @@
 
 package org.mitre.uma.service.impl;
 
-import static org.mitre.util.JsonUtils.readSet;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
+import com.google.gson.stream.JsonWriter;
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity;
 import org.mitre.oauth2.model.RegisteredClient;
 import org.mitre.oauth2.repository.OAuth2TokenRepository;
@@ -46,11 +43,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonToken;
-import com.google.gson.stream.JsonWriter;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import static org.mitre.util.JsonUtils.readSet;
 
 /**
  * @author jricher
@@ -140,7 +139,6 @@ public class UmaDataServiceExtension_1_3 extends MITREidDataServiceSupport imple
 	}
 
 	/**
-	 * @param writer
 	 * @throws IOException
 	 */
 	private void writeTokenPermissions(JsonWriter writer) throws IOException {
@@ -169,7 +167,6 @@ public class UmaDataServiceExtension_1_3 extends MITREidDataServiceSupport imple
 	}
 
 	/**
-	 * @param writer
 	 * @throws IOException
 	 */
 	private void writePermissionTickets(JsonWriter writer) throws IOException {
@@ -224,7 +221,6 @@ public class UmaDataServiceExtension_1_3 extends MITREidDataServiceSupport imple
 	}
 
 	/**
-	 * @param writer
 	 * @throws IOException
 	 */
 	private void writeResourceSets(JsonWriter writer) throws IOException {
@@ -288,7 +284,6 @@ public class UmaDataServiceExtension_1_3 extends MITREidDataServiceSupport imple
 	}
 
 	/**
-	 * @param writer
 	 */
 	private void writeSavedRegisteredClients(JsonWriter writer) throws IOException {
 		for (SavedRegisteredClient src : registeredClientService.getAll()) {
@@ -324,7 +319,6 @@ public class UmaDataServiceExtension_1_3 extends MITREidDataServiceSupport imple
 	}
 
 	/**
-	 * @param reader
 	 */
 	private void readTokenPermissions(JsonReader reader) throws IOException {
 		reader.beginArray();
@@ -395,7 +389,6 @@ public class UmaDataServiceExtension_1_3 extends MITREidDataServiceSupport imple
 	private Map<Long, Long> permissionToResourceRefs = new HashMap<>();
 
 	/**
-	 * @param reader
 	 */
 	private void readPermissionTickets(JsonReader reader) throws IOException {
 		JsonParser parser = new JsonParser();
@@ -510,7 +503,6 @@ public class UmaDataServiceExtension_1_3 extends MITREidDataServiceSupport imple
 	private Map<Long, Long> resourceSetOldToNewIdMap = new HashMap<>();
 
 	/**
-	 * @param reader
 	 */
 	private void readResourceSets(JsonReader reader) throws IOException {
 		JsonParser parser = new JsonParser();
@@ -640,7 +632,6 @@ public class UmaDataServiceExtension_1_3 extends MITREidDataServiceSupport imple
 	}
 
 	/**
-	 * @param reader
 	 */
 	private void readSavedRegisteredClients(JsonReader reader) throws IOException{
 		reader.beginArray();

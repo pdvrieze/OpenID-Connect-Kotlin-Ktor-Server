@@ -27,8 +27,6 @@ import org.mitre.openid.connect.model.UserInfo
 interface UserInfoRepository {
     /**
      * Get a UserInfo object by its preferred_username field
-     * @param username
-     * @return
      */
     fun getByUsername(username: String): UserInfo?
 
@@ -36,8 +34,6 @@ interface UserInfoRepository {
      *
      * Get the UserInfo object by its email field
      *
-     * @param email
-     * @return
      */
     fun getByEmailAddress(email: String): UserInfo?
 }

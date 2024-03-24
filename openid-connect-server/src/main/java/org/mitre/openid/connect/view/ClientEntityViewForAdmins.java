@@ -20,14 +20,13 @@
  */
 package org.mitre.openid.connect.view;
 
-import java.util.Set;
-
-import org.springframework.stereotype.Component;
-import org.springframework.validation.BeanPropertyBindingResult;
-
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
+import org.springframework.stereotype.Component;
+import org.springframework.validation.BeanPropertyBindingResult;
+
+import java.util.Set;
 
 /**
  *
@@ -44,7 +43,6 @@ public class ClientEntityViewForAdmins extends AbstractClientEntityView {
 	private Set<String> blacklistedFields = ImmutableSet.of("additionalInformation");
 
 	/**
-	 * @return
 	 */
 	@Override
 	protected ExclusionStrategy getExclusionStrategy() {

@@ -29,7 +29,6 @@ interface MITREidDataService {
     /**
      * Write out the current server state to the given JSON writer as a JSON object
      *
-     * @param writer
      * @throws IOException
      */
     @Throws(IOException::class)
@@ -45,8 +44,6 @@ interface MITREidDataService {
      * Return true if the this data service supports the given version. This is called before
      * handing the service the reader through its importData function.
      *
-     * @param version
-     * @return
      */
     fun supportsVersion(version: String?): Boolean
 

@@ -293,7 +293,6 @@ var DynRegEditView = Backbone.View.extend({
 	 * Set up the form based on the current state of the tokenEndpointAuthMethod
 	 * parameter
 	 * 
-	 * @param event
 	 */
 	toggleClientCredentials: function() {
 

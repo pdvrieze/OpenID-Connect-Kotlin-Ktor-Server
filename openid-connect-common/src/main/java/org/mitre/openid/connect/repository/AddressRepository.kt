@@ -28,7 +28,6 @@ interface AddressRepository {
     /**
      * Returns the Address for the given id
      *
-     * @param id
      * id the id of the Address
      * @return a valid Address if it exists, null otherwise
      */

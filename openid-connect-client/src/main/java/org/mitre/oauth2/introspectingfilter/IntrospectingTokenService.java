@@ -17,17 +17,10 @@
  *******************************************************************************/
 package org.mitre.oauth2.introspectingfilter;
 
-import static org.mitre.oauth2.model.ClientDetailsEntity.AuthMethod.SECRET_BASIC;
-
-import java.io.IOException;
-import java.net.URI;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.nimbusds.jose.util.Base64;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.mitre.oauth2.introspectingfilter.service.IntrospectionAuthorityGranter;
@@ -52,10 +45,16 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.nimbusds.jose.util.Base64;
+import java.io.IOException;
+import java.net.URI;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import static org.mitre.oauth2.model.ClientDetailsEntity.AuthMethod.SECRET_BASIC;
 
 /**
  * This ResourceServerTokenServices implementation introspects incoming tokens at a
@@ -143,7 +142,6 @@ public class IntrospectingTokenService implements ResourceServerTokenServices {
 
 	/**
 	 * get the default cache expire time in milliseconds
-	 * @return
 	 */
 	public int getDefaultExpireTime() {
 		return defaultExpireTime;
@@ -151,7 +149,6 @@ public class IntrospectingTokenService implements ResourceServerTokenServices {
 
 	/**
 	 * set the default cache expire time in milliseconds
-	 * @param defaultExpireTime
 	 */
 	public void setDefaultExpireTime(int defaultExpireTime) {
 		this.defaultExpireTime = defaultExpireTime;
@@ -167,7 +164,6 @@ public class IntrospectingTokenService implements ResourceServerTokenServices {
 
 	/**
 	 * set forcing a cache expire time maximum value
-	 * @param forceCacheExpireTime
 	 */
 	public void setForceCacheExpireTime(boolean forceCacheExpireTime) {
 		this.forceCacheExpireTime = forceCacheExpireTime;
@@ -183,7 +179,6 @@ public class IntrospectingTokenService implements ResourceServerTokenServices {
 
 	/**
 	 * should non-expiring tokens be cached using the default cache timeout
-	 * @param cacheNonExpiringTokens
 	 */
 	public void setCacheNonExpiringTokens(boolean cacheNonExpiringTokens) {
 		this.cacheNonExpiringTokens = cacheNonExpiringTokens;
@@ -199,7 +194,6 @@ public class IntrospectingTokenService implements ResourceServerTokenServices {
 
 	/**
 	 * Configure if the client should cache tokens locally or not
-	 * @param cacheTokens
 	 */
 	public void setCacheTokens(boolean cacheTokens) {
 		this.cacheTokens = cacheTokens;

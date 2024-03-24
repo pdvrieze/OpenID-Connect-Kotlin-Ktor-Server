@@ -17,13 +17,25 @@
  *******************************************************************************/
 package org.mitre.openid.connect.web;
 
-import java.lang.reflect.Type;
-import java.sql.SQLIntegrityConstraintViolationException;
-import java.text.ParseException;
-import java.util.Collection;
-
-import javax.persistence.PersistenceException;
-
+import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
+import com.nimbusds.jose.Algorithm;
+import com.nimbusds.jose.EncryptionMethod;
+import com.nimbusds.jose.JWEAlgorithm;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jwt.JWT;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.JWTParser;
 import org.eclipse.persistence.exceptions.DatabaseException;
 import org.mitre.jwt.assertion.AssertionValidator;
 import org.mitre.oauth2.model.ClientDetailsEntity;
@@ -60,64 +72,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
-import com.nimbusds.jose.Algorithm;
-import com.nimbusds.jose.EncryptionMethod;
-import com.nimbusds.jose.JWEAlgorithm;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.JWTParser;
+import javax.persistence.PersistenceException;
 
-import static org.mitre.oauth2.model.RegisteredClientFields.APPLICATION_TYPE;
-import static org.mitre.oauth2.model.RegisteredClientFields.CLAIMS_REDIRECT_URIS;
-import static org.mitre.oauth2.model.RegisteredClientFields.CLIENT_ID;
-import static org.mitre.oauth2.model.RegisteredClientFields.CLIENT_ID_ISSUED_AT;
-import static org.mitre.oauth2.model.RegisteredClientFields.CLIENT_NAME;
-import static org.mitre.oauth2.model.RegisteredClientFields.CLIENT_SECRET;
-import static org.mitre.oauth2.model.RegisteredClientFields.CLIENT_SECRET_EXPIRES_AT;
-import static org.mitre.oauth2.model.RegisteredClientFields.CLIENT_URI;
-import static org.mitre.oauth2.model.RegisteredClientFields.CONTACTS;
-import static org.mitre.oauth2.model.RegisteredClientFields.DEFAULT_ACR_VALUES;
-import static org.mitre.oauth2.model.RegisteredClientFields.DEFAULT_MAX_AGE;
-import static org.mitre.oauth2.model.RegisteredClientFields.GRANT_TYPES;
-import static org.mitre.oauth2.model.RegisteredClientFields.ID_TOKEN_ENCRYPTED_RESPONSE_ALG;
-import static org.mitre.oauth2.model.RegisteredClientFields.ID_TOKEN_ENCRYPTED_RESPONSE_ENC;
-import static org.mitre.oauth2.model.RegisteredClientFields.ID_TOKEN_SIGNED_RESPONSE_ALG;
-import static org.mitre.oauth2.model.RegisteredClientFields.INITIATE_LOGIN_URI;
-import static org.mitre.oauth2.model.RegisteredClientFields.JWKS;
-import static org.mitre.oauth2.model.RegisteredClientFields.JWKS_URI;
-import static org.mitre.oauth2.model.RegisteredClientFields.LOGO_URI;
-import static org.mitre.oauth2.model.RegisteredClientFields.POLICY_URI;
-import static org.mitre.oauth2.model.RegisteredClientFields.POST_LOGOUT_REDIRECT_URIS;
-import static org.mitre.oauth2.model.RegisteredClientFields.REDIRECT_URIS;
-import static org.mitre.oauth2.model.RegisteredClientFields.REGISTRATION_ACCESS_TOKEN;
-import static org.mitre.oauth2.model.RegisteredClientFields.REGISTRATION_CLIENT_URI;
-import static org.mitre.oauth2.model.RegisteredClientFields.REQUEST_OBJECT_SIGNING_ALG;
-import static org.mitre.oauth2.model.RegisteredClientFields.REQUEST_URIS;
-import static org.mitre.oauth2.model.RegisteredClientFields.REQUIRE_AUTH_TIME;
-import static org.mitre.oauth2.model.RegisteredClientFields.RESPONSE_TYPES;
-import static org.mitre.oauth2.model.RegisteredClientFields.SCOPE;
-import static org.mitre.oauth2.model.RegisteredClientFields.SECTOR_IDENTIFIER_URI;
-import static org.mitre.oauth2.model.RegisteredClientFields.SOFTWARE_STATEMENT;
-import static org.mitre.oauth2.model.RegisteredClientFields.SUBJECT_TYPE;
-import static org.mitre.oauth2.model.RegisteredClientFields.TOKEN_ENDPOINT_AUTH_METHOD;
-import static org.mitre.oauth2.model.RegisteredClientFields.TOKEN_ENDPOINT_AUTH_SIGNING_ALG;
-import static org.mitre.oauth2.model.RegisteredClientFields.TOS_URI;
-import static org.mitre.oauth2.model.RegisteredClientFields.USERINFO_ENCRYPTED_RESPONSE_ALG;
-import static org.mitre.oauth2.model.RegisteredClientFields.USERINFO_ENCRYPTED_RESPONSE_ENC;
-import static org.mitre.oauth2.model.RegisteredClientFields.USERINFO_SIGNED_RESPONSE_ALG;
+import java.lang.reflect.Type;
+import java.sql.SQLIntegrityConstraintViolationException;
+import java.text.ParseException;
+import java.util.Collection;
+
+import static org.mitre.oauth2.model.RegisteredClientFields.*;
 
 /**
  * @author Michael Jett <mjett@mitre.org>
@@ -222,8 +184,6 @@ public class ClientAPI {
 
 	/**
 	 * Get a list of all clients
-	 * @param modelAndView
-	 * @return
 	 */
 	@RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public String apiGetAllClients(Model model, Authentication auth) {
@@ -240,10 +200,6 @@ public class ClientAPI {
 
 	/**
 	 * Create a new client
-	 * @param json
-	 * @param m
-	 * @param principal
-	 * @return
 	 */
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	@RequestMapping(method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -349,11 +305,6 @@ public class ClientAPI {
 
 	/**
 	 * Update an existing client
-	 * @param id
-	 * @param jsonString
-	 * @param m
-	 * @param principal
-	 * @return
 	 */
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	@RequestMapping(value="/{id}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -455,9 +406,6 @@ public class ClientAPI {
 
 	/**
 	 * Delete a client
-	 * @param id
-	 * @param modelAndView
-	 * @return
 	 */
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	@RequestMapping(value="/{id}", method=RequestMethod.DELETE)
@@ -481,9 +429,6 @@ public class ClientAPI {
 
 	/**
 	 * Get an individual client
-	 * @param id
-	 * @param modelAndView
-	 * @return
 	 */
 	@RequestMapping(value="/{id}", method=RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public String apiShowClient(@PathVariable("id") Long id, Model model, Authentication auth) {
@@ -508,7 +453,6 @@ public class ClientAPI {
 
 	/**
 	 * Get the logo image for a client
-	 * @param id
 	 */
 	@RequestMapping(value = "/{id}/logo", method=RequestMethod.GET, produces = { MediaType.IMAGE_GIF_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE })
 	public ResponseEntity<byte[]> getClientLogo(@PathVariable("id") Long id, Model model) {

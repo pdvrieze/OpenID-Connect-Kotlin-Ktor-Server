@@ -18,28 +18,19 @@
 package org.mitre.openid.connect.request;
 
 
-import static org.mitre.openid.connect.request.ConnectRequestParameters.AUD;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.CLAIMS;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.CLIENT_ID;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.CODE_CHALLENGE;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.CODE_CHALLENGE_METHOD;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.DISPLAY;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.LOGIN_HINT;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.MAX_AGE;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.NONCE;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.PROMPT;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.REDIRECT_URI;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.REQUEST;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.RESPONSE_TYPE;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.SCOPE;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.STATE;
-
-import java.io.Serializable;
-import java.text.ParseException;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.base.Strings;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.nimbusds.jose.Algorithm;
+import com.nimbusds.jose.JWEObject.State;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jwt.EncryptedJWT;
+import com.nimbusds.jwt.JWT;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.JWTParser;
+import com.nimbusds.jwt.PlainJWT;
+import com.nimbusds.jwt.SignedJWT;
 import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService;
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService;
 import org.mitre.jwt.signer.service.impl.ClientKeyCacheService;
@@ -56,19 +47,13 @@ import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory;
 import org.springframework.stereotype.Component;
 
-import com.google.common.base.Strings;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.nimbusds.jose.Algorithm;
-import com.nimbusds.jose.JWEObject.State;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jwt.EncryptedJWT;
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.JWTParser;
-import com.nimbusds.jwt.PlainJWT;
-import com.nimbusds.jwt.SignedJWT;
+import java.io.Serializable;
+import java.text.ParseException;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
+
+import static org.mitre.openid.connect.request.ConnectRequestParameters.*;
 
 @Component("connectOAuth2RequestFactory")
 public class ConnectOAuth2RequestFactory extends DefaultOAuth2RequestFactory {
@@ -91,7 +76,6 @@ public class ConnectOAuth2RequestFactory extends DefaultOAuth2RequestFactory {
 	/**
 	 * Constructor with arguments
 	 *
-	 * @param clientDetailsService
 	 */
 	@Autowired
 	public ConnectOAuth2RequestFactory(ClientDetailsEntityService clientDetailsService) {
@@ -176,8 +160,6 @@ public class ConnectOAuth2RequestFactory extends DefaultOAuth2RequestFactory {
 
 	/**
 	 *
-	 * @param jwtString
-	 * @param request
 	 */
 	private void processRequestObject(String jwtString, AuthorizationRequest request) {
 
@@ -358,8 +340,6 @@ public class ConnectOAuth2RequestFactory extends DefaultOAuth2RequestFactory {
 	}
 
 	/**
-	 * @param claimRequestString
-	 * @return
 	 */
 	private JsonObject parseClaimRequest(String claimRequestString) {
 		if (Strings.isNullOrEmpty(claimRequestString)) {

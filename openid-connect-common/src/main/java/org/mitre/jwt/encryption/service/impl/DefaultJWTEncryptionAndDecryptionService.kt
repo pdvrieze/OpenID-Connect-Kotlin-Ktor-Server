@@ -18,8 +18,18 @@
 package org.mitre.jwt.encryption.service.impl
 
 import com.google.common.base.Strings
-import com.nimbusds.jose.*
-import com.nimbusds.jose.crypto.*
+import com.nimbusds.jose.EncryptionMethod
+import com.nimbusds.jose.JOSEException
+import com.nimbusds.jose.JWEAlgorithm
+import com.nimbusds.jose.JWEDecrypter
+import com.nimbusds.jose.JWEEncrypter
+import com.nimbusds.jose.JWEObject
+import com.nimbusds.jose.crypto.DirectDecrypter
+import com.nimbusds.jose.crypto.DirectEncrypter
+import com.nimbusds.jose.crypto.ECDHDecrypter
+import com.nimbusds.jose.crypto.ECDHEncrypter
+import com.nimbusds.jose.crypto.RSADecrypter
+import com.nimbusds.jose.crypto.RSAEncrypter
 import com.nimbusds.jose.crypto.bc.BouncyCastleProviderSingleton
 import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jose.jwk.JWK
@@ -60,7 +70,6 @@ class DefaultJWTEncryptionAndDecryptionService : JWTEncryptionAndDecryptionServi
      * Build this service based on the keys given. All public keys will be used to make encrypters,
      * all private keys will be used to make decrypters.
      *
-     * @param keys
      * @throws NoSuchAlgorithmException
      * @throws InvalidKeySpecException
      * @throws JOSEException
@@ -74,7 +83,6 @@ class DefaultJWTEncryptionAndDecryptionService : JWTEncryptionAndDecryptionServi
      * Build this service based on the given keystore. All keys must have a key
      * id (`kid`) field in order to be used.
      *
-     * @param keyStore
      * @throws NoSuchAlgorithmException
      * @throws InvalidKeySpecException
      * @throws JOSEException

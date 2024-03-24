@@ -46,16 +46,12 @@ interface ApprovedSiteService {
      * Return a collection of ApprovedSite managed by this repository matching the
      * provided client ID and user ID
      *
-     * @param clientId
-     * @param userId
-     * @return
      */
     fun getByClientIdAndUserId(clientId: String?, userId: String?): Collection<ApprovedSite>?
 
     /**
      * Save an ApprovedSite
      *
-     * @param approvedSite
      * the ApprovedSite to be saved
      */
     fun save(approvedSite: ApprovedSite): ApprovedSite?
@@ -63,7 +59,6 @@ interface ApprovedSiteService {
     /**
      * Get ApprovedSite for id
      *
-     * @param id
      * id for ApprovedSite
      * @return ApprovedSite for id, or null
      */
@@ -72,40 +67,32 @@ interface ApprovedSiteService {
     /**
      * Remove the ApprovedSite
      *
-     * @param approvedSite
      * the ApprovedSite to remove
      */
     fun remove(approvedSite: ApprovedSite)
 
     /**
      * Get all sites approved by this user
-     * @param userId
-     * @return
      */
     fun getByUserId(userId: String): Collection<ApprovedSite>?
 
     /**
      * Get all sites associated with this client
-     * @param clientId
-     * @return
      */
     fun getByClientId(clientId: String): Collection<ApprovedSite>?
 
     /**
      * Clear out any approved sites for a given client.
-     * @param client
      */
     fun clearApprovedSitesForClient(client: ClientDetails)
 
     /**
      * Remove all expired approved sites from the data store.
-     * @return
      */
     fun clearExpiredSites()
 
     /**
      * Return all approved access tokens for the site.
-     * @return
      */
     fun getApprovedAccessTokens(approvedSite: ApprovedSite): List<OAuth2AccessTokenEntity>?
 }

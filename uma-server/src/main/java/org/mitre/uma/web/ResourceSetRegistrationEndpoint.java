@@ -16,16 +16,11 @@
 package org.mitre.uma.web;
 
 
-import static org.mitre.oauth2.web.AuthenticationUtilities.ensureOAuthScope;
-import static org.mitre.util.JsonUtils.getAsLong;
-import static org.mitre.util.JsonUtils.getAsString;
-import static org.mitre.util.JsonUtils.getAsStringSet;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
+import com.google.common.base.Strings;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
 import org.mitre.oauth2.model.SystemScope;
 import org.mitre.oauth2.service.SystemScopeService;
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean;
@@ -51,11 +46,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import com.google.common.base.Strings;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
+import static org.mitre.oauth2.web.AuthenticationUtilities.ensureOAuthScope;
+import static org.mitre.util.JsonUtils.getAsLong;
+import static org.mitre.util.JsonUtils.getAsString;
+import static org.mitre.util.JsonUtils.getAsStringSet;
 
 @Controller
 @RequestMapping("/" + ResourceSetRegistrationEndpoint.URL)
@@ -300,7 +299,6 @@ public class ResourceSetRegistrationEndpoint {
 	 *
 	 * Make sure the resource set doesn't have any restricted or reserved scopes.
 	 *
-	 * @param rs
 	 */
 	private ResourceSet validateScopes(ResourceSet rs) {
 		// scopes that the client is asking for

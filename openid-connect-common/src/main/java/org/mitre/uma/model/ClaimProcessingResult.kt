@@ -29,7 +29,6 @@ class ClaimProcessingResult {
 
     /**
      * Create an unmatched result. isSatisfied is false.
-     * @param unmatched
      */
     constructor(unmatched: Collection<Claim>) {
         this.isSatisfied = false
@@ -39,7 +38,6 @@ class ClaimProcessingResult {
 
     /**
      * Create a matched result. isSatisfied is true.
-     * @param matched
      */
     constructor(matched: Policy) {
         this.isSatisfied = true

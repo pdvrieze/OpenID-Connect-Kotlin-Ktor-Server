@@ -15,12 +15,8 @@
  *******************************************************************************/
 package org.mitre.openid.connect.web;
 
-import java.io.UnsupportedEncodingException;
-import java.text.ParseException;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-
+import com.google.common.base.Strings;
+import com.google.gson.JsonSyntaxException;
 import org.mitre.oauth2.model.ClientDetailsEntity;
 import org.mitre.oauth2.model.ClientDetailsEntity.AuthMethod;
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity;
@@ -52,8 +48,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.util.UriUtils;
 
-import com.google.common.base.Strings;
-import com.google.gson.JsonSyntaxException;
+import java.text.ParseException;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 @Controller
 @RequestMapping(value = ProtectedResourceRegistrationEndpoint.URL)
@@ -86,10 +84,6 @@ public class ProtectedResourceRegistrationEndpoint {
 
 	/**
 	 * Create a new Client, issue a client ID, and create a registration access token.
-	 * @param jsonString
-	 * @param m
-	 * @param p
-	 * @return
 	 */
 	@RequestMapping(method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public String registerNewProtectedResource(@RequestBody String jsonString, Model m) {
@@ -215,10 +209,6 @@ public class ProtectedResourceRegistrationEndpoint {
 
 	/**
 	 * Get the meta information for a client.
-	 * @param clientId
-	 * @param m
-	 * @param auth
-	 * @return
 	 */
 	@PreAuthorize("hasRole('ROLE_CLIENT') and #oauth2.hasScope('" + SystemScopeService.RESOURCE_TOKEN_SCOPE + "')")
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -251,11 +241,6 @@ public class ProtectedResourceRegistrationEndpoint {
 
 	/**
 	 * Update the metainformation for a given client.
-	 * @param clientId
-	 * @param jsonString
-	 * @param m
-	 * @param auth
-	 * @return
 	 */
 	@PreAuthorize("hasRole('ROLE_CLIENT') and #oauth2.hasScope('" + SystemScopeService.RESOURCE_TOKEN_SCOPE + "')")
 	@RequestMapping(value = "/{id}", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -367,10 +352,6 @@ public class ProtectedResourceRegistrationEndpoint {
 
 	/**
 	 * Delete the indicated client from the system.
-	 * @param clientId
-	 * @param m
-	 * @param auth
-	 * @return
 	 */
 	@PreAuthorize("hasRole('ROLE_CLIENT') and #oauth2.hasScope('" + SystemScopeService.RESOURCE_TOKEN_SCOPE + "')")
 	@RequestMapping(value = "/{id}", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)

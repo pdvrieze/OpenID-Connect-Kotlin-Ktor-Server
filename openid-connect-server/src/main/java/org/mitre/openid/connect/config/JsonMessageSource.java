@@ -16,6 +16,18 @@
 
 package org.mitre.openid.connect.config;
 
+import com.google.common.base.Splitter;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.support.AbstractMessageSource;
+import org.springframework.core.io.Resource;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -27,19 +39,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.support.AbstractMessageSource;
-import org.springframework.core.io.Resource;
-
-import com.google.common.base.Splitter;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonIOException;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
 
 /**
  * @author jricher
@@ -82,9 +81,6 @@ public class JsonMessageSource extends AbstractMessageSource {
 
 	/**
 	 * Get a value from the set of maps, taking the first match in order
-	 * @param code
-	 * @param langs
-	 * @return
 	 */
 	private String getValue(String code, List<JsonObject> langs) {
 		if (langs == null || langs.isEmpty()) {
@@ -106,9 +102,6 @@ public class JsonMessageSource extends AbstractMessageSource {
 
 	/**
 	 * Get a value from a single map
-	 * @param code
-	 * @param lang
-	 * @return
 	 */
 	private String getValue(String code, JsonObject lang) {
 
@@ -150,8 +143,6 @@ public class JsonMessageSource extends AbstractMessageSource {
 	}
 
 	/**
-	 * @param locale
-	 * @return
 	 */
 	private List<JsonObject> getLanguageMap(Locale locale) {
 

@@ -18,9 +18,8 @@
  */
 package org.mitre.openid.connect.client;
 
-import org.springframework.security.core.GrantedAuthority;
-
 import com.google.common.base.Strings;
+import org.springframework.security.core.GrantedAuthority;
 
 /**
  *
@@ -37,8 +36,6 @@ public class SubjectIssuerGrantedAuthority implements GrantedAuthority {
 	private final String issuer;
 
 	/**
-	 * @param subject
-	 * @param issuer
 	 */
 	public SubjectIssuerGrantedAuthority(String subject, String issuer) {
 		if (Strings.isNullOrEmpty(subject) || Strings.isNullOrEmpty(issuer)) {

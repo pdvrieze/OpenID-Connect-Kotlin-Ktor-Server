@@ -31,7 +31,6 @@ import java.text.ParseException
  * @property sub user id (parsed from the id token)
  * @property issuer issuer URL (parsed from the id token)
  * @property userInfo user info container
- * @param authorities
  * @property idToken
  * @property accessTokenValue string representation of the access token
  * @property refreshTokenValue string representation of the refresh token

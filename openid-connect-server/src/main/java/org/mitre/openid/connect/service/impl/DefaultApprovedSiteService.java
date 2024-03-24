@@ -17,11 +17,8 @@
  *******************************************************************************/
 package org.mitre.openid.connect.service.impl;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity;
 import org.mitre.oauth2.repository.OAuth2TokenRepository;
 import org.mitre.openid.connect.model.ApprovedSite;
@@ -35,8 +32,10 @@ import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Implementation of the ApprovedSiteService
@@ -124,8 +123,6 @@ public class DefaultApprovedSiteService implements ApprovedSiteService {
 	}
 
 	/**
-	 * @param userId
-	 * @return
 	 * @see org.mitre.openid.connect.repository.ApprovedSiteRepository#getByUserId(java.lang.String)
 	 */
 	@Override
@@ -134,8 +131,6 @@ public class DefaultApprovedSiteService implements ApprovedSiteService {
 	}
 
 	/**
-	 * @param clientId
-	 * @return
 	 * @see org.mitre.openid.connect.repository.ApprovedSiteRepository#getByClientId(java.lang.String)
 	 */
 	@Override

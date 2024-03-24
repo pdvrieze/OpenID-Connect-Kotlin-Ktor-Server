@@ -20,21 +20,6 @@
  */
 package org.mitre.openid.connect.view;
 
-import java.io.IOException;
-import java.io.Writer;
-import java.lang.reflect.Type;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.mitre.oauth2.model.PKCEAlgorithm;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.web.servlet.view.AbstractView;
-
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -48,6 +33,20 @@ import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jwt.JWT;
+import org.mitre.oauth2.model.PKCEAlgorithm;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.web.servlet.view.AbstractView;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
+import java.io.Writer;
+import java.lang.reflect.Type;
+import java.util.Map;
 
 /**
  *
@@ -136,7 +135,6 @@ public abstract class AbstractClientEntityView extends AbstractView {
 
 
 	/**
-	 * @return
 	 */
 	protected abstract ExclusionStrategy getExclusionStrategy();
 

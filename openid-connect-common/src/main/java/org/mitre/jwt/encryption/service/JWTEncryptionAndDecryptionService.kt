@@ -30,7 +30,6 @@ interface JWTEncryptionAndDecryptionService {
      * Encrypts the JWT in place with the default encrypter.
      * If an arbitrary payload is used, then pass in a JWEObject.
      * Otherwise, if JWT claims are the payload, then use the JWEObject subclass EncryptedJWT instead.
-     * @param jwt
      */
     fun encryptJwt(jwt: JWEObject)
 
@@ -38,7 +37,6 @@ interface JWTEncryptionAndDecryptionService {
      * Decrypts the JWT in place with the default decrypter.
      * If an arbitrary payload is used, then pass in a JWEObject.
      * Otherwise, if JWT claims are the payload, then use the JWEObject subclass EncryptedJWT instead.
-     * @param jwt
      */
     fun decryptJwt(jwt: JWEObject)
 
@@ -49,13 +47,11 @@ interface JWTEncryptionAndDecryptionService {
 
     /**
      * Get the list of all encryption algorithms supported by this service.
-     * @return
      */
     val allEncryptionAlgsSupported: Collection<JWEAlgorithm>
 
     /**
      * Get the list of all encryption methods supported by this service.
-     * @return
      */
     val allEncryptionEncsSupported: Collection<EncryptionMethod>
     /**

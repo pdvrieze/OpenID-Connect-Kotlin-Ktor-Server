@@ -17,23 +17,14 @@
  *******************************************************************************/
 package org.mitre.openid.connect.service.impl;
 
-import static org.mitre.util.JsonUtils.readMap;
-import static org.mitre.util.JsonUtils.readSet;
-
-import java.io.IOException;
-import java.io.Serializable;
-import java.text.ParseException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
+import com.google.common.collect.Sets;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
+import com.google.gson.stream.JsonWriter;
+import com.nimbusds.jose.EncryptionMethod;
+import com.nimbusds.jose.JWEAlgorithm;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jwt.JWTParser;
 import org.mitre.oauth2.model.AuthenticationHolderEntity;
 import org.mitre.oauth2.model.ClientDetailsEntity;
 import org.mitre.oauth2.model.ClientDetailsEntity.AppType;
@@ -66,14 +57,22 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.Sets;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonToken;
-import com.google.gson.stream.JsonWriter;
-import com.nimbusds.jose.EncryptionMethod;
-import com.nimbusds.jose.JWEAlgorithm;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jwt.JWTParser;
+import java.io.IOException;
+import java.io.Serializable;
+import java.text.ParseException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import static org.mitre.util.JsonUtils.readMap;
+import static org.mitre.util.JsonUtils.readSet;
 
 /**
  *
@@ -190,11 +189,9 @@ public class MITREidDataService_1_1 extends MITREidDataServiceSupport implements
 		maps.clearAll();
 	}
 	/**
-	 * @param reader
 	 * @throws IOException
 	 */
 	/**
-	 * @param reader
 	 * @throws IOException
 	 */
 	private void readRefreshTokens(JsonReader reader) throws IOException {
@@ -251,11 +248,9 @@ public class MITREidDataService_1_1 extends MITREidDataServiceSupport implements
 		logger.info("Done reading refresh tokens");
 	}
 	/**
-	 * @param reader
 	 * @throws IOException
 	 */
 	/**
-	 * @param reader
 	 * @throws IOException
 	 */
 	private void readAccessTokens(JsonReader reader) throws IOException {
@@ -324,7 +319,6 @@ public class MITREidDataService_1_1 extends MITREidDataServiceSupport implements
 		logger.info("Done reading access tokens");
 	}
 	/**
-	 * @param reader
 	 * @throws IOException
 	 */
 	private void readAuthenticationHolders(JsonReader reader) throws IOException {
@@ -469,8 +463,6 @@ public class MITREidDataService_1_1 extends MITREidDataServiceSupport implements
 	}
 
 	/**
-	 * @param reader
-	 * @return
 	 * @throws IOException
 	 */
 	private SavedUserAuthentication readSavedUserAuthentication(JsonReader reader) throws IOException {
@@ -516,7 +508,6 @@ public class MITREidDataService_1_1 extends MITREidDataServiceSupport implements
 	}
 
 	/**
-	 * @param reader
 	 * @throws IOException
 	 */
 	private void readGrants(JsonReader reader) throws IOException {
@@ -583,7 +574,6 @@ public class MITREidDataService_1_1 extends MITREidDataServiceSupport implements
 		logger.info("Done reading grants");
 	}
 	/**
-	 * @param reader
 	 * @throws IOException
 	 */
 	private void readWhitelistedSites(JsonReader reader) throws IOException {
@@ -627,7 +617,6 @@ public class MITREidDataService_1_1 extends MITREidDataServiceSupport implements
 	}
 
 	/**
-	 * @param reader
 	 * @throws IOException
 	 */
 	private void readBlacklistedSites(JsonReader reader) throws IOException {
@@ -664,7 +653,6 @@ public class MITREidDataService_1_1 extends MITREidDataServiceSupport implements
 	}
 
 	/**
-	 * @param reader
 	 * @throws IOException
 	 */
 	private void readClients(JsonReader reader) throws IOException {
@@ -806,7 +794,6 @@ public class MITREidDataService_1_1 extends MITREidDataServiceSupport implements
 	 * Read the list of system scopes from the reader and insert them into the
 	 * scope repository.
 	 *
-	 * @param reader
 	 * @throws IOException
 	 */
 	private void readSystemScopes(JsonReader reader) throws IOException {

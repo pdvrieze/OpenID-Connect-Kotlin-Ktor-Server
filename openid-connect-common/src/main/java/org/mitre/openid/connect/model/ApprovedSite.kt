@@ -76,7 +76,6 @@ class ApprovedSite {
 
     /**
      * Has this approval expired?
-     * @return
      */
     @get:Transient
     val isExpired: Boolean

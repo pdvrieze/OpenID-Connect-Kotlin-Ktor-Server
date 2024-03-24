@@ -20,9 +20,6 @@
  */
 package org.mitre.openid.connect.web;
 
-import java.security.Principal;
-import java.util.Collection;
-
 import org.mitre.openid.connect.model.ApprovedSite;
 import org.mitre.openid.connect.service.ApprovedSiteService;
 import org.mitre.openid.connect.view.HttpCodeView;
@@ -40,6 +37,9 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+
+import java.security.Principal;
+import java.util.Collection;
 
 /**
  * @author jricher
@@ -62,8 +62,6 @@ public class ApprovedSiteAPI {
 
 	/**
 	 * Get a list of all of this user's approved sites
-	 * @param m
-	 * @return
 	 */
 	@RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public String getAllApprovedSites(ModelMap m, Principal p) {

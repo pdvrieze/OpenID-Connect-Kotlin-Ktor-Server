@@ -20,9 +20,10 @@
  */
 package org.mitre.openid.connect.web;
 
-import java.security.Principal;
-import java.util.Collection;
-
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import org.mitre.openid.connect.model.BlacklistedSite;
 import org.mitre.openid.connect.service.BlacklistedSiteService;
 import org.mitre.openid.connect.view.HttpCodeView;
@@ -41,10 +42,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
+import java.security.Principal;
+import java.util.Collection;
 
 /**
  * @author jricher
@@ -70,8 +69,6 @@ public class BlacklistAPI {
 
 	/**
 	 * Get a list of all blacklisted sites
-	 * @param m
-	 * @return
 	 */
 	@RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public String getAllBlacklistedSites(ModelMap m) {
@@ -85,10 +82,6 @@ public class BlacklistAPI {
 
 	/**
 	 * Create a new blacklisted site
-	 * @param jsonString
-	 * @param m
-	 * @param p
-	 * @return
 	 */
 	@RequestMapping(method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public String addNewBlacklistedSite(@RequestBody String jsonString, ModelMap m, Principal p) {

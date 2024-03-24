@@ -65,7 +65,6 @@ class DefaultAddress : Address {
 
     /**
      * Copy constructor from an existing address.
-     * @param address
      */
     constructor(address: Address) {
         formatted = address.formatted

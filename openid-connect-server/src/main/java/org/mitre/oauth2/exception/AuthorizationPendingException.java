@@ -25,7 +25,6 @@ import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 public class AuthorizationPendingException extends OAuth2Exception {
 
 	/**
-	 * @param msg
 	 */
 	public AuthorizationPendingException(String msg) {
 		super(msg);
