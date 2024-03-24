@@ -41,7 +41,7 @@ import java.text.ParseException
 class OIDCAuthenticationToken(
     val sub: String,
     val issuer: String,
-    val userInfo: UserInfo,
+    val userInfo: UserInfo?,
     authorities: Collection<GrantedAuthority?>?,
     @field:Transient var idToken: JWT?,
     val accessTokenValue: String,
