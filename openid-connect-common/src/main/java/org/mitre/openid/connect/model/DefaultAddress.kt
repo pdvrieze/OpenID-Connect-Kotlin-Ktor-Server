@@ -5,255 +5,106 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.openid.connect.model;
+ */
+package org.mitre.openid.connect.model
 
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.Basic
+import javax.persistence.Column
+import javax.persistence.Entity
+import javax.persistence.GeneratedValue
+import javax.persistence.GenerationType
+import javax.persistence.Id
+import javax.persistence.Table
 
 @Entity
-@Table(name="address")
-public class DefaultAddress implements Address {
+@Table(name = "address")
+class DefaultAddress : Address {
+    @get:Column(name = "id")
+    @get:GeneratedValue(strategy = GenerationType.IDENTITY)
+    @get:Id
+    override var id: Long? = null
 
-	private static final long serialVersionUID = -1304880008685206811L;
+    /**
+     * The formatted address string
+     */
+    @get:Column(name = "formatted")
+    @get:Basic
+    override var formatted: String? = null
 
-	private Long id;
-	private String formatted;
-	private String streetAddress;
-	private String locality;
-	private String region;
-	private String postalCode;
-	private String country;
+    @get:Column(name = "street_address")
+    @get:Basic
+    override var streetAddress: String? = null
 
-	/**
-	 * Empty constructor
-	 */
-	public DefaultAddress() {
+    @get:Column(name = "locality")
+    @get:Basic
+    override var locality: String? = null
 
-	}
+    @get:Column(name = "region")
+    @get:Basic
+    override var region: String? = null
 
-	/**
-	 * Copy constructor from an existing address.
-	 * @param address
-	 */
-	public DefaultAddress(Address address) {
-		setFormatted(address.getFormatted());
-		setStreetAddress(address.getStreetAddress());
-		setLocality(address.getLocality());
-		setRegion(address.getRegion());
-		setPostalCode(address.getPostalCode());
-		setCountry(address.getCountry());
-	}
+    @get:Column(name = "postal_code")
+    @get:Basic
+    override var postalCode: String? = null
 
-	/**
-	 * @return the formatted address string
-	 */
-	@Override
-	@Basic
-	@Column(name = "formatted")
-	public String getFormatted() {
-		return formatted;
-	}
-	/**
-	 * @param formatted the formatted address to set
-	 */
-	@Override
-	public void setFormatted(String formatted) {
-		this.formatted = formatted;
-	}
-	/**
-	 * @return the streetAddress
-	 */
-	@Override
-	@Basic
-	@Column(name="street_address")
-	public String getStreetAddress() {
-		return streetAddress;
-	}
-	/**
-	 * @param streetAddress the streetAddress to set
-	 */
-	@Override
-	public void setStreetAddress(String streetAddress) {
-		this.streetAddress = streetAddress;
-	}
-	/**
-	 * @return the locality
-	 */
-	@Override
-	@Basic
-	@Column(name = "locality")
-	public String getLocality() {
-		return locality;
-	}
-	/**
-	 * @param locality the locality to set
-	 */
-	@Override
-	public void setLocality(String locality) {
-		this.locality = locality;
-	}
-	/**
-	 * @return the region
-	 */
-	@Override
-	@Basic
-	@Column(name = "region")
-	public String getRegion() {
-		return region;
-	}
-	/**
-	 * @param region the region to set
-	 */
-	@Override
-	public void setRegion(String region) {
-		this.region = region;
-	}
-	/**
-	 * @return the postalCode
-	 */
-	@Override
-	@Basic
-	@Column(name="postal_code")
-	public String getPostalCode() {
-		return postalCode;
-	}
-	/**
-	 * @param postalCode the postalCode to set
-	 */
-	@Override
-	public void setPostalCode(String postalCode) {
-		this.postalCode = postalCode;
-	}
-	/**
-	 * @return the country
-	 */
-	@Override
-	@Basic
-	@Column(name = "country")
-	public String getCountry() {
-		return country;
-	}
-	/**
-	 * @param country the country to set
-	 */
-	@Override
-	public void setCountry(String country) {
-		this.country = country;
-	}
+    @get:Column(name = "country")
+    @get:Basic
+    override var country: String? = null
 
-	/**
-	 * @return the id
-	 */
-	@Override
-	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name = "id")
-	public Long getId() {
-		return id;
-	}
+    /**
+     * Empty constructor
+     */
+    constructor()
 
-	/**
-	 * @param id the id to set
-	 */
-	public void setId(Long id) {
-		this.id = id;
-	}
+    /**
+     * Copy constructor from an existing address.
+     * @param address
+     */
+    constructor(address: Address) {
+        formatted = address.formatted
+        streetAddress = address.streetAddress
+        locality = address.locality
+        region = address.region
+        postalCode = address.postalCode
+        country = address.country
+    }
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((country == null) ? 0 : country.hashCode());
-		result = prime * result + ((formatted == null) ? 0 : formatted.hashCode());
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		result = prime * result + ((locality == null) ? 0 : locality.hashCode());
-		result = prime * result + ((postalCode == null) ? 0 : postalCode.hashCode());
-		result = prime * result + ((region == null) ? 0 : region.hashCode());
-		result = prime * result + ((streetAddress == null) ? 0 : streetAddress.hashCode());
-		return result;
-	}
+    companion object {
+        private const val serialVersionUID = -1304880008685206811L
+    }
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (!(obj instanceof DefaultAddress)) {
-			return false;
-		}
-		DefaultAddress other = (DefaultAddress) obj;
-		if (country == null) {
-			if (other.country != null) {
-				return false;
-			}
-		} else if (!country.equals(other.country)) {
-			return false;
-		}
-		if (formatted == null) {
-			if (other.formatted != null) {
-				return false;
-			}
-		} else if (!formatted.equals(other.formatted)) {
-			return false;
-		}
-		if (id == null) {
-			if (other.id != null) {
-				return false;
-			}
-		} else if (!id.equals(other.id)) {
-			return false;
-		}
-		if (locality == null) {
-			if (other.locality != null) {
-				return false;
-			}
-		} else if (!locality.equals(other.locality)) {
-			return false;
-		}
-		if (postalCode == null) {
-			if (other.postalCode != null) {
-				return false;
-			}
-		} else if (!postalCode.equals(other.postalCode)) {
-			return false;
-		}
-		if (region == null) {
-			if (other.region != null) {
-				return false;
-			}
-		} else if (!region.equals(other.region)) {
-			return false;
-		}
-		if (streetAddress == null) {
-			if (other.streetAddress != null) {
-				return false;
-			}
-		} else if (!streetAddress.equals(other.streetAddress)) {
-			return false;
-		}
-		return true;
-	}
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
 
+        other as DefaultAddress
+
+        if (id != other.id) return false
+        if (formatted != other.formatted) return false
+        if (streetAddress != other.streetAddress) return false
+        if (locality != other.locality) return false
+        if (region != other.region) return false
+        if (postalCode != other.postalCode) return false
+        if (country != other.country) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = id?.hashCode() ?: 0
+        result = 31 * result + (formatted?.hashCode() ?: 0)
+        result = 31 * result + (streetAddress?.hashCode() ?: 0)
+        result = 31 * result + (locality?.hashCode() ?: 0)
+        result = 31 * result + (region?.hashCode() ?: 0)
+        result = 31 * result + (postalCode?.hashCode() ?: 0)
+        result = 31 * result + (country?.hashCode() ?: 0)
+        return result
+    }
 }

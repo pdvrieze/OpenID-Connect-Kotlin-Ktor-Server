@@ -7,238 +7,85 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.openid.connect.model;
+ */
+package org.mitre.openid.connect.model
 
-import java.io.Serializable;
+import com.google.gson.JsonObject
+import java.io.Serializable
 
-import com.google.gson.JsonObject;
+interface UserInfo : Serializable {
+    /**
+     * The userId
+     */
+    var sub: String?
 
+    /**
+     * The preferred username
+     */
+    var preferredUsername: String?
 
-public interface UserInfo extends Serializable {
+    var name: String?
 
-	/**
-	 * @return the userId
-	 */
-	public String getSub();
+    /**
+     * Tthe givenName
+     */
+    var givenName: String?
 
-	/**
-	 * @param sub the userId to set
-	 */
-	public void setSub(String sub);
+    /**
+     * The familyName
+     */
+    var familyName: String?
 
-	/**
-	 * @return the preferred username
-	 */
-	public String getPreferredUsername();
+    /**
+     * The middleName
+     */
+    var middleName: String?
 
-	/**
-	 * @param preferredUsername the preferredUsername to set
-	 */
-	public void setPreferredUsername(String preferredUsername);
+    /**
+     * The nickname
+     */
+    var nickname: String?
 
-	/**
-	 * @return the name
-	 */
-	public String getName();
+    /**
+     * The profile
+     */
+    var profile: String?
 
-	/**
-	 * @param name the name to set
-	 */
-	public void setName(String name);
+    /**
+     * The picture
+     */
+    var picture: String?
 
-	/**
-	 * @return the givenName
-	 */
-	public String getGivenName();
+    var website: String?
 
-	/**
-	 * @param givenName the givenName to set
-	 */
-	public void setGivenName(String givenName);
+    var email: String?
 
-	/**
-	 * @return the familyName
-	 */
-	public String getFamilyName();
+    var emailVerified: Boolean?
 
-	/**
-	 * @param familyName the familyName to set
-	 */
-	public void setFamilyName(String familyName);
+    var gender: String?
 
-	/**
-	 * @return the middleName
-	 */
-	public String getMiddleName();
+    var zoneinfo: String?
 
-	/**
-	 * @param middleName the middleName to set
-	 */
-	public void setMiddleName(String middleName);
+    var locale: String?
 
-	/**
-	 * @return the nickname
-	 */
-	public String getNickname();
+    var phoneNumber: String?
 
-	/**
-	 * @param nickname the nickname to set
-	 */
-	public void setNickname(String nickname);
+    var phoneNumberVerified: Boolean?
 
-	/**
-	 * @return the profile
-	 */
-	public String getProfile();
+    var address: Address?
 
-	/**
-	 * @param profile the profile to set
-	 */
-	public void setProfile(String profile);
+    var updatedTime: String?
 
-	/**
-	 * @return the picture
-	 */
-	public String getPicture();
+    var birthdate: String?
 
-	/**
-	 * @param picture the picture to set
-	 */
-	public void setPicture(String picture);
+    fun toJson(): JsonObject?
 
-	/**
-	 * @return the website
-	 */
-	public String getWebsite();
-
-	/**
-	 * @param website the website to set
-	 */
-	public void setWebsite(String website);
-
-	/**
-	 * @return the email
-	 */
-	public String getEmail();
-
-	/**
-	 * @param email the email to set
-	 */
-	public void setEmail(String email);
-
-	/**
-	 * @return the verified
-	 */
-	public Boolean getEmailVerified();
-
-	/**
-	 * @param verified the verified to set
-	 */
-	public void setEmailVerified(Boolean emailVerified);
-
-	/**
-	 * @return the gender
-	 */
-	public String getGender();
-
-	/**
-	 * @param gender the gender to set
-	 */
-	public void setGender(String gender);
-
-	/**
-	 * @return the zoneinfo
-	 */
-	public String getZoneinfo();
-
-	/**
-	 * @param zoneinfo the zoneinfo to set
-	 */
-	public void setZoneinfo(String zoneinfo);
-
-	/**
-	 * @return the locale
-	 */
-	public String getLocale();
-
-	/**
-	 * @param locale the locale to set
-	 */
-	public void setLocale(String locale);
-
-	/**
-	 * @return the phoneNumber
-	 */
-	public String getPhoneNumber();
-
-	/**
-	 * @param phoneNumber the phoneNumber to set
-	 */
-	public void setPhoneNumber(String phoneNumber);
-
-	/**
-	 *
-	 */
-	public Boolean getPhoneNumberVerified();
-
-	/**
-	 *
-	 * @param phoneNumberVerified
-	 */
-	public void setPhoneNumberVerified(Boolean phoneNumberVerified);
-
-	/**
-	 * @return the address
-	 */
-	public Address getAddress();
-
-	/**
-	 * @param address the address to set
-	 */
-	public void setAddress(Address address);
-
-	/**
-	 * @return the updatedTime
-	 */
-	public String getUpdatedTime();
-
-	/**
-	 * @param updatedTime the updatedTime to set
-	 */
-	public void setUpdatedTime(String updatedTime);
-
-
-	/**
-	 *
-	 * @return
-	 */
-	public String getBirthdate();
-
-	/**
-	 *
-	 * @param birthdate
-	 */
-	public void setBirthdate(String birthdate);
-
-	/**
-	 * Serialize this UserInfo object to JSON.
-	 *
-	 * @return
-	 */
-	public JsonObject toJson();
-
-	/**
-	 * The JSON source of this UserInfo (if it was fetched), or null if it's local.
-	 * @return
-	 */
-	public JsonObject getSource();
-
+    val source: JsonObject?
 }
