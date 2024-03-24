@@ -7,122 +7,85 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.openid.connect.client.keypublisher;
+ */
+package org.mitre.openid.connect.client.keypublisher
 
-import com.google.common.base.Strings;
-import com.nimbusds.jose.jwk.JWK;
-import org.mitre.jwt.signer.service.JWTSigningAndValidationService;
-import org.mitre.openid.connect.view.JWKSetView;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
-import org.springframework.web.servlet.ModelAndView;
-
-import java.util.Map;
-import java.util.UUID;
+import com.google.common.base.Strings
+import org.mitre.jwt.signer.service.JWTSigningAndValidationService
+import org.mitre.openid.connect.view.JWKSetView
+import org.springframework.beans.BeansException
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory
+import org.springframework.beans.factory.support.BeanDefinitionBuilder
+import org.springframework.beans.factory.support.BeanDefinitionRegistry
+import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor
+import org.springframework.web.servlet.ModelAndView
+import java.util.*
 
 /**
  * @author jricher
- *
  */
-public class ClientKeyPublisher implements BeanDefinitionRegistryPostProcessor {
+class ClientKeyPublisher : BeanDefinitionRegistryPostProcessor {
+    lateinit var signingAndValidationService: JWTSigningAndValidationService
 
-	private JWTSigningAndValidationService signingAndValidationService;
+    var jwkPublishUrl: String? = null
 
-	private String jwkPublishUrl;
+    private lateinit var registry: BeanDefinitionRegistry
 
-	private BeanDefinitionRegistry registry;
+    private var jwkViewName = JWKSetView.VIEWNAME
 
-	private String jwkViewName = JWKSetView.VIEWNAME;
+    /**
+     * If the jwkPublishUrl field is set on this bean, set up a listener on that URL to publish keys.
+     */
+    @Throws(BeansException::class)
+    override fun postProcessBeanFactory(beanFactory: ConfigurableListableBeanFactory) {
+        if (!Strings.isNullOrEmpty(jwkPublishUrl)) {
+            // add a mapping to this class
 
-	/**
-	 * If the jwkPublishUrl field is set on this bean, set up a listener on that URL to publish keys.
-	 */
-	@Override
-	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		if (!Strings.isNullOrEmpty(getJwkPublishUrl())) {
+            val clientKeyMapping = BeanDefinitionBuilder.rootBeanDefinition(ClientKeyPublisherMapping::class.java)
+            // custom view resolver
+            val viewResolver = BeanDefinitionBuilder.rootBeanDefinition(JwkViewResolver::class.java)
 
-			// add a mapping to this class
-			BeanDefinitionBuilder clientKeyMapping = BeanDefinitionBuilder.rootBeanDefinition(ClientKeyPublisherMapping.class);
-			// custom view resolver
-			BeanDefinitionBuilder viewResolver = BeanDefinitionBuilder.rootBeanDefinition(JwkViewResolver.class);
+            if (!Strings.isNullOrEmpty(jwkPublishUrl)) {
+                clientKeyMapping.addPropertyValue("jwkPublishUrl", jwkPublishUrl)
 
-			if (!Strings.isNullOrEmpty(getJwkPublishUrl())) {
-				clientKeyMapping.addPropertyValue("jwkPublishUrl", getJwkPublishUrl());
+                // randomize view name to make sure it doesn't conflict with local views
+                jwkViewName = JWKSetView.VIEWNAME + "-" + UUID.randomUUID().toString()
+                viewResolver.addPropertyValue("jwkViewName", jwkViewName)
 
-				// randomize view name to make sure it doesn't conflict with local views
-				jwkViewName = JWKSetView.VIEWNAME + "-" + UUID.randomUUID().toString();
-				viewResolver.addPropertyValue("jwkViewName", jwkViewName);
+                // view bean
+                val jwkView = BeanDefinitionBuilder.rootBeanDefinition(JWKSetView::class.java)
+                registry.registerBeanDefinition(JWKSetView.VIEWNAME, jwkView.beanDefinition)
+                viewResolver.addPropertyReference("jwk", JWKSetView.VIEWNAME)
+            }
 
-				// view bean
-				BeanDefinitionBuilder jwkView = BeanDefinitionBuilder.rootBeanDefinition(JWKSetView.class);
-				registry.registerBeanDefinition(JWKSetView.VIEWNAME, jwkView.getBeanDefinition());
-				viewResolver.addPropertyReference("jwk", JWKSetView.VIEWNAME);
-			}
+            registry.registerBeanDefinition("clientKeyMapping", clientKeyMapping.beanDefinition)
+            registry.registerBeanDefinition("jwkViewResolver", viewResolver.beanDefinition)
+        }
+    }
 
-			registry.registerBeanDefinition("clientKeyMapping", clientKeyMapping.getBeanDefinition());
-			registry.registerBeanDefinition("jwkViewResolver", viewResolver.getBeanDefinition());
-
-		}
-
-	}
-
-	/* (non-Javadoc)
+    /* (non-Javadoc)
 	 * @see org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor#postProcessBeanDefinitionRegistry(org.springframework.beans.factory.support.BeanDefinitionRegistry)
 	 */
-	@Override
-	public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
-		this.registry = registry;
-	}
+    @Throws(BeansException::class)
+    override fun postProcessBeanDefinitionRegistry(registry: BeanDefinitionRegistry) {
+        this.registry = registry
+    }
 
-	/**
-	 * Return a view to publish all keys in JWK format. Only used if jwkPublishUrl is set.
-	 */
-	public ModelAndView publishClientJwk() {
+    /**
+     * Return a view to publish all keys in JWK format. Only used if jwkPublishUrl is set.
+     */
+    fun publishClientJwk(): ModelAndView {
+        // map from key id to key
 
-		// map from key id to key
-		Map<String, JWK> keys = signingAndValidationService.getAllPublicKeys();
+        val keys = signingAndValidationService.allPublicKeys
 
-		return new ModelAndView(jwkViewName, "keys", keys);
-	}
-
-	/**
-	 * @return the jwkPublishUrl
-	 */
-	public String getJwkPublishUrl() {
-		return jwkPublishUrl;
-	}
-
-	/**
-	 * @param jwkPublishUrl the jwkPublishUrl to set
-	 */
-	public void setJwkPublishUrl(String jwkPublishUrl) {
-		this.jwkPublishUrl = jwkPublishUrl;
-	}
-
-	/**
-	 * @return the signingAndValidationService
-	 */
-	public JWTSigningAndValidationService getSigningAndValidationService() {
-		return signingAndValidationService;
-	}
-
-	/**
-	 * @param signingAndValidationService the signingAndValidationService to set
-	 */
-	public void setSigningAndValidationService(JWTSigningAndValidationService signingAndValidationService) {
-		this.signingAndValidationService = signingAndValidationService;
-	}
-
-
+        return ModelAndView(jwkViewName, "keys", keys)
+    }
 }
