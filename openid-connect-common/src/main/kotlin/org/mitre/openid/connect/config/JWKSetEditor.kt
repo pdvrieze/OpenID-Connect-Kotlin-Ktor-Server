@@ -15,7 +15,6 @@
  */
 package org.mitre.openid.connect.config
 
-import com.google.common.base.Strings
 import com.nimbusds.jose.jwk.JWKSet
 import java.beans.PropertyEditorSupport
 import java.text.ParseException

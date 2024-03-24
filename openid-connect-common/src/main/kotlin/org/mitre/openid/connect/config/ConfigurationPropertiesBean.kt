@@ -17,12 +17,10 @@
  */
 package org.mitre.openid.connect.config
 
-import com.google.common.collect.Lists
 import com.google.gson.Gson
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.BeanCreationException
-import org.springframework.util.StringUtils
 import java.util.*
 import javax.annotation.PostConstruct
 

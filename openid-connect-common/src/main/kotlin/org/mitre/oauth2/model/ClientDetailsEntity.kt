@@ -25,7 +25,6 @@ import com.nimbusds.jose.JWEAlgorithm
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jwt.JWT
-import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.convert.*
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.oauth2.provider.ClientDetails

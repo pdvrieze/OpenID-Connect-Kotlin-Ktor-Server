@@ -21,12 +21,10 @@
 package org.mitre.oauth2.model
 
 import com.nimbusds.jwt.JWT
-import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.convert.JWTStringConverter
 import org.springframework.security.oauth2.common.OAuth2RefreshToken
 import java.util.*
 import javax.persistence.*
-import kotlin.math.exp
 
 /**
  * @author jricher
