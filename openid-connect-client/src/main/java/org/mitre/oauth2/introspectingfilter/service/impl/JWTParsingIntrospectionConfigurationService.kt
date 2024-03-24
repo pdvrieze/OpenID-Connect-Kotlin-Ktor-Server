@@ -7,30 +7,25 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
+ */
 /**
  *
  */
-package org.mitre.oauth2.introspectingfilter.service.impl;
+package org.mitre.oauth2.introspectingfilter.service.impl
 
-import java.text.ParseException;
-
-import org.mitre.oauth2.introspectingfilter.service.IntrospectionConfigurationService;
-import org.mitre.oauth2.model.RegisteredClient;
-import org.mitre.openid.connect.client.service.ClientConfigurationService;
-import org.mitre.openid.connect.client.service.ServerConfigurationService;
-import org.mitre.openid.connect.config.ServerConfiguration;
-
-import com.google.common.base.Strings;
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTParser;
+import com.nimbusds.jwt.JWTParser
+import org.mitre.oauth2.introspectingfilter.service.IntrospectionConfigurationService
+import org.mitre.oauth2.model.RegisteredClient
+import org.mitre.openid.connect.client.service.ClientConfigurationService
+import org.mitre.openid.connect.client.service.ServerConfigurationService
+import java.text.ParseException
 
 /**
  *
@@ -39,94 +34,59 @@ import com.nimbusds.jwt.JWTParser;
  * the introspection URL for that issuer.
  *
  * @author jricher
- *
  */
-public class JWTParsingIntrospectionConfigurationService implements IntrospectionConfigurationService {
+class JWTParsingIntrospectionConfigurationService : IntrospectionConfigurationService {
+    /**
+     * @return the serverConfigurationService
+     */
+    /**
+     * @param serverConfigurationService the serverConfigurationService to set
+     */
+    lateinit var serverConfigurationService: ServerConfigurationService
+    private lateinit var clientConfigurationService: ClientConfigurationService
 
-	private ServerConfigurationService serverConfigurationService;
-	private ClientConfigurationService clientConfigurationService;
+    /**
+     * @param clientConfigurationService the clientConfigurationService to set
+     */
+    fun setClientConfigurationService(clientConfigurationService: ClientConfigurationService) {
+        this.clientConfigurationService = clientConfigurationService
+    }
 
-	/**
-	 * @return the serverConfigurationService
-	 */
-	public ServerConfigurationService getServerConfigurationService() {
-		return serverConfigurationService;
-	}
+    private fun getIssuer(accessToken: String): String? {
+        try {
+            val jwt = JWTParser.parse(accessToken)
 
-	/**
-	 * @param serverConfigurationService the serverConfigurationService to set
-	 */
-	public void setServerConfigurationService(ServerConfigurationService serverConfigurationService) {
-		this.serverConfigurationService = serverConfigurationService;
-	}
+            return jwt.jwtClaimsSet.issuer
+        } catch (e: ParseException) {
+            throw IllegalArgumentException("Unable to parse JWT", e)
+        }
+    }
 
-	/**
-	 * @param clientConfigurationService the clientConfigurationService to set
-	 */
-	public void setClientConfigurationService(ClientConfigurationService clientConfigurationService) {
-		this.clientConfigurationService = clientConfigurationService;
-	}
-
-	private String getIssuer(String accessToken) {
-		try {
-			JWT jwt = JWTParser.parse(accessToken);
-
-			String issuer = jwt.getJWTClaimsSet().getIssuer();
-
-			return issuer;
-
-		} catch (ParseException e) {
-			throw new IllegalArgumentException("Unable to parse JWT", e);
-		}
-	}
-
-	/* (non-Javadoc)
+    /* (non-Javadoc)
 	 * @see org.mitre.oauth2.introspectingfilter.IntrospectionConfigurationService#getIntrospectionUrl(java.lang.String)
 	 */
-	@Override
-	public String getIntrospectionUrl(String accessToken) {
-		String issuer = getIssuer(accessToken);
-		if (!Strings.isNullOrEmpty(issuer)) {
-			ServerConfiguration server = serverConfigurationService.getServerConfiguration(issuer);
-			if (server != null) {
-				if (!Strings.isNullOrEmpty(server.getIntrospectionEndpointUri())) {
-					return server.getIntrospectionEndpointUri();
-				} else {
-					throw new IllegalArgumentException("Server does not have Introspection Endpoint defined");
-				}
-			} else {
-				throw new IllegalArgumentException("Could not find server configuration for issuer " + issuer);
-			}
-		} else {
-			throw new IllegalArgumentException("No issuer claim found in JWT");
-		}
-	}
+    override fun getIntrospectionUrl(accessToken: String): String {
+        val issuer = getIssuer(accessToken)?.takeIf { it.isNotEmpty() }
+            ?: throw IllegalArgumentException("No issuer claim found in JWT")
 
-	/* (non-Javadoc)
+        val server = serverConfigurationService.getServerConfiguration(issuer)
+            ?: throw IllegalArgumentException("Could not find server configuration for issuer $issuer")
+
+        return server.introspectionEndpointUri?.takeIf { it.isNotEmpty() }
+            ?: throw IllegalArgumentException("Server does not have Introspection Endpoint defined")
+    }
+
+    /* (non-Javadoc)
 	 * @see org.mitre.oauth2.introspectingfilter.service.IntrospectionConfigurationService#getClientConfiguration(java.lang.String)
 	 */
-	@Override
-	public RegisteredClient getClientConfiguration(String accessToken) {
+    override fun getClientConfiguration(accessToken: String): RegisteredClient {
+        val issuer = getIssuer(accessToken)?.takeIf { it.isNotEmpty() }
+            ?: throw IllegalArgumentException("No issuer claim found in JWT")
 
-		String issuer = getIssuer(accessToken);
-		if (!Strings.isNullOrEmpty(issuer)) {
-			ServerConfiguration server = serverConfigurationService.getServerConfiguration(issuer);
-			if (server != null) {
-				RegisteredClient client = clientConfigurationService.getClientConfiguration(server);
-				if (client != null) {
-					return client;
-				} else {
-					throw new IllegalArgumentException("Could not find client configuration for issuer " + issuer);
-				}
-			} else {
-				throw new IllegalArgumentException("Could not find server configuration for issuer " + issuer);
-			}
-		} else {
-			throw new IllegalArgumentException("No issuer claim found in JWT");
-		}
+        val server = serverConfigurationService.getServerConfiguration(issuer)
+            ?: throw IllegalArgumentException("Could not find server configuration for issuer $issuer")
 
-	}
-
-
-
+        return clientConfigurationService.getClientConfiguration(server)
+            ?: throw IllegalArgumentException("Could not find client configuration for issuer $issuer")
+    }
 }

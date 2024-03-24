@@ -7,111 +7,81 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.oauth2.introspectingfilter;
+ */
+package org.mitre.oauth2.introspectingfilter
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
+import com.google.common.base.Splitter
+import com.google.common.collect.Sets
+import com.google.gson.JsonObject
+import org.springframework.security.oauth2.common.OAuth2AccessToken
+import org.springframework.security.oauth2.common.OAuth2RefreshToken
+import java.util.*
+import java.util.concurrent.TimeUnit
 
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.security.oauth2.common.OAuth2RefreshToken;
-
-import com.google.common.base.Splitter;
-import com.google.common.collect.Sets;
-import com.google.gson.JsonObject;
-
-
-public class OAuth2AccessTokenImpl implements OAuth2AccessToken {
-
-	private JsonObject introspectionResponse;
-	private String tokenString;
-	private Set<String> scopes = new HashSet<>();
-	private Date expireDate;
-
-
-	public OAuth2AccessTokenImpl(JsonObject introspectionResponse, String tokenString) {
-		this.setIntrospectionResponse(introspectionResponse);
-		this.tokenString = tokenString;
-		if (introspectionResponse.get("scope") != null) {
-			scopes = Sets.newHashSet(Splitter.on(" ").split(introspectionResponse.get("scope").getAsString()));
-		}
-
-		if (introspectionResponse.get("exp") != null) {
-			expireDate = new Date(introspectionResponse.get("exp").getAsLong() * 1000L);
-		}
-	}
+class OAuth2AccessTokenImpl(introspectionResponse: JsonObject, tokenString: String) : OAuth2AccessToken {
+    /**
+     * @return the token
+     */
+    /**
+     * @param token the token to set
+     */
+    var introspectionResponse: JsonObject? = null
+    private val tokenString: String
+    private var scopes: Set<String> = HashSet()
+    private var expireDate: Date? = null
 
 
-	@Override
-	public Map<String, Object> getAdditionalInformation() {
-		return null;
-	}
+    init {
+        this.introspectionResponse = introspectionResponse
+        this.tokenString = tokenString
+        if (introspectionResponse["scope"] != null) {
+            scopes = Sets.newHashSet(Splitter.on(" ").split(introspectionResponse["scope"].asString))
+        }
 
-	@Override
-	public Set<String> getScope() {
-		return scopes;
-	}
-
-	@Override
-	public OAuth2RefreshToken getRefreshToken() {
-		return null;
-	}
-
-	@Override
-	public String getTokenType() {
-		return BEARER_TYPE;
-	}
-
-	@Override
-	public boolean isExpired() {
-		if (expireDate != null && expireDate.before(new Date())) {
-			return true;
-		}
-		return false;
-	}
-
-	@Override
-	public Date getExpiration() {
-		return expireDate;
-	}
-
-	@Override
-	public int getExpiresIn() {
-		if (expireDate != null) {
-			return (int)TimeUnit.MILLISECONDS.toSeconds(expireDate.getTime() - (new Date()).getTime());
-		}
-		return 0;
-	}
-
-	@Override
-	public String getValue() {
-		return tokenString;
-	}
+        if (introspectionResponse["exp"] != null) {
+            expireDate = Date(introspectionResponse["exp"].asLong * 1000L)
+        }
+    }
 
 
-	/**
-	 * @return the token
-	 */
-	public JsonObject getIntrospectionResponse() {
-		return introspectionResponse;
-	}
+    override fun getAdditionalInformation(): Map<String, Any>? {
+        return null
+    }
 
+    override fun getScope(): Set<String> {
+        return scopes
+    }
 
-	/**
-	 * @param token the token to set
-	 */
-	public void setIntrospectionResponse(JsonObject token) {
-		this.introspectionResponse = token;
-	}
+    override fun getRefreshToken(): OAuth2RefreshToken? {
+        return null
+    }
 
+    override fun getTokenType(): String {
+        return OAuth2AccessToken.BEARER_TYPE
+    }
+
+    override fun isExpired(): Boolean {
+        return expireDate?.before(Date()) == true
+    }
+
+    override fun getExpiration(): Date? {
+        return expireDate
+    }
+
+    override fun getExpiresIn(): Int {
+        return expireDate?.let {
+            TimeUnit.MILLISECONDS.toSeconds(it.getTime() - Date().time).toInt()
+        } ?: 0
+    }
+
+    override fun getValue(): String {
+        return tokenString
+    }
 }
