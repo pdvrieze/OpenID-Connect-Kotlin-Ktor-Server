@@ -112,7 +112,7 @@ object ClientDetailsEntityJsonProcessor {
             c.clientSecret = JsonUtils.getAsString(o, CLIENT_SECRET)
 
             // OAuth DynReg
-            c.redirectUris = JsonUtils.getAsStringSet(o, REDIRECT_URIS)
+            c.redirectUris = JsonUtils.getAsStringSet(o, REDIRECT_URIS) ?: HashSet()
             c.clientName = JsonUtils.getAsString(o, CLIENT_NAME)
             c.clientUri = JsonUtils.getAsString(o, CLIENT_URI)
             c.logoUri = JsonUtils.getAsString(o, LOGO_URI)
@@ -130,8 +130,8 @@ object ClientDetailsEntityJsonProcessor {
                 c.scope = Sets.newHashSet<String>(Splitter.on(SCOPE_SEPARATOR).split(scope))
             }
 
-            c.grantTypes = JsonUtils.getAsStringSet(o, GRANT_TYPES)
-            c.responseTypes = JsonUtils.getAsStringSet(o, RESPONSE_TYPES)
+            c.grantTypes = JsonUtils.getAsStringSet(o, GRANT_TYPES) ?: HashSet()
+            c.responseTypes = JsonUtils.getAsStringSet(o, RESPONSE_TYPES) ?: HashSet()
             c.policyUri = JsonUtils.getAsString(o, POLICY_URI)
             c.jwksUri = JsonUtils.getAsString(o, JWKS_URI)
 
