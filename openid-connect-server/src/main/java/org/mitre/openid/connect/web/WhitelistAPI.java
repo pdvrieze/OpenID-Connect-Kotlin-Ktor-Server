@@ -162,7 +162,6 @@ public class WhitelistAPI {
 
 	/**
 	 * Delete a whitelisted site
-	 *
 	 */
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	@RequestMapping(value="/{id}", method = RequestMethod.DELETE)

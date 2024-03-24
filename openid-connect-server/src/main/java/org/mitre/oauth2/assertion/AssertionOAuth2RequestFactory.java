@@ -29,8 +29,7 @@ import org.springframework.security.oauth2.provider.TokenRequest;
  */
 public interface AssertionOAuth2RequestFactory {
 
-	/**
-	 */
+
 	OAuth2Request createOAuth2Request(ClientDetails client, TokenRequest tokenRequest, JWT assertion);
 
 }

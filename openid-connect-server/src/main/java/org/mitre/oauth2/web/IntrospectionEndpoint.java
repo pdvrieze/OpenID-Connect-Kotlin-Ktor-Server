@@ -17,13 +17,8 @@
  *******************************************************************************/
 package org.mitre.oauth2.web;
 
-import static org.mitre.oauth2.web.AuthenticationUtilities.ensureOAuthScope;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
 import org.mitre.oauth2.model.ClientDetailsEntity;
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity;
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity;
@@ -49,15 +44,17 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import static org.mitre.oauth2.web.AuthenticationUtilities.ensureOAuthScope;
 
 @Controller
 public class IntrospectionEndpoint {
 
-	/**
-	 *
-	 */
+
 	public static final String URL = "introspect";
 
 	@Autowired

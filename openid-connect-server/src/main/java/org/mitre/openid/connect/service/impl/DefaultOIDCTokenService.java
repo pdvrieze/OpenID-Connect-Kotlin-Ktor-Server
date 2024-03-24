@@ -220,8 +220,7 @@ public class DefaultOIDCTokenService implements OIDCTokenService {
 
 	}
 
-	/**
-	 */
+
 	@Override
 	public OAuth2AccessTokenEntity createResourceAccessToken(ClientDetailsEntity client) {
 

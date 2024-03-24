@@ -50,8 +50,7 @@ public class ChainedTokenGranter extends AbstractTokenGranter {
 	// keep down-cast versions so we can get to the right queries
 	private OAuth2TokenEntityService tokenServices;
 
-	/**
-	 */
+
 	@Autowired
 	public ChainedTokenGranter(OAuth2TokenEntityService tokenServices, ClientDetailsEntityService clientDetailsService, OAuth2RequestFactory requestFactory) {
 		super(tokenServices, clientDetailsService, requestFactory, GRANT_TYPE);

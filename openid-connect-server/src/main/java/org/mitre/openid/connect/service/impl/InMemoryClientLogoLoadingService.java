@@ -16,10 +16,11 @@
 
 package org.mitre.openid.connect.service.impl;
 
-import java.io.IOException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-
+import com.google.common.base.Strings;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -31,11 +32,9 @@ import org.mitre.openid.connect.model.CachedImage;
 import org.mitre.openid.connect.service.ClientLogoLoadingService;
 import org.springframework.stereotype.Service;
 
-import com.google.common.base.Strings;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.util.concurrent.UncheckedExecutionException;
+import java.io.IOException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author jricher
@@ -50,9 +49,7 @@ public class InMemoryClientLogoLoadingService implements ClientLogoLoadingServic
 		this(HttpClientBuilder.create().useSystemProperties().build());
 	}
 
-	/**
-	 *
-	 */
+
 	public InMemoryClientLogoLoadingService(HttpClient httpClient) {
 
 		cache = CacheBuilder.newBuilder()
@@ -81,7 +78,6 @@ public class InMemoryClientLogoLoadingService implements ClientLogoLoadingServic
 
 	/**
 	 * @author jricher
-	 *
 	 */
 	public class ClientLogoFetcher extends CacheLoader<ClientDetailsEntity, CachedImage> {
 		private HttpClient httpClient;

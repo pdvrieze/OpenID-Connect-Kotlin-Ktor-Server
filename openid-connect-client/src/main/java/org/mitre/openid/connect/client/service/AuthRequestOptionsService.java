@@ -40,13 +40,11 @@ public interface AuthRequestOptionsService {
 
 	/**
 	 * The set of options needed at the authorization endpoint.
-	 *
 	 */
 	public Map<String, String> getOptions(ServerConfiguration server, RegisteredClient client, HttpServletRequest request);
 
 	/**
 	 * The set of options needed at the token endpoint.
-	 *
 	 */
 	public Map<String, String> getTokenOptions(ServerConfiguration server, RegisteredClient client, HttpServletRequest request);
 

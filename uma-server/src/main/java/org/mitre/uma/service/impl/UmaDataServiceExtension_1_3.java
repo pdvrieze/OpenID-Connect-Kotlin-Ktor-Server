@@ -283,8 +283,7 @@ public class UmaDataServiceExtension_1_3 extends MITREidDataServiceSupport imple
 
 	}
 
-	/**
-	 */
+
 	private void writeSavedRegisteredClients(JsonWriter writer) throws IOException {
 		for (SavedRegisteredClient src : registeredClientService.getAll()) {
 			writer.beginObject();
@@ -318,8 +317,7 @@ public class UmaDataServiceExtension_1_3 extends MITREidDataServiceSupport imple
 		}
 	}
 
-	/**
-	 */
+
 	private void readTokenPermissions(JsonReader reader) throws IOException {
 		reader.beginArray();
 		while(reader.hasNext()) {
@@ -388,8 +386,7 @@ public class UmaDataServiceExtension_1_3 extends MITREidDataServiceSupport imple
 
 	private Map<Long, Long> permissionToResourceRefs = new HashMap<>();
 
-	/**
-	 */
+
 	private void readPermissionTickets(JsonReader reader) throws IOException {
 		JsonParser parser = new JsonParser();
 		reader.beginArray();
@@ -502,8 +499,7 @@ public class UmaDataServiceExtension_1_3 extends MITREidDataServiceSupport imple
 
 	private Map<Long, Long> resourceSetOldToNewIdMap = new HashMap<>();
 
-	/**
-	 */
+
 	private void readResourceSets(JsonReader reader) throws IOException {
 		JsonParser parser = new JsonParser();
 		reader.beginArray();
@@ -631,8 +627,7 @@ public class UmaDataServiceExtension_1_3 extends MITREidDataServiceSupport imple
 		logger.info("Done reading resource sets");
 	}
 
-	/**
-	 */
+
 	private void readSavedRegisteredClients(JsonReader reader) throws IOException{
 		reader.beginArray();
 		while (reader.hasNext()) {

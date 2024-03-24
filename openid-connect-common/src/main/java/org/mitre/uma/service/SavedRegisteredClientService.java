@@ -29,12 +29,10 @@ public interface SavedRegisteredClientService {
 
 	/**
 	 * Get a list of all the registered clients that we know about.
-	 *
 	 */
 	Collection<SavedRegisteredClient> getAll();
 
-	/**
-	 */
+
 	void save(String issuer, RegisteredClient client);
 
 

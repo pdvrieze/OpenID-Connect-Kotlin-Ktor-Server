@@ -296,9 +296,7 @@ public class ResourceSetRegistrationEndpoint {
 
 
 	/**
-	 *
-	 * Make sure the resource set doesn't have any restricted or reserved scopes.
-	 *
+	 	 * Make sure the resource set doesn't have any restricted or reserved scopes.
 	 */
 	private ResourceSet validateScopes(ResourceSet rs) {
 		// scopes that the client is asking for

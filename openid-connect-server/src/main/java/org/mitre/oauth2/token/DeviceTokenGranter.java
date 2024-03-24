@@ -50,8 +50,7 @@ public class DeviceTokenGranter extends AbstractTokenGranter {
 	@Autowired
 	private DeviceCodeService deviceCodeService;
 
-	/**
-	 */
+
 	protected DeviceTokenGranter(AuthorizationServerTokenServices tokenServices, ClientDetailsService clientDetailsService, OAuth2RequestFactory requestFactory) {
 		super(tokenServices, clientDetailsService, requestFactory, GRANT_TYPE);
 	}

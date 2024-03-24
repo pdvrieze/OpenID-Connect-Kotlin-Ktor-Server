@@ -23,9 +23,7 @@ public class DuplicateClientIdException extends RuntimeException {
 		super("Duplicate client id: " + clientId);
 	}
 
-	/**
-	 *
-	 */
+
 	private static final long serialVersionUID = 1L;
 
 

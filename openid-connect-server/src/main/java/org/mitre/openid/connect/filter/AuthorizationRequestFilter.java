@@ -96,9 +96,7 @@ public class AuthorizationRequestFilter extends GenericFilterBean {
 
 	private RequestMatcher requestMatcher = new AntPathRequestMatcher("/authorize");
 
-	/**
-	 *
-	 */
+
 	@Override
 	public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
 
@@ -241,8 +239,7 @@ public class AuthorizationRequestFilter extends GenericFilterBean {
 		}
 	}
 
-	/**
-	 */
+
 	private Map<String, String> createRequestMap(Map<String, String[]> parameterMap) {
 		Map<String, String> requestMap = new HashMap<>();
 		for (String key : parameterMap.keySet()) {

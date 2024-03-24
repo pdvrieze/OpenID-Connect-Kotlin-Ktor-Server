@@ -242,8 +242,7 @@ public class MITREidDataService_1_3 extends MITREidDataServiceSupport implements
 		writer.endObject(); // end mitreid-connect-1.3
 	}
 
-	/**
-	 */
+
 	private void writeRefreshTokens(JsonWriter writer) throws IOException {
 		for (OAuth2RefreshTokenEntity token : tokenRepository.getAllRefreshTokens()) {
 			writer.beginObject();
@@ -260,8 +259,7 @@ public class MITREidDataService_1_3 extends MITREidDataServiceSupport implements
 		logger.info("Done writing refresh tokens");
 	}
 
-	/**
-	 */
+
 	private void writeAccessTokens(JsonWriter writer) throws IOException {
 		for (OAuth2AccessTokenEntity token : tokenRepository.getAllAccessTokens()) {
 			writer.beginObject();
@@ -287,8 +285,7 @@ public class MITREidDataService_1_3 extends MITREidDataServiceSupport implements
 		logger.info("Done writing access tokens");
 	}
 
-	/**
-	 */
+
 	private void writeAuthenticationHolders(JsonWriter writer) throws IOException {
 		for (AuthenticationHolderEntity holder : authHolderRepository.getAll()) {
 			writer.beginObject();
@@ -367,8 +364,7 @@ public class MITREidDataService_1_3 extends MITREidDataServiceSupport implements
 		logger.info("Done writing authentication holders");
 	}
 
-	/**
-	 */
+
 	private void writeGrants(JsonWriter writer) throws IOException {
 		for (ApprovedSite site : approvedSiteRepository.getAll()) {
 			writer.beginObject();
@@ -393,8 +389,7 @@ public class MITREidDataService_1_3 extends MITREidDataServiceSupport implements
 		logger.info("Done writing grants");
 	}
 
-	/**
-	 */
+
 	private void writeWhitelistedSites(JsonWriter writer) throws IOException {
 		for (WhitelistedSite wlSite : wlSiteRepository.getAll()) {
 			writer.beginObject();
@@ -409,8 +404,7 @@ public class MITREidDataService_1_3 extends MITREidDataServiceSupport implements
 		logger.info("Done writing whitelisted sites");
 	}
 
-	/**
-	 */
+
 	private void writeBlacklistedSites(JsonWriter writer) throws IOException {
 		for (BlacklistedSite blSite : blSiteRepository.getAll()) {
 			writer.beginObject();
@@ -422,8 +416,7 @@ public class MITREidDataService_1_3 extends MITREidDataServiceSupport implements
 		logger.info("Done writing blacklisted sites");
 	}
 
-	/**
-	 */
+
 	private void writeClients(JsonWriter writer) {
 		for (ClientDetailsEntity client : clientRepository.getAllClients()) {
 			try {
@@ -530,8 +523,7 @@ public class MITREidDataService_1_3 extends MITREidDataServiceSupport implements
 		logger.info("Done writing clients");
 	}
 
-	/**
-	 */
+
 	private void writeSystemScopes(JsonWriter writer) {
 		for (SystemScope sysScope : sysScopeRepository.getAll()) {
 			try {

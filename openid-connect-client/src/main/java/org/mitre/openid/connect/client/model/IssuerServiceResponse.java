@@ -34,16 +34,14 @@ public class IssuerServiceResponse {
 	private String targetLinkUri;
 	private String redirectUrl;
 
-	/**
-	 */
+
 	public IssuerServiceResponse(String issuer, String loginHint, String targetLinkUri) {
 		this.issuer = issuer;
 		this.loginHint = loginHint;
 		this.targetLinkUri = targetLinkUri;
 	}
 
-	/**
-	 */
+
 	public IssuerServiceResponse(String redirectUrl) {
 		this.redirectUrl = redirectUrl;
 	}

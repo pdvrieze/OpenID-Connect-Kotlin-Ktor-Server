@@ -5,39 +5,33 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
+ */
+package org.mitre.uma.repository
 
-package org.mitre.uma.repository;
-
-import java.util.Collection;
-
-import org.mitre.uma.model.ResourceSet;
+import org.mitre.uma.model.ResourceSet
 
 /**
  * @author jricher
- *
  */
-public interface ResourceSetRepository {
+interface ResourceSetRepository {
+    fun save(rs: ResourceSet?): ResourceSet?
 
-	public ResourceSet save(ResourceSet rs);
+    fun getById(id: Long?): ResourceSet?
 
-	public ResourceSet getById(Long id);
+    fun remove(rs: ResourceSet?)
 
-	public void remove(ResourceSet rs);
+    fun getAllForOwner(owner: String?): Collection<ResourceSet?>?
 
-	public Collection<ResourceSet> getAllForOwner(String owner);
+    fun getAllForOwnerAndClient(owner: String?, clientId: String?): Collection<ResourceSet?>?
 
-	public Collection<ResourceSet> getAllForOwnerAndClient(String owner, String clientId);
+    val all: Collection<ResourceSet?>?
 
-	public Collection<ResourceSet> getAll();
-
-	public Collection<ResourceSet> getAllForClient(String clientId);
-
+    fun getAllForClient(clientId: String?): Collection<ResourceSet?>?
 }

@@ -75,7 +75,6 @@ public class ApprovedSiteAPI {
 
 	/**
 	 * Delete an approved site
-	 *
 	 */
 	@RequestMapping(value="/{id}", method = RequestMethod.DELETE)
 	public String deleteApprovedSite(@PathVariable("id") Long id, ModelMap m, Principal p) {

@@ -75,7 +75,6 @@ public class ConnectOAuth2RequestFactory extends DefaultOAuth2RequestFactory {
 
 	/**
 	 * Constructor with arguments
-	 *
 	 */
 	@Autowired
 	public ConnectOAuth2RequestFactory(ClientDetailsEntityService clientDetailsService) {
@@ -158,9 +157,7 @@ public class ConnectOAuth2RequestFactory extends DefaultOAuth2RequestFactory {
 		return request;
 	}
 
-	/**
-	 *
-	 */
+
 	private void processRequestObject(String jwtString, AuthorizationRequest request) {
 
 		// parse the request object
@@ -339,8 +336,7 @@ public class ConnectOAuth2RequestFactory extends DefaultOAuth2RequestFactory {
 		}
 	}
 
-	/**
-	 */
+
 	private JsonObject parseClaimRequest(String claimRequestString) {
 		if (Strings.isNullOrEmpty(claimRequestString)) {
 			return null;

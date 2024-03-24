@@ -30,8 +30,7 @@ import org.mitre.uma.model.ResourceSet;
 public interface ClaimsProcessingService {
 
 	/**
-	 *
-	 * Determine whether or not the claims that have been supplied are
+	 	 * Determine whether or not the claims that have been supplied are
 	 * sufficient to fulfill the requirements given by the claims that
 	 * are required.
 	 *

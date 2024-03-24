@@ -142,8 +142,7 @@ public class JsonMessageSource extends AbstractMessageSource {
 		return value;
 	}
 
-	/**
-	 */
+
 	private List<JsonObject> getLanguageMap(Locale locale) {
 
 		if (!languageMaps.containsKey(locale)) {

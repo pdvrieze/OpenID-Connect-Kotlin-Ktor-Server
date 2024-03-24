@@ -57,9 +57,7 @@ import java.util.Set;
 @RequestMapping(value = ProtectedResourceRegistrationEndpoint.URL)
 public class ProtectedResourceRegistrationEndpoint {
 
-	/**
-	 *
-	 */
+
 	public static final String URL = "resource";
 
 	@Autowired

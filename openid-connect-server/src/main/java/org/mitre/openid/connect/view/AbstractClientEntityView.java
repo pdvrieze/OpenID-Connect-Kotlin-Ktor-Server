@@ -134,8 +134,7 @@ public abstract class AbstractClientEntityView extends AbstractView {
 			.create();
 
 
-	/**
-	 */
+
 	protected abstract ExclusionStrategy getExclusionStrategy();
 
 

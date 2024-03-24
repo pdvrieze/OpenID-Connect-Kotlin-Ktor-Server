@@ -162,7 +162,6 @@ public class BlacklistAPI {
 
 	/**
 	 * Delete a blacklisted site
-	 *
 	 */
 	@RequestMapping(value="/{id}", method = RequestMethod.DELETE)
 	public String deleteBlacklistedSite(@PathVariable("id") Long id, ModelMap m) {

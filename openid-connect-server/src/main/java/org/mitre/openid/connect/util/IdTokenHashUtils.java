@@ -44,7 +44,6 @@ public class IdTokenHashUtils {
 
 	/**
 	 * Compute the SHA hash of an authorization code
-	 *
 	 */
 	public static Base64URL getCodeHash(JWSAlgorithm signingAlg, String code) {
 		return getHash(signingAlg, code.getBytes());
@@ -52,7 +51,6 @@ public class IdTokenHashUtils {
 
 	/**
 	 * Compute the SHA hash of a token
-	 *
 	 */
 	public static Base64URL getAccessTokenHash(JWSAlgorithm signingAlg, OAuth2AccessTokenEntity token) {
 

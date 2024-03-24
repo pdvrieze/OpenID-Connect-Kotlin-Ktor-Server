@@ -35,8 +35,7 @@ public class SubjectIssuerGrantedAuthority implements GrantedAuthority {
 	private final String subject;
 	private final String issuer;
 
-	/**
-	 */
+
 	public SubjectIssuerGrantedAuthority(String subject, String issuer) {
 		if (Strings.isNullOrEmpty(subject) || Strings.isNullOrEmpty(issuer)) {
 			throw new IllegalArgumentException("Neither subject nor issuer may be null or empty");

@@ -83,8 +83,7 @@ public class JpaRegisteredClientService implements RegisteredClientService, Save
 		return saved;
 	}
 
-	/**
-	 */
+
 	@Override
 	public Collection<SavedRegisteredClient> getAll() {
 		TypedQuery<SavedRegisteredClient> query = em.createQuery("SELECT c from SavedRegisteredClient c", SavedRegisteredClient.class);

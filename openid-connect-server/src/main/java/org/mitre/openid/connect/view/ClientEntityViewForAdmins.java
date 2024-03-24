@@ -42,8 +42,7 @@ public class ClientEntityViewForAdmins extends AbstractClientEntityView {
 	public static final String VIEWNAME = "clientEntityViewAdmins";
 	private Set<String> blacklistedFields = ImmutableSet.of("additionalInformation");
 
-	/**
-	 */
+
 	@Override
 	protected ExclusionStrategy getExclusionStrategy() {
 		return new ExclusionStrategy() {

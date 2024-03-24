@@ -95,14 +95,12 @@ public class OIDCAuthenticationProvider implements AuthenticationProvider {
 				token.getIdToken(), token.getAccessTokenValue(), token.getRefreshTokenValue());
 	}
 
-	/**
-	 */
+
 	public void setUserInfoFetcher(UserInfoFetcher userInfoFetcher) {
 		this.userInfoFetcher = userInfoFetcher;
 	}
 
-	/**
-	 */
+
 	public void setAuthoritiesMapper(OIDCAuthoritiesMapper authoritiesMapper) {
 		this.authoritiesMapper = authoritiesMapper;
 	}

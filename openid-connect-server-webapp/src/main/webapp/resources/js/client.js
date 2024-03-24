@@ -855,7 +855,6 @@ var ClientFormView = Backbone.View.extend({
 
 	/**
 	 * Set up the form based on the "Generate" checkbox
-	 * 
 	 */
 	toggleGenerateClientSecret: function() {
 
@@ -874,7 +873,6 @@ var ClientFormView = Backbone.View.extend({
 
 	/**
 	 * Handle whether or not to display the client secret
-	 * 
 	 */
 	toggleDisplayClientSecret: function() {
 

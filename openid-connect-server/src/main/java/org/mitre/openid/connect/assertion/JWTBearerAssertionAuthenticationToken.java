@@ -33,9 +33,7 @@ import java.util.Collection;
  */
 public class JWTBearerAssertionAuthenticationToken extends AbstractAuthenticationToken {
 
-	/**
-	 *
-	 */
+
 	private static final long serialVersionUID = -3138213539914074617L;
 	private String subject;
 	private JWT jwt;
