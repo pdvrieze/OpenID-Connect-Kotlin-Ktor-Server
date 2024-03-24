@@ -5,42 +5,37 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.uma.service;
+ */
+package org.mitre.uma.service
 
-import java.util.Collection;
-
-import org.mitre.oauth2.model.ClientDetailsEntity;
-import org.mitre.uma.model.ResourceSet;
+import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.uma.model.ResourceSet
 
 /**
  *
  * Manage registered resource sets at this authorization server.
  *
  * @author jricher
- *
  */
-public interface ResourceSetService {
+interface ResourceSetService {
+    fun saveNew(rs: ResourceSet?): ResourceSet?
 
-	public ResourceSet saveNew(ResourceSet rs);
+    fun getById(id: Long?): ResourceSet?
 
-	public ResourceSet getById(Long id);
+    fun update(oldRs: ResourceSet?, newRs: ResourceSet?): ResourceSet?
 
-	public ResourceSet update(ResourceSet oldRs, ResourceSet newRs);
+    fun remove(rs: ResourceSet?)
 
-	public void remove(ResourceSet rs);
+    fun getAllForOwner(owner: String?): Collection<ResourceSet?>?
 
-	public Collection<ResourceSet> getAllForOwner(String owner);
+    fun getAllForOwnerAndClient(owner: String?, authClientId: String?): Collection<ResourceSet?>?
 
-	public Collection<ResourceSet> getAllForOwnerAndClient(String owner, String authClientId);
-
-	public Collection<ResourceSet> getAllForClient(ClientDetailsEntity client);
-
+    fun getAllForClient(client: ClientDetailsEntity?): Collection<ResourceSet?>?
 }
