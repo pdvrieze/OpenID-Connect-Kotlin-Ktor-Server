@@ -13,9 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-/**
- *
- */
 package org.mitre.openid.connect.client;
 
 import com.google.common.base.Strings;
@@ -56,16 +53,10 @@ public class SubjectIssuerGrantedAuthority implements GrantedAuthority {
 		return "OIDC_" + subject + "_" + issuer;
 	}
 
-	/**
-	 * @return the subject
-	 */
 	public String getSubject() {
 		return subject;
 	}
 
-	/**
-	 * @return the issuer
-	 */
 	public String getIssuer() {
 		return issuer;
 	}

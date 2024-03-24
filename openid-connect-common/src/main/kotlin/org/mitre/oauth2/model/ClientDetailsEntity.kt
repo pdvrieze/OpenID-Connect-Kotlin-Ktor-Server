@@ -15,9 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/**
- *
- */
 package org.mitre.oauth2.model
 
 import com.nimbusds.jose.EncryptionMethod
@@ -172,12 +169,6 @@ open class ClientDetailsEntity : ClientDetails {
     @get:Column(name = "require_auth_time")
     @get:Basic
     open var requireAuthTime: Boolean? = null // require_auth_time
-    /**
-     * @return the defaultACRvalues
-     */
-    /**
-     * @param defaultACRvalues the defaultACRvalues to set
-     */
     @get:Column(name = "default_acr_value")
     @get:CollectionTable(name = "client_default_acr_value", joinColumns = [JoinColumn(name = "owner_id")])
     @get:ElementCollection(fetch = FetchType.EAGER)
@@ -332,9 +323,6 @@ open class ClientDetailsEntity : ClientDetails {
 
     @get:Transient
     val isAllowRefresh: Boolean
-        /**
-         * @return the allowRefresh
-         */
         get() = if (grantTypes != null) {
             authorizedGrantTypes.contains("refresh_token")
         } else {
@@ -342,9 +330,6 @@ open class ClientDetailsEntity : ClientDetails {
         }
 
 
-    /**
-     *
-     */
     @Transient
     override fun isSecretRequired(): Boolean {
         return if (tokenEndpointAuthMethod != null &&
@@ -364,9 +349,6 @@ open class ClientDetailsEntity : ClientDetails {
         return getScope() != null && !getScope().isEmpty()
     }
 
-    /**
-     * @return the clientId
-     */
     @Basic
     @Column(name = "client_id")
     override fun getClientId(): String? {
@@ -380,9 +362,6 @@ open class ClientDetailsEntity : ClientDetails {
         this.clientId = clientId
     }
 
-    /**
-     * @return the clientSecret
-     */
     @Basic
     @Column(name = "client_secret")
     override fun getClientSecret(): String? {
@@ -396,9 +375,6 @@ open class ClientDetailsEntity : ClientDetails {
         this.clientSecret = clientSecret
     }
 
-    /**
-     * @return the scope
-     */
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "client_scope", joinColumns = [JoinColumn(name = "owner_id")])
     @Column(name = "scope")
@@ -421,9 +397,6 @@ open class ClientDetailsEntity : ClientDetails {
         return grantTypes
     }
 
-    /**
-     * @return the authorities
-     */
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "client_authority", joinColumns = [JoinColumn(name = "owner_id")])
     @Convert(converter = SimpleGrantedAuthorityStringConverter::class)
@@ -445,9 +418,6 @@ open class ClientDetailsEntity : ClientDetails {
         return accessTokenValiditySeconds
     }
 
-    /**
-     * @param accessTokenTimeout the accessTokenTimeout to set
-     */
     fun setAccessTokenValiditySeconds(accessTokenValiditySeconds: Int?) {
         this.accessTokenValiditySeconds = accessTokenValiditySeconds
     }
@@ -473,9 +443,6 @@ open class ClientDetailsEntity : ClientDetails {
         return redirectUris
     }
 
-    /**
-     * @return the resourceIds
-     */
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "client_resource", joinColumns = [JoinColumn(name = "owner_id")])
     @Column(name = "resource_id")
@@ -483,9 +450,6 @@ open class ClientDetailsEntity : ClientDetails {
         return resourceIds
     }
 
-    /**
-     * @param resourceIds the resourceIds to set
-     */
     fun setResourceIds(resourceIds: Set<String>) {
         this.resourceIds = resourceIds
     }

@@ -26,12 +26,6 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 class OAuth2AccessTokenImpl(introspectionResponse: JsonObject, tokenString: String) : OAuth2AccessToken {
-    /**
-     * @return the token
-     */
-    /**
-     * @param token the token to set
-     */
     var introspectionResponse: JsonObject? = null
     private val tokenString: String
     private var scopes: Set<String> = HashSet()

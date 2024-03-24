@@ -15,9 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-/**
- *
- */
 package org.mitre.openid.connect.client.service.impl;
 
 import com.google.common.base.Strings;
@@ -131,73 +128,43 @@ public class WebfingerIssuerService implements IssuerService {
 		}
 	}
 
-	/**
-	 * @return the parameterName
-	 */
 	public String getParameterName() {
 		return parameterName;
 	}
 
-	/**
-	 * @param parameterName the parameterName to set
-	 */
 	public void setParameterName(String parameterName) {
 		this.parameterName = parameterName;
 	}
 
 
-	/**
-	 * @return the loginPageUrl
-	 */
 	public String getLoginPageUrl() {
 		return loginPageUrl;
 	}
 
-	/**
-	 * @param loginPageUrl the loginPageUrl to set
-	 */
 	public void setLoginPageUrl(String loginPageUrl) {
 		this.loginPageUrl = loginPageUrl;
 	}
 
-	/**
-	 * @return the whitelist
-	 */
 	public Set<String> getWhitelist() {
 		return whitelist;
 	}
 
-	/**
-	 * @param whitelist the whitelist to set
-	 */
 	public void setWhitelist(Set<String> whitelist) {
 		this.whitelist = whitelist;
 	}
 
-	/**
-	 * @return the blacklist
-	 */
 	public Set<String> getBlacklist() {
 		return blacklist;
 	}
 
-	/**
-	 * @param blacklist the blacklist to set
-	 */
 	public void setBlacklist(Set<String> blacklist) {
 		this.blacklist = blacklist;
 	}
 
-	/**
-	 * @return the forceHttps
-	 */
 	public boolean isForceHttps() {
 		return forceHttps;
 	}
 
-	/**
-	 * @param forceHttps the forceHttps to set
-	 */
 	public void setForceHttps(boolean forceHttps) {
 		this.forceHttps = forceHttps;
 	}

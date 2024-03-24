@@ -15,9 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/**
- *
- */
 package org.mitre.oauth2.introspectingfilter.service.impl
 
 import com.nimbusds.jwt.JWTParser
@@ -36,18 +33,9 @@ import java.text.ParseException
  * @author jricher
  */
 class JWTParsingIntrospectionConfigurationService : IntrospectionConfigurationService {
-    /**
-     * @return the serverConfigurationService
-     */
-    /**
-     * @param serverConfigurationService the serverConfigurationService to set
-     */
     lateinit var serverConfigurationService: ServerConfigurationService
     private lateinit var clientConfigurationService: ClientConfigurationService
 
-    /**
-     * @param clientConfigurationService the clientConfigurationService to set
-     */
     fun setClientConfigurationService(clientConfigurationService: ClientConfigurationService) {
         this.clientConfigurationService = clientConfigurationService
     }

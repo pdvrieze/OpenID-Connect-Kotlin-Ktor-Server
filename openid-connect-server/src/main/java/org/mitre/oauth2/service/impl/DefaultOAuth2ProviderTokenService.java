@@ -15,25 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-/**
- *
- */
 package org.mitre.oauth2.service.impl;
 
-import static org.mitre.openid.connect.request.ConnectRequestParameters.CODE_CHALLENGE;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.CODE_CHALLENGE_METHOD;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.CODE_VERIFIER;
-
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
+import com.google.common.base.Strings;
+import com.nimbusds.jose.util.Base64URL;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.PlainJWT;
 import org.mitre.data.AbstractPageOperationTemplate;
 import org.mitre.data.DefaultPageCriteria;
 import org.mitre.oauth2.model.AuthenticationHolderEntity;
@@ -65,10 +52,19 @@ import org.springframework.security.oauth2.provider.token.TokenEnhancer;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.base.Strings;
-import com.nimbusds.jose.util.Base64URL;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.PlainJWT;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+import static org.mitre.openid.connect.request.ConnectRequestParameters.CODE_CHALLENGE;
+import static org.mitre.openid.connect.request.ConnectRequestParameters.CODE_CHALLENGE_METHOD;
+import static org.mitre.openid.connect.request.ConnectRequestParameters.CODE_VERIFIER;
 
 
 /**
@@ -532,16 +528,10 @@ public class DefaultOAuth2ProviderTokenService implements OAuth2TokenEntityServi
 		return tokenRepository.saveRefreshToken(refreshToken);
 	}
 
-	/**
-	 * @return the tokenEnhancer
-	 */
 	public TokenEnhancer getTokenEnhancer() {
 		return tokenEnhancer;
 	}
 
-	/**
-	 * @param tokenEnhancer the tokenEnhancer to set
-	 */
 	public void setTokenEnhancer(TokenEnhancer tokenEnhancer) {
 		this.tokenEnhancer = tokenEnhancer;
 	}

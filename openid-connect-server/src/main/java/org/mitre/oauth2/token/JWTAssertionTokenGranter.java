@@ -15,13 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-/**
- *
- */
 package org.mitre.oauth2.token;
 
-import java.text.ParseException;
-
+import com.nimbusds.jwt.JWT;
+import com.nimbusds.jwt.JWTParser;
 import org.mitre.jwt.assertion.AssertionValidator;
 import org.mitre.oauth2.assertion.AssertionOAuth2RequestFactory;
 import org.mitre.oauth2.service.ClientDetailsEntityService;
@@ -38,8 +35,7 @@ import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.token.AbstractTokenGranter;
 import org.springframework.stereotype.Component;
 
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTParser;
+import java.text.ParseException;
 
 /**
  * @author jricher

@@ -15,22 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-/**
- *
- */
 package org.mitre.openid.connect.client.service.impl;
-
-import java.net.URISyntaxException;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.apache.http.client.utils.URIBuilder;
-import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService;
-import org.mitre.jwt.signer.service.impl.JWKSetCacheService;
-import org.mitre.oauth2.model.RegisteredClient;
-import org.mitre.openid.connect.client.service.AuthRequestUrlBuilder;
-import org.mitre.openid.connect.config.ServerConfiguration;
-import org.springframework.security.authentication.AuthenticationServiceException;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
@@ -39,6 +24,17 @@ import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jwt.EncryptedJWT;
 import com.nimbusds.jwt.JWTClaimsSet;
+import org.apache.http.client.utils.URIBuilder;
+import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService;
+import org.mitre.jwt.signer.service.impl.JWKSetCacheService;
+import org.mitre.oauth2.model.RegisteredClient;
+import org.mitre.openid.connect.client.service.AuthRequestUrlBuilder;
+import org.mitre.openid.connect.config.ServerConfiguration;
+import org.springframework.security.authentication.AuthenticationServiceException;
+
+import java.net.URISyntaxException;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * @author jricher
@@ -102,44 +98,26 @@ public class EncryptedAuthRequestUrlBuilder implements AuthRequestUrlBuilder {
 		}
 	}
 
-	/**
-	 * @return the encrypterService
-	 */
 	public JWKSetCacheService getEncrypterService() {
 		return encrypterService;
 	}
 
-	/**
-	 * @param encrypterService the encrypterService to set
-	 */
 	public void setEncrypterService(JWKSetCacheService encrypterService) {
 		this.encrypterService = encrypterService;
 	}
 
-	/**
-	 * @return the alg
-	 */
 	public JWEAlgorithm getAlg() {
 		return alg;
 	}
 
-	/**
-	 * @param alg the alg to set
-	 */
 	public void setAlg(JWEAlgorithm alg) {
 		this.alg = alg;
 	}
 
-	/**
-	 * @return the enc
-	 */
 	public EncryptionMethod getEnc() {
 		return enc;
 	}
 
-	/**
-	 * @param enc the enc to set
-	 */
 	public void setEnc(EncryptionMethod enc) {
 		this.enc = enc;
 	}

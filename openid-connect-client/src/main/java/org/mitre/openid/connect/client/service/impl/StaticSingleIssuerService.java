@@ -15,18 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-/**
- *
- */
 package org.mitre.openid.connect.client.service.impl;
 
-import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletRequest;
-
+import com.google.common.base.Strings;
 import org.mitre.openid.connect.client.model.IssuerServiceResponse;
 import org.mitre.openid.connect.client.service.IssuerService;
 
-import com.google.common.base.Strings;
+import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author jricher
@@ -36,16 +32,10 @@ public class StaticSingleIssuerService implements IssuerService {
 
 	private String issuer;
 
-	/**
-	 * @return the issuer
-	 */
 	public String getIssuer() {
 		return issuer;
 	}
 
-	/**
-	 * @param issuer the issuer to set
-	 */
 	public void setIssuer(String issuer) {
 		this.issuer = issuer;
 	}

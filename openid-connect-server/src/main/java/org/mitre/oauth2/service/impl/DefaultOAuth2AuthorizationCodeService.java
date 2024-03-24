@@ -15,13 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-/**
- *
- */
 package org.mitre.oauth2.service.impl;
-
-import java.util.Collection;
-import java.util.Date;
 
 import org.mitre.data.AbstractPageOperationTemplate;
 import org.mitre.oauth2.model.AuthenticationHolderEntity;
@@ -37,6 +31,9 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.code.AuthorizationCodeServices;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collection;
+import java.util.Date;
 
 /**
  * Database-backed, random-value authorization code service implementation.
@@ -131,30 +128,18 @@ public class DefaultOAuth2AuthorizationCodeService implements AuthorizationCodeS
 		}.execute();
 	}
 
-	/**
-	 * @return the repository
-	 */
 	public AuthorizationCodeRepository getRepository() {
 		return repository;
 	}
 
-	/**
-	 * @param repository the repository to set
-	 */
 	public void setRepository(AuthorizationCodeRepository repository) {
 		this.repository = repository;
 	}
 
-	/**
-	 * @return the authCodeExpirationSeconds
-	 */
 	public int getAuthCodeExpirationSeconds() {
 		return authCodeExpirationSeconds;
 	}
 
-	/**
-	 * @param authCodeExpirationSeconds the authCodeExpirationSeconds to set
-	 */
 	public void setAuthCodeExpirationSeconds(int authCodeExpirationSeconds) {
 		this.authCodeExpirationSeconds = authCodeExpirationSeconds;
 	}

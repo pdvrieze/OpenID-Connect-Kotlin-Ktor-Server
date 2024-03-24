@@ -15,16 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-/**
- *
- */
 package org.mitre.openid.connect.client.keypublisher;
-
-import java.util.Locale;
 
 import org.springframework.core.Ordered;
 import org.springframework.web.servlet.View;
 import org.springframework.web.servlet.ViewResolver;
+
+import java.util.Locale;
 
 /**
  *
@@ -57,45 +54,27 @@ public class JwkViewResolver implements ViewResolver, Ordered {
 		}
 	}
 
-	/**
-	 * @return the jwk
-	 */
 	public View getJwk() {
 		return jwk;
 	}
 
-	/**
-	 * @param jwk the jwk to set
-	 */
 	public void setJwk(View jwk) {
 		this.jwk = jwk;
 	}
 
-	/**
-	 * @return the order
-	 */
 	@Override
 	public int getOrder() {
 		return order;
 	}
 
-	/**
-	 * @param order the order to set
-	 */
 	public void setOrder(int order) {
 		this.order = order;
 	}
 
-	/**
-	 * @return the jwkViewName
-	 */
 	public String getJwkViewName() {
 		return jwkViewName;
 	}
 
-	/**
-	 * @param jwkViewName the jwkViewName to set
-	 */
 	public void setJwkViewName(String jwkViewName) {
 		this.jwkViewName = jwkViewName;
 	}

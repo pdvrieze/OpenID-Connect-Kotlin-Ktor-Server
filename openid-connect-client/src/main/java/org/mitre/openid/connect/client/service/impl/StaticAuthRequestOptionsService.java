@@ -15,19 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-/**
- *
- */
 package org.mitre.openid.connect.client.service.impl;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
 
 import org.mitre.oauth2.model.RegisteredClient;
 import org.mitre.openid.connect.client.service.AuthRequestOptionsService;
 import org.mitre.openid.connect.config.ServerConfiguration;
+
+import javax.servlet.http.HttpServletRequest;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -64,23 +61,14 @@ public class StaticAuthRequestOptionsService implements AuthRequestOptionsServic
 		return options;
 	}
 
-	/**
-	 * @param options the options to set
-	 */
 	public void setOptions(Map<String, String> options) {
 		this.options = options;
 	}
 
-	/**
-	 * @return the tokenOptions
-	 */
 	public Map<String, String> getTokenOptions() {
 		return tokenOptions;
 	}
 
-	/**
-	 * @param tokenOptions the tokenOptions to set
-	 */
 	public void setTokenOptions(Map<String, String> tokenOptions) {
 		this.tokenOptions = tokenOptions;
 	}

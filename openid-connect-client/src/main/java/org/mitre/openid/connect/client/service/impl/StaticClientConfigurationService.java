@@ -15,18 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-/**
- *
- */
 package org.mitre.openid.connect.client.service.impl;
-
-import java.util.Map;
-
-import javax.annotation.PostConstruct;
 
 import org.mitre.oauth2.model.RegisteredClient;
 import org.mitre.openid.connect.client.service.ClientConfigurationService;
 import org.mitre.openid.connect.config.ServerConfiguration;
+
+import javax.annotation.PostConstruct;
+
+import java.util.Map;
 
 /**
  * Client configuration service that holds a static map from issuer URL to a ClientDetails object to use at that issuer.
@@ -41,16 +38,10 @@ public class StaticClientConfigurationService implements ClientConfigurationServ
 	// Map of issuer URL -> client configuration information
 	private Map<String, RegisteredClient> clients;
 
-	/**
-	 * @return the clients
-	 */
 	public Map<String, RegisteredClient> getClients() {
 		return clients;
 	}
 
-	/**
-	 * @param clients the clients to set
-	 */
 	public void setClients(Map<String, RegisteredClient> clients) {
 		this.clients = clients;
 	}

@@ -116,16 +116,10 @@ class SavedUserAuthentication : Authentication {
         this.authenticated = isAuthenticated
     }
 
-    /**
-     * @param name the name to set
-     */
     fun setName(name: String?) {
         this.name = name
     }
 
-    /**
-     * @param authorities the authorities to set
-     */
     fun setAuthorities(authorities: Collection<GrantedAuthority>?) {
         this.authorities = authorities
     }

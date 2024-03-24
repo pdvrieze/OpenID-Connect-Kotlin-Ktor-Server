@@ -13,24 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-/**
- *
- */
 package org.mitre.oauth2.repository.impl;
 
-import static org.mitre.util.jpa.JpaUtil.getSingleResult;
-import static org.mitre.util.jpa.JpaUtil.saveOrUpdate;
-
-import java.util.Collection;
-import java.util.Date;
+import org.mitre.oauth2.model.DeviceCode;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 
-import org.mitre.oauth2.model.DeviceCode;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
+import java.util.Collection;
+import java.util.Date;
+
+import static org.mitre.util.jpa.JpaUtil.getSingleResult;
+import static org.mitre.util.jpa.JpaUtil.saveOrUpdate;
 
 /**
  * @author jricher

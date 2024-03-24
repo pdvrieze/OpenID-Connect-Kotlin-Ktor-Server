@@ -116,8 +116,6 @@ class AuthenticationHolderEntity {
             }
         }
 
-    /**
-     */
     private fun createOAuth2Request(): OAuth2Request {
         return OAuth2Request(requestParameters, clientId, authorities, isApproved, scope, resourceIds, redirectUri, responseTypes, extensions)
     }

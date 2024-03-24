@@ -288,44 +288,26 @@ public class DefaultOIDCTokenService implements OIDCTokenService {
 		return token;
 	}
 
-	/**
-	 * @return the configBean
-	 */
 	public ConfigurationPropertiesBean getConfigBean() {
 		return configBean;
 	}
 
-	/**
-	 * @param configBean the configBean to set
-	 */
 	public void setConfigBean(ConfigurationPropertiesBean configBean) {
 		this.configBean = configBean;
 	}
 
-	/**
-	 * @return the jwtService
-	 */
 	public JWTSigningAndValidationService getJwtService() {
 		return jwtService;
 	}
 
-	/**
-	 * @param jwtService the jwtService to set
-	 */
 	public void setJwtService(JWTSigningAndValidationService jwtService) {
 		this.jwtService = jwtService;
 	}
 
-	/**
-	 * @return the authenticationHolderRepository
-	 */
 	public AuthenticationHolderRepository getAuthenticationHolderRepository() {
 		return authenticationHolderRepository;
 	}
 
-	/**
-	 * @param authenticationHolderRepository the authenticationHolderRepository to set
-	 */
 	public void setAuthenticationHolderRepository(
 			AuthenticationHolderRepository authenticationHolderRepository) {
 		this.authenticationHolderRepository = authenticationHolderRepository;

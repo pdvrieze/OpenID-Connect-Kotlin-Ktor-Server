@@ -15,21 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-/**
- *
- */
 package org.mitre.openid.connect.client.service.impl;
-
-import java.net.URISyntaxException;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.apache.http.client.utils.URIBuilder;
-import org.mitre.jwt.signer.service.JWTSigningAndValidationService;
-import org.mitre.oauth2.model.RegisteredClient;
-import org.mitre.openid.connect.client.service.AuthRequestUrlBuilder;
-import org.mitre.openid.connect.config.ServerConfiguration;
-import org.springframework.security.authentication.AuthenticationServiceException;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
@@ -37,6 +23,16 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import org.apache.http.client.utils.URIBuilder;
+import org.mitre.jwt.signer.service.JWTSigningAndValidationService;
+import org.mitre.oauth2.model.RegisteredClient;
+import org.mitre.openid.connect.client.service.AuthRequestUrlBuilder;
+import org.mitre.openid.connect.config.ServerConfiguration;
+import org.springframework.security.authentication.AuthenticationServiceException;
+
+import java.net.URISyntaxException;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * @author jricher
@@ -99,16 +95,10 @@ public class SignedAuthRequestUrlBuilder implements AuthRequestUrlBuilder {
 		}
 	}
 
-	/**
-	 * @return the signingAndValidationService
-	 */
 	public JWTSigningAndValidationService getSigningAndValidationService() {
 		return signingAndValidationService;
 	}
 
-	/**
-	 * @param signingAndValidationService the signingAndValidationService to set
-	 */
 	public void setSigningAndValidationService(JWTSigningAndValidationService signingAndValidationService) {
 		this.signingAndValidationService = signingAndValidationService;
 	}

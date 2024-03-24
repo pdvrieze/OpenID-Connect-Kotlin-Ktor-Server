@@ -15,9 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/**
- *
- */
 package org.mitre.oauth2.model
 
 import com.google.common.collect.ImmutableSet

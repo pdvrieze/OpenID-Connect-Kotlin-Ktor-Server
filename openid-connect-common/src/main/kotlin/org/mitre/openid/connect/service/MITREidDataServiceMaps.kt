@@ -37,9 +37,6 @@ class MITREidDataServiceMaps {
     private val _grantOldToNewIdMap: MutableMap<Long, Long> = HashMap()
     val grantOldToNewIdMap: Map<Long, Long> get() = _grantOldToNewIdMap
 
-    /**
-     * @return the grantToAccessTokensRefs
-     */
     val grantToAccessTokensRefs: Map<Long, Set<Long>> = HashMap()
 
     private val _refreshTokenOldToNewIdMap: MutableMap<Long, Long> = HashMap()
@@ -51,9 +48,6 @@ class MITREidDataServiceMaps {
     private val _refreshTokenToClientRefs: MutableMap<Long, String> = HashMap()
     val refreshTokenToClientRefs: Map<Long, String> get() = _refreshTokenToClientRefs
 
-    /**
-     * @return the whitelistedSiteOldToNewIdMap
-     */
     private val _whitelistedSiteOldToNewIdMap: MutableMap<Long, Long> = HashMap()
     val whitelistedSiteOldToNewIdMap: Map<Long, Long> get() = HashMap()
 

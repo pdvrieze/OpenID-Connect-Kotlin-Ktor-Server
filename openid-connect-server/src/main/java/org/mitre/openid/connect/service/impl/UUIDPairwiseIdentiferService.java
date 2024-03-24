@@ -15,14 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-/**
- *
- */
 package org.mitre.openid.connect.service.impl;
 
-import java.util.Set;
-import java.util.UUID;
-
+import com.google.common.base.Strings;
+import com.google.common.collect.Iterables;
 import org.mitre.oauth2.model.ClientDetailsEntity;
 import org.mitre.openid.connect.model.PairwiseIdentifier;
 import org.mitre.openid.connect.model.UserInfo;
@@ -35,8 +31,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * @author jricher

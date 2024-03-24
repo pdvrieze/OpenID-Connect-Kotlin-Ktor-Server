@@ -46,7 +46,6 @@ object JpaUtil {
      * @param T  the type parameter
      * @param query the query
      * @param pageCriteria the page criteria
-     * @return the list
      */
     @JvmStatic
     fun <T> getResultPage(query: TypedQuery<T>, pageCriteria: PageCriteria): List<T> {

@@ -15,17 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-/**
- *
- */
 package org.mitre.openid.connect.client.service.impl;
-
-import java.util.Map;
-
-import javax.annotation.PostConstruct;
 
 import org.mitre.openid.connect.client.service.ServerConfigurationService;
 import org.mitre.openid.connect.config.ServerConfiguration;
+
+import javax.annotation.PostConstruct;
+
+import java.util.Map;
 
 /**
  * Statically configured server configuration service that maps issuer URLs to server configurations to use at that issuer.
@@ -38,16 +35,10 @@ public class StaticServerConfigurationService implements ServerConfigurationServ
 	// map of issuer url -> server configuration information
 	private Map<String, ServerConfiguration> servers;
 
-	/**
-	 * @return the servers
-	 */
 	public Map<String, ServerConfiguration> getServers() {
 		return servers;
 	}
 
-	/**
-	 * @param servers the servers to set
-	 */
 	public void setServers(Map<String, ServerConfiguration> servers) {
 		this.servers = servers;
 	}

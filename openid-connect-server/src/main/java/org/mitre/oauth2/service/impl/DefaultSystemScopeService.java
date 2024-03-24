@@ -15,19 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-/**
- *
- */
 package org.mitre.oauth2.service.impl;
-
-import java.util.LinkedHashSet;
-import java.util.Set;
-
-import org.mitre.oauth2.model.SystemScope;
-import org.mitre.oauth2.repository.SystemScopeRepository;
-import org.mitre.oauth2.service.SystemScopeService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
@@ -35,6 +23,14 @@ import com.google.common.base.Predicates;
 import com.google.common.base.Strings;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Sets;
+import org.mitre.oauth2.model.SystemScope;
+import org.mitre.oauth2.repository.SystemScopeRepository;
+import org.mitre.oauth2.service.SystemScopeService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * @author jricher

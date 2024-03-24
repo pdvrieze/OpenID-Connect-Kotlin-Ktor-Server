@@ -15,24 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-/**
- *
- */
 package org.mitre.openid.connect.client.service.impl;
 
-import java.net.URISyntaxException;
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletRequest;
-
+import com.google.common.base.Strings;
 import org.apache.http.client.utils.URIBuilder;
 import org.mitre.openid.connect.client.model.IssuerServiceResponse;
 import org.mitre.openid.connect.client.service.IssuerService;
 import org.springframework.security.authentication.AuthenticationServiceException;
 
-import com.google.common.base.Strings;
+import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletRequest;
+
+import java.net.URISyntaxException;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  *
@@ -86,44 +82,26 @@ public class ThirdPartyIssuerService implements IssuerService {
 
 	}
 
-	/**
-	 * @return the accountChooserUrl
-	 */
 	public String getAccountChooserUrl() {
 		return accountChooserUrl;
 	}
 
-	/**
-	 * @param accountChooserUrl the accountChooserUrl to set
-	 */
 	public void setAccountChooserUrl(String accountChooserUrl) {
 		this.accountChooserUrl = accountChooserUrl;
 	}
 
-	/**
-	 * @return the whitelist
-	 */
 	public Set<String> getWhitelist() {
 		return whitelist;
 	}
 
-	/**
-	 * @param whitelist the whitelist to set
-	 */
 	public void setWhitelist(Set<String> whitelist) {
 		this.whitelist = whitelist;
 	}
 
-	/**
-	 * @return the blacklist
-	 */
 	public Set<String> getBlacklist() {
 		return blacklist;
 	}
 
-	/**
-	 * @param blacklist the blacklist to set
-	 */
 	public void setBlacklist(Set<String> blacklist) {
 		this.blacklist = blacklist;
 	}

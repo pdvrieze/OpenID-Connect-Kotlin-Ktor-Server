@@ -180,16 +180,10 @@ public class JsonMessageSource extends AbstractMessageSource {
 		return languageMaps.get(locale);
 	}
 
-	/**
-	 * @return the baseDirectory
-	 */
 	public Resource getBaseDirectory() {
 		return baseDirectory;
 	}
 
-	/**
-	 * @param baseDirectory the baseDirectory to set
-	 */
 	public void setBaseDirectory(Resource baseDirectory) {
 		this.baseDirectory = baseDirectory;
 	}

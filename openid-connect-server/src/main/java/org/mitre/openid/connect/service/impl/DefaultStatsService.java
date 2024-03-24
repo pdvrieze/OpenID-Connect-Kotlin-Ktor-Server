@@ -15,18 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-/**
- *
- */
 package org.mitre.openid.connect.service.impl;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import org.mitre.openid.connect.model.ApprovedSite;
 import org.mitre.openid.connect.model.ClientStat;
 import org.mitre.openid.connect.service.ApprovedSiteService;
@@ -34,8 +26,12 @@ import org.mitre.openid.connect.service.StatsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author jricher

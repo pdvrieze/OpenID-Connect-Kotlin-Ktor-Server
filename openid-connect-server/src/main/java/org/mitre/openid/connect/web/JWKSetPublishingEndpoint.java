@@ -17,8 +17,7 @@
  *******************************************************************************/
 package org.mitre.openid.connect.web;
 
-import java.util.Map;
-
+import com.nimbusds.jose.jwk.JWK;
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService;
 import org.mitre.openid.connect.view.JWKSetView;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +26,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.nimbusds.jose.jwk.JWK;
+import java.util.Map;
 
 @Controller
 public class JWKSetPublishingEndpoint {
@@ -50,16 +49,10 @@ public class JWKSetPublishingEndpoint {
 		return JWKSetView.VIEWNAME;
 	}
 
-	/**
-	 * @return the jwtService
-	 */
 	public JWTSigningAndValidationService getJwtService() {
 		return jwtService;
 	}
 
-	/**
-	 * @param jwtService the jwtService to set
-	 */
 	public void setJwtService(JWTSigningAndValidationService jwtService) {
 		this.jwtService = jwtService;
 	}

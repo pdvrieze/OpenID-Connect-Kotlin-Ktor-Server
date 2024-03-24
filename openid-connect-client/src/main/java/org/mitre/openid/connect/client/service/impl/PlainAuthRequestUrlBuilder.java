@@ -15,23 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-/**
- *
- */
 package org.mitre.openid.connect.client.service.impl;
 
-import java.net.URISyntaxException;
-import java.util.Map;
-import java.util.Map.Entry;
-
+import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
 import org.apache.http.client.utils.URIBuilder;
 import org.mitre.oauth2.model.RegisteredClient;
 import org.mitre.openid.connect.client.service.AuthRequestUrlBuilder;
 import org.mitre.openid.connect.config.ServerConfiguration;
 import org.springframework.security.authentication.AuthenticationServiceException;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
+import java.net.URISyntaxException;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  *

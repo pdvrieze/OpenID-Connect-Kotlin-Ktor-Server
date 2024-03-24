@@ -15,9 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-/**
- *
- */
 package org.mitre.openid.connect.client.service.impl;
 
 import com.google.common.cache.CacheBuilder;
@@ -77,30 +74,18 @@ public class DynamicServerConfigurationService implements ServerConfigurationSer
 		servers = CacheBuilder.newBuilder().build(new OpenIDConnectServiceConfigurationFetcher(httpClient));
 	}
 
-	/**
-	 * @return the whitelist
-	 */
 	public Set<String> getWhitelist() {
 		return whitelist;
 	}
 
-	/**
-	 * @param whitelist the whitelist to set
-	 */
 	public void setWhitelist(Set<String> whitelist) {
 		this.whitelist = whitelist;
 	}
 
-	/**
-	 * @return the blacklist
-	 */
 	public Set<String> getBlacklist() {
 		return blacklist;
 	}
 
-	/**
-	 * @param blacklist the blacklist to set
-	 */
 	public void setBlacklist(Set<String> blacklist) {
 		this.blacklist = blacklist;
 	}

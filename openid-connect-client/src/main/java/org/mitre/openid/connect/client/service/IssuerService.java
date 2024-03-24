@@ -15,14 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-/**
- *
- */
 package org.mitre.openid.connect.client.service;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.mitre.openid.connect.client.model.IssuerServiceResponse;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  *

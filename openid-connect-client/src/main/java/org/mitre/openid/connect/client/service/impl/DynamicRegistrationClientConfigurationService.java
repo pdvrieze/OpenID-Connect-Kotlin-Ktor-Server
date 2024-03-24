@@ -15,15 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-/**
- *
- */
 package org.mitre.openid.connect.client.service.impl;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
-
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.UncheckedExecutionException;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.mitre.oauth2.model.RegisteredClient;
@@ -44,13 +44,9 @@ import org.springframework.security.oauth2.common.exceptions.InvalidClientExcept
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.UncheckedExecutionException;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 /**
  * @author jricher
@@ -98,16 +94,10 @@ public class DynamicRegistrationClientConfigurationService implements ClientConf
 		}
 	}
 
-	/**
-	 * @return the template
-	 */
 	public RegisteredClient getTemplate() {
 		return template;
 	}
 
-	/**
-	 * @param template the template to set
-	 */
 	public void setTemplate(RegisteredClient template) {
 		// make sure the template doesn't have unwanted fields set on it
 		if (template != null) {
@@ -119,45 +109,27 @@ public class DynamicRegistrationClientConfigurationService implements ClientConf
 		this.template = template;
 	}
 
-	/**
-	 * @return the registeredClientService
-	 */
 	public RegisteredClientService getRegisteredClientService() {
 		return registeredClientService;
 	}
 
-	/**
-	 * @param registeredClientService the registeredClientService to set
-	 */
 	public void setRegisteredClientService(RegisteredClientService registeredClientService) {
 		this.registeredClientService = registeredClientService;
 	}
 
 
-	/**
-	 * @return the whitelist
-	 */
 	public Set<String> getWhitelist() {
 		return whitelist;
 	}
 
-	/**
-	 * @param whitelist the whitelist to set
-	 */
 	public void setWhitelist(Set<String> whitelist) {
 		this.whitelist = whitelist;
 	}
 
-	/**
-	 * @return the blacklist
-	 */
 	public Set<String> getBlacklist() {
 		return blacklist;
 	}
 
-	/**
-	 * @param blacklist the blacklist to set
-	 */
 	public void setBlacklist(Set<String> blacklist) {
 		this.blacklist = blacklist;
 	}

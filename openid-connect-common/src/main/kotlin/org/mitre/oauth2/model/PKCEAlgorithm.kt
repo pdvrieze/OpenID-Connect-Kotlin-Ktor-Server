@@ -27,9 +27,6 @@ class PKCEAlgorithm : Algorithm {
     constructor(name: String?) : super(name, null)
 
     companion object {
-        /**
-         *
-         */
         private const val serialVersionUID = 7752852583210088925L
 
         @JvmField

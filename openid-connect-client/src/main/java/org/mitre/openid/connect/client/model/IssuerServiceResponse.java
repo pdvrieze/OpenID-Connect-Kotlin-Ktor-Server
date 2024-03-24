@@ -15,9 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-/**
- *
- */
 package org.mitre.openid.connect.client.model;
 
 /**
@@ -45,51 +42,27 @@ public class IssuerServiceResponse {
 	public IssuerServiceResponse(String redirectUrl) {
 		this.redirectUrl = redirectUrl;
 	}
-	/**
-	 * @return the issuer
-	 */
 	public String getIssuer() {
 		return issuer;
 	}
-	/**
-	 * @param issuer the issuer to set
-	 */
 	public void setIssuer(String issuer) {
 		this.issuer = issuer;
 	}
-	/**
-	 * @return the loginHint
-	 */
 	public String getLoginHint() {
 		return loginHint;
 	}
-	/**
-	 * @param loginHint the loginHint to set
-	 */
 	public void setLoginHint(String loginHint) {
 		this.loginHint = loginHint;
 	}
-	/**
-	 * @return the targetLinkUri
-	 */
 	public String getTargetLinkUri() {
 		return targetLinkUri;
 	}
-	/**
-	 * @param targetLinkUri the targetLinkUri to set
-	 */
 	public void setTargetLinkUri(String targetLinkUri) {
 		this.targetLinkUri = targetLinkUri;
 	}
-	/**
-	 * @return the redirectUrl
-	 */
 	public String getRedirectUrl() {
 		return redirectUrl;
 	}
-	/**
-	 * @param redirectUrl the redirectUrl to set
-	 */
 	public void setRedirectUrl(String redirectUrl) {
 		this.redirectUrl = redirectUrl;
 	}

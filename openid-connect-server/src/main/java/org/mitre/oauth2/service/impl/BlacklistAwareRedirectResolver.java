@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-/**
- *
- */
 package org.mitre.oauth2.service.impl;
 
+import com.google.common.base.Strings;
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean;
 import org.mitre.openid.connect.service.BlacklistedSiteService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,8 +24,6 @@ import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.endpoint.DefaultRedirectResolver;
 import org.springframework.stereotype.Component;
-
-import com.google.common.base.Strings;
 
 /**
  *
@@ -79,9 +75,6 @@ public class BlacklistAwareRedirectResolver extends DefaultRedirectResolver {
 
 	}
 
-	/**
-	 * @return the strictMatch
-	 */
 	public boolean isStrictMatch() {
 		if (config.isHeartMode()) {
 			// HEART mode enforces strict matching
@@ -94,7 +87,6 @@ public class BlacklistAwareRedirectResolver extends DefaultRedirectResolver {
 	/**
 	 * Set this to true to require exact string matches for all redirect URIs. (Default is false)
 	 *
-	 * @param strictMatch the strictMatch to set
 	 */
 	public void setStrictMatch(boolean strictMatch) {
 		this.strictMatch = strictMatch;

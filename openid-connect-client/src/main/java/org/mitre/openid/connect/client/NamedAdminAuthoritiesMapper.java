@@ -15,24 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-/**
- *
- */
 package org.mitre.openid.connect.client;
 
-import java.text.ParseException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-
+import com.nimbusds.jwt.JWT;
+import com.nimbusds.jwt.JWTClaimsSet;
 import org.mitre.openid.connect.model.UserInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTClaimsSet;
+import java.text.ParseException;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  *
@@ -75,16 +71,10 @@ public class NamedAdminAuthoritiesMapper implements OIDCAuthoritiesMapper {
 		return out;
 	}
 
-	/**
-	 * @return the admins
-	 */
 	public Set<SubjectIssuerGrantedAuthority> getAdmins() {
 		return admins;
 	}
 
-	/**
-	 * @param admins the admins to set
-	 */
 	public void setAdmins(Set<SubjectIssuerGrantedAuthority> admins) {
 		this.admins = admins;
 	}

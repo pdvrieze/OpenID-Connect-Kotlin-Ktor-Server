@@ -15,16 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-/**
- *
- */
 package org.mitre.openid.connect.client.service.impl;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import org.mitre.oauth2.model.RegisteredClient;
 import org.mitre.openid.connect.client.service.RegisteredClientService;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author jricher

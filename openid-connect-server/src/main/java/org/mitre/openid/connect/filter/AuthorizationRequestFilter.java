@@ -15,9 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-/**
- *
- */
 package org.mitre.openid.connect.filter;
 
 import com.google.common.base.Splitter;
@@ -252,16 +249,10 @@ public class AuthorizationRequestFilter extends GenericFilterBean {
 		return requestMap;
 	}
 
-	/**
-	 * @return the requestMatcher
-	 */
 	public RequestMatcher getRequestMatcher() {
 		return requestMatcher;
 	}
 
-	/**
-	 * @param requestMatcher the requestMatcher to set
-	 */
 	public void setRequestMatcher(RequestMatcher requestMatcher) {
 		this.requestMatcher = requestMatcher;
 	}

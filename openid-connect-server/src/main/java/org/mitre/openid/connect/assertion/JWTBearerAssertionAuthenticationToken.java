@@ -15,9 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-/**
- *
- */
 package org.mitre.openid.connect.assertion;
 
 import com.nimbusds.jwt.JWT;
@@ -86,16 +83,10 @@ public class JWTBearerAssertionAuthenticationToken extends AbstractAuthenticatio
 		return subject;
 	}
 
-	/**
-	 * @return the jwt
-	 */
 	public JWT getJwt() {
 		return jwt;
 	}
 
-	/**
-	 * @param jwt the jwt to set
-	 */
 	public void setJwt(JWT jwt) {
 		this.jwt = jwt;
 	}
