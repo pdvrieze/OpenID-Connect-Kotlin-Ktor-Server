@@ -7,77 +7,57 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.openid.connect.client.service.impl;
+ */
+package org.mitre.openid.connect.client.service.impl
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mitre.openid.connect.config.ServerConfiguration;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import org.mitre.openid.connect.config.ServerConfiguration
+import org.mockito.Mock
+import org.mockito.junit.jupiter.MockitoExtension
 
 /**
  * @author wkim
- *
  */
-@RunWith(MockitoJUnitRunner.class)
-public class TestStaticServerConfigurationService {
+@ExtendWith(MockitoExtension::class)
+class TestStaticServerConfigurationService {
+    private lateinit var service: StaticServerConfigurationService
 
+    private val issuer = "https://www.example.com/"
 
-	private StaticServerConfigurationService service;
+    @Mock
+    private lateinit var mockServerConfig: ServerConfiguration
 
-	private String issuer = "https://www.example.com/";
+    @BeforeEach
+    fun prepare() {
+        service = StaticServerConfigurationService()
 
-	@Mock
-	private ServerConfiguration mockServerConfig;
+        val servers: MutableMap<String, ServerConfiguration> = HashMap()
+        servers[issuer] = mockServerConfig
 
-	@Before
-	public void prepare() {
+        service.servers = servers
+    }
 
-		service = new StaticServerConfigurationService();
+    @Test
+    fun getServerConfiguration_success() {
+        val result = service.getServerConfiguration(issuer)
 
-		Map<String, ServerConfiguration> servers = new HashMap<>();
-		servers.put(issuer, mockServerConfig);
+        assertNotNull(mockServerConfig)
+        assertEquals(mockServerConfig, result)
+    }
 
-		service.setServers(servers);
-	}
-
-	@Test
-	public void getServerConfiguration_success() {
-
-		ServerConfiguration result = service.getServerConfiguration(issuer);
-
-		assertThat(mockServerConfig, is(notNullValue()));
-		assertEquals(mockServerConfig, result);
-	}
-
-	/**
-	 * Checks the behavior when the issuer is not known.
-	 */
-	@Test
-	public void getClientConfiguration_noIssuer() {
-
-		ServerConfiguration result = service.getServerConfiguration("www.badexample.net");
-
-		assertThat(result, is(nullValue()));
-	}
-
+    @Test
+    fun getClientConfiguration_noIssuer() {
+        val result = service.getServerConfiguration("www.badexample.net")
+        assertNull(result)
+    }
 }
