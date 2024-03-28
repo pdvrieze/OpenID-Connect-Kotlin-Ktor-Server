@@ -70,7 +70,7 @@ interface SystemScopeService {
     /**
      * Test whether the scopes in both sets are compatible. All scopes in "actual" must exist in "expected".
      */
-    fun scopesMatch(expected: Set<String>, actual: Set<String>): Boolean
+    fun scopesMatch(expected: Set<String>?, actual: Set<String>): Boolean
 
     /**
      * Remove any system-reserved or registered restricted scopes from the

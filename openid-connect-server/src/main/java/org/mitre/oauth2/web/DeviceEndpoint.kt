@@ -5,303 +5,298 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
+ */
+package org.mitre.oauth2.web
 
-package org.mitre.oauth2.web;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
-import javax.servlet.http.HttpSession;
-
-import org.apache.http.client.utils.URIBuilder;
-import org.mitre.oauth2.exception.DeviceCodeCreationException;
-import org.mitre.oauth2.model.ClientDetailsEntity;
-import org.mitre.oauth2.model.DeviceCode;
-import org.mitre.oauth2.model.SystemScope;
-import org.mitre.oauth2.service.ClientDetailsEntityService;
-import org.mitre.oauth2.service.DeviceCodeService;
-import org.mitre.oauth2.service.SystemScopeService;
-import org.mitre.oauth2.token.DeviceTokenGranter;
-import org.mitre.openid.connect.config.ConfigurationPropertiesBean;
-import org.mitre.openid.connect.view.HttpCodeView;
-import org.mitre.openid.connect.view.JsonEntityView;
-import org.mitre.openid.connect.view.JsonErrorView;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
-import org.springframework.security.oauth2.common.util.OAuth2Utils;
-import org.springframework.security.oauth2.common.util.RandomValueStringGenerator;
-import org.springframework.security.oauth2.provider.AuthorizationRequest;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.security.oauth2.provider.OAuth2Request;
-import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-
-import com.google.common.collect.Sets;
+import com.google.common.collect.Sets
+import org.apache.http.client.utils.URIBuilder
+import org.mitre.oauth2.exception.DeviceCodeCreationException
+import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.DeviceCode
+import org.mitre.oauth2.model.SystemScope
+import org.mitre.oauth2.service.ClientDetailsEntityService
+import org.mitre.oauth2.service.DeviceCodeService
+import org.mitre.oauth2.service.SystemScopeService
+import org.mitre.oauth2.token.DeviceTokenGranter
+import org.mitre.openid.connect.config.ConfigurationPropertiesBean
+import org.mitre.openid.connect.view.HttpCodeView
+import org.mitre.openid.connect.view.JsonEntityView
+import org.mitre.openid.connect.view.JsonErrorView
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
+import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.Authentication
+import org.springframework.security.oauth2.common.exceptions.InvalidClientException
+import org.springframework.security.oauth2.common.util.OAuth2Utils
+import org.springframework.security.oauth2.provider.AuthorizationRequest
+import org.springframework.security.oauth2.provider.OAuth2Authentication
+import org.springframework.security.oauth2.provider.OAuth2RequestFactory
+import org.springframework.stereotype.Controller
+import org.springframework.ui.ModelMap
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RequestParam
+import java.net.URISyntaxException
+import java.util.*
+import javax.servlet.http.HttpSession
 
 /**
  * Implements https://tools.ietf.org/html/draft-ietf-oauth-device-flow
  *
  * @see DeviceTokenGranter
  *
- * @author jricher
  *
+ * @author jricher
  */
 @Controller
-public class DeviceEndpoint {
+class DeviceEndpoint {
+    @Autowired
+    private lateinit var clientService: ClientDetailsEntityService
 
-	public static final String URL = "devicecode";
-	public static final String USER_URL = "device";
+    @Autowired
+    private lateinit var scopeService: SystemScopeService
 
-	public static final Logger logger = LoggerFactory.getLogger(DeviceEndpoint.class);
+    @Autowired
+    private lateinit var config: ConfigurationPropertiesBean
 
-	@Autowired
-	private ClientDetailsEntityService clientService;
+    @Autowired
+    private lateinit var deviceCodeService: DeviceCodeService
 
-	@Autowired
-	private SystemScopeService scopeService;
+    @Autowired
+    private lateinit var oAuth2RequestFactory: OAuth2RequestFactory
 
-	@Autowired
-	private ConfigurationPropertiesBean config;
+    @RequestMapping(value = ["/" + URL], method = [RequestMethod.POST], consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun requestDeviceCode(
+        @RequestParam("client_id") clientId: String,
+        @RequestParam(name = "scope", required = false) scope: String?,
+        parameters: Map<String, String>?,
+        model: ModelMap
+    ): String {
+        val client: ClientDetailsEntity?
+        try {
+            client = clientService.loadClientByClientId(clientId) ?: run {
+                logger.error("could not find client $clientId")
+                model[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
+                return HttpCodeView.VIEWNAME
+            }
 
-	@Autowired
-	private DeviceCodeService deviceCodeService;
+            // make sure this client can do the device flow
+            val authorizedGrantTypes= client.authorizedGrantTypes
+            if (!authorizedGrantTypes.isNullOrEmpty()
+                && DeviceTokenGranter.GRANT_TYPE !in authorizedGrantTypes
+            ) {
+                throw InvalidClientException("Unauthorized grant type: " + DeviceTokenGranter.GRANT_TYPE)
+            }
+        } catch (e: IllegalArgumentException) {
+            logger.error("IllegalArgumentException was thrown when attempting to load client", e)
+            model[HttpCodeView.CODE] = HttpStatus.BAD_REQUEST
+            return HttpCodeView.VIEWNAME
+        }
 
-	@Autowired
-	private OAuth2RequestFactory oAuth2RequestFactory;
+        // make sure the client is allowed to ask for those scopes
+        val requestedScopes = OAuth2Utils.parseParameterList(scope)
+        val allowedScopes = client.scope
 
-	@RequestMapping(value = "/" + URL, method = RequestMethod.POST, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public String requestDeviceCode(@RequestParam("client_id") String clientId, @RequestParam(name="scope", required=false) String scope, Map<String, String> parameters, ModelMap model) {
+        if (!scopeService.scopesMatch(allowedScopes, requestedScopes)) {
+            // client asked for scopes it can't have
+            logger.error("Client asked for $requestedScopes but is allowed $allowedScopes")
+            model[HttpCodeView.CODE] = HttpStatus.BAD_REQUEST
+            model[JsonErrorView.ERROR] = "invalid_scope"
+            return JsonErrorView.VIEWNAME
+        }
 
-		ClientDetailsEntity client;
-		try {
-			client = clientService.loadClientByClientId(clientId);
+        // if we got here the request is legit
+        try {
+            val dc = deviceCodeService.createNewDeviceCode(requestedScopes, client, parameters)
 
-			// make sure this client can do the device flow
+            val response: MutableMap<String, Any?> = HashMap()
+            response["device_code"] = dc!!.deviceCode
+            response["user_code"] = dc.userCode
+            response["verification_uri"] = config.issuer + USER_URL
+            if (client.deviceCodeValiditySeconds != null) {
+                response["expires_in"] = client.deviceCodeValiditySeconds
+            }
 
-			Collection<String> authorizedGrantTypes = client.getAuthorizedGrantTypes();
-			if (authorizedGrantTypes != null && !authorizedGrantTypes.isEmpty()
-					&& !authorizedGrantTypes.contains(DeviceTokenGranter.GRANT_TYPE)) {
-				throw new InvalidClientException("Unauthorized grant type: " + DeviceTokenGranter.GRANT_TYPE);
-			}
+            if (config.isAllowCompleteDeviceCodeUri) {
+                val verificationUriComplete = URIBuilder(config.issuer + USER_URL)
+                    .addParameter("user_code", dc.userCode)
+                    .build()
 
-		} catch (IllegalArgumentException e) {
-			logger.error("IllegalArgumentException was thrown when attempting to load client", e);
-			model.put(HttpCodeView.CODE, HttpStatus.BAD_REQUEST);
-			return HttpCodeView.VIEWNAME;
-		}
+                response["verification_uri_complete"] = verificationUriComplete.toString()
+            }
 
-		if (client == null) {
-			logger.error("could not find client " + clientId);
-			model.put(HttpCodeView.CODE, HttpStatus.NOT_FOUND);
-			return HttpCodeView.VIEWNAME;
-		}
+            model[JsonEntityView.ENTITY] = response
 
-		// make sure the client is allowed to ask for those scopes
-		Set<String> requestedScopes = OAuth2Utils.parseParameterList(scope);
-		Set<String> allowedScopes = client.getScope();
 
-		if (!scopeService.scopesMatch(allowedScopes, requestedScopes)) {
-			// client asked for scopes it can't have
-			logger.error("Client asked for " + requestedScopes + " but is allowed " + allowedScopes);
-			model.put(HttpCodeView.CODE, HttpStatus.BAD_REQUEST);
-			model.put(JsonErrorView.ERROR, "invalid_scope");
-			return JsonErrorView.VIEWNAME;
-		}
+            return JsonEntityView.VIEWNAME
+        } catch (dcce: DeviceCodeCreationException) {
+            model[HttpCodeView.CODE] = HttpStatus.BAD_REQUEST
+            model[JsonErrorView.ERROR] = dcce.error
+            model[JsonErrorView.ERROR_MESSAGE] = dcce.message
 
-		// if we got here the request is legit
+            return JsonErrorView.VIEWNAME
+        } catch (use: URISyntaxException) {
+            logger.error("unable to build verification_uri_complete due to wrong syntax of uri components")
+            model[HttpCodeView.CODE] = HttpStatus.INTERNAL_SERVER_ERROR
 
-		try {
-			DeviceCode dc = deviceCodeService.createNewDeviceCode(requestedScopes, client, parameters);
+            return HttpCodeView.VIEWNAME
+        }
+    }
 
-			Map<String, Object> response = new HashMap<>();
-			response.put("device_code", dc.getDeviceCode());
-			response.put("user_code", dc.getUserCode());
-			response.put("verification_uri", config.getIssuer() + USER_URL);
-			if (client.getDeviceCodeValiditySeconds() != null) {
-				response.put("expires_in", client.getDeviceCodeValiditySeconds());
-			}
-			
-			if (config.isAllowCompleteDeviceCodeUri()) {
-				URI verificationUriComplete  = new URIBuilder(config.getIssuer() + USER_URL)
-					.addParameter("user_code", dc.getUserCode())
-					.build();
+    @PreAuthorize("hasRole('ROLE_USER')")
+    @RequestMapping(value = ["/" + USER_URL], method = [RequestMethod.GET])
+    fun requestUserCode(
+        @RequestParam(value = "user_code", required = false) userCode: String?,
+        model: ModelMap,
+        session: HttpSession
+    ): String {
+        return if (!config.isAllowCompleteDeviceCodeUri || userCode == null) {
+            // if we don't allow the complete URI or we didn't get a user code on the way in,
+            // print out a page that asks the user to enter their user code
+            // user must be logged in
+            "requestUserCode"
+        } else {
+            // complete verification uri was used, we received user code directly
+            // skip requesting code page
+            // user must be logged in
 
-				response.put("verification_uri_complete", verificationUriComplete.toString());
-			}
-	
-			model.put(JsonEntityView.ENTITY, response);
-	
-	
-			return JsonEntityView.VIEWNAME;
-		} catch (DeviceCodeCreationException dcce) {
-			
-			model.put(HttpCodeView.CODE, HttpStatus.BAD_REQUEST);
-			model.put(JsonErrorView.ERROR, dcce.getError());
-			model.put(JsonErrorView.ERROR_MESSAGE, dcce.getMessage());
-			
-			return JsonErrorView.VIEWNAME;
-		} catch (URISyntaxException use) {
-			logger.error("unable to build verification_uri_complete due to wrong syntax of uri components");
-			model.put(HttpCodeView.CODE, HttpStatus.INTERNAL_SERVER_ERROR);
+            readUserCode(userCode, model, session)
+        }
+    }
 
-			return HttpCodeView.VIEWNAME;
-		}
+    @PreAuthorize("hasRole('ROLE_USER')")
+    @RequestMapping(value = ["/" + USER_URL + "/verify"], method = [RequestMethod.POST])
+    fun readUserCode(@RequestParam("user_code") userCode: String?, model: ModelMap, session: HttpSession): String {
+        // look up the request based on the user code
 
-	}
+        val dc = deviceCodeService.lookUpByUserCode(userCode!!)
 
-	@PreAuthorize("hasRole('ROLE_USER')")
-	@RequestMapping(value = "/" + USER_URL, method = RequestMethod.GET)
-	public String requestUserCode(@RequestParam(value = "user_code", required = false) String userCode, ModelMap model, HttpSession session) {
+        // we couldn't find the device code
+        if (dc == null) {
+            model.addAttribute("error", "noUserCode")
+            return "requestUserCode"
+        }
 
-		if (!config.isAllowCompleteDeviceCodeUri() || userCode == null) {
-			// if we don't allow the complete URI or we didn't get a user code on the way in,
-			// print out a page that asks the user to enter their user code
-			// user must be logged in
-			return "requestUserCode";
-		} else {
+        // make sure the code hasn't expired yet
+        if (dc.expiration != null && dc.expiration!!.before(Date())) {
+            model.addAttribute("error", "expiredUserCode")
+            return "requestUserCode"
+        }
 
-			// complete verification uri was used, we received user code directly
-			// skip requesting code page
-			// user must be logged in
-			return readUserCode(userCode, model, session);
-		}
-	}
+        // make sure the device code hasn't already been approved
+        if (dc.isApproved) {
+            model.addAttribute("error", "userCodeAlreadyApproved")
+            return "requestUserCode"
+        }
 
-	@PreAuthorize("hasRole('ROLE_USER')")
-	@RequestMapping(value = "/" + USER_URL + "/verify", method = RequestMethod.POST)
-	public String readUserCode(@RequestParam("user_code") String userCode, ModelMap model, HttpSession session) {
+        val client = clientService.loadClientByClientId(dc.clientId!!)
 
-		// look up the request based on the user code
-		DeviceCode dc = deviceCodeService.lookUpByUserCode(userCode);
+        model["client"] = client
+        model["dc"] = dc
 
-		// we couldn't find the device code
-		if (dc == null) {
-			model.addAttribute("error", "noUserCode");
-			return "requestUserCode";
-		}
+        // pre-process the scopes
+        val scopes: Set<SystemScope?> = scopeService.fromStrings(dc.scope!!)
 
-		// make sure the code hasn't expired yet
-		if (dc.getExpiration() != null && dc.getExpiration().before(new Date())) {
-			model.addAttribute("error", "expiredUserCode");
-			return "requestUserCode";
-		}
+        val sortedScopes: MutableSet<SystemScope?> = LinkedHashSet(scopes.size)
+        val systemScopes: Set<SystemScope?> = scopeService.all
 
-		// make sure the device code hasn't already been approved
-		if (dc.isApproved()) {
-			model.addAttribute("error", "userCodeAlreadyApproved");
-			return "requestUserCode";
-		}
+        // sort scopes for display based on the inherent order of system scopes
+        for (s in systemScopes) {
+            if (scopes.contains(s)) {
+                sortedScopes.add(s)
+            }
+        }
 
-		ClientDetailsEntity client = clientService.loadClientByClientId(dc.getClientId());
+        // add in any scopes that aren't system scopes to the end of the list
+        sortedScopes.addAll(Sets.difference(scopes, systemScopes))
 
-		model.put("client", client);
-		model.put("dc", dc);
+        model["scopes"] = sortedScopes
 
-		// pre-process the scopes
-		Set<SystemScope> scopes = scopeService.fromStrings(dc.getScope());
+        val authorizationRequest = oAuth2RequestFactory.createAuthorizationRequest(dc.requestParameters)
 
-		Set<SystemScope> sortedScopes = new LinkedHashSet<>(scopes.size());
-		Set<SystemScope> systemScopes = scopeService.getAll();
+        session.setAttribute("authorizationRequest", authorizationRequest)
+        session.setAttribute("deviceCode", dc)
 
-		// sort scopes for display based on the inherent order of system scopes
-		for (SystemScope s : systemScopes) {
-			if (scopes.contains(s)) {
-				sortedScopes.add(s);
-			}
-		}
+        return "approveDevice"
+    }
 
-		// add in any scopes that aren't system scopes to the end of the list
-		sortedScopes.addAll(Sets.difference(scopes, systemScopes));
+    @PreAuthorize("hasRole('ROLE_USER')")
+    @RequestMapping(value = ["/" + USER_URL + "/approve"], method = [RequestMethod.POST])
+    fun approveDevice(
+        @RequestParam("user_code") userCode: String,
+        @RequestParam(value = "user_oauth_approval") approve: Boolean?,
+        model: ModelMap,
+        auth: Authentication?,
+        session: HttpSession
+    ): String {
+        val authorizationRequest = session.getAttribute("authorizationRequest") as AuthorizationRequest
+        val dc = session.getAttribute("deviceCode") as DeviceCode
 
-		model.put("scopes", sortedScopes);
+        // make sure the form that was submitted is the one that we were expecting
+        if (dc.userCode != userCode) {
+            model.addAttribute("error", "userCodeMismatch")
+            return "requestUserCode"
+        }
 
-		AuthorizationRequest authorizationRequest = oAuth2RequestFactory.createAuthorizationRequest(dc.getRequestParameters());
+        // make sure the code hasn't expired yet
+        if (dc.expiration != null && dc.expiration!!.before(Date())) {
+            model.addAttribute("error", "expiredUserCode")
+            return "requestUserCode"
+        }
 
-		session.setAttribute("authorizationRequest", authorizationRequest);
-		session.setAttribute("deviceCode", dc);
+        val client = clientService.loadClientByClientId(dc.clientId!!)
 
-		return "approveDevice";
-	}
+        model["client"] = client
 
-	@PreAuthorize("hasRole('ROLE_USER')")
-	@RequestMapping(value = "/" + USER_URL + "/approve", method = RequestMethod.POST)
-	public String approveDevice(@RequestParam("user_code") String userCode, @RequestParam(value = "user_oauth_approval") Boolean approve, ModelMap model, Authentication auth, HttpSession session) {
+        // user did not approve
+        if (!approve!!) {
+            model.addAttribute("approved", false)
+            return "deviceApproved"
+        }
 
-		AuthorizationRequest authorizationRequest = (AuthorizationRequest) session.getAttribute("authorizationRequest");
-		DeviceCode dc = (DeviceCode) session.getAttribute("deviceCode");
+        // create an OAuth request for storage
+        val o2req = oAuth2RequestFactory.createOAuth2Request(authorizationRequest)
+        val o2Auth = OAuth2Authentication(o2req, auth)
 
-		// make sure the form that was submitted is the one that we were expecting
-		if (!dc.getUserCode().equals(userCode)) {
-			model.addAttribute("error", "userCodeMismatch");
-			return "requestUserCode";
-		}
+        val approvedCode = deviceCodeService.approveDeviceCode(dc, o2Auth)
 
-		// make sure the code hasn't expired yet
-		if (dc.getExpiration() != null && dc.getExpiration().before(new Date())) {
-			model.addAttribute("error", "expiredUserCode");
-			return "requestUserCode";
-		}
 
-		ClientDetailsEntity client = clientService.loadClientByClientId(dc.getClientId());
+        // pre-process the scopes
+        val scopes: Set<SystemScope?> = scopeService.fromStrings(dc.scope!!)
 
-		model.put("client", client);
+        val sortedScopes: MutableSet<SystemScope?> = LinkedHashSet(scopes.size)
+        val systemScopes: Set<SystemScope?> = scopeService.all
 
-		// user did not approve
-		if (!approve) {
-			model.addAttribute("approved", false);
-			return "deviceApproved";
-		}
+        // sort scopes for display based on the inherent order of system scopes
+        for (s in systemScopes) {
+            if (scopes.contains(s)) {
+                sortedScopes.add(s)
+            }
+        }
 
-		// create an OAuth request for storage
-		OAuth2Request o2req = oAuth2RequestFactory.createOAuth2Request(authorizationRequest);
-		OAuth2Authentication o2Auth = new OAuth2Authentication(o2req, auth);
-		
-		DeviceCode approvedCode = deviceCodeService.approveDeviceCode(dc, o2Auth);
-		
-		// pre-process the scopes
-		Set<SystemScope> scopes = scopeService.fromStrings(dc.getScope());
+        // add in any scopes that aren't system scopes to the end of the list
+        sortedScopes.addAll(Sets.difference(scopes, systemScopes))
 
-		Set<SystemScope> sortedScopes = new LinkedHashSet<>(scopes.size());
-		Set<SystemScope> systemScopes = scopeService.getAll();
+        model["scopes"] = sortedScopes
+        model["approved"] = true
 
-		// sort scopes for display based on the inherent order of system scopes
-		for (SystemScope s : systemScopes) {
-			if (scopes.contains(s)) {
-				sortedScopes.add(s);
-			}
-		}
+        return "deviceApproved"
+    }
 
-		// add in any scopes that aren't system scopes to the end of the list
-		sortedScopes.addAll(Sets.difference(scopes, systemScopes));
+    companion object {
+        const val URL: String = "devicecode"
+        const val USER_URL: String = "device"
 
-		model.put("scopes", sortedScopes);
-		model.put("approved", true);
-
-		return "deviceApproved";
-	}
+        val logger: Logger = LoggerFactory.getLogger(DeviceEndpoint::class.java)
+    }
 }

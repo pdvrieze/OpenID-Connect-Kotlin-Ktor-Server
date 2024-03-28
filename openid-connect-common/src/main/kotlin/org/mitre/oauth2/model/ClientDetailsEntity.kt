@@ -81,7 +81,7 @@ open class ClientDetailsEntity : ClientDetails {
     @get:Column(name = "grant_type")
     @get:CollectionTable(name = "client_grant_type", joinColumns = [JoinColumn(name = "owner_id")])
     @get:ElementCollection(fetch = FetchType.EAGER)
-    open var grantTypes: Set<String> = HashSet() // grant_types
+    open var grantTypes: Set<String>? = HashSet() // grant_types
 
     @get:Column(name = "response_type")
     @get:CollectionTable(name = "client_response_type", joinColumns = [JoinColumn(name = "owner_id")])
@@ -323,22 +323,18 @@ open class ClientDetailsEntity : ClientDetails {
 
     @get:Transient
     val isAllowRefresh: Boolean
-        get() = if (grantTypes != null) {
-            authorizedGrantTypes.contains("refresh_token")
-        } else {
-            false // if there are no grants, we can't be refreshing them, can we?
+        get() {
+            return grantTypes?.let { "refresh_token" in it } ?: false
+            // if there are no grants, we can't be refreshing them, can we?
         }
 
 
     @Transient
     override fun isSecretRequired(): Boolean {
-        return if (tokenEndpointAuthMethod != null &&
-            (tokenEndpointAuthMethod == AuthMethod.SECRET_BASIC || tokenEndpointAuthMethod == AuthMethod.SECRET_POST || tokenEndpointAuthMethod == AuthMethod.SECRET_JWT)
-        ) {
-            true
-        } else {
-            false
-        }
+        return tokenEndpointAuthMethod != null &&
+            (tokenEndpointAuthMethod == AuthMethod.SECRET_BASIC ||
+                    tokenEndpointAuthMethod == AuthMethod.SECRET_POST ||
+                    tokenEndpointAuthMethod == AuthMethod.SECRET_JWT)
     }
 
     /**
@@ -346,7 +342,7 @@ open class ClientDetailsEntity : ClientDetails {
      */
     @Transient
     override fun isScoped(): Boolean {
-        return getScope() != null && !getScope().isEmpty()
+        return !getScope().isNullOrEmpty()
     }
 
     @Basic
@@ -378,7 +374,7 @@ open class ClientDetailsEntity : ClientDetails {
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "client_scope", joinColumns = [JoinColumn(name = "owner_id")])
     @Column(name = "scope")
-    override fun getScope(): Set<String> {
+    override fun getScope(): Set<String>? {
         return scope
     }
 
@@ -393,7 +389,7 @@ open class ClientDetailsEntity : ClientDetails {
      * passthrough for SECOAUTH api
      */
     @Transient
-    override fun getAuthorizedGrantTypes(): Set<String> {
+    override fun getAuthorizedGrantTypes(): Set<String>? {
         return grantTypes
     }
 

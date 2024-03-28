@@ -23,6 +23,8 @@ import com.google.common.base.Predicates;
 import com.google.common.base.Strings;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Sets;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.mitre.oauth2.model.SystemScope;
 import org.mitre.oauth2.repository.SystemScopeRepository;
 import org.mitre.oauth2.service.SystemScopeService;
@@ -165,7 +167,7 @@ public class DefaultSystemScopeService implements SystemScopeService {
 	 * @see org.mitre.oauth2.service.SystemScopeService#scopesMatch(java.util.Set, java.util.Set)
 	 */
 	@Override
-	public boolean scopesMatch(Set<String> expected, Set<String> actual) {
+	public boolean scopesMatch(@Nullable Set<String> expected, @NotNull Set<String> actual) {
 
 		Set<SystemScope> ex = fromStrings(expected);
 		Set<SystemScope> act = fromStrings(actual);

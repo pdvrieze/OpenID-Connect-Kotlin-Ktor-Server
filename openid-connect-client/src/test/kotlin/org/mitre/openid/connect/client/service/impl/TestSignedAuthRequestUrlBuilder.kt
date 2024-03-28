@@ -137,7 +137,7 @@ class TestSignedAuthRequestUrlBuilder {
                 .dropLastWhile { it.isEmpty() }
                 .toList()
 
-        assertTrue(scopeList.containsAll(clientConfig.scope))
+        assertTrue(scopeList.containsAll(clientConfig.scope ?: emptySet()))
 
         assertEquals(redirectUri, claims.getClaim("redirect_uri"))
         assertEquals(nonce, claims.getClaim("nonce"))
@@ -174,7 +174,7 @@ class TestSignedAuthRequestUrlBuilder {
         val scopeList =
             (claims.getClaim("scope") as String).split(" ".toRegex()).dropLastWhile { it.isEmpty() }
                 .toList()
-        assertTrue(scopeList.containsAll(clientConfig.scope))
+        assertTrue(scopeList.containsAll(clientConfig.scope ?: emptySet()))
 
         assertEquals(redirectUri, claims.getClaim("redirect_uri"))
         assertEquals(nonce, claims.getClaim("nonce"))

@@ -20,7 +20,6 @@ package org.mitre.openid.connect
 import com.google.common.base.Joiner
 import com.google.common.base.Splitter
 import com.google.common.base.Strings
-import com.google.common.collect.Sets
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -124,7 +123,7 @@ object ClientDetailsEntityJsonProcessor {
             // scope is a space-separated string
             val scope = JsonUtils.getAsString(o, SCOPE)
             if (scope != null) {
-                c.scope = Sets.newHashSet<String>(Splitter.on(SCOPE_SEPARATOR).split(scope))
+                c.setScope(Splitter.on(SCOPE_SEPARATOR).split(scope).toHashSet())
             }
 
             c.grantTypes = JsonUtils.getAsStringSet(o, GRANT_TYPES) ?: HashSet()

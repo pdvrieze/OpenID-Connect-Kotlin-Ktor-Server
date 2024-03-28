@@ -86,20 +86,20 @@ class RegisteredClient @JvmOverloads constructor(
             client.clientSecret = clientSecret
         }
 
-    var scope: Set<String>
+    var scope: Set<String>?
         get() = client.scope
         set(scope) {
-            client.setScope(scope)
+            client.setScope(scope ?: emptySet())
         }
 
     var grantTypes: Set<String>
-        get() = client.grantTypes
+        get() = client.grantTypes ?: emptySet()
         set(grantTypes) {
             client.grantTypes = grantTypes
         }
 
     val authorizedGrantTypes: Set<String>
-        get() = client.authorizedGrantTypes
+        get() = client.authorizedGrantTypes ?: emptySet()
 
     var authorities: Set<GrantedAuthority>
         get() = client.authorities
