@@ -7,98 +7,79 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.oauth2.token;
+ */
+package org.mitre.oauth2.token
 
-import com.google.common.collect.Sets;
-import org.mitre.oauth2.model.OAuth2AccessTokenEntity;
-import org.mitre.oauth2.service.ClientDetailsEntityService;
-import org.mitre.oauth2.service.OAuth2TokenEntityService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.oauth2.common.exceptions.InvalidScopeException;
-import org.springframework.security.oauth2.common.exceptions.InvalidTokenException;
-import org.springframework.security.oauth2.provider.ClientDetails;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
-import org.springframework.security.oauth2.provider.TokenRequest;
-import org.springframework.security.oauth2.provider.token.AbstractTokenGranter;
-import org.springframework.stereotype.Component;
-
-import java.util.HashSet;
-import java.util.Set;
+import com.google.common.collect.Sets
+import org.mitre.oauth2.service.ClientDetailsEntityService
+import org.mitre.oauth2.service.OAuth2TokenEntityService
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.core.AuthenticationException
+import org.springframework.security.oauth2.common.exceptions.InvalidScopeException
+import org.springframework.security.oauth2.common.exceptions.InvalidTokenException
+import org.springframework.security.oauth2.provider.ClientDetails
+import org.springframework.security.oauth2.provider.OAuth2Authentication
+import org.springframework.security.oauth2.provider.OAuth2RequestFactory
+import org.springframework.security.oauth2.provider.TokenRequest
+import org.springframework.security.oauth2.provider.token.AbstractTokenGranter
+import org.springframework.stereotype.Component
 
 /**
  * @author jricher
- *
  */
 @Component("chainedTokenGranter")
-public class ChainedTokenGranter extends AbstractTokenGranter {
+class ChainedTokenGranter @Autowired constructor(// keep down-cast versions so we can get to the right queries
+    private val tokenServices: OAuth2TokenEntityService,
+    clientDetailsService: ClientDetailsEntityService?,
+    requestFactory: OAuth2RequestFactory?
+) : AbstractTokenGranter(tokenServices, clientDetailsService, requestFactory, GRANT_TYPE) {
 
-	public static final String GRANT_TYPE = "urn:ietf:params:oauth:grant_type:redelegate";
+    @Throws(AuthenticationException::class, InvalidTokenException::class)
+    override fun getOAuth2Authentication(client: ClientDetails, tokenRequest: TokenRequest): OAuth2Authentication {
+        // read and load up the existing token
+        val incomingTokenValue = tokenRequest.requestParameters["token"]
+        val incomingToken = incomingTokenValue?.let { tokenServices.readAccessToken(it) }
 
-	// keep down-cast versions so we can get to the right queries
-	private OAuth2TokenEntityService tokenServices;
+        // check for scoping in the request, can't up-scope with a chained request
+        val approvedScopes: Set<String>? = incomingToken?.scope
+        var requestedScopes: Set<String> = tokenRequest.scope ?: HashSet()
 
+        // do a check on the requested scopes -- if they exactly match the client scopes, they were probably shadowed by the token granter
+        if (client.scope == requestedScopes) {
+            requestedScopes = HashSet()
+        }
 
-	@Autowired
-	public ChainedTokenGranter(OAuth2TokenEntityService tokenServices, ClientDetailsEntityService clientDetailsService, OAuth2RequestFactory requestFactory) {
-		super(tokenServices, clientDetailsService, requestFactory, GRANT_TYPE);
-		this.tokenServices = tokenServices;
-	}
+        // if our scopes are a valid subset of what's allowed, we can continue
+        if (approvedScopes!!.containsAll(requestedScopes)) {
+            if (requestedScopes.isEmpty()) {
+                // if there are no scopes, inherit the original scopes from the token
+                tokenRequest.setScope(approvedScopes)
+            } else {
+                // if scopes were asked for, give only the subset of scopes requested
+                // this allows safe downscoping
+                tokenRequest.setScope(Sets.intersection(requestedScopes, approvedScopes))
+            }
 
-	/* (non-Javadoc)
-	 * @see org.springframework.security.oauth2.provider.token.AbstractTokenGranter#getOAuth2Authentication(org.springframework.security.oauth2.provider.AuthorizationRequest)
-	 */
-	@Override
-	protected OAuth2Authentication getOAuth2Authentication(ClientDetails client, TokenRequest tokenRequest) throws AuthenticationException, InvalidTokenException {
-		// read and load up the existing token
-		String incomingTokenValue = tokenRequest.getRequestParameters().get("token");
-		OAuth2AccessTokenEntity incomingToken = tokenServices.readAccessToken(incomingTokenValue);
+            // NOTE: don't revoke the existing access token
 
-		// check for scoping in the request, can't up-scope with a chained request
-		Set<String> approvedScopes = incomingToken.getScope();
-		Set<String> requestedScopes = tokenRequest.getScope();
+            // create a new access token
+            val authentication =
+                OAuth2Authentication(requestFactory.createOAuth2Request(client, tokenRequest), incomingToken.authenticationHolder!!.authentication.userAuthentication)
 
-		if (requestedScopes == null) {
-			requestedScopes = new HashSet<>();
-		}
+            return authentication
+        } else {
+            throw InvalidScopeException("Invalid scope requested in chained request", approvedScopes)
+        }
+    }
 
-		// do a check on the requested scopes -- if they exactly match the client scopes, they were probably shadowed by the token granter
-		if (client.getScope().equals(requestedScopes)) {
-			requestedScopes = new HashSet<>();
-		}
-
-		// if our scopes are a valid subset of what's allowed, we can continue
-		if (approvedScopes.containsAll(requestedScopes)) {
-
-			if (requestedScopes.isEmpty()) {
-				// if there are no scopes, inherit the original scopes from the token
-				tokenRequest.setScope(approvedScopes);
-			} else {
-				// if scopes were asked for, give only the subset of scopes requested
-				// this allows safe downscoping
-				tokenRequest.setScope(Sets.intersection(requestedScopes, approvedScopes));
-			}
-
-			// NOTE: don't revoke the existing access token
-
-			// create a new access token
-			OAuth2Authentication authentication = new OAuth2Authentication(getRequestFactory().createOAuth2Request(client, tokenRequest), incomingToken.getAuthenticationHolder().getAuthentication().getUserAuthentication());
-
-			return authentication;
-
-		} else {
-			throw new InvalidScopeException("Invalid scope requested in chained request", approvedScopes);
-		}
-
-	}
-
+    companion object {
+        const val GRANT_TYPE: String = "urn:ietf:params:oauth:grant_type:redelegate"
+    }
 }
