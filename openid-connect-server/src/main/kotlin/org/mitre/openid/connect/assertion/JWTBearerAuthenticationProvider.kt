@@ -7,208 +7,186 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.openid.connect.assertion;
+ */
+package org.mitre.openid.connect.assertion
 
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
-import org.mitre.jwt.signer.service.JWTSigningAndValidationService;
-import org.mitre.jwt.signer.service.impl.ClientKeyCacheService;
-import org.mitre.oauth2.model.ClientDetailsEntity;
-import org.mitre.oauth2.model.ClientDetailsEntity.AuthMethod;
-import org.mitre.oauth2.service.ClientDetailsEntityService;
-import org.mitre.openid.connect.config.ConfigurationPropertiesBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.AuthenticationServiceException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
-
-import java.text.ParseException;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import com.nimbusds.jose.JWSAlgorithm
+import com.nimbusds.jwt.SignedJWT
+import org.mitre.jwt.signer.service.impl.ClientKeyCacheService
+import org.mitre.oauth2.model.ClientDetailsEntity.AuthMethod
+import org.mitre.oauth2.service.ClientDetailsEntityService
+import org.mitre.openid.connect.assertion.JWTBearerAssertionAuthenticationToken
+import org.mitre.openid.connect.config.ConfigurationPropertiesBean
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.authentication.AuthenticationProvider
+import org.springframework.security.authentication.AuthenticationServiceException
+import org.springframework.security.core.Authentication
+import org.springframework.security.core.AuthenticationException
+import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.core.userdetails.UsernameNotFoundException
+import org.springframework.security.oauth2.common.exceptions.InvalidClientException
+import org.springframework.stereotype.Component
+import java.text.ParseException
+import java.util.*
 
 /**
  * @author jricher
- *
  */
-public class JWTBearerAuthenticationProvider implements AuthenticationProvider {
+@Component
+class JWTBearerAuthenticationProvider : AuthenticationProvider {
+    // map of verifiers, load keys for clients
+    @Autowired
+    private lateinit var validators: ClientKeyCacheService
 
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger logger = LoggerFactory.getLogger(JWTBearerAuthenticationProvider.class);
+    // Allow for time sync issues by having a window of X seconds.
+    private val timeSkewAllowance = 300
 
-	private static final GrantedAuthority ROLE_CLIENT = new SimpleGrantedAuthority("ROLE_CLIENT");
+    // to load clients
+    @Autowired
+    private lateinit var clientService: ClientDetailsEntityService
 
-	// map of verifiers, load keys for clients
-	@Autowired
-	private ClientKeyCacheService validators;
+    // to get our server's issuer url
+    @Autowired
+    private lateinit var config: ConfigurationPropertiesBean
 
-	// Allow for time sync issues by having a window of X seconds.
-	private int timeSkewAllowance = 300;
-
-	// to load clients
-	@Autowired
-	private ClientDetailsEntityService clientService;
-
-	// to get our server's issuer url
-	@Autowired
-	private ConfigurationPropertiesBean config;
-
-	/**
-	 * Try to validate the client credentials by parsing and validating the JWT.
-	 */
-	@Override
-	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-
-		JWTBearerAssertionAuthenticationToken jwtAuth = (JWTBearerAssertionAuthenticationToken)authentication;
+    /**
+     * Try to validate the client credentials by parsing and validating the JWT.
+     */
+    @Throws(AuthenticationException::class)
+    override fun authenticate(authentication: Authentication): Authentication {
+        val jwtAuth = authentication as JWTBearerAssertionAuthenticationToken
 
 
-		try {
-			ClientDetailsEntity client = clientService.loadClientByClientId(jwtAuth.getName());
+        try {
+            val client = checkNotNull(clientService.loadClientByClientId(jwtAuth.name))
 
-			JWT jwt = jwtAuth.getJwt();
-			JWTClaimsSet jwtClaims = jwt.getJWTClaimsSet();
+            val jwt = jwtAuth.jwt
+            val jwtClaims = jwt.jwtClaimsSet
 
-			if (!(jwt instanceof SignedJWT)) {
-				throw new AuthenticationServiceException("Unsupported JWT type: " + jwt.getClass().getName());
-			}
+            if (jwt !is SignedJWT) {
+                throw AuthenticationServiceException("Unsupported JWT type: ${jwt.javaClass.name}")
+            }
 
-			// check the signature with nimbus
-			SignedJWT jws = (SignedJWT) jwt;
+            // check the signature with nimbus
+            val jws = jwt
 
-			JWSAlgorithm alg = jws.getHeader().getAlgorithm();
+            val alg = jws.header.algorithm
 
-			if (client.getTokenEndpointAuthSigningAlg() != null &&
-					!client.getTokenEndpointAuthSigningAlg().equals(alg)) {
-				throw new AuthenticationServiceException("Client's registered token endpoint signing algorithm (" + client.getTokenEndpointAuthSigningAlg()
-						+ ") does not match token's actual algorithm (" + alg.getName() + ")");
-			}
+            val tokenEndpointAuthSigningAlg = client.tokenEndpointAuthSigningAlg?.let {
+                if(it != alg) {
+                    throw AuthenticationServiceException(
+                        "Client's registered token endpoint signing algorithm ($it) " +
+                                "does not match token's actual algorithm (${alg.name})"
+                    )
+                }
+            }
 
-			if (client.getTokenEndpointAuthMethod() == null ||
-					client.getTokenEndpointAuthMethod().equals(AuthMethod.NONE) ||
-					client.getTokenEndpointAuthMethod().equals(AuthMethod.SECRET_BASIC) ||
-					client.getTokenEndpointAuthMethod().equals(AuthMethod.SECRET_POST)) {
+            if (client.tokenEndpointAuthMethod == null || client.tokenEndpointAuthMethod == AuthMethod.NONE || client.tokenEndpointAuthMethod == AuthMethod.SECRET_BASIC || client.tokenEndpointAuthMethod == AuthMethod.SECRET_POST) {
+                // this client doesn't support this type of authentication
 
-				// this client doesn't support this type of authentication
-				throw new AuthenticationServiceException("Client does not support this authentication method.");
+                throw AuthenticationServiceException("Client does not support this authentication method.")
+            } else if ((client.tokenEndpointAuthMethod == AuthMethod.PRIVATE_KEY &&
+                        (alg == JWSAlgorithm.RS256 || alg == JWSAlgorithm.RS384 || alg == JWSAlgorithm.RS512 || alg == JWSAlgorithm.ES256 || alg == JWSAlgorithm.ES384 || alg == JWSAlgorithm.ES512 || alg == JWSAlgorithm.PS256 || alg == JWSAlgorithm.PS384 || alg == JWSAlgorithm.PS512))
+                || (client.tokenEndpointAuthMethod == AuthMethod.SECRET_JWT &&
+                        (alg == JWSAlgorithm.HS256 || alg == JWSAlgorithm.HS384 || alg == JWSAlgorithm.HS512))
+            ) {
+                // double-check the method is asymmetrical if we're in HEART mode
 
-			} else if ((client.getTokenEndpointAuthMethod().equals(AuthMethod.PRIVATE_KEY) &&
-					(alg.equals(JWSAlgorithm.RS256)
-							|| alg.equals(JWSAlgorithm.RS384)
-							|| alg.equals(JWSAlgorithm.RS512)
-							|| alg.equals(JWSAlgorithm.ES256)
-							|| alg.equals(JWSAlgorithm.ES384)
-							|| alg.equals(JWSAlgorithm.ES512)
-							|| alg.equals(JWSAlgorithm.PS256)
-							|| alg.equals(JWSAlgorithm.PS384)
-							|| alg.equals(JWSAlgorithm.PS512)))
-					|| (client.getTokenEndpointAuthMethod().equals(AuthMethod.SECRET_JWT) &&
-					(alg.equals(JWSAlgorithm.HS256)
-							|| alg.equals(JWSAlgorithm.HS384)
-							|| alg.equals(JWSAlgorithm.HS512)))) {
+                if (config.isHeartMode && client.tokenEndpointAuthMethod != AuthMethod.PRIVATE_KEY) {
+                    throw AuthenticationServiceException("[HEART mode] Invalid authentication method")
+                }
 
-				// double-check the method is asymmetrical if we're in HEART mode
-				if (config.isHeartMode() && !client.getTokenEndpointAuthMethod().equals(AuthMethod.PRIVATE_KEY)) {
-					throw new AuthenticationServiceException("[HEART mode] Invalid authentication method");
-				}
+                val validator = validators.getValidator(client, alg)
+                    ?: throw AuthenticationServiceException("Unable to create signature validator for client $client and algorithm $alg")
 
-				JWTSigningAndValidationService validator = validators.getValidator(client, alg);
+                if (!validator.validateSignature(jws)) {
+                    throw AuthenticationServiceException("Signature did not validate for presented JWT authentication.")
+                }
+            } else {
+                throw AuthenticationServiceException("Unable to create signature validator for method ${client.tokenEndpointAuthMethod} and algorithm $alg")
+            }
 
-				if (validator == null) {
-					throw new AuthenticationServiceException("Unable to create signature validator for client " + client + " and algorithm " + alg);
-				}
+            // check the issuer
+            if (jwtClaims.issuer == null) {
+                throw AuthenticationServiceException("Assertion Token Issuer is null")
+            } else if (jwtClaims.issuer != client.clientId) {
+                throw AuthenticationServiceException("Issuers do not match, expected ${client.clientId} got ${jwtClaims.issuer}")
+            }
 
-				if (!validator.validateSignature(jws)) {
-					throw new AuthenticationServiceException("Signature did not validate for presented JWT authentication.");
-				}
-			} else {
-				throw new AuthenticationServiceException("Unable to create signature validator for method " + client.getTokenEndpointAuthMethod() + " and algorithm " + alg);
-			}
+            // check expiration
+            if (jwtClaims.expirationTime == null) {
+                throw AuthenticationServiceException("Assertion Token does not have required expiration claim")
+            } else {
+                // it's not null, see if it's expired
+                val now = Date(System.currentTimeMillis() - (timeSkewAllowance * 1000))
+                if (now.after(jwtClaims.expirationTime)) {
+                    throw AuthenticationServiceException("Assertion Token is expired: ${jwtClaims.expirationTime}")
+                }
+            }
 
-			// check the issuer
-			if (jwtClaims.getIssuer() == null) {
-				throw new AuthenticationServiceException("Assertion Token Issuer is null");
-			} else if (!jwtClaims.getIssuer().equals(client.getClientId())){
-				throw new AuthenticationServiceException("Issuers do not match, expected " + client.getClientId() + " got " + jwtClaims.getIssuer());
-			}
+            // check not before
+            if (jwtClaims.notBeforeTime != null) {
+                val now = Date(System.currentTimeMillis() + (timeSkewAllowance * 1000))
+                if (now.before(jwtClaims.notBeforeTime)) {
+                    throw AuthenticationServiceException("Assertion Token not valid untill: ${jwtClaims.notBeforeTime}")
+                }
+            }
 
-			// check expiration
-			if (jwtClaims.getExpirationTime() == null) {
-				throw new AuthenticationServiceException("Assertion Token does not have required expiration claim");
-			} else {
-				// it's not null, see if it's expired
-				Date now = new Date(System.currentTimeMillis() - (timeSkewAllowance * 1000));
-				if (now.after(jwtClaims.getExpirationTime())) {
-					throw new AuthenticationServiceException("Assertion Token is expired: " + jwtClaims.getExpirationTime());
-				}
-			}
+            // check issued at
+            if (jwtClaims.issueTime != null) {
+                // since it's not null, see if it was issued in the future
+                val now = Date(System.currentTimeMillis() + (timeSkewAllowance * 1000))
+                if (now.before(jwtClaims.issueTime)) {
+                    throw AuthenticationServiceException("Assertion Token was issued in the future: " + jwtClaims.issueTime)
+                }
+            }
 
-			// check not before
-			if (jwtClaims.getNotBeforeTime() != null) {
-				Date now = new Date(System.currentTimeMillis() + (timeSkewAllowance * 1000));
-				if (now.before(jwtClaims.getNotBeforeTime())){
-					throw new AuthenticationServiceException("Assertion Token not valid untill: " + jwtClaims.getNotBeforeTime());
-				}
-			}
+            // check audience
+            if (jwtClaims.audience == null) {
+                throw AuthenticationServiceException("Assertion token audience is null")
+            } else if (!(jwtClaims.audience.contains(config.issuer) || jwtClaims.audience.contains("${config.issuer}token"))) {
+                throw AuthenticationServiceException("Audience does not match, expected ${config.issuer} or ${config.issuer + "token"} got ${jwtClaims.audience}")
+            }
 
-			// check issued at
-			if (jwtClaims.getIssueTime() != null) {
-				// since it's not null, see if it was issued in the future
-				Date now = new Date(System.currentTimeMillis() + (timeSkewAllowance * 1000));
-				if (now.before(jwtClaims.getIssueTime())) {
-					throw new AuthenticationServiceException("Assertion Token was issued in the future: " + jwtClaims.getIssueTime());
-				}
-			}
+            // IFF we managed to get all the way down here, the token is valid
 
-			// check audience
-			if (jwtClaims.getAudience() == null) {
-				throw new AuthenticationServiceException("Assertion token audience is null");
-			} else if (!(jwtClaims.getAudience().contains(config.getIssuer()) || jwtClaims.getAudience().contains(config.getIssuer() + "token"))) {
-				throw new AuthenticationServiceException("Audience does not match, expected " + config.getIssuer() + " or " + (config.getIssuer() + "token") + " got " + jwtClaims.getAudience());
-			}
+            // add in the ROLE_CLIENT authority
+            val authorities: MutableSet<GrantedAuthority> = HashSet(client.authorities)
+            authorities.add(ROLE_CLIENT)
 
-			// IFF we managed to get all the way down here, the token is valid
+            return JWTBearerAssertionAuthenticationToken(jwt, authorities)
+        } catch (e: InvalidClientException) {
+            throw UsernameNotFoundException("Could not find client: " + jwtAuth.name)
+        } catch (e: ParseException) {
+            logger.error("Failure during authentication, error was: ", e)
 
-			// add in the ROLE_CLIENT authority
-			Set<GrantedAuthority> authorities = new HashSet<>(client.getAuthorities());
-			authorities.add(ROLE_CLIENT);
+            throw AuthenticationServiceException("Invalid JWT format")
+        }
+    }
 
-			return new JWTBearerAssertionAuthenticationToken(jwt, authorities);
+    /**
+     * We support [JWTBearerAssertionAuthenticationToken]s only.
+     */
+    override fun supports(authentication: Class<*>): Boolean {
+        return (JWTBearerAssertionAuthenticationToken::class.java.isAssignableFrom(authentication))
+    }
 
-		} catch (InvalidClientException e) {
-			throw new UsernameNotFoundException("Could not find client: " + jwtAuth.getName());
-		} catch (ParseException e) {
+    companion object {
+        /**
+         * Logger for this class
+         */
+        private val logger: Logger = LoggerFactory.getLogger(JWTBearerAuthenticationProvider::class.java)
 
-			logger.error("Failure during authentication, error was: ", e);
-
-			throw new AuthenticationServiceException("Invalid JWT format");
-		}
-	}
-
-	/**
-	 * We support {@link JWTBearerAssertionAuthenticationToken}s only.
-	 */
-	@Override
-	public boolean supports(Class<?> authentication) {
-		return (JWTBearerAssertionAuthenticationToken.class.isAssignableFrom(authentication));
-	}
-
+        private val ROLE_CLIENT: GrantedAuthority = SimpleGrantedAuthority("ROLE_CLIENT")
+    }
 }
