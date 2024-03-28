@@ -7,266 +7,198 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.openid.connect.client.service.impl;
+ */
+package org.mitre.openid.connect.client.service.impl
 
-import com.google.common.base.Strings;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.util.concurrent.UncheckedExecutionException;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.jetbrains.annotations.Nullable;
-import org.mitre.discovery.util.WebfingerURLNormalizer;
-import org.mitre.openid.connect.client.model.IssuerServiceResponse;
-import org.mitre.openid.connect.client.service.IssuerService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.security.authentication.AuthenticationServiceException;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponents;
-
-import javax.servlet.http.HttpServletRequest;
-
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
+import com.google.common.base.Strings
+import com.google.common.cache.CacheBuilder
+import com.google.common.cache.CacheLoader
+import com.google.common.cache.LoadingCache
+import com.google.common.util.concurrent.UncheckedExecutionException
+import com.google.gson.JsonParseException
+import com.google.gson.JsonParser
+import org.apache.http.client.HttpClient
+import org.apache.http.client.utils.URIBuilder
+import org.apache.http.impl.client.HttpClientBuilder
+import org.mitre.discovery.util.WebfingerURLNormalizer.normalizeResource
+import org.mitre.openid.connect.client.model.IssuerServiceResponse
+import org.mitre.openid.connect.client.service.IssuerService
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
+import org.springframework.security.authentication.AuthenticationServiceException
+import org.springframework.web.client.RestClientException
+import org.springframework.web.client.RestTemplate
+import java.util.concurrent.ExecutionException
+import javax.servlet.http.HttpServletRequest
 
 /**
  * Use Webfinger to discover the appropriate issuer for a user-given input string.
  * @author jricher
- *
  */
-public class WebfingerIssuerService implements IssuerService {
+class WebfingerIssuerService @JvmOverloads constructor(
+    httpClient: HttpClient? = HttpClientBuilder.create().useSystemProperties().build()
+) : IssuerService {
+    // map of user input -> issuer, loaded dynamically from webfinger discover
+    private val issuers: LoadingCache<String, LoadingResult>
 
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger logger = LoggerFactory.getLogger(WebfingerIssuerService.class);
+    // private data shuttle class to get back two bits of info from the cache loader
+    private inner class LoadingResult(var loginHint: String?, var issuer: String)
 
-	// map of user input -> issuer, loaded dynamically from webfinger discover
-	private LoadingCache<String, LoadingResult> issuers;
+    var whitelist: Set<String> = HashSet()
+    var blacklist: Set<String> = HashSet()
 
-	// private data shuttle class to get back two bits of info from the cache loader
-	private class LoadingResult {
-		public String loginHint;
-		public String issuer;
-		public LoadingResult(String loginHint, String issuer) {
-			this.loginHint = loginHint;
-			this.issuer = issuer;
-		}
-	}
+    /**
+     * Name of the incoming parameter to check for discovery purposes.
+     */
+    var parameterName: String = "identifier"
 
-	private Set<String> whitelist = new HashSet<>();
-	private Set<String> blacklist = new HashSet<>();
+    /**
+     * URL of the page to forward to if no identifier is given.
+     */
+    var loginPageUrl: String? = null
 
-	/**
-	 * Name of the incoming parameter to check for discovery purposes.
-	 */
-	private String parameterName = "identifier";
+    /**
+     * Strict enfocement of "https"
+     */
+    var isForceHttps: Boolean = true
 
-	/**
-	 * URL of the page to forward to if no identifier is given.
-	 */
-	private String loginPageUrl;
+    init {
+        issuers = CacheBuilder.newBuilder().build(WebfingerIssuerFetcher(httpClient))
+    }
 
-	/**
-	 * Strict enfocement of "https"
-	 */
-	private boolean forceHttps = true;
-
-	public WebfingerIssuerService() {
-		this(HttpClientBuilder.create().useSystemProperties().build());
-	}
-
-	public WebfingerIssuerService(HttpClient httpClient) {
-		issuers = CacheBuilder.newBuilder().build(new WebfingerIssuerFetcher(httpClient));
-	}
-
-	/* (non-Javadoc)
+    /* (non-Javadoc)
 	 * @see org.mitre.openid.connect.client.service.IssuerService#getIssuer(javax.servlet.http.HttpServletRequest)
 	 */
-	@Nullable
-  @Override
-	public IssuerServiceResponse getIssuer(HttpServletRequest request) {
+    override fun getIssuer(request: HttpServletRequest): IssuerServiceResponse? {
+        val identifier = request.getParameter(parameterName)
+        if (!Strings.isNullOrEmpty(identifier)) {
+            try {
+                val lr = issuers[identifier]
+                if (!whitelist.isEmpty() && !whitelist.contains(lr.issuer)) {
+                    throw AuthenticationServiceException("Whitelist was nonempty, issuer was not in whitelist: " + lr.issuer)
+                }
 
-		String identifier = request.getParameter(parameterName);
-		if (!Strings.isNullOrEmpty(identifier)) {
-			try {
-				LoadingResult lr = issuers.get(identifier);
-				if (!whitelist.isEmpty() && !whitelist.contains(lr.issuer)) {
-					throw new AuthenticationServiceException("Whitelist was nonempty, issuer was not in whitelist: " + lr.issuer);
-				}
+                if (blacklist.contains(lr.issuer)) {
+                    throw AuthenticationServiceException("Issuer was in blacklist: " + lr.issuer)
+                }
 
-				if (blacklist.contains(lr.issuer)) {
-					throw new AuthenticationServiceException("Issuer was in blacklist: " + lr.issuer);
-				}
-
-				return new IssuerServiceResponse(lr.issuer, lr.loginHint, request.getParameter("target_link_uri"));
-			} catch (UncheckedExecutionException | ExecutionException e) {
-				logger.warn("Issue fetching issuer for user input: " + identifier + ": " + e.getMessage());
-				return null;
-			}
-
-		} else {
-			logger.warn("No user input given, directing to login page: " + loginPageUrl);
-			return new IssuerServiceResponse(loginPageUrl);
-		}
-	}
-
-	public String getParameterName() {
-		return parameterName;
-	}
-
-	public void setParameterName(String parameterName) {
-		this.parameterName = parameterName;
-	}
+                return IssuerServiceResponse(lr.issuer, lr.loginHint, request.getParameter("target_link_uri"))
+            } catch (e: UncheckedExecutionException) {
+                logger.warn("Issue fetching issuer for user input: " + identifier + ": " + e.message)
+                return null
+            } catch (e: ExecutionException) {
+                logger.warn("Issue fetching issuer for user input: " + identifier + ": " + e.message)
+                return null
+            }
+        } else {
+            logger.warn("No user input given, directing to login page: $loginPageUrl")
+            return IssuerServiceResponse(loginPageUrl)
+        }
+    }
 
 
-	public String getLoginPageUrl() {
-		return loginPageUrl;
-	}
+    /**
+     * @author jricher
+     */
+    private inner class WebfingerIssuerFetcher(httpClient: HttpClient?) : CacheLoader<String, LoadingResult>() {
+        private val httpFactory = HttpComponentsClientHttpRequestFactory(httpClient)
+        private val parser = JsonParser()
 
-	public void setLoginPageUrl(String loginPageUrl) {
-		this.loginPageUrl = loginPageUrl;
-	}
+        @Throws(Exception::class)
+        override fun load(identifier: String): LoadingResult {
+            val key = normalizeResource(identifier)
 
-	public Set<String> getWhitelist() {
-		return whitelist;
-	}
+            val restTemplate = RestTemplate(httpFactory)
 
-	public void setWhitelist(Set<String> whitelist) {
-		this.whitelist = whitelist;
-	}
+            // construct the URL to go to
+            var scheme = key!!.scheme
 
-	public Set<String> getBlacklist() {
-		return blacklist;
-	}
+            // preserving http scheme is strictly for demo system use only.
+            if (!Strings.isNullOrEmpty(scheme) && scheme == "http") {
+                // add on colon and slashes.
+                require(!isForceHttps) { "Scheme must not be 'http'" }
+                logger.warn("Webfinger endpoint MUST use the https URI scheme, overriding by configuration")
+                scheme = "http://" // add on colon and slashes.
+            } else {
+                // otherwise we don't know the scheme, assume HTTPS
+                scheme = "https://"
+            }
 
-	public void setBlacklist(Set<String> blacklist) {
-		this.blacklist = blacklist;
-	}
+            // do a webfinger lookup
+            val builder = URIBuilder(
+                scheme
+                        + key.host
+                        + (if (key.port >= 0) ":" + key.port else "")
+                        + Strings.nullToEmpty(key.path)
+                        + "/.well-known/webfinger"
+                        + (if (Strings.isNullOrEmpty(key.query)) "" else "?" + key.query)
+            )
+            builder.addParameter("resource", identifier)
+            builder.addParameter("rel", "http://openid.net/specs/connect/1.0/issuer")
 
-	public boolean isForceHttps() {
-		return forceHttps;
-	}
+            try {
+                // do the fetch
 
-	public void setForceHttps(boolean forceHttps) {
-		this.forceHttps = forceHttps;
-	}
+                logger.info("Loading: $builder")
+                val webfingerResponse = restTemplate.getForObject(builder.build(), String::class.java)
 
-	/**
-	 * @author jricher
-	 */
-	private class WebfingerIssuerFetcher extends CacheLoader<String, LoadingResult> {
-		private HttpComponentsClientHttpRequestFactory httpFactory;
-		private JsonParser parser = new JsonParser();
+                val json = parser.parse(webfingerResponse)
 
-		WebfingerIssuerFetcher(HttpClient httpClient) {
-			this.httpFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
-		}
+                if (json != null && json.isJsonObject) {
+                    // find the issuer
+                    val links = json.asJsonObject["links"].asJsonArray
+                    for (link in links) {
+                        if (link.isJsonObject) {
+                            val linkObj = link.asJsonObject
+                            if ((linkObj.has("href")
+                                        && linkObj.has("rel")) && linkObj["rel"].asString == "http://openid.net/specs/connect/1.0/issuer"
+                            ) {
+                                // we found the issuer, return it
 
-		@Override
-		public LoadingResult load(String identifier) throws Exception {
+                                val href = linkObj["href"].asString
 
-			UriComponents key = WebfingerURLNormalizer.normalizeResource(identifier);
+                                return if (identifier == href || identifier.startsWith("http")) {
+                                    // try to avoid sending a URL as the login hint
+                                    LoadingResult(null, href)
+                                } else {
+                                    // otherwise pass back whatever the user typed as a login hint
+                                    LoadingResult(identifier, href)
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (e: JsonParseException) {
+                logger.warn("Failure in fetching webfinger input", e.message)
+            } catch (e: RestClientException) {
+                logger.warn("Failure in fetching webfinger input", e.message)
+            }
 
-			RestTemplate restTemplate = new RestTemplate(httpFactory);
-			// construct the URL to go to
+            // we couldn't find it!
+            if (key.scheme == "http" || key.scheme == "https") {
+                // if it looks like HTTP then punt: return the input, hope for the best
+                logger.warn("Returning normalized input string as issuer, hoping for the best: $identifier")
+                return LoadingResult(null, identifier)
+            } else {
+                // if it's not HTTP, give up
+                logger.warn("Couldn't find issuer: $identifier")
+                throw IllegalArgumentException()
+            }
+        }
+    }
 
-			String scheme = key.getScheme();
-
-			// preserving http scheme is strictly for demo system use only.
-			if (!Strings.isNullOrEmpty(scheme) &&scheme.equals("http")) {
-				if (forceHttps) {
-					throw new IllegalArgumentException("Scheme must not be 'http'");
-				} else {
-					logger.warn("Webfinger endpoint MUST use the https URI scheme, overriding by configuration");
-					scheme = "http://"; // add on colon and slashes.
-				}
-			} else {
-				// otherwise we don't know the scheme, assume HTTPS
-				scheme = "https://";
-			}
-
-			// do a webfinger lookup
-			URIBuilder builder = new URIBuilder(scheme
-					+ key.getHost()
-					+ (key.getPort() >= 0 ? ":" + key.getPort() : "")
-					+ Strings.nullToEmpty(key.getPath())
-					+ "/.well-known/webfinger"
-					+ (Strings.isNullOrEmpty(key.getQuery()) ? "" : "?" + key.getQuery())
-					);
-			builder.addParameter("resource", identifier);
-			builder.addParameter("rel", "http://openid.net/specs/connect/1.0/issuer");
-
-			try {
-
-				// do the fetch
-				logger.info("Loading: " + builder.toString());
-				String webfingerResponse = restTemplate.getForObject(builder.build(), String.class);
-
-				JsonElement json = parser.parse(webfingerResponse);
-
-				if (json != null && json.isJsonObject()) {
-					// find the issuer
-					JsonArray links = json.getAsJsonObject().get("links").getAsJsonArray();
-					for (JsonElement link : links) {
-						if (link.isJsonObject()) {
-							JsonObject linkObj = link.getAsJsonObject();
-							if (linkObj.has("href")
-									&& linkObj.has("rel")
-									&& linkObj.get("rel").getAsString().equals("http://openid.net/specs/connect/1.0/issuer")) {
-
-								// we found the issuer, return it
-								String href = linkObj.get("href").getAsString();
-
-								if (identifier.equals(href)
-										|| identifier.startsWith("http")) {
-									// try to avoid sending a URL as the login hint
-									return new LoadingResult(null, href);
-								} else {
-									// otherwise pass back whatever the user typed as a login hint
-									return new LoadingResult(identifier, href);
-								}
-							}
-						}
-					}
-				}
-			} catch (JsonParseException | RestClientException e) {
-				logger.warn("Failure in fetching webfinger input", e.getMessage());
-			}
-
-			// we couldn't find it!
-
-			if (key.getScheme().equals("http") || key.getScheme().equals("https")) {
-				// if it looks like HTTP then punt: return the input, hope for the best
-				logger.warn("Returning normalized input string as issuer, hoping for the best: " + identifier);
-				return new LoadingResult(null, identifier);
-			} else {
-				// if it's not HTTP, give up
-				logger.warn("Couldn't find issuer: " + identifier);
-				throw new IllegalArgumentException();
-			}
-
-		}
-
-	}
-
+    companion object {
+        /**
+         * Logger for this class
+         */
+        private val logger: Logger = LoggerFactory.getLogger(WebfingerIssuerService::class.java)
+    }
 }
