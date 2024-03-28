@@ -20,18 +20,19 @@ package org.mitre.oauth2.service
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception
 import org.springframework.security.oauth2.provider.ClientDetailsService
+import java.lang.Long
 
 interface ClientDetailsEntityService : ClientDetailsService {
-    fun saveNewClient(client: ClientDetailsEntity?): ClientDetailsEntity?
+    fun saveNewClient(client: ClientDetailsEntity): ClientDetailsEntity?
 
-    fun getClientById(id: Long?): ClientDetailsEntity?
+    fun getClientById(id: Long): ClientDetailsEntity?
 
     @Throws(OAuth2Exception::class)
     override fun loadClientByClientId(clientId: String): ClientDetailsEntity?
 
     fun deleteClient(client: ClientDetailsEntity)
 
-    fun updateClient(oldClient: ClientDetailsEntity, newClient: ClientDetailsEntity): ClientDetailsEntity?
+    fun updateClient(oldClient: ClientDetailsEntity?, newClient: ClientDetailsEntity?): ClientDetailsEntity
 
     val allClients: Collection<ClientDetailsEntity>
 

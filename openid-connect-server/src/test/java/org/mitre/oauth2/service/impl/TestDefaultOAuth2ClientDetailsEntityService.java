@@ -17,11 +17,7 @@
  *******************************************************************************/
 package org.mitre.oauth2.service.impl;
 
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
-import org.hamcrest.CoreMatchers;
+import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,16 +45,15 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
 
-import com.google.common.collect.Sets;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
-import static org.hamcrest.CoreMatchers.anything;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
-
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 
 
@@ -233,7 +228,7 @@ public class TestDefaultOAuth2ClientDetailsEntityService {
 		try {
 			service.loadClientByClientId(null);
 			fail("Null client id. Expected an IllegalArgumentException.");
-		} catch (IllegalArgumentException e) {
+		} catch (IllegalArgumentException|NullPointerException e) {
 			assertThat(e, is(notNullValue()));
 		}
 

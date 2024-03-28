@@ -126,7 +126,7 @@ object ClientDetailsEntityJsonProcessor {
                 c.setScope(Splitter.on(SCOPE_SEPARATOR).split(scope).toHashSet())
             }
 
-            c.grantTypes = JsonUtils.getAsStringSet(o, GRANT_TYPES) ?: HashSet()
+            c.grantTypes = JsonUtils.getAsStringSet(o, GRANT_TYPES)?.toHashSet() ?: HashSet()
             c.responseTypes = JsonUtils.getAsStringSet(o, RESPONSE_TYPES) ?: HashSet()
             c.policyUri = JsonUtils.getAsString(o, POLICY_URI)
             c.jwksUri = JsonUtils.getAsString(o, JWKS_URI)

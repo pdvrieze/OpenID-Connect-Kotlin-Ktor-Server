@@ -93,9 +93,9 @@ class RegisteredClient @JvmOverloads constructor(
         }
 
     var grantTypes: Set<String>
-        get() = client.grantTypes ?: emptySet()
+        get() = client.grantTypes
         set(grantTypes) {
-            client.grantTypes = grantTypes
+            client.grantTypes = grantTypes.toMutableSet()
         }
 
     val authorizedGrantTypes: Set<String>

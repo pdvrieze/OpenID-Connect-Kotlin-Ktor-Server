@@ -18,6 +18,7 @@
 package org.mitre.oauth2.repository
 
 import org.mitre.oauth2.model.ClientDetailsEntity
+import java.lang.Long
 
 interface OAuth2ClientRepository {
     fun getById(id: java.lang.Long): ClientDetailsEntity?
@@ -28,7 +29,7 @@ interface OAuth2ClientRepository {
 
     fun deleteClient(client: ClientDetailsEntity)
 
-    fun updateClient(id: java.lang.Long, client: ClientDetailsEntity): ClientDetailsEntity?
+    fun updateClient(id: Long, client: ClientDetailsEntity): ClientDetailsEntity
 
-	val allClients: Collection<ClientDetailsEntity>
+    val allClients: Collection<ClientDetailsEntity>
 }

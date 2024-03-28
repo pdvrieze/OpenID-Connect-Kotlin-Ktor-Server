@@ -205,7 +205,7 @@ class DeviceEndpoint {
         model["dc"] = dc
 
         // pre-process the scopes
-        val scopes: Set<SystemScope?> = scopeService.fromStrings(dc.scope!!)
+        val scopes: Set<SystemScope> = scopeService.fromStrings(dc.scope!!) ?: emptySet()
 
         val sortedScopes: MutableSet<SystemScope?> = LinkedHashSet(scopes.size)
         val systemScopes: Set<SystemScope?> = scopeService.all
@@ -272,7 +272,7 @@ class DeviceEndpoint {
 
 
         // pre-process the scopes
-        val scopes: Set<SystemScope> = scopeService.fromStrings(dc.scope!!)
+        val scopes: Set<SystemScope> = scopeService.fromStrings(dc.scope!!)?: emptySet()
 
         val sortedScopes: MutableSet<SystemScope> = LinkedHashSet(scopes.size)
         val systemScopes: Set<SystemScope> = scopeService.all

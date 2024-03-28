@@ -76,12 +76,12 @@ open class ClientDetailsEntity : ClientDetails {
     @get:Column(name = "token_endpoint_auth_method")
     @get:Enumerated(EnumType.STRING)
     open var tokenEndpointAuthMethod: AuthMethod? = AuthMethod.SECRET_BASIC // token_endpoint_auth_method
-    private var scope: Set<String> = HashSet() // scope
+    private var scope: HashSet<String> = HashSet() // scope
 
     @get:Column(name = "grant_type")
     @get:CollectionTable(name = "client_grant_type", joinColumns = [JoinColumn(name = "owner_id")])
     @get:ElementCollection(fetch = FetchType.EAGER)
-    open var grantTypes: Set<String>? = HashSet() // grant_types
+    open var grantTypes: MutableSet<String> = HashSet() // grant_types
 
     @get:Column(name = "response_type")
     @get:CollectionTable(name = "client_response_type", joinColumns = [JoinColumn(name = "owner_id")])
@@ -374,22 +374,22 @@ open class ClientDetailsEntity : ClientDetails {
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "client_scope", joinColumns = [JoinColumn(name = "owner_id")])
     @Column(name = "scope")
-    override fun getScope(): Set<String>? {
+    override fun getScope(): MutableSet<String> {
         return scope
     }
 
     /**
      * @param scope the set of scopes allowed to be issued to this client
      */
-    fun setScope(scope: Set<String>) {
-        this.scope = scope
+    fun setScope(scope: Set<String>?) {
+        this.scope = scope?.toHashSet() ?: hashSetOf()
     }
 
     /**
      * passthrough for SECOAUTH api
      */
     @Transient
-    override fun getAuthorizedGrantTypes(): Set<String>? {
+    override fun getAuthorizedGrantTypes(): MutableSet<String> {
         return grantTypes
     }
 
@@ -435,7 +435,7 @@ open class ClientDetailsEntity : ClientDetails {
      * Pass-through method to fulfill the ClientDetails interface with a bad name
      */
     @Transient
-    override fun getRegisteredRedirectUri(): Set<String> {
+    override fun getRegisteredRedirectUri(): Set<String>? {
         return redirectUris
     }
 
