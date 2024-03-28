@@ -5,102 +5,91 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.oauth2.introspectingfilter;
+ */
+package org.mitre.oauth2.introspectingfilter
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.Set;
+import com.google.common.collect.ImmutableSet
+import com.google.gson.JsonObject
+import org.hamcrest.CoreMatchers
+import org.hamcrest.MatcherAssert.assertThat
+import org.junit.jupiter.api.Test
+import java.util.*
 
-import org.junit.Test;
+class TestOAuth2AccessTokenImpl {
+    @Test
+    fun testFullToken() {
+        val tokenObj = JsonObject().apply {
+            addProperty("active", true)
+            addProperty("scope", scopeString)
+            addProperty("exp", expVal)
+            addProperty("sub", "subject")
+            addProperty("client_id", "123-456-789")
+        }
 
-import com.google.common.collect.ImmutableSet;
-import com.google.gson.JsonObject;
+        val tok = OAuth2AccessTokenImpl(tokenObj, tokenString)
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
+        assertThat(tok.scope, CoreMatchers.`is`(CoreMatchers.equalTo(scopes)))
+        assertThat(tok.expiration, CoreMatchers.`is`(CoreMatchers.equalTo(exp)))
+    }
 
-import static org.junit.Assert.assertThat;
+    @Test
+    fun testNullExp() {
+        val tokenObj = JsonObject().apply {
+            addProperty("active", true)
+            addProperty("scope", scopeString)
+            addProperty("sub", "subject")
+            addProperty("client_id", "123-456-789")
+        }
 
-public class TestOAuth2AccessTokenImpl {
+        val tok = OAuth2AccessTokenImpl(tokenObj, tokenString)
 
-	private static String tokenString = "thisisatokenstring";
+        assertThat(tok.scope, CoreMatchers.`is`(CoreMatchers.equalTo(scopes)))
+        assertThat(tok.expiration, CoreMatchers.`is`(CoreMatchers.equalTo(null)))
+    }
 
-	private static Set<String> scopes = ImmutableSet.of("bar", "foo");
-	private static String scopeString = "foo bar";
+    @Test
+    fun testNullScopes() {
+        val tokenObj = JsonObject().apply {
+            addProperty("active", true)
+            addProperty("exp", expVal)
+            addProperty("sub", "subject")
+            addProperty("client_id", "123-456-789")
+        }
 
-	private static Date exp = new Date(123 * 1000L);
-	private static Long expVal = 123L;
+        val tok = OAuth2AccessTokenImpl(tokenObj, tokenString)
 
-	@Test
-	public void testFullToken() {
+        assertThat(tok.scope, CoreMatchers.`is`(CoreMatchers.equalTo(Collections.EMPTY_SET)))
+        assertThat(tok.expiration, CoreMatchers.`is`(CoreMatchers.equalTo(exp)))
+    }
 
+    @Test
+    fun testNullScopesNullExp() {
+        val tokenObj = JsonObject().apply {
+            addProperty("active", true)
+            addProperty("sub", "subject")
+            addProperty("client_id", "123-456-789")
+        }
 
-		JsonObject tokenObj = new JsonObject();
-		tokenObj.addProperty("active", true);
-		tokenObj.addProperty("scope", scopeString);
-		tokenObj.addProperty("exp", expVal);
-		tokenObj.addProperty("sub", "subject");
-		tokenObj.addProperty("client_id", "123-456-789");
+        val tok = OAuth2AccessTokenImpl(tokenObj, tokenString)
 
-		OAuth2AccessTokenImpl tok = new OAuth2AccessTokenImpl(tokenObj, tokenString);
+        assertThat(tok.scope, CoreMatchers.`is`(CoreMatchers.equalTo(Collections.EMPTY_SET)))
+        assertThat(tok.expiration, CoreMatchers.`is`(CoreMatchers.equalTo(null)))
+    }
 
-		assertThat(tok.getScope(), is(equalTo(scopes)));
-		assertThat(tok.getExpiration(), is(equalTo(exp)));
-	}
+    companion object {
+        private const val tokenString = "thisisatokenstring"
 
-	@Test
-	public void testNullExp() {
+        private val scopes: Set<String> = ImmutableSet.of("bar", "foo")
+        private const val scopeString = "foo bar"
 
-
-		JsonObject tokenObj = new JsonObject();
-		tokenObj.addProperty("active", true);
-		tokenObj.addProperty("scope", scopeString);
-		tokenObj.addProperty("sub", "subject");
-		tokenObj.addProperty("client_id", "123-456-789");
-
-		OAuth2AccessTokenImpl tok = new OAuth2AccessTokenImpl(tokenObj, tokenString);
-
-		assertThat(tok.getScope(), is(equalTo(scopes)));
-		assertThat(tok.getExpiration(), is(equalTo(null)));
-	}
-
-	@Test
-	public void testNullScopes() {
-
-
-		JsonObject tokenObj = new JsonObject();
-		tokenObj.addProperty("active", true);
-		tokenObj.addProperty("exp", expVal);
-		tokenObj.addProperty("sub", "subject");
-		tokenObj.addProperty("client_id", "123-456-789");
-
-		OAuth2AccessTokenImpl tok = new OAuth2AccessTokenImpl(tokenObj, tokenString);
-
-		assertThat(tok.getScope(), is(equalTo(Collections.EMPTY_SET)));
-		assertThat(tok.getExpiration(), is(equalTo(exp)));
-	}
-
-	@Test
-	public void testNullScopesNullExp() {
-
-
-		JsonObject tokenObj = new JsonObject();
-		tokenObj.addProperty("active", true);
-		tokenObj.addProperty("sub", "subject");
-		tokenObj.addProperty("client_id", "123-456-789");
-
-		OAuth2AccessTokenImpl tok = new OAuth2AccessTokenImpl(tokenObj, tokenString);
-
-		assertThat(tok.getScope(), is(equalTo(Collections.EMPTY_SET)));
-		assertThat(tok.getExpiration(), is(equalTo(null)));
-	}
-
+        private val exp = Date(123 * 1000L)
+        private const val expVal = 123L
+    }
 }
