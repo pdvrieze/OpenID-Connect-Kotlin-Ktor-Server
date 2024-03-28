@@ -55,7 +55,7 @@ interface SystemScopeService {
 
     fun remove(scope: SystemScope)
 
-    fun save(scope: SystemScope): SystemScope
+    fun save(scope: SystemScope): SystemScope?
 
     /**
      * Translate the set of scope strings into a set of SystemScope objects.
