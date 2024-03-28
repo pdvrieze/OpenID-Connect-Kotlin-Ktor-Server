@@ -25,7 +25,7 @@ import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.uma.model.ResourceSet
 
 interface OAuth2TokenRepository {
-    fun saveAccessToken(token: OAuth2AccessTokenEntity): OAuth2AccessTokenEntity?
+    fun saveAccessToken(token: OAuth2AccessTokenEntity): OAuth2AccessTokenEntity
 
     fun getRefreshTokenByValue(refreshTokenValue: String): OAuth2RefreshTokenEntity?
 

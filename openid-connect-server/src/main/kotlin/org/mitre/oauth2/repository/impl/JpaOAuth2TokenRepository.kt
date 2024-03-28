@@ -76,7 +76,7 @@ class JpaOAuth2TokenRepository : OAuth2TokenRepository {
     }
 
     @Transactional(value = "defaultTransactionManager")
-    override fun saveAccessToken(token: OAuth2AccessTokenEntity): OAuth2AccessTokenEntity? {
+    override fun saveAccessToken(token: OAuth2AccessTokenEntity): OAuth2AccessTokenEntity {
         return saveOrUpdate(token.id, manager, token)
     }
 

@@ -92,7 +92,7 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
      * This map is not persisted to the database.
      */
     @Transient
-    override fun getAdditionalInformation(): Map<String, Any> {
+    override fun getAdditionalInformation(): MutableMap<String, Any>? {
         return additionalInformation
     }
 
