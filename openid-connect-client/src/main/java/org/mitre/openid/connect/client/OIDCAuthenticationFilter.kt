@@ -7,167 +7,148 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.openid.connect.client;
+ */
+package org.mitre.openid.connect.client
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.nimbusds.jose.Algorithm;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.util.Base64;
-import com.nimbusds.jose.util.Base64URL;
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.JWTParser;
-import com.nimbusds.jwt.PlainJWT;
-import com.nimbusds.jwt.SignedJWT;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.mitre.jwt.signer.service.JWTSigningAndValidationService;
-import org.mitre.jwt.signer.service.impl.JWKSetCacheService;
-import org.mitre.jwt.signer.service.impl.SymmetricKeyJWTValidatorCacheService;
-import org.mitre.oauth2.model.PKCEAlgorithm;
-import org.mitre.oauth2.model.RegisteredClient;
-import org.mitre.openid.connect.client.model.IssuerServiceResponse;
-import org.mitre.openid.connect.client.service.AuthRequestOptionsService;
-import org.mitre.openid.connect.client.service.AuthRequestUrlBuilder;
-import org.mitre.openid.connect.client.service.ClientConfigurationService;
-import org.mitre.openid.connect.client.service.IssuerService;
-import org.mitre.openid.connect.client.service.ServerConfigurationService;
-import org.mitre.openid.connect.client.service.impl.StaticAuthRequestOptionsService;
-import org.mitre.openid.connect.config.ServerConfiguration;
-import org.mitre.openid.connect.model.PendingOIDCAuthenticationToken;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.client.ClientHttpRequest;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.security.authentication.AuthenticationServiceException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriUtils;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
-import java.io.IOException;
-import java.math.BigInteger;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.text.ParseException;
-import java.util.Date;
-import java.util.Map;
-import java.util.UUID;
-
-import static org.mitre.oauth2.model.ClientDetailsEntity.AuthMethod.PRIVATE_KEY;
-import static org.mitre.oauth2.model.ClientDetailsEntity.AuthMethod.SECRET_BASIC;
-import static org.mitre.oauth2.model.ClientDetailsEntity.AuthMethod.SECRET_JWT;
+import com.google.common.base.Strings
+import com.google.common.collect.Lists
+import com.google.gson.JsonParser
+import com.nimbusds.jose.Algorithm
+import com.nimbusds.jose.JWSAlgorithm
+import com.nimbusds.jose.JWSHeader
+import com.nimbusds.jose.util.Base64
+import com.nimbusds.jose.util.Base64URL
+import com.nimbusds.jwt.JWTClaimsSet
+import com.nimbusds.jwt.JWTParser
+import com.nimbusds.jwt.PlainJWT
+import com.nimbusds.jwt.SignedJWT
+import org.apache.http.client.HttpClient
+import org.apache.http.client.config.RequestConfig
+import org.apache.http.impl.client.HttpClientBuilder
+import org.mitre.jwt.signer.service.JWTSigningAndValidationService
+import org.mitre.jwt.signer.service.impl.JWKSetCacheService
+import org.mitre.jwt.signer.service.impl.SymmetricKeyJWTValidatorCacheService
+import org.mitre.oauth2.model.ClientDetailsEntity.AuthMethod
+import org.mitre.oauth2.model.PKCEAlgorithm
+import org.mitre.openid.connect.client.service.AuthRequestOptionsService
+import org.mitre.openid.connect.client.service.AuthRequestUrlBuilder
+import org.mitre.openid.connect.client.service.ClientConfigurationService
+import org.mitre.openid.connect.client.service.IssuerService
+import org.mitre.openid.connect.client.service.ServerConfigurationService
+import org.mitre.openid.connect.client.service.impl.StaticAuthRequestOptionsService
+import org.mitre.openid.connect.model.PendingOIDCAuthenticationToken
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpMethod
+import org.springframework.http.client.ClientHttpRequest
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
+import org.springframework.security.authentication.AuthenticationServiceException
+import org.springframework.security.core.Authentication
+import org.springframework.security.core.AuthenticationException
+import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler
+import org.springframework.stereotype.Component
+import org.springframework.util.LinkedMultiValueMap
+import org.springframework.util.MultiValueMap
+import org.springframework.web.client.RestClientException
+import org.springframework.web.client.RestTemplate
+import org.springframework.web.util.UriUtils
+import java.io.IOException
+import java.math.BigInteger
+import java.net.URI
+import java.nio.charset.StandardCharsets
+import java.security.MessageDigest
+import java.security.NoSuchAlgorithmException
+import java.security.SecureRandom
+import java.text.ParseException
+import java.util.*
+import javax.servlet.ServletException
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
+import javax.servlet.http.HttpSession
 
 /**
  * OpenID Connect Authentication Filter class
  *
  * @author nemonik, jricher
- *
  */
-public class OIDCAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
+@Component
+class OIDCAuthenticationFilter : AbstractAuthenticationProcessingFilter(FILTER_PROCESSES_URL) {
+    //
+    // Getters and setters for configuration variables
+    //
+    // Allow for time sync issues by having a window of X seconds.
+    var timeSkewAllowance: Int = 300
 
-	protected final static String REDIRECT_URI_SESION_VARIABLE = "redirect_uri";
-	protected final static String CODE_VERIFIER_SESSION_VARIABLE = "code_verifier";
-	protected final static String STATE_SESSION_VARIABLE = "state";
-	protected final static String NONCE_SESSION_VARIABLE = "nonce";
-	protected final static String ISSUER_SESSION_VARIABLE = "issuer";
-	protected final static String TARGET_SESSION_VARIABLE = "target";
-	protected final static int HTTP_SOCKET_TIMEOUT = 30000;
+    // fetches and caches public keys for servers
+    @Autowired(required = false)
+    var validationServices: JWKSetCacheService? = null
 
-	public final static String FILTER_PROCESSES_URL = "/openid_connect_login";
+    // creates JWT signer/validators for symmetric keys
+    @Autowired(required = false)
+    var symmetricCacheService: SymmetricKeyJWTValidatorCacheService? = null
 
-	// Allow for time sync issues by having a window of X seconds.
-	private int timeSkewAllowance = 300;
+    // signer based on keypair for this client (for outgoing auth requests)
+    @Autowired(required = false)
+    private val authenticationSignerService: JWTSigningAndValidationService? = null
 
-	// fetches and caches public keys for servers
-	@Autowired(required=false)
-	private JWKSetCacheService validationServices;
+    @Autowired(required = false)
+    private var httpClient: HttpClient? = null
 
-	// creates JWT signer/validators for symmetric keys
-	@Autowired(required=false)
-	private SymmetricKeyJWTValidatorCacheService symmetricCacheService;
-
-	// signer based on keypair for this client (for outgoing auth requests)
-	@Autowired(required=false)
-	private JWTSigningAndValidationService authenticationSignerService;
-
-	@Autowired(required=false)
-	private HttpClient httpClient;
-
-	/*
+    /*
 	 * Modular services to build out client filter.
 	 */
-	// looks at the request and determines which issuer to use for lookup on the server
-	private IssuerService issuerService;
-	// holds server information (auth URI, token URI, etc.), indexed by issuer
-	private ServerConfigurationService servers;
-	// holds client information (client ID, redirect URI, etc.), indexed by issuer of the server
-	private ClientConfigurationService clients;
-	// provides extra options to inject into the outbound request
-	private AuthRequestOptionsService authOptions = new StaticAuthRequestOptionsService(); // initialize with an empty set of options
-	// builds the actual request URI based on input from all other services
-	private AuthRequestUrlBuilder authRequestBuilder;
+    // looks at the request and determines which issuer to use for lookup on the server
+    lateinit var issuerService: IssuerService
 
-	// private helpers to handle target link URLs
-	private TargetLinkURIAuthenticationSuccessHandler targetSuccessHandler = new TargetLinkURIAuthenticationSuccessHandler();
-	private TargetLinkURIChecker deepLinkFilter;
+    // holds server information (auth URI, token URI, etc.), indexed by issuer
+    var serverConfigurationService: ServerConfigurationService? = null
 
-	protected int httpSocketTimeout = HTTP_SOCKET_TIMEOUT;
+    // holds client information (client ID, redirect URI, etc.), indexed by issuer of the server
+    var clientConfigurationService: ClientConfigurationService? = null
 
-	/**
-	 * OpenIdConnectAuthenticationFilter constructor
-	 */
-	public OIDCAuthenticationFilter() {
-		super(FILTER_PROCESSES_URL);
-		targetSuccessHandler.passthrough = super.getSuccessHandler();
-		super.setAuthenticationSuccessHandler(targetSuccessHandler);
-	}
+    // provides extra options to inject into the outbound request
+    var authRequestOptionsService: AuthRequestOptionsService =
+        StaticAuthRequestOptionsService() // initialize with an empty set of options
 
-	@Override
-	public void afterPropertiesSet() {
-		super.afterPropertiesSet();
+    // builds the actual request URI based on input from all other services
+    lateinit var authRequestUrlBuilder: AuthRequestUrlBuilder
 
-		// if our JOSE validators don't get wired in, drop defaults into place
+    // private helpers to handle target link URLs
+    var targetLinkURIAuthenticationSuccessHandler: TargetLinkURIAuthenticationSuccessHandler =
+        TargetLinkURIAuthenticationSuccessHandler()
+    private var deepLinkFilter: TargetLinkURIChecker? = null
 
-		if (validationServices == null) {
-			validationServices = new JWKSetCacheService();
-		}
+    protected var httpSocketTimeout: Int = HTTP_SOCKET_TIMEOUT
 
-		if (symmetricCacheService == null) {
-			symmetricCacheService = new SymmetricKeyJWTValidatorCacheService();
-		}
+    /**
+     * OpenIdConnectAuthenticationFilter constructor
+     */
+    init {
+        targetLinkURIAuthenticationSuccessHandler.passthrough = super.getSuccessHandler()
+        super.setAuthenticationSuccessHandler(targetLinkURIAuthenticationSuccessHandler)
+    }
 
-	}
+    override fun afterPropertiesSet() {
+        super.afterPropertiesSet()
 
-	/*
+        // if our JOSE validators don't get wired in, drop defaults into place
+        if (validationServices == null) {
+            validationServices = JWKSetCacheService()
+        }
+
+        if (symmetricCacheService == null) {
+            symmetricCacheService = SymmetricKeyJWTValidatorCacheService()
+        }
+    }
+
+    /*
 	 * This is the main entry point for the filter.
 	 *
 	 * (non-Javadoc)
@@ -177,669 +158,596 @@ public class OIDCAuthenticationFilter extends AbstractAuthenticationProcessingFi
 	 * #attemptAuthentication(javax.servlet.http.HttpServletRequest,
 	 * javax.servlet.http.HttpServletResponse)
 	 */
-	@Override
-	public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException, ServletException {
-
-		if (!Strings.isNullOrEmpty(request.getParameter("error"))) {
-
-			// there's an error coming back from the server, need to handle this
-			handleError(request, response);
-			return null; // no auth, response is sent to display page or something
-
-		} else if (!Strings.isNullOrEmpty(request.getParameter("code"))) {
-
-			// we got back the code, need to process this to get our tokens
-			Authentication auth = handleAuthorizationCodeResponse(request, response);
-			return auth;
-
-		} else {
-
-			// not an error, not a code, must be an initial login of some type
-			handleAuthorizationRequest(request, response);
-
-			return null; // no auth, response redirected to the server's Auth Endpoint (or possibly to the account chooser)
-		}
-
-	}
-
-	/**
-	 * Initiate an Authorization request
-	 *
-	 *            The request from which to extract parameters and perform the
-	 *            authentication
-	 * @throws IOException
-	 *             If an input or output exception occurs
-	 */
-	protected void handleAuthorizationRequest(HttpServletRequest request, HttpServletResponse response) throws IOException {
-
-		HttpSession session = request.getSession();
-
-		IssuerServiceResponse issResp = issuerService.getIssuer(request);
-
-		if (issResp == null) {
-			logger.error("Null issuer response returned from service.");
-			throw new AuthenticationServiceException("No issuer found.");
-		}
-
-		if (issResp.shouldRedirect()) {
-			response.sendRedirect(issResp.getRedirectUrl());
-		} else {
-			String issuer = issResp.getIssuer();
-
-			if (!Strings.isNullOrEmpty(issResp.getTargetLinkUri())) {
-				// there's a target URL in the response, we should save this so we can forward to it later
-				session.setAttribute(TARGET_SESSION_VARIABLE, issResp.getTargetLinkUri());
-			}
-
-			if (Strings.isNullOrEmpty(issuer)) {
-				logger.error("No issuer found: " + issuer);
-				throw new AuthenticationServiceException("No issuer found: " + issuer);
-			}
-
-			ServerConfiguration serverConfig = servers.getServerConfiguration(issuer);
-			if (serverConfig == null) {
-				logger.error("No server configuration found for issuer: " + issuer);
-				throw new AuthenticationServiceException("No server configuration found for issuer: " + issuer);
-			}
-
-
-			session.setAttribute(ISSUER_SESSION_VARIABLE, serverConfig.getIssuer());
-
-			RegisteredClient clientConfig = clients.getClientConfiguration(serverConfig);
-			if (clientConfig == null) {
-				logger.error("No client configuration found for issuer: " + issuer);
-				throw new AuthenticationServiceException("No client configuration found for issuer: " + issuer);
-			}
-
-			String redirectUri = null;
-			if (clientConfig.getRegisteredRedirectUri() != null && clientConfig.getRegisteredRedirectUri().size() == 1) {
-				// if there's a redirect uri configured (and only one), use that
-				redirectUri = Iterables.getOnlyElement(clientConfig.getRegisteredRedirectUri());
-			} else {
-				// otherwise our redirect URI is this current URL, with no query parameters
-				redirectUri = request.getRequestURL().toString();
-			}
-			session.setAttribute(REDIRECT_URI_SESION_VARIABLE, redirectUri);
-
-			// this value comes back in the id token and is checked there
-			String nonce = createNonce(session);
-
-			// this value comes back in the auth code response
-			String state = createState(session);
-
-			Map<String, String> options = authOptions.getOptions(serverConfig, clientConfig, request);
-
-			// if we're using PKCE, handle the challenge here
-			if (clientConfig.getCodeChallengeMethod() != null) {
-				String codeVerifier = createCodeVerifier(session);
-				options.put("code_challenge_method", clientConfig.getCodeChallengeMethod().getName());
-				if (clientConfig.getCodeChallengeMethod().equals(PKCEAlgorithm.plain)) {
-					options.put("code_challenge", codeVerifier);
-				} else if (clientConfig.getCodeChallengeMethod().equals(PKCEAlgorithm.S256)) {
-					try {
-						MessageDigest digest = MessageDigest.getInstance("SHA-256");
-						String hash = Base64URL.encode(digest.digest(codeVerifier.getBytes(StandardCharsets.US_ASCII))).toString();
-						options.put("code_challenge", hash);
-					} catch (NoSuchAlgorithmException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-
-
-				}
-			}
-
-			String authRequest = authRequestBuilder.buildAuthRequestUrl(serverConfig, clientConfig, redirectUri, nonce, state, options, issResp.getLoginHint());
-
-			logger.debug("Auth Request:  " + authRequest);
-
-			response.sendRedirect(authRequest);
-		}
-	}
-
-	/**
-	 *            The request from which to extract parameters and perform the
-	 *            authentication
-	 * @return The authenticated user token, or null if authentication is
-	 *         incomplete.
-	 */
-	protected Authentication handleAuthorizationCodeResponse(HttpServletRequest request, HttpServletResponse response) {
-
-		String authorizationCode = request.getParameter("code");
-
-		HttpSession session = request.getSession();
-
-		// check for state, if it doesn't match we bail early
-		String storedState = getStoredState(session);
-		String requestState = request.getParameter("state");
-		if (storedState == null || !storedState.equals(requestState)) {
-			throw new AuthenticationServiceException("State parameter mismatch on return. Expected " + storedState + " got " + requestState);
-		}
-
-		// look up the issuer that we set out to talk to
-		String issuer = getStoredSessionString(session, ISSUER_SESSION_VARIABLE);
-
-		// pull the configurations based on that issuer
-		ServerConfiguration serverConfig = servers.getServerConfiguration(issuer);
-		final RegisteredClient clientConfig = clients.getClientConfiguration(serverConfig);
-
-		MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
-		form.add("grant_type", "authorization_code");
-		form.add("code", authorizationCode);
-		form.setAll(authOptions.getTokenOptions(serverConfig, clientConfig, request));
-
-		String codeVerifier = getStoredCodeVerifier(session);
-		if (codeVerifier != null) {
-			form.add("code_verifier", codeVerifier);
-		}
-
-		String redirectUri = getStoredSessionString(session, REDIRECT_URI_SESION_VARIABLE);
-		if (redirectUri != null) {
-			form.add("redirect_uri", redirectUri);
-		}
-
-		// Handle Token Endpoint interaction
-
-		if(httpClient == null) {
-			httpClient = HttpClientBuilder.create()
-					.useSystemProperties()
-					.setDefaultRequestConfig(RequestConfig.custom()
-							.setSocketTimeout(httpSocketTimeout)
-							.build())
-					.build();
-		}
-
-		HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
-
-		RestTemplate restTemplate;
-
-		if (SECRET_BASIC.equals(clientConfig.getTokenEndpointAuthMethod())){
-			// use BASIC auth if configured to do so
-			restTemplate = new RestTemplate(factory) {
-
-				@Override
-				protected ClientHttpRequest createRequest(URI url, HttpMethod method) throws IOException {
-					ClientHttpRequest httpRequest = super.createRequest(url, method);
-					httpRequest.getHeaders().add("Authorization",
-							String.format("Basic %s", Base64.encode(String.format("%s:%s",
-									UriUtils.encodePathSegment(clientConfig.getClientId(), "UTF-8"),
-									UriUtils.encodePathSegment(clientConfig.getClientSecret(), "UTF-8")))));
-
-					return httpRequest;
-				}
-			};
-		} else {
-			// we're not doing basic auth, figure out what other flavor we have
-			restTemplate = new RestTemplate(factory);
-
-			if (SECRET_JWT.equals(clientConfig.getTokenEndpointAuthMethod()) || PRIVATE_KEY.equals(clientConfig.getTokenEndpointAuthMethod())) {
-				// do a symmetric secret signed JWT for auth
-
-
-				JWTSigningAndValidationService signer = null;
-				JWSAlgorithm alg = clientConfig.getTokenEndpointAuthSigningAlg();
-
-				if (SECRET_JWT.equals(clientConfig.getTokenEndpointAuthMethod()) &&
-						(JWSAlgorithm.HS256.equals(alg)
-								|| JWSAlgorithm.HS384.equals(alg)
-								|| JWSAlgorithm.HS512.equals(alg))) {
-
-					// generate one based on client secret
-					signer = symmetricCacheService.getSymmetricValidtor(clientConfig.getClient());
-
-				} else if (PRIVATE_KEY.equals(clientConfig.getTokenEndpointAuthMethod())) {
-
-					// needs to be wired in to the bean
-					signer = authenticationSignerService;
-
-					if (alg == null) {
-						alg = authenticationSignerService.getDefaultSigningAlgorithm();
-					}
-				}
-
-				if (signer == null) {
-					throw new AuthenticationServiceException("Couldn't find required signer service for use with private key auth.");
-				}
-
-				JWTClaimsSet.Builder claimsSet = new JWTClaimsSet.Builder();
-
-				claimsSet.issuer(clientConfig.getClientId());
-				claimsSet.subject(clientConfig.getClientId());
-				claimsSet.audience(Lists.newArrayList(serverConfig.getTokenEndpointUri()));
-				claimsSet.jwtID(UUID.randomUUID().toString());
-
-				// TODO: make this configurable
-				Date exp = new Date(System.currentTimeMillis() + (60 * 1000)); // auth good for 60 seconds
-				claimsSet.expirationTime(exp);
-
-				Date now = new Date(System.currentTimeMillis());
-				claimsSet.issueTime(now);
-				claimsSet.notBeforeTime(now);
-
-				JWSHeader header = new JWSHeader(alg, null, null, null, null, null, null, null, null, null,
-						signer.getDefaultSignerKeyId(),
-						null, null);
-				SignedJWT jwt = new SignedJWT(header, claimsSet.build());
-
-				signer.signJwt(jwt, alg);
-
-				form.add("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer");
-				form.add("client_assertion", jwt.serialize());
-			} else {
-				//Alternatively use form based auth
-				form.add("client_id", clientConfig.getClientId());
-				form.add("client_secret", clientConfig.getClientSecret());
-			}
-
-		}
-
-		logger.debug("tokenEndpointURI = " + serverConfig.getTokenEndpointUri());
-		logger.debug("form = " + form);
-
-		String jsonString = null;
-
-		try {
-			jsonString = restTemplate.postForObject(serverConfig.getTokenEndpointUri(), form, String.class);
-		} catch (RestClientException e) {
-
-			// Handle error
-
-			logger.error("Token Endpoint error response:  " + e.getMessage());
-
-			throw new AuthenticationServiceException("Unable to obtain Access Token: " + e.getMessage());
-		}
-
-		logger.debug("from TokenEndpoint jsonString = " + jsonString);
-
-		JsonElement jsonRoot = new JsonParser().parse(jsonString);
-		if (!jsonRoot.isJsonObject()) {
-			throw new AuthenticationServiceException("Token Endpoint did not return a JSON object: " + jsonRoot);
-		}
-
-		JsonObject tokenResponse = jsonRoot.getAsJsonObject();
-
-		if (tokenResponse.get("error") != null) {
-
-			// Handle error
-
-			String error = tokenResponse.get("error").getAsString();
-
-			logger.error("Token Endpoint returned: " + error);
-
-			throw new AuthenticationServiceException("Unable to obtain Access Token.  Token Endpoint returned: " + error);
-
-		} else {
-
-			// Extract the id_token to insert into the
-			// OIDCAuthenticationToken
-
-			// get out all the token strings
-			String accessTokenValue = null;
-			String idTokenValue = null;
-			String refreshTokenValue = null;
-
-			if (tokenResponse.has("access_token")) {
-				accessTokenValue = tokenResponse.get("access_token").getAsString();
-			} else {
-				throw new AuthenticationServiceException("Token Endpoint did not return an access_token: " + jsonString);
-			}
-
-			if (tokenResponse.has("id_token")) {
-				idTokenValue = tokenResponse.get("id_token").getAsString();
-			} else {
-				logger.error("Token Endpoint did not return an id_token");
-				throw new AuthenticationServiceException("Token Endpoint did not return an id_token");
-			}
-
-			if (tokenResponse.has("refresh_token")) {
-				refreshTokenValue = tokenResponse.get("refresh_token").getAsString();
-			}
-
-			try {
-				JWT idToken = JWTParser.parse(idTokenValue);
-
-				// validate our ID Token over a number of tests
-				JWTClaimsSet idClaims = idToken.getJWTClaimsSet();
-
-				// check the signature
-				JWTSigningAndValidationService jwtValidator = null;
-
-				Algorithm tokenAlg = idToken.getHeader().getAlgorithm();
-
-				Algorithm clientAlg = clientConfig.getIdTokenSignedResponseAlg();
-
-				if (clientAlg != null) {
-					if (!clientAlg.equals(tokenAlg)) {
-						throw new AuthenticationServiceException("Token algorithm " + tokenAlg + " does not match expected algorithm " + clientAlg);
-					}
-				}
-
-				if (idToken instanceof PlainJWT) {
-
-					if (clientAlg == null) {
-						throw new AuthenticationServiceException("Unsigned ID tokens can only be used if explicitly configured in client.");
-					}
-
-					if (tokenAlg != null && !tokenAlg.equals(Algorithm.NONE)) {
-						throw new AuthenticationServiceException("Unsigned token received, expected signature with " + tokenAlg);
-					}
-				} else if (idToken instanceof SignedJWT) {
-
-					SignedJWT signedIdToken = (SignedJWT)idToken;
-
-					if (tokenAlg.equals(JWSAlgorithm.HS256)
-							|| tokenAlg.equals(JWSAlgorithm.HS384)
-							|| tokenAlg.equals(JWSAlgorithm.HS512)) {
-
-						// generate one based on client secret
-						jwtValidator = symmetricCacheService.getSymmetricValidtor(clientConfig.getClient());
-					} else {
-						// otherwise load from the server's public key
-						jwtValidator = validationServices.getValidator(serverConfig.getJwksUri());
-					}
-
-					if (jwtValidator != null) {
-						if(!jwtValidator.validateSignature(signedIdToken)) {
-							throw new AuthenticationServiceException("Signature validation failed");
-						}
-					} else {
-						logger.error("No validation service found. Skipping signature validation");
-						throw new AuthenticationServiceException("Unable to find an appropriate signature validator for ID Token.");
-					}
-				} // TODO: encrypted id tokens
-
-				// check the issuer
-				if (idClaims.getIssuer() == null) {
-					throw new AuthenticationServiceException("Id Token Issuer is null");
-				} else if (!idClaims.getIssuer().equals(serverConfig.getIssuer())){
-					throw new AuthenticationServiceException("Issuers do not match, expected " + serverConfig.getIssuer() + " got " + idClaims.getIssuer());
-				}
-
-				// check expiration
-				if (idClaims.getExpirationTime() == null) {
-					throw new AuthenticationServiceException("Id Token does not have required expiration claim");
-				} else {
-					// it's not null, see if it's expired
-					Date now = new Date(System.currentTimeMillis() - (timeSkewAllowance * 1000));
-					if (now.after(idClaims.getExpirationTime())) {
-						throw new AuthenticationServiceException("Id Token is expired: " + idClaims.getExpirationTime());
-					}
-				}
-
-				// check not before
-				if (idClaims.getNotBeforeTime() != null) {
-					Date now = new Date(System.currentTimeMillis() + (timeSkewAllowance * 1000));
-					if (now.before(idClaims.getNotBeforeTime())){
-						throw new AuthenticationServiceException("Id Token not valid untill: " + idClaims.getNotBeforeTime());
-					}
-				}
-
-				// check issued at
-				if (idClaims.getIssueTime() == null) {
-					throw new AuthenticationServiceException("Id Token does not have required issued-at claim");
-				} else {
-					// since it's not null, see if it was issued in the future
-					Date now = new Date(System.currentTimeMillis() + (timeSkewAllowance * 1000));
-					if (now.before(idClaims.getIssueTime())) {
-						throw new AuthenticationServiceException("Id Token was issued in the future: " + idClaims.getIssueTime());
-					}
-				}
-
-				// check audience
-				if (idClaims.getAudience() == null) {
-					throw new AuthenticationServiceException("Id token audience is null");
-				} else if (!idClaims.getAudience().contains(clientConfig.getClientId())) {
-					throw new AuthenticationServiceException("Audience does not match, expected " + clientConfig.getClientId() + " got " + idClaims.getAudience());
-				}
-
-				// compare the nonce to our stored claim
-				String nonce = idClaims.getStringClaim("nonce");
-				if (Strings.isNullOrEmpty(nonce)) {
-
-					logger.error("ID token did not contain a nonce claim.");
-
-					throw new AuthenticationServiceException("ID token did not contain a nonce claim.");
-				}
-
-				String storedNonce = getStoredNonce(session);
-				if (!nonce.equals(storedNonce)) {
-					logger.error("Possible replay attack detected! The comparison of the nonce in the returned "
-							+ "ID Token to the session " + NONCE_SESSION_VARIABLE + " failed. Expected " + storedNonce + " got " + nonce + ".");
-
-					throw new AuthenticationServiceException(
-							"Possible replay attack detected! The comparison of the nonce in the returned "
-									+ "ID Token to the session " + NONCE_SESSION_VARIABLE + " failed. Expected " + storedNonce + " got " + nonce + ".");
-				}
-
-				// construct an PendingOIDCAuthenticationToken and return a Authentication object w/the userId and the idToken
-
-				PendingOIDCAuthenticationToken token = new PendingOIDCAuthenticationToken(idClaims.getSubject(), idClaims.getIssuer(),
-						serverConfig,
-						idToken, accessTokenValue, refreshTokenValue);
-
-				Authentication authentication = this.getAuthenticationManager().authenticate(token);
-
-				return authentication;
-			} catch (ParseException e) {
-				throw new AuthenticationServiceException("Couldn't parse idToken: ", e);
-			}
-
-
-
-		}
-	}
-
-	/**
-	 * Handle Authorization Endpoint error
-	 *
-	 *            The request from which to extract parameters and handle the
-	 *            error
-	 *            The response, needed to do a redirect to display the error
-	 * @throws IOException
-	 *             If an input or output exception occurs
-	 */
-	protected void handleError(HttpServletRequest request, HttpServletResponse response) throws IOException {
-
-		String error = request.getParameter("error");
-		String errorDescription = request.getParameter("error_description");
-		String errorURI = request.getParameter("error_uri");
-
-		throw new AuthorizationEndpointException(error, errorDescription, errorURI);
-	}
-
-	/**
-	 * Get the named stored session variable as a string. Return null if not found or not a string.
-	 */
-	private static String getStoredSessionString(HttpSession session, String key) {
-		Object o = session.getAttribute(key);
-		if (o != null && o instanceof String) {
-			return o.toString();
-		} else {
-			return null;
-		}
-	}
-
-	/**
-	 * Create a cryptographically random nonce and store it in the session
-	 */
-	protected static String createNonce(HttpSession session) {
-		String nonce = new BigInteger(50, new SecureRandom()).toString(16);
-		session.setAttribute(NONCE_SESSION_VARIABLE, nonce);
-
-		return nonce;
-	}
-
-	/**
-	 * Get the nonce we stored in the session
-	 */
-	protected static String getStoredNonce(HttpSession session) {
-		return getStoredSessionString(session, NONCE_SESSION_VARIABLE);
-	}
-
-	/**
-	 * Create a cryptographically random state and store it in the session
-	 */
-	protected static String createState(HttpSession session) {
-		String state = new BigInteger(50, new SecureRandom()).toString(16);
-		session.setAttribute(STATE_SESSION_VARIABLE, state);
-
-		return state;
-	}
-
-	/**
-	 * Get the state we stored in the session
-	 */
-	protected static String getStoredState(HttpSession session) {
-		return getStoredSessionString(session, STATE_SESSION_VARIABLE);
-	}
-
-	/**
-	 * Create a random code challenge and store it in the session
-	 */
-	protected static String createCodeVerifier(HttpSession session) {
-		String challenge = new BigInteger(50, new SecureRandom()).toString(16);
-		session.setAttribute(CODE_VERIFIER_SESSION_VARIABLE, challenge);
-		return challenge;
-	}
-
-	/**
-	 * Retrieve the stored challenge from our session
-	 */
-	protected static String getStoredCodeVerifier(HttpSession session) {
-		return getStoredSessionString(session, CODE_VERIFIER_SESSION_VARIABLE);
-	}
-
-
-	@Override
-	public void setAuthenticationSuccessHandler(AuthenticationSuccessHandler successHandler) {
-		targetSuccessHandler.passthrough = successHandler;
-		super.setAuthenticationSuccessHandler(targetSuccessHandler);
-	}
-
-
-
-
-	/**
-	 * Handle a successful authentication event. If the issuer service sets
-	 * a target URL, we'll go to that. Otherwise we'll let the superclass handle
-	 * it for us with the configured behavior.
-	 */
-	protected class TargetLinkURIAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
-
-		private AuthenticationSuccessHandler passthrough;
-
-		@Override
-		public void onAuthenticationSuccess(HttpServletRequest request,
-				HttpServletResponse response, Authentication authentication)
-						throws IOException, ServletException {
-
-			HttpSession session = request.getSession();
-
-			// check to see if we've got a target
-			String target = getStoredSessionString(session, TARGET_SESSION_VARIABLE);
-
-			if (!Strings.isNullOrEmpty(target)) {
-				session.removeAttribute(TARGET_SESSION_VARIABLE);
-
-				if (deepLinkFilter != null) {
-					target = deepLinkFilter.filter(target);
-				}
-
-				response.sendRedirect(target);
-			} else {
-				// if the target was blank, use the default behavior here
-				passthrough.onAuthenticationSuccess(request, response, authentication);
-			}
-
-		}
-
-	}
-
-
-	//
-	// Getters and setters for configuration variables
-	//
-
-
-	public int getTimeSkewAllowance() {
-		return timeSkewAllowance;
-	}
-
-	public void setTimeSkewAllowance(int timeSkewAllowance) {
-		this.timeSkewAllowance = timeSkewAllowance;
-	}
-
-	public JWKSetCacheService getValidationServices() {
-		return validationServices;
-	}
-
-	public void setValidationServices(JWKSetCacheService validationServices) {
-		this.validationServices = validationServices;
-	}
-
-	public ServerConfigurationService getServerConfigurationService() {
-		return servers;
-	}
-
-	public void setServerConfigurationService(ServerConfigurationService servers) {
-		this.servers = servers;
-	}
-
-	public ClientConfigurationService getClientConfigurationService() {
-		return clients;
-	}
-
-	public void setClientConfigurationService(ClientConfigurationService clients) {
-		this.clients = clients;
-	}
-
-	public IssuerService getIssuerService() {
-		return issuerService;
-	}
-
-	public void setIssuerService(IssuerService issuerService) {
-		this.issuerService = issuerService;
-	}
-
-	public AuthRequestUrlBuilder getAuthRequestUrlBuilder() {
-		return authRequestBuilder;
-	}
-
-	public void setAuthRequestUrlBuilder(AuthRequestUrlBuilder authRequestBuilder) {
-		this.authRequestBuilder = authRequestBuilder;
-	}
-
-	public AuthRequestOptionsService getAuthRequestOptionsService() {
-		return authOptions;
-	}
-
-	public void setAuthRequestOptionsService(AuthRequestOptionsService authOptions) {
-		this.authOptions = authOptions;
-	}
-
-	public SymmetricKeyJWTValidatorCacheService getSymmetricCacheService() {
-		return symmetricCacheService;
-	}
-
-	public void setSymmetricCacheService(SymmetricKeyJWTValidatorCacheService symmetricCacheService) {
-		this.symmetricCacheService = symmetricCacheService;
-	}
-
-	public TargetLinkURIAuthenticationSuccessHandler getTargetLinkURIAuthenticationSuccessHandler() {
-		return targetSuccessHandler;
-	}
-
-	public void setTargetLinkURIAuthenticationSuccessHandler(
-			TargetLinkURIAuthenticationSuccessHandler targetSuccessHandler) {
-		this.targetSuccessHandler = targetSuccessHandler;
-	}
-
-	public TargetLinkURIChecker targetLinkURIChecker() {
-		return deepLinkFilter;
-	}
-
-	public void setTargetLinkURIChecker(TargetLinkURIChecker deepLinkFilter) {
-		this.deepLinkFilter = deepLinkFilter;
-	}
-
+    @Throws(AuthenticationException::class, IOException::class, ServletException::class)
+    override fun attemptAuthentication(request: HttpServletRequest, response: HttpServletResponse): Authentication? {
+        if (!Strings.isNullOrEmpty(request.getParameter("error"))) {
+            // there's an error coming back from the server, need to handle this
+
+            handleError(request, response)
+            return null // no auth, response is sent to display page or something
+        } else if (!Strings.isNullOrEmpty(request.getParameter("code"))) {
+            // we got back the code, need to process this to get our tokens
+
+            val auth = handleAuthorizationCodeResponse(request, response)
+            return auth
+        } else {
+            // not an error, not a code, must be an initial login of some type
+
+            handleAuthorizationRequest(request, response)
+
+            return null // no auth, response redirected to the server's Auth Endpoint (or possibly to the account chooser)
+        }
+    }
+
+    /**
+     * Initiate an Authorization request
+     *
+     * The request from which to extract parameters and perform the
+     * authentication
+     * @throws IOException
+     * If an input or output exception occurs
+     */
+    @Throws(IOException::class)
+    protected fun handleAuthorizationRequest(request: HttpServletRequest, response: HttpServletResponse) {
+        val session = request.session
+
+        val issResp = issuerService.getIssuer(request)
+
+        if (issResp == null) {
+            logger.error("Null issuer response returned from service.")
+            throw AuthenticationServiceException("No issuer found.")
+        }
+
+        if (issResp.shouldRedirect()) {
+            response.sendRedirect(issResp.redirectUrl)
+        } else {
+            val issuer = issResp.issuer
+
+            if (!Strings.isNullOrEmpty(issResp.targetLinkUri)) {
+                // there's a target URL in the response, we should save this so we can forward to it later
+                session.setAttribute(TARGET_SESSION_VARIABLE, issResp.targetLinkUri)
+            }
+
+            if (Strings.isNullOrEmpty(issuer)) {
+                logger.error("No issuer found: $issuer")
+                throw AuthenticationServiceException("No issuer found: $issuer")
+            }
+
+            val serverConfig = serverConfigurationService!!.getServerConfiguration(issuer)
+            if (serverConfig == null) {
+                logger.error("No server configuration found for issuer: $issuer")
+                throw AuthenticationServiceException("No server configuration found for issuer: $issuer")
+            }
+
+
+            session.setAttribute(ISSUER_SESSION_VARIABLE, serverConfig.issuer)
+
+            val clientConfig = clientConfigurationService!!.getClientConfiguration(serverConfig)
+            if (clientConfig == null) {
+                logger.error("No client configuration found for issuer: $issuer")
+                throw AuthenticationServiceException("No client configuration found for issuer: $issuer")
+            }
+
+            val redirectUri: String?
+            val clientRegisteredRedirectUri = clientConfig.registeredRedirectUri
+            redirectUri =
+                if (clientRegisteredRedirectUri != null && clientRegisteredRedirectUri.size == 1) {
+                    // if there's a redirect uri configured (and only one), use that
+                    clientRegisteredRedirectUri.single()
+                } else {
+                    // otherwise our redirect URI is this current URL, with no query parameters
+                    request.requestURL.toString()
+                }
+            session.setAttribute(REDIRECT_URI_SESION_VARIABLE, redirectUri)
+
+            // this value comes back in the id token and is checked there
+            val nonce = createNonce(session)
+
+            // this value comes back in the auth code response
+            val state = createState(session)
+
+            val options: MutableMap<String, String> =
+                authRequestOptionsService.getOptions(serverConfig, clientConfig, request)
+
+            // if we're using PKCE, handle the challenge here
+            if (clientConfig.codeChallengeMethod != null) {
+                val codeVerifier = createCodeVerifier(session)
+                options.put("code_challenge_method", clientConfig.codeChallengeMethod!!.name)
+                if (clientConfig.codeChallengeMethod == PKCEAlgorithm.plain) {
+                    options.put("code_challenge", codeVerifier)
+                } else if (clientConfig.codeChallengeMethod == PKCEAlgorithm.S256) {
+                    try {
+                        val digest = MessageDigest.getInstance("SHA-256")
+                        val hash = Base64URL.encode(digest.digest(codeVerifier.toByteArray(StandardCharsets.US_ASCII)))
+                            .toString()
+                        options.put("code_challenge", hash)
+                    } catch (e: NoSuchAlgorithmException) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace()
+                    }
+                }
+            }
+
+            val authRequest =
+                authRequestUrlBuilder.buildAuthRequestUrl(serverConfig, clientConfig, redirectUri, nonce, state, options, issResp.loginHint)
+
+            logger.debug("Auth Request:  $authRequest")
+
+            response.sendRedirect(authRequest)
+        }
+    }
+
+    /**
+     * The request from which to extract parameters and perform the
+     * authentication
+     * @return The authenticated user token, or null if authentication is
+     * incomplete.
+     */
+    protected fun handleAuthorizationCodeResponse(
+        request: HttpServletRequest,
+        response: HttpServletResponse?
+    ): Authentication {
+        val authorizationCode = request.getParameter("code")
+
+        val session = request.session
+
+        // check for state, if it doesn't match we bail early
+        val storedState = getStoredState(session)
+        val requestState = request.getParameter("state")
+        if (storedState == null || storedState != requestState) {
+            throw AuthenticationServiceException("State parameter mismatch on return. Expected $storedState got $requestState")
+        }
+
+        // look up the issuer that we set out to talk to
+        val issuer = getStoredSessionString(session, ISSUER_SESSION_VARIABLE)
+
+        // pull the configurations based on that issuer
+        val serverConfig = serverConfigurationService!!.getServerConfiguration(issuer)
+        val clientConfig = clientConfigurationService!!.getClientConfiguration(serverConfig)
+
+        val form: MultiValueMap<String, String?> = LinkedMultiValueMap()
+        form.add("grant_type", "authorization_code")
+        form.add("code", authorizationCode)
+        form.setAll(authRequestOptionsService.getTokenOptions(serverConfig!!, clientConfig!!, request))
+
+        val codeVerifier = getStoredCodeVerifier(session)
+        if (codeVerifier != null) {
+            form.add("code_verifier", codeVerifier)
+        }
+
+        val redirectUri = getStoredSessionString(session, REDIRECT_URI_SESION_VARIABLE)
+        if (redirectUri != null) {
+            form.add("redirect_uri", redirectUri)
+        }
+
+        // Handle Token Endpoint interaction
+        val httpClient: HttpClient = this.httpClient ?: run {
+            HttpClientBuilder.create()
+                .useSystemProperties()
+                .setDefaultRequestConfig(
+                    RequestConfig.custom()
+                        .setSocketTimeout(httpSocketTimeout)
+                        .build()
+                )
+                .build().also { this.httpClient = it }
+        }
+
+        val factory = HttpComponentsClientHttpRequestFactory(httpClient)
+
+        val restTemplate: RestTemplate
+
+        if (AuthMethod.SECRET_BASIC == clientConfig.tokenEndpointAuthMethod) {
+            // use BASIC auth if configured to do so
+            restTemplate = object : RestTemplate(factory) {
+                @Throws(IOException::class)
+                override fun createRequest(url: URI, method: HttpMethod): ClientHttpRequest {
+                    val httpRequest = super.createRequest(url, method)
+                    httpRequest.headers.add(
+                        "Authorization",
+                        String.format(
+                            "Basic %s", Base64.encode(
+                                String.format(
+                                    "%s:%s",
+                                    UriUtils.encodePathSegment(clientConfig.clientId, "UTF-8"),
+                                    UriUtils.encodePathSegment(clientConfig.clientSecret, "UTF-8")
+                                )
+                            )
+                        )
+                    )
+
+                    return httpRequest
+                }
+            }
+        } else {
+            // we're not doing basic auth, figure out what other flavor we have
+            restTemplate = RestTemplate(factory)
+
+            if (AuthMethod.SECRET_JWT == clientConfig.tokenEndpointAuthMethod || AuthMethod.PRIVATE_KEY == clientConfig.tokenEndpointAuthMethod) {
+                // do a symmetric secret signed JWT for auth
+
+
+                var signer: JWTSigningAndValidationService? = null
+                var alg = clientConfig.tokenEndpointAuthSigningAlg
+
+                if (AuthMethod.SECRET_JWT == clientConfig.tokenEndpointAuthMethod &&
+                    (JWSAlgorithm.HS256 == alg || JWSAlgorithm.HS384 == alg || JWSAlgorithm.HS512 == alg)
+                ) {
+                    // generate one based on client secret
+
+                    signer = symmetricCacheService!!.getSymmetricValidtor(clientConfig.client)
+                } else if (AuthMethod.PRIVATE_KEY == clientConfig.tokenEndpointAuthMethod) {
+                    // needs to be wired in to the bean
+
+                    signer = authenticationSignerService
+
+                    if (alg == null) {
+                        alg = authenticationSignerService!!.defaultSigningAlgorithm
+                    }
+                }
+
+                if (signer == null) {
+                    throw AuthenticationServiceException("Couldn't find required signer service for use with private key auth.")
+                }
+
+                val claimsSet = JWTClaimsSet.Builder()
+
+                claimsSet.issuer(clientConfig.clientId)
+                claimsSet.subject(clientConfig.clientId)
+                claimsSet.audience(Lists.newArrayList(serverConfig.tokenEndpointUri))
+                claimsSet.jwtID(UUID.randomUUID().toString())
+
+                // TODO: make this configurable
+                val exp = Date(System.currentTimeMillis() + (60 * 1000)) // auth good for 60 seconds
+                claimsSet.expirationTime(exp)
+
+                val now = Date(System.currentTimeMillis())
+                claimsSet.issueTime(now)
+                claimsSet.notBeforeTime(now)
+
+                val header = JWSHeader(
+                    alg, null, null, null, null, null, null, null, null, null,
+                    signer.defaultSignerKeyId,
+                    null, null
+                )
+                val jwt = SignedJWT(header, claimsSet.build())
+
+                signer.signJwt(jwt, alg!!)
+
+                form.add("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer")
+                form.add("client_assertion", jwt.serialize())
+            } else {
+                //Alternatively use form based auth
+                form.add("client_id", clientConfig.clientId)
+                form.add("client_secret", clientConfig.clientSecret)
+            }
+        }
+
+        logger.debug("tokenEndpointURI = " + serverConfig.tokenEndpointUri)
+        logger.debug("form = $form")
+
+        var jsonString: String? = null
+
+        try {
+            jsonString = restTemplate.postForObject(serverConfig.tokenEndpointUri, form, String::class.java)
+        } catch (e: RestClientException) {
+            // Handle error
+
+            logger.error("Token Endpoint error response:  " + e.message)
+
+            throw AuthenticationServiceException("Unable to obtain Access Token: " + e.message)
+        }
+
+        logger.debug("from TokenEndpoint jsonString = $jsonString")
+
+        val jsonRoot = JsonParser().parse(jsonString)
+        if (!jsonRoot.isJsonObject) {
+            throw AuthenticationServiceException("Token Endpoint did not return a JSON object: $jsonRoot")
+        }
+
+        val tokenResponse = jsonRoot.asJsonObject
+
+        if (tokenResponse["error"] != null) {
+            // Handle error
+
+            val error = tokenResponse["error"].asString
+
+            logger.error("Token Endpoint returned: $error")
+
+            throw AuthenticationServiceException("Unable to obtain Access Token.  Token Endpoint returned: $error")
+        } else {
+            // Extract the id_token to insert into the
+            // OIDCAuthenticationToken
+
+            // get out all the token strings
+
+            var accessTokenValue: String? = null
+            var idTokenValue: String? = null
+            var refreshTokenValue: String? = null
+
+            if (tokenResponse.has("access_token")) {
+                accessTokenValue = tokenResponse["access_token"].asString
+            } else {
+                throw AuthenticationServiceException("Token Endpoint did not return an access_token: $jsonString")
+            }
+
+            if (tokenResponse.has("id_token")) {
+                idTokenValue = tokenResponse["id_token"].asString
+            } else {
+                logger.error("Token Endpoint did not return an id_token")
+                throw AuthenticationServiceException("Token Endpoint did not return an id_token")
+            }
+
+            if (tokenResponse.has("refresh_token")) {
+                refreshTokenValue = tokenResponse["refresh_token"].asString
+            }
+
+            try {
+                val idToken = JWTParser.parse(idTokenValue)
+
+                // validate our ID Token over a number of tests
+                val idClaims = idToken.jwtClaimsSet
+
+                // check the signature
+                var jwtValidator: JWTSigningAndValidationService? = null
+
+                val tokenAlg = idToken.header.algorithm
+
+                val clientAlg: Algorithm? = clientConfig.idTokenSignedResponseAlg
+
+                if (clientAlg != null) {
+                    if (clientAlg != tokenAlg) {
+                        throw AuthenticationServiceException("Token algorithm $tokenAlg does not match expected algorithm $clientAlg")
+                    }
+                }
+
+                if (idToken is PlainJWT) {
+                    if (clientAlg == null) {
+                        throw AuthenticationServiceException("Unsigned ID tokens can only be used if explicitly configured in client.")
+                    }
+
+                    if (tokenAlg != null && tokenAlg != Algorithm.NONE) {
+                        throw AuthenticationServiceException("Unsigned token received, expected signature with $tokenAlg")
+                    }
+                } else if (idToken is SignedJWT) {
+                    jwtValidator =
+                        if (tokenAlg == JWSAlgorithm.HS256 || tokenAlg == JWSAlgorithm.HS384 || tokenAlg == JWSAlgorithm.HS512) {
+                            // generate one based on client secret
+
+                            symmetricCacheService!!.getSymmetricValidtor(clientConfig.client)
+                        } else {
+                            // otherwise load from the server's public key
+                            validationServices!!.getValidator(serverConfig.jwksUri!!)
+                        }
+
+                    if (jwtValidator != null) {
+                        if (!jwtValidator.validateSignature(idToken)) {
+                            throw AuthenticationServiceException("Signature validation failed")
+                        }
+                    } else {
+                        logger.error("No validation service found. Skipping signature validation")
+                        throw AuthenticationServiceException("Unable to find an appropriate signature validator for ID Token.")
+                    }
+                } // TODO: encrypted id tokens
+
+
+                // check the issuer
+                if (idClaims.issuer == null) {
+                    throw AuthenticationServiceException("Id Token Issuer is null")
+                } else if (idClaims.issuer != serverConfig.issuer) {
+                    throw AuthenticationServiceException("Issuers do not match, expected " + serverConfig.issuer + " got " + idClaims.issuer)
+                }
+
+                // check expiration
+                if (idClaims.expirationTime == null) {
+                    throw AuthenticationServiceException("Id Token does not have required expiration claim")
+                } else {
+                    // it's not null, see if it's expired
+                    val now = Date(System.currentTimeMillis() - (timeSkewAllowance * 1000))
+                    if (now.after(idClaims.expirationTime)) {
+                        throw AuthenticationServiceException("Id Token is expired: " + idClaims.expirationTime)
+                    }
+                }
+
+                // check not before
+                if (idClaims.notBeforeTime != null) {
+                    val now = Date(System.currentTimeMillis() + (timeSkewAllowance * 1000))
+                    if (now.before(idClaims.notBeforeTime)) {
+                        throw AuthenticationServiceException("Id Token not valid untill: " + idClaims.notBeforeTime)
+                    }
+                }
+
+                // check issued at
+                if (idClaims.issueTime == null) {
+                    throw AuthenticationServiceException("Id Token does not have required issued-at claim")
+                } else {
+                    // since it's not null, see if it was issued in the future
+                    val now = Date(System.currentTimeMillis() + (timeSkewAllowance * 1000))
+                    if (now.before(idClaims.issueTime)) {
+                        throw AuthenticationServiceException("Id Token was issued in the future: " + idClaims.issueTime)
+                    }
+                }
+
+                // check audience
+                if (idClaims.audience == null) {
+                    throw AuthenticationServiceException("Id token audience is null")
+                } else if (!idClaims.audience.contains(clientConfig.clientId)) {
+                    throw AuthenticationServiceException("Audience does not match, expected " + clientConfig.clientId + " got " + idClaims.audience)
+                }
+
+                // compare the nonce to our stored claim
+                val nonce = idClaims.getStringClaim("nonce")
+                if (Strings.isNullOrEmpty(nonce)) {
+                    logger.error("ID token did not contain a nonce claim.")
+
+                    throw AuthenticationServiceException("ID token did not contain a nonce claim.")
+                }
+
+                val storedNonce = getStoredNonce(session)
+                if (nonce != storedNonce) {
+                    logger.error(
+                        "Possible replay attack detected! The comparison of the nonce in the returned "
+                                + "ID Token to the session " + NONCE_SESSION_VARIABLE + " failed. Expected " + storedNonce + " got " + nonce + "."
+                    )
+
+                    throw AuthenticationServiceException(
+                        "Possible replay attack detected! The comparison of the nonce in the returned "
+                                + "ID Token to the session " + NONCE_SESSION_VARIABLE + " failed. Expected " + storedNonce + " got " + nonce + "."
+                    )
+                }
+
+                // construct an PendingOIDCAuthenticationToken and return a Authentication object w/the userId and the idToken
+                val token = PendingOIDCAuthenticationToken(
+                    idClaims.subject, idClaims.issuer,
+                    serverConfig,
+                    idToken, accessTokenValue, refreshTokenValue!!
+                )
+
+                val authentication = authenticationManager.authenticate(token)
+
+                return authentication
+            } catch (e: ParseException) {
+                throw AuthenticationServiceException("Couldn't parse idToken: ", e)
+            }
+        }
+    }
+
+    /**
+     * Handle Authorization Endpoint error
+     *
+     * The request from which to extract parameters and handle the
+     * error
+     * The response, needed to do a redirect to display the error
+     * @throws IOException
+     * If an input or output exception occurs
+     */
+    @Throws(IOException::class)
+    protected fun handleError(request: HttpServletRequest, response: HttpServletResponse?) {
+        val error = request.getParameter("error")
+        val errorDescription = request.getParameter("error_description")
+        val errorURI = request.getParameter("error_uri")
+
+        throw AuthorizationEndpointException(error, errorDescription, errorURI)
+    }
+
+    override fun setAuthenticationSuccessHandler(successHandler: AuthenticationSuccessHandler) {
+        targetLinkURIAuthenticationSuccessHandler.passthrough = successHandler
+        super.setAuthenticationSuccessHandler(targetLinkURIAuthenticationSuccessHandler)
+    }
+
+
+    /**
+     * Handle a successful authentication event. If the issuer service sets
+     * a target URL, we'll go to that. Otherwise we'll let the superclass handle
+     * it for us with the configured behavior.
+     */
+    inner class TargetLinkURIAuthenticationSuccessHandler : AuthenticationSuccessHandler {
+        var passthrough: AuthenticationSuccessHandler? = null
+
+        @Throws(IOException::class, ServletException::class)
+        override fun onAuthenticationSuccess(
+            request: HttpServletRequest,
+            response: HttpServletResponse, authentication: Authentication
+        ) {
+            val session = request.session
+
+            // check to see if we've got a target
+            var target = getStoredSessionString(session, TARGET_SESSION_VARIABLE)
+
+            if (!Strings.isNullOrEmpty(target)) {
+                session.removeAttribute(TARGET_SESSION_VARIABLE)
+
+                if (deepLinkFilter != null) {
+                    target = deepLinkFilter!!.filter(target)
+                }
+
+                response.sendRedirect(target)
+            } else {
+                // if the target was blank, use the default behavior here
+                passthrough!!.onAuthenticationSuccess(request, response, authentication)
+            }
+        }
+    }
+
+
+    fun targetLinkURIChecker(): TargetLinkURIChecker? {
+        return deepLinkFilter
+    }
+
+    fun setTargetLinkURIChecker(deepLinkFilter: TargetLinkURIChecker?) {
+        this.deepLinkFilter = deepLinkFilter
+    }
+
+    companion object {
+        protected const val REDIRECT_URI_SESION_VARIABLE: String = "redirect_uri"
+        protected const val CODE_VERIFIER_SESSION_VARIABLE: String = "code_verifier"
+        protected const val STATE_SESSION_VARIABLE: String = "state"
+        protected const val NONCE_SESSION_VARIABLE: String = "nonce"
+        protected const val ISSUER_SESSION_VARIABLE: String = "issuer"
+        protected const val TARGET_SESSION_VARIABLE: String = "target"
+        protected const val HTTP_SOCKET_TIMEOUT: Int = 30000
+
+        const val FILTER_PROCESSES_URL: String = "/openid_connect_login"
+
+        /**
+         * Get the named stored session variable as a string. Return null if not found or not a string.
+         */
+        private fun getStoredSessionString(session: HttpSession, key: String): String? {
+            val o = session.getAttribute(key)
+            return if (o != null && o is String) {
+                o.toString()
+            } else {
+                null
+            }
+        }
+
+        /**
+         * Create a cryptographically random nonce and store it in the session
+         */
+        protected fun createNonce(session: HttpSession): String {
+            val nonce = BigInteger(50, SecureRandom()).toString(16)
+            session.setAttribute(NONCE_SESSION_VARIABLE, nonce)
+
+            return nonce
+        }
+
+        /**
+         * Get the nonce we stored in the session
+         */
+        protected fun getStoredNonce(session: HttpSession): String? {
+            return getStoredSessionString(session, NONCE_SESSION_VARIABLE)
+        }
+
+        /**
+         * Create a cryptographically random state and store it in the session
+         */
+        protected fun createState(session: HttpSession): String {
+            val state = BigInteger(50, SecureRandom()).toString(16)
+            session.setAttribute(STATE_SESSION_VARIABLE, state)
+
+            return state
+        }
+
+        /**
+         * Get the state we stored in the session
+         */
+        protected fun getStoredState(session: HttpSession): String? {
+            return getStoredSessionString(session, STATE_SESSION_VARIABLE)
+        }
+
+        /**
+         * Create a random code challenge and store it in the session
+         */
+        protected fun createCodeVerifier(session: HttpSession): String {
+            val challenge = BigInteger(50, SecureRandom()).toString(16)
+            session.setAttribute(CODE_VERIFIER_SESSION_VARIABLE, challenge)
+            return challenge
+        }
+
+        /**
+         * Retrieve the stored challenge from our session
+         */
+        protected fun getStoredCodeVerifier(session: HttpSession): String? {
+            return getStoredSessionString(session, CODE_VERIFIER_SESSION_VARIABLE)
+        }
+    }
 }

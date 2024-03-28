@@ -32,7 +32,7 @@ interface AuthRequestUrlBuilder {
         redirectUri: String?,
         nonce: String?,
         state: String?,
-        options: Map<String?, String?>?,
+        options: Map<String, String>?,
         loginHint: String?
     ): String?
 }

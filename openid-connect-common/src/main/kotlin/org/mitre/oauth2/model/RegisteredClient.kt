@@ -125,7 +125,7 @@ class RegisteredClient @JvmOverloads constructor(
             client.redirectUris = redirectUris
         }
 
-    val registeredRedirectUri: Set<String>
+    val registeredRedirectUri: Set<String>?
         get() = client.registeredRedirectUri
     
     var resourceIds: Set<String>

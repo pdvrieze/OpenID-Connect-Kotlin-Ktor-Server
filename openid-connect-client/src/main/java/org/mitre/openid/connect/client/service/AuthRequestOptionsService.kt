@@ -37,7 +37,7 @@ interface AuthRequestOptionsService {
         server: ServerConfiguration,
         client: RegisteredClient,
         request: HttpServletRequest
-    ): Map<String, String>
+    ): MutableMap<String, String>
 
     /**
      * The set of options needed at the token endpoint.
