@@ -17,12 +17,12 @@ dependencies {
     implementation(libs.servlet.api)
     implementation(libs.javax.ann)
 
-    testImplementation(libs.junit4)
+    testImplementation(libs.hamcrest.core)
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.jupiter)
     testImplementation(libs.junit.jupiter.api)
+
     testRuntimeOnly(libs.junit.jupiter.engine)
-    testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
 }
 
 tasks.named<Test>("test") {
