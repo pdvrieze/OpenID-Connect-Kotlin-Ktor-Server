@@ -7,100 +7,87 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.openid.connect.client.service.impl;
+ */
+package org.mitre.openid.connect.client.service.impl
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
-import org.apache.http.client.utils.URIBuilder;
-import org.mitre.jwt.signer.service.JWTSigningAndValidationService;
-import org.mitre.oauth2.model.RegisteredClient;
-import org.mitre.openid.connect.client.service.AuthRequestUrlBuilder;
-import org.mitre.openid.connect.config.ServerConfiguration;
-import org.springframework.security.authentication.AuthenticationServiceException;
-
-import java.net.URISyntaxException;
-import java.util.Map;
-import java.util.Map.Entry;
+import com.google.common.base.Joiner
+import com.google.common.base.Strings
+import com.nimbusds.jose.JWSHeader
+import com.nimbusds.jwt.JWTClaimsSet
+import com.nimbusds.jwt.SignedJWT
+import org.apache.http.client.utils.URIBuilder
+import org.mitre.jwt.signer.service.JWTSigningAndValidationService
+import org.mitre.oauth2.model.RegisteredClient
+import org.mitre.openid.connect.client.service.AuthRequestUrlBuilder
+import org.mitre.openid.connect.config.ServerConfiguration
+import org.springframework.security.authentication.AuthenticationServiceException
+import java.net.URISyntaxException
 
 /**
  * @author jricher
- *
  */
-public class SignedAuthRequestUrlBuilder implements AuthRequestUrlBuilder {
+class SignedAuthRequestUrlBuilder : AuthRequestUrlBuilder {
+    lateinit var signingAndValidationService: JWTSigningAndValidationService
 
-	private JWTSigningAndValidationService signingAndValidationService;
+    override fun buildAuthRequestUrl(
+        serverConfig: ServerConfiguration,
+        clientConfig: RegisteredClient,
+        redirectUri: String?,
+        nonce: String?,
+        state: String?,
+        options: Map<String, String>,
+        loginHint: String?
+    ): String {
+        // create our signed JWT for the request object
 
-	/* (non-Javadoc)
-	 * @see org.mitre.openid.connect.client.service.AuthRequestUrlBuilder#buildAuthRequestUrl(org.mitre.openid.connect.config.ServerConfiguration, org.springframework.security.oauth2.provider.ClientDetails, java.lang.String, java.lang.String, java.lang.String)
-	 */
-	@Override
-	public String buildAuthRequestUrl(ServerConfiguration serverConfig, RegisteredClient clientConfig, String redirectUri, String nonce, String state, Map<String, String> options, String loginHint) {
+        val claims = JWTClaimsSet.Builder()
 
-		// create our signed JWT for the request object
-		JWTClaimsSet.Builder claims = new JWTClaimsSet.Builder();
+        //set parameters to JwtClaims
+        claims.claim("response_type", "code")
+        claims.claim("client_id", clientConfig.clientId)
+        claims.claim("scope", Joiner.on(" ").join(clientConfig.scope))
 
-		//set parameters to JwtClaims
-		claims.claim("response_type", "code");
-		claims.claim("client_id", clientConfig.getClientId());
-		claims.claim("scope", Joiner.on(" ").join(clientConfig.getScope()));
+        // build our redirect URI
+        claims.claim("redirect_uri", redirectUri)
 
-		// build our redirect URI
-		claims.claim("redirect_uri", redirectUri);
+        // this comes back in the id token
+        claims.claim("nonce", nonce)
 
-		// this comes back in the id token
-		claims.claim("nonce", nonce);
+        // this comes back in the auth request return
+        claims.claim("state", state)
 
-		// this comes back in the auth request return
-		claims.claim("state", state);
+        // Optional parameters
+        for ((key, value) in options) {
+            claims.claim(key, value)
+        }
 
-		// Optional parameters
-		for (Entry<String, String> option : options.entrySet()) {
-			claims.claim(option.getKey(), option.getValue());
-		}
+        // if there's a login hint, send it
+        if (!Strings.isNullOrEmpty(loginHint)) {
+            claims.claim("login_hint", loginHint)
+        }
 
-		// if there's a login hint, send it
-		if (!Strings.isNullOrEmpty(loginHint)) {
-			claims.claim("login_hint", loginHint);
-		}
+        val alg = clientConfig.requestObjectSigningAlg
+            ?: signingAndValidationService.defaultSigningAlgorithm
 
-		JWSAlgorithm alg = clientConfig.getRequestObjectSigningAlg();
-		if (alg == null) {
-			alg = signingAndValidationService.getDefaultSigningAlgorithm();
-		}
+        val jwt = SignedJWT(JWSHeader(alg), claims.build())
 
-		SignedJWT jwt = new SignedJWT(new JWSHeader(alg), claims.build());
+        signingAndValidationService.signJwt(jwt, alg!!)
 
-		signingAndValidationService.signJwt(jwt, alg);
+        try {
+            val uriBuilder = URIBuilder(serverConfig.authorizationEndpointUri)
+            uriBuilder.addParameter("request", jwt.serialize())
 
-		try {
-			URIBuilder uriBuilder = new URIBuilder(serverConfig.getAuthorizationEndpointUri());
-			uriBuilder.addParameter("request", jwt.serialize());
-
-			// build out the URI
-			return uriBuilder.build().toString();
-		} catch (URISyntaxException e) {
-			throw new AuthenticationServiceException("Malformed Authorization Endpoint Uri", e);
-		}
-	}
-
-	public JWTSigningAndValidationService getSigningAndValidationService() {
-		return signingAndValidationService;
-	}
-
-	public void setSigningAndValidationService(JWTSigningAndValidationService signingAndValidationService) {
-		this.signingAndValidationService = signingAndValidationService;
-	}
-
+            // build out the URI
+            return uriBuilder.build().toString()
+        } catch (e: URISyntaxException) {
+            throw AuthenticationServiceException("Malformed Authorization Endpoint Uri", e)
+        }
+    }
 }
