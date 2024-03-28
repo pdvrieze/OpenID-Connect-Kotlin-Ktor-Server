@@ -2,22 +2,22 @@ package org.mitre.openid.connect.client.service.impl
 
 import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert
-import org.junit.Assert
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.openid.connect.config.ServerConfiguration
 import org.mockito.ArgumentMatchers
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito
-import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.junit.jupiter.MockitoExtension
 
 /**
  * @author wkim
  */
-@RunWith(MockitoJUnitRunner::class)
+@ExtendWith(MockitoExtension::class)
 class TestHybridClientConfigurationService {
     @Mock
     private lateinit var mockStaticService: StaticClientConfigurationService
@@ -37,7 +37,7 @@ class TestHybridClientConfigurationService {
 
     private val issuer = "https://www.example.com/"
 
-    @Before
+    @BeforeEach
     fun prepare() {
         Mockito.reset(mockDynamicService, mockStaticService)
 
@@ -54,7 +54,7 @@ class TestHybridClientConfigurationService {
         Mockito.verify(mockStaticService).getClientConfiguration(mockServerConfig)
         Mockito.verify(mockDynamicService, Mockito.never())
             .getClientConfiguration(ArgumentMatchers.any() ?: mockServerConfig)
-        Assert.assertEquals(mockClient, result)
+        assertEquals(mockClient, result)
     }
 
     @Test
@@ -66,7 +66,7 @@ class TestHybridClientConfigurationService {
 
         Mockito.verify(mockStaticService).getClientConfiguration(mockServerConfig)
         Mockito.verify(mockDynamicService).getClientConfiguration(mockServerConfig)
-        Assert.assertEquals(mockClient, result)
+        assertEquals(mockClient, result)
     }
 
     @Test
