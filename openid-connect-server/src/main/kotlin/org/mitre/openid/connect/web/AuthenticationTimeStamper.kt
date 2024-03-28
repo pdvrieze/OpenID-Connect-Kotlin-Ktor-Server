@@ -7,71 +7,72 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.openid.connect.web;
+ */
+package org.mitre.openid.connect.web
 
-import org.mitre.openid.connect.filter.AuthorizationRequestFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
-import org.springframework.stereotype.Component;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
-import java.io.IOException;
-import java.util.Date;
+import org.mitre.openid.connect.filter.AuthorizationRequestFilter
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.springframework.security.core.Authentication
+import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler
+import org.springframework.stereotype.Component
+import java.io.IOException
+import java.lang.Boolean
+import java.util.*
+import javax.servlet.ServletException
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
+import kotlin.String
+import kotlin.Throws
 
 /**
  * This class sets a timestamp on the current HttpSession
  * when someone successfully authenticates.
  *
  * @author jricher
- *
  */
 @Component("authenticationTimeStamper")
-public class AuthenticationTimeStamper extends SavedRequestAwareAuthenticationSuccessHandler {
+class AuthenticationTimeStamper : SavedRequestAwareAuthenticationSuccessHandler() {
+    /**
+     * Set the timestamp on the session to mark when the authentication happened,
+     * useful for calculating authentication age. This gets stored in the sesion
+     * and can get pulled out by other components.
+     */
+    @Throws(IOException::class, ServletException::class)
+    override fun onAuthenticationSuccess(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        authentication: Authentication
+    ) {
+        val authTimestamp = Date()
 
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger logger = LoggerFactory.getLogger(AuthenticationTimeStamper.class);
+        val session = request.session
 
-	public static final String AUTH_TIMESTAMP = "AUTH_TIMESTAMP";
+        session.setAttribute(AUTH_TIMESTAMP, authTimestamp)
 
-	/**
-	 * Set the timestamp on the session to mark when the authentication happened,
-	 * useful for calculating authentication age. This gets stored in the sesion
-	 * and can get pulled out by other components.
-	 */
-	@Override
-	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+        if (session.getAttribute(AuthorizationRequestFilter.PROMPT_REQUESTED) != null) {
+            session.setAttribute(AuthorizationRequestFilter.PROMPTED, Boolean.TRUE)
+            session.removeAttribute(AuthorizationRequestFilter.PROMPT_REQUESTED)
+        }
 
-		Date authTimestamp = new Date();
+        Companion.logger.info("Successful Authentication of ${authentication.name} at $authTimestamp")
 
-		HttpSession session = request.getSession();
+        super.onAuthenticationSuccess(request, response, authentication)
+    }
 
-		session.setAttribute(AUTH_TIMESTAMP, authTimestamp);
+    companion object {
+        /**
+         * Logger for this class
+         */
+        private val logger: Logger = LoggerFactory.getLogger(AuthenticationTimeStamper::class.java)
 
-		if (session.getAttribute(AuthorizationRequestFilter.PROMPT_REQUESTED) != null) {
-			session.setAttribute(AuthorizationRequestFilter.PROMPTED, Boolean.TRUE);
-			session.removeAttribute(AuthorizationRequestFilter.PROMPT_REQUESTED);
-		}
-
-		logger.info("Successful Authentication of " + authentication.getName() + " at " + authTimestamp.toString());
-
-		super.onAuthenticationSuccess(request, response, authentication);
-
-	}
-
+        const val AUTH_TIMESTAMP: String = "AUTH_TIMESTAMP"
+    }
 }
