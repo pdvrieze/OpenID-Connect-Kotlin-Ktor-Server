@@ -86,7 +86,7 @@ open class ClientDetailsEntity : ClientDetails {
     @get:Column(name = "response_type")
     @get:CollectionTable(name = "client_response_type", joinColumns = [JoinColumn(name = "owner_id")])
     @get:ElementCollection(fetch = FetchType.EAGER)
-    open var responseTypes: Set<String> = HashSet() // response_types
+    open var responseTypes: MutableSet<String> = HashSet() // response_types
 
     @get:Column(name = "policy_uri")
     @get:Basic

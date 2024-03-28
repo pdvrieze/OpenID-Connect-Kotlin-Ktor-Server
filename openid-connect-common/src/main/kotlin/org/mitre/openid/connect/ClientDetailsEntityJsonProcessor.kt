@@ -127,7 +127,7 @@ object ClientDetailsEntityJsonProcessor {
             }
 
             c.grantTypes = JsonUtils.getAsStringSet(o, GRANT_TYPES)?.toHashSet() ?: HashSet()
-            c.responseTypes = JsonUtils.getAsStringSet(o, RESPONSE_TYPES) ?: HashSet()
+            c.responseTypes = JsonUtils.getAsStringSet(o, RESPONSE_TYPES)?.toHashSet() ?: HashSet()
             c.policyUri = JsonUtils.getAsString(o, POLICY_URI)
             c.jwksUri = JsonUtils.getAsString(o, JWKS_URI)
 

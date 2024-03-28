@@ -209,7 +209,7 @@ class RegisteredClient @JvmOverloads constructor(
 
     var responseTypes: Set<String>
         get() = client.responseTypes
-        set(responseTypes) { client.responseTypes = responseTypes }
+        set(responseTypes) { client.responseTypes = responseTypes.toHashSet() }
 
     var defaultACRvalues: Set<String>?
         get() = client.defaultACRvalues
