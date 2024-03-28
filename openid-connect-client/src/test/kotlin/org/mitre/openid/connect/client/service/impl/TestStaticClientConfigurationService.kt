@@ -7,84 +7,69 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.openid.connect.client.service.impl;
+ */
+package org.mitre.openid.connect.client.service.impl
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mitre.oauth2.model.RegisteredClient;
-import org.mitre.openid.connect.config.ServerConfiguration;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import org.hamcrest.CoreMatchers
+import org.hamcrest.MatcherAssert.assertThat
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import org.mitre.oauth2.model.RegisteredClient
+import org.mitre.openid.connect.config.ServerConfiguration
+import org.mockito.Mock
+import org.mockito.Mockito
+import org.mockito.junit.jupiter.MockitoExtension
 
 /**
  * @author wkim
- *
  */
-@RunWith(MockitoJUnitRunner.class)
-public class TestStaticClientConfigurationService {
+@ExtendWith(MockitoExtension::class)
+class TestStaticClientConfigurationService {
+    private lateinit var service: StaticClientConfigurationService
 
-	private StaticClientConfigurationService service;
+    private val issuer = "https://www.example.com/"
 
-	private String issuer = "https://www.example.com/";
+    @Mock
+    private lateinit var mockClient: RegisteredClient
 
-	@Mock
-	private RegisteredClient mockClient;
+    @Mock
+    private lateinit var mockServerConfig: ServerConfiguration
 
-	@Mock
-	private ServerConfiguration mockServerConfig;
+    @BeforeEach
+    fun prepare() {
+        service = StaticClientConfigurationService()
 
-	@Before
-	public void prepare() {
+        val clients: MutableMap<String?, RegisteredClient> = HashMap()
+        clients[issuer] = mockClient
 
-		service = new StaticClientConfigurationService();
+        service.clients = clients
 
-		Map<String, RegisteredClient> clients = new HashMap<>();
-		clients.put(issuer, mockClient);
+        Mockito.`when`(mockServerConfig.issuer).thenReturn(issuer)
+    }
 
-		service.setClients(clients);
+    @Test
+    fun getClientConfiguration_success() {
+        val result = service.getClientConfiguration(mockServerConfig)
 
-		Mockito.when(mockServerConfig.getIssuer()).thenReturn(issuer);
-	}
+        assertThat(mockClient, CoreMatchers.`is`(CoreMatchers.notNullValue()))
+        assertEquals(mockClient, result)
+    }
 
-	@Test
-	public void getClientConfiguration_success() {
+    @Test
+    fun getClientConfiguration_noIssuer() {
+        Mockito.`when`(mockServerConfig.issuer).thenReturn("www.badexample.net")
 
-		RegisteredClient result = service.getClientConfiguration(mockServerConfig);
+        val actualClient = service.getClientConfiguration(mockServerConfig)
 
-		assertThat(mockClient, is(notNullValue()));
-		assertEquals(mockClient, result);
-	}
-
-	/**
-	 * Checks the behavior when the issuer is not known.
-	 */
-	@Test
-	public void getClientConfiguration_noIssuer() {
-		Mockito.when(mockServerConfig.getIssuer()).thenReturn("www.badexample.net");
-
-		RegisteredClient actualClient = service.getClientConfiguration(mockServerConfig);
-
-		assertThat(actualClient, is(nullValue()));
-	}
-
+        assertThat(actualClient, CoreMatchers.`is`(CoreMatchers.nullValue()))
+    }
 }
