@@ -71,10 +71,10 @@ class JWTBearerAuthenticationProvider : AuthenticationProvider {
             val client = checkNotNull(clientService.loadClientByClientId(jwtAuth.name))
 
             val jwt = jwtAuth.jwt
-            val jwtClaims = jwt.jwtClaimsSet
+            val jwtClaims = jwt?.jwtClaimsSet
 
             if (jwt !is SignedJWT) {
-                throw AuthenticationServiceException("Unsupported JWT type: ${jwt.javaClass.name}")
+                throw AuthenticationServiceException("Unsupported JWT type: ${jwt?.javaClass?.name}")
             }
 
             // check the signature with nimbus
@@ -117,7 +117,7 @@ class JWTBearerAuthenticationProvider : AuthenticationProvider {
             }
 
             // check the issuer
-            if (jwtClaims.issuer == null) {
+            if (jwtClaims?.issuer == null) {
                 throw AuthenticationServiceException("Assertion Token Issuer is null")
             } else if (jwtClaims.issuer != client.clientId) {
                 throw AuthenticationServiceException("Issuers do not match, expected ${client.clientId} got ${jwtClaims.issuer}")
