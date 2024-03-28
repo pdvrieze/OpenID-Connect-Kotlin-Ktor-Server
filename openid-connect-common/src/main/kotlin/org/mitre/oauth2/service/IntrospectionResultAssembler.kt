@@ -34,7 +34,7 @@ interface IntrospectionResultAssembler {
      * @return the token introspection result
      */
     fun assembleFrom(
-        accessToken: OAuth2AccessTokenEntity, userInfo: UserInfo, authScopes: Set<String>
+        accessToken: OAuth2AccessTokenEntity, userInfo: UserInfo?, authScopes: Set<String>
     ): Map<String, Any>
 
     /**
@@ -46,7 +46,7 @@ interface IntrospectionResultAssembler {
      * @return the token introspection result
      */
     fun assembleFrom(
-        refreshToken: OAuth2RefreshTokenEntity, userInfo: UserInfo, authScopes: Set<String>
+        refreshToken: OAuth2RefreshTokenEntity, userInfo: UserInfo?, authScopes: Set<String>
     ): Map<String, Any>
 
     companion object {
