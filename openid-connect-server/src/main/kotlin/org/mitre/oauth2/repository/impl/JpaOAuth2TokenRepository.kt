@@ -7,282 +7,265 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.oauth2.repository.impl;
+ */
+package org.mitre.oauth2.repository.impl
 
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaDelete;
-import javax.persistence.criteria.Root;
-
-import org.mitre.data.DefaultPageCriteria;
-import org.mitre.data.PageCriteria;
-import org.mitre.oauth2.model.ClientDetailsEntity;
-import org.mitre.oauth2.model.OAuth2AccessTokenEntity;
-import org.mitre.oauth2.model.OAuth2RefreshTokenEntity;
-import org.mitre.oauth2.repository.OAuth2TokenRepository;
-import org.mitre.openid.connect.model.ApprovedSite;
-import org.mitre.uma.model.ResourceSet;
-import org.mitre.util.jpa.JpaUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
-
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTParser;
+import com.nimbusds.jwt.JWT
+import com.nimbusds.jwt.JWTParser
+import org.mitre.data.DefaultPageCriteria
+import org.mitre.data.PageCriteria
+import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.OAuth2AccessTokenEntity
+import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
+import org.mitre.oauth2.repository.OAuth2TokenRepository
+import org.mitre.openid.connect.model.ApprovedSite
+import org.mitre.uma.model.ResourceSet
+import org.mitre.util.jpa.JpaUtil.getResultPage
+import org.mitre.util.jpa.JpaUtil.getSingleResult
+import org.mitre.util.jpa.JpaUtil.saveOrUpdate
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
+import java.text.ParseException
+import java.util.*
+import javax.persistence.EntityManager
+import javax.persistence.PersistenceContext
 
 @Repository
-public class JpaOAuth2TokenRepository implements OAuth2TokenRepository {
+class JpaOAuth2TokenRepository : OAuth2TokenRepository {
+    @PersistenceContext(unitName = "defaultPersistenceUnit")
+    private lateinit var manager: EntityManager
 
-	private static final int MAXEXPIREDRESULTS = 1000;
+    override val allAccessTokens: Set<OAuth2AccessTokenEntity>
+        get() {
+            val query = manager.createNamedQuery(OAuth2AccessTokenEntity.QUERY_ALL, OAuth2AccessTokenEntity::class.java)
+            return LinkedHashSet(query.resultList)
+        }
 
-	private static final Logger logger = LoggerFactory.getLogger(JpaOAuth2TokenRepository.class);
-
-	@PersistenceContext(unitName="defaultPersistenceUnit")
-	private EntityManager manager;
-
-	@Override
-	public Set<OAuth2AccessTokenEntity> getAllAccessTokens() {
-		TypedQuery<OAuth2AccessTokenEntity> query = manager.createNamedQuery(OAuth2AccessTokenEntity.QUERY_ALL, OAuth2AccessTokenEntity.class);
-		return new LinkedHashSet<>(query.getResultList());
-	}
-
-	@Override
-	public Set<OAuth2RefreshTokenEntity> getAllRefreshTokens() {
-		TypedQuery<OAuth2RefreshTokenEntity> query = manager.createNamedQuery(OAuth2RefreshTokenEntity.QUERY_ALL, OAuth2RefreshTokenEntity.class);
-		return new LinkedHashSet<>(query.getResultList());
-	}
+    override val allRefreshTokens: Set<OAuth2RefreshTokenEntity>
+        get() {
+            val query =
+                manager.createNamedQuery(OAuth2RefreshTokenEntity.QUERY_ALL, OAuth2RefreshTokenEntity::class.java)
+            return LinkedHashSet(query.resultList)
+        }
 
 
-	@Override
-	public OAuth2AccessTokenEntity getAccessTokenByValue(String accessTokenValue) {
-		try {
-			JWT jwt = JWTParser.parse(accessTokenValue);
-			TypedQuery<OAuth2AccessTokenEntity> query = manager.createNamedQuery(OAuth2AccessTokenEntity.QUERY_BY_TOKEN_VALUE, OAuth2AccessTokenEntity.class);
-			query.setParameter(OAuth2AccessTokenEntity.PARAM_TOKEN_VALUE, jwt);
-			return JpaUtil.getSingleResult(query.getResultList());
-		} catch (ParseException e) {
-			return null;
-		}
-	}
+    override fun getAccessTokenByValue(accessTokenValue: String?): OAuth2AccessTokenEntity? {
+        try {
+            val jwt = JWTParser.parse(accessTokenValue)
+            val query =
+                manager.createNamedQuery(OAuth2AccessTokenEntity.QUERY_BY_TOKEN_VALUE, OAuth2AccessTokenEntity::class.java)
+            query.setParameter(OAuth2AccessTokenEntity.PARAM_TOKEN_VALUE, jwt)
+            return getSingleResult(query.resultList)
+        } catch (e: ParseException) {
+            return null
+        }
+    }
 
-	@Override
-	public OAuth2AccessTokenEntity getAccessTokenById(Long id) {
-		return manager.find(OAuth2AccessTokenEntity.class, id);
-	}
+    override fun getAccessTokenById(id: java.lang.Long): OAuth2AccessTokenEntity? {
+        return manager.find(OAuth2AccessTokenEntity::class.java, id)
+    }
 
-	@Override
-	@Transactional(value="defaultTransactionManager")
-	public OAuth2AccessTokenEntity saveAccessToken(OAuth2AccessTokenEntity token) {
-		return JpaUtil.saveOrUpdate(token.getId(), manager, token);
-	}
+    @Transactional(value = "defaultTransactionManager")
+    override fun saveAccessToken(token: OAuth2AccessTokenEntity): OAuth2AccessTokenEntity? {
+        return saveOrUpdate(token.id, manager, token)
+    }
 
-	@Override
-	@Transactional(value="defaultTransactionManager")
-	public void removeAccessToken(OAuth2AccessTokenEntity accessToken) {
-		OAuth2AccessTokenEntity found = getAccessTokenById(accessToken.getId());
-		if (found != null) {
-			manager.remove(found);
-		} else {
-			throw new IllegalArgumentException("Access token not found: " + accessToken);
-		}
-	}
+    @Transactional(value = "defaultTransactionManager")
+    override fun removeAccessToken(accessToken: OAuth2AccessTokenEntity) {
+        val id = requireNotNull(accessToken.id) { "missing id in access token" }
+        val found = getAccessTokenById(java.lang.Long(id))
+        if (found != null) {
+            manager.remove(found)
+        } else {
+            throw IllegalArgumentException("Access token not found: $accessToken")
+        }
+    }
 
-	@Override
-	@Transactional(value="defaultTransactionManager")
-	public void clearAccessTokensForRefreshToken(OAuth2RefreshTokenEntity refreshToken) {
-		TypedQuery<OAuth2AccessTokenEntity> query = manager.createNamedQuery(OAuth2AccessTokenEntity.QUERY_BY_REFRESH_TOKEN, OAuth2AccessTokenEntity.class);
-		query.setParameter(OAuth2AccessTokenEntity.PARAM_REFERSH_TOKEN, refreshToken);
-		List<OAuth2AccessTokenEntity> accessTokens = query.getResultList();
-		for (OAuth2AccessTokenEntity accessToken : accessTokens) {
-			removeAccessToken(accessToken);
-		}
-	}
+    @Transactional(value = "defaultTransactionManager")
+    override fun clearAccessTokensForRefreshToken(refreshToken: OAuth2RefreshTokenEntity) {
+        val query =
+            manager.createNamedQuery(OAuth2AccessTokenEntity.QUERY_BY_REFRESH_TOKEN, OAuth2AccessTokenEntity::class.java)
+        query.setParameter(OAuth2AccessTokenEntity.PARAM_REFERSH_TOKEN, refreshToken)
+        val accessTokens = query.resultList
+        for (accessToken in accessTokens) {
+            removeAccessToken(accessToken)
+        }
+    }
 
-	@Override
-	public OAuth2RefreshTokenEntity getRefreshTokenByValue(String refreshTokenValue) {
-		try {
-			JWT jwt = JWTParser.parse(refreshTokenValue);
-			TypedQuery<OAuth2RefreshTokenEntity> query = manager.createNamedQuery(OAuth2RefreshTokenEntity.QUERY_BY_TOKEN_VALUE, OAuth2RefreshTokenEntity.class);
-			query.setParameter(OAuth2RefreshTokenEntity.PARAM_TOKEN_VALUE, jwt);
-			return JpaUtil.getSingleResult(query.getResultList());
-		} catch (ParseException e) {
-			return null;
-		}
-	}
+    override fun getRefreshTokenByValue(refreshTokenValue: String): OAuth2RefreshTokenEntity? {
+        try {
+            val jwt = JWTParser.parse(refreshTokenValue)
+            val query =
+                manager.createNamedQuery(OAuth2RefreshTokenEntity.QUERY_BY_TOKEN_VALUE, OAuth2RefreshTokenEntity::class.java)
+            query.setParameter(OAuth2RefreshTokenEntity.PARAM_TOKEN_VALUE, jwt)
+            return getSingleResult(query.resultList)
+        } catch (e: ParseException) {
+            return null
+        }
+    }
 
-	@Override
-	public OAuth2RefreshTokenEntity getRefreshTokenById(Long id) {
-		return manager.find(OAuth2RefreshTokenEntity.class, id);
-	}
+    override fun getRefreshTokenById(id: java.lang.Long): OAuth2RefreshTokenEntity? {
+        return manager.find(OAuth2RefreshTokenEntity::class.java, id)
+    }
 
-	@Override
-	@Transactional(value="defaultTransactionManager")
-	public OAuth2RefreshTokenEntity saveRefreshToken(OAuth2RefreshTokenEntity refreshToken) {
-		return JpaUtil.saveOrUpdate(refreshToken.getId(), manager, refreshToken);
-	}
+    @Transactional(value = "defaultTransactionManager")
+    override fun saveRefreshToken(refreshToken: OAuth2RefreshTokenEntity): OAuth2RefreshTokenEntity? {
+        return saveOrUpdate(refreshToken.id, manager, refreshToken)
+    }
 
-	@Override
-	@Transactional(value="defaultTransactionManager")
-	public void removeRefreshToken(OAuth2RefreshTokenEntity refreshToken) {
-		OAuth2RefreshTokenEntity found = getRefreshTokenById(refreshToken.getId());
-		if (found != null) {
-			manager.remove(found);
-		} else {
-			throw new IllegalArgumentException("Refresh token not found: " + refreshToken);
-		}
-	}
+    @Transactional(value = "defaultTransactionManager")
+    override fun removeRefreshToken(refreshToken: OAuth2RefreshTokenEntity) {
+        val id = requireNotNull(refreshToken.id) { "Missing id in refresh token" }
+        val found = getRefreshTokenById(java.lang.Long(id))
+        if (found != null) {
+            manager.remove(found)
+        } else {
+            throw IllegalArgumentException("Refresh token not found: $refreshToken")
+        }
+    }
 
-	@Override
-	@Transactional(value="defaultTransactionManager")
-	public void clearTokensForClient(ClientDetailsEntity client) {
-		TypedQuery<OAuth2AccessTokenEntity> queryA = manager.createNamedQuery(OAuth2AccessTokenEntity.QUERY_BY_CLIENT, OAuth2AccessTokenEntity.class);
-		queryA.setParameter(OAuth2AccessTokenEntity.PARAM_CLIENT, client);
-		List<OAuth2AccessTokenEntity> accessTokens = queryA.getResultList();
-		for (OAuth2AccessTokenEntity accessToken : accessTokens) {
-			removeAccessToken(accessToken);
-		}
-		TypedQuery<OAuth2RefreshTokenEntity> queryR = manager.createNamedQuery(OAuth2RefreshTokenEntity.QUERY_BY_CLIENT, OAuth2RefreshTokenEntity.class);
-		queryR.setParameter(OAuth2RefreshTokenEntity.PARAM_CLIENT, client);
-		List<OAuth2RefreshTokenEntity> refreshTokens = queryR.getResultList();
-		for (OAuth2RefreshTokenEntity refreshToken : refreshTokens) {
-			removeRefreshToken(refreshToken);
-		}
-	}
+    @Transactional(value = "defaultTransactionManager")
+    override fun clearTokensForClient(client: ClientDetailsEntity) {
+        val queryA =
+            manager.createNamedQuery(OAuth2AccessTokenEntity.QUERY_BY_CLIENT, OAuth2AccessTokenEntity::class.java)
+        queryA.setParameter(OAuth2AccessTokenEntity.PARAM_CLIENT, client)
+        val accessTokens = queryA.resultList
+        for (accessToken in accessTokens) {
+            removeAccessToken(accessToken)
+        }
+        val queryR =
+            manager.createNamedQuery(OAuth2RefreshTokenEntity.QUERY_BY_CLIENT, OAuth2RefreshTokenEntity::class.java)
+        queryR.setParameter(OAuth2RefreshTokenEntity.PARAM_CLIENT, client)
+        val refreshTokens = queryR.resultList
+        for (refreshToken in refreshTokens) {
+            removeRefreshToken(refreshToken)
+        }
+    }
 
-	@Override
-	public List<OAuth2AccessTokenEntity> getAccessTokensForClient(ClientDetailsEntity client) {
-		TypedQuery<OAuth2AccessTokenEntity> queryA = manager.createNamedQuery(OAuth2AccessTokenEntity.QUERY_BY_CLIENT, OAuth2AccessTokenEntity.class);
-		queryA.setParameter(OAuth2AccessTokenEntity.PARAM_CLIENT, client);
-		List<OAuth2AccessTokenEntity> accessTokens = queryA.getResultList();
-		return accessTokens;
-	}
+    override fun getAccessTokensForClient(client: ClientDetailsEntity): List<OAuth2AccessTokenEntity> {
+        val queryA =
+            manager.createNamedQuery(OAuth2AccessTokenEntity.QUERY_BY_CLIENT, OAuth2AccessTokenEntity::class.java)
+        queryA.setParameter(OAuth2AccessTokenEntity.PARAM_CLIENT, client)
+        val accessTokens = queryA.resultList
+        return accessTokens
+    }
 
-	@Override
-	public List<OAuth2RefreshTokenEntity> getRefreshTokensForClient(ClientDetailsEntity client) {
-		TypedQuery<OAuth2RefreshTokenEntity> queryR = manager.createNamedQuery(OAuth2RefreshTokenEntity.QUERY_BY_CLIENT, OAuth2RefreshTokenEntity.class);
-		queryR.setParameter(OAuth2RefreshTokenEntity.PARAM_CLIENT, client);
-		List<OAuth2RefreshTokenEntity> refreshTokens = queryR.getResultList();
-		return refreshTokens;
-	}
-	
-	@Override
-	public Set<OAuth2AccessTokenEntity> getAccessTokensByUserName(String name) {
-		TypedQuery<OAuth2AccessTokenEntity> query = manager.createNamedQuery(OAuth2AccessTokenEntity.QUERY_BY_NAME, OAuth2AccessTokenEntity.class);
-	    query.setParameter(OAuth2AccessTokenEntity.PARAM_NAME, name);
-	    List<OAuth2AccessTokenEntity> results = query.getResultList();
-	    return results != null ? new HashSet<>(results) : new HashSet<>();
-	}
-	
-	@Override
-	public Set<OAuth2RefreshTokenEntity> getRefreshTokensByUserName(String name) {
-		TypedQuery<OAuth2RefreshTokenEntity> query = manager.createNamedQuery(OAuth2RefreshTokenEntity.QUERY_BY_NAME, OAuth2RefreshTokenEntity.class);
-	    query.setParameter(OAuth2RefreshTokenEntity.PARAM_NAME, name);
-	    List<OAuth2RefreshTokenEntity> results = query.getResultList();
-	    return results != null ? new HashSet<>(results) : new HashSet<>();
-	}
+    override fun getRefreshTokensForClient(client: ClientDetailsEntity): List<OAuth2RefreshTokenEntity> {
+        val queryR =
+            manager.createNamedQuery(OAuth2RefreshTokenEntity.QUERY_BY_CLIENT, OAuth2RefreshTokenEntity::class.java)
+        queryR.setParameter(OAuth2RefreshTokenEntity.PARAM_CLIENT, client)
+        val refreshTokens = queryR.resultList
+        return refreshTokens
+    }
 
-	@Override
-	public Set<OAuth2AccessTokenEntity> getAllExpiredAccessTokens() {
-		DefaultPageCriteria pageCriteria = new DefaultPageCriteria(0, MAXEXPIREDRESULTS);
-		return getAllExpiredAccessTokens(pageCriteria);
-	}
+    override fun getAccessTokensByUserName(name: String): Set<OAuth2AccessTokenEntity> {
+        val query = manager.createNamedQuery(OAuth2AccessTokenEntity.QUERY_BY_NAME, OAuth2AccessTokenEntity::class.java)
+        query.setParameter(OAuth2AccessTokenEntity.PARAM_NAME, name)
+        val results = query.resultList
+        return if (results != null) HashSet(results) else HashSet()
+    }
 
-	@Override
-	public Set<OAuth2AccessTokenEntity> getAllExpiredAccessTokens(PageCriteria pageCriteria) {
-		TypedQuery<OAuth2AccessTokenEntity> query = manager.createNamedQuery(OAuth2AccessTokenEntity.QUERY_EXPIRED_BY_DATE, OAuth2AccessTokenEntity.class);
-		query.setParameter(OAuth2AccessTokenEntity.PARAM_DATE, new Date());
-		return new LinkedHashSet<>(JpaUtil.getResultPage(query, pageCriteria));
-	}
+    override fun getRefreshTokensByUserName(name: String?): Set<OAuth2RefreshTokenEntity> {
+        val query =
+            manager.createNamedQuery(OAuth2RefreshTokenEntity.QUERY_BY_NAME, OAuth2RefreshTokenEntity::class.java)
+        query.setParameter(OAuth2RefreshTokenEntity.PARAM_NAME, name)
+        val results = query.resultList
+        return if (results != null) HashSet(results) else HashSet()
+    }
 
-	@Override
-	public Set<OAuth2RefreshTokenEntity> getAllExpiredRefreshTokens() {
-		DefaultPageCriteria pageCriteria = new DefaultPageCriteria(0, MAXEXPIREDRESULTS);
-		return getAllExpiredRefreshTokens(pageCriteria);
-	}
+    override val allExpiredAccessTokens: Set<OAuth2AccessTokenEntity>
+        get() {
+            val pageCriteria = DefaultPageCriteria(0, MAXEXPIREDRESULTS)
+            return getAllExpiredAccessTokens(pageCriteria)
+        }
 
-	@Override
-	public Set<OAuth2RefreshTokenEntity> getAllExpiredRefreshTokens(PageCriteria pageCriteria) {
-		TypedQuery<OAuth2RefreshTokenEntity> query = manager.createNamedQuery(OAuth2RefreshTokenEntity.QUERY_EXPIRED_BY_DATE, OAuth2RefreshTokenEntity.class);
-		query.setParameter(OAuth2AccessTokenEntity.PARAM_DATE, new Date());
-		return new LinkedHashSet<>(JpaUtil.getResultPage(query,pageCriteria));
-	}
+    override fun getAllExpiredAccessTokens(pageCriteria: PageCriteria): Set<OAuth2AccessTokenEntity> {
+        val query =
+            manager.createNamedQuery(OAuth2AccessTokenEntity.QUERY_EXPIRED_BY_DATE, OAuth2AccessTokenEntity::class.java)
+        query.setParameter(OAuth2AccessTokenEntity.PARAM_DATE, Date())
+        return LinkedHashSet(getResultPage(query, pageCriteria))
+    }
 
-	@Override
-	public Set<OAuth2AccessTokenEntity> getAccessTokensForResourceSet(ResourceSet rs) {
-		TypedQuery<OAuth2AccessTokenEntity> query = manager.createNamedQuery(OAuth2AccessTokenEntity.QUERY_BY_RESOURCE_SET, OAuth2AccessTokenEntity.class);
-		query.setParameter(OAuth2AccessTokenEntity.PARAM_RESOURCE_SET_ID, rs.getId());
-		return new LinkedHashSet<>(query.getResultList());
-	}
+    override val allExpiredRefreshTokens: Set<OAuth2RefreshTokenEntity>
+        get() {
+            val pageCriteria = DefaultPageCriteria(0, MAXEXPIREDRESULTS)
+            return getAllExpiredRefreshTokens(pageCriteria)
+        }
 
-	@Override
-	@Transactional(value="defaultTransactionManager")
-	public void clearDuplicateAccessTokens() {
-		Query query = manager.createQuery("select a.jwt, count(1) as c from OAuth2AccessTokenEntity a GROUP BY a.jwt HAVING count(1) > 1");
-		@SuppressWarnings("unchecked")
-		List<Object[]> resultList = query.getResultList();
-		List<JWT> values = new ArrayList<>();
-		for (Object[] r : resultList) {
-			logger.warn("Found duplicate access tokens: {}, {}", ((JWT)r[0]).serialize(), r[1]);
-			values.add((JWT) r[0]);
-		}
-		if (values.size() > 0) {
-			CriteriaBuilder cb = manager.getCriteriaBuilder();
-			CriteriaDelete<OAuth2AccessTokenEntity> criteriaDelete = cb.createCriteriaDelete(OAuth2AccessTokenEntity.class);
-			Root<OAuth2AccessTokenEntity> root = criteriaDelete.from(OAuth2AccessTokenEntity.class);
-			criteriaDelete.where(root.get("jwt").in(values));
-			int result = manager.createQuery(criteriaDelete).executeUpdate();
-			logger.warn("Deleted {} duplicate access tokens", result);
-		}
-	}
+    override fun getAllExpiredRefreshTokens(pageCriteria: PageCriteria): Set<OAuth2RefreshTokenEntity> {
+        val query =
+            manager.createNamedQuery(OAuth2RefreshTokenEntity.QUERY_EXPIRED_BY_DATE, OAuth2RefreshTokenEntity::class.java)
+        query.setParameter(OAuth2AccessTokenEntity.PARAM_DATE, Date())
+        return LinkedHashSet(getResultPage(query, pageCriteria))
+    }
 
-	@Override
-	@Transactional(value="defaultTransactionManager")
-	public void clearDuplicateRefreshTokens() {
-		Query query = manager.createQuery("select a.jwt, count(1) as c from OAuth2RefreshTokenEntity a GROUP BY a.jwt HAVING count(1) > 1");
-		@SuppressWarnings("unchecked")
-		List<Object[]> resultList = query.getResultList();
-		List<JWT> values = new ArrayList<>();
-		for (Object[] r : resultList) {
-			logger.warn("Found duplicate refresh tokens: {}, {}", ((JWT)r[0]).serialize(), r[1]);
-			values.add((JWT) r[0]);
-		}
-		if (values.size() > 0) {
-			CriteriaBuilder cb = manager.getCriteriaBuilder();
-			CriteriaDelete<OAuth2RefreshTokenEntity> criteriaDelete = cb.createCriteriaDelete(OAuth2RefreshTokenEntity.class);
-			Root<OAuth2RefreshTokenEntity> root = criteriaDelete.from(OAuth2RefreshTokenEntity.class);
-			criteriaDelete.where(root.get("jwt").in(values));
-			int result = manager.createQuery(criteriaDelete).executeUpdate();
-			logger.warn("Deleted {} duplicate refresh tokens", result);
-		}
+    override fun getAccessTokensForResourceSet(rs: ResourceSet): Set<OAuth2AccessTokenEntity> {
+        val query =
+            manager.createNamedQuery(OAuth2AccessTokenEntity.QUERY_BY_RESOURCE_SET, OAuth2AccessTokenEntity::class.java)
+        query.setParameter(OAuth2AccessTokenEntity.PARAM_RESOURCE_SET_ID, rs.id)
+        return LinkedHashSet(query.resultList)
+    }
 
-	}
+    @Transactional(value = "defaultTransactionManager")
+    override fun clearDuplicateAccessTokens() {
+        val query =
+            manager.createQuery("select a.jwt, count(1) as c from OAuth2AccessTokenEntity a GROUP BY a.jwt HAVING count(1) > 1")
+        val resultList: List<Array<Any>> = query.resultList as List<Array<Any>>
+        val values: MutableList<JWT?> = ArrayList()
+        for (r in resultList) {
+            logger.warn("Found duplicate access tokens: {}, {}", (r[0] as JWT).serialize(), r[1])
+            values.add(r[0] as JWT)
+        }
+        if (values.isNotEmpty()) {
+            val cb = manager.criteriaBuilder
+            val criteriaDelete = cb.createCriteriaDelete(OAuth2AccessTokenEntity::class.java)
+            val root = criteriaDelete.from(OAuth2AccessTokenEntity::class.java)
+            criteriaDelete.where(root.get<Any>("jwt").`in`(values))
+            val result = manager.createQuery(criteriaDelete).executeUpdate()
+            logger.warn("Deleted {} duplicate access tokens", result)
+        }
+    }
 
-	@Override
-	public List<OAuth2AccessTokenEntity> getAccessTokensForApprovedSite(ApprovedSite approvedSite) {
-		TypedQuery<OAuth2AccessTokenEntity> queryA = manager.createNamedQuery(OAuth2AccessTokenEntity.QUERY_BY_APPROVED_SITE, OAuth2AccessTokenEntity.class);
-		queryA.setParameter(OAuth2AccessTokenEntity.PARAM_APPROVED_SITE, approvedSite);
-		List<OAuth2AccessTokenEntity> accessTokens = queryA.getResultList();
-		return accessTokens;
-	}
+    @Transactional(value = "defaultTransactionManager")
+    override fun clearDuplicateRefreshTokens() {
+        val query =
+            manager.createQuery("select a.jwt, count(1) as c from OAuth2RefreshTokenEntity a GROUP BY a.jwt HAVING count(1) > 1")
+        val resultList: List<Array<Any>> = query.resultList as List<Array<Any>>
+        val values: MutableList<JWT?> = ArrayList()
+        for (r in resultList) {
+            logger.warn("Found duplicate refresh tokens: {}, {}", (r[0] as JWT).serialize(), r[1])
+            values.add(r[0] as JWT)
+        }
+        if (values.size > 0) {
+            val cb = manager.criteriaBuilder
+            val criteriaDelete = cb.createCriteriaDelete(OAuth2RefreshTokenEntity::class.java)
+            val root = criteriaDelete.from(OAuth2RefreshTokenEntity::class.java)
+            criteriaDelete.where(root.get<Any>("jwt").`in`(values))
+            val result = manager.createQuery(criteriaDelete).executeUpdate()
+            logger.warn("Deleted {} duplicate refresh tokens", result)
+        }
+    }
 
+    override fun getAccessTokensForApprovedSite(approvedSite: ApprovedSite?): List<OAuth2AccessTokenEntity?>? {
+        val queryA =
+            manager.createNamedQuery(OAuth2AccessTokenEntity.QUERY_BY_APPROVED_SITE, OAuth2AccessTokenEntity::class.java)
+        queryA.setParameter(OAuth2AccessTokenEntity.PARAM_APPROVED_SITE, approvedSite)
+        val accessTokens = queryA.resultList
+        return accessTokens
+    }
+
+    companion object {
+        private const val MAXEXPIREDRESULTS = 1000
+
+        private val logger: Logger = LoggerFactory.getLogger(JpaOAuth2TokenRepository::class.java)
+    }
 }
