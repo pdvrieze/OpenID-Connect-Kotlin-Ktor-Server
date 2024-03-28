@@ -56,7 +56,7 @@ class JpaAuthenticationHolderRepository : AuthenticationHolderRepository {
     }
 
     @Transactional(value = "defaultTransactionManager")
-    override fun save(a: AuthenticationHolderEntity): AuthenticationHolderEntity? {
+    override fun save(a: AuthenticationHolderEntity): AuthenticationHolderEntity {
         return saveOrUpdate(a.id, manager, a)
     }
 

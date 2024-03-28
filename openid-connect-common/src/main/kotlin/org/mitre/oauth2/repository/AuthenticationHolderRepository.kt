@@ -27,7 +27,7 @@ interface AuthenticationHolderRepository {
 
     fun remove(a: AuthenticationHolderEntity)
 
-    fun save(a: AuthenticationHolderEntity): AuthenticationHolderEntity?
+    fun save(a: AuthenticationHolderEntity): AuthenticationHolderEntity
 
     val orphanedAuthenticationHolders: List<AuthenticationHolderEntity>
 
