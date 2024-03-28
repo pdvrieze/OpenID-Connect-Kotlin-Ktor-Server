@@ -7,117 +7,118 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.openid.connect.web;
+ */
+package org.mitre.openid.connect.web
 
-import org.mitre.openid.connect.model.ApprovedSite;
-import org.mitre.openid.connect.service.ApprovedSiteService;
-import org.mitre.openid.connect.view.HttpCodeView;
-import org.mitre.openid.connect.view.JsonApprovedSiteView;
-import org.mitre.openid.connect.view.JsonEntityView;
-import org.mitre.openid.connect.view.JsonErrorView;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-
-import java.security.Principal;
-import java.util.Collection;
+import org.mitre.oauth2.util.toJavaId
+import org.mitre.openid.connect.service.ApprovedSiteService
+import org.mitre.openid.connect.view.HttpCodeView
+import org.mitre.openid.connect.view.JsonApprovedSiteView
+import org.mitre.openid.connect.view.JsonEntityView
+import org.mitre.openid.connect.view.JsonErrorView
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
+import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.stereotype.Controller
+import org.springframework.ui.ModelMap
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
+import java.security.Principal
 
 /**
  * @author jricher
- *
  */
 @Controller
 @RequestMapping("/" + ApprovedSiteAPI.URL)
 @PreAuthorize("hasRole('ROLE_USER')")
-public class ApprovedSiteAPI {
+class ApprovedSiteAPI {
+    @Autowired
+    private lateinit var approvedSiteService: ApprovedSiteService
 
-	public static final String URL = RootController.API_URL + "/approved";
+    /**
+     * Get a list of all of this user's approved sites
+     */
+    @RequestMapping(method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun getAllApprovedSites(m: ModelMap, p: Principal): String {
+        val all = approvedSiteService.getByUserId(p.name)
 
-	@Autowired
-	private ApprovedSiteService approvedSiteService;
+        m[JsonEntityView.ENTITY] = all
 
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger logger = LoggerFactory.getLogger(ApprovedSiteAPI.class);
+        return JsonApprovedSiteView.VIEWNAME
+    }
 
-	/**
-	 * Get a list of all of this user's approved sites
-	 */
-	@RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public String getAllApprovedSites(ModelMap m, Principal p) {
+    /**
+     * Delete an approved site
+     */
+    @RequestMapping(value = ["/{id}"], method = [RequestMethod.DELETE])
+    fun deleteApprovedSite(@PathVariable("id") id: Long, m: ModelMap, p: Principal): String {
+        val approvedSite = approvedSiteService.getById(id.toJavaId())
 
-		Collection<ApprovedSite> all = approvedSiteService.getByUserId(p.getName());
+        if (approvedSite == null) {
+            logger.error("deleteApprovedSite failed; no approved site found for id: $id")
+            m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
+            m[JsonErrorView.ERROR_MESSAGE] =
+                "Could not delete approved site. The requested approved site with id: $id could not be found."
+            return JsonErrorView.VIEWNAME
+        } else if (approvedSite.userId != p.name) {
+            logger.error(
+                "deleteApprovedSite failed; principal "
+                        + p.name + " does not own approved site" + id
+            )
+            m[HttpCodeView.CODE] = HttpStatus.FORBIDDEN
+            m[JsonErrorView.ERROR_MESSAGE] =
+                "You do not have permission to delete this approved site. The approved site decision will not be deleted."
+            return JsonErrorView.VIEWNAME
+        } else {
+            m[HttpCodeView.CODE] = HttpStatus.OK
+            approvedSiteService.remove(approvedSite)
+        }
 
-		m.put(JsonEntityView.ENTITY, all);
+        return HttpCodeView.VIEWNAME
+    }
 
-		return JsonApprovedSiteView.VIEWNAME;
-	}
+    /**
+     * Get a single approved site
+     */
+    @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun getApprovedSite(@PathVariable("id") id: Long, m: ModelMap, p: Principal): String {
+        val approvedSite = approvedSiteService.getById(id.toJavaId())
+        if (approvedSite == null) {
+            logger.error("getApprovedSite failed; no approved site found for id: $id")
+            m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
+            m[JsonErrorView.ERROR_MESSAGE] = "The requested approved site with id: $id could not be found."
+            return JsonErrorView.VIEWNAME
+        } else if (approvedSite.userId != p.name) {
+            logger.error(
+                "getApprovedSite failed; principal "
+                        + p.name + " does not own approved site" + id
+            )
+            m[HttpCodeView.CODE] = HttpStatus.FORBIDDEN
+            m[JsonErrorView.ERROR_MESSAGE] = "You do not have permission to view this approved site."
+            return JsonErrorView.VIEWNAME
+        } else {
+            m[JsonEntityView.ENTITY] = approvedSite
+            return JsonApprovedSiteView.VIEWNAME
+        }
+    }
 
-	/**
-	 * Delete an approved site
-	 */
-	@RequestMapping(value="/{id}", method = RequestMethod.DELETE)
-	public String deleteApprovedSite(@PathVariable("id") Long id, ModelMap m, Principal p) {
-		ApprovedSite approvedSite = approvedSiteService.getById(id);
+    companion object {
+        const val URL: String = RootController.API_URL + "/approved"
 
-		if (approvedSite == null) {
-			logger.error("deleteApprovedSite failed; no approved site found for id: " + id);
-			m.put(HttpCodeView.CODE, HttpStatus.NOT_FOUND);
-			m.put(JsonErrorView.ERROR_MESSAGE, "Could not delete approved site. The requested approved site with id: " + id + " could not be found.");
-			return JsonErrorView.VIEWNAME;
-		} else if (!approvedSite.getUserId().equals(p.getName())) {
-			logger.error("deleteApprovedSite failed; principal "
-					+ p.getName() + " does not own approved site" + id);
-			m.put(HttpCodeView.CODE, HttpStatus.FORBIDDEN);
-			m.put(JsonErrorView.ERROR_MESSAGE, "You do not have permission to delete this approved site. The approved site decision will not be deleted.");
-			return JsonErrorView.VIEWNAME;
-		} else {
-			m.put(HttpCodeView.CODE, HttpStatus.OK);
-			approvedSiteService.remove(approvedSite);
-		}
-
-		return HttpCodeView.VIEWNAME;
-	}
-
-	/**
-	 * Get a single approved site
-	 */
-	@RequestMapping(value="/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public String getApprovedSite(@PathVariable("id") Long id, ModelMap m, Principal p) {
-		ApprovedSite approvedSite = approvedSiteService.getById(id);
-		if (approvedSite == null) {
-			logger.error("getApprovedSite failed; no approved site found for id: " + id);
-			m.put(HttpCodeView.CODE, HttpStatus.NOT_FOUND);
-			m.put(JsonErrorView.ERROR_MESSAGE, "The requested approved site with id: " + id + " could not be found.");
-			return JsonErrorView.VIEWNAME;
-		} else if (!approvedSite.getUserId().equals(p.getName())) {
-			logger.error("getApprovedSite failed; principal "
-					+ p.getName() + " does not own approved site" + id);
-			m.put(HttpCodeView.CODE, HttpStatus.FORBIDDEN);
-			m.put(JsonErrorView.ERROR_MESSAGE, "You do not have permission to view this approved site.");
-			return JsonErrorView.VIEWNAME;
-		} else {
-			m.put(JsonEntityView.ENTITY, approvedSite);
-			return JsonApprovedSiteView.VIEWNAME;
-		}
-
-	}
-
+        /**
+         * Logger for this class
+         */
+        private val logger: Logger = LoggerFactory.getLogger(ApprovedSiteAPI::class.java)
+    }
 }
