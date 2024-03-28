@@ -17,6 +17,8 @@
  *******************************************************************************/
 package org.mitre.openid.connect.client.service.impl;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.mitre.openid.connect.client.service.ServerConfigurationService;
 import org.mitre.openid.connect.config.ServerConfiguration;
 
@@ -45,8 +47,9 @@ public class HybridServerConfigurationService implements ServerConfigurationServ
 	/* (non-Javadoc)
 	 * @see org.mitre.openid.connect.client.service.ServerConfigurationService#getServerConfiguration(java.lang.String)
 	 */
-	@Override
-	public ServerConfiguration getServerConfiguration(String issuer) {
+	@Nullable
+  @Override
+	public ServerConfiguration getServerConfiguration(@NotNull String issuer) {
 		ServerConfiguration server = staticServerService.getServerConfiguration(issuer);
 		if (server != null) {
 			return server;

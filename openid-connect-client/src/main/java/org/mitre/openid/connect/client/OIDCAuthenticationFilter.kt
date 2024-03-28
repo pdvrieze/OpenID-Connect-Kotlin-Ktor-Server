@@ -208,7 +208,7 @@ class OIDCAuthenticationFilter : AbstractAuthenticationProcessingFilter(FILTER_P
                 session.setAttribute(TARGET_SESSION_VARIABLE, issResp.targetLinkUri)
             }
 
-            if (Strings.isNullOrEmpty(issuer)) {
+            if (issuer.isNullOrEmpty()) {
                 logger.error("No issuer found: $issuer")
                 throw AuthenticationServiceException("No issuer found: $issuer")
             }
@@ -300,6 +300,7 @@ class OIDCAuthenticationFilter : AbstractAuthenticationProcessingFilter(FILTER_P
 
         // look up the issuer that we set out to talk to
         val issuer = getStoredSessionString(session, ISSUER_SESSION_VARIABLE)
+            ?: throw AuthenticationServiceException("Issuer unexpectedly not stored in session")
 
         // pull the configurations based on that issuer
         val serverConfig = serverConfigurationService!!.getServerConfiguration(issuer)
