@@ -7,23 +7,20 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.openid.connect.client.service.impl;
+ */
+package org.mitre.openid.connect.client.service.impl
 
-import com.google.common.collect.Sets;
-import org.mitre.openid.connect.client.model.IssuerServiceResponse;
-import org.mitre.openid.connect.client.service.IssuerService;
-
-import javax.servlet.http.HttpServletRequest;
-
-import java.util.Set;
+import com.google.common.collect.Sets
+import org.mitre.openid.connect.client.model.IssuerServiceResponse
+import org.mitre.openid.connect.client.service.IssuerService
+import javax.servlet.http.HttpServletRequest
 
 /**
  *
@@ -32,88 +29,64 @@ import java.util.Set;
  * if not.
  *
  * @author jricher
- *
  */
-public class HybridIssuerService implements IssuerService {
+class HybridIssuerService : IssuerService {
+    var accountChooserUrl: String?
+        get() = thirdPartyIssuerService.accountChooserUrl
+        set(accountChooserUrl) {
+            thirdPartyIssuerService.accountChooserUrl = accountChooserUrl!!
+        }
 
-	/**
-	 * @see org.mitre.openid.connect.client.service.impl.ThirdPartyIssuerService#getAccountChooserUrl()
-	 */
-	public String getAccountChooserUrl() {
-		return thirdPartyIssuerService.getAccountChooserUrl();
-	}
+    var isForceHttps: Boolean
+        /**
+         * @see org.mitre.openid.connect.client.service.impl.WebfingerIssuerService.isForceHttps
+         */
+        get() = webfingerIssuerService.isForceHttps
+        /**
+         * @see org.mitre.openid.connect.client.service.impl.WebfingerIssuerService.setForceHttps
+         */
+        set(forceHttps) {
+            webfingerIssuerService.isForceHttps = forceHttps
+        }
 
-	/**
-	 * @see org.mitre.openid.connect.client.service.impl.ThirdPartyIssuerService#setAccountChooserUrl(java.lang.String)
-	 */
-	public void setAccountChooserUrl(String accountChooserUrl) {
-		thirdPartyIssuerService.setAccountChooserUrl(accountChooserUrl);
-	}
+    private val thirdPartyIssuerService = ThirdPartyIssuerService()
+    private val webfingerIssuerService = WebfingerIssuerService()
 
-	/**
-	 * @see org.mitre.openid.connect.client.service.impl.WebfingerIssuerService#isForceHttps()
-	 */
-	public boolean isForceHttps() {
-		return webfingerIssuerService.isForceHttps();
-	}
+    override fun getIssuer(request: HttpServletRequest): IssuerServiceResponse? {
+        val resp = thirdPartyIssuerService.getIssuer(request)
+        return if (resp.shouldRedirect()) {
+            // if it wants us to redirect, try the webfinger approach first
+            webfingerIssuerService.getIssuer(request)
+        } else {
+            resp
+        }
+    }
 
-	/**
-	 * @see org.mitre.openid.connect.client.service.impl.WebfingerIssuerService#setForceHttps(boolean)
-	 */
-	public void setForceHttps(boolean forceHttps) {
-		webfingerIssuerService.setForceHttps(forceHttps);
-	}
+    var whitelist: Set<String>
+        get() = Sets.union(thirdPartyIssuerService.whitelist, webfingerIssuerService.whitelist)
+        set(whitelist) {
+            thirdPartyIssuerService.whitelist = whitelist
+            webfingerIssuerService.whitelist = whitelist
+        }
 
-	private ThirdPartyIssuerService thirdPartyIssuerService = new ThirdPartyIssuerService();
-	private WebfingerIssuerService webfingerIssuerService = new WebfingerIssuerService();
+    var blacklist: Set<String>
+        get() = Sets.union(thirdPartyIssuerService.blacklist, webfingerIssuerService.whitelist)
+        set(blacklist) {
+            thirdPartyIssuerService.blacklist = blacklist
+            webfingerIssuerService.blacklist = blacklist
+        }
 
-	@Override
-	public IssuerServiceResponse getIssuer(HttpServletRequest request) {
+    var parameterName: String?
+        get() = webfingerIssuerService.parameterName
+        set(parameterName) {
+            webfingerIssuerService.parameterName = parameterName!!
+        }
 
-		IssuerServiceResponse resp = thirdPartyIssuerService.getIssuer(request);
-		if (resp.shouldRedirect()) {
-			// if it wants us to redirect, try the webfinger approach first
-			return webfingerIssuerService.getIssuer(request);
-		} else {
-			return resp;
-		}
-
-	}
-
-	public Set<String> getWhitelist() {
-		return Sets.union(thirdPartyIssuerService.getWhitelist(), webfingerIssuerService.getWhitelist());
-	}
-
-	public void setWhitelist(Set<String> whitelist) {
-		thirdPartyIssuerService.setWhitelist(whitelist);
-		webfingerIssuerService.setWhitelist(whitelist);
-	}
-
-	public Set<String> getBlacklist() {
-		return Sets.union(thirdPartyIssuerService.getBlacklist(), webfingerIssuerService.getWhitelist());
-	}
-
-	public void setBlacklist(Set<String> blacklist) {
-		thirdPartyIssuerService.setBlacklist(blacklist);
-		webfingerIssuerService.setBlacklist(blacklist);
-	}
-
-	public String getParameterName() {
-		return webfingerIssuerService.getParameterName();
-	}
-
-	public void setParameterName(String parameterName) {
-		webfingerIssuerService.setParameterName(parameterName);
-	}
-
-	public String getLoginPageUrl() {
-		return webfingerIssuerService.getLoginPageUrl();
-	}
-
-	public void setLoginPageUrl(String loginPageUrl) {
-		webfingerIssuerService.setLoginPageUrl(loginPageUrl);
-		thirdPartyIssuerService.setAccountChooserUrl(loginPageUrl); // set the same URL on both, but this one gets ignored
-	}
-
-
+    var loginPageUrl: String?
+        get() = webfingerIssuerService.loginPageUrl
+        set(loginPageUrl) {
+            webfingerIssuerService.loginPageUrl = loginPageUrl
+            thirdPartyIssuerService.accountChooserUrl =
+                loginPageUrl!! // set the same URL on both, but this one gets ignored
+        }
 }

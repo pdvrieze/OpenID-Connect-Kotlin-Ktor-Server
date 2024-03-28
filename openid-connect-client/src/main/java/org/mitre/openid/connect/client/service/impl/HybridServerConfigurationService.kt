@@ -7,23 +7,18 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.openid.connect.client.service.impl;
+ */
+package org.mitre.openid.connect.client.service.impl
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.mitre.openid.connect.client.service.ServerConfigurationService;
-import org.mitre.openid.connect.config.ServerConfiguration;
-
-import java.util.Map;
-import java.util.Set;
+import org.mitre.openid.connect.client.service.ServerConfigurationService
+import org.mitre.openid.connect.config.ServerConfiguration
 
 /**
  * Houses both a static server configuration and a dynamic server configuration
@@ -35,75 +30,60 @@ import java.util.Set;
  *
  *
  * @author jricher
- *
  */
-public class HybridServerConfigurationService implements ServerConfigurationService {
+class HybridServerConfigurationService : ServerConfigurationService {
+    /** var for mocking */
+    private var staticServerService = StaticServerConfigurationService()
 
-	private StaticServerConfigurationService staticServerService = new StaticServerConfigurationService();
-
-	private DynamicServerConfigurationService dynamicServerService = new DynamicServerConfigurationService();
+    private var dynamicServerService = DynamicServerConfigurationService()
 
 
-	/* (non-Javadoc)
+    /* (non-Javadoc)
 	 * @see org.mitre.openid.connect.client.service.ServerConfigurationService#getServerConfiguration(java.lang.String)
 	 */
-	@Nullable
-  @Override
-	public ServerConfiguration getServerConfiguration(@NotNull String issuer) {
-		ServerConfiguration server = staticServerService.getServerConfiguration(issuer);
-		if (server != null) {
-			return server;
-		} else {
-			return dynamicServerService.getServerConfiguration(issuer);
-		}
-	}
+    override fun getServerConfiguration(issuer: String): ServerConfiguration? {
+        val server = staticServerService.getServerConfiguration(issuer)
+        return server ?: dynamicServerService.getServerConfiguration(issuer)
+    }
 
 
-	/**
-	 * @see org.mitre.openid.connect.client.service.impl.StaticServerConfigurationService#getServers()
-	 */
-	public Map<String, ServerConfiguration> getServers() {
-		return staticServerService.getServers();
-	}
+    val servers: Map<String, ServerConfiguration>
+        /**
+         * @see org.mitre.openid.connect.client.service.impl.StaticServerConfigurationService.getServers
+         */
+        get() = staticServerService.servers
 
 
-	/**
-	 * @see org.mitre.openid.connect.client.service.impl.StaticServerConfigurationService#setServers(java.util.Map)
-	 */
-	public void setServers(Map<String, ServerConfiguration> servers) {
-		staticServerService.setServers(servers);
-	}
+    /**
+     * @see org.mitre.openid.connect.client.service.impl.StaticServerConfigurationService.setServers
+     */
+    fun setServers(servers: Map<String, ServerConfiguration>) {
+        staticServerService.servers = servers
+    }
 
 
-	/**
-	 * @see org.mitre.openid.connect.client.service.impl.DynamicServerConfigurationService#getWhitelist()
-	 */
-	public Set<String> getWhitelist() {
-		return dynamicServerService.getWhitelist();
-	}
+    var whitelist: Set<String?>?
+        /**
+         * @see org.mitre.openid.connect.client.service.impl.DynamicServerConfigurationService.getWhitelist
+         */
+        get() = dynamicServerService.whitelist
+        /**
+         * @see org.mitre.openid.connect.client.service.impl.DynamicServerConfigurationService.setWhitelist
+         */
+        set(whitelist) {
+            dynamicServerService.whitelist = whitelist!!
+        }
 
 
-	/**
-	 * @see org.mitre.openid.connect.client.service.impl.DynamicServerConfigurationService#setWhitelist(java.util.Set)
-	 */
-	public void setWhitelist(Set<String> whitelist) {
-		dynamicServerService.setWhitelist(whitelist);
-	}
-
-
-	/**
-	 * @see org.mitre.openid.connect.client.service.impl.DynamicServerConfigurationService#getBlacklist()
-	 */
-	public Set<String> getBlacklist() {
-		return dynamicServerService.getBlacklist();
-	}
-
-
-	/**
-	 * @see org.mitre.openid.connect.client.service.impl.DynamicServerConfigurationService#setBlacklist(java.util.Set)
-	 */
-	public void setBlacklist(Set<String> blacklist) {
-		dynamicServerService.setBlacklist(blacklist);
-	}
-
+    var blacklist: Set<String?>
+        /**
+         * @see org.mitre.openid.connect.client.service.impl.DynamicServerConfigurationService.getBlacklist
+         */
+        get() = dynamicServerService.blacklist
+        /**
+         * @see org.mitre.openid.connect.client.service.impl.DynamicServerConfigurationService.setBlacklist
+         */
+        set(blacklist) {
+            dynamicServerService.blacklist = blacklist
+        }
 }

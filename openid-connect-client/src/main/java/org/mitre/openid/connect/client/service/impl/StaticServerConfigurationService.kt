@@ -34,6 +34,7 @@ class StaticServerConfigurationService : ServerConfigurationService {
 	 * @see org.mitre.openid.connect.client.service.ServerConfigurationService#getServerConfiguration(java.lang.String)
 	 */
     override fun getServerConfiguration(issuer: String): ServerConfiguration? {
+//        if (!::servers.isInitialized) return null
         return servers[issuer]
     }
 
