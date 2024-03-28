@@ -5,44 +5,30 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.openid.connect.client;
+ */
+package org.mitre.openid.connect.client
 
 /**
  * Simple target URI checker, checks whether the string in question starts
  * with a configured prefix. Returns "/" if the match fails.
  *
  * @author jricher
- *
  */
-public class StaticPrefixTargetLinkURIChecker implements TargetLinkURIChecker {
+class StaticPrefixTargetLinkURIChecker : TargetLinkURIChecker {
+    var prefix: String = ""
 
-	private String prefix = "";
-
-	@Override
-	public String filter(String target) {
-		if (target == null) {
-			return "/";
-		} else if (target.startsWith(prefix)) {
-			return target;
-		} else {
-			return "/";
-		}
-	}
-
-	public String getPrefix() {
-		return prefix;
-	}
-
-	public void setPrefix(String prefix) {
-		this.prefix = prefix;
-	}
-
+    override fun filter(target: String?): String {
+        return when {
+            target == null -> "/"
+            target.startsWith(prefix) -> target
+            else -> "/"
+        }
+    }
 }
