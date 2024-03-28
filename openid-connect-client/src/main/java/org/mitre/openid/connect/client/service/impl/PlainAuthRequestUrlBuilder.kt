@@ -7,76 +7,64 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.openid.connect.client.service.impl;
+ */
+package org.mitre.openid.connect.client.service.impl
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
-import org.apache.http.client.utils.URIBuilder;
-import org.jetbrains.annotations.Nullable;
-import org.mitre.oauth2.model.RegisteredClient;
-import org.mitre.openid.connect.client.service.AuthRequestUrlBuilder;
-import org.mitre.openid.connect.config.ServerConfiguration;
-import org.springframework.security.authentication.AuthenticationServiceException;
-
-import java.net.URISyntaxException;
-import java.util.Map;
-import java.util.Map.Entry;
+import com.google.common.base.Joiner
+import org.apache.http.client.utils.URIBuilder
+import org.mitre.oauth2.model.RegisteredClient
+import org.mitre.openid.connect.client.service.AuthRequestUrlBuilder
+import org.mitre.openid.connect.config.ServerConfiguration
+import org.springframework.security.authentication.AuthenticationServiceException
+import java.net.URISyntaxException
 
 /**
  *
  * Builds an auth request redirect URI with normal query parameters.
  *
  * @author jricher
- *
  */
-public class PlainAuthRequestUrlBuilder implements AuthRequestUrlBuilder {
+class PlainAuthRequestUrlBuilder : AuthRequestUrlBuilder {
+    override fun buildAuthRequestUrl(
+        serverConfig: ServerConfiguration,
+        clientConfig: RegisteredClient,
+        redirectUri: String?,
+        nonce: String?,
+        state: String?,
+        options: Map<String, String>,
+        loginHint: String?
+    ): String {
+        try {
+            return URIBuilder(serverConfig.authorizationEndpointUri).apply {
+                addParameter("response_type", "code")
+                addParameter("client_id", clientConfig.clientId)
+                addParameter("scope", Joiner.on(" ").join(clientConfig.scope))
 
-	/* (non-Javadoc)
-	 * @see org.mitre.openid.connect.client.service.AuthRequestUrlBuilder#buildAuthRequest(javax.servlet.http.HttpServletRequest, org.mitre.openid.connect.config.ServerConfiguration, org.springframework.security.oauth2.provider.ClientDetails)
-	 */
-	@Nullable
-	@Override
-	public String buildAuthRequestUrl(ServerConfiguration serverConfig, RegisteredClient clientConfig, String redirectUri, String nonce, String state, Map<String, String> options, String loginHint) {
-		try {
+                addParameter("redirect_uri", redirectUri)
 
-			URIBuilder uriBuilder = new URIBuilder(serverConfig.getAuthorizationEndpointUri());
-			uriBuilder.addParameter("response_type", "code");
-			uriBuilder.addParameter("client_id", clientConfig.getClientId());
-			uriBuilder.addParameter("scope", Joiner.on(" ").join(clientConfig.getScope()));
+                addParameter("nonce", nonce)
 
-			uriBuilder.addParameter("redirect_uri", redirectUri);
+                addParameter("state", state)
 
-			uriBuilder.addParameter("nonce", nonce);
+                // Optional parameters:
+                for ((key, value) in options) {
+                    addParameter(key, value)
+                }
 
-			uriBuilder.addParameter("state", state);
-
-			// Optional parameters:
-			for (Entry<String, String> option : options.entrySet()) {
-				uriBuilder.addParameter(option.getKey(), option.getValue());
-			}
-
-			// if there's a login hint, send it
-			if (!Strings.isNullOrEmpty(loginHint)) {
-				uriBuilder.addParameter("login_hint", loginHint);
-			}
-
-			return uriBuilder.build().toString();
-
-		} catch (URISyntaxException e) {
-			throw new AuthenticationServiceException("Malformed Authorization Endpoint Uri", e);
-
-		}
-
-
-
-	}
-
+                // if there's a login hint, send it
+                if (!loginHint.isNullOrEmpty()) {
+                    addParameter("login_hint", loginHint)
+                }
+            }.build().toString()
+        } catch (e: URISyntaxException) {
+            throw AuthenticationServiceException("Malformed Authorization Endpoint Uri", e)
+        }
+    }
 }
