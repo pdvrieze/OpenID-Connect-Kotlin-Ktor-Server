@@ -5,99 +5,81 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.oauth2.repository.impl;
+ */
+package org.mitre.oauth2.repository.impl
 
-import org.mitre.oauth2.model.DeviceCode;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
-
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
-
-import java.util.Collection;
-import java.util.Date;
-
-import static org.mitre.util.jpa.JpaUtil.getSingleResult;
-import static org.mitre.util.jpa.JpaUtil.saveOrUpdate;
+import org.mitre.oauth2.model.DeviceCode
+import org.mitre.util.jpa.JpaUtil.getSingleResult
+import org.mitre.util.jpa.JpaUtil.saveOrUpdate
+import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
+import java.util.*
+import javax.persistence.EntityManager
+import javax.persistence.PersistenceContext
 
 /**
  * @author jricher
- *
  */
 @Repository("jpaDeviceCodeRepository")
-public class JpaDeviceCodeRepository implements DeviceCodeRepository {
+class JpaDeviceCodeRepository : DeviceCodeRepository {
+    @PersistenceContext(unitName = "defaultPersistenceUnit")
+    private lateinit var em: EntityManager
 
-	@PersistenceContext(unitName="defaultPersistenceUnit")
-	private EntityManager em;
+    @Transactional(value = "defaultTransactionManager")
+    override fun getById(id: java.lang.Long): DeviceCode? {
+        return em.find(DeviceCode::class.java, id)
+    }
 
-	/* (non-Javadoc)
+    @Transactional(value = "defaultTransactionManager")
+    override fun getByUserCode(value: String): DeviceCode? {
+        val query = em.createNamedQuery(DeviceCode.QUERY_BY_USER_CODE, DeviceCode::class.java)
+        query.setParameter(DeviceCode.PARAM_USER_CODE, value)
+        return getSingleResult(query.resultList)
+    }
+
+    /* (non-Javadoc)
 	 */
-	@Override
-	@Transactional(value="defaultTransactionManager")
-	public DeviceCode getById(Long id) {
-		return em.find(DeviceCode.class, id);
-	}
+    @Transactional(value = "defaultTransactionManager")
+    override fun getByDeviceCode(value: String): DeviceCode? {
+        val query = em.createNamedQuery(DeviceCode.QUERY_BY_DEVICE_CODE, DeviceCode::class.java)
+        query.setParameter(DeviceCode.PARAM_DEVICE_CODE, value)
+        return getSingleResult(query.resultList)
+    }
 
-	/* (non-Javadoc)
+    /* (non-Javadoc)
 	 */
-	@Override
-	@Transactional(value="defaultTransactionManager")
-	public DeviceCode getByUserCode(String value) {
-		TypedQuery<DeviceCode> query = em.createNamedQuery(DeviceCode.QUERY_BY_USER_CODE, DeviceCode.class);
-		query.setParameter(DeviceCode.PARAM_USER_CODE, value);
-		return getSingleResult(query.getResultList());
-	}
+    @Transactional(value = "defaultTransactionManager")
+    override fun remove(scope: DeviceCode) {
+        val found = getById((scope.id as java.lang.Long?) ?: return)
 
-	/* (non-Javadoc)
-	 */
-	@Override
-	@Transactional(value="defaultTransactionManager")
-	public DeviceCode getByDeviceCode(String value) {
-		TypedQuery<DeviceCode> query = em.createNamedQuery(DeviceCode.QUERY_BY_DEVICE_CODE, DeviceCode.class);
-		query.setParameter(DeviceCode.PARAM_DEVICE_CODE, value);
-		return getSingleResult(query.getResultList());
-	}
+        if (found != null) {
+            em.remove(found)
+        }
+    }
 
-	/* (non-Javadoc)
-	 */
-	@Override
-	@Transactional(value="defaultTransactionManager")
-	public void remove(DeviceCode scope) {
-		DeviceCode found = getById(scope.getId());
-
-		if (found != null) {
-			em.remove(found);
-		}
-
-	}
-
-	/* (non-Javadoc)
+    /* (non-Javadoc)
 	 * @see org.mitre.oauth2.repository.SystemScopeRepository#save(org.mitre.oauth2.model.SystemScope)
 	 */
-	@Override
-	@Transactional(value="defaultTransactionManager")
-	public DeviceCode save(DeviceCode scope) {
-		return saveOrUpdate(scope.getId(), em, scope);
-	}
+    @Transactional(value = "defaultTransactionManager")
+    override fun save(scope: DeviceCode): DeviceCode? {
+        val id = requireNotNull(scope.id) { "Null id in scope" }
+        return saveOrUpdate(id, em, scope)
+    }
 
-	/* (non-Javadoc)
+    @get:Transactional(value = "defaultTransactionManager")
+    override val expiredCodes: Collection<DeviceCode>
+        /* (non-Javadoc)
 	 * @see org.mitre.oauth2.repository.impl.DeviceCodeRepository#getExpiredCodes()
-	 */
-	@Override
-	@Transactional(value="defaultTransactionManager")
-	public Collection<DeviceCode> getExpiredCodes() {
-		TypedQuery<DeviceCode> query = em.createNamedQuery(DeviceCode.QUERY_EXPIRED_BY_DATE, DeviceCode.class);
-		query.setParameter(DeviceCode.PARAM_DATE, new Date());
-		return query.getResultList();
-	}
-
+	 */ get() {
+            val query = em.createNamedQuery(DeviceCode.QUERY_EXPIRED_BY_DATE, DeviceCode::class.java)
+            query.setParameter(DeviceCode.PARAM_DATE, Date())
+            return query.resultList
+        }
 }
