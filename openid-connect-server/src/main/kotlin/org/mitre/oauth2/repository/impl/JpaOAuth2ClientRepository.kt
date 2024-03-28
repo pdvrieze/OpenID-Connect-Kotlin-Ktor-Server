@@ -7,95 +7,83 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.oauth2.repository.impl;
+ */
+package org.mitre.oauth2.repository.impl
 
-import java.util.Collection;
-
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
-
-import org.mitre.oauth2.model.ClientDetailsEntity;
-import org.mitre.oauth2.repository.OAuth2ClientRepository;
-import org.mitre.util.jpa.JpaUtil;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
+import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.repository.OAuth2ClientRepository
+import org.mitre.util.jpa.JpaUtil.getSingleResult
+import org.mitre.util.jpa.JpaUtil.saveOrUpdate
+import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
+import javax.persistence.EntityManager
+import javax.persistence.PersistenceContext
 
 /**
  * @author jricher
- *
  */
 @Repository
-@Transactional(value="defaultTransactionManager")
-public class JpaOAuth2ClientRepository implements OAuth2ClientRepository {
+@Transactional(value = "defaultTransactionManager")
+class JpaOAuth2ClientRepository : OAuth2ClientRepository {
+    @PersistenceContext(unitName = "defaultPersistenceUnit")
+    private lateinit var manager: EntityManager
 
-	@PersistenceContext(unitName="defaultPersistenceUnit")
-	private EntityManager manager;
+    constructor()
 
-	public JpaOAuth2ClientRepository() {
+    constructor(manager: EntityManager) {
+        this.manager = manager
+    }
 
-	}
+    override fun getById(id: java.lang.Long): ClientDetailsEntity? {
+        return manager.find(ClientDetailsEntity::class.java, id)
+    }
 
-	public JpaOAuth2ClientRepository(EntityManager manager) {
-		this.manager = manager;
-	}
-
-	@Override
-	public ClientDetailsEntity getById(Long id) {
-		return manager.find(ClientDetailsEntity.class, id);
-	}
-
-	/* (non-Javadoc)
+    /* (non-Javadoc)
 	 * @see org.mitre.oauth2.repository.OAuth2ClientRepository#getClientById(java.lang.String)
 	 */
-	@Override
-	public ClientDetailsEntity getClientByClientId(String clientId) {
-		TypedQuery<ClientDetailsEntity> query = manager.createNamedQuery(ClientDetailsEntity.QUERY_BY_CLIENT_ID, ClientDetailsEntity.class);
-		query.setParameter(ClientDetailsEntity.PARAM_CLIENT_ID, clientId);
-		return JpaUtil.getSingleResult(query.getResultList());
-	}
+    override fun getClientByClientId(clientId: String): ClientDetailsEntity? {
+        val query = manager!!.createNamedQuery(ClientDetailsEntity.QUERY_BY_CLIENT_ID, ClientDetailsEntity::class.java)
+        query.setParameter(ClientDetailsEntity.PARAM_CLIENT_ID, clientId)
+        return getSingleResult(query.resultList)
+    }
 
-	/* (non-Javadoc)
+    /* (non-Javadoc)
 	 * @see org.mitre.oauth2.repository.OAuth2ClientRepository#saveClient(org.mitre.oauth2.model.ClientDetailsEntity)
 	 */
-	@Override
-	public ClientDetailsEntity saveClient(ClientDetailsEntity client) {
-		return JpaUtil.saveOrUpdate(client.getClientId(), manager, client);
-	}
+    override fun saveClient(client: ClientDetailsEntity): ClientDetailsEntity {
+        return saveOrUpdate(client.clientId, manager!!, client)
+    }
 
-	/* (non-Javadoc)
+    /* (non-Javadoc)
 	 * @see org.mitre.oauth2.repository.OAuth2ClientRepository#deleteClient(org.mitre.oauth2.model.ClientDetailsEntity)
 	 */
-	@Override
-	public void deleteClient(ClientDetailsEntity client) {
-		ClientDetailsEntity found = getById(client.getId());
-		if (found != null) {
-			manager.remove(found);
-		} else {
-			throw new IllegalArgumentException("Client not found: " + client);
-		}
-	}
+    override fun deleteClient(client: ClientDetailsEntity) {
+        val id = requireNotNull(client.id) { "Client id not set "}
+        val found = getById(java.lang.Long(id))
+        if (found != null) {
+            manager.remove(found)
+        } else {
+            throw IllegalArgumentException("Client not found: $client")
+        }
+    }
 
-	@Override
-	public ClientDetailsEntity updateClient(Long id, ClientDetailsEntity client) {
-		// sanity check
-		client.setId(id);
+    override fun updateClient(id: java.lang.Long, client: ClientDetailsEntity): ClientDetailsEntity {
+        // sanity check
+        client.id = id as Long?
 
-		return JpaUtil.saveOrUpdate(id, manager, client);
-	}
+        return saveOrUpdate(id, manager, client)
+    }
 
-	@Override
-	public Collection<ClientDetailsEntity> getAllClients() {
-		TypedQuery<ClientDetailsEntity> query = manager.createNamedQuery(ClientDetailsEntity.QUERY_ALL, ClientDetailsEntity.class);
-		return query.getResultList();
-	}
-
+    override val allClients: Collection<ClientDetailsEntity>
+        get() {
+            val query = manager.createNamedQuery(ClientDetailsEntity.QUERY_ALL, ClientDetailsEntity::class.java)
+            return query.resultList
+        }
 }
