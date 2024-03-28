@@ -7,124 +7,117 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.openid.connect.client.service.impl;
+ */
+package org.mitre.openid.connect.client.service.impl
 
-import javax.servlet.http.HttpServletRequest;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mitre.openid.connect.client.model.IssuerServiceResponse;
-import org.mockito.Mockito;
-import org.springframework.security.authentication.AuthenticationServiceException;
-
-import com.google.common.collect.Sets;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.nullValue;
-
-import static org.junit.Assert.assertThat;
+import com.google.common.collect.Sets
+import org.hamcrest.CoreMatchers
+import org.hamcrest.MatcherAssert.assertThat
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.mockito.Mockito
+import org.springframework.security.authentication.AuthenticationServiceException
+import javax.servlet.http.HttpServletRequest
 
 /**
  * @author wkim
- *
  */
-public class TestThirdPartyIssuerService {
+class TestThirdPartyIssuerService {
+    // Test fixture:
+    private lateinit var request: HttpServletRequest
 
-	// Test fixture:
-	private HttpServletRequest request;
+    private val iss = "https://server.example.org"
+    private val login_hint = "I'm not telling you nothin!"
+    private val target_link_uri = "https://www.example.com"
+    private val redirect_uri = "https://www.example.com"
 
-	private String iss = "https://server.example.org";
-	private String login_hint = "I'm not telling you nothin!";
-	private String target_link_uri = "https://www.example.com";
-	private String redirect_uri = "https://www.example.com";
+    private val accountChooserUrl = "https://www.example.com/account"
 
-	private String accountChooserUrl = "https://www.example.com/account";
+    private val service = ThirdPartyIssuerService()
 
-	private ThirdPartyIssuerService service = new ThirdPartyIssuerService();
+    @BeforeEach
+    fun prepare() {
+        service.accountChooserUrl = accountChooserUrl
 
-	@Before
-	public void prepare() {
+        request = Mockito.mock(HttpServletRequest::class.java)
+        Mockito.`when`(request.getParameter("iss")).thenReturn(iss)
+        Mockito.`when`(request.getParameter("login_hint")).thenReturn(login_hint)
+        Mockito.`when`(request.getParameter("target_link_uri")).thenReturn(target_link_uri)
+        Mockito.`when`(request.requestURL).thenReturn(StringBuffer(redirect_uri))
+    }
 
-		service.setAccountChooserUrl(accountChooserUrl);
+    @Test
+    fun getIssuer_hasIssuer() {
+        val response = service.getIssuer(request)
 
-		request = Mockito.mock(HttpServletRequest.class);
-		Mockito.when(request.getParameter("iss")).thenReturn(iss);
-		Mockito.when(request.getParameter("login_hint")).thenReturn(login_hint);
-		Mockito.when(request.getParameter("target_link_uri")).thenReturn(target_link_uri);
-		Mockito.when(request.getRequestURL()).thenReturn(new StringBuffer(redirect_uri));
-	}
+        assertThat(response.issuer, CoreMatchers.equalTo(iss))
+        assertThat(response.loginHint, CoreMatchers.equalTo(login_hint))
+        assertThat(response.targetLinkUri, CoreMatchers.equalTo(target_link_uri))
 
-	@Test
-	public void getIssuer_hasIssuer() {
+        assertThat(response.redirectUrl, CoreMatchers.nullValue())
+    }
 
-		IssuerServiceResponse response = service.getIssuer(request);
+    @Test
+    fun getIssuer_noIssuer() {
+        Mockito.`when`(request.getParameter("iss")).thenReturn(null)
 
-		assertThat(response.getIssuer(), equalTo(iss));
-		assertThat(response.getLoginHint(), equalTo(login_hint));
-		assertThat(response.getTargetLinkUri(), equalTo(target_link_uri));
+        val response = service.getIssuer(request)
 
-		assertThat(response.getRedirectUrl(), nullValue());
-	}
+        assertThat(response.issuer, CoreMatchers.nullValue())
+        assertThat(response.loginHint, CoreMatchers.nullValue())
+        assertThat(response.targetLinkUri, CoreMatchers.nullValue())
 
-	@Test
-	public void getIssuer_noIssuer() {
+        val expectedRedirectUrl =
+            "$accountChooserUrl?redirect_uri=https%3A%2F%2Fwww.example.com" // url-encoded string of the request url
+        assertThat(response.redirectUrl, CoreMatchers.equalTo(expectedRedirectUrl))
+    }
 
-		Mockito.when(request.getParameter("iss")).thenReturn(null);
+    @Test
+    fun getIssuer_isWhitelisted() {
+        service.whitelist = Sets.newHashSet(iss)
 
-		IssuerServiceResponse response = service.getIssuer(request);
+        val response = service.getIssuer(request)
 
-		assertThat(response.getIssuer(), nullValue());
-		assertThat(response.getLoginHint(), nullValue());
-		assertThat(response.getTargetLinkUri(), nullValue());
+        assertThat(response.issuer, CoreMatchers.equalTo(iss))
+        assertThat(response.loginHint, CoreMatchers.equalTo(login_hint))
+        assertThat(response.targetLinkUri, CoreMatchers.equalTo(target_link_uri))
 
-		String expectedRedirectUrl = accountChooserUrl + "?redirect_uri=" + "https%3A%2F%2Fwww.example.com"; // url-encoded string of the request url
-		assertThat(response.getRedirectUrl(), equalTo(expectedRedirectUrl));
-	}
+        assertThat(response.redirectUrl, CoreMatchers.nullValue())
+    }
 
-	@Test
-	public void getIssuer_isWhitelisted() {
+    @Test
+    fun getIssuer_notWhitelisted() {
+        service.whitelist = Sets.newHashSet("some.other.site")
 
-		service.setWhitelist(Sets.newHashSet(iss));
+        assertThrows<AuthenticationServiceException> {
+            service.getIssuer(request)
+        }
+    }
 
-		IssuerServiceResponse response = service.getIssuer(request);
+    @Test
+    fun getIssuer_blacklisted() {
+        service.blacklist = Sets.newHashSet(iss)
 
-		assertThat(response.getIssuer(), equalTo(iss));
-		assertThat(response.getLoginHint(), equalTo(login_hint));
-		assertThat(response.getTargetLinkUri(), equalTo(target_link_uri));
+        assertThrows<AuthenticationServiceException> {
+            service.getIssuer(request)
+        }
+    }
 
-		assertThat(response.getRedirectUrl(), nullValue());
-	}
+    @Test
+    fun getIssuer_badUri() {
+        Mockito.`when`(request.getParameter("iss")).thenReturn(null)
+        service.accountChooserUrl = "e=mc^2"
 
-	@Test(expected = AuthenticationServiceException.class)
-	public void getIssuer_notWhitelisted() {
-
-		service.setWhitelist(Sets.newHashSet("some.other.site"));
-
-		service.getIssuer(request);
-	}
-
-	@Test(expected = AuthenticationServiceException.class)
-	public void getIssuer_blacklisted() {
-
-		service.setBlacklist(Sets.newHashSet(iss));
-
-		service.getIssuer(request);
-	}
-
-	@Test(expected = AuthenticationServiceException.class)
-	public void getIssuer_badUri() {
-
-		Mockito.when(request.getParameter("iss")).thenReturn(null);
-		service.setAccountChooserUrl("e=mc^2");
-
-		service.getIssuer(request);
-	}
+        assertThrows<AuthenticationServiceException> {
+            service.getIssuer(request)
+        }
+    }
 }
