@@ -19,6 +19,7 @@ package org.mitre.oauth2.repository.impl
 
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.repository.SystemScopeRepository
+import org.mitre.oauth2.util.toJavaId
 import org.mitre.util.jpa.JpaUtil.getSingleResult
 import org.mitre.util.jpa.JpaUtil.saveOrUpdate
 import org.springframework.stereotype.Repository
@@ -67,7 +68,7 @@ class JpaSystemScopeRepository : SystemScopeRepository {
 	 */
     @Transactional(value = "defaultTransactionManager")
     override fun remove(scope: SystemScope) {
-        val found = getById(java.lang.Long(scope.id ?: return))
+        val found = getById(scope.id.toJavaId())
 
         if (found != null) {
             em.remove(found)

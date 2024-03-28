@@ -19,6 +19,7 @@ package org.mitre.oauth2.repository.impl
 
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.repository.OAuth2ClientRepository
+import org.mitre.oauth2.util.toJavaId
 import org.mitre.util.jpa.JpaUtil.getSingleResult
 import org.mitre.util.jpa.JpaUtil.saveOrUpdate
 import org.springframework.stereotype.Repository
@@ -65,8 +66,7 @@ class JpaOAuth2ClientRepository : OAuth2ClientRepository {
 	 * @see org.mitre.oauth2.repository.OAuth2ClientRepository#deleteClient(org.mitre.oauth2.model.ClientDetailsEntity)
 	 */
     override fun deleteClient(client: ClientDetailsEntity) {
-        val id = requireNotNull(client.id) { "Client id not set "}
-        val found = getById(java.lang.Long(id))
+        val found = getById(client.id.toJavaId())
         if (found != null) {
             manager.remove(found)
         } else {

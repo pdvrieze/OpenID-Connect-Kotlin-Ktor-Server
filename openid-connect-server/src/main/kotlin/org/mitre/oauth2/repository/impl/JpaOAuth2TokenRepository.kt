@@ -25,6 +25,7 @@ import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.repository.OAuth2TokenRepository
+import org.mitre.oauth2.util.toJavaId
 import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.uma.model.ResourceSet
 import org.mitre.util.jpa.JpaUtil.getResultPage
@@ -82,7 +83,7 @@ class JpaOAuth2TokenRepository : OAuth2TokenRepository {
     @Transactional(value = "defaultTransactionManager")
     override fun removeAccessToken(accessToken: OAuth2AccessTokenEntity) {
         val id = requireNotNull(accessToken.id) { "missing id in access token" }
-        val found = getAccessTokenById(java.lang.Long(id))
+        val found = getAccessTokenById(accessToken.id.toJavaId())
         if (found != null) {
             manager.remove(found)
         } else {
