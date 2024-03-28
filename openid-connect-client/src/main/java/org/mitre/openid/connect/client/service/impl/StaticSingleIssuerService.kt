@@ -33,7 +33,7 @@ class StaticSingleIssuerService : IssuerService {
      *
      * @see org.mitre.openid.connect.client.service.IssuerService.getIssuer
      */
-    override fun getIssuer(request: HttpServletRequest?): IssuerServiceResponse {
+    override fun getIssuer(request: HttpServletRequest): IssuerServiceResponse {
         return IssuerServiceResponse(issuer, null, null)
     }
 

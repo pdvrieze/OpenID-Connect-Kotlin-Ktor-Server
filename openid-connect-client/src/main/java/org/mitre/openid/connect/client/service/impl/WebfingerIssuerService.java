@@ -30,6 +30,7 @@ import com.google.gson.JsonParser;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.jetbrains.annotations.Nullable;
 import org.mitre.discovery.util.WebfingerURLNormalizer;
 import org.mitre.openid.connect.client.model.IssuerServiceResponse;
 import org.mitre.openid.connect.client.service.IssuerService;
@@ -101,7 +102,8 @@ public class WebfingerIssuerService implements IssuerService {
 	/* (non-Javadoc)
 	 * @see org.mitre.openid.connect.client.service.IssuerService#getIssuer(javax.servlet.http.HttpServletRequest)
 	 */
-	@Override
+	@Nullable
+  @Override
 	public IssuerServiceResponse getIssuer(HttpServletRequest request) {
 
 		String identifier = request.getParameter(parameterName);

@@ -27,5 +27,5 @@ import javax.servlet.http.HttpServletRequest
  * @author jricher
  */
 interface IssuerService {
-    fun getIssuer(request: HttpServletRequest?): IssuerServiceResponse?
+    fun getIssuer(request: HttpServletRequest): IssuerServiceResponse?
 }
