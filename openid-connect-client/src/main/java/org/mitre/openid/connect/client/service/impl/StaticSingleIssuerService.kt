@@ -7,56 +7,38 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.openid.connect.client.service.impl;
+ */
+package org.mitre.openid.connect.client.service.impl
 
-import com.google.common.base.Strings;
-import org.mitre.openid.connect.client.model.IssuerServiceResponse;
-import org.mitre.openid.connect.client.service.IssuerService;
-
-import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletRequest;
+import org.mitre.openid.connect.client.model.IssuerServiceResponse
+import org.mitre.openid.connect.client.service.IssuerService
+import javax.annotation.PostConstruct
+import javax.servlet.http.HttpServletRequest
 
 /**
  * @author jricher
- *
  */
-public class StaticSingleIssuerService implements IssuerService {
+class StaticSingleIssuerService : IssuerService {
+    lateinit var issuer: String
 
-	private String issuer;
+    /**
+     * Always returns the configured issuer URL
+     *
+     * @see org.mitre.openid.connect.client.service.IssuerService.getIssuer
+     */
+    override fun getIssuer(request: HttpServletRequest?): IssuerServiceResponse {
+        return IssuerServiceResponse(issuer, null, null)
+    }
 
-	public String getIssuer() {
-		return issuer;
-	}
-
-	public void setIssuer(String issuer) {
-		this.issuer = issuer;
-	}
-
-	/**
-	 * Always returns the configured issuer URL
-	 *
-	 * @see org.mitre.openid.connect.client.service.IssuerService#getIssuer(javax.servlet.http.HttpServletRequest)
-	 */
-	@Override
-	public IssuerServiceResponse getIssuer(HttpServletRequest request) {
-		return new IssuerServiceResponse(getIssuer(), null, null);
-	}
-
-	@PostConstruct
-	public void afterPropertiesSet() {
-
-		if (Strings.isNullOrEmpty(issuer)) {
-			throw new IllegalArgumentException("Issuer must not be null or empty.");
-		}
-
-	}
-
+    @PostConstruct
+    fun afterPropertiesSet() {
+        require(::issuer.isInitialized && issuer.isNotEmpty()) { "Issuer must not be null or empty." }
+    }
 }
