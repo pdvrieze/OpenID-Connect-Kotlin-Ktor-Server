@@ -7,28 +7,23 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.openid.connect.client;
+ */
+package org.mitre.openid.connect.client
 
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTClaimsSet;
-import org.mitre.openid.connect.model.UserInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-
-import java.text.ParseException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import com.nimbusds.jwt.JWT
+import org.mitre.openid.connect.model.UserInfo
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.core.authority.SimpleGrantedAuthority
+import java.text.ParseException
 
 /**
  *
@@ -37,46 +32,34 @@ import java.util.Set;
  * configurable "admins" set.
  *
  * @author jricher
- *
  */
-public class NamedAdminAuthoritiesMapper implements OIDCAuthoritiesMapper {
+class NamedAdminAuthoritiesMapper : OIDCAuthoritiesMapper {
+    var admins: Set<SubjectIssuerGrantedAuthority> = HashSet()
 
-	private static Logger logger = LoggerFactory.getLogger(NamedAdminAuthoritiesMapper.class);
+    override fun mapAuthorities(idToken: JWT, userInfo: UserInfo?): Collection<GrantedAuthority>? {
+        val out: MutableSet<GrantedAuthority> = HashSet()
+        try {
+            val claims = idToken.jwtClaimsSet
 
-	private static final SimpleGrantedAuthority ROLE_ADMIN = new SimpleGrantedAuthority("ROLE_ADMIN");
-	private static final SimpleGrantedAuthority ROLE_USER = new SimpleGrantedAuthority("ROLE_USER");
+            val authority = SubjectIssuerGrantedAuthority(claims.subject, claims.issuer)
+            out.add(authority)
 
-	private Set<SubjectIssuerGrantedAuthority> admins = new HashSet<>();
+            if (admins.contains(authority)) {
+                out.add(ROLE_ADMIN)
+            }
 
-	@Override
-	public Collection<? extends GrantedAuthority> mapAuthorities(JWT idToken, UserInfo userInfo) {
+            // everybody's a user by default
+            out.add(ROLE_USER)
+        } catch (e: ParseException) {
+            logger.error("Unable to parse ID Token inside of authorities mapper (huh?)")
+        }
+        return out
+    }
 
-		Set<GrantedAuthority> out = new HashSet<>();
-		try {
-			JWTClaimsSet claims = idToken.getJWTClaimsSet();
+    companion object {
+        private val logger: Logger = LoggerFactory.getLogger(NamedAdminAuthoritiesMapper::class.java)
 
-			SubjectIssuerGrantedAuthority authority = new SubjectIssuerGrantedAuthority(claims.getSubject(), claims.getIssuer());
-			out.add(authority);
-
-			if (admins.contains(authority)) {
-				out.add(ROLE_ADMIN);
-			}
-
-			// everybody's a user by default
-			out.add(ROLE_USER);
-
-		} catch (ParseException e) {
-			logger.error("Unable to parse ID Token inside of authorities mapper (huh?)");
-		}
-		return out;
-	}
-
-	public Set<SubjectIssuerGrantedAuthority> getAdmins() {
-		return admins;
-	}
-
-	public void setAdmins(Set<SubjectIssuerGrantedAuthority> admins) {
-		this.admins = admins;
-	}
-
+        private val ROLE_ADMIN = SimpleGrantedAuthority("ROLE_ADMIN")
+        private val ROLE_USER = SimpleGrantedAuthority("ROLE_USER")
+    }
 }
