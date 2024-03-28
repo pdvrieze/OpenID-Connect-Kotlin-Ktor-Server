@@ -31,5 +31,5 @@ interface AuthenticationHolderRepository {
 
     val orphanedAuthenticationHolders: List<AuthenticationHolderEntity>
 
-    fun getOrphanedAuthenticationHolders(pageCriteria: PageCriteria): List<AuthenticationHolderEntity?>?
+    fun getOrphanedAuthenticationHolders(pageCriteria: PageCriteria): List<AuthenticationHolderEntity>
 }
