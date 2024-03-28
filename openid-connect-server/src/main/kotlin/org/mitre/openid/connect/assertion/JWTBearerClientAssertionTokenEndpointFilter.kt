@@ -7,131 +7,106 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.openid.connect.assertion;
+ */
+package org.mitre.openid.connect.assertion
 
-import com.google.common.base.Strings;
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTParser;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.oauth2.common.exceptions.BadClientCredentialsException;
-import org.springframework.security.oauth2.provider.error.OAuth2AuthenticationEntryPoint;
-import org.springframework.security.web.AuthenticationEntryPoint;
-import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.util.matcher.RequestMatcher;
-
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import java.io.IOException;
-import java.text.ParseException;
+import com.google.common.base.Strings
+import com.nimbusds.jwt.JWTParser
+import org.springframework.security.authentication.BadCredentialsException
+import org.springframework.security.core.Authentication
+import org.springframework.security.core.AuthenticationException
+import org.springframework.security.oauth2.common.exceptions.BadClientCredentialsException
+import org.springframework.security.oauth2.provider.error.OAuth2AuthenticationEntryPoint
+import org.springframework.security.web.AuthenticationEntryPoint
+import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter
+import org.springframework.security.web.util.matcher.RequestMatcher
+import java.io.IOException
+import java.text.ParseException
+import javax.servlet.FilterChain
+import javax.servlet.ServletException
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 /**
  * Filter to check client authentication via JWT Bearer assertions.
  *
  * @author jricher
- *
  */
-public class JWTBearerClientAssertionTokenEndpointFilter extends AbstractAuthenticationProcessingFilter {
+class JWTBearerClientAssertionTokenEndpointFilter(additionalMatcher: RequestMatcher) :
+    AbstractAuthenticationProcessingFilter(ClientAssertionRequestMatcher(additionalMatcher)) {
+    private val authenticationEntryPoint: AuthenticationEntryPoint = OAuth2AuthenticationEntryPoint()
 
-	private AuthenticationEntryPoint authenticationEntryPoint = new OAuth2AuthenticationEntryPoint();
+    init {
+        // If authentication fails the type is "Form"
+        (authenticationEntryPoint as OAuth2AuthenticationEntryPoint).setTypeName("Form")
+    }
 
-	public JWTBearerClientAssertionTokenEndpointFilter(RequestMatcher additionalMatcher) {
-		super(new ClientAssertionRequestMatcher(additionalMatcher));
-		// If authentication fails the type is "Form"
-		((OAuth2AuthenticationEntryPoint) authenticationEntryPoint).setTypeName("Form");
-	}
+    override fun afterPropertiesSet() {
+        super.afterPropertiesSet()
+        setAuthenticationFailureHandler { request, response, exception ->
+            var exception = exception
+            if (exception is BadCredentialsException) {
+                exception = BadCredentialsException(exception.message, BadClientCredentialsException())
+            }
+            authenticationEntryPoint.commence(request, response, exception)
+        }
+        setAuthenticationSuccessHandler { request, response, authentication ->
+            // no-op - just allow filter chain to continue to token endpoint
+        }
+    }
 
-	@Override
-	public void afterPropertiesSet() {
-		super.afterPropertiesSet();
-		setAuthenticationFailureHandler(new AuthenticationFailureHandler() {
-			@Override
-			public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
-					AuthenticationException exception) throws IOException, ServletException {
-				if (exception instanceof BadCredentialsException) {
-					exception = new BadCredentialsException(exception.getMessage(), new BadClientCredentialsException());
-				}
-				authenticationEntryPoint.commence(request, response, exception);
-			}
-		});
-		setAuthenticationSuccessHandler(new AuthenticationSuccessHandler() {
-			@Override
-			public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
-					Authentication authentication) throws IOException, ServletException {
-				// no-op - just allow filter chain to continue to token endpoint
-			}
-		});
-	}
+    /**
+     * Pull the assertion out of the request and send it up to the auth manager for processing.
+     */
+    @Throws(AuthenticationException::class, IOException::class, ServletException::class)
+    override fun attemptAuthentication(request: HttpServletRequest, response: HttpServletResponse): Authentication {
+        // check for appropriate parameters
 
-	/**
-	 * Pull the assertion out of the request and send it up to the auth manager for processing.
-	 */
-	@Override
-	public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException, ServletException {
+        val assertionType = request.getParameter("client_assertion_type")
+        val assertion = request.getParameter("client_assertion")
 
-		// check for appropriate parameters
-		String assertionType = request.getParameter("client_assertion_type");
-		String assertion = request.getParameter("client_assertion");
+        try {
+            val jwt = JWTParser.parse(assertion)
 
-		try {
-			JWT jwt = JWTParser.parse(assertion);
+            val clientId = jwt.jwtClaimsSet.subject
 
-			String clientId = jwt.getJWTClaimsSet().getSubject();
+            val authRequest: Authentication = JWTBearerAssertionAuthenticationToken(jwt)
 
-			Authentication authRequest = new JWTBearerAssertionAuthenticationToken(jwt);
+            return authenticationManager.authenticate(authRequest)
+        } catch (e: ParseException) {
+            throw BadCredentialsException("Invalid JWT credential: $assertion")
+        }
+    }
 
-			return this.getAuthenticationManager().authenticate(authRequest);
-		} catch (ParseException e) {
-			throw new BadCredentialsException("Invalid JWT credential: " + assertion);
-		}
-	}
+    @Throws(IOException::class, ServletException::class)
+    override fun successfulAuthentication(
+        request: HttpServletRequest, response: HttpServletResponse,
+        chain: FilterChain, authResult: Authentication
+    ) {
+        super.successfulAuthentication(request, response, chain, authResult)
+        chain.doFilter(request, response)
+    }
 
-	@Override
-	protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response,
-			FilterChain chain, Authentication authResult) throws IOException, ServletException {
-		super.successfulAuthentication(request, response, chain, authResult);
-		chain.doFilter(request, response);
-	}
+    private class ClientAssertionRequestMatcher(private val additionalMatcher: RequestMatcher) : RequestMatcher {
+        override fun matches(request: HttpServletRequest): Boolean {
+            // check for appropriate parameters
+            val assertionType = request.getParameter("client_assertion_type")
+            val assertion = request.getParameter("client_assertion")
 
-	private static class ClientAssertionRequestMatcher implements RequestMatcher {
+            if (Strings.isNullOrEmpty(assertionType) || Strings.isNullOrEmpty(assertion)) {
+                return false
+            } else if (assertionType != "urn:ietf:params:oauth:client-assertion-type:jwt-bearer") {
+                return false
+            }
 
-		private RequestMatcher additionalMatcher;
-
-		public ClientAssertionRequestMatcher(RequestMatcher additionalMatcher) {
-			this.additionalMatcher = additionalMatcher;
-		}
-
-		@Override
-		public boolean matches(HttpServletRequest request) {
-			// check for appropriate parameters
-			String assertionType = request.getParameter("client_assertion_type");
-			String assertion = request.getParameter("client_assertion");
-
-			if (Strings.isNullOrEmpty(assertionType) || Strings.isNullOrEmpty(assertion)) {
-				return false;
-			} else if (!assertionType.equals("urn:ietf:params:oauth:client-assertion-type:jwt-bearer")) {
-				return false;
-			}
-
-			return additionalMatcher.matches(request);
-		}
-
-	}
-
-
-
+            return additionalMatcher.matches(request)
+        }
+    }
 }
