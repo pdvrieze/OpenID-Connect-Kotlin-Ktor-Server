@@ -63,7 +63,7 @@ class ServerConfiguration {
      * Clients to encrypt requests to the Server. When both signing and encryption keys are made available, a use (Key
      * Use) parameter value is REQUIRED for all keys in the document to indicate each key's intended usage.
      */
-    var jwksUri: String? = null
+    lateinit var jwksUri: String
 
     /**
      * RECOMMENDED. URL of the OP's UserInfo Endpoint [OpenID.Messages]. This URL MUST use the

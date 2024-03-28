@@ -112,7 +112,9 @@ class DynamicServerConfigurationService @JvmOverloads constructor(
 
                 conf.authorizationEndpointUri = getAsString(o, "authorization_endpoint")
                 conf.tokenEndpointUri = getAsString(o, "token_endpoint")
-                conf.jwksUri = getAsString(o, "jwks_uri")
+                conf.jwksUri = requireNotNull(getAsString(o, "jwks_uri")) {
+                    "Missing required configuration item: jwks_uri"
+                }
                 conf.userInfoUri = getAsString(o, "userinfo_endpoint")
                 conf.registrationEndpointUri = getAsString(o, "registration_endpoint")
                 conf.introspectionEndpointUri = getAsString(o, "introspection_endpoint")

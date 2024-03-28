@@ -20,6 +20,7 @@ package org.mitre.openid.connect.client.service.impl;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import org.apache.http.client.utils.URIBuilder;
+import org.jetbrains.annotations.Nullable;
 import org.mitre.oauth2.model.RegisteredClient;
 import org.mitre.openid.connect.client.service.AuthRequestUrlBuilder;
 import org.mitre.openid.connect.config.ServerConfiguration;
@@ -41,6 +42,7 @@ public class PlainAuthRequestUrlBuilder implements AuthRequestUrlBuilder {
 	/* (non-Javadoc)
 	 * @see org.mitre.openid.connect.client.service.AuthRequestUrlBuilder#buildAuthRequest(javax.servlet.http.HttpServletRequest, org.mitre.openid.connect.config.ServerConfiguration, org.springframework.security.oauth2.provider.ClientDetails)
 	 */
+	@Nullable
 	@Override
 	public String buildAuthRequestUrl(ServerConfiguration serverConfig, RegisteredClient clientConfig, String redirectUri, String nonce, String state, Map<String, String> options, String loginHint) {
 		try {
