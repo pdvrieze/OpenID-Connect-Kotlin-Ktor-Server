@@ -75,7 +75,7 @@ class DeviceEndpoint {
     @Autowired
     private lateinit var oAuth2RequestFactory: OAuth2RequestFactory
 
-    @RequestMapping(value = ["/" + URL], method = [RequestMethod.POST], consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @RequestMapping(value = ["/$URL"], method = [RequestMethod.POST], consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun requestDeviceCode(
         @RequestParam("client_id") clientId: String,
         @RequestParam(name = "scope", required = false) scope: String?,
@@ -272,10 +272,10 @@ class DeviceEndpoint {
 
 
         // pre-process the scopes
-        val scopes: Set<SystemScope?> = scopeService.fromStrings(dc.scope!!)
+        val scopes: Set<SystemScope> = scopeService.fromStrings(dc.scope!!)
 
-        val sortedScopes: MutableSet<SystemScope?> = LinkedHashSet(scopes.size)
-        val systemScopes: Set<SystemScope?> = scopeService.all
+        val sortedScopes: MutableSet<SystemScope> = LinkedHashSet(scopes.size)
+        val systemScopes: Set<SystemScope> = scopeService.all
 
         // sort scopes for display based on the inherent order of system scopes
         for (s in systemScopes) {
