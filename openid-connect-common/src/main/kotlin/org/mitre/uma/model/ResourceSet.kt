@@ -41,7 +41,7 @@ class ResourceSet {
     @get:CollectionTable(name = "resource_set_scope", joinColumns = [JoinColumn(name = "owner_id")])
     @get:Column(name = "scope")
     @get:ElementCollection(fetch = FetchType.EAGER)
-    var scopes: Set<String>? = HashSet()
+    var scopes: Set<String> = HashSet()
 
     @get:Column(name = "icon_uri")
     @get:Basic
