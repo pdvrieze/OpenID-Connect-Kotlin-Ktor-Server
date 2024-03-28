@@ -45,7 +45,7 @@ class PendingOIDCAuthenticationToken(//
     /*
      * server configuration used to fulfill this token, don't serialize it
      */
-    @field:Transient val serverConfiguration: ServerConfiguration,
+    @field:Transient val serverConfiguration: ServerConfiguration?,
 
     @field:Transient var idToken: JWT?,
 

@@ -7,151 +7,136 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.openid.connect.client;
+ */
+package org.mitre.openid.connect.client
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.mitre.openid.connect.config.ServerConfiguration;
-import org.mitre.openid.connect.config.ServerConfiguration.UserInfoTokenMethod;
-import org.mitre.openid.connect.model.DefaultUserInfo;
-import org.mitre.openid.connect.model.PendingOIDCAuthenticationToken;
-import org.mitre.openid.connect.model.UserInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.client.ClientHttpRequest;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
-
-import com.google.common.base.Strings;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.util.concurrent.UncheckedExecutionException;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.common.base.Strings
+import com.google.common.cache.CacheBuilder
+import com.google.common.cache.CacheLoader
+import com.google.common.cache.LoadingCache
+import com.google.common.util.concurrent.UncheckedExecutionException
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
+import org.apache.http.client.HttpClient
+import org.apache.http.client.utils.URIBuilder
+import org.apache.http.impl.client.HttpClientBuilder
+import org.mitre.openid.connect.config.ServerConfiguration.UserInfoTokenMethod
+import org.mitre.openid.connect.model.DefaultUserInfo
+import org.mitre.openid.connect.model.PendingOIDCAuthenticationToken
+import org.mitre.openid.connect.model.UserInfo
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.springframework.http.HttpMethod
+import org.springframework.http.client.ClientHttpRequest
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
+import org.springframework.util.LinkedMultiValueMap
+import org.springframework.util.MultiValueMap
+import org.springframework.web.client.RestTemplate
+import java.io.IOException
+import java.net.URI
+import java.net.URISyntaxException
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.TimeUnit
 
 /**
  * Utility class to fetch userinfo from the userinfo endpoint, if available. Caches the results.
  * @author jricher
- *
  */
-public class UserInfoFetcher {
+class UserInfoFetcher @JvmOverloads constructor(
+    httpClient: HttpClient = HttpClientBuilder.create().useSystemProperties().build()
+) {
+    private val cache: LoadingCache<PendingOIDCAuthenticationToken, UserInfo?> =
+        CacheBuilder.newBuilder()
+            .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
+            .maximumSize(100)
+            .build(UserInfoLoader(httpClient))
 
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger logger = LoggerFactory.getLogger(UserInfoFetcher.class);
-
-	private LoadingCache<PendingOIDCAuthenticationToken, UserInfo> cache;
-
-	public UserInfoFetcher() {
-		this(HttpClientBuilder.create().useSystemProperties().build());
-	}
-
-	public UserInfoFetcher(HttpClient httpClient) {
-		cache = CacheBuilder.newBuilder()
-				.expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
-				.maximumSize(100)
-				.build(new UserInfoLoader(httpClient));
-	}
-
-	public UserInfo loadUserInfo(final PendingOIDCAuthenticationToken token) {
-		try {
-			return cache.get(token);
-		} catch (UncheckedExecutionException | ExecutionException e) {
-			logger.warn("Couldn't load User Info from token: " + e.getMessage());
-			return null;
-		}
-
-	}
+    fun loadUserInfo(token: PendingOIDCAuthenticationToken): UserInfo? {
+        try {
+            return cache[token]
+        } catch (e: UncheckedExecutionException) {
+            logger.warn("Couldn't load User Info from token: " + e.message)
+        } catch (e: ExecutionException) {
+            logger.warn("Couldn't load User Info from token: " + e.message)
+        }
+        return null
+    }
 
 
-	private class UserInfoLoader extends CacheLoader<PendingOIDCAuthenticationToken, UserInfo> {
-		private HttpComponentsClientHttpRequestFactory factory;
+    private inner class UserInfoLoader(httpClient: HttpClient) :
+        CacheLoader<PendingOIDCAuthenticationToken, UserInfo?>() {
+        private val factory = HttpComponentsClientHttpRequestFactory(httpClient)
 
-		UserInfoLoader(HttpClient httpClient) {
-			this.factory = new HttpComponentsClientHttpRequestFactory(httpClient);
-		}
+        @Throws(URISyntaxException::class)
+        override fun load(token: PendingOIDCAuthenticationToken): UserInfo? {
+            val serverConfiguration = token.serverConfiguration
 
-		@Override
-		public UserInfo load(final PendingOIDCAuthenticationToken token) throws URISyntaxException {
+            if (serverConfiguration == null) {
+                logger.warn("No server configuration found.")
+                return null
+            }
 
-			ServerConfiguration serverConfiguration = token.getServerConfiguration();
+            if (Strings.isNullOrEmpty(serverConfiguration.userInfoUri)) {
+                logger.warn("No userinfo endpoint, not fetching.")
+                return null
+            }
 
-			if (serverConfiguration == null) {
-				logger.warn("No server configuration found.");
-				return null;
-			}
+            var userInfoString: String? = null
 
-			if (Strings.isNullOrEmpty(serverConfiguration.getUserInfoUri())) {
-				logger.warn("No userinfo endpoint, not fetching.");
-				return null;
-			}
+            if (serverConfiguration.userInfoTokenMethod == null || serverConfiguration.userInfoTokenMethod == UserInfoTokenMethod.HEADER) {
+                val restTemplate: RestTemplate = object : RestTemplate(factory) {
+                    @Throws(IOException::class)
+                    override fun createRequest(url: URI, method: HttpMethod): ClientHttpRequest {
+                        val httpRequest = super.createRequest(url, method)
+                        httpRequest.headers.add("Authorization", String.format("Bearer %s", token.accessTokenValue))
+                        return httpRequest
+                    }
+                }
 
-			String userInfoString = null;
+                userInfoString = restTemplate.getForObject(serverConfiguration.userInfoUri, String::class.java)
+            } else if (serverConfiguration.userInfoTokenMethod == UserInfoTokenMethod.FORM) {
+                val form: MultiValueMap<String, String> = LinkedMultiValueMap()
+                form.add("access_token", token.accessTokenValue)
 
-			if (serverConfiguration.getUserInfoTokenMethod() == null || serverConfiguration.getUserInfoTokenMethod().equals(UserInfoTokenMethod.HEADER)) {
-				RestTemplate restTemplate = new RestTemplate(factory) {
+                val restTemplate = RestTemplate(factory)
+                userInfoString = restTemplate.postForObject(serverConfiguration.userInfoUri, form, String::class.java)
+            } else if (serverConfiguration.userInfoTokenMethod == UserInfoTokenMethod.QUERY) {
+                val builder = URIBuilder(serverConfiguration.userInfoUri)
+                builder.setParameter("access_token", token.accessTokenValue)
 
-					@Override
-					protected ClientHttpRequest createRequest(URI url, HttpMethod method) throws IOException {
-						ClientHttpRequest httpRequest = super.createRequest(url, method);
-						httpRequest.getHeaders().add("Authorization", String.format("Bearer %s", token.getAccessTokenValue()));
-						return httpRequest;
-					}
-				};
-
-				userInfoString = restTemplate.getForObject(serverConfiguration.getUserInfoUri(), String.class);
-
-			} else if (serverConfiguration.getUserInfoTokenMethod().equals(UserInfoTokenMethod.FORM)) {
-				MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
-				form.add("access_token", token.getAccessTokenValue());
-
-				RestTemplate restTemplate = new RestTemplate(factory);
-				userInfoString = restTemplate.postForObject(serverConfiguration.getUserInfoUri(), form, String.class);
-			} else if (serverConfiguration.getUserInfoTokenMethod().equals(UserInfoTokenMethod.QUERY)) {
-				URIBuilder builder = new URIBuilder(serverConfiguration.getUserInfoUri());
-				builder.setParameter("access_token",  token.getAccessTokenValue());
-
-				RestTemplate restTemplate = new RestTemplate(factory);
-				userInfoString = restTemplate.getForObject(builder.toString(), String.class);
-			}
+                val restTemplate = RestTemplate(factory)
+                userInfoString = restTemplate.getForObject(builder.toString(), String::class.java)
+            }
 
 
-			if (!Strings.isNullOrEmpty(userInfoString)) {
+            if (!Strings.isNullOrEmpty(userInfoString)) {
+                val userInfoJson = JsonParser().parse(userInfoString).asJsonObject
 
-				JsonObject userInfoJson = new JsonParser().parse(userInfoString).getAsJsonObject();
+                val userInfo = fromJson(userInfoJson)
 
-				UserInfo userInfo = fromJson(userInfoJson);
+                return userInfo
+            } else {
+                // didn't get anything throw exception
+                throw IllegalArgumentException("Unable to load user info")
+            }
+        }
+    }
 
-				return userInfo;
-			} else {
-				// didn't get anything throw exception
-				throw new IllegalArgumentException("Unable to load user info");
-			}
+    protected fun fromJson(userInfoJson: JsonObject?): UserInfo {
+        return DefaultUserInfo.fromJson(userInfoJson!!)
+    }
 
-		}
-	}
-
-	protected UserInfo fromJson(JsonObject userInfoJson) {
-		return DefaultUserInfo.fromJson(userInfoJson);
-	}
+    companion object {
+        /**
+         * Logger for this class
+         */
+        private val logger: Logger = LoggerFactory.getLogger(UserInfoFetcher::class.java)
+    }
 }
