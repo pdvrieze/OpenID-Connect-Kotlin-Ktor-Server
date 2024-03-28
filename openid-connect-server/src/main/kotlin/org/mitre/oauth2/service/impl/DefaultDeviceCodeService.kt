@@ -5,153 +5,133 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
+ */
+package org.mitre.oauth2.service.impl
 
-package org.mitre.oauth2.service.impl;
-
-import java.util.Collection;
-import java.util.Date;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
-import org.mitre.data.AbstractPageOperationTemplate;
-import org.mitre.oauth2.model.AuthenticationHolderEntity;
-import org.mitre.oauth2.model.ClientDetailsEntity;
-import org.mitre.oauth2.model.DeviceCode;
-import org.mitre.oauth2.repository.impl.DeviceCodeRepository;
-import org.mitre.oauth2.service.DeviceCodeService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.oauth2.common.util.RandomValueStringGenerator;
-import org.springframework.security.oauth2.provider.ClientDetails;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.mitre.data.AbstractPageOperationTemplate
+import org.mitre.oauth2.model.AuthenticationHolderEntity
+import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.DeviceCode
+import org.mitre.oauth2.repository.impl.DeviceCodeRepository
+import org.mitre.oauth2.service.DeviceCodeService
+import org.mitre.oauth2.util.toJavaId
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.oauth2.common.util.RandomValueStringGenerator
+import org.springframework.security.oauth2.provider.ClientDetails
+import org.springframework.security.oauth2.provider.OAuth2Authentication
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import java.util.*
 
 /**
  * @author jricher
- *
  */
 @Service("defaultDeviceCodeService")
-public class DefaultDeviceCodeService implements DeviceCodeService {
+class DefaultDeviceCodeService : DeviceCodeService {
+    @Autowired
+    private lateinit var repository: DeviceCodeRepository
 
-	@Autowired
-	private DeviceCodeRepository repository;
+    private val randomGenerator = RandomValueStringGenerator()
 
-	private RandomValueStringGenerator randomGenerator = new RandomValueStringGenerator();
-
-	/* (non-Javadoc)
+    /* (non-Javadoc)
 	 * @see org.mitre.oauth2.service.DeviceCodeService#save(org.mitre.oauth2.model.DeviceCode)
 	 */
-	@Override
-	public DeviceCode createNewDeviceCode(Set<String> requestedScopes, ClientDetailsEntity client, Map<String, String> parameters) {
+    override fun createNewDeviceCode(
+        requestedScopes: Set<String>,
+        client: ClientDetailsEntity,
+        parameters: Map<String, String>?
+    ): DeviceCode? {
+        // create a device code, should be big and random
 
-		// create a device code, should be big and random
-		String deviceCode = UUID.randomUUID().toString();
+        val deviceCode = UUID.randomUUID().toString()
 
-		// create a user code, should be random but small and typable, and always uppercase (lookup is case insensitive)
-		String userCode = randomGenerator.generate().toUpperCase();
+        // create a user code, should be random but small and typable, and always uppercase (lookup is case insensitive)
+        val userCode = randomGenerator.generate().uppercase(Locale.getDefault())
 
-		DeviceCode dc = new DeviceCode(deviceCode, userCode, requestedScopes, client.getClientId(), parameters);
+        val dc = DeviceCode(deviceCode, userCode, requestedScopes, client.clientId, parameters)
 
-		if (client.getDeviceCodeValiditySeconds() != null) {
-			dc.setExpiration(new Date(System.currentTimeMillis() + client.getDeviceCodeValiditySeconds() * 1000L));
-		}
+        if (client.deviceCodeValiditySeconds != null) {
+            dc.expiration = Date(System.currentTimeMillis() + client.deviceCodeValiditySeconds!! * 1000L)
+        }
 
-		dc.setApproved(false);
+        dc.isApproved = false
 
-		return repository.save(dc);
-	}
+        return repository.save(dc)
+    }
 
-	/* (non-Javadoc)
+    /* (non-Javadoc)
 	 * @see org.mitre.oauth2.service.DeviceCodeService#lookUpByUserCode(java.lang.String)
 	 */
-	@Override
-	public DeviceCode lookUpByUserCode(String userCode) {
-		// always up-case the code for lookup
-		return repository.getByUserCode(userCode.toUpperCase());
-	}
+    override fun lookUpByUserCode(userCode: String): DeviceCode? {
+        // always up-case the code for lookup
+        return repository.getByUserCode(userCode.uppercase(Locale.getDefault()))
+    }
 
-	/* (non-Javadoc)
+    /* (non-Javadoc)
 	 * @see org.mitre.oauth2.service.DeviceCodeService#approveDeviceCode(org.mitre.oauth2.model.DeviceCode)
 	 */
-	@Override
-	public DeviceCode approveDeviceCode(DeviceCode dc, OAuth2Authentication auth) {
-		DeviceCode found = repository.getById(dc.getId());
+    override fun approveDeviceCode(dc: DeviceCode, auth: OAuth2Authentication): DeviceCode? {
+        val found = requireNotNull(repository.getById(dc.id.toJavaId())) { "No device code found"}
 
-		found.setApproved(true);
+        found.isApproved = true
 
-		AuthenticationHolderEntity authHolder = new AuthenticationHolderEntity();
-		authHolder.setAuthentication(auth);
+        val authHolder = AuthenticationHolderEntity()
+        authHolder.authentication = auth
 
-		found.setAuthenticationHolder(authHolder);
+        found.authenticationHolder = authHolder
 
-		return repository.save(found);
-	}
+        return repository.save(found)
+    }
 
-	/* (non-Javadoc)
+    /* (non-Javadoc)
 	 * @see org.mitre.oauth2.service.DeviceCodeService#consumeDeviceCode(java.lang.String, org.springframework.security.oauth2.provider.ClientDetails)
 	 */
-	@Override
-	public DeviceCode findDeviceCode(String deviceCode, ClientDetails client) {
-		DeviceCode found = repository.getByDeviceCode(deviceCode);
+    override fun findDeviceCode(deviceCode: String, client: ClientDetails): DeviceCode? {
+        val found = repository.getByDeviceCode(deviceCode)
 
-		if (found != null) {
-			if (found.getClientId().equals(client.getClientId())) {
-				// make sure the client matches, if so, we're good
-				return found;
-			} else {
-				// if the clients don't match, pretend the code wasn't found
-				return null;
-			}
-		} else {
-			// didn't find the code, return null
-			return null;
-		}
+        return when {
+            // didn't find the code, return null
+            found == null -> null
 
-	}
+            // make sure the client matches, if so, we're good
+            found.clientId == client.clientId -> found
 
-	
-	
-	/* (non-Javadoc)
+            // if the clients don't match, pretend the code wasn't found
+            else -> null
+        }
+    }
+
+
+    /* (non-Javadoc)
 	 * @see org.mitre.oauth2.service.DeviceCodeService#clearExpiredDeviceCodes()
 	 */
-	@Override
-	@Transactional(value="defaultTransactionManager")
-	public void clearExpiredDeviceCodes() {
+    @Transactional(value = "defaultTransactionManager")
+    override fun clearExpiredDeviceCodes() {
+        object : AbstractPageOperationTemplate<DeviceCode>("clearExpiredDeviceCodes") {
+            override fun fetchPage(): Collection<DeviceCode>? {
+                return repository.expiredCodes
+            }
 
-		new AbstractPageOperationTemplate<DeviceCode>("clearExpiredDeviceCodes"){
-			@Override
-			public Collection<DeviceCode> fetchPage() {
-				return repository.getExpiredCodes();
-			}
+            protected override fun doOperation(item: DeviceCode) {
+                repository.remove(item)
+            }
+        }.execute()
+    }
 
-			@Override
-			protected void doOperation(DeviceCode item) {
-				repository.remove(item);
-			}
-		}.execute();
-	}
-
-	/* (non-Javadoc)
+    /* (non-Javadoc)
 	 * @see org.mitre.oauth2.service.DeviceCodeService#clearDeviceCode(java.lang.String, org.springframework.security.oauth2.provider.ClientDetails)
 	 */
-	@Override
-	public void clearDeviceCode(String deviceCode, ClientDetails client) {
-		DeviceCode found = findDeviceCode(deviceCode, client);
-		
-		if (found != null) {
-			// make sure it's not used twice
-			repository.remove(found);
-		}
-
-	}
-
+    override fun clearDeviceCode(deviceCode: String, client: ClientDetails) {
+        findDeviceCode(deviceCode, client)?.let {
+            // make sure it's not used twice
+            repository.remove(it)
+        }
+    }
 }
