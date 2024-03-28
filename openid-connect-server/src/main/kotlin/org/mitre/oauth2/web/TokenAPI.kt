@@ -7,240 +7,226 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.oauth2.web;
+ */
+package org.mitre.oauth2.web
 
-import java.security.Principal;
-import java.util.List;
-import java.util.Set;
-
-import org.mitre.oauth2.model.ClientDetailsEntity;
-import org.mitre.oauth2.model.OAuth2AccessTokenEntity;
-import org.mitre.oauth2.model.OAuth2RefreshTokenEntity;
-import org.mitre.oauth2.service.ClientDetailsEntityService;
-import org.mitre.oauth2.service.OAuth2TokenEntityService;
-import org.mitre.oauth2.view.TokenApiView;
-import org.mitre.openid.connect.service.OIDCTokenService;
-import org.mitre.openid.connect.view.HttpCodeView;
-import org.mitre.openid.connect.view.JsonEntityView;
-import org.mitre.openid.connect.view.JsonErrorView;
-import org.mitre.openid.connect.web.RootController;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.mitre.oauth2.service.ClientDetailsEntityService
+import org.mitre.oauth2.service.OAuth2TokenEntityService
+import org.mitre.oauth2.util.toJavaId
+import org.mitre.oauth2.view.TokenApiView
+import org.mitre.openid.connect.service.OIDCTokenService
+import org.mitre.openid.connect.view.HttpCodeView
+import org.mitre.openid.connect.view.JsonEntityView
+import org.mitre.openid.connect.view.JsonErrorView
+import org.mitre.openid.connect.web.RootController
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
+import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.stereotype.Controller
+import org.springframework.ui.ModelMap
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
+import java.security.Principal
 
 /**
  * REST-ish API for managing access tokens (GET/DELETE only)
  * @author Amanda Anganes
- *
  */
 @Controller
 @RequestMapping("/" + TokenAPI.URL)
 @PreAuthorize("hasRole('ROLE_USER')")
-public class TokenAPI {
+class TokenAPI {
+    @Autowired
+    private lateinit var tokenService: OAuth2TokenEntityService
 
-	public static final String URL = RootController.API_URL + "/tokens";
+    @Autowired
+    private lateinit var clientService: ClientDetailsEntityService
 
-	@Autowired
-	private OAuth2TokenEntityService tokenService;
+    @Autowired
+    private lateinit var oidcTokenService: OIDCTokenService
 
-	@Autowired
-	private ClientDetailsEntityService clientService;
+    @RequestMapping(value = ["/access"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun getAllAccessTokens(m: ModelMap, p: Principal): String {
+        val allTokens = tokenService.getAllAccessTokensForUser(p.name)
+        m[JsonEntityView.ENTITY] = allTokens
+        return TokenApiView.VIEWNAME
+    }
 
-	@Autowired
-	private OIDCTokenService oidcTokenService;
+    @RequestMapping(value = ["/access/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun getAccessTokenById(@PathVariable("id") id: Long, m: ModelMap, p: Principal): String {
+        val token = tokenService.getAccessTokenById(id.toJavaId())
 
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger logger = LoggerFactory.getLogger(TokenAPI.class);
+        if (token == null) {
+            logger.error("getToken failed; token not found: $id")
+            m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
+            m[JsonErrorView.ERROR_MESSAGE] = "The requested token with id $id could not be found."
+            return JsonErrorView.VIEWNAME
+        } else if (token.authenticationHolder.authentication.name != p.name) {
+            logger.error("getToken failed; token does not belong to principal " + p.name)
+            m[HttpCodeView.CODE] = HttpStatus.FORBIDDEN
+            m[JsonErrorView.ERROR_MESSAGE] = "You do not have permission to view this token"
+            return JsonErrorView.VIEWNAME
+        } else {
+            m[JsonEntityView.ENTITY] = token
+            return TokenApiView.VIEWNAME
+        }
+    }
 
-	@RequestMapping(value = "/access", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public String getAllAccessTokens(ModelMap m, Principal p) {
+    @RequestMapping(value = ["/access/{id}"], method = [RequestMethod.DELETE], produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun deleteAccessTokenById(@PathVariable("id") id: Long, m: ModelMap, p: Principal): String {
+        val token = tokenService.getAccessTokenById(id.toJavaId())
 
-		Set<OAuth2AccessTokenEntity> allTokens = tokenService.getAllAccessTokensForUser(p.getName());
-		m.put(JsonEntityView.ENTITY, allTokens);
-		return TokenApiView.VIEWNAME;
-	}
+        if (token == null) {
+            logger.error("getToken failed; token not found: $id")
+            m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
+            m[JsonErrorView.ERROR_MESSAGE] = "The requested token with id $id could not be found."
+            return JsonErrorView.VIEWNAME
+        } else if (token.authenticationHolder.authentication.name != p.name) {
+            logger.error("getToken failed; token does not belong to principal " + p.name)
+            m[HttpCodeView.CODE] = HttpStatus.FORBIDDEN
+            m[JsonErrorView.ERROR_MESSAGE] = "You do not have permission to view this token"
+            return JsonErrorView.VIEWNAME
+        } else {
+            tokenService.revokeAccessToken(token)
 
-	@RequestMapping(value = "/access/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public String getAccessTokenById(@PathVariable("id") Long id, ModelMap m, Principal p) {
+            return HttpCodeView.VIEWNAME
+        }
+    }
 
-		OAuth2AccessTokenEntity token = tokenService.getAccessTokenById(id);
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @RequestMapping(value = ["/client/{clientId}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun getAccessTokensByClientId(@PathVariable("clientId") clientId: String, m: ModelMap, p: Principal?): String {
+        val client = clientService.loadClientByClientId(clientId)
 
-		if (token == null) {
-			logger.error("getToken failed; token not found: " + id);
-			m.put(HttpCodeView.CODE, HttpStatus.NOT_FOUND);
-			m.put(JsonErrorView.ERROR_MESSAGE, "The requested token with id " + id + " could not be found.");
-			return JsonErrorView.VIEWNAME;
-		} else if (!token.getAuthenticationHolder().getAuthentication().getName().equals(p.getName())) {
-			logger.error("getToken failed; token does not belong to principal " + p.getName());
-			m.put(HttpCodeView.CODE, HttpStatus.FORBIDDEN);
-			m.put(JsonErrorView.ERROR_MESSAGE, "You do not have permission to view this token");
-			return JsonErrorView.VIEWNAME;
-		} else {
-			m.put(JsonEntityView.ENTITY, token);
-			return TokenApiView.VIEWNAME;
-		}
-	}
+        if (client != null) {
+            val tokens = tokenService.getAccessTokensForClient(client)
+            m[JsonEntityView.ENTITY] = tokens
+            return TokenApiView.VIEWNAME
+        } else {
+            // client not found
+            m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
+            m[JsonErrorView.ERROR_MESSAGE] = "The requested client with id $clientId could not be found."
+            return JsonErrorView.VIEWNAME
+        }
+    }
 
-	@RequestMapping(value = "/access/{id}", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public String deleteAccessTokenById(@PathVariable("id") Long id, ModelMap m, Principal p) {
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @RequestMapping(value = ["/registration/{clientId}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun getRegistrationTokenByClientId(@PathVariable("clientId") clientId: String, m: ModelMap, p: Principal?): String {
+        val client = clientService.loadClientByClientId(clientId)
 
-		OAuth2AccessTokenEntity token = tokenService.getAccessTokenById(id);
+        if (client != null) {
+            val token = tokenService.getRegistrationAccessTokenForClient(client)
+            if (token != null) {
+                m[JsonEntityView.ENTITY] = token
+                return TokenApiView.VIEWNAME
+            } else {
+                m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
+                m[JsonErrorView.ERROR_MESSAGE] = "No registration token could be found."
+                return JsonErrorView.VIEWNAME
+            }
+        } else {
+            // client not found
+            m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
+            m[JsonErrorView.ERROR_MESSAGE] = "The requested client with id $clientId could not be found."
+            return JsonErrorView.VIEWNAME
+        }
+    }
 
-		if (token == null) {
-			logger.error("getToken failed; token not found: " + id);
-			m.put(HttpCodeView.CODE, HttpStatus.NOT_FOUND);
-			m.put(JsonErrorView.ERROR_MESSAGE, "The requested token with id " + id + " could not be found.");
-			return JsonErrorView.VIEWNAME;
-		} else if (!token.getAuthenticationHolder().getAuthentication().getName().equals(p.getName())) {
-			logger.error("getToken failed; token does not belong to principal " + p.getName());
-			m.put(HttpCodeView.CODE, HttpStatus.FORBIDDEN);
-			m.put(JsonErrorView.ERROR_MESSAGE, "You do not have permission to view this token");
-			return JsonErrorView.VIEWNAME;
-		} else {
-			tokenService.revokeAccessToken(token);
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @RequestMapping(value = ["/registration/{clientId}"], method = [RequestMethod.PUT], produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun rotateRegistrationTokenByClientId(
+        @PathVariable("clientId") clientId: String,
+        m: ModelMap,
+        p: Principal?
+    ): String {
+        val client = clientService.loadClientByClientId(clientId)
 
-			return HttpCodeView.VIEWNAME;
-		}
-	}
+        if (client != null) {
+            val token = oidcTokenService.rotateRegistrationAccessTokenForClient(client)
+                ?.let { tokenService.saveAccessToken(it) }
 
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
-	@RequestMapping(value = "/client/{clientId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public String getAccessTokensByClientId(@PathVariable("clientId") String clientId, ModelMap m, Principal p) {
+            if (token != null) {
+                m[JsonEntityView.ENTITY] = token
+                return TokenApiView.VIEWNAME
+            } else {
+                m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
+                m[JsonErrorView.ERROR_MESSAGE] = "No registration token could be found."
+                return JsonErrorView.VIEWNAME
+            }
+        } else {
+            // client not found
+            m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
+            m[JsonErrorView.ERROR_MESSAGE] = "The requested client with id $clientId could not be found."
+            return JsonErrorView.VIEWNAME
+        }
+    }
 
-		ClientDetailsEntity client = clientService.loadClientByClientId(clientId);
+    @RequestMapping(value = ["/refresh"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun getAllRefreshTokens(m: ModelMap, p: Principal): String {
+        val allTokens = tokenService.getAllRefreshTokensForUser(p.name)
+        m[JsonEntityView.ENTITY] = allTokens
+        return TokenApiView.VIEWNAME
+    }
 
-		if (client != null) {
-			List<OAuth2AccessTokenEntity> tokens = tokenService.getAccessTokensForClient(client);
-			m.put(JsonEntityView.ENTITY, tokens);
-			return TokenApiView.VIEWNAME;
-		} else {
-			// client not found
-			m.put(HttpCodeView.CODE, HttpStatus.NOT_FOUND);
-			m.put(JsonErrorView.ERROR_MESSAGE, "The requested client with id " + clientId + " could not be found.");
-			return JsonErrorView.VIEWNAME;
-		}
+    @RequestMapping(value = ["/refresh/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun getRefreshTokenById(@PathVariable("id") id: Long, m: ModelMap, p: Principal): String {
+        val token = tokenService.getRefreshTokenById(id.toJavaId())
 
-	}
+        if (token == null) {
+            logger.error("refresh token not found: $id")
+            m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
+            m[JsonErrorView.ERROR_MESSAGE] = "The requested token with id $id could not be found."
+            return JsonErrorView.VIEWNAME
+        } else if (token.authenticationHolder.authentication.name != p.name) {
+            logger.error("refresh token " + id + " does not belong to principal " + p.name)
+            m[HttpCodeView.CODE] = HttpStatus.FORBIDDEN
+            m[JsonErrorView.ERROR_MESSAGE] = "You do not have permission to view this token"
+            return JsonErrorView.VIEWNAME
+        } else {
+            m[JsonEntityView.ENTITY] = token
+            return TokenApiView.VIEWNAME
+        }
+    }
 
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
-	@RequestMapping(value = "/registration/{clientId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public String getRegistrationTokenByClientId(@PathVariable("clientId") String clientId, ModelMap m, Principal p) {
+    @RequestMapping(value = ["/refresh/{id}"], method = [RequestMethod.DELETE], produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun deleteRefreshTokenById(@PathVariable("id") id: Long, m: ModelMap, p: Principal): String {
+        val token = tokenService.getRefreshTokenById(id.toJavaId())
 
-		ClientDetailsEntity client = clientService.loadClientByClientId(clientId);
+        if (token == null) {
+            logger.error("refresh token not found: $id")
+            m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
+            m[JsonErrorView.ERROR_MESSAGE] = "The requested token with id $id could not be found."
+            return JsonErrorView.VIEWNAME
+        } else if (token.authenticationHolder.authentication.name != p.name) {
+            logger.error("refresh token " + id + " does not belong to principal " + p.name)
+            m[HttpCodeView.CODE] = HttpStatus.FORBIDDEN
+            m[JsonErrorView.ERROR_MESSAGE] = "You do not have permission to view this token"
+            return JsonErrorView.VIEWNAME
+        } else {
+            tokenService.revokeRefreshToken(token)
 
-		if (client != null) {
-			OAuth2AccessTokenEntity token = tokenService.getRegistrationAccessTokenForClient(client);
-			if (token != null) {
-				m.put(JsonEntityView.ENTITY, token);
-				return TokenApiView.VIEWNAME;
-			} else {
-				m.put(HttpCodeView.CODE, HttpStatus.NOT_FOUND);
-				m.put(JsonErrorView.ERROR_MESSAGE, "No registration token could be found.");
-				return JsonErrorView.VIEWNAME;
-			}
-		} else {
-			// client not found
-			m.put(HttpCodeView.CODE, HttpStatus.NOT_FOUND);
-			m.put(JsonErrorView.ERROR_MESSAGE, "The requested client with id " + clientId + " could not be found.");
-			return JsonErrorView.VIEWNAME;
-		}
+            return HttpCodeView.VIEWNAME
+        }
+    }
 
-	}
+    companion object {
+        const val URL: String = RootController.API_URL + "/tokens"
 
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
-	@RequestMapping(value = "/registration/{clientId}", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
-	public String rotateRegistrationTokenByClientId(@PathVariable("clientId") String clientId, ModelMap m, Principal p) {
-		ClientDetailsEntity client = clientService.loadClientByClientId(clientId);
-
-		if (client != null) {
-			OAuth2AccessTokenEntity token = oidcTokenService.rotateRegistrationAccessTokenForClient(client);
-			token = tokenService.saveAccessToken(token);
-
-			if (token != null) {
-				m.put(JsonEntityView.ENTITY, token);
-				return TokenApiView.VIEWNAME;
-			} else {
-				m.put(HttpCodeView.CODE, HttpStatus.NOT_FOUND);
-				m.put(JsonErrorView.ERROR_MESSAGE, "No registration token could be found.");
-				return JsonErrorView.VIEWNAME;
-			}
-		} else {
-			// client not found
-			m.put(HttpCodeView.CODE, HttpStatus.NOT_FOUND);
-			m.put(JsonErrorView.ERROR_MESSAGE, "The requested client with id " + clientId + " could not be found.");
-			return JsonErrorView.VIEWNAME;
-		}
-
-	}
-
-	@RequestMapping(value = "/refresh", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public String getAllRefreshTokens(ModelMap m, Principal p) {
-
-		Set<OAuth2RefreshTokenEntity> allTokens = tokenService.getAllRefreshTokensForUser(p.getName());
-		m.put(JsonEntityView.ENTITY, allTokens);
-		return TokenApiView.VIEWNAME;
-
-
-	}
-
-	@RequestMapping(value = "/refresh/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public String getRefreshTokenById(@PathVariable("id") Long id, ModelMap m, Principal p) {
-
-		OAuth2RefreshTokenEntity token = tokenService.getRefreshTokenById(id);
-
-		if (token == null) {
-			logger.error("refresh token not found: " + id);
-			m.put(HttpCodeView.CODE, HttpStatus.NOT_FOUND);
-			m.put(JsonErrorView.ERROR_MESSAGE, "The requested token with id " + id + " could not be found.");
-			return JsonErrorView.VIEWNAME;
-		} else if (!token.getAuthenticationHolder().getAuthentication().getName().equals(p.getName())) {
-			logger.error("refresh token " + id + " does not belong to principal " + p.getName());
-			m.put(HttpCodeView.CODE, HttpStatus.FORBIDDEN);
-			m.put(JsonErrorView.ERROR_MESSAGE, "You do not have permission to view this token");
-			return JsonErrorView.VIEWNAME;
-		} else {
-			m.put(JsonEntityView.ENTITY, token);
-			return TokenApiView.VIEWNAME;
-		}
-	}
-
-	@RequestMapping(value = "/refresh/{id}", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public String deleteRefreshTokenById(@PathVariable("id") Long id, ModelMap m, Principal p) {
-
-		OAuth2RefreshTokenEntity token = tokenService.getRefreshTokenById(id);
-
-		if (token == null) {
-			logger.error("refresh token not found: " + id);
-			m.put(HttpCodeView.CODE, HttpStatus.NOT_FOUND);
-			m.put(JsonErrorView.ERROR_MESSAGE, "The requested token with id " + id + " could not be found.");
-			return JsonErrorView.VIEWNAME;
-		} else if (!token.getAuthenticationHolder().getAuthentication().getName().equals(p.getName())) {
-			logger.error("refresh token " + id + " does not belong to principal " + p.getName());
-			m.put(HttpCodeView.CODE, HttpStatus.FORBIDDEN);
-			m.put(JsonErrorView.ERROR_MESSAGE, "You do not have permission to view this token");
-			return JsonErrorView.VIEWNAME;
-		} else {
-			tokenService.revokeRefreshToken(token);
-
-			return HttpCodeView.VIEWNAME;
-		}
-	}
+        /**
+         * Logger for this class
+         */
+        private val logger: Logger = LoggerFactory.getLogger(TokenAPI::class.java)
+    }
 }

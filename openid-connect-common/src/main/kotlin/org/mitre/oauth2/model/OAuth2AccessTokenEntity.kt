@@ -61,7 +61,7 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
      */
 	@get:JoinColumn(name = "auth_holder_id")
     @get:ManyToOne
-    var authenticationHolder: AuthenticationHolderEntity? = null // the authentication that made this access
+    lateinit var authenticationHolder: AuthenticationHolderEntity // the authentication that made this access
 
     @get:Convert(converter = JWTStringConverter::class)
     @get:Column(name = "token_value")

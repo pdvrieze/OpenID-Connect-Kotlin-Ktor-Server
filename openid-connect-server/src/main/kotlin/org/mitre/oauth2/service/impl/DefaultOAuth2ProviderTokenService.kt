@@ -231,7 +231,7 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
 
     private fun createRefreshToken(
         client: ClientDetailsEntity?,
-        authHolder: AuthenticationHolderEntity?
+        authHolder: AuthenticationHolderEntity
     ): OAuth2RefreshTokenEntity? {
         val refreshToken = OAuth2RefreshTokenEntity() //refreshTokenFactory.createNewRefreshToken();
         val refreshClaims = JWTClaimsSet.Builder()
@@ -302,7 +302,7 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
 
         // get the stored scopes from the authentication holder's authorization request; these are the scopes associated with the refresh token
         val refreshScopesRequested: Set<String> =
-            HashSet(refreshToken.authenticationHolder!!.authentication.oAuth2Request.scope)
+            HashSet(refreshToken.authenticationHolder.authentication.oAuth2Request.scope)
         val refreshScopes: Set<SystemScope>? = scopeService.fromStrings(refreshScopesRequested)?.let {
             // remove any of the special system scopes
             scopeService.removeReservedScopes(it)
@@ -352,7 +352,7 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
 
         token.authenticationHolder = authHolder
 
-        tokenEnhancer.enhance(token, authHolder!!.authentication)
+        tokenEnhancer.enhance(token, authHolder.authentication)
 
         tokenRepository.saveAccessToken(token)
 
@@ -366,7 +366,7 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
         if (accessToken == null) {
             throw InvalidTokenException("Invalid access token: $accessTokenValue")
         } else {
-            return accessToken.authenticationHolder!!.authentication
+            return accessToken.authenticationHolder.authentication
         }
     }
 
@@ -377,11 +377,9 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
     @Throws(AuthenticationException::class)
     override fun readAccessToken(accessTokenValue: String): OAuth2AccessTokenEntity {
         val accessToken = clearExpiredAccessToken(tokenRepository.getAccessTokenByValue(accessTokenValue))
-        if (accessToken == null) {
-            throw InvalidTokenException("Access token for value $accessTokenValue was not found")
-        } else {
-            return accessToken
-        }
+            ?: throw InvalidTokenException("Access token for value $accessTokenValue was not found")
+
+        return accessToken
     }
 
     /**
@@ -398,11 +396,8 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
     @Throws(AuthenticationException::class)
     override fun getRefreshToken(refreshTokenValue: String): OAuth2RefreshTokenEntity? {
         val refreshToken = tokenRepository.getRefreshTokenByValue(refreshTokenValue)
-        if (refreshToken == null) {
-            throw InvalidTokenException("Refresh token for value $refreshTokenValue was not found")
-        } else {
-            return refreshToken
-        }
+            ?: throw InvalidTokenException("Refresh token for value $refreshTokenValue was not found")
+        return refreshToken
     }
 
     /**

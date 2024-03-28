@@ -40,7 +40,7 @@ class OAuth2RefreshTokenEntity : OAuth2RefreshToken {
      */
     @get:JoinColumn(name = "auth_holder_id")
     @get:ManyToOne
-    var authenticationHolder: AuthenticationHolderEntity? = null
+    lateinit var authenticationHolder: AuthenticationHolderEntity
 
     @get:JoinColumn(name = "client_id")
     @get:ManyToOne(fetch = FetchType.EAGER)
