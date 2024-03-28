@@ -17,6 +17,8 @@
  *******************************************************************************/
 package org.mitre.openid.connect.client.service.impl;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.mitre.oauth2.model.RegisteredClient;
 import org.mitre.openid.connect.client.service.ClientConfigurationService;
 import org.mitre.openid.connect.client.service.RegisteredClientService;
@@ -45,8 +47,9 @@ public class HybridClientConfigurationService implements ClientConfigurationServ
 	/* (non-Javadoc)
 	 * @see org.mitre.openid.connect.client.service.ClientConfigurationService#getClientConfiguration(org.mitre.openid.connect.config.ServerConfiguration)
 	 */
-	@Override
-	public RegisteredClient getClientConfiguration(ServerConfiguration issuer) {
+	@Nullable
+  @Override
+	public RegisteredClient getClientConfiguration(@NotNull ServerConfiguration issuer) {
 
 		RegisteredClient client = staticClientService.getClientConfiguration(issuer);
 		if (client != null) {

@@ -303,7 +303,7 @@ class OIDCAuthenticationFilter : AbstractAuthenticationProcessingFilter(FILTER_P
             ?: throw AuthenticationServiceException("Issuer unexpectedly not stored in session")
 
         // pull the configurations based on that issuer
-        val serverConfig = serverConfigurationService!!.getServerConfiguration(issuer)
+        val serverConfig = serverConfigurationService!!.getServerConfiguration(issuer)!!
         val clientConfig = clientConfigurationService!!.getClientConfiguration(serverConfig)
 
         val form: MultiValueMap<String, String?> = LinkedMultiValueMap()

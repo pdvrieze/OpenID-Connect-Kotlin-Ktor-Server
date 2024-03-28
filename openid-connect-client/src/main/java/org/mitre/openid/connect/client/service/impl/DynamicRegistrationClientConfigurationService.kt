@@ -61,7 +61,7 @@ class DynamicRegistrationClientConfigurationService @JvmOverloads constructor(
     var whitelist: Set<String?> = HashSet()
     var blacklist: Set<String?> = HashSet()
 
-    override fun getClientConfiguration(issuer: ServerConfiguration?): RegisteredClient? {
+    override fun getClientConfiguration(issuer: ServerConfiguration): RegisteredClient? {
         try {
             if (!whitelist.isEmpty() && !whitelist.contains(issuer!!.issuer)) {
                 throw AuthenticationServiceException("Whitelist was nonempty, issuer was not in whitelist: $issuer")

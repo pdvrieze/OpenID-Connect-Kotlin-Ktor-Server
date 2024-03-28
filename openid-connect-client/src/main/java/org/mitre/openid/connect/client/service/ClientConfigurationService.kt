@@ -24,5 +24,5 @@ import org.mitre.openid.connect.config.ServerConfiguration
  * @author jricher
  */
 interface ClientConfigurationService {
-    fun getClientConfiguration(issuer: ServerConfiguration?): RegisteredClient?
+    fun getClientConfiguration(issuer: ServerConfiguration): RegisteredClient?
 }
