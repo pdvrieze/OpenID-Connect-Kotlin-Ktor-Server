@@ -186,7 +186,7 @@ class ClientAPI {
      * Get a list of all clients
      */
     @RequestMapping(method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun apiGetAllClients(model: Model, auth: Authentication?): String {
+    fun apiGetAllClients(model: Model, auth: Authentication): String {
         val clients = clientService.allClients
         model.addAttribute(JsonEntityView.ENTITY, clients)
 
@@ -202,7 +202,7 @@ class ClientAPI {
      */
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @RequestMapping(method = [RequestMethod.POST], consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun apiAddClient(@RequestBody jsonString: String?, m: Model, auth: Authentication?): String {
+    fun apiAddClient(@RequestBody jsonString: String?, m: Model, auth: Authentication): String {
         val json: JsonObject?
         var client: ClientDetailsEntity
 
@@ -302,7 +302,7 @@ class ClientAPI {
         @PathVariable("id") id: Long,
         @RequestBody jsonString: String?,
         m: Model,
-        auth: Authentication?
+        auth: Authentication
     ): String {
         val json: JsonObject
         var client: ClientDetailsEntity
@@ -416,7 +416,7 @@ class ClientAPI {
      * Get an individual client
      */
     @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun apiShowClient(@PathVariable("id") id: Long, model: Model, auth: Authentication?): String {
+    fun apiShowClient(@PathVariable("id") id: Long, model: Model, auth: Authentication): String {
         val client = clientService.getClientById(id.toJavaId())
 
         if (client == null) {

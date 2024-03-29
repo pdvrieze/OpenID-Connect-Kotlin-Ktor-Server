@@ -32,6 +32,7 @@ object AuthenticationUtilities {
      * @param scope the scope to look for
      * @throws InsufficientScopeException if the authentication does not contain that scope
      */
+    @JvmStatic
     fun ensureOAuthScope(auth: Authentication?, scope: String) {
         // if auth is OAuth, make sure we've got the right scope
         if (auth is OAuth2Authentication) {
