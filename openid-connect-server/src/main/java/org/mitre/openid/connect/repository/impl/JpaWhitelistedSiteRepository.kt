@@ -7,96 +7,80 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.openid.connect.repository.impl;
+ */
+package org.mitre.openid.connect.repository.impl
 
-import static org.mitre.util.jpa.JpaUtil.saveOrUpdate;
-
-import java.util.Collection;
-
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
-
-import org.mitre.openid.connect.model.WhitelistedSite;
-import org.mitre.openid.connect.repository.WhitelistedSiteRepository;
-import org.mitre.util.jpa.JpaUtil;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
+import org.mitre.openid.connect.model.WhitelistedSite
+import org.mitre.openid.connect.repository.WhitelistedSiteRepository
+import org.mitre.util.jpa.JpaUtil.getSingleResult
+import org.mitre.util.jpa.JpaUtil.saveOrUpdate
+import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
+import javax.persistence.EntityManager
+import javax.persistence.PersistenceContext
 
 /**
  * JPA WhitelistedSite repository implementation
  *
  * @author Michael Joseph Walsh, aanganes
- *
  */
 @Repository
-public class JpaWhitelistedSiteRepository implements WhitelistedSiteRepository {
+class JpaWhitelistedSiteRepository : WhitelistedSiteRepository {
+    @PersistenceContext(unitName = "defaultPersistenceUnit")
+    private lateinit var manager: EntityManager
 
-	@PersistenceContext(unitName="defaultPersistenceUnit")
-	private EntityManager manager;
+    @get:Transactional(value = "defaultTransactionManager")
+    override val all: Collection<WhitelistedSite>
+        get() {
+            val query = manager.createNamedQuery(WhitelistedSite.QUERY_ALL, WhitelistedSite::class.java)
+            return query.resultList
+        }
 
-	@Override
-	@Transactional(value="defaultTransactionManager")
-	public Collection<WhitelistedSite> getAll() {
-		TypedQuery<WhitelistedSite> query = manager.createNamedQuery(WhitelistedSite.QUERY_ALL, WhitelistedSite.class);
-		return query.getResultList();
-	}
+    @Transactional(value = "defaultTransactionManager")
+    override fun getById(id: java.lang.Long): WhitelistedSite {
+        return manager.find(WhitelistedSite::class.java, id)
+    }
 
-	@Override
-	@Transactional(value="defaultTransactionManager")
-	public WhitelistedSite getById(Long id) {
-		return manager.find(WhitelistedSite.class, id);
-	}
+    @Transactional(value = "defaultTransactionManager")
+    override fun remove(whitelistedSite: WhitelistedSite) {
+        val found = requireNotNull(manager.find(WhitelistedSite::class.java, whitelistedSite.id))
 
-	@Override
-	@Transactional(value="defaultTransactionManager")
-	public void remove(WhitelistedSite whitelistedSite) {
-		WhitelistedSite found = manager.find(WhitelistedSite.class, whitelistedSite.getId());
+        manager.remove(found)
+    }
 
-		if (found != null) {
-			manager.remove(found);
-		} else {
-			throw new IllegalArgumentException();
-		}
-	}
+    @Transactional(value = "defaultTransactionManager")
+    override fun save(whiteListedSite: WhitelistedSite): WhitelistedSite {
+        return saveOrUpdate(whiteListedSite.id!!, manager, whiteListedSite)
+    }
 
-	@Override
-	@Transactional(value="defaultTransactionManager")
-	public WhitelistedSite save(WhitelistedSite whiteListedSite) {
-		return saveOrUpdate(whiteListedSite.getId(), manager, whiteListedSite);
-	}
+    @Transactional(value = "defaultTransactionManager")
+    override fun update(oldWhitelistedSite: WhitelistedSite, whitelistedSite: WhitelistedSite): WhitelistedSite {
+        // sanity check
+        whitelistedSite.id = oldWhitelistedSite.id
 
-	@Override
-	@Transactional(value="defaultTransactionManager")
-	public WhitelistedSite update(WhitelistedSite oldWhitelistedSite, WhitelistedSite whitelistedSite) {
-		// sanity check
-		whitelistedSite.setId(oldWhitelistedSite.getId());
+        return saveOrUpdate(oldWhitelistedSite.id!!, manager, whitelistedSite)
+    }
 
-		return saveOrUpdate(oldWhitelistedSite.getId(), manager, whitelistedSite);
-	}
+    @Transactional(value = "defaultTransactionManager")
+    override fun getByClientId(clientId: String): WhitelistedSite? {
+        return manager.createNamedQuery(WhitelistedSite.QUERY_BY_CLIENT_ID, WhitelistedSite::class.java).run {
+            setParameter(WhitelistedSite.PARAM_CLIENT_ID, clientId)
+            getSingleResult(resultList)
+        }
+    }
 
-	@Override
-	@Transactional(value="defaultTransactionManager")
-	public WhitelistedSite getByClientId(String clientId) {
-		TypedQuery<WhitelistedSite> query = manager.createNamedQuery(WhitelistedSite.QUERY_BY_CLIENT_ID, WhitelistedSite.class);
-		query.setParameter(WhitelistedSite.PARAM_CLIENT_ID, clientId);
-		return JpaUtil.getSingleResult(query.getResultList());
-	}
-
-	@Override
-	@Transactional(value="defaultTransactionManager")
-	public Collection<WhitelistedSite> getByCreator(String creatorId) {
-		TypedQuery<WhitelistedSite> query = manager.createNamedQuery(WhitelistedSite.QUERY_BY_CREATOR, WhitelistedSite.class);
-		query.setParameter(WhitelistedSite.PARAM_USER_ID, creatorId);
-
-		return query.getResultList();
-	}
+    @Transactional(value = "defaultTransactionManager")
+    override fun getByCreator(creatorId: String): Collection<WhitelistedSite>? {
+        return manager.createNamedQuery(WhitelistedSite.QUERY_BY_CREATOR, WhitelistedSite::class.java).run {
+            setParameter(WhitelistedSite.PARAM_USER_ID, creatorId)
+            resultList
+        }
+    }
 }
