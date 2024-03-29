@@ -61,11 +61,13 @@ class UserInfoJWTView : UserInfoView() {
     private lateinit var symmetricCacheService: SymmetricKeyJWTValidatorCacheService
 
     override fun writeOut(
-        json: JsonObject, model: Map<String, Any>,
-        request: HttpServletRequest, response: HttpServletResponse
+        json: JsonObject?,
+        model: Map<String, Any>,
+        request: HttpServletRequest?,
+        response: HttpServletResponse
     ) {
         try {
-            val client = model[CLIENT] as ClientDetailsEntity?
+            val client = model[CLIENT] as ClientDetailsEntity
 
             // use the parser to import the user claims into the object
             val writer = StringWriter()
@@ -74,7 +76,7 @@ class UserInfoJWTView : UserInfoView() {
             response.contentType = JOSE_MEDIA_TYPE_VALUE
 
             val claims = JWTClaimsSet.Builder(JWTClaimsSet.parse(writer.toString()))
-                .audience(Lists.newArrayList(client!!.clientId))
+                .audience(Lists.newArrayList(client.clientId))
                 .issuer(config.issuer)
                 .issueTime(Date())
                 .jwtID(UUID.randomUUID().toString()) // set a random NONCE in the middle of it
