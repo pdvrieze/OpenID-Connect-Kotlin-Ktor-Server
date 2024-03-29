@@ -91,7 +91,7 @@ class DefaultOAuth2ClientDetailsEntityService : ClientDetailsEntityService {
         .maximumSize(100)
         .build(SectorIdentifierLoader(HttpClientBuilder.create().useSystemProperties().build()))
 
-    override fun saveNewClient(client: ClientDetailsEntity): ClientDetailsEntity? {
+    override fun saveNewClient(client: ClientDetailsEntity): ClientDetailsEntity {
         var client = client
         require(client.id == null) {  // if it's not null, it's already been saved, this is an error
             "Tried to save a new client with an existing ID: " + client.id

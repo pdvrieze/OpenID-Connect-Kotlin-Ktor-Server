@@ -17,14 +17,11 @@
  */
 package org.mitre.oauth2.service.impl
 
-import com.google.common.collect.Sets
-import org.hamcrest.CoreMatchers
-import org.junit.Assert
-import org.junit.Before
-import org.junit.Test
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.ClientDetailsEntity.AuthMethod
 import org.mitre.oauth2.model.SystemScope
@@ -44,18 +41,21 @@ import org.mockito.ArgumentMatchers
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito
-import org.mockito.junit.MockitoJUnitRunner.Silent
+import org.mockito.junit.jupiter.MockitoExtension
+import org.mockito.junit.jupiter.MockitoSettings
 import org.mockito.kotlin.atLeastOnce
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.isA
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import org.mockito.quality.Strictness
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException
 
 /**
  * @author wkim
  */
-@RunWith(Silent::class)
+@ExtendWith(MockitoExtension::class)
+@MockitoSettings(strictness = Strictness.WARN)
 class TestDefaultOAuth2ClientDetailsEntityService {
     @Mock
     private lateinit var clientRepository: OAuth2ClientRepository
@@ -87,7 +87,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
     @InjectMocks
     private lateinit var service: DefaultOAuth2ClientDetailsEntityService
 
-    @Before
+    @BeforeEach
     fun prepare() {
         Mockito.reset(clientRepository, tokenRepository, approvedSiteService, whitelistedSiteService, blacklistedSiteService, scopeService, statsService)
 
@@ -133,20 +133,22 @@ class TestDefaultOAuth2ClientDetailsEntityService {
     /**
      * Failure case of existing client id.
      */
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun saveNewClient_badId() {
         // Set up a mock client.
 
         val client = Mockito.mock(ClientDetailsEntity::class.java)
         whenever(client.id) doReturn (12345L) // any non-null ID will work
 
-        service.saveNewClient(client)
+        assertThrows<IllegalArgumentException> {
+            service.saveNewClient(client)
+        }
     }
 
     /**
      * Failure case of blacklisted client uri.
      */
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun saveNewClient_blacklisted() {
         val client = Mockito.mock(ClientDetailsEntity::class.java)
         whenever(client.id) doReturn (null)
@@ -154,9 +156,11 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         val badUri = "badplace.xxx"
 
         whenever(blacklistedSiteService.isBlacklisted(badUri)) doReturn (true)
-        whenever(client.registeredRedirectUri) doReturn (Sets.newHashSet(badUri))
+        whenever(client.registeredRedirectUri) doReturn (hashSetOf(badUri))
 
-        service.saveNewClient(client)
+        assertThrows<IllegalArgumentException> {
+            service.saveNewClient(client)
+        }
     }
 
     @Test
@@ -176,15 +180,11 @@ class TestDefaultOAuth2ClientDetailsEntityService {
      */
     @Test
     fun saveNewClient_yesOfflineAccess() {
-        var client: ClientDetailsEntity? = ClientDetailsEntity()
+        val client = ClientDetailsEntity().apply {
+            grantTypes = hashSetOf("refresh_token")
+        }.let { service.saveNewClient(it) }
 
-        val grantTypes: MutableSet<String> = HashSet()
-        grantTypes.add("refresh_token")
-        client!!.grantTypes = grantTypes
-
-        client = service.saveNewClient(client)
-
-        Assert.assertThat(client!!.scope.contains(SystemScopeService.OFFLINE_ACCESS), CoreMatchers.`is`(CoreMatchers.equalTo(true)))
+        assertTrue(SystemScopeService.OFFLINE_ACCESS in client.scope)
     }
 
     /**
@@ -192,20 +192,19 @@ class TestDefaultOAuth2ClientDetailsEntityService {
      */
     @Test
     fun saveNewClient_noOfflineAccess() {
-        var client: ClientDetailsEntity? = ClientDetailsEntity()
 
-        client = service.saveNewClient(client!!)
+        val client = service.saveNewClient(ClientDetailsEntity())
 
         Mockito.verify(scopeService, Mockito.atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
 
-        Assert.assertThat(client!!.scope.contains(SystemScopeService.OFFLINE_ACCESS), CoreMatchers.`is`(CoreMatchers.equalTo(false)))
+        assertFalse(SystemScopeService.OFFLINE_ACCESS in client.scope)
     }
 
     @Test
     fun loadClientByClientId_badId() {
         // null id
 
-/*
+/*      This doesn't compile with Kotlin
         try {
             service!!.loadClientByClientId(null)
             Assert.fail("Null client id. Expected an IllegalArgumentException.")
@@ -217,32 +216,28 @@ class TestDefaultOAuth2ClientDetailsEntityService {
 */
 
         // empty id
-        try {
+        assertThrows<IllegalArgumentException> {
             service.loadClientByClientId("")
-            Assert.fail("Empty client id. Expected an IllegalArgumentException.")
-        } catch (e: IllegalArgumentException) {
-            Assert.assertThat(e, CoreMatchers.`is`(CoreMatchers.notNullValue()))
         }
 
         // id not found
         val clientId = "b00g3r"
         whenever(clientRepository.getClientByClientId(clientId)) doReturn (null)
-        try {
+        assertThrows<InvalidClientException> {
             service.loadClientByClientId(clientId)
-            Assert.fail("Client id not found. Expected an InvalidClientException.")
-        } catch (e: InvalidClientException) {
-            Assert.assertThat(e, CoreMatchers.`is`(CoreMatchers.notNullValue()))
         }
     }
 
-    @Test(expected = InvalidClientException::class)
+    @Test
     fun deleteClient_badId() {
         val id = 12345L
         val client = Mockito.mock(ClientDetailsEntity::class.java)
         whenever(client.id) doReturn (id)
         whenever(clientRepository.getById(id.toJavaId())) doReturn (null)
 
-        service.deleteClient(client)
+        assertThrows<InvalidClientException> {
+            service.deleteClient(client)
+        }
     }
 
     @Test
@@ -287,17 +282,19 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         }
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun updateClient_blacklistedUri() {
         val oldClient = Mockito.mock(ClientDetailsEntity::class.java)
         val newClient = Mockito.mock(ClientDetailsEntity::class.java)
 
         val badSite = "badsite.xxx"
 
-        whenever(newClient.registeredRedirectUri) doReturn (Sets.newHashSet(badSite))
+        whenever(newClient.registeredRedirectUri) doReturn (hashSetOf(badSite))
         whenever(blacklistedSiteService.isBlacklisted(badSite)) doReturn (true)
 
-        service.updateClient(oldClient, newClient)
+        assertThrows<IllegalArgumentException> {
+            service.updateClient(oldClient, newClient)
+        }
     }
 
     @Test
@@ -331,28 +328,31 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         assertFalse(SystemScopeService.OFFLINE_ACCESS in client.scope)
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun heartMode_authcode_invalidGrants() {
         whenever(config.isHeartMode) doReturn true
 
-        val client = ClientDetailsEntity()
+        val client = ClientDetailsEntity().apply {
+            grantTypes = hashSetOf(
+                "authorization_code",
+                "implicit",
+                "client_credentials",
+            )
 
-        client.grantTypes = hashSetOf(
-            "authorization_code",
-            "implicit",
-            "client_credentials",
-        )
+            tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
 
-        client.tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
+            redirectUris = hashSetOf("https://foo.bar/")
 
-        client.redirectUris = Sets.newHashSet("https://foo.bar/")
+            jwksUri = "https://foo.bar/jwks"
+        }
 
-        client.jwksUri = "https://foo.bar/jwks"
 
-        service.saveNewClient(client)
+        assertThrows<IllegalArgumentException> {
+            service.saveNewClient(client)
+        }
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun heartMode_implicit_invalidGrants() {
         whenever(config.isHeartMode) doReturn (true)
 
@@ -370,10 +370,12 @@ class TestDefaultOAuth2ClientDetailsEntityService {
             jwksUri = "https://foo.bar/jwks"
         }
 
-        service.saveNewClient(client)
+        assertThrows<IllegalArgumentException> {
+            service.saveNewClient(client)
+        }
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun heartMode_clientcreds_invalidGrants() {
         whenever(config.isHeartMode) doReturn (true)
 
@@ -389,10 +391,12 @@ class TestDefaultOAuth2ClientDetailsEntityService {
             jwksUri = "https://foo.bar/jwks"
         }
 
-        service.saveNewClient(client)
+        assertThrows<IllegalArgumentException> {
+            service.saveNewClient(client)
+        }
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun heartMode_authcode_authMethod() {
         whenever(config.isHeartMode) doReturn (true)
 
@@ -401,15 +405,17 @@ class TestDefaultOAuth2ClientDetailsEntityService {
 
             tokenEndpointAuthMethod = AuthMethod.SECRET_POST
 
-            redirectUris = Sets.newHashSet("https://foo.bar/")
+            redirectUris = hashSetOf("https://foo.bar/")
 
             jwksUri = "https://foo.bar/jwks"
         }
 
-        service.saveNewClient(client)
+        assertThrows<IllegalArgumentException> {
+            service.saveNewClient(client)
+        }
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun heartMode_implicit_authMethod() {
         whenever(config.isHeartMode) doReturn (true)
 
@@ -418,15 +424,17 @@ class TestDefaultOAuth2ClientDetailsEntityService {
 
             tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
 
-            redirectUris = Sets.newHashSet("https://foo.bar/")
+            redirectUris = hashSetOf("https://foo.bar/")
 
             jwksUri = "https://foo.bar/jwks"
         }
 
-        service.saveNewClient(client)
+        assertThrows<IllegalArgumentException> {
+            service.saveNewClient(client)
+        }
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun heartMode_clientcreds_authMethod() {
         whenever(config.isHeartMode) doReturn (true)
 
@@ -435,15 +443,17 @@ class TestDefaultOAuth2ClientDetailsEntityService {
 
             tokenEndpointAuthMethod = AuthMethod.SECRET_BASIC
 
-            redirectUris = Sets.newHashSet("https://foo.bar/")
+            redirectUris = hashSetOf("https://foo.bar/")
 
             jwksUri = "https://foo.bar/jwks"
         }
 
-        service.saveNewClient(client)
+        assertThrows<IllegalArgumentException> {
+            service.saveNewClient(client)
+        }
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun heartMode_authcode_redirectUris() {
         whenever(config.isHeartMode) doReturn (true)
 
@@ -453,10 +463,12 @@ class TestDefaultOAuth2ClientDetailsEntityService {
             tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
         }
 
-        service.saveNewClient(client)
+        assertThrows<IllegalArgumentException> {
+            service.saveNewClient(client)
+        }
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun heartMode_implicit_redirectUris() {
         whenever(config.isHeartMode) doReturn (true)
 
@@ -466,59 +478,64 @@ class TestDefaultOAuth2ClientDetailsEntityService {
             tokenEndpointAuthMethod = AuthMethod.NONE
         }
 
-        service.saveNewClient(client)
+        assertThrows<IllegalArgumentException> {
+            service.saveNewClient(client)
+        }
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun heartMode_clientcreds_redirectUris() {
         whenever(config.isHeartMode) doReturn true
 
-        val client = ClientDetailsEntity().apply {  
+        val client = ClientDetailsEntity().apply {
             grantTypes = hashSetOf("client_credentials")
-    
+
             tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
-    
+
             redirectUris = hashSetOf("http://foo.bar/")
         }
 
-        service.saveNewClient(client)
+        assertThrows<IllegalArgumentException> {
+            service.saveNewClient(client)
+        }
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun heartMode_clientSecret() {
         whenever(config.isHeartMode) doReturn (true)
 
         val client = ClientDetailsEntity()
-        val grantTypes: MutableSet<String> = LinkedHashSet()
-        grantTypes.add("authorization_code")
-        client.grantTypes = grantTypes
+        client.grantTypes = hashSetOf("authorization_code")
 
         client.tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
 
-        client.redirectUris = Sets.newHashSet("http://foo.bar/")
+        client.redirectUris = hashSetOf("http://foo.bar/")
 
         client.clientSecret = "secret!"
 
-        service.saveNewClient(client)
+        assertThrows<IllegalArgumentException> {
+            service.saveNewClient(client)
+        }
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun heartMode_noJwks() {
         whenever(config.isHeartMode) doReturn (true)
 
         val client = ClientDetailsEntity()
-        val grantTypes: MutableSet<String> = LinkedHashSet()
-        grantTypes.add("authorization_code")
+        val grantTypes: MutableSet<String> = hashSetOf("authorization_code")
         client.grantTypes = grantTypes
 
         client.tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
 
-        client.redirectUris = Sets.newHashSet("https://foo.bar/")
+        client.redirectUris = hashSetOf("https://foo.bar/")
 
         client.jwks = null
         client.jwksUri = null
 
-        service.saveNewClient(client)
+        assertThrows<IllegalArgumentException> {
+            service.saveNewClient(client)
+        }
     }
 
     @Test
@@ -533,7 +550,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
 
             tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
 
-            redirectUris = Sets.newHashSet("https://foo.bar/")
+            redirectUris = hashSetOf("https://foo.bar/")
 
             jwksUri = "https://foo.bar/jwks"
         }
@@ -544,7 +561,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         assertNull(client.clientSecret)
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun heartMode_nonLocalHttpRedirect() {
         whenever(config.isHeartMode) doReturn (true)
 
@@ -556,14 +573,16 @@ class TestDefaultOAuth2ClientDetailsEntityService {
 
         client.tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
 
-        client.redirectUris = Sets.newHashSet("http://foo.bar/")
+        client.redirectUris = hashSetOf("http://foo.bar/")
 
         client.jwksUri = "https://foo.bar/jwks"
 
-        service.saveNewClient(client)
+        assertThrows<IllegalArgumentException> {
+            service.saveNewClient(client)
+        }
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun heartMode_multipleRedirectClass() {
         whenever(config.isHeartMode) doReturn (true)
 
@@ -575,10 +594,12 @@ class TestDefaultOAuth2ClientDetailsEntityService {
 
         client.tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
 
-        client.redirectUris = Sets.newHashSet("http://localhost/", "https://foo.bar", "foo://bar")
+        client.redirectUris = hashSetOf("http://localhost/", "https://foo.bar", "foo://bar")
 
         client.jwksUri = "https://foo.bar/jwks"
 
-        service.saveNewClient(client)
+        assertThrows<IllegalArgumentException> {
+            service.saveNewClient(client)
+        }
     }
 }
