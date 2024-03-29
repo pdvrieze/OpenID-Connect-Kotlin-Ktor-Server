@@ -32,7 +32,7 @@ interface ApprovedSiteService {
         clientId: String?,
         userId: String?,
         timeoutDate: Date?,
-        allowedScopes: Set<String?>?
+        allowedScopes: Set<String>?
     ): ApprovedSite
 
     /**
@@ -94,5 +94,5 @@ interface ApprovedSiteService {
     /**
      * Return all approved access tokens for the site.
      */
-    fun getApprovedAccessTokens(approvedSite: ApprovedSite): List<OAuth2AccessTokenEntity>?
+    fun getApprovedAccessTokens(approvedSite: ApprovedSite): List<OAuth2AccessTokenEntity>
 }

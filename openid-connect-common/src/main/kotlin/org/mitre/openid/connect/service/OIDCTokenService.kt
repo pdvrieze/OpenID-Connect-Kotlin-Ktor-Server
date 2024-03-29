@@ -33,7 +33,7 @@ interface OIDCTokenService {
      * Create an id token with the information provided.
      */
     fun createIdToken(
-        client: ClientDetailsEntity, request: OAuth2Request?, issueTime: Date?,
+        client: ClientDetailsEntity, request: OAuth2Request, issueTime: Date?,
         sub: String?, accessToken: OAuth2AccessTokenEntity?
     ): JWT?
 

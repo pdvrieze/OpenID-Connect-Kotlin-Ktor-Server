@@ -91,5 +91,5 @@ interface OAuth2TokenRepository {
     )
     fun clearDuplicateRefreshTokens()
 
-    fun getAccessTokensForApprovedSite(approvedSite: ApprovedSite?): List<OAuth2AccessTokenEntity?>?
+    fun getAccessTokensForApprovedSite(approvedSite: ApprovedSite?): List<OAuth2AccessTokenEntity>
 }

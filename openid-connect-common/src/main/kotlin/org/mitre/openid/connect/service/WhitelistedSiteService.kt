@@ -30,7 +30,7 @@ interface WhitelistedSiteService {
      *
      * @return the WhitelistedSite collection, or null
      */
-    val all: Collection<WhitelistedSite>
+    val all: Collection<WhitelistedSite>?
 
     /**
      * Returns the WhitelistedSite for the given id

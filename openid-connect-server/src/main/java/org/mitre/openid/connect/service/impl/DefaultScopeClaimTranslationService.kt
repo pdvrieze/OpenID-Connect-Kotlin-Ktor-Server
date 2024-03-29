@@ -7,88 +7,66 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.openid.connect.service.impl;
+ */
+package org.mitre.openid.connect.service.impl
 
-import java.util.HashSet;
-import java.util.Set;
-
-import org.mitre.openid.connect.service.ScopeClaimTranslationService;
-import org.springframework.stereotype.Service;
-
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.SetMultimap;
+import com.google.common.collect.HashMultimap
+import com.google.common.collect.SetMultimap
+import org.mitre.openid.connect.service.ScopeClaimTranslationService
+import org.springframework.stereotype.Service
 
 /**
  * Service to map scopes to claims, and claims to Java field names
  *
  * @author Amanda Anganes
- *
  */
 @Service("scopeClaimTranslator")
-public class DefaultScopeClaimTranslationService implements ScopeClaimTranslationService {
+class DefaultScopeClaimTranslationService : ScopeClaimTranslationService {
+    private val scopesToClaims: SetMultimap<String, String> = HashMultimap.create<String?, String?>().apply {
+        put("openid", "sub")
 
-	private SetMultimap<String, String> scopesToClaims = HashMultimap.create();
+        put("profile", "name")
+        put("profile", "preferred_username")
+        put("profile", "given_name")
+        put("profile", "family_name")
+        put("profile", "middle_name")
+        put("profile", "nickname")
+        put("profile", "profile")
+        put("profile", "picture")
+        put("profile", "website")
+        put("profile", "gender")
+        put("profile", "zoneinfo")
+        put("profile", "locale")
+        put("profile", "updated_at")
+        put("profile", "birthdate")
 
-	/**
-	 * Default constructor; initializes scopesToClaims map
-	 */
-	public DefaultScopeClaimTranslationService() {
-		scopesToClaims.put("openid", "sub");
+        put("email", "email")
+        put("email", "email_verified")
 
-		scopesToClaims.put("profile", "name");
-		scopesToClaims.put("profile", "preferred_username");
-		scopesToClaims.put("profile", "given_name");
-		scopesToClaims.put("profile", "family_name");
-		scopesToClaims.put("profile", "middle_name");
-		scopesToClaims.put("profile", "nickname");
-		scopesToClaims.put("profile", "profile");
-		scopesToClaims.put("profile", "picture");
-		scopesToClaims.put("profile", "website");
-		scopesToClaims.put("profile", "gender");
-		scopesToClaims.put("profile", "zoneinfo");
-		scopesToClaims.put("profile", "locale");
-		scopesToClaims.put("profile", "updated_at");
-		scopesToClaims.put("profile", "birthdate");
+        put("phone", "phone_number")
+        put("phone", "phone_number_verified")
 
-		scopesToClaims.put("email", "email");
-		scopesToClaims.put("email", "email_verified");
+        put("address", "address")
+    }
 
-		scopesToClaims.put("phone", "phone_number");
-		scopesToClaims.put("phone", "phone_number_verified");
-
-		scopesToClaims.put("address", "address");
-	}
-
-	/* (non-Javadoc)
+    /* (non-Javadoc)
 	 * @see org.mitre.openid.connect.service.ScopeClaimTranslationService#getClaimsForScope(java.lang.String)
 	 */
-	@Override
-	public Set<String> getClaimsForScope(String scope) {
-		if (scopesToClaims.containsKey(scope)) {
-			return scopesToClaims.get(scope);
-		} else {
-			return new HashSet<>();
-		}
-	}
+    override fun getClaimsForScope(scope: String): Set<String> {
+        return scopesToClaims[scope] ?: emptySet()
+    }
 
-	/* (non-Javadoc)
+    /* (non-Javadoc)
 	 * @see org.mitre.openid.connect.service.ScopeClaimTranslationService#getClaimsForScopeSet(java.util.Set)
 	 */
-	@Override
-	public Set<String> getClaimsForScopeSet(Set<String> scopes) {
-		Set<String> result = new HashSet<>();
-		for (String scope : scopes) {
-			result.addAll(getClaimsForScope(scope));
-		}
-		return result;
-	}
-
+    override fun getClaimsForScopeSet(scopes: Set<String>): Set<String> {
+        return scopes.flatMapTo(HashSet()) { getClaimsForScope(it) }
+    }
 }

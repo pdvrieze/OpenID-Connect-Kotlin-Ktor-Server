@@ -256,7 +256,7 @@ class JpaOAuth2TokenRepository : OAuth2TokenRepository {
         }
     }
 
-    override fun getAccessTokensForApprovedSite(approvedSite: ApprovedSite?): List<OAuth2AccessTokenEntity?>? {
+    override fun getAccessTokensForApprovedSite(approvedSite: ApprovedSite?): List<OAuth2AccessTokenEntity> {
         val queryA =
             manager.createNamedQuery(OAuth2AccessTokenEntity.QUERY_BY_APPROVED_SITE, OAuth2AccessTokenEntity::class.java)
         queryA.setParameter(OAuth2AccessTokenEntity.PARAM_APPROVED_SITE, approvedSite)

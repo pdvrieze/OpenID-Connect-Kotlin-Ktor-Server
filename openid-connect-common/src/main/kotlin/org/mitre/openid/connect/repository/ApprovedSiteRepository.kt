@@ -70,5 +70,5 @@ interface ApprovedSiteRepository {
     /**
      * Get all sites associated with this client
      */
-    fun getByClientId(clientId: String): Collection<ApprovedSite>
+    fun getByClientId(clientId: String): Collection<ApprovedSite>?
 }

@@ -7,181 +7,154 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.openid.connect.service.impl;
+ */
+package org.mitre.openid.connect.service.impl
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
-import org.mitre.oauth2.model.OAuth2AccessTokenEntity;
-import org.mitre.oauth2.repository.OAuth2TokenRepository;
-import org.mitre.openid.connect.model.ApprovedSite;
-import org.mitre.openid.connect.repository.ApprovedSiteRepository;
-import org.mitre.openid.connect.service.ApprovedSiteService;
-import org.mitre.openid.connect.service.StatsService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.oauth2.provider.ClientDetails;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import org.mitre.oauth2.model.OAuth2AccessTokenEntity
+import org.mitre.oauth2.repository.OAuth2TokenRepository
+import org.mitre.openid.connect.model.ApprovedSite
+import org.mitre.openid.connect.repository.ApprovedSiteRepository
+import org.mitre.openid.connect.service.ApprovedSiteService
+import org.mitre.openid.connect.service.StatsService
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.oauth2.provider.ClientDetails
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import java.util.*
 
 /**
  * Implementation of the ApprovedSiteService
  *
  * @author Michael Joseph Walsh, aanganes
- *
  */
 @Service("defaultApprovedSiteService")
-public class DefaultApprovedSiteService implements ApprovedSiteService {
+class DefaultApprovedSiteService : ApprovedSiteService {
+    @Autowired
+    private lateinit var approvedSiteRepository: ApprovedSiteRepository
 
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger logger = LoggerFactory.getLogger(DefaultApprovedSiteService.class);
+    @Autowired
+    private lateinit var tokenRepository: OAuth2TokenRepository
 
-	@Autowired
-	private ApprovedSiteRepository approvedSiteRepository;
+    @Autowired
+    private lateinit var statsService: StatsService
 
-	@Autowired
-	private OAuth2TokenRepository tokenRepository;
+    override val all: Collection<ApprovedSite>?
+        get() = approvedSiteRepository.all
 
-	@Autowired
-	private StatsService statsService;
+    @Transactional(value = "defaultTransactionManager")
+    override fun save(approvedSite: ApprovedSite): ApprovedSite {
+        val a = approvedSiteRepository.save(approvedSite)
+        statsService.resetCache()
+        return a
+    }
 
-	@Override
-	public Collection<ApprovedSite> getAll() {
-		return approvedSiteRepository.getAll();
-	}
+    override fun getById(id: java.lang.Long): ApprovedSite? {
+        return approvedSiteRepository.getById(id)
+    }
 
-	@Override
-	@Transactional(value="defaultTransactionManager")
-	public ApprovedSite save(ApprovedSite approvedSite) {
-		ApprovedSite a = approvedSiteRepository.save(approvedSite);
-		statsService.resetCache();
-		return a;
-	}
+    @Transactional(value = "defaultTransactionManager")
+    override fun remove(approvedSite: ApprovedSite) {
+        //Remove any associated access and refresh tokens
 
-	@Override
-	public ApprovedSite getById(Long id) {
-		return approvedSiteRepository.getById(id);
-	}
+        val accessTokens = getApprovedAccessTokens(approvedSite)
 
-	@Override
-	@Transactional(value="defaultTransactionManager")
-	public void remove(ApprovedSite approvedSite) {
+        for (token in accessTokens) {
+            if (token.refreshToken != null) {
+                tokenRepository.removeRefreshToken(token.refreshToken!!)
+            }
+            tokenRepository.removeAccessToken(token)
+        }
 
-		//Remove any associated access and refresh tokens
-		List<OAuth2AccessTokenEntity> accessTokens = getApprovedAccessTokens(approvedSite);
+        approvedSiteRepository.remove(approvedSite)
 
-		for (OAuth2AccessTokenEntity token : accessTokens) {
-			if (token.getRefreshToken() != null) {
-				tokenRepository.removeRefreshToken(token.getRefreshToken());
-			}
-			tokenRepository.removeAccessToken(token);
-		}
+        statsService.resetCache()
+    }
 
-		approvedSiteRepository.remove(approvedSite);
+    @Transactional(value = "defaultTransactionManager")
+    override fun createApprovedSite(
+        clientId: String?,
+        userId: String?,
+        timeoutDate: Date?,
+        allowedScopes: Set<String>?
+    ): ApprovedSite {
+        val now = Date()
+        val approvedSite = approvedSiteRepository.save(ApprovedSite())
 
-		statsService.resetCache();
-	}
+        approvedSite.creationDate = now
+        approvedSite.accessDate = now
+        approvedSite.clientId = clientId
+        approvedSite.userId = userId
+        approvedSite.timeoutDate = timeoutDate
+        approvedSite.allowedScopes = allowedScopes
 
-	@Override
-	@Transactional(value="defaultTransactionManager")
-	public ApprovedSite createApprovedSite(String clientId, String userId, Date timeoutDate, Set<String> allowedScopes) {
+        return save(approvedSite)
+    }
 
-		ApprovedSite as = approvedSiteRepository.save(new ApprovedSite());
+    override fun getByClientIdAndUserId(clientId: String?, userId: String?): Collection<ApprovedSite>? {
+        return approvedSiteRepository.getByClientIdAndUserId(clientId, userId)
+    }
 
-		Date now = new Date();
-		as.setCreationDate(now);
-		as.setAccessDate(now);
-		as.setClientId(clientId);
-		as.setUserId(userId);
-		as.setTimeoutDate(timeoutDate);
-		as.setAllowedScopes(allowedScopes);
+    /**
+     * @see org.mitre.openid.connect.repository.ApprovedSiteRepository.getByUserId
+     */
+    override fun getByUserId(userId: String): Collection<ApprovedSite>? {
+        return approvedSiteRepository.getByUserId(userId)
+    }
 
-		return save(as);
-
-	}
-
-	@Override
-	public Collection<ApprovedSite> getByClientIdAndUserId(String clientId, String userId) {
-
-		return approvedSiteRepository.getByClientIdAndUserId(clientId, userId);
-
-	}
-
-	/**
-	 * @see org.mitre.openid.connect.repository.ApprovedSiteRepository#getByUserId(java.lang.String)
-	 */
-	@Override
-	public Collection<ApprovedSite> getByUserId(String userId) {
-		return approvedSiteRepository.getByUserId(userId);
-	}
-
-	/**
-	 * @see org.mitre.openid.connect.repository.ApprovedSiteRepository#getByClientId(java.lang.String)
-	 */
-	@Override
-	public Collection<ApprovedSite> getByClientId(String clientId) {
-		return approvedSiteRepository.getByClientId(clientId);
-	}
+    /**
+     * @see org.mitre.openid.connect.repository.ApprovedSiteRepository.getByClientId
+     */
+    override fun getByClientId(clientId: String): Collection<ApprovedSite>? {
+        return approvedSiteRepository.getByClientId(clientId)
+    }
 
 
-	@Override
-	public void clearApprovedSitesForClient(ClientDetails client) {
-		Collection<ApprovedSite> approvedSites = approvedSiteRepository.getByClientId(client.getClientId());
-		if (approvedSites != null) {
-			for (ApprovedSite approvedSite : approvedSites) {
-				remove(approvedSite);
-			}
-		}
-	}
+    override fun clearApprovedSitesForClient(client: ClientDetails) {
+        val approvedSites = approvedSiteRepository.getByClientId(client.clientId)
+        if (approvedSites != null) {
+            for (approvedSite in approvedSites) {
+                remove(approvedSite)
+            }
+        }
+    }
 
-	@Override
-	public void clearExpiredSites() {
+    override fun clearExpiredSites() {
+        logger.debug("Clearing expired approved sites")
 
-		logger.debug("Clearing expired approved sites");
+        val expiredSites: Collection<ApprovedSite>? = expired
+        if (expiredSites != null) {
+            if (expiredSites.isNotEmpty()) {
+                logger.info("Found ${expiredSites.size} expired approved sites.")
+            }
+            for (expired in expiredSites) {
+                remove(expired)
+            }
+        }
+    }
 
-		Collection<ApprovedSite> expiredSites = getExpired();
-		if (expiredSites.size() > 0) {
-			logger.info("Found " + expiredSites.size() + " expired approved sites.");
-		}
-		if (expiredSites != null) {
-			for (ApprovedSite expired : expiredSites) {
-				remove(expired);
-			}
-		}
+    private val expired_predicate: (ApprovedSite?) -> Boolean = { input -> input != null && input.isExpired }
+    private val expired
+        get() = approvedSiteRepository.all?.filter(expired_predicate)
 
-	}
+    override fun getApprovedAccessTokens(
+        approvedSite: ApprovedSite
+    ): List<OAuth2AccessTokenEntity> {
+        return tokenRepository.getAccessTokensForApprovedSite(approvedSite)
+    }
 
-	private Predicate<ApprovedSite> isExpired = new Predicate<ApprovedSite>() {
-		@Override
-		public boolean apply(ApprovedSite input) {
-			return (input != null && input.isExpired());
-		}
-	};
-
-	private Collection<ApprovedSite> getExpired() {
-		return Collections2.filter(approvedSiteRepository.getAll(), isExpired);
-	}
-
-	@Override
-	public List<OAuth2AccessTokenEntity> getApprovedAccessTokens(
-			ApprovedSite approvedSite) {
-		return tokenRepository.getAccessTokensForApprovedSite(approvedSite);
-
-	}
-
+    companion object {
+        /**
+         * Logger for this class
+         */
+        private val logger: Logger = LoggerFactory.getLogger(DefaultApprovedSiteService::class.java)
+    }
 }

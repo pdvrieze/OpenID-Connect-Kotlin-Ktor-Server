@@ -5,68 +5,54 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
+ */
+package org.mitre.openid.connect.service.impl
 
-package org.mitre.openid.connect.service.impl;
-
-import java.util.Collection;
-import java.util.Collections;
-
-import org.mitre.oauth2.model.ClientDetailsEntity;
-import org.mitre.uma.model.ResourceSet;
-import org.mitre.uma.service.ResourceSetService;
-import org.springframework.stereotype.Service;
+import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.uma.model.ResourceSet
+import org.mitre.uma.service.ResourceSetService
+import org.springframework.stereotype.Service
 
 /**
  * Dummy resource set service that doesn't do anything; acts as a stub for the
  * introspection service when the UMA functionality is disabled.
  *
  * @author jricher
- *
  */
 @Service
-public class DummyResourceSetService implements ResourceSetService {
+class DummyResourceSetService : ResourceSetService {
+    override fun saveNew(rs: ResourceSet?): Nothing {
+        throw UnsupportedOperationException()
+    }
 
-	@Override
-	public ResourceSet saveNew(ResourceSet rs) {
-		throw new UnsupportedOperationException();
-	}
+    override fun getById(id: Long?): Nothing {
+        throw UnsupportedOperationException()
+    }
 
-	@Override
-	public ResourceSet getById(Long id) {
-		throw new UnsupportedOperationException();
-	}
+    override fun update(oldRs: ResourceSet?, newRs: ResourceSet?): Nothing {
+        throw UnsupportedOperationException()
+    }
 
-	@Override
-	public ResourceSet update(ResourceSet oldRs, ResourceSet newRs) {
-		throw new UnsupportedOperationException();
-	}
+    override fun remove(rs: ResourceSet?) {
+        throw UnsupportedOperationException()
+    }
 
-	@Override
-	public void remove(ResourceSet rs) {
-		throw new UnsupportedOperationException();
-	}
+    override fun getAllForOwner(owner: String?): Nothing {
+        throw UnsupportedOperationException()
+    }
 
-	@Override
-	public Collection<ResourceSet> getAllForOwner(String owner) {
-		throw new UnsupportedOperationException();
-	}
+    override fun getAllForOwnerAndClient(owner: String?, authClientId: String?): Collection<ResourceSet> {
+        return emptySet()
+    }
 
-	@Override
-	public Collection<ResourceSet> getAllForOwnerAndClient(String owner, String authClientId) {
-		return Collections.emptySet();
-	}
-
-	@Override
-	public Collection<ResourceSet> getAllForClient(ClientDetailsEntity client) {
-		return Collections.emptySet();
-	}
-
+    override fun getAllForClient(client: ClientDetailsEntity?): Collection<ResourceSet> {
+        return emptySet()
+    }
 }

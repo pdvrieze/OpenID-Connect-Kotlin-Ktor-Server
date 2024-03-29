@@ -29,9 +29,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 /**
  * @author wkim
@@ -80,7 +78,7 @@ public class TestDefaultWhitelistedSiteService {
 		try {
 			service.update(null, newSite);
 			fail("Old site input is null. Expected a IllegalArgumentException.");
-		} catch (IllegalArgumentException e) {
+		} catch (NullPointerException | IllegalArgumentException e) {
 			assertThat(e, is(notNullValue()));
 		}
 
@@ -88,7 +86,7 @@ public class TestDefaultWhitelistedSiteService {
 		try {
 			service.update(oldSite, null);
 			fail("New site input is null. Expected a IllegalArgumentException.");
-		} catch (IllegalArgumentException e) {
+		} catch (NullPointerException | IllegalArgumentException e) {
 			assertThat(e, is(notNullValue()));
 		}
 
@@ -96,7 +94,7 @@ public class TestDefaultWhitelistedSiteService {
 		try {
 			service.update(null, null);
 			fail("Both site inputs are null. Expected a IllegalArgumentException.");
-		} catch (IllegalArgumentException e) {
+		} catch (NullPointerException | IllegalArgumentException e) {
 			assertThat(e, is(notNullValue()));
 		}
 	}
