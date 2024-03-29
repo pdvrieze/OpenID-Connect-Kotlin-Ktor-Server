@@ -30,12 +30,15 @@ dependencies {
     testImplementation(libs.junit4)
     testImplementation(libs.mockito.inline)
     testImplementation(libs.spring.test)
-//    testImplementation(libs.hamcrest.all)
+    testImplementation(libs.hamcrest.all)
     testImplementation(libs.hamcrest.core)
+    testImplementation(libs.junit.jupiter.api)
+    testRuntimeOnly(libs.junit.jupiter.engine)
+    testRuntimeOnly(libs.junit.jupiter.vintage)
     testRuntimeOnly(libs.eclipse.persistence.jpa)
     testRuntimeOnly(libs.eclipse.persistence.core)
 }
 
 tasks.named<Test>("test") {
-    useJUnit()
+    useJUnitPlatform()
 }

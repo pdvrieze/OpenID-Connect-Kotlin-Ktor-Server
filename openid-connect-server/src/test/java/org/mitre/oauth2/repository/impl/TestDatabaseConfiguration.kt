@@ -1,96 +1,96 @@
-package org.mitre.oauth2.repository.impl;
+package org.mitre.oauth2.repository.impl
 
-import static java.nio.charset.StandardCharsets.UTF_8;
+import org.eclipse.persistence.jpa.PersistenceProvider
+import org.springframework.beans.factory.FactoryBean
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Bean
+import org.springframework.core.io.ByteArrayResource
+import org.springframework.core.io.DefaultResourceLoader
+import org.springframework.core.io.Resource
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType
+import org.springframework.orm.jpa.JpaTransactionManager
+import org.springframework.orm.jpa.JpaVendorAdapter
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean
+import org.springframework.orm.jpa.vendor.Database
+import org.springframework.orm.jpa.vendor.EclipseLinkJpaVendorAdapter
+import org.springframework.transaction.PlatformTransactionManager
+import java.io.IOException
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.Paths
+import javax.persistence.EntityManagerFactory
+import javax.sql.DataSource
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
+class TestDatabaseConfiguration {
+    @Autowired
+    private lateinit var jpaAdapter: JpaVendorAdapter
 
-import javax.persistence.EntityManagerFactory;
-import javax.sql.DataSource;
+    @Autowired
+    private lateinit var dataSource: DataSource
 
-import org.springframework.beans.factory.FactoryBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.DefaultResourceLoader;
-import org.springframework.core.io.Resource;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
-import org.springframework.orm.jpa.JpaTransactionManager;
-import org.springframework.orm.jpa.JpaVendorAdapter;
-import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.orm.jpa.vendor.Database;
-import org.springframework.orm.jpa.vendor.EclipseLinkJpaVendorAdapter;
-import org.springframework.transaction.PlatformTransactionManager;
+    @Autowired
+    private lateinit var entityManagerFactory: EntityManagerFactory
 
-public class TestDatabaseConfiguration {
+    @Bean
+    fun repository(): JpaOAuth2TokenRepository {
+        return JpaOAuth2TokenRepository()
+    }
 
-	@Autowired
-	private JpaVendorAdapter jpaAdapter;
+    @Bean(name = ["defaultPersistenceUnit"])
+    fun entityManagerFactory(): FactoryBean<EntityManagerFactory> {
+        val factory = LocalContainerEntityManagerFactoryBean()
+        factory.setPackagesToScan("org.mitre", "org.mitre")
+        factory.setPersistenceProviderClass(PersistenceProvider::class.java)
+        factory.persistenceUnitName = "test" + System.currentTimeMillis()
+        factory.dataSource = dataSource
+        factory.jpaVendorAdapter = jpaAdapter
+        val jpaProperties: MutableMap<String, Any?> = HashMap()
+        jpaProperties["eclipselink.weaving"] = "false"
+        jpaProperties["eclipselink.logging.level"] = "INFO"
+        jpaProperties["eclipselink.logging.level.sql"] = "INFO"
+        jpaProperties["eclipselink.cache.shared.default"] = "false"
+        factory.jpaPropertyMap = jpaProperties
 
-	@Autowired
-	private DataSource dataSource;
+        return factory
+    }
 
-	@Autowired
-	private EntityManagerFactory entityManagerFactory;
+    @Bean
+    fun dataSource(): DataSource {
+        return EmbeddedDatabaseBuilder(object : DefaultResourceLoader() {
+            override fun getResource(location: String): Resource {
+                val sql: String
+                try {
+                    sql = String(
+                        Files.readAllBytes(
+                            Paths.get(
+                                "..", "openid-connect-server-webapp", "src", "main",
+                                "resources", "db", "hsql", location
+                            )
+                        ), StandardCharsets.UTF_8
+                    )
+                } catch (e: IOException) {
+                    throw RuntimeException("Failed to read sql-script $location", e)
+                }
 
-	@Bean
-	public JpaOAuth2TokenRepository repository() {
-		return new JpaOAuth2TokenRepository();
-	}
+                return ByteArrayResource(sql.toByteArray(StandardCharsets.UTF_8))
+            }
+        }).generateUniqueName(true).setScriptEncoding(StandardCharsets.UTF_8.name()).setType(EmbeddedDatabaseType.HSQL)
+            .addScripts("hsql_database_tables.sql").build()
+    }
 
-	@Bean(name = "defaultPersistenceUnit")
-	public FactoryBean<EntityManagerFactory> entityManagerFactory() {
-		LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
-		factory.setPackagesToScan("org.mitre", "org.mitre");
-		factory.setPersistenceProviderClass(org.eclipse.persistence.jpa.PersistenceProvider.class);
-		factory.setPersistenceUnitName("test" + System.currentTimeMillis());
-		factory.setDataSource(dataSource);
-		factory.setJpaVendorAdapter(jpaAdapter);
-		Map<String, Object> jpaProperties = new HashMap<String, Object>();
-		jpaProperties.put("eclipselink.weaving", "false");
-		jpaProperties.put("eclipselink.logging.level", "INFO");
-		jpaProperties.put("eclipselink.logging.level.sql", "INFO");
-		jpaProperties.put("eclipselink.cache.shared.default", "false");
-		factory.setJpaPropertyMap(jpaProperties);
+    @Bean
+    fun jpaAdapter(): JpaVendorAdapter {
+        val adapter = EclipseLinkJpaVendorAdapter()
+        adapter.setDatabase(Database.HSQL)
+        adapter.setShowSql(true)
+        return adapter
+    }
 
-		return factory;
-	}
-
-	@Bean
-	public DataSource dataSource() {
-		return new EmbeddedDatabaseBuilder(new DefaultResourceLoader() {
-			@Override
-			public Resource getResource(String location) {
-				String sql;
-				try {
-					sql = new String(Files.readAllBytes(Paths.get("..", "openid-connect-server-webapp", "src", "main",
-							"resources", "db", "hsql", location)), UTF_8);
-				} catch (IOException e) {
-					throw new RuntimeException("Failed to read sql-script " + location, e);
-				}
-
-				return new ByteArrayResource(sql.getBytes(UTF_8));
-			}
-		}).generateUniqueName(true).setScriptEncoding(UTF_8.name()).setType(EmbeddedDatabaseType.HSQL)
-				.addScripts("hsql_database_tables.sql").build();
-	}
-
-	@Bean
-	public JpaVendorAdapter jpaAdapter() {
-		EclipseLinkJpaVendorAdapter adapter = new EclipseLinkJpaVendorAdapter();
-		adapter.setDatabase(Database.HSQL);
-		adapter.setShowSql(true);
-		return adapter;
-	}
-
-	@Bean
-	public PlatformTransactionManager transactionManager() {
-		JpaTransactionManager platformTransactionManager = new JpaTransactionManager();
-		platformTransactionManager.setEntityManagerFactory(entityManagerFactory);
-		return platformTransactionManager;
-	}
+    @Bean
+    fun transactionManager(): PlatformTransactionManager {
+        val platformTransactionManager = JpaTransactionManager()
+        platformTransactionManager.entityManagerFactory = entityManagerFactory
+        return platformTransactionManager
+    }
 }
