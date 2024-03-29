@@ -7,627 +7,578 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.oauth2.service.impl;
+ */
+package org.mitre.oauth2.service.impl
 
-import com.google.common.collect.Sets;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mitre.oauth2.model.ClientDetailsEntity;
-import org.mitre.oauth2.model.ClientDetailsEntity.AuthMethod;
-import org.mitre.oauth2.model.SystemScope;
-import org.mitre.oauth2.repository.OAuth2ClientRepository;
-import org.mitre.oauth2.repository.OAuth2TokenRepository;
-import org.mitre.oauth2.service.SystemScopeService;
-import org.mitre.openid.connect.config.ConfigurationPropertiesBean;
-import org.mitre.openid.connect.model.WhitelistedSite;
-import org.mitre.openid.connect.service.ApprovedSiteService;
-import org.mitre.openid.connect.service.BlacklistedSiteService;
-import org.mitre.openid.connect.service.StatsService;
-import org.mitre.openid.connect.service.WhitelistedSiteService;
-import org.mitre.uma.model.ResourceSet;
-import org.mitre.uma.service.ResourceSetService;
-import org.mockito.AdditionalAnswers;
-import org.mockito.ArgumentMatchers;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.junit.MockitoJUnitRunner;
-import org.mockito.stubbing.Answer;
-import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
-
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-
+import com.google.common.collect.Sets
+import org.hamcrest.CoreMatchers
+import org.junit.Assert
+import org.junit.Before
+import org.junit.Test
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.assertThrows
+import org.junit.runner.RunWith
+import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.ClientDetailsEntity.AuthMethod
+import org.mitre.oauth2.model.SystemScope
+import org.mitre.oauth2.repository.OAuth2ClientRepository
+import org.mitre.oauth2.repository.OAuth2TokenRepository
+import org.mitre.oauth2.service.SystemScopeService
+import org.mitre.oauth2.util.toJavaId
+import org.mitre.openid.connect.config.ConfigurationPropertiesBean
+import org.mitre.openid.connect.model.WhitelistedSite
+import org.mitre.openid.connect.service.ApprovedSiteService
+import org.mitre.openid.connect.service.BlacklistedSiteService
+import org.mitre.openid.connect.service.StatsService
+import org.mitre.openid.connect.service.WhitelistedSiteService
+import org.mitre.uma.service.ResourceSetService
+import org.mockito.AdditionalAnswers
+import org.mockito.ArgumentMatchers
+import org.mockito.InjectMocks
+import org.mockito.Mock
+import org.mockito.Mockito
+import org.mockito.junit.MockitoJUnitRunner.Silent
+import org.mockito.kotlin.atLeastOnce
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.isA
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
+import org.springframework.security.oauth2.common.exceptions.InvalidClientException
 
 /**
  * @author wkim
- *
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
-public class TestDefaultOAuth2ClientDetailsEntityService {
-
-	@Mock
-	private OAuth2ClientRepository clientRepository;
-
-	@Mock
-	private OAuth2TokenRepository tokenRepository;
-
-	@Mock
-	private ApprovedSiteService approvedSiteService;
-
-	@Mock
-	private WhitelistedSiteService whitelistedSiteService;
-
-	@Mock
-	private BlacklistedSiteService blacklistedSiteService;
-
-	@Mock
-	private SystemScopeService scopeService;
-
-	@Mock
-	private ResourceSetService resourceSetService;
-
-	@Mock
-	private StatsService statsService;
-
-	@Mock
-	private ConfigurationPropertiesBean config;
-
-	@InjectMocks
-	private DefaultOAuth2ClientDetailsEntityService service;
-
-	@Before
-	public void prepare() {
-		Mockito.reset(clientRepository, tokenRepository, approvedSiteService, whitelistedSiteService, blacklistedSiteService, scopeService, statsService);
-
-		Mockito.when(clientRepository.saveClient(any(ClientDetailsEntity.class))).thenAnswer(new Answer<ClientDetailsEntity>() {
-			@Override
-			public ClientDetailsEntity answer(InvocationOnMock invocation) throws Throwable {
-				Object[] args = invocation.getArguments();
-				return (ClientDetailsEntity) args[0];
-			}
-		});
-
-		Mockito.when(clientRepository.updateClient(ArgumentMatchers.anyLong(), any(ClientDetailsEntity.class))).thenAnswer(new Answer<ClientDetailsEntity>() {
-			@Override
-			public ClientDetailsEntity answer(InvocationOnMock invocation) throws Throwable {
-				Object[] args = invocation.getArguments();
-				return (ClientDetailsEntity) args[1];
-			}
-		});
-
-		Mockito.when(scopeService.fromStrings(ArgumentMatchers.anySet())).thenAnswer(new Answer<Set<SystemScope>>() {
-			@Override
-			public Set<SystemScope> answer(InvocationOnMock invocation) throws Throwable {
-				Object[] args = invocation.getArguments();
-				Set<String> input = (Set<String>) args[0];
-				Set<SystemScope> output = new HashSet<>();
-				for (String scope : input) {
-					output.add(new SystemScope(scope));
-				}
-				return output;
-			}
-		});
+@RunWith(Silent::class)
+class TestDefaultOAuth2ClientDetailsEntityService {
+    @Mock
+    private lateinit var clientRepository: OAuth2ClientRepository
+
+    @Mock
+    private lateinit var tokenRepository: OAuth2TokenRepository
+
+    @Mock
+    private lateinit var approvedSiteService: ApprovedSiteService
+
+    @Mock
+    private lateinit var whitelistedSiteService: WhitelistedSiteService
+
+    @Mock
+    private lateinit var blacklistedSiteService: BlacklistedSiteService
+
+    @Mock
+    private lateinit var scopeService: SystemScopeService
+
+    @Mock
+    private lateinit var resourceSetService: ResourceSetService
+
+    @Mock
+    private lateinit var statsService: StatsService
+
+    @Mock
+    private lateinit var config: ConfigurationPropertiesBean
+
+    @InjectMocks
+    private lateinit var service: DefaultOAuth2ClientDetailsEntityService
+
+    @Before
+    fun prepare() {
+        Mockito.reset(clientRepository, tokenRepository, approvedSiteService, whitelistedSiteService, blacklistedSiteService, scopeService, statsService)
+
+        whenever(clientRepository.saveClient(isA()))
+            .thenAnswer { invocation ->
+                val args = invocation.arguments
+                args[0] as ClientDetailsEntity
+            }
+
+        whenever(clientRepository.updateClient(isA(), isA()))
+            .thenAnswer { invocation ->
+                val args = invocation.arguments
+                args[1] as ClientDetailsEntity
+            }
+
+        whenever(scopeService.fromStrings(ArgumentMatchers.anySet())).thenAnswer { invocation ->
+            val args = invocation.arguments
+            val input = args[0] as Set<String>
+            val output: MutableSet<SystemScope> = HashSet()
+            for (scope in input) {
+                output.add(SystemScope(scope))
+            }
+            output
+        }
+
+        whenever(scopeService.toStrings(ArgumentMatchers.anySet())).thenAnswer { invocation ->
+            val args = invocation.arguments
+            val input = args[0] as Set<SystemScope>
+            val output: MutableSet<String?> = HashSet()
+            for (scope in input) {
+                output.add(scope.value)
+            }
+            output
+        }
+
+        // we're not testing reserved scopes here, just pass through when it's called
+        whenever(scopeService.removeReservedScopes(ArgumentMatchers.anySet()))
+            .then(AdditionalAnswers.returnsFirstArg<Any>())
+
+        whenever(config.isHeartMode) doReturn (false)
+    }
+
+    /**
+     * Failure case of existing client id.
+     */
+    @Test(expected = IllegalArgumentException::class)
+    fun saveNewClient_badId() {
+        // Set up a mock client.
+
+        val client = Mockito.mock(ClientDetailsEntity::class.java)
+        whenever(client.id) doReturn (12345L) // any non-null ID will work
+
+        service.saveNewClient(client)
+    }
+
+    /**
+     * Failure case of blacklisted client uri.
+     */
+    @Test(expected = IllegalArgumentException::class)
+    fun saveNewClient_blacklisted() {
+        val client = Mockito.mock(ClientDetailsEntity::class.java)
+        whenever(client.id) doReturn (null)
+
+        val badUri = "badplace.xxx"
+
+        whenever(blacklistedSiteService.isBlacklisted(badUri)) doReturn (true)
+        whenever(client.registeredRedirectUri) doReturn (Sets.newHashSet(badUri))
+
+        service.saveNewClient(client)
+    }
+
+    @Test
+    fun saveNewClient_idWasAssigned() {
+        // Set up a mock client.
+
+        val client = Mockito.mock(ClientDetailsEntity::class.java)
+        whenever(client.id) doReturn (null)
+
+        service.saveNewClient(client)
+
+        Mockito.verify(client).clientId = ArgumentMatchers.anyString()
+    }
+
+    /**
+     * Makes sure client has offline access granted scope if allowed refresh tokens.
+     */
+    @Test
+    fun saveNewClient_yesOfflineAccess() {
+        var client: ClientDetailsEntity? = ClientDetailsEntity()
+
+        val grantTypes: MutableSet<String> = HashSet()
+        grantTypes.add("refresh_token")
+        client!!.grantTypes = grantTypes
+
+        client = service.saveNewClient(client)
+
+        Assert.assertThat(client!!.scope.contains(SystemScopeService.OFFLINE_ACCESS), CoreMatchers.`is`(CoreMatchers.equalTo(true)))
+    }
+
+    /**
+     * Makes sure client does not have offline access if not allowed to have refresh tokens.
+     */
+    @Test
+    fun saveNewClient_noOfflineAccess() {
+        var client: ClientDetailsEntity? = ClientDetailsEntity()
+
+        client = service.saveNewClient(client!!)
+
+        Mockito.verify(scopeService, Mockito.atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
+
+        Assert.assertThat(client!!.scope.contains(SystemScopeService.OFFLINE_ACCESS), CoreMatchers.`is`(CoreMatchers.equalTo(false)))
+    }
+
+    @Test
+    fun loadClientByClientId_badId() {
+        // null id
+
+/*
+        try {
+            service!!.loadClientByClientId(null)
+            Assert.fail("Null client id. Expected an IllegalArgumentException.")
+        } catch (e: IllegalArgumentException) {
+            Assert.assertThat<RuntimeException>(e, CoreMatchers.`is`(CoreMatchers.notNullValue()))
+        } catch (e: NullPointerException) {
+            Assert.assertThat<RuntimeException>(e, CoreMatchers.`is`(CoreMatchers.notNullValue()))
+        }
+*/
+
+        // empty id
+        try {
+            service.loadClientByClientId("")
+            Assert.fail("Empty client id. Expected an IllegalArgumentException.")
+        } catch (e: IllegalArgumentException) {
+            Assert.assertThat(e, CoreMatchers.`is`(CoreMatchers.notNullValue()))
+        }
+
+        // id not found
+        val clientId = "b00g3r"
+        whenever(clientRepository.getClientByClientId(clientId)) doReturn (null)
+        try {
+            service.loadClientByClientId(clientId)
+            Assert.fail("Client id not found. Expected an InvalidClientException.")
+        } catch (e: InvalidClientException) {
+            Assert.assertThat(e, CoreMatchers.`is`(CoreMatchers.notNullValue()))
+        }
+    }
 
-		Mockito.when(scopeService.toStrings(ArgumentMatchers.anySet())).thenAnswer(new Answer<Set<String>>() {
-			@Override
-			public Set<String> answer(InvocationOnMock invocation) throws Throwable {
-				Object[] args = invocation.getArguments();
-				Set<SystemScope> input = (Set<SystemScope>) args[0];
-				Set<String> output = new HashSet<>();
-				for (SystemScope scope : input) {
-					output.add(scope.getValue());
-				}
-				return output;
-			}
-		});
-
-		// we're not testing reserved scopes here, just pass through when it's called
-		Mockito.when(scopeService.removeReservedScopes(ArgumentMatchers.anySet())).then(AdditionalAnswers.returnsFirstArg());
-
-		Mockito.when(config.isHeartMode()).thenReturn(false);
-
-	}
-
-	/**
-	 * Failure case of existing client id.
-	 */
-	@Test(expected = IllegalArgumentException.class)
-	public void saveNewClient_badId() {
-
-		// Set up a mock client.
-		ClientDetailsEntity client = Mockito.mock(ClientDetailsEntity.class);
-		Mockito.when(client.getId()).thenReturn(12345L); // any non-null ID will work
-
-		service.saveNewClient(client);
-	}
-
-	/**
-	 * Failure case of blacklisted client uri.
-	 */
-	@Test(expected = IllegalArgumentException.class)
-	public void saveNewClient_blacklisted() {
+    @Test(expected = InvalidClientException::class)
+    fun deleteClient_badId() {
+        val id = 12345L
+        val client = Mockito.mock(ClientDetailsEntity::class.java)
+        whenever(client.id) doReturn (id)
+        whenever(clientRepository.getById(id.toJavaId())) doReturn (null)
 
-		ClientDetailsEntity client = Mockito.mock(ClientDetailsEntity.class);
-		Mockito.when(client.getId()).thenReturn(null);
+        service.deleteClient(client)
+    }
 
-		String badUri = "badplace.xxx";
+    @Test
+    fun deleteClient() {
+        val id = 12345L
+        val clientId = "b00g3r"
 
-		Mockito.when(blacklistedSiteService.isBlacklisted(badUri)).thenReturn(true);
-		Mockito.when(client.getRegisteredRedirectUri()).thenReturn(Sets.newHashSet(badUri));
+        val client = Mockito.mock(ClientDetailsEntity::class.java)
+        whenever(client.id) doReturn (id)
+        whenever(client.clientId) doReturn (clientId)
 
-		service.saveNewClient(client);
-	}
+        whenever(clientRepository.getById(id.toJavaId())) doReturn (client)
 
-	@Test
-	public void saveNewClient_idWasAssigned() {
+        val site = Mockito.mock(WhitelistedSite::class.java)
+        whenever(whitelistedSiteService.getByClientId(clientId)) doReturn (site)
 
-		// Set up a mock client.
-		ClientDetailsEntity client = Mockito.mock(ClientDetailsEntity.class);
-		Mockito.when(client.getId()).thenReturn(null);
+        whenever(resourceSetService.getAllForClient(client)) doReturn (HashSet())
 
-		service.saveNewClient(client);
+        service.deleteClient(client)
 
-		Mockito.verify(client).setClientId(ArgumentMatchers.anyString());
-	}
+        Mockito.verify(tokenRepository).clearTokensForClient(client)
+        Mockito.verify(approvedSiteService).clearApprovedSitesForClient(client)
+        Mockito.verify(whitelistedSiteService).remove(site)
+        Mockito.verify(clientRepository).deleteClient(client)
+    }
 
-	/**
-	 * Makes sure client has offline access granted scope if allowed refresh tokens.
-	 */
-	@Test
-	public void saveNewClient_yesOfflineAccess() {
+    @Test
+    fun updateClient_nullClients() {
+        val oldClient = Mockito.mock(ClientDetailsEntity::class.java)
+        val newClient = Mockito.mock(ClientDetailsEntity::class.java)
 
-		ClientDetailsEntity client = new ClientDetailsEntity();
+        assertThrows<IllegalArgumentException> {
+            service.updateClient(oldClient, null)
+        }
 
-		Set<String> grantTypes = new HashSet<>();
-		grantTypes.add("refresh_token");
-		client.setGrantTypes(grantTypes);
+        assertThrows<IllegalArgumentException> {
+            service.updateClient(null, newClient)
+        }
 
-		client = service.saveNewClient(client);
+        assertThrows<IllegalArgumentException> {
+            service.updateClient(null, null)
+        }
+    }
 
-		assertThat(client.getScope().contains(SystemScopeService.OFFLINE_ACCESS), is(equalTo(true)));
-	}
+    @Test(expected = IllegalArgumentException::class)
+    fun updateClient_blacklistedUri() {
+        val oldClient = Mockito.mock(ClientDetailsEntity::class.java)
+        val newClient = Mockito.mock(ClientDetailsEntity::class.java)
 
-	/**
-	 * Makes sure client does not have offline access if not allowed to have refresh tokens.
-	 */
-	@Test
-	public void saveNewClient_noOfflineAccess() {
+        val badSite = "badsite.xxx"
 
-		ClientDetailsEntity client = new ClientDetailsEntity();
+        whenever(newClient.registeredRedirectUri) doReturn (Sets.newHashSet(badSite))
+        whenever(blacklistedSiteService.isBlacklisted(badSite)) doReturn (true)
 
-		client = service.saveNewClient(client);
+        service.updateClient(oldClient, newClient)
+    }
 
-		Mockito.verify(scopeService, Mockito.atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet());
+    @Test
+    fun updateClient_yesOfflineAccess() {
+        val oldClient = ClientDetailsEntity()
+        oldClient.id = 1L // Needs a hard-coded id as there is no jpa
+        var client = ClientDetailsEntity()
 
-		assertThat(client.getScope().contains(SystemScopeService.OFFLINE_ACCESS), is(equalTo(false)));
-	}
+        val grantTypes: MutableSet<String> = HashSet()
+        grantTypes.add("refresh_token")
+        client.grantTypes = grantTypes
 
-	@Test
-	public void loadClientByClientId_badId() {
+        client = service.updateClient(oldClient, client)
 
-		// null id
-		try {
-			service.loadClientByClientId(null);
-			fail("Null client id. Expected an IllegalArgumentException.");
-		} catch (IllegalArgumentException|NullPointerException e) {
-			assertThat(e, is(notNullValue()));
-		}
+        verify(scopeService, atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
 
-		// empty id
-		try {
-			service.loadClientByClientId("");
-			fail("Empty client id. Expected an IllegalArgumentException.");
-		} catch (IllegalArgumentException e) {
-			assertThat(e, is(notNullValue()));
-		}
+        assertTrue(SystemScopeService.OFFLINE_ACCESS in client.scope)
+    }
 
-		// id not found
-		String clientId = "b00g3r";
-		Mockito.when(clientRepository.getClientByClientId(clientId)).thenReturn(null);
-		try {
-			service.loadClientByClientId(clientId);
-			fail("Client id not found. Expected an InvalidClientException.");
-		} catch (InvalidClientException e) {
-			assertThat(e, is(notNullValue()));
-		}
+    @Test
+    fun updateClient_noOfflineAccess() {
+        val oldClient = ClientDetailsEntity()
+        oldClient.id = 1L // Needs a hard-coded id as there is no jpa
 
-	}
+        oldClient.scope.add(SystemScopeService.OFFLINE_ACCESS)
 
-	@Test(expected = InvalidClientException.class)
-	public void deleteClient_badId() {
+        val client = service.updateClient(oldClient, ClientDetailsEntity())
 
-		Long id = 12345L;
-		ClientDetailsEntity client = Mockito.mock(ClientDetailsEntity.class);
-		Mockito.when(client.getId()).thenReturn(id);
-		Mockito.when(clientRepository.getById(id)).thenReturn(null);
+        Mockito.verify(scopeService, Mockito.atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
 
-		service.deleteClient(client);
-	}
+        assertFalse(SystemScopeService.OFFLINE_ACCESS in client.scope)
+    }
 
-	@Test
-	public void deleteClient() {
+    @Test(expected = IllegalArgumentException::class)
+    fun heartMode_authcode_invalidGrants() {
+        whenever(config.isHeartMode) doReturn true
 
-		Long id = 12345L;
-		String clientId = "b00g3r";
+        val client = ClientDetailsEntity()
 
-		ClientDetailsEntity client = Mockito.mock(ClientDetailsEntity.class);
-		Mockito.when(client.getId()).thenReturn(id);
-		Mockito.when(client.getClientId()).thenReturn(clientId);
+        client.grantTypes = hashSetOf(
+            "authorization_code",
+            "implicit",
+            "client_credentials",
+        )
 
-		Mockito.when(clientRepository.getById(id)).thenReturn(client);
+        client.tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
 
-		WhitelistedSite site = Mockito.mock(WhitelistedSite.class);
-		Mockito.when(whitelistedSiteService.getByClientId(clientId)).thenReturn(site);
+        client.redirectUris = Sets.newHashSet("https://foo.bar/")
 
-		Mockito.when(resourceSetService.getAllForClient(client)).thenReturn(new HashSet<ResourceSet>());
+        client.jwksUri = "https://foo.bar/jwks"
 
-		service.deleteClient(client);
+        service.saveNewClient(client)
+    }
 
-		Mockito.verify(tokenRepository).clearTokensForClient(client);
-		Mockito.verify(approvedSiteService).clearApprovedSitesForClient(client);
-		Mockito.verify(whitelistedSiteService).remove(site);
-		Mockito.verify(clientRepository).deleteClient(client);
-	}
+    @Test(expected = IllegalArgumentException::class)
+    fun heartMode_implicit_invalidGrants() {
+        whenever(config.isHeartMode) doReturn (true)
 
-	@Test
-	public void updateClient_nullClients() {
+        val client = ClientDetailsEntity().apply {
+            grantTypes = hashSetOf(
+                "implicit",
+                "authorization_code",
+                "client_credentials",
+            )
 
-		ClientDetailsEntity oldClient = Mockito.mock(ClientDetailsEntity.class);
-		ClientDetailsEntity newClient = Mockito.mock(ClientDetailsEntity.class);
+            tokenEndpointAuthMethod = AuthMethod.NONE
 
-		try {
-			service.updateClient(oldClient, null);
-			fail("New client is null. Expected an IllegalArgumentException.");
-		} catch (IllegalArgumentException e) {
-			assertThat(e, is(notNullValue()));
-		}
+            redirectUris = hashSetOf("https://foo.bar/")
 
-		try {
-			service.updateClient(null, newClient);
-			fail("Old client is null. Expected an IllegalArgumentException.");
-		} catch (IllegalArgumentException e) {
-			assertThat(e, is(notNullValue()));
-		}
+            jwksUri = "https://foo.bar/jwks"
+        }
 
-		try {
-			service.updateClient(null, null);
-			fail("Both clients are null. Expected an IllegalArgumentException.");
-		} catch (IllegalArgumentException e) {
-			assertThat(e, is(notNullValue()));
-		}
-	}
+        service.saveNewClient(client)
+    }
 
-	@Test(expected = IllegalArgumentException.class)
-	public void updateClient_blacklistedUri() {
+    @Test(expected = IllegalArgumentException::class)
+    fun heartMode_clientcreds_invalidGrants() {
+        whenever(config.isHeartMode) doReturn (true)
 
-		ClientDetailsEntity oldClient = Mockito.mock(ClientDetailsEntity.class);
-		ClientDetailsEntity newClient = Mockito.mock(ClientDetailsEntity.class);
+        val client = ClientDetailsEntity().apply {
+            grantTypes = hashSetOf(
+                "client_credentials",
+                "authorization_code",
+                "implicit",
+            )
 
-		String badSite = "badsite.xxx";
+            tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
 
-		Mockito.when(newClient.getRegisteredRedirectUri()).thenReturn(Sets.newHashSet(badSite));
-		Mockito.when(blacklistedSiteService.isBlacklisted(badSite)).thenReturn(true);
+            jwksUri = "https://foo.bar/jwks"
+        }
 
-		service.updateClient(oldClient, newClient);
-	}
+        service.saveNewClient(client)
+    }
 
-	@Test
-	public void updateClient_yesOfflineAccess() {
+    @Test(expected = IllegalArgumentException::class)
+    fun heartMode_authcode_authMethod() {
+        whenever(config.isHeartMode) doReturn (true)
 
-		ClientDetailsEntity oldClient = new ClientDetailsEntity();
-		oldClient.setId(1L); // Needs a hard-coded id as there is no jpa
-		ClientDetailsEntity client = new ClientDetailsEntity();
+        val client = ClientDetailsEntity().apply {
+            grantTypes = hashSetOf("authorization_code")
 
-		Set<String> grantTypes = new HashSet<>();
-		grantTypes.add("refresh_token");
-		client.setGrantTypes(grantTypes);
+            tokenEndpointAuthMethod = AuthMethod.SECRET_POST
 
-		client = service.updateClient(oldClient, client);
+            redirectUris = Sets.newHashSet("https://foo.bar/")
 
-		Mockito.verify(scopeService, Mockito.atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet());
+            jwksUri = "https://foo.bar/jwks"
+        }
 
-		assertThat(client.getScope().contains(SystemScopeService.OFFLINE_ACCESS), is(equalTo(true)));
-	}
+        service.saveNewClient(client)
+    }
 
-	@Test
-	public void updateClient_noOfflineAccess() {
+    @Test(expected = IllegalArgumentException::class)
+    fun heartMode_implicit_authMethod() {
+        whenever(config.isHeartMode) doReturn (true)
 
-		ClientDetailsEntity oldClient = new ClientDetailsEntity();
-		oldClient.setId(1L); // Needs a hard-coded id as there is no jpa
+        val client = ClientDetailsEntity().apply {
+            grantTypes = mutableSetOf("implicit")
 
-		oldClient.getScope().add(SystemScopeService.OFFLINE_ACCESS);
+            tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
 
-		ClientDetailsEntity client = new ClientDetailsEntity();
+            redirectUris = Sets.newHashSet("https://foo.bar/")
 
-		client = service.updateClient(oldClient, client);
+            jwksUri = "https://foo.bar/jwks"
+        }
 
-		Mockito.verify(scopeService, Mockito.atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet());
+        service.saveNewClient(client)
+    }
 
-		assertThat(client.getScope().contains(SystemScopeService.OFFLINE_ACCESS), is(equalTo(false)));
-	}
+    @Test(expected = IllegalArgumentException::class)
+    fun heartMode_clientcreds_authMethod() {
+        whenever(config.isHeartMode) doReturn (true)
 
-	@Test(expected = IllegalArgumentException.class)
-	public void heartMode_authcode_invalidGrants() {
-		Mockito.when(config.isHeartMode()).thenReturn(true);
+        val client = ClientDetailsEntity().apply {
+            grantTypes = hashSetOf("client_credentials")
 
-		ClientDetailsEntity client = new ClientDetailsEntity();
-		Set<String> grantTypes = new LinkedHashSet<>();
-		grantTypes.add("authorization_code");
-		grantTypes.add("implicit");
-		grantTypes.add("client_credentials");
-		client.setGrantTypes(grantTypes);
+            tokenEndpointAuthMethod = AuthMethod.SECRET_BASIC
 
-		client.setTokenEndpointAuthMethod(AuthMethod.PRIVATE_KEY);
+            redirectUris = Sets.newHashSet("https://foo.bar/")
 
-		client.setRedirectUris(Sets.newHashSet("https://foo.bar/"));
+            jwksUri = "https://foo.bar/jwks"
+        }
 
-		client.setJwksUri("https://foo.bar/jwks");
+        service.saveNewClient(client)
+    }
 
-		service.saveNewClient(client);
+    @Test(expected = IllegalArgumentException::class)
+    fun heartMode_authcode_redirectUris() {
+        whenever(config.isHeartMode) doReturn (true)
 
-	}
+        val client = ClientDetailsEntity().apply {
+            grantTypes = hashSetOf("authorization_code")
 
-	@Test(expected = IllegalArgumentException.class)
-	public void heartMode_implicit_invalidGrants() {
-		Mockito.when(config.isHeartMode()).thenReturn(true);
+            tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
+        }
 
-		ClientDetailsEntity client = new ClientDetailsEntity();
-		Set<String> grantTypes = new LinkedHashSet<>();
-		grantTypes.add("implicit");
-		grantTypes.add("authorization_code");
-		grantTypes.add("client_credentials");
-		client.setGrantTypes(grantTypes);
+        service.saveNewClient(client)
+    }
 
-		client.setTokenEndpointAuthMethod(AuthMethod.NONE);
+    @Test(expected = IllegalArgumentException::class)
+    fun heartMode_implicit_redirectUris() {
+        whenever(config.isHeartMode) doReturn (true)
 
-		client.setRedirectUris(Sets.newHashSet("https://foo.bar/"));
+        val client = ClientDetailsEntity().apply {
+            grantTypes = mutableSetOf("implicit")
 
-		client.setJwksUri("https://foo.bar/jwks");
+            tokenEndpointAuthMethod = AuthMethod.NONE
+        }
 
-		service.saveNewClient(client);
+        service.saveNewClient(client)
+    }
 
-	}
+    @Test(expected = IllegalArgumentException::class)
+    fun heartMode_clientcreds_redirectUris() {
+        whenever(config.isHeartMode) doReturn true
 
-	@Test(expected = IllegalArgumentException.class)
-	public void heartMode_clientcreds_invalidGrants() {
-		Mockito.when(config.isHeartMode()).thenReturn(true);
+        val client = ClientDetailsEntity().apply {  
+            grantTypes = hashSetOf("client_credentials")
+    
+            tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
+    
+            redirectUris = hashSetOf("http://foo.bar/")
+        }
 
-		ClientDetailsEntity client = new ClientDetailsEntity();
-		Set<String> grantTypes = new LinkedHashSet<>();
-		grantTypes.add("client_credentials");
-		grantTypes.add("authorization_code");
-		grantTypes.add("implicit");
-		client.setGrantTypes(grantTypes);
+        service.saveNewClient(client)
+    }
 
-		client.setTokenEndpointAuthMethod(AuthMethod.PRIVATE_KEY);
+    @Test(expected = IllegalArgumentException::class)
+    fun heartMode_clientSecret() {
+        whenever(config.isHeartMode) doReturn (true)
 
-		client.setJwksUri("https://foo.bar/jwks");
+        val client = ClientDetailsEntity()
+        val grantTypes: MutableSet<String> = LinkedHashSet()
+        grantTypes.add("authorization_code")
+        client.grantTypes = grantTypes
 
-		service.saveNewClient(client);
+        client.tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
 
-	}
+        client.redirectUris = Sets.newHashSet("http://foo.bar/")
 
-	@Test(expected = IllegalArgumentException.class)
-	public void heartMode_authcode_authMethod() {
-		Mockito.when(config.isHeartMode()).thenReturn(true);
+        client.clientSecret = "secret!"
 
-		ClientDetailsEntity client = new ClientDetailsEntity();
-		Set<String> grantTypes = new LinkedHashSet<>();
-		grantTypes.add("authorization_code");
-		client.setGrantTypes(grantTypes);
+        service.saveNewClient(client)
+    }
 
-		client.setTokenEndpointAuthMethod(AuthMethod.SECRET_POST);
+    @Test(expected = IllegalArgumentException::class)
+    fun heartMode_noJwks() {
+        whenever(config.isHeartMode) doReturn (true)
 
-		client.setRedirectUris(Sets.newHashSet("https://foo.bar/"));
+        val client = ClientDetailsEntity()
+        val grantTypes: MutableSet<String> = LinkedHashSet()
+        grantTypes.add("authorization_code")
+        client.grantTypes = grantTypes
 
-		client.setJwksUri("https://foo.bar/jwks");
+        client.tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
 
-		service.saveNewClient(client);
+        client.redirectUris = Sets.newHashSet("https://foo.bar/")
 
-	}
+        client.jwks = null
+        client.jwksUri = null
 
-	@Test(expected = IllegalArgumentException.class)
-	public void heartMode_implicit_authMethod() {
-		Mockito.when(config.isHeartMode()).thenReturn(true);
+        service.saveNewClient(client)
+    }
 
-		ClientDetailsEntity client = new ClientDetailsEntity();
-		Set<String> grantTypes = new LinkedHashSet<>();
-		grantTypes.add("implicit");
-		client.setGrantTypes(grantTypes);
+    @Test
+    fun heartMode_validAuthcodeClient() {
+        whenever(config.isHeartMode) doReturn (true)
 
-		client.setTokenEndpointAuthMethod(AuthMethod.PRIVATE_KEY);
+        val client = ClientDetailsEntity().apply {
+            grantTypes = hashSetOf(
+                "authorization_code",
+                "refresh_token",
+            )
 
-		client.setRedirectUris(Sets.newHashSet("https://foo.bar/"));
+            tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
 
-		client.setJwksUri("https://foo.bar/jwks");
+            redirectUris = Sets.newHashSet("https://foo.bar/")
 
-		service.saveNewClient(client);
+            jwksUri = "https://foo.bar/jwks"
+        }
 
-	}
+        service.saveNewClient(client)
 
-	@Test(expected = IllegalArgumentException.class)
-	public void heartMode_clientcreds_authMethod() {
-		Mockito.when(config.isHeartMode()).thenReturn(true);
+        assertNotNull(client.clientId)
+        assertNull(client.clientSecret)
+    }
 
-		ClientDetailsEntity client = new ClientDetailsEntity();
-		Set<String> grantTypes = new LinkedHashSet<>();
-		grantTypes.add("client_credentials");
-		client.setGrantTypes(grantTypes);
+    @Test(expected = IllegalArgumentException::class)
+    fun heartMode_nonLocalHttpRedirect() {
+        whenever(config.isHeartMode) doReturn (true)
 
-		client.setTokenEndpointAuthMethod(AuthMethod.SECRET_BASIC);
+        val client = ClientDetailsEntity()
+        val grantTypes: MutableSet<String> = LinkedHashSet()
+        grantTypes.add("authorization_code")
+        grantTypes.add("refresh_token")
+        client.grantTypes = grantTypes
 
-		client.setRedirectUris(Sets.newHashSet("https://foo.bar/"));
+        client.tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
 
-		client.setJwksUri("https://foo.bar/jwks");
+        client.redirectUris = Sets.newHashSet("http://foo.bar/")
 
-		service.saveNewClient(client);
+        client.jwksUri = "https://foo.bar/jwks"
 
-	}
+        service.saveNewClient(client)
+    }
 
-	@Test(expected = IllegalArgumentException.class)
-	public void heartMode_authcode_redirectUris() {
-		Mockito.when(config.isHeartMode()).thenReturn(true);
+    @Test(expected = IllegalArgumentException::class)
+    fun heartMode_multipleRedirectClass() {
+        whenever(config.isHeartMode) doReturn (true)
 
-		ClientDetailsEntity client = new ClientDetailsEntity();
-		Set<String> grantTypes = new LinkedHashSet<>();
-		grantTypes.add("authorization_code");
-		client.setGrantTypes(grantTypes);
+        val client = ClientDetailsEntity()
+        val grantTypes: MutableSet<String> = LinkedHashSet()
+        grantTypes.add("authorization_code")
+        grantTypes.add("refresh_token")
+        client.grantTypes = grantTypes
 
-		client.setTokenEndpointAuthMethod(AuthMethod.PRIVATE_KEY);
+        client.tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
 
-		service.saveNewClient(client);
+        client.redirectUris = Sets.newHashSet("http://localhost/", "https://foo.bar", "foo://bar")
 
-	}
+        client.jwksUri = "https://foo.bar/jwks"
 
-	@Test(expected = IllegalArgumentException.class)
-	public void heartMode_implicit_redirectUris() {
-		Mockito.when(config.isHeartMode()).thenReturn(true);
-
-		ClientDetailsEntity client = new ClientDetailsEntity();
-		Set<String> grantTypes = new LinkedHashSet<>();
-		grantTypes.add("implicit");
-		client.setGrantTypes(grantTypes);
-
-		client.setTokenEndpointAuthMethod(AuthMethod.NONE);
-
-		service.saveNewClient(client);
-
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void heartMode_clientcreds_redirectUris() {
-		Mockito.when(config.isHeartMode()).thenReturn(true);
-
-		ClientDetailsEntity client = new ClientDetailsEntity();
-		Set<String> grantTypes = new LinkedHashSet<>();
-		grantTypes.add("client_credentials");
-		client.setGrantTypes(grantTypes);
-
-		client.setTokenEndpointAuthMethod(AuthMethod.PRIVATE_KEY);
-
-		client.setRedirectUris(Sets.newHashSet("http://foo.bar/"));
-
-		service.saveNewClient(client);
-
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void heartMode_clientSecret() {
-		Mockito.when(config.isHeartMode()).thenReturn(true);
-
-		ClientDetailsEntity client = new ClientDetailsEntity();
-		Set<String> grantTypes = new LinkedHashSet<>();
-		grantTypes.add("authorization_code");
-		client.setGrantTypes(grantTypes);
-
-		client.setTokenEndpointAuthMethod(AuthMethod.PRIVATE_KEY);
-
-		client.setRedirectUris(Sets.newHashSet("http://foo.bar/"));
-
-		client.setClientSecret("secret!");
-
-		service.saveNewClient(client);
-
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void heartMode_noJwks() {
-		Mockito.when(config.isHeartMode()).thenReturn(true);
-
-		ClientDetailsEntity client = new ClientDetailsEntity();
-		Set<String> grantTypes = new LinkedHashSet<>();
-		grantTypes.add("authorization_code");
-		client.setGrantTypes(grantTypes);
-
-		client.setTokenEndpointAuthMethod(AuthMethod.PRIVATE_KEY);
-
-		client.setRedirectUris(Sets.newHashSet("https://foo.bar/"));
-
-		client.setJwks(null);
-		client.setJwksUri(null);
-
-		service.saveNewClient(client);
-
-	}
-
-	@Test
-	public void heartMode_validAuthcodeClient() {
-		Mockito.when(config.isHeartMode()).thenReturn(true);
-
-		ClientDetailsEntity client = new ClientDetailsEntity();
-		Set<String> grantTypes = new LinkedHashSet<>();
-		grantTypes.add("authorization_code");
-		grantTypes.add("refresh_token");
-		client.setGrantTypes(grantTypes);
-
-		client.setTokenEndpointAuthMethod(AuthMethod.PRIVATE_KEY);
-
-		client.setRedirectUris(Sets.newHashSet("https://foo.bar/"));
-
-		client.setJwksUri("https://foo.bar/jwks");
-
-		service.saveNewClient(client);
-
-		assertThat(client.getClientId(), is(notNullValue(String.class)));
-		assertThat(client.getClientSecret(), is(nullValue()));
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void heartMode_nonLocalHttpRedirect() {
-		Mockito.when(config.isHeartMode()).thenReturn(true);
-
-		ClientDetailsEntity client = new ClientDetailsEntity();
-		Set<String> grantTypes = new LinkedHashSet<>();
-		grantTypes.add("authorization_code");
-		grantTypes.add("refresh_token");
-		client.setGrantTypes(grantTypes);
-
-		client.setTokenEndpointAuthMethod(AuthMethod.PRIVATE_KEY);
-
-		client.setRedirectUris(Sets.newHashSet("http://foo.bar/"));
-
-		client.setJwksUri("https://foo.bar/jwks");
-
-		service.saveNewClient(client);
-
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void heartMode_multipleRedirectClass() {
-		Mockito.when(config.isHeartMode()).thenReturn(true);
-
-		ClientDetailsEntity client = new ClientDetailsEntity();
-		Set<String> grantTypes = new LinkedHashSet<>();
-		grantTypes.add("authorization_code");
-		grantTypes.add("refresh_token");
-		client.setGrantTypes(grantTypes);
-
-		client.setTokenEndpointAuthMethod(AuthMethod.PRIVATE_KEY);
-
-		client.setRedirectUris(Sets.newHashSet("http://localhost/", "https://foo.bar", "foo://bar"));
-
-		client.setJwksUri("https://foo.bar/jwks");
-
-		service.saveNewClient(client);
-
-	}
+        service.saveNewClient(client)
+    }
 }
