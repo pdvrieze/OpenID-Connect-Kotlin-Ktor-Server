@@ -7,254 +7,226 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.openid.connect.filter;
+ */
+package org.mitre.openid.connect.filter
 
-import com.google.common.base.Splitter;
-import com.google.common.base.Strings;
-import org.apache.http.client.utils.URIBuilder;
-import org.mitre.oauth2.model.ClientDetailsEntity;
-import org.mitre.oauth2.service.ClientDetailsEntityService;
-import org.mitre.openid.connect.service.LoginHintExtracter;
-import org.mitre.openid.connect.service.impl.RemoveLoginHintsWithHTTP;
-import org.mitre.openid.connect.web.AuthenticationTimeStamper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
-import org.springframework.security.oauth2.provider.AuthorizationRequest;
-import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
-import org.springframework.security.oauth2.provider.endpoint.RedirectResolver;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.RequestMatcher;
-import org.springframework.stereotype.Component;
-import org.springframework.web.filter.GenericFilterBean;
-
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.mitre.openid.connect.request.ConnectRequestParameters.ERROR;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.LOGIN_HINT;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.LOGIN_REQUIRED;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.MAX_AGE;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.PROMPT;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.PROMPT_LOGIN;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.PROMPT_NONE;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.PROMPT_SEPARATOR;
-import static org.mitre.openid.connect.request.ConnectRequestParameters.STATE;
+import com.google.common.base.Strings
+import org.apache.http.client.utils.URIBuilder
+import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.service.ClientDetailsEntityService
+import org.mitre.openid.connect.request.ConnectRequestParameters
+import org.mitre.openid.connect.service.LoginHintExtracter
+import org.mitre.openid.connect.service.impl.RemoveLoginHintsWithHTTP
+import org.mitre.openid.connect.web.AuthenticationTimeStamper
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.oauth2.common.exceptions.InvalidClientException
+import org.springframework.security.oauth2.provider.AuthorizationRequest
+import org.springframework.security.oauth2.provider.OAuth2RequestFactory
+import org.springframework.security.oauth2.provider.endpoint.RedirectResolver
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher
+import org.springframework.security.web.util.matcher.RequestMatcher
+import org.springframework.stereotype.Component
+import org.springframework.web.filter.GenericFilterBean
+import java.io.IOException
+import java.net.URISyntaxException
+import java.util.*
+import javax.servlet.FilterChain
+import javax.servlet.ServletException
+import javax.servlet.ServletRequest
+import javax.servlet.ServletResponse
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 /**
  * @author jricher
- *
  */
 @Component("authRequestFilter")
-public class AuthorizationRequestFilter extends GenericFilterBean {
+class AuthorizationRequestFilter : GenericFilterBean() {
+    @Autowired
+    private lateinit var authRequestFactory: OAuth2RequestFactory
 
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger logger = LoggerFactory.getLogger(AuthorizationRequestFilter.class);
+    @Autowired
+    private lateinit var clientService: ClientDetailsEntityService
 
-	public final static String PROMPTED = "PROMPT_FILTER_PROMPTED";
-	public final static String PROMPT_REQUESTED = "PROMPT_FILTER_REQUESTED";
+    @Autowired
+    private lateinit var redirectResolver: RedirectResolver
 
-	@Autowired
-	private OAuth2RequestFactory authRequestFactory;
+    @Autowired(required = false)
+    private val loginHintExtracter: LoginHintExtracter = RemoveLoginHintsWithHTTP()
 
-	@Autowired
-	private ClientDetailsEntityService clientService;
-
-	@Autowired
-	private RedirectResolver redirectResolver;
-
-	@Autowired(required = false)
-	private LoginHintExtracter loginHintExtracter = new RemoveLoginHintsWithHTTP();
-
-	private RequestMatcher requestMatcher = new AntPathRequestMatcher("/authorize");
+    var requestMatcher: RequestMatcher = AntPathRequestMatcher("/authorize")
 
 
-	@Override
-	public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
+    @Throws(IOException::class, ServletException::class)
+    override fun doFilter(req: ServletRequest, res: ServletResponse, chain: FilterChain) {
+        val request = req as HttpServletRequest
+        val response = res as HttpServletResponse
+        val session = request.session
 
-		HttpServletRequest request = (HttpServletRequest) req;
-		HttpServletResponse response = (HttpServletResponse) res;
-		HttpSession session = request.getSession();
+        // skip everything that's not an authorize URL
+        if (!requestMatcher.matches(request)) {
+            chain.doFilter(req, res)
+            return
+        }
 
-		// skip everything that's not an authorize URL
-		if (!requestMatcher.matches(request)) {
-			chain.doFilter(req, res);
-			return;
-		}
+        try {
+            // we have to create our own auth request in order to get at all the parmeters appropriately
+            val authRequest: AuthorizationRequest?
 
-		try {
-			// we have to create our own auth request in order to get at all the parmeters appropriately
-			AuthorizationRequest authRequest = null;
+            var client: ClientDetailsEntity? = null
 
-			ClientDetailsEntity client = null;
+            authRequest = authRequestFactory
+                .createAuthorizationRequest(createRequestMap(request.parameterMap as Map<String, Array<String>?>))
 
-			authRequest = authRequestFactory.createAuthorizationRequest(createRequestMap(request.getParameterMap()));
-			if (!Strings.isNullOrEmpty(authRequest.getClientId())) {
-				client = clientService.loadClientByClientId(authRequest.getClientId());
-			}
+            if (!Strings.isNullOrEmpty(authRequest.clientId)) {
+                client = clientService.loadClientByClientId(authRequest.clientId)
+            }
 
-			// save the login hint to the session
-			// but first check to see if the login hint makes any sense
-			String loginHint = loginHintExtracter.extractHint((String) authRequest.getExtensions().get(LOGIN_HINT));
-			if (!Strings.isNullOrEmpty(loginHint)) {
-				session.setAttribute(LOGIN_HINT, loginHint);
-			} else {
-				session.removeAttribute(LOGIN_HINT);
-			}
+            // save the login hint to the session
+            // but first check to see if the login hint makes any sense
+            val loginHint =
+                loginHintExtracter.extractHint(authRequest.extensions[ConnectRequestParameters.LOGIN_HINT] as String?)
+            if (!Strings.isNullOrEmpty(loginHint)) {
+                session.setAttribute(ConnectRequestParameters.LOGIN_HINT, loginHint)
+            } else {
+                session.removeAttribute(ConnectRequestParameters.LOGIN_HINT)
+            }
 
-			if (authRequest.getExtensions().get(PROMPT) != null) {
-				// we have a "prompt" parameter
-				String prompt = (String)authRequest.getExtensions().get(PROMPT);
-				List<String> prompts = Splitter.on(PROMPT_SEPARATOR).splitToList(Strings.nullToEmpty(prompt));
+            if (authRequest.extensions[ConnectRequestParameters.PROMPT] != null) {
+                // we have a "prompt" parameter
+                val prompt = authRequest.extensions[ConnectRequestParameters.PROMPT] as String? ?: ""
+                val prompts = prompt.split(ConnectRequestParameters.PROMPT_SEPARATOR)
 
-				if (prompts.contains(PROMPT_NONE)) {
-					// see if the user's logged in
-					Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                if (ConnectRequestParameters.PROMPT_NONE in prompts) {
+                    // see if the user's logged in
+                    val auth = SecurityContextHolder.getContext().authentication
 
-					if (auth != null) {
-						// user's been logged in already (by session management)
-						// we're OK, continue without prompting
-						chain.doFilter(req, res);
-					} else {
-						logger.info("Client requested no prompt");
-						// user hasn't been logged in, we need to "return an error"
-						if (client != null && authRequest.getRedirectUri() != null) {
+                    if (auth != null) {
+                        // user's been logged in already (by session management)
+                        // we're OK, continue without prompting
+                        chain.doFilter(req, res)
+                    } else {
+                        Companion.logger.info("Client requested no prompt")
+                        // user hasn't been logged in, we need to "return an error"
+                        if (client != null && authRequest.redirectUri != null) {
+                            // if we've got a redirect URI then we'll send it
 
-							// if we've got a redirect URI then we'll send it
+                            val url = redirectResolver.resolveRedirect(authRequest.redirectUri, client)
 
-							String url = redirectResolver.resolveRedirect(authRequest.getRedirectUri(), client);
+                            try {
+                                val uriBuilder = URIBuilder(url)
 
-							try {
-								URIBuilder uriBuilder = new URIBuilder(url);
+                                uriBuilder.addParameter(ConnectRequestParameters.ERROR, ConnectRequestParameters.LOGIN_REQUIRED)
+                                if (!Strings.isNullOrEmpty(authRequest.state)) {
+                                    uriBuilder.addParameter(ConnectRequestParameters.STATE, authRequest.state) // copy the state parameter if one was given
+                                }
 
-								uriBuilder.addParameter(ERROR, LOGIN_REQUIRED);
-								if (!Strings.isNullOrEmpty(authRequest.getState())) {
-									uriBuilder.addParameter(STATE, authRequest.getState()); // copy the state parameter if one was given
-								}
+                                response.sendRedirect(uriBuilder.toString())
+                                return
+                            } catch (e: URISyntaxException) {
+                                Companion.logger.error("Can't build redirect URI for prompt=none, sending error instead", e)
+                                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied")
+                                return
+                            }
+                        }
 
-								response.sendRedirect(uriBuilder.toString());
-								return;
+                        response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied")
+                        return
+                    }
+                } else if (prompts.contains(ConnectRequestParameters.PROMPT_LOGIN)) {
+                    // first see if the user's already been prompted in this session
 
-							} catch (URISyntaxException e) {
-								logger.error("Can't build redirect URI for prompt=none, sending error instead", e);
-								response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied");
-								return;
-							}
-						}
+                    if (session.getAttribute(PROMPTED) == null) {
+                        // user hasn't been PROMPTED yet, we need to check
 
-						response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied");
-						return;
-					}
-				} else if (prompts.contains(PROMPT_LOGIN)) {
+                        session.setAttribute(PROMPT_REQUESTED, true)
 
-					// first see if the user's already been prompted in this session
-					if (session.getAttribute(PROMPTED) == null) {
-						// user hasn't been PROMPTED yet, we need to check
+                        // see if the user's logged in
+                        val auth = SecurityContextHolder.getContext().authentication
+                        if (auth != null) {
+                            // user's been logged in already (by session management)
+                            // log them out and continue
+                            SecurityContextHolder.getContext().authentication = null
+                            chain.doFilter(req, res)
+                        } else {
+                            // user hasn't been logged in yet, we can keep going since we'll get there
+                            chain.doFilter(req, res)
+                        }
+                    } else {
+                        // user has been PROMPTED, we're fine
 
-						session.setAttribute(PROMPT_REQUESTED, Boolean.TRUE);
+                        // but first, undo the prompt tag
 
-						// see if the user's logged in
-						Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-						if (auth != null) {
-							// user's been logged in already (by session management)
-							// log them out and continue
-							SecurityContextHolder.getContext().setAuthentication(null);
-							chain.doFilter(req, res);
-						} else {
-							// user hasn't been logged in yet, we can keep going since we'll get there
-							chain.doFilter(req, res);
-						}
-					} else {
-						// user has been PROMPTED, we're fine
+                        session.removeAttribute(PROMPTED)
+                        chain.doFilter(req, res)
+                    }
+                } else {
+                    // prompt parameter is a value we don't care about, not our business
+                    chain.doFilter(req, res)
+                }
+            } else if (authRequest.extensions[ConnectRequestParameters.MAX_AGE] != null ||
+                (client?.defaultMaxAge != null)
+            ) {
+                // default to the client's stored value, check the string parameter
 
-						// but first, undo the prompt tag
-						session.removeAttribute(PROMPTED);
-						chain.doFilter(req, res);
-					}
-				} else {
-					// prompt parameter is a value we don't care about, not our business
-					chain.doFilter(req, res);
-				}
+                var max = (client?.defaultMaxAge)
+                val maxAge = authRequest.extensions[ConnectRequestParameters.MAX_AGE] as String?
+                if (maxAge != null) {
+                    max = maxAge.toInt()
+                }
 
-			} else if (authRequest.getExtensions().get(MAX_AGE) != null ||
-					(client != null && client.getDefaultMaxAge() != null)) {
+                if (max != null) {
+                    val authTime = session.getAttribute(AuthenticationTimeStamper.AUTH_TIMESTAMP) as Date?
 
-				// default to the client's stored value, check the string parameter
-				Integer max = (client != null ? client.getDefaultMaxAge() : null);
-				String maxAge = (String) authRequest.getExtensions().get(MAX_AGE);
-				if (maxAge != null) {
-					max = Integer.parseInt(maxAge);
-				}
-
-				if (max != null) {
-
-					Date authTime = (Date) session.getAttribute(AuthenticationTimeStamper.AUTH_TIMESTAMP);
-
-					Date now = new Date();
-					if (authTime != null) {
-						long seconds = (now.getTime() - authTime.getTime()) / 1000;
-						if (seconds > max) {
-							// session is too old, log the user out and continue
-							SecurityContextHolder.getContext().setAuthentication(null);
-						}
-					}
-				}
-				chain.doFilter(req, res);
-			} else {
-				// no prompt parameter, not our business
-				chain.doFilter(req, res);
-			}
-
-		} catch (InvalidClientException e) {
-			// we couldn't find the client, move on and let the rest of the system catch the error
-			chain.doFilter(req, res);
-		}
-	}
+                    val now = Date()
+                    if (authTime != null) {
+                        val seconds = (now.time - authTime.time) / 1000
+                        if (seconds > max) {
+                            // session is too old, log the user out and continue
+                            SecurityContextHolder.getContext().authentication = null
+                        }
+                    }
+                }
+                chain.doFilter(req, res)
+            } else {
+                // no prompt parameter, not our business
+                chain.doFilter(req, res)
+            }
+        } catch (e: InvalidClientException) {
+            // we couldn't find the client, move on and let the rest of the system catch the error
+            chain.doFilter(req, res)
+        }
+    }
 
 
-	private Map<String, String> createRequestMap(Map<String, String[]> parameterMap) {
-		Map<String, String> requestMap = new HashMap<>();
-		for (String key : parameterMap.keySet()) {
-			String[] val = parameterMap.get(key);
-			if (val != null && val.length > 0) {
-				requestMap.put(key, val[0]); // add the first value only (which is what Spring seems to do)
-			}
-		}
+    private fun createRequestMap(parameterMap: Map<String, Array<String>?>): Map<String, String> {
+        val requestMap: MutableMap<String, String> = HashMap()
+        for ((key, value) in parameterMap) {
+            if (!value.isNullOrEmpty()) {
+                requestMap[key] = value[0] // add the first value only (which is what Spring seems to do)
+            }
+        }
 
-		return requestMap;
-	}
+        return requestMap
+    }
 
-	public RequestMatcher getRequestMatcher() {
-		return requestMatcher;
-	}
+    companion object {
+        /**
+         * Logger for this class
+         */
+        private val logger: Logger = LoggerFactory.getLogger(AuthorizationRequestFilter::class.java)
 
-	public void setRequestMatcher(RequestMatcher requestMatcher) {
-		this.requestMatcher = requestMatcher;
-	}
-
+        const val PROMPTED: String = "PROMPT_FILTER_PROMPTED"
+        const val PROMPT_REQUESTED: String = "PROMPT_FILTER_REQUESTED"
+    }
 }
