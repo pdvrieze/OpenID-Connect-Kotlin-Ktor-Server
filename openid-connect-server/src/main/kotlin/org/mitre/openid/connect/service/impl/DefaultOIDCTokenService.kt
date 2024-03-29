@@ -84,7 +84,7 @@ open class DefaultOIDCTokenService : OIDCTokenService {
         request: OAuth2Request,
         issueTime: Date?,
         sub: String?,
-        accessToken: OAuth2AccessTokenEntity?
+        accessToken: OAuth2AccessTokenEntity
     ): JWT? {
         var signingAlg = jwtService.defaultSigningAlgorithm
 
@@ -134,7 +134,7 @@ open class DefaultOIDCTokenService : OIDCTokenService {
 
         if (responseTypes.contains("token")) {
             // calculate the token hash
-            val at_hash = IdTokenHashUtils.getAccessTokenHash(signingAlg, accessToken)
+            val at_hash = IdTokenHashUtils.getAccessTokenHash(signingAlg!!, accessToken)
             idClaims.claim("at_hash", at_hash)
         }
 
