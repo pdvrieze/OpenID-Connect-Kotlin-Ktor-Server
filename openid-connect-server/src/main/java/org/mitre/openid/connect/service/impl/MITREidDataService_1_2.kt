@@ -5,63 +5,55 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.openid.connect.service.impl;
+ */
+package org.mitre.openid.connect.service.impl
 
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonToken;
-import com.google.gson.stream.JsonWriter;
-import com.nimbusds.jose.EncryptionMethod;
-import com.nimbusds.jose.JWEAlgorithm;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jwt.JWTParser;
-import org.mitre.oauth2.model.AuthenticationHolderEntity;
-import org.mitre.oauth2.model.ClientDetailsEntity;
-import org.mitre.oauth2.model.ClientDetailsEntity.AppType;
-import org.mitre.oauth2.model.ClientDetailsEntity.AuthMethod;
-import org.mitre.oauth2.model.ClientDetailsEntity.SubjectType;
-import org.mitre.oauth2.model.OAuth2AccessTokenEntity;
-import org.mitre.oauth2.model.OAuth2RefreshTokenEntity;
-import org.mitre.oauth2.model.SavedUserAuthentication;
-import org.mitre.oauth2.model.SystemScope;
-import org.mitre.oauth2.repository.AuthenticationHolderRepository;
-import org.mitre.oauth2.repository.OAuth2ClientRepository;
-import org.mitre.oauth2.repository.OAuth2TokenRepository;
-import org.mitre.oauth2.repository.SystemScopeRepository;
-import org.mitre.openid.connect.model.ApprovedSite;
-import org.mitre.openid.connect.model.BlacklistedSite;
-import org.mitre.openid.connect.model.WhitelistedSite;
-import org.mitre.openid.connect.repository.ApprovedSiteRepository;
-import org.mitre.openid.connect.repository.BlacklistedSiteRepository;
-import org.mitre.openid.connect.repository.WhitelistedSiteRepository;
-import org.mitre.openid.connect.service.MITREidDataService;
-import org.mitre.openid.connect.service.MITREidDataServiceExtension;
-import org.mitre.openid.connect.service.MITREidDataServiceMaps;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.text.ParseException;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.mitre.util.JsonUtils.readMap;
-import static org.mitre.util.JsonUtils.readSet;
+import com.google.gson.stream.JsonReader
+import com.google.gson.stream.JsonToken
+import com.google.gson.stream.JsonWriter
+import com.nimbusds.jose.EncryptionMethod
+import com.nimbusds.jose.JWEAlgorithm
+import com.nimbusds.jose.JWSAlgorithm
+import com.nimbusds.jose.jwk.JWKSet
+import com.nimbusds.jwt.JWTParser
+import org.mitre.oauth2.model.AuthenticationHolderEntity
+import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.ClientDetailsEntity.*
+import org.mitre.oauth2.model.OAuth2AccessTokenEntity
+import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
+import org.mitre.oauth2.model.SavedUserAuthentication
+import org.mitre.oauth2.model.SystemScope
+import org.mitre.oauth2.repository.AuthenticationHolderRepository
+import org.mitre.oauth2.repository.OAuth2ClientRepository
+import org.mitre.oauth2.repository.OAuth2TokenRepository
+import org.mitre.oauth2.repository.SystemScopeRepository
+import org.mitre.oauth2.util.toJavaId
+import org.mitre.openid.connect.model.ApprovedSite
+import org.mitre.openid.connect.model.BlacklistedSite
+import org.mitre.openid.connect.model.WhitelistedSite
+import org.mitre.openid.connect.repository.ApprovedSiteRepository
+import org.mitre.openid.connect.repository.BlacklistedSiteRepository
+import org.mitre.openid.connect.repository.WhitelistedSiteRepository
+import org.mitre.openid.connect.service.MITREidDataService
+import org.mitre.openid.connect.service.MITREidDataServiceExtension
+import org.mitre.openid.connect.service.MITREidDataServiceMaps
+import org.mitre.util.JsonUtils.readMap
+import org.mitre.util.JsonUtils.readSet
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.stereotype.Service
+import java.io.IOException
+import java.text.ParseException
 
 /**
  *
@@ -71,818 +63,821 @@ import static org.mitre.util.JsonUtils.readSet;
  * @author arielak
  */
 @Service
-@SuppressWarnings(value = {"unchecked"})
-public class MITREidDataService_1_2 extends MITREidDataServiceSupport implements MITREidDataService {
+class MITREidDataService_1_2 : MITREidDataServiceSupport(), MITREidDataService {
+    @Autowired
+    private lateinit var clientRepository: OAuth2ClientRepository
 
-	private static final String DEFAULT_SCOPE = "defaultScope";
-	private static final String STRUCTURED_PARAMETER = "structuredParameter";
-	private static final String STRUCTURED = "structured";
-	private static final String RESTRICTED = "restricted";
-	private static final String ICON = "icon";
-	private static final String DYNAMICALLY_REGISTERED = "dynamicallyRegistered";
-	private static final String CLEAR_ACCESS_TOKENS_ON_REFRESH = "clearAccessTokensOnRefresh";
-	private static final String REUSE_REFRESH_TOKEN = "reuseRefreshToken";
-	private static final String ALLOW_INTROSPECTION = "allowIntrospection";
-	private static final String DESCRIPTION = "description";
-	private static final String REQUEST_URIS = "requestUris";
-	private static final String POST_LOGOUT_REDIRECT_URI = "postLogoutRedirectUri";
-	private static final String INTITATE_LOGIN_URI = "intitateLoginUri";
-	private static final String DEFAULT_ACR_VALUES = "defaultACRValues";
-	private static final String REQUIRE_AUTH_TIME = "requireAuthTime";
-	private static final String DEFAULT_MAX_AGE = "defaultMaxAge";
-	private static final String TOKEN_ENDPOINT_AUTH_SIGNING_ALG = "tokenEndpointAuthSigningAlg";
-	private static final String USER_INFO_ENCRYPTED_RESPONSE_ENC = "userInfoEncryptedResponseEnc";
-	private static final String USER_INFO_ENCRYPTED_RESPONSE_ALG = "userInfoEncryptedResponseAlg";
-	private static final String USER_INFO_SIGNED_RESPONSE_ALG = "userInfoSignedResponseAlg";
-	private static final String ID_TOKEN_ENCRYPTED_RESPONSE_ENC = "idTokenEncryptedResponseEnc";
-	private static final String ID_TOKEN_ENCRYPTED_RESPONSE_ALG = "idTokenEncryptedResponseAlg";
-	private static final String ID_TOKEN_SIGNED_RESPONSE_ALG = "idTokenSignedResponseAlg";
-	private static final String REQUEST_OBJECT_SIGNING_ALG = "requestObjectSigningAlg";
-	private static final String SUBJECT_TYPE = "subjectType";
-	private static final String SECTOR_IDENTIFIER_URI = "sectorIdentifierUri";
-	private static final String APPLICATION_TYPE = "applicationType";
-	private static final String JWKS = "jwks";
-	private static final String JWKS_URI = "jwksUri";
-	private static final String POLICY_URI = "policyUri";
-	private static final String GRANT_TYPES = "grantTypes";
-	private static final String TOKEN_ENDPOINT_AUTH_METHOD = "tokenEndpointAuthMethod";
-	private static final String TOS_URI = "tosUri";
-	private static final String CONTACTS = "contacts";
-	private static final String LOGO_URI = "logoUri";
-	private static final String REDIRECT_URIS = "redirectUris";
-	private static final String REFRESH_TOKEN_VALIDITY_SECONDS = "refreshTokenValiditySeconds";
-	private static final String ACCESS_TOKEN_VALIDITY_SECONDS = "accessTokenValiditySeconds";
-	private static final String SECRET = "secret";
-	private static final String URI = "uri";
-	private static final String CREATOR_USER_ID = "creatorUserId";
-	private static final String APPROVED_ACCESS_TOKENS = "approvedAccessTokens";
-	private static final String ALLOWED_SCOPES = "allowedScopes";
-	private static final String USER_ID = "userId";
-	private static final String TIMEOUT_DATE = "timeoutDate";
-	private static final String CREATION_DATE = "creationDate";
-	private static final String ACCESS_DATE = "accessDate";
-	private static final String AUTHENTICATED = "authenticated";
-	private static final String SOURCE_CLASS = "sourceClass";
-	private static final String NAME = "name";
-	private static final String SAVED_USER_AUTHENTICATION = "savedUserAuthentication";
-	private static final String EXTENSIONS = "extensions";
-	private static final String RESPONSE_TYPES = "responseTypes";
-	private static final String REDIRECT_URI = "redirectUri";
-	private static final String APPROVED = "approved";
-	private static final String AUTHORITIES = "authorities";
-	private static final String RESOURCE_IDS = "resourceIds";
-	private static final String REQUEST_PARAMETERS = "requestParameters";
-	private static final String TYPE = "type";
-	private static final String SCOPE = "scope";
-	private static final String REFRESH_TOKEN_ID = "refreshTokenId";
-	private static final String VALUE = "value";
-	private static final String AUTHENTICATION_HOLDER_ID = "authenticationHolderId";
-	private static final String CLIENT_ID = "clientId";
-	private static final String EXPIRATION = "expiration";
-	private static final String CLAIMS_REDIRECT_URIS = "claimsRedirectUris";
-	private static final String ID = "id";
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger logger = LoggerFactory.getLogger(MITREidDataService_1_2.class);
-	@Autowired
-	private OAuth2ClientRepository clientRepository;
-	@Autowired
-	private ApprovedSiteRepository approvedSiteRepository;
-	@Autowired
-	private WhitelistedSiteRepository wlSiteRepository;
-	@Autowired
-	private BlacklistedSiteRepository blSiteRepository;
-	@Autowired
-	private AuthenticationHolderRepository authHolderRepository;
-	@Autowired
-	private OAuth2TokenRepository tokenRepository;
-	@Autowired
-	private SystemScopeRepository sysScopeRepository;
-	@Autowired(required = false)
-	private List<MITREidDataServiceExtension> extensions = Collections.emptyList();
+    @Autowired
+    private lateinit var approvedSiteRepository: ApprovedSiteRepository
 
-	private MITREidDataServiceMaps maps = new MITREidDataServiceMaps();
+    @Autowired
+    private lateinit var wlSiteRepository: WhitelistedSiteRepository
 
-	private static final String THIS_VERSION = MITREID_CONNECT_1_2;
+    @Autowired
+    private lateinit var blSiteRepository: BlacklistedSiteRepository
 
-	@Override
-	public boolean supportsVersion(String version) {
-		return THIS_VERSION.equals(version);
-	}
+    @Autowired
+    private lateinit var authHolderRepository: AuthenticationHolderRepository
 
-	/* (non-Javadoc)
+    @Autowired
+    private lateinit var tokenRepository: OAuth2TokenRepository
+
+    @Autowired
+    private lateinit var sysScopeRepository: SystemScopeRepository
+
+    @Autowired(required = false)
+    private val extensions = emptyList<MITREidDataServiceExtension>()
+
+    private val maps = MITREidDataServiceMaps()
+
+    override fun supportsVersion(version: String?): Boolean {
+        return THIS_VERSION == version
+    }
+
+    /* (non-Javadoc)
 	 * @see org.mitre.openid.connect.service.MITREidDataService#export(com.google.gson.stream.JsonWriter)
 	 */
-	@Override
-	public void exportData(JsonWriter writer) throws IOException {
+    @Throws(IOException::class)
+    override fun exportData(writer: JsonWriter) {
+        throw UnsupportedOperationException("Can not export 1.2 format from this version.")
+    }
 
-		throw new UnsupportedOperationException("Can not export 1.2 format from this version.");
-	}
-
-	/* (non-Javadoc)
+    /* (non-Javadoc)
 	 * @see org.mitre.openid.connect.service.MITREidDataService#importData(com.google.gson.stream.JsonReader)
 	 */
-	@Override
-	public void importData(JsonReader reader) throws IOException {
+    @Throws(IOException::class)
+    override fun importData(reader: JsonReader) {
+        logger.info("Reading configuration for 1.2")
 
-		logger.info("Reading configuration for 1.2");
+        // this *HAS* to start as an object
+        reader.beginObject()
 
-		// this *HAS* to start as an object
-		reader.beginObject();
+        while (reader.hasNext()) {
+            val tok = reader.peek()
+            when (tok) {
+                JsonToken.NAME -> {
+                    val name = reader.nextName()
+                    // find out which member it is
+                    when (name) {
+                        MITREidDataService.CLIENTS -> readClients(reader)
+                        MITREidDataService.GRANTS -> readGrants(reader)
+                        MITREidDataService.WHITELISTEDSITES -> readWhitelistedSites(reader)
+                        MITREidDataService.BLACKLISTEDSITES -> readBlacklistedSites(reader)
+                        MITREidDataService.AUTHENTICATIONHOLDERS -> readAuthenticationHolders(reader)
+                        MITREidDataService.ACCESSTOKENS -> readAccessTokens(reader)
+                        MITREidDataService.REFRESHTOKENS -> readRefreshTokens(reader)
+                        MITREidDataService.SYSTEMSCOPES -> readSystemScopes(reader)
+                        else -> {
+                            for (extension in extensions) {
+                                if (extension.supportsVersion(THIS_VERSION)) {
+                                    extension.importExtensionData(name, reader)
+                                    break
+                                }
+                            }
+                            // unknown token, skip it
+                            reader.skipValue()
+                        }
+                    }
+                }
 
-		while (reader.hasNext()) {
-			JsonToken tok = reader.peek();
-			switch (tok) {
-				case NAME:
-					String name = reader.nextName();
-					// find out which member it is
-					if (name.equals(CLIENTS)) {
-						readClients(reader);
-					} else if (name.equals(GRANTS)) {
-						readGrants(reader);
-					} else if (name.equals(WHITELISTEDSITES)) {
-						readWhitelistedSites(reader);
-					} else if (name.equals(BLACKLISTEDSITES)) {
-						readBlacklistedSites(reader);
-					} else if (name.equals(AUTHENTICATIONHOLDERS)) {
-						readAuthenticationHolders(reader);
-					} else if (name.equals(ACCESSTOKENS)) {
-						readAccessTokens(reader);
-					} else if (name.equals(REFRESHTOKENS)) {
-						readRefreshTokens(reader);
-					} else if (name.equals(SYSTEMSCOPES)) {
-						readSystemScopes(reader);
-					} else {
-						for (MITREidDataServiceExtension extension : extensions) {
-							if (extension.supportsVersion(THIS_VERSION)) {
-								extension.importExtensionData(name, reader);
-								break;
-							}
-						}
-						// unknown token, skip it
-						reader.skipValue();
-					}
-					break;
-				case END_OBJECT:
-					// the object ended, we're done here
-					reader.endObject();
-					continue;
-				default:
-					logger.debug("Found unexpected entry");
-					reader.skipValue();
-					continue;
-			}
-		}
-		fixObjectReferences();
-		for (MITREidDataServiceExtension extension : extensions) {
-			if (extension.supportsVersion(THIS_VERSION)) {
-				extension.fixExtensionObjectReferences(maps);
-				break;
-			}
-		}
-		maps.clearAll();
-	}
-	/**
-	 * @throws IOException
-	 */
-	/**
-	 * @throws IOException
-	 */
-	private void readRefreshTokens(JsonReader reader) throws IOException {
-		reader.beginArray();
-		while (reader.hasNext()) {
-			OAuth2RefreshTokenEntity token = new OAuth2RefreshTokenEntity();
-			reader.beginObject();
-			Long currentId = null;
-			String clientId = null;
-			Long authHolderId = null;
-			while (reader.hasNext()) {
-				switch (reader.peek()) {
-					case END_OBJECT:
-						continue;
-					case NAME:
-						String name = reader.nextName();
-						if (reader.peek() == JsonToken.NULL) {
-							reader.skipValue();
-						} else if (name.equals(ID)) {
-							currentId = reader.nextLong();
-						} else if (name.equals(EXPIRATION)) {
-							Date date = utcToDate(reader.nextString());
-							token.setExpiration(date);
-						} else if (name.equals(VALUE)) {
-							String value = reader.nextString();
-							try {
-								token.setJwt(JWTParser.parse(value));
-							} catch (ParseException ex) {
-								logger.error("Unable to set refresh token value to {}", value, ex);
-							}
-						} else if (name.equals(CLIENT_ID)) {
-							clientId = reader.nextString();
-						} else if (name.equals(AUTHENTICATION_HOLDER_ID)) {
-							authHolderId = reader.nextLong();
-						} else {
-							logger.debug("Found unexpected entry");
-							reader.skipValue();
-						}
-						break;
-					default:
-						logger.debug("Found unexpected entry");
-						reader.skipValue();
-						continue;
-				}
-			}
-			reader.endObject();
-			Long newId = tokenRepository.saveRefreshToken(token).getId();
-			maps.getRefreshTokenToClientRefs().put(currentId, clientId);
-			maps.getRefreshTokenToAuthHolderRefs().put(currentId, authHolderId);
-			maps.getRefreshTokenOldToNewIdMap().put(currentId, newId);
-			logger.debug("Read refresh token {}", currentId);
-		}
-		reader.endArray();
-		logger.info("Done reading refresh tokens");
-	}
-	/**
-	 * @throws IOException
-	 */
-	/**
-	 * @throws IOException
-	 */
-	private void readAccessTokens(JsonReader reader) throws IOException {
-		reader.beginArray();
-		while (reader.hasNext()) {
-			OAuth2AccessTokenEntity token = new OAuth2AccessTokenEntity();
-			reader.beginObject();
-			Long currentId = null;
-			String clientId = null;
-			Long authHolderId = null;
-			Long refreshTokenId = null;
-			while (reader.hasNext()) {
-				switch (reader.peek()) {
-					case END_OBJECT:
-						continue;
-					case NAME:
-						String name = reader.nextName();
-						if (reader.peek() == JsonToken.NULL) {
-							reader.skipValue();
-						} else if (name.equals(ID)) {
-							currentId = reader.nextLong();
-						} else if (name.equals(EXPIRATION)) {
-							Date date = utcToDate(reader.nextString());
-							token.setExpiration(date);
-						} else if (name.equals(VALUE)) {
-							String value = reader.nextString();
-							try {
-								// all tokens are JWTs
-								token.setJwt(JWTParser.parse(value));
-							} catch (ParseException ex) {
-								logger.error("Unable to set refresh token value to {}", value, ex);
-							}
-						} else if (name.equals(CLIENT_ID)) {
-							clientId = reader.nextString();
-						} else if (name.equals(AUTHENTICATION_HOLDER_ID)) {
-							authHolderId = reader.nextLong();
-						} else if (name.equals(REFRESH_TOKEN_ID)) {
-							refreshTokenId = reader.nextLong();
-						} else if (name.equals(SCOPE)) {
-							Set<String> scope = readSet(reader);
-							token.setScope(scope);
-						} else if (name.equals(TYPE)) {
-							token.setTokenType(reader.nextString());
-						} else {
-							logger.debug("Found unexpected entry");
-							reader.skipValue();
-						}
-						break;
-					default:
-						logger.debug("Found unexpected entry");
-						reader.skipValue();
-						continue;
-				}
-			}
-			reader.endObject();
-			Long newId = tokenRepository.saveAccessToken(token).getId();
-			maps.getAccessTokenToClientRefs().put(currentId, clientId);
-			maps.getAccessTokenToAuthHolderRefs().put(currentId, authHolderId);
-			if (refreshTokenId != null) {
-				maps.getAccessTokenToRefreshTokenRefs().put(currentId, refreshTokenId);
-			}
-			maps.getAccessTokenOldToNewIdMap().put(currentId, newId);
-			logger.debug("Read access token {}", currentId);
-		}
-		reader.endArray();
-		logger.info("Done reading access tokens");
-	}
-	/**
-	 * @throws IOException
-	 */
-	private void readAuthenticationHolders(JsonReader reader) throws IOException {
-		reader.beginArray();
-		while (reader.hasNext()) {
-			AuthenticationHolderEntity ahe = new AuthenticationHolderEntity();
-			reader.beginObject();
-			Long currentId = null;
-			while (reader.hasNext()) {
-				switch (reader.peek()) {
-					case END_OBJECT:
-						continue;
-					case NAME:
-						String name = reader.nextName();
-						if (reader.peek() == JsonToken.NULL) {
-							reader.skipValue();
-						} else if (name.equals(ID)) {
-							currentId = reader.nextLong();
-						} else if (name.equals(REQUEST_PARAMETERS)) {
-							ahe.setRequestParameters(readMap(reader));
-						} else if (name.equals(CLIENT_ID)) {
-							ahe.setClientId(reader.nextString());
-						} else if (name.equals(SCOPE)) {
-							ahe.setScope(readSet(reader));
-						} else if (name.equals(RESOURCE_IDS)) {
-							ahe.setResourceIds(readSet(reader));
-						} else if (name.equals(AUTHORITIES)) {
-							Set<String> authorityStrs = readSet(reader);
-							Set<GrantedAuthority> authorities = new HashSet<GrantedAuthority>();
-							for (String s : authorityStrs) {
-								GrantedAuthority ga = new SimpleGrantedAuthority(s);
-								authorities.add(ga);
-							}
-							ahe.setAuthorities(authorities);
-						} else if (name.equals(APPROVED)) {
-							ahe.setApproved(reader.nextBoolean());
-						} else if (name.equals(REDIRECT_URI)) {
-							ahe.setRedirectUri(reader.nextString());
-						} else if (name.equals(RESPONSE_TYPES)) {
-							ahe.setResponseTypes(readSet(reader));
-						} else if (name.equals(EXTENSIONS)) {
-							ahe.setExtensions(readMap(reader));
-						} else if (name.equals(SAVED_USER_AUTHENTICATION)) {
-							ahe.setUserAuth(readSavedUserAuthentication(reader));
-						} else {
-							logger.debug("Found unexpected entry");
-							reader.skipValue();
-						}
-						break;
-					default:
-						logger.debug("Found unexpected entry");
-						reader.skipValue();
-						continue;
-				}
-			}
-			reader.endObject();
-			Long newId = authHolderRepository.save(ahe).getId();
-			maps.getAuthHolderOldToNewIdMap().put(currentId, newId);
-			logger.debug("Read authentication holder {}", currentId);
-		}
-		reader.endArray();
-		logger.info("Done reading authentication holders");
-	}
+                JsonToken.END_OBJECT -> {
+                    // the object ended, we're done here
+                    reader.endObject()
+                    continue
+                }
 
-	/**
-	 * @throws IOException
-	 */
-	private SavedUserAuthentication readSavedUserAuthentication(JsonReader reader) throws IOException {
-		SavedUserAuthentication savedUserAuth = new SavedUserAuthentication();
-		reader.beginObject();
+                else -> {
+                    logger.debug("Found unexpected entry")
+                    reader.skipValue()
+                    continue
+                }
+            }
+        }
+        fixObjectReferences()
+        for (extension in extensions) {
+            if (extension.supportsVersion(THIS_VERSION)) {
+                extension.fixExtensionObjectReferences(maps)
+                break
+            }
+        }
+        maps.clearAll()
+    }
+    /**
+     * @throws IOException
+     */
+    /**
+     * @throws IOException
+     */
+    @Throws(IOException::class)
+    private fun readRefreshTokens(reader: JsonReader) {
+        reader.beginArray()
+        while (reader.hasNext()) {
+            val token = OAuth2RefreshTokenEntity()
+            reader.beginObject()
+            var currentId: Long? = null
+            var clientId: String? = null
+            var authHolderId: Long? = null
+            while (reader.hasNext()) {
+                when (reader.peek()) {
+                    JsonToken.END_OBJECT -> continue
+                    JsonToken.NAME -> {
+                        val name = reader.nextName()
+                        if (reader.peek() == JsonToken.NULL) {
+                            reader.skipValue()
+                        } else if (name == ID) {
+                            currentId = reader.nextLong()
+                        } else if (name == EXPIRATION) {
+                            val date = utcToDate(reader.nextString())
+                            token.expiration = date
+                        } else if (name == VALUE) {
+                            val value = reader.nextString()
+                            try {
+                                token.jwt = JWTParser.parse(value)
+                            } catch (ex: ParseException) {
+                                logger.error("Unable to set refresh token value to {}", value, ex)
+                            }
+                        } else if (name == CLIENT_ID) {
+                            clientId = reader.nextString()
+                        } else if (name == AUTHENTICATION_HOLDER_ID) {
+                            authHolderId = reader.nextLong()
+                        } else {
+                            logger.debug("Found unexpected entry")
+                            reader.skipValue()
+                        }
+                    }
 
-		while (reader.hasNext()) {
-			switch(reader.peek()) {
-				case END_OBJECT:
-					continue;
-				case NAME:
-					String name = reader.nextName();
-					if (reader.peek() == JsonToken.NULL) {
-						reader.skipValue();
-					} else if (name.equals(NAME)) {
-						savedUserAuth.setName(reader.nextString());
-					} else if (name.equals(SOURCE_CLASS)) {
-						savedUserAuth.setSourceClass(reader.nextString());
-					} else if (name.equals(AUTHENTICATED)) {
-						savedUserAuth.setAuthenticated(reader.nextBoolean());
-					} else if (name.equals(AUTHORITIES)) {
-						Set<String> authorityStrs = readSet(reader);
-						Set<GrantedAuthority> authorities = new HashSet<GrantedAuthority>();
-						for (String s : authorityStrs) {
-							GrantedAuthority ga = new SimpleGrantedAuthority(s);
-							authorities.add(ga);
-						}
-						savedUserAuth.setAuthorities(authorities);
-					} else {
-						logger.debug("Found unexpected entry");
-						reader.skipValue();
-					}
-					break;
-				default:
-					logger.debug("Found unexpected entry");
-					reader.skipValue();
-					continue;
-			}
-		}
+                    else -> {
+                        logger.debug("Found unexpected entry")
+                        reader.skipValue()
+                        continue
+                    }
+                }
+            }
+            reader.endObject()
+            requireNotNull(currentId)
+            requireNotNull(clientId)
+            requireNotNull(authHolderId)
+            val newId = tokenRepository.saveRefreshToken(token).id!!
+            maps.refreshTokenToClientRefs[currentId] = clientId
+            maps.refreshTokenToAuthHolderRefs[currentId] = authHolderId
+            maps.refreshTokenOldToNewIdMap[currentId] = newId
+            logger.debug("Read refresh token {}", currentId)
+        }
+        reader.endArray()
+        logger.info("Done reading refresh tokens")
+    }
+    /**
+     * @throws IOException
+     */
+    /**
+     * @throws IOException
+     */
+    @Throws(IOException::class)
+    private fun readAccessTokens(reader: JsonReader) {
+        reader.beginArray()
+        while (reader.hasNext()) {
+            val token = OAuth2AccessTokenEntity()
+            reader.beginObject()
+            var currentId: Long? = null
+            var clientId: String? = null
+            var authHolderId: Long? = null
+            var refreshTokenId: Long? = null
+            while (reader.hasNext()) {
+                when (reader.peek()) {
+                    JsonToken.END_OBJECT -> continue
+                    JsonToken.NAME -> {
+                        val name = reader.nextName()
+                        if (reader.peek() == JsonToken.NULL) {
+                            reader.skipValue()
+                        } else if (name == ID) {
+                            currentId = reader.nextLong()
+                        } else if (name == EXPIRATION) {
+                            val date = utcToDate(reader.nextString())
+                            token.expiration = date
+                        } else if (name == VALUE) {
+                            val value = reader.nextString()
+                            try {
+                                // all tokens are JWTs
+                                token.jwt = JWTParser.parse(value)
+                            } catch (ex: ParseException) {
+                                logger.error("Unable to set refresh token value to {}", value, ex)
+                            }
+                        } else if (name == CLIENT_ID) {
+                            clientId = reader.nextString()
+                        } else if (name == AUTHENTICATION_HOLDER_ID) {
+                            authHolderId = reader.nextLong()
+                        } else if (name == REFRESH_TOKEN_ID) {
+                            refreshTokenId = reader.nextLong()
+                        } else if (name == SCOPE) {
+                            val scope = readSet<String>(reader)
+                            token.scope = scope
+                        } else if (name == TYPE) {
+                            token.tokenType = reader.nextString()
+                        } else {
+                            logger.debug("Found unexpected entry")
+                            reader.skipValue()
+                        }
+                    }
 
-		reader.endObject();
-		return savedUserAuth;
-	}
+                    else -> {
+                        logger.debug("Found unexpected entry")
+                        reader.skipValue()
+                        continue
+                    }
+                }
+            }
+            requireNotNull(currentId)
+            requireNotNull(clientId)
+            requireNotNull(authHolderId)
+            reader.endObject()
+            val newId = tokenRepository.saveAccessToken(token).id !!
+            maps.accessTokenToClientRefs[currentId] = clientId
+            maps.accessTokenToAuthHolderRefs[currentId] = authHolderId
+            if (refreshTokenId != null) {
+                maps.accessTokenToRefreshTokenRefs[currentId] = refreshTokenId
+            }
+            maps.accessTokenOldToNewIdMap[currentId] = newId
+            logger.debug("Read access token {}", currentId)
+        }
+        reader.endArray()
+        logger.info("Done reading access tokens")
+    }
 
-	/**
-	 * @throws IOException
-	 */
-	private void readGrants(JsonReader reader) throws IOException {
-		reader.beginArray();
-		while (reader.hasNext()) {
-			ApprovedSite site = new ApprovedSite();
-			Long currentId = null;
-			Set<Long> tokenIds = null;
-			reader.beginObject();
-			while (reader.hasNext()) {
-				switch (reader.peek()) {
-					case END_OBJECT:
-						continue;
-					case NAME:
-						String name = reader.nextName();
-						if (reader.peek() == JsonToken.NULL) {
-							reader.skipValue();
-						} else if (name.equals(ID)) {
-							currentId = reader.nextLong();
-						} else if (name.equals(ACCESS_DATE)) {
-							Date date = utcToDate(reader.nextString());
-							site.setAccessDate(date);
-						} else if (name.equals(CLIENT_ID)) {
-							site.setClientId(reader.nextString());
-						} else if (name.equals(CREATION_DATE)) {
-							Date date = utcToDate(reader.nextString());
-							site.setCreationDate(date);
-						} else if (name.equals(TIMEOUT_DATE)) {
-							Date date = utcToDate(reader.nextString());
-							site.setTimeoutDate(date);
-						} else if (name.equals(USER_ID)) {
-							site.setUserId(reader.nextString());
-						} else if (name.equals(ALLOWED_SCOPES)) {
-							Set<String> allowedScopes = readSet(reader);
-							site.setAllowedScopes(allowedScopes);
-						} else if (name.equals(APPROVED_ACCESS_TOKENS)) {
-							tokenIds = readSet(reader);
-						} else {
-							logger.debug("Found unexpected entry");
-							reader.skipValue();
-						}
-						break;
-					default:
-						logger.debug("Found unexpected entry");
-						reader.skipValue();
-						continue;
-				}
-			}
-			reader.endObject();
-			Long newId = approvedSiteRepository.save(site).getId();
-			maps.getGrantOldToNewIdMap().put(currentId, newId);
-			if (tokenIds != null) {
-				maps.getGrantToAccessTokensRefs().put(currentId, tokenIds);
-			}
-			logger.debug("Read grant {}", currentId);
-		}
-		reader.endArray();
-		logger.info("Done reading grants");
-	}
-	/**
-	 * @throws IOException
-	 */
-	private void readWhitelistedSites(JsonReader reader) throws IOException {
-		reader.beginArray();
-		while (reader.hasNext()) {
-			WhitelistedSite wlSite = new WhitelistedSite();
-			Long currentId = null;
-			reader.beginObject();
-			while (reader.hasNext()) {
-				switch (reader.peek()) {
-					case END_OBJECT:
-						continue;
-					case NAME:
-						String name = reader.nextName();
-						if (name.equals(ID)) {
-							currentId = reader.nextLong();
-						} else if (name.equals(CLIENT_ID)) {
-							wlSite.setClientId(reader.nextString());
-						} else if (name.equals(CREATOR_USER_ID)) {
-							wlSite.setCreatorUserId(reader.nextString());
-						} else if (name.equals(ALLOWED_SCOPES)) {
-							Set<String> allowedScopes = readSet(reader);
-							wlSite.setAllowedScopes(allowedScopes);
-						} else {
-							logger.debug("Found unexpected entry");
-							reader.skipValue();
-						}
-						break;
-					default:
-						logger.debug("Found unexpected entry");
-						reader.skipValue();
-						continue;
-				}
-			}
-			reader.endObject();
-			Long newId = wlSiteRepository.save(wlSite).getId();
-			maps.getWhitelistedSiteOldToNewIdMap().put(currentId, newId);
-		}
-		reader.endArray();
-		logger.info("Done reading whitelisted sites");
-	}
+    /**
+     * @throws IOException
+     */
+    @Throws(IOException::class)
+    private fun readAuthenticationHolders(reader: JsonReader) {
+        reader.beginArray()
+        while (reader.hasNext()) {
+            val ahe = AuthenticationHolderEntity()
+            reader.beginObject()
+            var currentId: Long? = null
+            while (reader.hasNext()) {
+                when (reader.peek()) {
+                    JsonToken.END_OBJECT -> continue
+                    JsonToken.NAME -> {
+                        val name = reader.nextName()
+                        if (reader.peek() == JsonToken.NULL) {
+                            reader.skipValue()
+                        } else if (name == ID) {
+                            currentId = reader.nextLong()
+                        } else if (name == REQUEST_PARAMETERS) {
+                            ahe.requestParameters = readMap(reader)
+                        } else if (name == CLIENT_ID) {
+                            ahe.clientId = reader.nextString()
+                        } else if (name == SCOPE) {
+                            ahe.scope = readSet(reader)
+                        } else if (name == RESOURCE_IDS) {
+                            ahe.resourceIds = readSet(reader)
+                        } else if (name == AUTHORITIES) {
+                            val authorityStrs = readSet<String>(reader)
+                            val authorities: MutableSet<GrantedAuthority> = HashSet()
+                            for (s in authorityStrs) {
+                                val ga: GrantedAuthority = SimpleGrantedAuthority(s)
+                                authorities.add(ga)
+                            }
+                            ahe.authorities = authorities
+                        } else if (name == APPROVED) {
+                            ahe.isApproved = reader.nextBoolean()
+                        } else if (name == REDIRECT_URI) {
+                            ahe.redirectUri = reader.nextString()
+                        } else if (name == RESPONSE_TYPES) {
+                            ahe.responseTypes = readSet(reader)
+                        } else if (name == EXTENSIONS) {
+                            ahe.extensions = readMap(reader)
+                        } else if (name == SAVED_USER_AUTHENTICATION) {
+                            ahe.userAuth = readSavedUserAuthentication(reader)
+                        } else {
+                            logger.debug("Found unexpected entry")
+                            reader.skipValue()
+                        }
+                    }
 
-	/**
-	 * @throws IOException
-	 */
-	private void readBlacklistedSites(JsonReader reader) throws IOException {
-		reader.beginArray();
-		while (reader.hasNext()) {
-			BlacklistedSite blSite = new BlacklistedSite();
-			reader.beginObject();
-			while (reader.hasNext()) {
-				switch (reader.peek()) {
-					case END_OBJECT:
-						continue;
-					case NAME:
-						String name = reader.nextName();
-						if (name.equals(ID)) {
-							reader.skipValue();
-						} else if (name.equals(URI)) {
-							blSite.setUri(reader.nextString());
-						} else {
-							logger.debug("Found unexpected entry");
-							reader.skipValue();
-						}
-						break;
-					default:
-						logger.debug("Found unexpected entry");
-						reader.skipValue();
-						continue;
-				}
-			}
-			reader.endObject();
-			blSiteRepository.save(blSite);
-		}
-		reader.endArray();
-		logger.info("Done reading blacklisted sites");
-	}
+                    else -> {
+                        logger.debug("Found unexpected entry")
+                        reader.skipValue()
+                        continue
+                    }
+                }
+            }
+            reader.endObject()
+            val newId = authHolderRepository.save(ahe).id
+            maps.authHolderOldToNewIdMap[currentId!!] = newId!!
+            logger.debug("Read authentication holder {}", currentId)
+        }
+        reader.endArray()
+        logger.info("Done reading authentication holders")
+    }
 
-	/**
-	 * @throws IOException
-	 */
-	private void readClients(JsonReader reader) throws IOException {
-		reader.beginArray();
-		while (reader.hasNext()) {
-			ClientDetailsEntity client = new ClientDetailsEntity();
-			reader.beginObject();
-			while (reader.hasNext()) {
-				switch (reader.peek()) {
-					case END_OBJECT:
-						continue;
-					case NAME:
-						String name = reader.nextName();
-						if (reader.peek() == JsonToken.NULL) {
-							reader.skipValue();
-						} else if (name.equals(CLIENT_ID)) {
-							client.setClientId(reader.nextString());
-						} else if (name.equals(RESOURCE_IDS)) {
-							Set<String> resourceIds = readSet(reader);
-							client.setResourceIds(resourceIds);
-						} else if (name.equals(SECRET)) {
-							client.setClientSecret(reader.nextString());
-						} else if (name.equals(SCOPE)) {
-							Set<String> scope = readSet(reader);
-							client.setScope(scope);
-						} else if (name.equals(AUTHORITIES)) {
-							Set<String> authorityStrs = readSet(reader);
-							Set<GrantedAuthority> authorities = new HashSet<GrantedAuthority>();
-							for (String s : authorityStrs) {
-								GrantedAuthority ga = new SimpleGrantedAuthority(s);
-								authorities.add(ga);
-							}
-							client.setAuthorities(authorities);
-						} else if (name.equals(ACCESS_TOKEN_VALIDITY_SECONDS)) {
-							client.setAccessTokenValiditySeconds(reader.nextInt());
-						} else if (name.equals(REFRESH_TOKEN_VALIDITY_SECONDS)) {
-							client.setRefreshTokenValiditySeconds(reader.nextInt());
-						} else if (name.equals(REDIRECT_URIS)) {
-							Set<String> redirectUris = readSet(reader);
-							client.setRedirectUris(redirectUris);
-						} else if (name.equals(CLAIMS_REDIRECT_URIS)) {
-							Set<String> claimsRedirectUris = readSet(reader);
-							client.setClaimsRedirectUris(claimsRedirectUris);
-						} else if (name.equals(NAME)) {
-							client.setClientName(reader.nextString());
-						} else if (name.equals(URI)) {
-							client.setClientUri(reader.nextString());
-						} else if (name.equals(LOGO_URI)) {
-							client.setLogoUri(reader.nextString());
-						} else if (name.equals(CONTACTS)) {
-							Set<String> contacts = readSet(reader);
-							client.setContacts(contacts);
-						} else if (name.equals(TOS_URI)) {
-							client.setTosUri(reader.nextString());
-						} else if (name.equals(TOKEN_ENDPOINT_AUTH_METHOD)) {
-							AuthMethod am = AuthMethod.getByValue(reader.nextString());
-							client.setTokenEndpointAuthMethod(am);
-						} else if (name.equals(GRANT_TYPES)) {
-							Set<String> grantTypes = readSet(reader);
-							client.setGrantTypes(grantTypes);
-						} else if (name.equals(RESPONSE_TYPES)) {
-							Set<String> responseTypes = readSet(reader);
-							client.setResponseTypes(responseTypes);
-						} else if (name.equals(POLICY_URI)) {
-							client.setPolicyUri(reader.nextString());
-						} else if (name.equals(APPLICATION_TYPE)) {
-							AppType appType = AppType.getByValue(reader.nextString());
-							client.setApplicationType(appType);
-						} else if (name.equals(SECTOR_IDENTIFIER_URI)) {
-							client.setSectorIdentifierUri(reader.nextString());
-						} else if (name.equals(SUBJECT_TYPE)) {
-							SubjectType st = SubjectType.getByValue(reader.nextString());
-							client.setSubjectType(st);
-						} else if (name.equals(JWKS_URI)) {
-							client.setJwksUri(reader.nextString());
-						} else if (name.equals(JWKS)) {
-							try {
-								client.setJwks(JWKSet.parse(reader.nextString()));
-							} catch (ParseException e) {
-								logger.error("Couldn't parse JWK Set", e);
-							}
-						} else if (name.equals(REQUEST_OBJECT_SIGNING_ALG)) {
-							JWSAlgorithm alg = JWSAlgorithm.parse(reader.nextString());
-							client.setRequestObjectSigningAlg(alg);
-						} else if (name.equals(USER_INFO_ENCRYPTED_RESPONSE_ALG)) {
-							JWEAlgorithm alg = JWEAlgorithm.parse(reader.nextString());
-							client.setUserInfoEncryptedResponseAlg(alg);
-						} else if (name.equals(USER_INFO_ENCRYPTED_RESPONSE_ENC)) {
-							EncryptionMethod alg = EncryptionMethod.parse(reader.nextString());
-							client.setUserInfoEncryptedResponseEnc(alg);
-						} else if (name.equals(USER_INFO_SIGNED_RESPONSE_ALG)) {
-							JWSAlgorithm alg = JWSAlgorithm.parse(reader.nextString());
-							client.setUserInfoSignedResponseAlg(alg);
-						} else if (name.equals(ID_TOKEN_SIGNED_RESPONSE_ALG)) {
-							JWSAlgorithm alg = JWSAlgorithm.parse(reader.nextString());
-							client.setIdTokenSignedResponseAlg(alg);
-						} else if (name.equals(ID_TOKEN_ENCRYPTED_RESPONSE_ALG)) {
-							JWEAlgorithm alg = JWEAlgorithm.parse(reader.nextString());
-							client.setIdTokenEncryptedResponseAlg(alg);
-						} else if (name.equals(ID_TOKEN_ENCRYPTED_RESPONSE_ENC)) {
-							EncryptionMethod alg = EncryptionMethod.parse(reader.nextString());
-							client.setIdTokenEncryptedResponseEnc(alg);
-						} else if (name.equals(TOKEN_ENDPOINT_AUTH_SIGNING_ALG)) {
-							JWSAlgorithm alg = JWSAlgorithm.parse(reader.nextString());
-							client.setTokenEndpointAuthSigningAlg(alg);
-						} else if (name.equals(DEFAULT_MAX_AGE)) {
-							client.setDefaultMaxAge(reader.nextInt());
-						} else if (name.equals(REQUIRE_AUTH_TIME)) {
-							client.setRequireAuthTime(reader.nextBoolean());
-						} else if (name.equals(DEFAULT_ACR_VALUES)) {
-							Set<String> defaultACRvalues = readSet(reader);
-							client.setDefaultACRvalues(defaultACRvalues);
-						} else if (name.equals("initiateLoginUri")) {
-							client.setInitiateLoginUri(reader.nextString());
-						} else if (name.equals(POST_LOGOUT_REDIRECT_URI)) {
-							Set<String> postLogoutUris = readSet(reader);
-							client.setPostLogoutRedirectUris(postLogoutUris);
-						} else if (name.equals(REQUEST_URIS)) {
-							Set<String> requestUris = readSet(reader);
-							client.setRequestUris(requestUris);
-						} else if (name.equals(DESCRIPTION)) {
-							client.setClientDescription(reader.nextString());
-						} else if (name.equals(ALLOW_INTROSPECTION)) {
-							client.setAllowIntrospection(reader.nextBoolean());
-						} else if (name.equals(REUSE_REFRESH_TOKEN)) {
-							client.setReuseRefreshToken(reader.nextBoolean());
-						} else if (name.equals(CLEAR_ACCESS_TOKENS_ON_REFRESH)) {
-							client.setClearAccessTokensOnRefresh(reader.nextBoolean());
-						} else if (name.equals(DYNAMICALLY_REGISTERED)) {
-							client.setDynamicallyRegistered(reader.nextBoolean());
-						} else {
-							logger.debug("Found unexpected entry");
-							reader.skipValue();
-						}
-						break;
-					default:
-						logger.debug("Found unexpected entry");
-						reader.skipValue();
-						continue;
-				}
-			}
-			reader.endObject();
-			clientRepository.saveClient(client);
-		}
-		reader.endArray();
-		logger.info("Done reading clients");
-	}
+    /**
+     * @throws IOException
+     */
+    @Throws(IOException::class)
+    private fun readSavedUserAuthentication(reader: JsonReader): SavedUserAuthentication {
+        val savedUserAuth = SavedUserAuthentication()
+        reader.beginObject()
 
-	/**
-	 * Read the list of system scopes from the reader and insert them into the
-	 * scope repository.
-	 *
-	 * @throws IOException
-	 */
-	private void readSystemScopes(JsonReader reader) throws IOException {
-		reader.beginArray();
-		while (reader.hasNext()) {
-			SystemScope scope = new SystemScope();
-			reader.beginObject();
-			while (reader.hasNext()) {
-				switch (reader.peek()) {
-					case END_OBJECT:
-						continue;
-					case NAME:
-						String name = reader.nextName();
-						if (reader.peek() == JsonToken.NULL) {
-							reader.skipValue();
-						} else if (name.equals(VALUE)) {
-							scope.setValue(reader.nextString());
-						} else if (name.equals(DESCRIPTION)) {
-							scope.setDescription(reader.nextString());
-						} else if (name.equals(RESTRICTED)) {
-							scope.setRestricted(reader.nextBoolean());
-						} else if (name.equals(DEFAULT_SCOPE)) {
-							scope.setDefaultScope(reader.nextBoolean());
-						} else if (name.equals(ICON)) {
-							scope.setIcon(reader.nextString());
-						} else if (name.equals(STRUCTURED)) {
-							logger.warn("Found a structured scope, ignoring structure");
-						} else if (name.equals(STRUCTURED_PARAMETER)) {
-							logger.warn("Found a structured scope, ignoring structure");
-						} else {
-							logger.debug("found unexpected entry");
-							reader.skipValue();
-						}
-						break;
-					default:
-						logger.debug("Found unexpected entry");
-						reader.skipValue();
-						continue;
-				}
-			}
-			reader.endObject();
-			sysScopeRepository.save(scope);
-		}
-		reader.endArray();
-		logger.info("Done reading system scopes");
-	}
+        while (reader.hasNext()) {
+            when (reader.peek()) {
+                JsonToken.END_OBJECT -> continue
+                JsonToken.NAME -> {
+                    val name = reader.nextName()
+                    if (reader.peek() == JsonToken.NULL) {
+                        reader.skipValue()
+                    } else if (name == NAME) {
+                        savedUserAuth.setName(reader.nextString())
+                    } else if (name == SOURCE_CLASS) {
+                        savedUserAuth.sourceClass = reader.nextString()
+                    } else if (name == AUTHENTICATED) {
+                        savedUserAuth.isAuthenticated = reader.nextBoolean()
+                    } else if (name == AUTHORITIES) {
+                        val authorityStrs = readSet<String>(reader)
+                        val authorities: MutableSet<GrantedAuthority> = HashSet()
+                        for (s in authorityStrs) {
+                            val ga: GrantedAuthority = SimpleGrantedAuthority(s)
+                            authorities.add(ga)
+                        }
+                        savedUserAuth.authorities = authorities
+                    } else {
+                        logger.debug("Found unexpected entry")
+                        reader.skipValue()
+                    }
+                }
 
-	private void fixObjectReferences() {
-		logger.info("Fixing object references...");
-		for (Long oldRefreshTokenId : maps.getRefreshTokenToClientRefs().keySet()) {
-			String clientRef = maps.getRefreshTokenToClientRefs().get(oldRefreshTokenId);
-			ClientDetailsEntity client = clientRepository.getClientByClientId(clientRef);
-			Long newRefreshTokenId = maps.getRefreshTokenOldToNewIdMap().get(oldRefreshTokenId);
-			OAuth2RefreshTokenEntity refreshToken = tokenRepository.getRefreshTokenById(newRefreshTokenId);
-			refreshToken.setClient(client);
-			tokenRepository.saveRefreshToken(refreshToken);
-		}
-		for (Long oldRefreshTokenId : maps.getRefreshTokenToAuthHolderRefs().keySet()) {
-			Long oldAuthHolderId = maps.getRefreshTokenToAuthHolderRefs().get(oldRefreshTokenId);
-			Long newAuthHolderId = maps.getAuthHolderOldToNewIdMap().get(oldAuthHolderId);
-			AuthenticationHolderEntity authHolder = authHolderRepository.getById(newAuthHolderId);
-			Long newRefreshTokenId = maps.getRefreshTokenOldToNewIdMap().get(oldRefreshTokenId);
-			OAuth2RefreshTokenEntity refreshToken = tokenRepository.getRefreshTokenById(newRefreshTokenId);
-			refreshToken.setAuthenticationHolder(authHolder);
-			tokenRepository.saveRefreshToken(refreshToken);
-		}
-		for (Long oldAccessTokenId : maps.getAccessTokenToClientRefs().keySet()) {
-			String clientRef = maps.getAccessTokenToClientRefs().get(oldAccessTokenId);
-			ClientDetailsEntity client = clientRepository.getClientByClientId(clientRef);
-			Long newAccessTokenId = maps.getAccessTokenOldToNewIdMap().get(oldAccessTokenId);
-			OAuth2AccessTokenEntity accessToken = tokenRepository.getAccessTokenById(newAccessTokenId);
-			accessToken.setClient(client);
-			tokenRepository.saveAccessToken(accessToken);
-		}
-		for (Long oldAccessTokenId : maps.getAccessTokenToAuthHolderRefs().keySet()) {
-			Long oldAuthHolderId = maps.getAccessTokenToAuthHolderRefs().get(oldAccessTokenId);
-			Long newAuthHolderId = maps.getAuthHolderOldToNewIdMap().get(oldAuthHolderId);
-			AuthenticationHolderEntity authHolder = authHolderRepository.getById(newAuthHolderId);
-			Long newAccessTokenId = maps.getAccessTokenOldToNewIdMap().get(oldAccessTokenId);
-			OAuth2AccessTokenEntity accessToken = tokenRepository.getAccessTokenById(newAccessTokenId);
-			accessToken.setAuthenticationHolder(authHolder);
-			tokenRepository.saveAccessToken(accessToken);
-		}
-		for (Long oldAccessTokenId : maps.getAccessTokenToRefreshTokenRefs().keySet()) {
-			Long oldRefreshTokenId = maps.getAccessTokenToRefreshTokenRefs().get(oldAccessTokenId);
-			Long newRefreshTokenId = maps.getRefreshTokenOldToNewIdMap().get(oldRefreshTokenId);
-			OAuth2RefreshTokenEntity refreshToken = tokenRepository.getRefreshTokenById(newRefreshTokenId);
-			Long newAccessTokenId = maps.getAccessTokenOldToNewIdMap().get(oldAccessTokenId);
-			OAuth2AccessTokenEntity accessToken = tokenRepository.getAccessTokenById(newAccessTokenId);
-			accessToken.setRefreshToken(refreshToken);
-			tokenRepository.saveAccessToken(accessToken);
-		}
-		for (Long oldGrantId : maps.getGrantToAccessTokensRefs().keySet()) {
-			Set<Long> oldAccessTokenIds = maps.getGrantToAccessTokensRefs().get(oldGrantId);
+                else -> {
+                    logger.debug("Found unexpected entry")
+                    reader.skipValue()
+                    continue
+                }
+            }
+        }
 
-			Long newGrantId = maps.getGrantOldToNewIdMap().get(oldGrantId);
-			ApprovedSite site = approvedSiteRepository.getById(newGrantId);
+        reader.endObject()
+        return savedUserAuth
+    }
 
-			for(Long oldTokenId : oldAccessTokenIds) {
-				Long newTokenId = maps.getAccessTokenOldToNewIdMap().get(oldTokenId);
-				OAuth2AccessTokenEntity token = tokenRepository.getAccessTokenById(newTokenId);
-				token.setApprovedSite(site);
-				tokenRepository.saveAccessToken(token);
-			}
+    /**
+     * @throws IOException
+     */
+    @Throws(IOException::class)
+    private fun readGrants(reader: JsonReader) {
+        reader.beginArray()
+        while (reader.hasNext()) {
+            val site = ApprovedSite()
+            var currentId: Long? = null
+            var tokenIds: Set<Long>? = null
+            reader.beginObject()
+            while (reader.hasNext()) {
+                when (reader.peek()) {
+                    JsonToken.END_OBJECT -> continue
+                    JsonToken.NAME -> {
+                        val name = reader.nextName()
+                        if (reader.peek() == JsonToken.NULL) {
+                            reader.skipValue()
+                        } else if (name == ID) {
+                            currentId = reader.nextLong()
+                        } else if (name == ACCESS_DATE) {
+                            val date = utcToDate(reader.nextString())
+                            site.accessDate = date
+                        } else if (name == CLIENT_ID) {
+                            site.clientId = reader.nextString()
+                        } else if (name == CREATION_DATE) {
+                            val date = utcToDate(reader.nextString())
+                            site.creationDate = date
+                        } else if (name == TIMEOUT_DATE) {
+                            val date = utcToDate(reader.nextString())
+                            site.timeoutDate = date
+                        } else if (name == USER_ID) {
+                            site.userId = reader.nextString()
+                        } else if (name == ALLOWED_SCOPES) {
+                            val allowedScopes = readSet<String>(reader)
+                            site.allowedScopes = allowedScopes
+                        } else if (name == APPROVED_ACCESS_TOKENS) {
+                            tokenIds = readSet<Long>(reader)
+                        } else {
+                            logger.debug("Found unexpected entry")
+                            reader.skipValue()
+                        }
+                    }
 
-			approvedSiteRepository.save(site);
-		}
-		logger.info("Done fixing object references.");
-	}
+                    else -> {
+                        logger.debug("Found unexpected entry")
+                        reader.skipValue()
+                        continue
+                    }
+                }
+            }
+            reader.endObject()
+            requireNotNull(currentId)
+            val newId = approvedSiteRepository.save(site).id
+            maps.grantOldToNewIdMap[currentId] = newId!!
+            if (tokenIds != null) {
+                maps.grantToAccessTokensRefs[currentId] = tokenIds
+            }
+            logger.debug("Read grant {}", currentId)
+        }
+        reader.endArray()
+        logger.info("Done reading grants")
+    }
 
+    /**
+     * @throws IOException
+     */
+    @Throws(IOException::class)
+    private fun readWhitelistedSites(reader: JsonReader) {
+        reader.beginArray()
+        while (reader.hasNext()) {
+            val wlSite = WhitelistedSite()
+            var currentId: Long? = null
+            reader.beginObject()
+            while (reader.hasNext()) {
+                when (reader.peek()) {
+                    JsonToken.END_OBJECT -> continue
+                    JsonToken.NAME -> {
+                        val name = reader.nextName()
+                        if (name == ID) {
+                            currentId = reader.nextLong()
+                        } else if (name == CLIENT_ID) {
+                            wlSite.clientId = reader.nextString()
+                        } else if (name == CREATOR_USER_ID) {
+                            wlSite.creatorUserId = reader.nextString()
+                        } else if (name == ALLOWED_SCOPES) {
+                            val allowedScopes = readSet<String>(reader)
+                            wlSite.allowedScopes = allowedScopes
+                        } else {
+                            logger.debug("Found unexpected entry")
+                            reader.skipValue()
+                        }
+                    }
+
+                    else -> {
+                        logger.debug("Found unexpected entry")
+                        reader.skipValue()
+                        continue
+                    }
+                }
+            }
+            reader.endObject()
+            val newId = wlSiteRepository.save(wlSite).id
+            maps.whitelistedSiteOldToNewIdMap[currentId!!] = newId!!
+        }
+        reader.endArray()
+        logger.info("Done reading whitelisted sites")
+    }
+
+    /**
+     * @throws IOException
+     */
+    @Throws(IOException::class)
+    private fun readBlacklistedSites(reader: JsonReader) {
+        reader.beginArray()
+        while (reader.hasNext()) {
+            val blSite = BlacklistedSite()
+            reader.beginObject()
+            while (reader.hasNext()) {
+                when (reader.peek()) {
+                    JsonToken.END_OBJECT -> continue
+                    JsonToken.NAME -> {
+                        val name = reader.nextName()
+                        if (name == ID) {
+                            reader.skipValue()
+                        } else if (name == URI) {
+                            blSite.uri = reader.nextString()
+                        } else {
+                            logger.debug("Found unexpected entry")
+                            reader.skipValue()
+                        }
+                    }
+
+                    else -> {
+                        logger.debug("Found unexpected entry")
+                        reader.skipValue()
+                        continue
+                    }
+                }
+            }
+            reader.endObject()
+            blSiteRepository.save(blSite)
+        }
+        reader.endArray()
+        logger.info("Done reading blacklisted sites")
+    }
+
+    /**
+     * @throws IOException
+     */
+    @Throws(IOException::class)
+    private fun readClients(reader: JsonReader) {
+        reader.beginArray()
+        while (reader.hasNext()) {
+            val client = ClientDetailsEntity()
+            reader.beginObject()
+            while (reader.hasNext()) {
+                when (reader.peek()) {
+                    JsonToken.END_OBJECT -> continue
+                    JsonToken.NAME -> {
+                        val name = reader.nextName()
+                        when {
+                            reader.peek() == JsonToken.NULL -> reader.skipValue()
+                            name == CLIENT_ID -> client.clientId = reader.nextString()
+                            name == RESOURCE_IDS -> client.resourceIds = readSet<String>(reader).toHashSet()
+                            name == SECRET -> client.clientSecret = reader.nextString()
+                            name == SCOPE -> client.setScope(readSet(reader))
+
+                            name == AUTHORITIES -> client.authorities =
+                                readSet<String>(reader).mapTo(HashSet()) { SimpleGrantedAuthority(it) }
+
+                            name == ACCESS_TOKEN_VALIDITY_SECONDS ->
+                                client.accessTokenValiditySeconds = reader.nextInt()
+
+                            name == REFRESH_TOKEN_VALIDITY_SECONDS ->
+                                client.refreshTokenValiditySeconds = reader.nextInt()
+
+                            name == REDIRECT_URIS ->
+                                client.redirectUris = readSet(reader)
+
+                            name == CLAIMS_REDIRECT_URIS ->
+                                client.claimsRedirectUris = readSet(reader)
+
+                            name == NAME -> client.clientName = reader.nextString()
+                            name == URI -> client.clientUri = reader.nextString()
+                            name == LOGO_URI -> client.logoUri = reader.nextString()
+                            name == CONTACTS -> client.contacts = readSet(reader)
+                            name == TOS_URI -> client.tosUri = reader.nextString()
+
+                            name == TOKEN_ENDPOINT_AUTH_METHOD ->
+                                client.tokenEndpointAuthMethod = AuthMethod.getByValue(reader.nextString())
+
+                            name == GRANT_TYPES -> client.grantTypes = readSet<String>(reader).toHashSet()
+
+                            name == RESPONSE_TYPES ->
+                                client.responseTypes = readSet<String>(reader).toHashSet()
+
+                            name == POLICY_URI -> client.policyUri = reader.nextString()
+
+                            name == APPLICATION_TYPE -> client.applicationType = AppType.getByValue(reader.nextString())
+
+                            name == SECTOR_IDENTIFIER_URI ->
+                                client.sectorIdentifierUri = reader.nextString()
+
+                            name == SUBJECT_TYPE ->
+                                client.subjectType = SubjectType.getByValue(reader.nextString())
+
+                            name == JWKS_URI -> client.jwksUri = reader.nextString()
+
+                            name == JWKS -> {
+                                try {
+                                    client.jwks = JWKSet.parse(reader.nextString())
+                                } catch (e: ParseException) {
+                                    logger.error("Couldn't parse JWK Set", e)
+                                }
+                            }
+                            name == REQUEST_OBJECT_SIGNING_ALG ->
+                                client.requestObjectSigningAlg = JWSAlgorithm.parse(reader.nextString())
+
+                            name == USER_INFO_ENCRYPTED_RESPONSE_ALG ->
+                                client.userInfoEncryptedResponseAlg = JWEAlgorithm.parse(reader.nextString())
+
+                            name == USER_INFO_ENCRYPTED_RESPONSE_ENC ->
+                                client.userInfoEncryptedResponseEnc = EncryptionMethod.parse(reader.nextString())
+
+                            name == USER_INFO_SIGNED_RESPONSE_ALG ->
+                                client.userInfoSignedResponseAlg = JWSAlgorithm.parse(reader.nextString())
+
+                            name == ID_TOKEN_SIGNED_RESPONSE_ALG ->
+                                client.idTokenSignedResponseAlg = JWSAlgorithm.parse(reader.nextString())
+
+                            name == ID_TOKEN_ENCRYPTED_RESPONSE_ALG ->
+                                client.idTokenEncryptedResponseAlg = JWEAlgorithm.parse(reader.nextString())
+
+                            name == ID_TOKEN_ENCRYPTED_RESPONSE_ENC ->
+                                client.idTokenEncryptedResponseEnc = EncryptionMethod.parse(reader.nextString())
+
+                            name == TOKEN_ENDPOINT_AUTH_SIGNING_ALG ->
+                                client.tokenEndpointAuthSigningAlg = JWSAlgorithm.parse(reader.nextString())
+
+                            name == DEFAULT_MAX_AGE -> client.defaultMaxAge = reader.nextInt()
+                            name == REQUIRE_AUTH_TIME -> client.requireAuthTime = reader.nextBoolean()
+                            name == DEFAULT_ACR_VALUES -> client.defaultACRvalues = readSet(reader)
+                            name == "initiateLoginUri" -> client.initiateLoginUri = reader.nextString()
+
+                            name == POST_LOGOUT_REDIRECT_URI ->
+                                client.postLogoutRedirectUris = readSet(reader)
+
+                            name == REQUEST_URIS -> client.requestUris = readSet(reader)
+                            name == DESCRIPTION -> client.clientDescription = reader.nextString()
+                            name == ALLOW_INTROSPECTION -> client.isAllowIntrospection = reader.nextBoolean()
+                            name == REUSE_REFRESH_TOKEN -> client.isReuseRefreshToken = reader.nextBoolean()
+                            name == CLEAR_ACCESS_TOKENS_ON_REFRESH ->
+                                client.isClearAccessTokensOnRefresh = reader.nextBoolean()
+
+                            name == DYNAMICALLY_REGISTERED ->
+                                client.isDynamicallyRegistered = reader.nextBoolean()
+
+                            else -> {
+                                logger.debug("Found unexpected entry")
+                                reader.skipValue()
+                            }
+                        }
+                    }
+
+                    else -> {
+                        logger.debug("Found unexpected entry")
+                        reader.skipValue()
+                        continue
+                    }
+                }
+            }
+            reader.endObject()
+            clientRepository.saveClient(client)
+        }
+        reader.endArray()
+        logger.info("Done reading clients")
+    }
+
+    /**
+     * Read the list of system scopes from the reader and insert them into the
+     * scope repository.
+     *
+     * @throws IOException
+     */
+    @Throws(IOException::class)
+    private fun readSystemScopes(reader: JsonReader) {
+        reader.beginArray()
+        while (reader.hasNext()) {
+            val scope = SystemScope()
+            reader.beginObject()
+            while (reader.hasNext()) {
+                when (reader.peek()) {
+                    JsonToken.END_OBJECT -> continue
+                    JsonToken.NAME -> {
+                        val name = reader.nextName()
+                        when {
+                            reader.peek() == JsonToken.NULL -> reader.skipValue()
+                            name == VALUE -> scope.value = reader.nextString()
+                            name == DESCRIPTION -> scope.description = reader.nextString()
+                            name == RESTRICTED -> scope.isRestricted = reader.nextBoolean()
+                            name == DEFAULT_SCOPE -> scope.isDefaultScope = reader.nextBoolean()
+                            name == ICON -> scope.icon = reader.nextString()
+                            name == STRUCTURED -> logger.warn("Found a structured scope, ignoring structure")
+                            name == STRUCTURED_PARAMETER -> logger.warn("Found a structured scope, ignoring structure")
+                            else -> {
+                                logger.debug("found unexpected entry")
+                                reader.skipValue()
+                            }
+                        }
+                    }
+
+                    else -> {
+                        logger.debug("Found unexpected entry")
+                        reader.skipValue()
+                        continue
+                    }
+                }
+            }
+            reader.endObject()
+            sysScopeRepository.save(scope)
+        }
+        reader.endArray()
+        logger.info("Done reading system scopes")
+    }
+
+    private fun fixObjectReferences() {
+        logger.info("Fixing object references...")
+        for (oldRefreshTokenId in maps.refreshTokenToClientRefs.keys) {
+            val clientRef = maps.refreshTokenToClientRefs[oldRefreshTokenId]
+            val client = clientRepository.getClientByClientId(clientRef!!)
+            val newRefreshTokenId = maps.refreshTokenOldToNewIdMap[oldRefreshTokenId]!!
+            val refreshToken = tokenRepository.getRefreshTokenById(newRefreshTokenId.toJavaId())!!
+            refreshToken.client = client
+            tokenRepository.saveRefreshToken(refreshToken)
+        }
+        for (oldRefreshTokenId in maps.refreshTokenToAuthHolderRefs.keys) {
+            val oldAuthHolderId = maps.refreshTokenToAuthHolderRefs[oldRefreshTokenId]
+            val newAuthHolderId = maps.authHolderOldToNewIdMap[oldAuthHolderId]
+            val authHolder = authHolderRepository.getById(newAuthHolderId)
+            val newRefreshTokenId = maps.refreshTokenOldToNewIdMap[oldRefreshTokenId]!!
+            val refreshToken = tokenRepository.getRefreshTokenById(newRefreshTokenId.toJavaId())!!
+            refreshToken.authenticationHolder = authHolder!!
+            tokenRepository.saveRefreshToken(refreshToken)
+        }
+        for (oldAccessTokenId in maps.accessTokenToClientRefs.keys) {
+            val clientRef = maps.accessTokenToClientRefs[oldAccessTokenId]
+            val client = clientRepository.getClientByClientId(clientRef!!)
+            val newAccessTokenId = maps.accessTokenOldToNewIdMap[oldAccessTokenId]!!
+            val accessToken = tokenRepository.getAccessTokenById(newAccessTokenId.toJavaId())!!
+            accessToken.client = client
+            tokenRepository.saveAccessToken(accessToken)
+        }
+        for (oldAccessTokenId in maps.accessTokenToAuthHolderRefs.keys) {
+            val oldAuthHolderId = maps.accessTokenToAuthHolderRefs[oldAccessTokenId]
+            val newAuthHolderId = maps.authHolderOldToNewIdMap[oldAuthHolderId] ?: error("Missing authHolder map $oldAuthHolderId");
+            val authHolder = authHolderRepository.getById(newAuthHolderId) ?: error("Missing authHolder $newAuthHolderId")
+            val newAccessTokenId = maps.accessTokenOldToNewIdMap[oldAccessTokenId]
+            val accessToken = tokenRepository.getAccessTokenById(newAccessTokenId.toJavaId())!!
+            accessToken.authenticationHolder = authHolder
+            tokenRepository.saveAccessToken(accessToken)
+        }
+        for ((oldAccessTokenId, oldRefreshTokenId) in maps.accessTokenToRefreshTokenRefs) {
+            val newRefreshTokenId = maps.refreshTokenOldToNewIdMap[oldRefreshTokenId] ?: error("Missing map for old refresh token: $oldRefreshTokenId")
+            val refreshToken = tokenRepository.getRefreshTokenById(newRefreshTokenId.toJavaId())
+            val newAccessTokenId = maps.accessTokenOldToNewIdMap[oldAccessTokenId]!!
+            val accessToken = tokenRepository.getAccessTokenById(newAccessTokenId.toJavaId())!!
+            accessToken.refreshToken = refreshToken
+            tokenRepository.saveAccessToken(accessToken)
+        }
+        for (oldGrantId in maps.grantToAccessTokensRefs.keys) {
+            val oldAccessTokenIds = maps.grantToAccessTokensRefs[oldGrantId]!!
+
+            val newGrantId = maps.grantOldToNewIdMap[oldGrantId]!!
+            val site = approvedSiteRepository.getById(newGrantId.toJavaId())
+
+            for (oldTokenId in oldAccessTokenIds) {
+                val newTokenId = maps.accessTokenOldToNewIdMap[oldTokenId]?: error("Missing map $oldTokenId")
+                val token = tokenRepository.getAccessTokenById(newTokenId.toJavaId())!!
+                token.approvedSite = site
+                tokenRepository.saveAccessToken(token)
+            }
+
+            approvedSiteRepository.save(site!!)
+        }
+        logger.info("Done fixing object references.")
+    }
+
+    companion object {
+        private const val DEFAULT_SCOPE = "defaultScope"
+        private const val STRUCTURED_PARAMETER = "structuredParameter"
+        private const val STRUCTURED = "structured"
+        private const val RESTRICTED = "restricted"
+        private const val ICON = "icon"
+        private const val DYNAMICALLY_REGISTERED = "dynamicallyRegistered"
+        private const val CLEAR_ACCESS_TOKENS_ON_REFRESH = "clearAccessTokensOnRefresh"
+        private const val REUSE_REFRESH_TOKEN = "reuseRefreshToken"
+        private const val ALLOW_INTROSPECTION = "allowIntrospection"
+        private const val DESCRIPTION = "description"
+        private const val REQUEST_URIS = "requestUris"
+        private const val POST_LOGOUT_REDIRECT_URI = "postLogoutRedirectUri"
+        private const val INTITATE_LOGIN_URI = "intitateLoginUri"
+        private const val DEFAULT_ACR_VALUES = "defaultACRValues"
+        private const val REQUIRE_AUTH_TIME = "requireAuthTime"
+        private const val DEFAULT_MAX_AGE = "defaultMaxAge"
+        private const val TOKEN_ENDPOINT_AUTH_SIGNING_ALG = "tokenEndpointAuthSigningAlg"
+        private const val USER_INFO_ENCRYPTED_RESPONSE_ENC = "userInfoEncryptedResponseEnc"
+        private const val USER_INFO_ENCRYPTED_RESPONSE_ALG = "userInfoEncryptedResponseAlg"
+        private const val USER_INFO_SIGNED_RESPONSE_ALG = "userInfoSignedResponseAlg"
+        private const val ID_TOKEN_ENCRYPTED_RESPONSE_ENC = "idTokenEncryptedResponseEnc"
+        private const val ID_TOKEN_ENCRYPTED_RESPONSE_ALG = "idTokenEncryptedResponseAlg"
+        private const val ID_TOKEN_SIGNED_RESPONSE_ALG = "idTokenSignedResponseAlg"
+        private const val REQUEST_OBJECT_SIGNING_ALG = "requestObjectSigningAlg"
+        private const val SUBJECT_TYPE = "subjectType"
+        private const val SECTOR_IDENTIFIER_URI = "sectorIdentifierUri"
+        private const val APPLICATION_TYPE = "applicationType"
+        private const val JWKS = "jwks"
+        private const val JWKS_URI = "jwksUri"
+        private const val POLICY_URI = "policyUri"
+        private const val GRANT_TYPES = "grantTypes"
+        private const val TOKEN_ENDPOINT_AUTH_METHOD = "tokenEndpointAuthMethod"
+        private const val TOS_URI = "tosUri"
+        private const val CONTACTS = "contacts"
+        private const val LOGO_URI = "logoUri"
+        private const val REDIRECT_URIS = "redirectUris"
+        private const val REFRESH_TOKEN_VALIDITY_SECONDS = "refreshTokenValiditySeconds"
+        private const val ACCESS_TOKEN_VALIDITY_SECONDS = "accessTokenValiditySeconds"
+        private const val SECRET = "secret"
+        private const val URI = "uri"
+        private const val CREATOR_USER_ID = "creatorUserId"
+        private const val APPROVED_ACCESS_TOKENS = "approvedAccessTokens"
+        private const val ALLOWED_SCOPES = "allowedScopes"
+        private const val USER_ID = "userId"
+        private const val TIMEOUT_DATE = "timeoutDate"
+        private const val CREATION_DATE = "creationDate"
+        private const val ACCESS_DATE = "accessDate"
+        private const val AUTHENTICATED = "authenticated"
+        private const val SOURCE_CLASS = "sourceClass"
+        private const val NAME = "name"
+        private const val SAVED_USER_AUTHENTICATION = "savedUserAuthentication"
+        private const val EXTENSIONS = "extensions"
+        private const val RESPONSE_TYPES = "responseTypes"
+        private const val REDIRECT_URI = "redirectUri"
+        private const val APPROVED = "approved"
+        private const val AUTHORITIES = "authorities"
+        private const val RESOURCE_IDS = "resourceIds"
+        private const val REQUEST_PARAMETERS = "requestParameters"
+        private const val TYPE = "type"
+        private const val SCOPE = "scope"
+        private const val REFRESH_TOKEN_ID = "refreshTokenId"
+        private const val VALUE = "value"
+        private const val AUTHENTICATION_HOLDER_ID = "authenticationHolderId"
+        private const val CLIENT_ID = "clientId"
+        private const val EXPIRATION = "expiration"
+        private const val CLAIMS_REDIRECT_URIS = "claimsRedirectUris"
+        private const val ID = "id"
+
+        /**
+         * Logger for this class
+         */
+        private val logger: Logger = LoggerFactory.getLogger(MITREidDataService_1_2::class.java)
+        private const val THIS_VERSION = MITREidDataService.MITREID_CONNECT_1_2
+    }
 }
