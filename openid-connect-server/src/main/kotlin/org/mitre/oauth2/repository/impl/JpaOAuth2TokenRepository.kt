@@ -119,7 +119,7 @@ class JpaOAuth2TokenRepository : OAuth2TokenRepository {
     }
 
     @Transactional(value = "defaultTransactionManager")
-    override fun saveRefreshToken(refreshToken: OAuth2RefreshTokenEntity): OAuth2RefreshTokenEntity? {
+    override fun saveRefreshToken(refreshToken: OAuth2RefreshTokenEntity): OAuth2RefreshTokenEntity {
         return saveOrUpdate(refreshToken.id, manager, refreshToken)
     }
 

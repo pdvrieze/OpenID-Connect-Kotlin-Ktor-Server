@@ -19,46 +19,39 @@ package org.mitre.openid.connect.service
  * @author jricher
  */
 class MITREidDataServiceMaps {
-    private val _accessTokenOldToNewIdMap: MutableMap<Long, Long> = HashMap()
-    val accessTokenOldToNewIdMap: Map<Long, Long> get() = _accessTokenOldToNewIdMap
+    val accessTokenOldToNewIdMap: MutableMap<Long, Long> = HashMap()
 
-    private val _accessTokenToAuthHolderRefs: MutableMap<Long, Long> = HashMap()
-    val accessTokenToAuthHolderRefs: Map<Long, Long> get() = _accessTokenToAuthHolderRefs
+    val accessTokenToAuthHolderRefs: MutableMap<Long, Long> = HashMap()
 
-    private val _accessTokenToClientRefs: MutableMap<Long, String> = HashMap()
-    val accessTokenToClientRefs: Map<Long, String> get() = _accessTokenToClientRefs
+    val accessTokenToClientRefs: MutableMap<Long, String> = HashMap()
 
-    private val _accessTokenToRefreshTokenRefs: MutableMap<Long, Long> = HashMap()
-    val accessTokenToRefreshTokenRefs: Map<Long, Long> get() = _accessTokenToRefreshTokenRefs
+    val accessTokenToRefreshTokenRefs: MutableMap<Long, Long> = HashMap()
 
-    private val _authHolderOldToNewIdMap: MutableMap<Long, Long> = HashMap()
-    val authHolderOldToNewIdMap: Map<Long, Long> get() = _authHolderOldToNewIdMap
+    val authHolderOldToNewIdMap: MutableMap<Long, Long> = HashMap()
 
-    private val _grantOldToNewIdMap: MutableMap<Long, Long> = HashMap()
-    val grantOldToNewIdMap: Map<Long, Long> get() = _grantOldToNewIdMap
+    val grantOldToNewIdMap: MutableMap<Long, Long> = HashMap()
 
-    val grantToAccessTokensRefs: Map<Long, Set<Long>> = HashMap()
+    val grantToAccessTokensRefs: MutableMap<Long, Set<Long>> = HashMap()
 
-    private val _refreshTokenOldToNewIdMap: MutableMap<Long, Long> = HashMap()
-    val refreshTokenOldToNewIdMap: Map<Long, Long> get() = _refreshTokenOldToNewIdMap
+    val refreshTokenOldToNewIdMap: MutableMap<Long, Long> = HashMap()
 
-    private val _refreshTokenToAuthHolderRefs: MutableMap<Long, Long> = HashMap()
-    val refreshTokenToAuthHolderRefs: Map<Long, Long> get() = _refreshTokenToAuthHolderRefs
+    val refreshTokenToAuthHolderRefs: MutableMap<Long, Long> = HashMap()
 
-    private val _refreshTokenToClientRefs: MutableMap<Long, String> = HashMap()
-    val refreshTokenToClientRefs: Map<Long, String> get() = _refreshTokenToClientRefs
+    val refreshTokenToClientRefs: MutableMap<Long, String> = HashMap()
 
-    private val _whitelistedSiteOldToNewIdMap: MutableMap<Long, Long> = HashMap()
-    val whitelistedSiteOldToNewIdMap: Map<Long, Long> get() = HashMap()
+    val whitelistedSiteOldToNewIdMap: MutableMap<Long, Long> = HashMap()
 
     fun clearAll() {
-        _refreshTokenToClientRefs.clear()
-        _refreshTokenToAuthHolderRefs.clear()
-        _accessTokenToClientRefs.clear()
-        _accessTokenToAuthHolderRefs.clear()
-        _accessTokenToRefreshTokenRefs.clear()
-        _refreshTokenOldToNewIdMap.clear()
-        _accessTokenOldToNewIdMap.clear()
-        _grantOldToNewIdMap.clear()
+        refreshTokenToClientRefs.clear()
+        refreshTokenToAuthHolderRefs.clear()
+        accessTokenToClientRefs.clear()
+        accessTokenToAuthHolderRefs.clear()
+        accessTokenToRefreshTokenRefs.clear()
+        authHolderOldToNewIdMap.clear()
+        refreshTokenOldToNewIdMap.clear()
+        accessTokenOldToNewIdMap.clear()
+        grantOldToNewIdMap.clear()
+        grantToAccessTokensRefs.clear()
+        whitelistedSiteOldToNewIdMap.clear()
     }
 }

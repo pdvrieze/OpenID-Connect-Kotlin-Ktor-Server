@@ -17,25 +17,10 @@
  *******************************************************************************/
 package org.mitre.openid.connect.service.impl;
 
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.ArgumentMatchers.isNull;
-
-import java.io.IOException;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
+import com.google.common.collect.ImmutableSet;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
+import com.nimbusds.jwt.JWTParser;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -55,7 +40,9 @@ import org.mitre.openid.connect.repository.ApprovedSiteRepository;
 import org.mitre.openid.connect.repository.BlacklistedSiteRepository;
 import org.mitre.openid.connect.repository.WhitelistedSiteRepository;
 import org.mitre.openid.connect.service.MITREidDataService;
+import org.mitre.openid.connect.service.MITREidDataServiceMaps;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -69,23 +56,35 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Request;
+import org.springframework.util.ReflectionUtils;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonWriter;
-import com.nimbusds.jwt.JWTParser;
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.lang.reflect.Field;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
-
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.withSettings;
-
-import static org.junit.Assert.assertThat;
 
 @RunWith(MockitoJUnitRunner.class)
 @SuppressWarnings(value = {"rawtypes", "unchecked"})
@@ -128,11 +127,16 @@ public class TestMITREidDataService_1_0 {
 
 	private DateFormatter formatter;
 
+	private MITREidDataServiceMaps maps;
+
 	@Before
 	public void prepare() {
 		formatter = new DateFormatter();
 		formatter.setIso(ISO.DATE_TIME);
 		Mockito.reset(clientRepository, approvedSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository, wlSiteRepository, blSiteRepository);
+		Field mapsField = ReflectionUtils.findField(MITREidDataService_1_0.class, "maps");
+		mapsField.setAccessible(true);
+		maps = (MITREidDataServiceMaps) ReflectionUtils.getField(mapsField, dataService);
 	}
 
 	private class refreshTokenIdComparator implements Comparator<OAuth2RefreshTokenEntity>  {
@@ -360,7 +364,7 @@ public class TestMITREidDataService_1_0 {
 				return _client;
 			}
 		});
-		when(authHolderRepository.getById(isNull(Long.class))).thenAnswer(new Answer<AuthenticationHolderEntity>() {
+		when(authHolderRepository.getById(ArgumentMatchers.argThat((x) -> true))).thenAnswer(new Answer<AuthenticationHolderEntity>() {
 			Long id = 234L;
 			@Override
 			public AuthenticationHolderEntity answer(InvocationOnMock invocation) throws Throwable {
@@ -371,6 +375,9 @@ public class TestMITREidDataService_1_0 {
 				return _auth;
 			}
 		});
+		maps.getAuthHolderOldToNewIdMap().put(1L, 401L);
+		maps.getAuthHolderOldToNewIdMap().put(1L, 403L);
+		maps.getRefreshTokenOldToNewIdMap().put(1L, 402L);
 		dataService.importData(reader);
 		//2 times for token, 2 times to update client, 2 times to update authHolder, 1 times to update refresh token
 		verify(tokenRepository, times(7)).saveAccessToken(capturedAccessTokens.capture());
@@ -672,7 +679,7 @@ public class TestMITREidDataService_1_0 {
 			}
 		});
 */
-		when(tokenRepository.getAccessTokenById(isNull(Long.class))).thenAnswer(new Answer<OAuth2AccessTokenEntity>() {
+		when(tokenRepository.getAccessTokenById(ArgumentMatchers.eq(401L))).thenAnswer(new Answer<OAuth2AccessTokenEntity>() {
 			Long id = 221L;
 			@Override
 			public OAuth2AccessTokenEntity answer(InvocationOnMock invocation) throws Throwable {
@@ -684,7 +691,7 @@ public class TestMITREidDataService_1_0 {
 		});
 		// unused by mockito (causs unnecessary stubbing exception
 //		when(tokenRepository.getAccessTokensForApprovedSite(site1)).thenReturn(Lists.newArrayList(mockToken1));
-
+		maps.getAccessTokenOldToNewIdMap().put(1L, 401L);
 		dataService.importData(reader);
 		//2 for sites, 1 for updating access token ref on #1
 		verify(approvedSiteRepository, times(3)).save(capturedApprovedSites.capture());
