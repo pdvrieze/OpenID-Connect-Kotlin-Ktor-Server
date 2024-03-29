@@ -27,6 +27,7 @@ import org.mitre.openid.connect.model.DefaultUserInfo;
 import org.mitre.openid.connect.model.PairwiseIdentifier;
 import org.mitre.openid.connect.model.UserInfo;
 import org.mitre.openid.connect.repository.PairwiseIdentifierRepository;
+import org.mitre.openid.connect.service.PairwiseIdentiferService;
 import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -129,7 +130,7 @@ public class TestUUIDPairwiseIdentiferService {
 	}
 
 	/**
-	 * Test method for {@link org.mitre.openid.connect.service.impl.UUIDPairwiseIdentiferService#getIdentifier(org.mitre.openid.connect.model.UserInfo, org.mitre.oauth2.model.ClientDetailsEntity)}.
+	 * Test method for {@link PairwiseIdentiferService#getIdentifier(UserInfo, ClientDetailsEntity)}.
 	 */
 	@Test
 	public void testGetIdentifier_existingEqual() {

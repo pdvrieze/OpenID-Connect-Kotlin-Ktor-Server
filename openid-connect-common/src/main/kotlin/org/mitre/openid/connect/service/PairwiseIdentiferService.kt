@@ -30,5 +30,5 @@ interface PairwiseIdentiferService {
      * Returns 'null' if no identifer could be calculated.
      *
      */
-    fun getIdentifier(userInfo: UserInfo?, client: ClientDetailsEntity?): String?
+    fun getIdentifier(userInfo: UserInfo, client: ClientDetailsEntity): String?
 }
