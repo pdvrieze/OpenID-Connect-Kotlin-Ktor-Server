@@ -7,61 +7,49 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.openid.connect.view;
+ */
+package org.mitre.openid.connect.view
 
-import com.google.common.collect.ImmutableSet;
-import com.google.gson.ExclusionStrategy;
-import com.google.gson.FieldAttributes;
-import org.springframework.stereotype.Component;
-import org.springframework.validation.BeanPropertyBindingResult;
-
-import java.util.Set;
+import com.google.gson.ExclusionStrategy
+import com.google.gson.FieldAttributes
+import org.springframework.stereotype.Component
+import org.springframework.validation.BeanPropertyBindingResult
 
 /**
  *
  * View bean for full view of client entity, for admins.
  *
  * @see ClientEntityViewForUsers
- * @author jricher
  *
+ * @author jricher
  */
 @Component(ClientEntityViewForAdmins.VIEWNAME)
-public class ClientEntityViewForAdmins extends AbstractClientEntityView {
-
-	public static final String VIEWNAME = "clientEntityViewAdmins";
-	private Set<String> blacklistedFields = ImmutableSet.of("additionalInformation");
+class ClientEntityViewForAdmins : AbstractClientEntityView() {
+    private val blacklistedFields: Set<String> = hashSetOf("additionalInformation")
 
 
-	@Override
-	protected ExclusionStrategy getExclusionStrategy() {
-		return new ExclusionStrategy() {
+    override val exclusionStrategy: ExclusionStrategy
+        get() {
+            return object : ExclusionStrategy {
+                override fun shouldSkipField(f: FieldAttributes): Boolean {
+                    return f.name in blacklistedFields
+                }
 
-			@Override
-			public boolean shouldSkipField(FieldAttributes f) {
-				if (blacklistedFields.contains(f.getName())) {
-					return true;
-				} else {
-					return false;
-				}
-			}
+                override fun shouldSkipClass(clazz: Class<*>): Boolean {
+                    // skip the JPA binding wrapper
+                    return clazz == BeanPropertyBindingResult::class.java
+                }
+            }
+        }
 
-			@Override
-			public boolean shouldSkipClass(Class<?> clazz) {
-				// skip the JPA binding wrapper
-				if (clazz.equals(BeanPropertyBindingResult.class)) {
-					return true;
-				}
-				return false;
-			}
-
-		};
-	}
+    companion object {
+        const val VIEWNAME: String = "clientEntityViewAdmins"
+    }
 }

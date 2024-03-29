@@ -7,67 +7,59 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.openid.connect.view;
+ */
+package org.mitre.openid.connect.view
 
-import com.google.common.collect.ImmutableSet;
-import com.google.gson.ExclusionStrategy;
-import com.google.gson.FieldAttributes;
-import org.springframework.stereotype.Component;
-import org.springframework.validation.BeanPropertyBindingResult;
-
-import java.util.Set;
+import com.google.gson.ExclusionStrategy
+import com.google.gson.FieldAttributes
+import org.springframework.stereotype.Component
+import org.springframework.validation.BeanPropertyBindingResult
 
 /**
  *
  * View bean for field-limited view of client entity, for regular users.
  *
  * @see AbstractClientEntityView
- * @see ClientEntityViewForAdmins
- * @author jricher
  *
+ * @see ClientEntityViewForAdmins
+ *
+ * @author jricher
  */
 @Component(ClientEntityViewForUsers.VIEWNAME)
-public class ClientEntityViewForUsers extends AbstractClientEntityView {
+class ClientEntityViewForUsers : AbstractClientEntityView() {
+    private val whitelistedFields: Set<String> =
+        hashSetOf("clientName", "clientId", "id", "clientDescription", "scope", "logoUri")
 
-	private Set<String> whitelistedFields = ImmutableSet.of("clientName", "clientId", "id", "clientDescription", "scope", "logoUri");
-
-	public static final String VIEWNAME = "clientEntityViewUsers";
-
-	/* (non-Javadoc)
+    /* (non-Javadoc)
 	 * @see org.mitre.openid.connect.view.AbstractClientEntityView#getExclusionStrategy()
 	 */
-	@Override
-	protected ExclusionStrategy getExclusionStrategy() {
-		return new ExclusionStrategy() {
+    override val exclusionStrategy: ExclusionStrategy
+        get() {
+            return object : ExclusionStrategy {
+                override fun shouldSkipField(f: FieldAttributes): Boolean {
+                    // whitelist the handful of fields that are good
+                    return if (whitelistedFields.contains(f.name)) {
+                        false
+                    } else {
+                        true
+                    }
+                }
 
-			@Override
-			public boolean shouldSkipField(FieldAttributes f) {
-				// whitelist the handful of fields that are good
-				if (whitelistedFields.contains(f.getName())) {
-					return false;
-				} else {
-					return true;
-				}
-			}
+                override fun shouldSkipClass(clazz: Class<*>): Boolean {
+                    // skip the JPA binding wrapper
+                    return clazz == BeanPropertyBindingResult::class.java
+                }
+            }
+        }
 
-			@Override
-			public boolean shouldSkipClass(Class<?> clazz) {
-				// skip the JPA binding wrapper
-				if (clazz.equals(BeanPropertyBindingResult.class)) {
-					return true;
-				}
-				return false;
-			}
-
-		};
-	}
-
+    companion object {
+        const val VIEWNAME: String = "clientEntityViewUsers"
+    }
 }
