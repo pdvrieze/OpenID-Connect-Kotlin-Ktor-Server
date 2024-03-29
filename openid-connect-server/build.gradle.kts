@@ -29,6 +29,8 @@ dependencies {
 
     testImplementation(libs.junit4)
     testImplementation(libs.mockito.inline)
+    testImplementation(libs.mockito.jupiter)
+    testImplementation(libs.mockito.kotlin)
     testImplementation(libs.spring.test)
     testImplementation(libs.hamcrest.all)
     testImplementation(libs.hamcrest.core)

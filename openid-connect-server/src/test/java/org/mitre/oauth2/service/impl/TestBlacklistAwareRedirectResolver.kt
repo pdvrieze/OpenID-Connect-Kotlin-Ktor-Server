@@ -5,152 +5,125 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
+ */
+package org.mitre.oauth2.service.impl
 
-package org.mitre.oauth2.service.impl;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mitre.openid.connect.config.ConfigurationPropertiesBean;
-import org.mitre.openid.connect.service.BlacklistedSiteService;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.security.oauth2.common.exceptions.InvalidRequestException;
-import org.springframework.security.oauth2.provider.ClientDetails;
-
-import com.google.common.collect.ImmutableSet;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
-
-import static org.junit.Assert.assertThat;
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.extension.ExtendWith
+import org.mitre.openid.connect.config.ConfigurationPropertiesBean
+import org.mitre.openid.connect.service.BlacklistedSiteService
+import org.mockito.ArgumentMatchers
+import org.mockito.InjectMocks
+import org.mockito.Mock
+import org.mockito.junit.jupiter.MockitoExtension
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.whenever
+import org.springframework.security.oauth2.common.exceptions.InvalidRequestException
+import org.springframework.security.oauth2.provider.ClientDetails
 
 /**
  * @author jricher
- *
  */
-@RunWith(MockitoJUnitRunner.class)
-public class TestBlacklistAwareRedirectResolver {
+@ExtendWith(MockitoExtension::class)
+class TestBlacklistAwareRedirectResolver {
+    @Mock
+    private lateinit var blacklistService: BlacklistedSiteService
 
-	@Mock
-	private BlacklistedSiteService blacklistService;
+    @Mock
+    private lateinit var client: ClientDetails
 
-	@Mock
-	private ClientDetails client;
+    @Mock
+    private lateinit var config: ConfigurationPropertiesBean
 
-	@Mock
-	private ConfigurationPropertiesBean config;
+    @InjectMocks
+    private lateinit var resolver: BlacklistAwareRedirectResolver
 
-	@InjectMocks
-	private BlacklistAwareRedirectResolver resolver;
+    private val blacklistedUri = "https://evil.example.com/"
 
-	private String blacklistedUri = "https://evil.example.com/";
+    private val goodUri = "https://good.example.com/"
 
-	private String goodUri = "https://good.example.com/";
+    private val pathUri = "https://good.example.com/with/path"
 
-	private String pathUri = "https://good.example.com/with/path";
+    @Test
+    fun testResolveRedirect_safe() {
+        whenever(blacklistService.isBlacklisted(ArgumentMatchers.anyString())) doReturn false
 
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@Before
-	public void setUp() throws Exception {
+        whenever(client.authorizedGrantTypes) doReturn setOf("authorization_code")
+        whenever(client.registeredRedirectUri) doReturn setOf(goodUri, blacklistedUri)
 
-		when(blacklistService.isBlacklisted(anyString())).thenReturn(false);
-		when(blacklistService.isBlacklisted(blacklistedUri)).thenReturn(true);
+        whenever(config.isHeartMode) doReturn false
 
-		when(client.getAuthorizedGrantTypes()).thenReturn(ImmutableSet.of("authorization_code"));
-		when(client.getRegisteredRedirectUri()).thenReturn(ImmutableSet.of(goodUri, blacklistedUri));
-
-		when(config.isHeartMode()).thenReturn(false);
-	}
-
-	@Test
-	public void testResolveRedirect_safe() {
-
-		// default uses prefix matching, the first one should work fine
-
-		String res1 = resolver.resolveRedirect(goodUri, client);
-
-		assertThat(res1, is(equalTo(goodUri)));
-		
-		// set the resolver to non-strict and test the path-based redirect resolution
-		
-		resolver.setStrictMatch(false);
-
-		String res2 = resolver.resolveRedirect(pathUri, client);
-
-		assertThat(res2, is(equalTo(pathUri)));
+        // default uses prefix matching, the first one should work fine
+        assertEquals(goodUri, resolver.resolveRedirect(goodUri, client))
 
 
-	}
+        // set the resolver to non-strict and test the path-based redirect resolution
+        resolver.isStrictMatch = false
 
-	@Test(expected = InvalidRequestException.class)
-	public void testResolveRedirect_blacklisted() {
+        assertEquals(pathUri, resolver.resolveRedirect(pathUri, client))
+    }
 
-		// this should fail with an error
-		resolver.resolveRedirect(blacklistedUri, client);
+    @Test
+    fun testResolveRedirect_blacklisted() {
+        whenever(blacklistService.isBlacklisted(ArgumentMatchers.anyString())) doReturn false
 
-	}
+        whenever(blacklistService.isBlacklisted(blacklistedUri)) doReturn true
 
-	@Test
-	public void testRedirectMatches_default() {
+        whenever(client.authorizedGrantTypes) doReturn setOf("authorization_code")
+        whenever(client.registeredRedirectUri) doReturn setOf(goodUri, blacklistedUri)
 
-		// this is not an exact match
-		boolean res1 = resolver.redirectMatches(pathUri, goodUri);
+        whenever(config.isHeartMode) doReturn false
 
-		assertThat(res1, is(false));
+        // this should fail with an error
+        assertThrows<InvalidRequestException> {
+            resolver.resolveRedirect(blacklistedUri, client)
+        }
+    }
 
-		// this is an exact match
-		boolean res2 = resolver.redirectMatches(goodUri, goodUri);
+    @Test
+    fun testRedirectMatches_default() {
+        whenever(config.isHeartMode) doReturn false
 
-		assertThat(res2, is(true));
+        // this is not an exact match
+        assertFalse(resolver.redirectMatches(pathUri, goodUri))
 
-	}
+        // this is an exact match
+        assertTrue(resolver.redirectMatches(goodUri, goodUri))
+    }
 
-	@Test
-	public void testRedirectMatches_nonstrict() {
+    @Test
+    fun testRedirectMatches_nonstrict() {
+        whenever(config.isHeartMode) doReturn false
 
-		// set the resolver to non-strict match mode
-		resolver.setStrictMatch(false);
-		
-		// this is not an exact match (but that's OK)
-		boolean res1 = resolver.redirectMatches(pathUri, goodUri);
+        // set the resolver to non-strict match mode
 
-		assertThat(res1, is(true));
+        resolver.isStrictMatch = false
 
-		// this is an exact match
-		boolean res2 = resolver.redirectMatches(goodUri, goodUri);
 
-		assertThat(res2, is(true));
+        // this is not an exact match (but that's OK)
+        assertTrue(resolver.redirectMatches(pathUri, goodUri))
 
-	}
+        // this is an exact match
+        assertTrue(resolver.redirectMatches(goodUri, goodUri))
+    }
 
-	@Test
-	public void testHeartMode() {
-		when(config.isHeartMode()).thenReturn(true);
+    @Test
+    fun testHeartMode() {
+        whenever(config.isHeartMode) doReturn (true)
 
-		// this is not an exact match
-		boolean res1 = resolver.redirectMatches(pathUri, goodUri);
+        // this is not an exact match
+        assertFalse(resolver.redirectMatches(pathUri, goodUri))
 
-		assertThat(res1, is(false));
-
-		// this is an exact match
-		boolean res2 = resolver.redirectMatches(goodUri, goodUri);
-
-		assertThat(res2, is(true));
-	}
-
+        // this is an exact match
+        assertTrue(resolver.redirectMatches(goodUri, goodUri))
+    }
 }

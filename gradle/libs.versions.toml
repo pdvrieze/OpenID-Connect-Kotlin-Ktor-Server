@@ -89,6 +89,7 @@ mockito-easymock = { module = "org.easymock:easymock", version = "3.4" }
 mockito-all = { module = "org.mockito:mockito-all", version.ref = "mockito" }
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 mockito-inline = { module = "org.mockito:mockito-core", version.ref = "mockito" }
+mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version = "5.2.1" }
 mockito-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
 
 guava = { module = "com.google.guava:guava", version = "27.0-jre" }
