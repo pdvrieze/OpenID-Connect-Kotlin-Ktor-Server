@@ -39,20 +39,21 @@ class TestDatabaseConfiguration {
 
     @Bean(name = ["defaultPersistenceUnit"])
     fun entityManagerFactory(): FactoryBean<EntityManagerFactory> {
-        val factory = LocalContainerEntityManagerFactoryBean()
-        factory.setPackagesToScan("org.mitre", "org.mitre")
-        factory.setPersistenceProviderClass(PersistenceProvider::class.java)
-        factory.persistenceUnitName = "test" + System.currentTimeMillis()
-        factory.dataSource = dataSource
-        factory.jpaVendorAdapter = jpaAdapter
-        val jpaProperties: MutableMap<String, Any?> = HashMap()
-        jpaProperties["eclipselink.weaving"] = "false"
-        jpaProperties["eclipselink.logging.level"] = "INFO"
-        jpaProperties["eclipselink.logging.level.sql"] = "INFO"
-        jpaProperties["eclipselink.cache.shared.default"] = "false"
-        factory.jpaPropertyMap = jpaProperties
+        return LocalContainerEntityManagerFactoryBean().also {
+            it.setPackagesToScan("org.mitre", "org.mitre")
+            it.setPersistenceProviderClass(PersistenceProvider::class.java)
+            it.persistenceUnitName = "test${System.currentTimeMillis()}"
+            it.dataSource = dataSource
+            it.jpaVendorAdapter = jpaAdapter
 
-        return factory
+
+            it.jpaPropertyMap = mutableMapOf<String, Any?>(
+                "eclipselink.weaving" to "false",
+                "eclipselink.logging.level" to "INFO",
+                "eclipselink.logging.level.sql" to "INFO",
+                "eclipselink.cache.shared.default" to "false",
+            )
+        }
     }
 
     @Bean
@@ -67,7 +68,8 @@ class TestDatabaseConfiguration {
                                 "..", "openid-connect-server-webapp", "src", "main",
                                 "resources", "db", "hsql", location
                             )
-                        ), StandardCharsets.UTF_8
+                        ),
+                        StandardCharsets.UTF_8
                     )
                 } catch (e: IOException) {
                     throw RuntimeException("Failed to read sql-script $location", e)
@@ -81,10 +83,10 @@ class TestDatabaseConfiguration {
 
     @Bean
     fun jpaAdapter(): JpaVendorAdapter {
-        val adapter = EclipseLinkJpaVendorAdapter()
-        adapter.setDatabase(Database.HSQL)
-        adapter.setShowSql(true)
-        return adapter
+        return EclipseLinkJpaVendorAdapter().apply {
+            setDatabase(Database.HSQL)
+            setShowSql(true)
+        }
     }
 
     @Bean

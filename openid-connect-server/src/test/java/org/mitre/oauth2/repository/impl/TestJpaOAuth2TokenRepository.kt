@@ -66,36 +66,38 @@ class TestJpaOAuth2TokenRepository {
     }
 
     private fun createAccessToken(name: String): OAuth2AccessTokenEntity {
-        var userAuth = SavedUserAuthentication()
-        userAuth.setName(name)
-        userAuth = entityManager.merge(userAuth)
+        val userAuth = SavedUserAuthentication().let {
+            it.setName(name)
+            entityManager.merge(it)
+        }
 
-        var authHolder = AuthenticationHolderEntity()
-        authHolder.userAuth = userAuth
-        authHolder = entityManager.merge(authHolder)
+        val authHolder = AuthenticationHolderEntity().let {
+            it.userAuth = userAuth
+            entityManager.merge(it)
+        }
 
-        var accessToken = OAuth2AccessTokenEntity()
-        accessToken.authenticationHolder = authHolder
-
-        accessToken = entityManager.merge(accessToken)
+        val accessToken = OAuth2AccessTokenEntity().let {
+            it.authenticationHolder = authHolder
+            entityManager.merge(it)
+        }
 
         return accessToken
     }
 
     private fun createRefreshToken(name: String): OAuth2RefreshTokenEntity {
-        var userAuth = SavedUserAuthentication()
-        userAuth.setName(name)
-        userAuth = entityManager.merge(userAuth)
+        val userAuth = SavedUserAuthentication().let {
+            it.setName(name)
+            entityManager.merge(it)
+        }
 
-        var authHolder = AuthenticationHolderEntity()
-        authHolder.userAuth = userAuth
-        authHolder = entityManager.merge(authHolder)
+        val authHolder = AuthenticationHolderEntity().let {
+            it.userAuth = userAuth
+            entityManager.merge(it)
+        }
 
-        var refreshToken = OAuth2RefreshTokenEntity()
-        refreshToken.authenticationHolder = authHolder
-
-        refreshToken = entityManager.merge(refreshToken)
-
-        return refreshToken
+        return OAuth2RefreshTokenEntity().let {
+            it.authenticationHolder = authHolder
+            entityManager.merge(it)
+        }
     }
 }
