@@ -1,50 +1,46 @@
-package org.mitre.openid.connect.config;
+package org.mitre.openid.connect.config
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.InjectMocks
+import org.mockito.Spy
+import org.mockito.junit.jupiter.MockitoExtension
+import org.springframework.core.io.ClassPathResource
+import org.springframework.core.io.Resource
+import java.util.*
 
-import java.text.MessageFormat;
-import java.util.Locale;
+@ExtendWith(MockitoExtension::class)
+class TestJsonMessageSource {
+    @InjectMocks
+    private lateinit var jsonMessageSource: JsonMessageSource
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+    @Spy
+    private lateinit var config: ConfigurationPropertiesBean
 
-@RunWith(MockitoJUnitRunner.class)
-public class TestJsonMessageSource {
+    private val localeThatHasAFile = Locale("en")
 
-	@InjectMocks
-	private JsonMessageSource jsonMessageSource;
+    private val localeThatDoesNotHaveAFile = Locale("xx")
 
-	@Spy
-	private ConfigurationPropertiesBean config;
+    @BeforeEach
+    fun setup() {
+        //test message files are located in test/resources/js/locale/
+        val resource: Resource = ClassPathResource("/resources/js/locale/")
+        jsonMessageSource.baseDirectory = resource
+    }
 
-	private Locale localeThatHasAFile = new Locale("en");
+    @Test
+    fun verifyWhenLocaleExists_canResolveCode() {
+        val mf = jsonMessageSource.resolveCode("testAttribute", localeThatHasAFile)!!
+        assertEquals(mf.locale.language, "en")
+        assertEquals(mf.toPattern(), "testValue")
+    }
 
-	private Locale localeThatDoesNotHaveAFile = new Locale("xx");
-
-	@Before
-	public void setup() {
-		//test message files are located in test/resources/js/locale/
-		Resource resource = new ClassPathResource("/resources/js/locale/");
-		jsonMessageSource.setBaseDirectory(resource);
-	}
-
-	@Test
-	public void verifyWhenLocaleExists_canResolveCode() {
-		MessageFormat mf = jsonMessageSource.resolveCode("testAttribute", localeThatHasAFile);
-		assertEquals(mf.getLocale().getLanguage(), "en");
-		assertEquals(mf.toPattern(), "testValue");
-	}
-
-	@Test
-	public void verifyWhenLocaleDoesNotExist_cannotResolveCode() {
-		MessageFormat mf = jsonMessageSource.resolveCode("test", localeThatDoesNotHaveAFile);
-		assertNull(mf);
-	}
+    @Test
+    fun verifyWhenLocaleDoesNotExist_cannotResolveCode() {
+        val mf = jsonMessageSource.resolveCode("test", localeThatDoesNotHaveAFile)
+        assertNull(mf)
+    }
 }
