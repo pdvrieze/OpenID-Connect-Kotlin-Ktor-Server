@@ -7,569 +7,566 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.openid.connect.service.impl;
+ */
+package org.mitre.openid.connect.service.impl
 
-import com.google.common.collect.ImmutableSet;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonWriter;
-import com.nimbusds.jwt.JWTParser;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mitre.oauth2.model.AuthenticationHolderEntity;
-import org.mitre.oauth2.model.ClientDetailsEntity;
-import org.mitre.oauth2.model.OAuth2AccessTokenEntity;
-import org.mitre.oauth2.model.OAuth2RefreshTokenEntity;
-import org.mitre.oauth2.model.SystemScope;
-import org.mitre.oauth2.repository.AuthenticationHolderRepository;
-import org.mitre.oauth2.repository.OAuth2ClientRepository;
-import org.mitre.oauth2.repository.OAuth2TokenRepository;
-import org.mitre.oauth2.repository.SystemScopeRepository;
-import org.mitre.openid.connect.model.ApprovedSite;
-import org.mitre.openid.connect.model.BlacklistedSite;
-import org.mitre.openid.connect.model.WhitelistedSite;
-import org.mitre.openid.connect.repository.ApprovedSiteRepository;
-import org.mitre.openid.connect.repository.BlacklistedSiteRepository;
-import org.mitre.openid.connect.repository.WhitelistedSiteRepository;
-import org.mitre.openid.connect.service.MITREidDataService;
-import org.mitre.openid.connect.service.MITREidDataServiceMaps;
-import org.mockito.ArgumentCaptor;
-import org.mockito.ArgumentMatchers;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.junit.MockitoJUnitRunner;
-import org.mockito.stubbing.Answer;
-import org.springframework.format.annotation.DateTimeFormat.ISO;
-import org.springframework.format.datetime.DateFormatter;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.security.oauth2.provider.OAuth2Request;
-import org.springframework.util.ReflectionUtils;
+import com.google.common.collect.ImmutableSet
+import com.google.gson.stream.JsonReader
+import com.google.gson.stream.JsonWriter
+import com.nimbusds.jwt.JWTParser
+import org.hamcrest.CoreMatchers
+import org.junit.Assert
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.mitre.oauth2.model.AuthenticationHolderEntity
+import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.OAuth2AccessTokenEntity
+import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
+import org.mitre.oauth2.model.SystemScope
+import org.mitre.oauth2.repository.AuthenticationHolderRepository
+import org.mitre.oauth2.repository.OAuth2ClientRepository
+import org.mitre.oauth2.repository.OAuth2TokenRepository
+import org.mitre.oauth2.repository.SystemScopeRepository
+import org.mitre.oauth2.util.toJavaId
+import org.mitre.openid.connect.model.ApprovedSite
+import org.mitre.openid.connect.model.BlacklistedSite
+import org.mitre.openid.connect.model.WhitelistedSite
+import org.mitre.openid.connect.repository.ApprovedSiteRepository
+import org.mitre.openid.connect.repository.BlacklistedSiteRepository
+import org.mitre.openid.connect.repository.WhitelistedSiteRepository
+import org.mitre.openid.connect.service.MITREidDataService
+import org.mitre.openid.connect.service.MITREidDataServiceMaps
+import org.mockito.ArgumentCaptor
+import org.mockito.ArgumentMatchers
+import org.mockito.Captor
+import org.mockito.InjectMocks
+import org.mockito.Mock
+import org.mockito.Mockito
+import org.mockito.invocation.InvocationOnMock
+import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.kotlin.capture
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.isA
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
+import org.mockito.stubbing.Answer
+import org.springframework.format.annotation.DateTimeFormat
+import org.springframework.format.datetime.DateFormatter
+import org.springframework.security.core.Authentication
+import org.springframework.security.oauth2.provider.OAuth2Authentication
+import org.springframework.security.oauth2.provider.OAuth2Request
+import org.springframework.util.ReflectionUtils
+import java.io.IOException
+import java.io.StringReader
+import java.io.StringWriter
+import java.text.ParseException
+import java.util.*
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.lang.reflect.Field;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+@RunWith(MockitoJUnitRunner::class)
+class TestMITREidDataService_1_0 {
+    @Mock
+    private lateinit var clientRepository: OAuth2ClientRepository
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.withSettings;
+    @Mock
+    private lateinit var approvedSiteRepository: ApprovedSiteRepository
 
-@RunWith(MockitoJUnitRunner.class)
-@SuppressWarnings(value = {"rawtypes", "unchecked"})
-public class TestMITREidDataService_1_0 {
+    @Mock
+    private lateinit var wlSiteRepository: WhitelistedSiteRepository
 
-	@Mock
-	private OAuth2ClientRepository clientRepository;
-	@Mock
-	private ApprovedSiteRepository approvedSiteRepository;
-	@Mock
-	private WhitelistedSiteRepository wlSiteRepository;
-	@Mock
-	private BlacklistedSiteRepository blSiteRepository;
-	@Mock
-	private AuthenticationHolderRepository authHolderRepository;
-	@Mock
-	private OAuth2TokenRepository tokenRepository;
-	@Mock
-	private SystemScopeRepository sysScopeRepository;
+    @Mock
+    private lateinit var blSiteRepository: BlacklistedSiteRepository
 
-	@Captor
-	private ArgumentCaptor<OAuth2RefreshTokenEntity> capturedRefreshTokens;
-	@Captor
-	private ArgumentCaptor<OAuth2AccessTokenEntity> capturedAccessTokens;
-	@Captor
-	private ArgumentCaptor<ClientDetailsEntity> capturedClients;
-	@Captor
-	private ArgumentCaptor<BlacklistedSite> capturedBlacklistedSites;
-	@Captor
-	private ArgumentCaptor<WhitelistedSite> capturedWhitelistedSites;
-	@Captor
-	private ArgumentCaptor<ApprovedSite> capturedApprovedSites;
-	@Captor
-	private ArgumentCaptor<AuthenticationHolderEntity> capturedAuthHolders;
-	@Captor
-	private ArgumentCaptor<SystemScope> capturedScope;
+    @Mock
+    private lateinit var authHolderRepository: AuthenticationHolderRepository
 
-	@InjectMocks
-	private MITREidDataService_1_0 dataService;
+    @Mock
+    private lateinit var tokenRepository: OAuth2TokenRepository
 
-	private DateFormatter formatter;
+    @Mock
+    private lateinit var sysScopeRepository: SystemScopeRepository
 
-	private MITREidDataServiceMaps maps;
+    @Captor
+    private lateinit var capturedRefreshTokens: ArgumentCaptor<OAuth2RefreshTokenEntity>
 
-	@Before
-	public void prepare() {
-		formatter = new DateFormatter();
-		formatter.setIso(ISO.DATE_TIME);
-		Mockito.reset(clientRepository, approvedSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository, wlSiteRepository, blSiteRepository);
-		Field mapsField = ReflectionUtils.findField(MITREidDataService_1_0.class, "maps");
-		mapsField.setAccessible(true);
-		maps = (MITREidDataServiceMaps) ReflectionUtils.getField(mapsField, dataService);
-	}
+    @Captor
+    private lateinit var capturedAccessTokens: ArgumentCaptor<OAuth2AccessTokenEntity>
 
-	private class refreshTokenIdComparator implements Comparator<OAuth2RefreshTokenEntity>  {
-		@Override
-		public int compare(OAuth2RefreshTokenEntity entity1, OAuth2RefreshTokenEntity entity2) {
-			return entity1.getId().compareTo(entity2.getId());
-		}
-	}
+    @Captor
+    private lateinit var capturedClients: ArgumentCaptor<ClientDetailsEntity>
 
-	@Test
-	public void testImportRefreshTokens() throws IOException, ParseException {
-		Date expirationDate1 = formatter.parse("2014-09-10T22:49:44.090+00:00", Locale.ENGLISH);
+    @Captor
+    private lateinit var capturedBlacklistedSites: ArgumentCaptor<BlacklistedSite>
 
-		ClientDetailsEntity mockedClient1 = mock(ClientDetailsEntity.class);
-		when(mockedClient1.getClientId()).thenReturn("mocked_client_1");
+    @Captor
+    private lateinit var capturedWhitelistedSites: ArgumentCaptor<WhitelistedSite>
 
-		AuthenticationHolderEntity mockedAuthHolder1 = mock(AuthenticationHolderEntity.class);
-		// unused by mockito (causs unnecessary stubbing exception
+    @Captor
+    private lateinit var capturedApprovedSites: ArgumentCaptor<ApprovedSite>
+
+    @Captor
+    private lateinit var capturedAuthHolders: ArgumentCaptor<AuthenticationHolderEntity>
+
+    @Captor
+    private lateinit var capturedScope: ArgumentCaptor<SystemScope>
+
+    @InjectMocks
+    private lateinit var dataService: MITREidDataService_1_0
+
+    private lateinit var formatter: DateFormatter
+
+    private lateinit var maps: MITREidDataServiceMaps
+
+    @Before
+    fun prepare() {
+        formatter = DateFormatter()
+        formatter.setIso(DateTimeFormat.ISO.DATE_TIME)
+        Mockito.reset(clientRepository, approvedSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository, wlSiteRepository, blSiteRepository)
+        val mapsField = ReflectionUtils.findField(MITREidDataService_1_0::class.java, "maps")!!
+        mapsField.isAccessible = true
+        maps = ReflectionUtils.getField(mapsField, dataService) as MITREidDataServiceMaps
+    }
+
+    private inner class refreshTokenIdComparator : Comparator<OAuth2RefreshTokenEntity> {
+        override fun compare(entity1: OAuth2RefreshTokenEntity, entity2: OAuth2RefreshTokenEntity): Int {
+            return entity1.id!!.compareTo(entity2.id!!)
+        }
+    }
+
+    @Test
+    @Throws(IOException::class, ParseException::class)
+    fun testImportRefreshTokens() {
+        val expirationDate1 = formatter.parse("2014-09-10T22:49:44.090+00:00", Locale.ENGLISH)
+
+        val mockedClient1 = Mockito.mock(ClientDetailsEntity::class.java)
+        whenever(mockedClient1.clientId).thenReturn("mocked_client_1")
+
+        val mockedAuthHolder1 = Mockito.mock(AuthenticationHolderEntity::class.java)
+
+        // unused by mockito (causs unnecessary stubbing exception
 //		when(mockedAuthHolder1.getId()).thenReturn(1L);
+        val token1 = OAuth2RefreshTokenEntity()
+        token1.id = 1L
+        token1.client = mockedClient1
+        token1.expiration = expirationDate1
+        token1.jwt =
+            JWTParser.parse("eyJhbGciOiJub25lIn0.eyJqdGkiOiJmOTg4OWQyOS0xMTk1LTQ4ODEtODgwZC1lZjVlYzAwY2Y4NDIifQ.")
+        token1.authenticationHolder = mockedAuthHolder1
 
-		OAuth2RefreshTokenEntity token1 = new OAuth2RefreshTokenEntity();
-		token1.setId(1L);
-		token1.setClient(mockedClient1);
-		token1.setExpiration(expirationDate1);
-		token1.setJwt(JWTParser.parse("eyJhbGciOiJub25lIn0.eyJqdGkiOiJmOTg4OWQyOS0xMTk1LTQ4ODEtODgwZC1lZjVlYzAwY2Y4NDIifQ."));
-		token1.setAuthenticationHolder(mockedAuthHolder1);
+        val expirationDate2 = formatter.parse("2015-01-07T18:31:50.079+00:00", Locale.ENGLISH)
 
-		Date expirationDate2 = formatter.parse("2015-01-07T18:31:50.079+00:00", Locale.ENGLISH);
+        val mockedClient2 = Mockito.mock(ClientDetailsEntity::class.java)
+        whenever(mockedClient2.clientId).thenReturn("mocked_client_2")
 
-		ClientDetailsEntity mockedClient2 = mock(ClientDetailsEntity.class);
-		when(mockedClient2.getClientId()).thenReturn("mocked_client_2");
+        val mockedAuthHolder2 = Mockito.mock(AuthenticationHolderEntity::class.java)
 
-		AuthenticationHolderEntity mockedAuthHolder2 = mock(AuthenticationHolderEntity.class);
-		// unused by mockito (causs unnecessary stubbing exception
+        // unused by mockito (causs unnecessary stubbing exception
 //		when(mockedAuthHolder2.getId()).thenReturn(2L);
+        val token2 = OAuth2RefreshTokenEntity()
+        token2.id = 2L
+        token2.client = mockedClient2
+        token2.expiration = expirationDate2
+        token2.jwt =
+            JWTParser.parse("eyJhbGciOiJub25lIn0.eyJqdGkiOiJlYmEyYjc3My0xNjAzLTRmNDAtOWQ3MS1hMGIxZDg1OWE2MDAifQ.")
+        token2.authenticationHolder = mockedAuthHolder2
 
-		OAuth2RefreshTokenEntity token2 = new OAuth2RefreshTokenEntity();
-		token2.setId(2L);
-		token2.setClient(mockedClient2);
-		token2.setExpiration(expirationDate2);
-		token2.setJwt(JWTParser.parse("eyJhbGciOiJub25lIn0.eyJqdGkiOiJlYmEyYjc3My0xNjAzLTRmNDAtOWQ3MS1hMGIxZDg1OWE2MDAifQ."));
-		token2.setAuthenticationHolder(mockedAuthHolder2);
+        val configJson = ("{" +
+                "\"" + MITREidDataService.SYSTEMSCOPES + "\": [], " +
+                "\"" + MITREidDataService.ACCESSTOKENS + "\": [], " +
+                "\"" + MITREidDataService.CLIENTS + "\": [], " +
+                "\"" + MITREidDataService.GRANTS + "\": [], " +
+                "\"" + MITREidDataService.WHITELISTEDSITES + "\": [], " +
+                "\"" + MITREidDataService.BLACKLISTEDSITES + "\": [], " +
+                "\"" + MITREidDataService.AUTHENTICATIONHOLDERS + "\": [], " +
+                "\"" + MITREidDataService.REFRESHTOKENS + "\": [" +
+                "{\"id\":1,\"clientId\":\"mocked_client_1\",\"expiration\":\"2014-09-10T22:49:44.090+00:00\","
+                + "\"authenticationHolderId\":1,\"value\":\"eyJhbGciOiJub25lIn0.eyJqdGkiOiJmOTg4OWQyOS0xMTk1LTQ4ODEtODgwZC1lZjVlYzAwY2Y4NDIifQ.\"}," +
+                "{\"id\":2,\"clientId\":\"mocked_client_2\",\"expiration\":\"2015-01-07T18:31:50.079+00:00\","
+                + "\"authenticationHolderId\":2,\"value\":\"eyJhbGciOiJub25lIn0.eyJqdGkiOiJlYmEyYjc3My0xNjAzLTRmNDAtOWQ3MS1hMGIxZDg1OWE2MDAifQ.\"}" +
+                "  ]" +
+                "}")
 
-		String configJson = "{" +
-				"\"" + MITREidDataService.SYSTEMSCOPES + "\": [], " +
-				"\"" + MITREidDataService.ACCESSTOKENS + "\": [], " +
-				"\"" + MITREidDataService.CLIENTS + "\": [], " +
-				"\"" + MITREidDataService.GRANTS + "\": [], " +
-				"\"" + MITREidDataService.WHITELISTEDSITES + "\": [], " +
-				"\"" + MITREidDataService.BLACKLISTEDSITES + "\": [], " +
-				"\"" + MITREidDataService.AUTHENTICATIONHOLDERS + "\": [], " +
-				"\"" + MITREidDataService.REFRESHTOKENS + "\": [" +
+        System.err.println(configJson)
+        val reader = JsonReader(StringReader(configJson))
 
-				"{\"id\":1,\"clientId\":\"mocked_client_1\",\"expiration\":\"2014-09-10T22:49:44.090+00:00\","
-				+ "\"authenticationHolderId\":1,\"value\":\"eyJhbGciOiJub25lIn0.eyJqdGkiOiJmOTg4OWQyOS0xMTk1LTQ4ODEtODgwZC1lZjVlYzAwY2Y4NDIifQ.\"}," +
-				"{\"id\":2,\"clientId\":\"mocked_client_2\",\"expiration\":\"2015-01-07T18:31:50.079+00:00\","
-				+ "\"authenticationHolderId\":2,\"value\":\"eyJhbGciOiJub25lIn0.eyJqdGkiOiJlYmEyYjc3My0xNjAzLTRmNDAtOWQ3MS1hMGIxZDg1OWE2MDAifQ.\"}" +
-
-				"  ]" +
-				"}";
-
-		System.err.println(configJson);
-		JsonReader reader = new JsonReader(new StringReader(configJson));
-
-		final Map<Long, OAuth2RefreshTokenEntity> fakeDb = new HashMap<>();
-		when(tokenRepository.saveRefreshToken(isA(OAuth2RefreshTokenEntity.class))).thenAnswer(new Answer<OAuth2RefreshTokenEntity>() {
-			Long id = 343L;
-			@Override
-			public OAuth2RefreshTokenEntity answer(InvocationOnMock invocation) throws Throwable {
-				OAuth2RefreshTokenEntity _token = (OAuth2RefreshTokenEntity) invocation.getArguments()[0];
-				if(_token.getId() == null) {
-					_token.setId(id++);
-				}
-				fakeDb.put(_token.getId(), _token);
-				return _token;
-			}
-		});
-		when(tokenRepository.getRefreshTokenById(anyLong())).thenAnswer(new Answer<OAuth2RefreshTokenEntity>() {
-			@Override
-			public OAuth2RefreshTokenEntity answer(InvocationOnMock invocation) throws Throwable {
-				Long _id = (Long) invocation.getArguments()[0];
-				return fakeDb.get(_id);
-			}
-		});
-		when(clientRepository.getClientByClientId(anyString())).thenAnswer(new Answer<ClientDetailsEntity>() {
-			@Override
-			public ClientDetailsEntity answer(InvocationOnMock invocation) throws Throwable {
-				String _clientId = (String) invocation.getArguments()[0];
-				ClientDetailsEntity _client = mock(ClientDetailsEntity.class);
-				when(_client.getClientId()).thenReturn(_clientId);
-				return _client;
-			}
-		});
-		when(authHolderRepository.getById(isNull(Long.class))).thenAnswer(new Answer<AuthenticationHolderEntity>() {
-			Long id = 678L;
-			@Override
-			public AuthenticationHolderEntity answer(InvocationOnMock invocation) throws Throwable {
-				AuthenticationHolderEntity _auth = mock(AuthenticationHolderEntity.class);
-				// unused by mockito (causs unnecessary stubbing exception
+        val fakeDb: MutableMap<Long, OAuth2RefreshTokenEntity> = HashMap()
+        whenever(tokenRepository.saveRefreshToken(isA<OAuth2RefreshTokenEntity>()))
+            .thenAnswer(object : Answer<OAuth2RefreshTokenEntity> {
+                var id: Long = 343L
+                @Throws(Throwable::class)
+                override fun answer(invocation: InvocationOnMock): OAuth2RefreshTokenEntity {
+                    val _token = invocation.arguments[0] as OAuth2RefreshTokenEntity
+                    val id: Long = _token.id ?: (id++).also { _token.id = it }
+                    fakeDb[id] = _token
+                    return _token
+                }
+            })
+        whenever(tokenRepository.getRefreshTokenById(isA())).thenAnswer { invocation ->
+            val _id = invocation.arguments[0] as Long
+            fakeDb[_id]
+        }
+        whenever(clientRepository.getClientByClientId(ArgumentMatchers.anyString())).thenAnswer { invocation ->
+            val _clientId = invocation.arguments[0] as String
+            val _client = Mockito.mock(ClientDetailsEntity::class.java)
+            whenever(_client.clientId).thenReturn(_clientId)
+            _client
+        }
+        whenever(authHolderRepository.getById(ArgumentMatchers.isNull(Long::class.java)))
+            .thenAnswer(object : Answer<AuthenticationHolderEntity> {
+                var id: Long = 678L
+                @Throws(Throwable::class)
+                override fun answer(invocation: InvocationOnMock): AuthenticationHolderEntity {
+                    val _auth = Mockito.mock(AuthenticationHolderEntity::class.java)
+                    // unused by mockito (causs unnecessary stubbing exception
 //				when(_auth.getId()).thenReturn(id);
-				id++;
-				return _auth;
-			}
-		});
-		dataService.importData(reader);
-		//2 times for token, 2 times to update client, 2 times to update authHolder
-		verify(tokenRepository, times(6)).saveRefreshToken(capturedRefreshTokens.capture());
+                    id++
+                    return _auth
+                }
+            })
+        dataService.importData(reader)
+        //2 times for token, 2 times to update client, 2 times to update authHolder
+        Mockito.verify(tokenRepository, Mockito.times(6)).saveRefreshToken(capture(capturedRefreshTokens))
 
-		List<OAuth2RefreshTokenEntity> savedRefreshTokens = new ArrayList(fakeDb.values()); //capturedRefreshTokens.getAllValues();
-		Collections.sort(savedRefreshTokens, new refreshTokenIdComparator());
+        val savedRefreshTokens: List<OAuth2RefreshTokenEntity> = fakeDb.values.sortedWith(refreshTokenIdComparator())
+            //capturedRefreshTokens.getAllValues();
 
-		assertThat(savedRefreshTokens.size(), is(2));
+        Collections.sort(savedRefreshTokens, refreshTokenIdComparator())
 
-		assertThat(savedRefreshTokens.get(0).getClient().getClientId(), equalTo(token1.getClient().getClientId()));
-		assertThat(savedRefreshTokens.get(0).getExpiration(), equalTo(token1.getExpiration()));
-		assertThat(savedRefreshTokens.get(0).getValue(), equalTo(token1.getValue()));
+        Assert.assertThat(savedRefreshTokens.size, CoreMatchers.`is`(2))
 
-		assertThat(savedRefreshTokens.get(1).getClient().getClientId(), equalTo(token2.getClient().getClientId()));
-		assertThat(savedRefreshTokens.get(1).getExpiration(), equalTo(token2.getExpiration()));
-		assertThat(savedRefreshTokens.get(1).getValue(), equalTo(token2.getValue()));
-	}
+        Assert.assertThat(savedRefreshTokens[0].client!!.clientId, CoreMatchers.equalTo(token1.client!!.clientId))
+        Assert.assertThat(savedRefreshTokens[0].expiration, CoreMatchers.equalTo(token1.expiration))
+        Assert.assertThat(
+            savedRefreshTokens[0].value, CoreMatchers.equalTo(token1.value)
+        )
 
-	private class accessTokenIdComparator implements Comparator<OAuth2AccessTokenEntity>  {
-		@Override
-		public int compare(OAuth2AccessTokenEntity entity1, OAuth2AccessTokenEntity entity2) {
-			return entity1.getId().compareTo(entity2.getId());
-		}
-	}
+        Assert.assertThat(savedRefreshTokens[1].client!!.clientId, CoreMatchers.equalTo(token2.client!!.clientId))
+        Assert.assertThat(savedRefreshTokens[1].expiration, CoreMatchers.equalTo(token2.expiration))
+        Assert.assertThat(
+            savedRefreshTokens[1].value, CoreMatchers.equalTo(token2.value)
+        )
+    }
 
-	@Test
-	public void testImportAccessTokens() throws IOException, ParseException {
-		Date expirationDate1 = formatter.parse("2014-09-10T22:49:44.090+00:00", Locale.ENGLISH);
+    private inner class accessTokenIdComparator : Comparator<OAuth2AccessTokenEntity> {
+        override fun compare(entity1: OAuth2AccessTokenEntity, entity2: OAuth2AccessTokenEntity): Int {
+            return entity1.id!!.compareTo(entity2.id!!)
+        }
+    }
 
-		ClientDetailsEntity mockedClient1 = mock(ClientDetailsEntity.class);
-		when(mockedClient1.getClientId()).thenReturn("mocked_client_1");
+    @Test
+    @Throws(IOException::class, ParseException::class)
+    fun testImportAccessTokens() {
+        val expirationDate1 = formatter.parse("2014-09-10T22:49:44.090+00:00", Locale.ENGLISH)
 
-		AuthenticationHolderEntity mockedAuthHolder1 = mock(AuthenticationHolderEntity.class);
-		// unused by mockito (causs unnecessary stubbing exception
+        val mockedClient1 = Mockito.mock(ClientDetailsEntity::class.java)
+        whenever(mockedClient1.clientId).thenReturn("mocked_client_1")
+
+        val mockedAuthHolder1 = Mockito.mock(AuthenticationHolderEntity::class.java)
+
+        // unused by mockito (causs unnecessary stubbing exception
 //		when(mockedAuthHolder1.getId()).thenReturn(1L);
+        val token1 = OAuth2AccessTokenEntity()
+        token1.id = 1L
+        token1.client = mockedClient1
+        token1.expiration = expirationDate1
+        token1.jwt =
+            JWTParser.parse("eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0MTI3ODk5NjgsInN1YiI6IjkwMzQyLkFTREZKV0ZBIiwiYXRfaGFzaCI6InptTmt1QmNRSmNYQktNaVpFODZqY0EiLCJhdWQiOlsiY2xpZW50Il0sImlzcyI6Imh0dHA6XC9cL2xvY2FsaG9zdDo4MDgwXC9vcGVuaWQtY29ubmVjdC1zZXJ2ZXItd2ViYXBwXC8iLCJpYXQiOjE0MTI3ODkzNjh9.xkEJ9IMXpH7qybWXomfq9WOOlpGYnrvGPgey9UQ4GLzbQx7JC0XgJK83PmrmBZosvFPCmota7FzI_BtwoZLgAZfFiH6w3WIlxuogoH-TxmYbxEpTHoTsszZppkq9mNgOlArV4jrR9y3TPo4MovsH71dDhS_ck-CvAlJunHlqhs0")
+        token1.authenticationHolder = mockedAuthHolder1
+        token1.scope = ImmutableSet.of("id-token")
+        token1.tokenType = "Bearer"
 
-		OAuth2AccessTokenEntity token1 = new OAuth2AccessTokenEntity();
-		token1.setId(1L);
-		token1.setClient(mockedClient1);
-		token1.setExpiration(expirationDate1);
-		token1.setJwt(JWTParser.parse("eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0MTI3ODk5NjgsInN1YiI6IjkwMzQyLkFTREZKV0ZBIiwiYXRfaGFzaCI6InptTmt1QmNRSmNYQktNaVpFODZqY0EiLCJhdWQiOlsiY2xpZW50Il0sImlzcyI6Imh0dHA6XC9cL2xvY2FsaG9zdDo4MDgwXC9vcGVuaWQtY29ubmVjdC1zZXJ2ZXItd2ViYXBwXC8iLCJpYXQiOjE0MTI3ODkzNjh9.xkEJ9IMXpH7qybWXomfq9WOOlpGYnrvGPgey9UQ4GLzbQx7JC0XgJK83PmrmBZosvFPCmota7FzI_BtwoZLgAZfFiH6w3WIlxuogoH-TxmYbxEpTHoTsszZppkq9mNgOlArV4jrR9y3TPo4MovsH71dDhS_ck-CvAlJunHlqhs0"));
-		token1.setAuthenticationHolder(mockedAuthHolder1);
-		token1.setScope(ImmutableSet.of("id-token"));
-		token1.setTokenType("Bearer");
+        val expiration2 = "2015-01-07T18:31:50.079+00:00"
+        val expirationDate2 = formatter.parse(expiration2, Locale.ENGLISH)
 
-		String expiration2 = "2015-01-07T18:31:50.079+00:00";
-		Date expirationDate2 = formatter.parse(expiration2, Locale.ENGLISH);
+        val mockedClient2 = Mockito.mock(ClientDetailsEntity::class.java)
+        whenever(mockedClient2.clientId).thenReturn("mocked_client_2")
 
-		ClientDetailsEntity mockedClient2 = mock(ClientDetailsEntity.class);
-		when(mockedClient2.getClientId()).thenReturn("mocked_client_2");
+        val mockedAuthHolder2 = Mockito.mock(AuthenticationHolderEntity::class.java)
 
-		AuthenticationHolderEntity mockedAuthHolder2 = mock(AuthenticationHolderEntity.class);
-		// unused by mockito (causs unnecessary stubbing exception
+        // unused by mockito (causs unnecessary stubbing exception
 //		when(mockedAuthHolder2.getId()).thenReturn(2L);
+        val mockRefreshToken2 = Mockito.mock(OAuth2RefreshTokenEntity::class.java)
 
-		OAuth2RefreshTokenEntity mockRefreshToken2 = mock(OAuth2RefreshTokenEntity.class);
-		// unused by mockito (causs unnecessary stubbing exception
+        // unused by mockito (causs unnecessary stubbing exception
 //		when(mockRefreshToken2.getId()).thenReturn(1L);
+        val token2 = OAuth2AccessTokenEntity()
+        token2.id = 2L
+        token2.client = mockedClient2
+        token2.expiration = expirationDate2
+        token2.jwt =
+            JWTParser.parse("eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0MTI3OTI5NjgsImF1ZCI6WyJjbGllbnQiXSwiaXNzIjoiaHR0cDpcL1wvbG9jYWxob3N0OjgwODBcL29wZW5pZC1jb25uZWN0LXNlcnZlci13ZWJhcHBcLyIsImp0aSI6IjBmZGE5ZmRiLTYyYzItNGIzZS05OTdiLWU0M2VhMDUwMzNiOSIsImlhdCI6MTQxMjc4OTM2OH0.xgaVpRLYE5MzbgXfE0tZt823tjAm6Oh3_kdR1P2I9jRLR6gnTlBQFlYi3Y_0pWNnZSerbAE8Tn6SJHZ9k-curVG0-ByKichV7CNvgsE5X_2wpEaUzejvKf8eZ-BammRY-ie6yxSkAarcUGMvGGOLbkFcz5CtrBpZhfd75J49BIQ")
+        token2.authenticationHolder = mockedAuthHolder2
+        token2.refreshToken = mockRefreshToken2
+        token2.scope = ImmutableSet.of("openid", "offline_access", "email", "profile")
+        token2.tokenType = "Bearer"
 
-		OAuth2AccessTokenEntity token2 = new OAuth2AccessTokenEntity();
-		token2.setId(2L);
-		token2.setClient(mockedClient2);
-		token2.setExpiration(expirationDate2);
-		token2.setJwt(JWTParser.parse("eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0MTI3OTI5NjgsImF1ZCI6WyJjbGllbnQiXSwiaXNzIjoiaHR0cDpcL1wvbG9jYWxob3N0OjgwODBcL29wZW5pZC1jb25uZWN0LXNlcnZlci13ZWJhcHBcLyIsImp0aSI6IjBmZGE5ZmRiLTYyYzItNGIzZS05OTdiLWU0M2VhMDUwMzNiOSIsImlhdCI6MTQxMjc4OTM2OH0.xgaVpRLYE5MzbgXfE0tZt823tjAm6Oh3_kdR1P2I9jRLR6gnTlBQFlYi3Y_0pWNnZSerbAE8Tn6SJHZ9k-curVG0-ByKichV7CNvgsE5X_2wpEaUzejvKf8eZ-BammRY-ie6yxSkAarcUGMvGGOLbkFcz5CtrBpZhfd75J49BIQ"));
-		token2.setAuthenticationHolder(mockedAuthHolder2);
-		token2.setRefreshToken(mockRefreshToken2);
-		token2.setScope(ImmutableSet.of("openid", "offline_access", "email", "profile"));
-		token2.setTokenType("Bearer");
-
-		String configJson = "{" +
-				"\"" + MITREidDataService.SYSTEMSCOPES + "\": [], " +
-				"\"" + MITREidDataService.REFRESHTOKENS + "\": [], " +
-				"\"" + MITREidDataService.CLIENTS + "\": [], " +
-				"\"" + MITREidDataService.GRANTS + "\": [], " +
-				"\"" + MITREidDataService.WHITELISTEDSITES + "\": [], " +
-				"\"" + MITREidDataService.BLACKLISTEDSITES + "\": [], " +
-				"\"" + MITREidDataService.AUTHENTICATIONHOLDERS + "\": [], " +
-				"\"" + MITREidDataService.ACCESSTOKENS + "\": [" +
-
-				"{\"id\":1,\"clientId\":\"mocked_client_1\",\"expiration\":\"2014-09-10T22:49:44.090+00:00\","
-				+ "\"refreshTokenId\":null,\"idTokenId\":null,\"scope\":[\"id-token\"],\"type\":\"Bearer\","
-				+ "\"authenticationHolderId\":1,\"value\":\"eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0MTI3ODk5NjgsInN1YiI6IjkwMzQyLkFTREZKV0ZBIiwiYXRfaGFzaCI6InptTmt1QmNRSmNYQktNaVpFODZqY0EiLCJhdWQiOlsiY2xpZW50Il0sImlzcyI6Imh0dHA6XC9cL2xvY2FsaG9zdDo4MDgwXC9vcGVuaWQtY29ubmVjdC1zZXJ2ZXItd2ViYXBwXC8iLCJpYXQiOjE0MTI3ODkzNjh9.xkEJ9IMXpH7qybWXomfq9WOOlpGYnrvGPgey9UQ4GLzbQx7JC0XgJK83PmrmBZosvFPCmota7FzI_BtwoZLgAZfFiH6w3WIlxuogoH-TxmYbxEpTHoTsszZppkq9mNgOlArV4jrR9y3TPo4MovsH71dDhS_ck-CvAlJunHlqhs0\"}," +
-				"{\"id\":2,\"clientId\":\"mocked_client_2\",\"expiration\":\"2015-01-07T18:31:50.079+00:00\","
-				+ "\"refreshTokenId\":1,\"idTokenId\":1,\"scope\":[\"openid\",\"offline_access\",\"email\",\"profile\"],\"type\":\"Bearer\","
-				+ "\"authenticationHolderId\":2,\"value\":\"eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0MTI3OTI5NjgsImF1ZCI6WyJjbGllbnQiXSwiaXNzIjoiaHR0cDpcL1wvbG9jYWxob3N0OjgwODBcL29wZW5pZC1jb25uZWN0LXNlcnZlci13ZWJhcHBcLyIsImp0aSI6IjBmZGE5ZmRiLTYyYzItNGIzZS05OTdiLWU0M2VhMDUwMzNiOSIsImlhdCI6MTQxMjc4OTM2OH0.xgaVpRLYE5MzbgXfE0tZt823tjAm6Oh3_kdR1P2I9jRLR6gnTlBQFlYi3Y_0pWNnZSerbAE8Tn6SJHZ9k-curVG0-ByKichV7CNvgsE5X_2wpEaUzejvKf8eZ-BammRY-ie6yxSkAarcUGMvGGOLbkFcz5CtrBpZhfd75J49BIQ\"}" +
-
-				"  ]" +
-				"}";
+        val configJson = ("{" +
+                "\"" + MITREidDataService.SYSTEMSCOPES + "\": [], " +
+                "\"" + MITREidDataService.REFRESHTOKENS + "\": [], " +
+                "\"" + MITREidDataService.CLIENTS + "\": [], " +
+                "\"" + MITREidDataService.GRANTS + "\": [], " +
+                "\"" + MITREidDataService.WHITELISTEDSITES + "\": [], " +
+                "\"" + MITREidDataService.BLACKLISTEDSITES + "\": [], " +
+                "\"" + MITREidDataService.AUTHENTICATIONHOLDERS + "\": [], " +
+                "\"" + MITREidDataService.ACCESSTOKENS + "\": [" +
+                "{\"id\":1,\"clientId\":\"mocked_client_1\",\"expiration\":\"2014-09-10T22:49:44.090+00:00\","
+                + "\"refreshTokenId\":null,\"idTokenId\":null,\"scope\":[\"id-token\"],\"type\":\"Bearer\","
+                + "\"authenticationHolderId\":1,\"value\":\"eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0MTI3ODk5NjgsInN1YiI6IjkwMzQyLkFTREZKV0ZBIiwiYXRfaGFzaCI6InptTmt1QmNRSmNYQktNaVpFODZqY0EiLCJhdWQiOlsiY2xpZW50Il0sImlzcyI6Imh0dHA6XC9cL2xvY2FsaG9zdDo4MDgwXC9vcGVuaWQtY29ubmVjdC1zZXJ2ZXItd2ViYXBwXC8iLCJpYXQiOjE0MTI3ODkzNjh9.xkEJ9IMXpH7qybWXomfq9WOOlpGYnrvGPgey9UQ4GLzbQx7JC0XgJK83PmrmBZosvFPCmota7FzI_BtwoZLgAZfFiH6w3WIlxuogoH-TxmYbxEpTHoTsszZppkq9mNgOlArV4jrR9y3TPo4MovsH71dDhS_ck-CvAlJunHlqhs0\"}," +
+                "{\"id\":2,\"clientId\":\"mocked_client_2\",\"expiration\":\"2015-01-07T18:31:50.079+00:00\","
+                + "\"refreshTokenId\":1,\"idTokenId\":1,\"scope\":[\"openid\",\"offline_access\",\"email\",\"profile\"],\"type\":\"Bearer\","
+                + "\"authenticationHolderId\":2,\"value\":\"eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0MTI3OTI5NjgsImF1ZCI6WyJjbGllbnQiXSwiaXNzIjoiaHR0cDpcL1wvbG9jYWxob3N0OjgwODBcL29wZW5pZC1jb25uZWN0LXNlcnZlci13ZWJhcHBcLyIsImp0aSI6IjBmZGE5ZmRiLTYyYzItNGIzZS05OTdiLWU0M2VhMDUwMzNiOSIsImlhdCI6MTQxMjc4OTM2OH0.xgaVpRLYE5MzbgXfE0tZt823tjAm6Oh3_kdR1P2I9jRLR6gnTlBQFlYi3Y_0pWNnZSerbAE8Tn6SJHZ9k-curVG0-ByKichV7CNvgsE5X_2wpEaUzejvKf8eZ-BammRY-ie6yxSkAarcUGMvGGOLbkFcz5CtrBpZhfd75J49BIQ\"}" +
+                "  ]" +
+                "}")
 
 
-		System.err.println(configJson);
+        System.err.println(configJson)
 
-		JsonReader reader = new JsonReader(new StringReader(configJson));
+        val reader = JsonReader(StringReader(configJson))
 
-		final Map<Long, OAuth2AccessTokenEntity> fakeDb = new HashMap<>();
-		when(tokenRepository.saveAccessToken(isA(OAuth2AccessTokenEntity.class))).thenAnswer(new Answer<OAuth2AccessTokenEntity>() {
-			Long id = 343L;
-			@Override
-			public OAuth2AccessTokenEntity answer(InvocationOnMock invocation) throws Throwable {
-				OAuth2AccessTokenEntity _token = (OAuth2AccessTokenEntity) invocation.getArguments()[0];
-				if(_token.getId() == null) {
-					_token.setId(id++);
-				}
-				fakeDb.put(_token.getId(), _token);
-				return _token;
-			}
-		});
-		when(tokenRepository.getAccessTokenById(anyLong())).thenAnswer(new Answer<OAuth2AccessTokenEntity>() {
-			@Override
-			public OAuth2AccessTokenEntity answer(InvocationOnMock invocation) throws Throwable {
-				Long _id = (Long) invocation.getArguments()[0];
-				return fakeDb.get(_id);
-			}
-		});
-		when(clientRepository.getClientByClientId(anyString())).thenAnswer(new Answer<ClientDetailsEntity>() {
-			@Override
-			public ClientDetailsEntity answer(InvocationOnMock invocation) throws Throwable {
-				String _clientId = (String) invocation.getArguments()[0];
-				ClientDetailsEntity _client = mock(ClientDetailsEntity.class);
-				when(_client.getClientId()).thenReturn(_clientId);
-				return _client;
-			}
-		});
-		when(authHolderRepository.getById(ArgumentMatchers.argThat((x) -> true))).thenAnswer(new Answer<AuthenticationHolderEntity>() {
-			Long id = 234L;
-			@Override
-			public AuthenticationHolderEntity answer(InvocationOnMock invocation) throws Throwable {
-				AuthenticationHolderEntity _auth = mock(AuthenticationHolderEntity.class);
-				// unused by mockito (causs unnecessary stubbing exception
+        val fakeDb: MutableMap<Long, OAuth2AccessTokenEntity> = HashMap()
+        whenever<OAuth2AccessTokenEntity>(tokenRepository.saveAccessToken(isA<OAuth2AccessTokenEntity>()))
+            .thenAnswer(object : Answer<OAuth2AccessTokenEntity> {
+                var id: Long = 343L
+                @Throws(Throwable::class)
+                override fun answer(invocation: InvocationOnMock): OAuth2AccessTokenEntity {
+                    val _token = invocation.arguments[0] as OAuth2AccessTokenEntity
+                    val id = _token.id ?: (id++).also { _token.id = it }
+                    fakeDb[id] = _token
+                    return _token
+                }
+            })
+        whenever(tokenRepository.getAccessTokenById(isA())).thenAnswer { invocation ->
+            val _id = invocation.arguments[0] as Long
+            fakeDb[_id]
+        }
+        whenever(clientRepository.getClientByClientId(ArgumentMatchers.anyString())).thenAnswer { invocation ->
+            val _clientId = invocation.arguments[0] as String
+            val _client = Mockito.mock(ClientDetailsEntity::class.java)
+            whenever(_client.clientId).thenReturn(_clientId)
+            _client
+        }
+        whenever(authHolderRepository.getById(ArgumentMatchers.argThat { x: Long? -> true }))
+            .thenAnswer(object : Answer<AuthenticationHolderEntity> {
+                var id: Long = 234L
+                @Throws(Throwable::class)
+                override fun answer(invocation: InvocationOnMock): AuthenticationHolderEntity {
+                    val _auth = Mockito.mock(AuthenticationHolderEntity::class.java)
+                    // unused by mockito (causs unnecessary stubbing exception
 //				when(_auth.getId()).thenReturn(id);
-				id++;
-				return _auth;
-			}
-		});
-		maps.getAuthHolderOldToNewIdMap().put(1L, 401L);
-		maps.getAuthHolderOldToNewIdMap().put(1L, 403L);
-		maps.getRefreshTokenOldToNewIdMap().put(1L, 402L);
-		dataService.importData(reader);
-		//2 times for token, 2 times to update client, 2 times to update authHolder, 1 times to update refresh token
-		verify(tokenRepository, times(7)).saveAccessToken(capturedAccessTokens.capture());
+                    id++
+                    return _auth
+                }
+            })
+        maps.authHolderOldToNewIdMap[1L] = 401L
+        maps.authHolderOldToNewIdMap[1L] = 403L
+        maps.refreshTokenOldToNewIdMap[1L] = 402L
+        dataService.importData(reader)
+        //2 times for token, 2 times to update client, 2 times to update authHolder, 1 times to update refresh token
+        Mockito.verify(tokenRepository, Mockito.times(7)).saveAccessToken(capture(capturedAccessTokens))
 
-		List<OAuth2AccessTokenEntity> savedAccessTokens = new ArrayList(fakeDb.values()); //capturedAccessTokens.getAllValues();
-		Collections.sort(savedAccessTokens, new accessTokenIdComparator());
+        val savedAccessTokens: List<OAuth2AccessTokenEntity> =fakeDb.values.toList()
+        Collections.sort(savedAccessTokens, accessTokenIdComparator())
 
-		assertThat(savedAccessTokens.size(), is(2));
+        Assert.assertThat(savedAccessTokens.size, CoreMatchers.`is`(2))
 
-		assertThat(savedAccessTokens.get(0).getClient().getClientId(), equalTo(token1.getClient().getClientId()));
-		assertThat(savedAccessTokens.get(0).getExpiration(), equalTo(token1.getExpiration()));
-		assertThat(savedAccessTokens.get(0).getValue(), equalTo(token1.getValue()));
+        Assert.assertThat(savedAccessTokens[0].client!!.clientId, CoreMatchers.equalTo(token1.client!!.clientId))
+        Assert.assertThat(
+            savedAccessTokens[0].expiration, CoreMatchers.equalTo(token1.expiration)
+        )
+        Assert.assertThat(
+            savedAccessTokens[0].value, CoreMatchers.equalTo(token1.value)
+        )
 
-		assertThat(savedAccessTokens.get(1).getClient().getClientId(), equalTo(token2.getClient().getClientId()));
-		assertThat(savedAccessTokens.get(1).getExpiration(), equalTo(token2.getExpiration()));
-		assertThat(savedAccessTokens.get(1).getValue(), equalTo(token2.getValue()));
-	}
-
-
-	//several new client fields added in 1.1, perhaps additional tests for these should be added
-	@Test
-	public void testImportClients() throws IOException {
-		ClientDetailsEntity client1 = new ClientDetailsEntity();
-		client1.setId(1L);
-		client1.setAccessTokenValiditySeconds(3600);
-		client1.setClientId("client1");
-		client1.setClientSecret("clientsecret1");
-		client1.setRedirectUris(ImmutableSet.of("http://foo.com/"));
-		client1.setScope(ImmutableSet.of("foo", "bar", "baz", "dolphin"));
-		client1.setGrantTypes(ImmutableSet.of("implicit", "authorization_code", "urn:ietf:params:oauth:grant_type:redelegate", "refresh_token"));
-		client1.setAllowIntrospection(true);
-
-		ClientDetailsEntity client2 = new ClientDetailsEntity();
-		client2.setId(2L);
-		client2.setAccessTokenValiditySeconds(3600);
-		client2.setClientId("client2");
-		client2.setClientSecret("clientsecret2");
-		client2.setRedirectUris(ImmutableSet.of("http://bar.baz.com/"));
-		client2.setScope(ImmutableSet.of("foo", "dolphin", "electric-wombat"));
-		client2.setGrantTypes(ImmutableSet.of("client_credentials", "urn:ietf:params:oauth:grant_type:redelegate"));
-		client2.setAllowIntrospection(false);
-
-		String configJson = "{" +
-				"\"" + MITREidDataService.SYSTEMSCOPES + "\": [], " +
-				"\"" + MITREidDataService.ACCESSTOKENS + "\": [], " +
-				"\"" + MITREidDataService.REFRESHTOKENS + "\": [], " +
-				"\"" + MITREidDataService.GRANTS + "\": [], " +
-				"\"" + MITREidDataService.WHITELISTEDSITES + "\": [], " +
-				"\"" + MITREidDataService.BLACKLISTEDSITES + "\": [], " +
-				"\"" + MITREidDataService.AUTHENTICATIONHOLDERS + "\": [], " +
-				"\"" + MITREidDataService.CLIENTS + "\": [" +
-
-				"{\"id\":1,\"accessTokenValiditySeconds\":3600,\"clientId\":\"client1\",\"secret\":\"clientsecret1\","
-				+ "\"redirectUris\":[\"http://foo.com/\"],"
-				+ "\"scope\":[\"foo\",\"bar\",\"baz\",\"dolphin\"],"
-				+ "\"grantTypes\":[\"implicit\",\"authorization_code\",\"urn:ietf:params:oauth:grant_type:redelegate\",\"refresh_token\"],"
-				+ "\"allowIntrospection\":true}," +
-				"{\"id\":2,\"accessTokenValiditySeconds\":3600,\"clientId\":\"client2\",\"secret\":\"clientsecret2\","
-				+ "\"redirectUris\":[\"http://bar.baz.com/\"],"
-				+ "\"scope\":[\"foo\",\"dolphin\",\"electric-wombat\"],"
-				+ "\"grantTypes\":[\"client_credentials\",\"urn:ietf:params:oauth:grant_type:redelegate\"],"
-				+ "\"allowIntrospection\":false}" +
-
-				"  ]" +
-				"}";
-
-		System.err.println(configJson);
-
-		JsonReader reader = new JsonReader(new StringReader(configJson));
-
-		dataService.importData(reader);
-		verify(clientRepository, times(2)).saveClient(capturedClients.capture());
-
-		List<ClientDetailsEntity> savedClients = capturedClients.getAllValues();
-
-		assertThat(savedClients.size(), is(2));
-
-		assertThat(savedClients.get(0).getAccessTokenValiditySeconds(), equalTo(client1.getAccessTokenValiditySeconds()));
-		assertThat(savedClients.get(0).getClientId(), equalTo(client1.getClientId()));
-		assertThat(savedClients.get(0).getClientSecret(), equalTo(client1.getClientSecret()));
-		assertThat(savedClients.get(0).getRedirectUris(), equalTo(client1.getRedirectUris()));
-		assertThat(savedClients.get(0).getScope(), equalTo(client1.getScope()));
-		assertThat(savedClients.get(0).getGrantTypes(), equalTo(client1.getGrantTypes()));
-		assertThat(savedClients.get(0).isAllowIntrospection(), equalTo(client1.isAllowIntrospection()));
-
-		assertThat(savedClients.get(1).getAccessTokenValiditySeconds(), equalTo(client2.getAccessTokenValiditySeconds()));
-		assertThat(savedClients.get(1).getClientId(), equalTo(client2.getClientId()));
-		assertThat(savedClients.get(1).getClientSecret(), equalTo(client2.getClientSecret()));
-		assertThat(savedClients.get(1).getRedirectUris(), equalTo(client2.getRedirectUris()));
-		assertThat(savedClients.get(1).getScope(), equalTo(client2.getScope()));
-		assertThat(savedClients.get(1).getGrantTypes(), equalTo(client2.getGrantTypes()));
-		assertThat(savedClients.get(1).isAllowIntrospection(), equalTo(client2.isAllowIntrospection()));
-	}
-
-	@Test
-	public void testImportBlacklistedSites() throws IOException {
-		BlacklistedSite site1 = new BlacklistedSite();
-		site1.setId(1L);
-		site1.setUri("http://foo.com");
-
-		BlacklistedSite site2 = new BlacklistedSite();
-		site2.setId(2L);
-		site2.setUri("http://bar.com");
-
-		BlacklistedSite site3 = new BlacklistedSite();
-		site3.setId(3L);
-		site3.setUri("http://baz.com");
-
-		String configJson = "{" +
-				"\"" + MITREidDataService.CLIENTS + "\": [], " +
-				"\"" + MITREidDataService.ACCESSTOKENS + "\": [], " +
-				"\"" + MITREidDataService.REFRESHTOKENS + "\": [], " +
-				"\"" + MITREidDataService.GRANTS + "\": [], " +
-				"\"" + MITREidDataService.WHITELISTEDSITES + "\": [], " +
-				"\"" + MITREidDataService.SYSTEMSCOPES + "\": [], " +
-				"\"" + MITREidDataService.AUTHENTICATIONHOLDERS + "\": [], " +
-				"\"" + MITREidDataService.BLACKLISTEDSITES + "\": [" +
-
-				"{\"id\":1,\"uri\":\"http://foo.com\"}," +
-				"{\"id\":2,\"uri\":\"http://bar.com\"}," +
-				"{\"id\":3,\"uri\":\"http://baz.com\"}" +
-
-				"  ]" +
-				"}";
+        Assert.assertThat(savedAccessTokens[1].client!!.clientId, CoreMatchers.equalTo(token2.client!!.clientId))
+        Assert.assertThat(
+            savedAccessTokens[1].expiration, CoreMatchers.equalTo(token2.expiration)
+        )
+        Assert.assertThat(
+            savedAccessTokens[1].value, CoreMatchers.equalTo(token2.value)
+        )
+    }
 
 
-		System.err.println(configJson);
+    //several new client fields added in 1.1, perhaps additional tests for these should be added
+    @Test
+    @Throws(IOException::class)
+    fun testImportClients() {
+        val client1 = ClientDetailsEntity()
+        client1.id = 1L
+        client1.accessTokenValiditySeconds = 3600
+        client1.clientId = "client1"
+        client1.clientSecret = "clientsecret1"
+        client1.redirectUris = ImmutableSet.of("http://foo.com/")
+        client1.setScope(ImmutableSet.of("foo", "bar", "baz", "dolphin"))
+        client1.grantTypes =
+            ImmutableSet.of("implicit", "authorization_code", "urn:ietf:params:oauth:grant_type:redelegate", "refresh_token")
+        client1.isAllowIntrospection = true
 
-		JsonReader reader = new JsonReader(new StringReader(configJson));
+        val client2 = ClientDetailsEntity()
+        client2.id = 2L
+        client2.accessTokenValiditySeconds = 3600
+        client2.clientId = "client2"
+        client2.clientSecret = "clientsecret2"
+        client2.redirectUris = ImmutableSet.of("http://bar.baz.com/")
+        client2.setScope(ImmutableSet.of("foo", "dolphin", "electric-wombat"))
+        client2.grantTypes = ImmutableSet.of("client_credentials", "urn:ietf:params:oauth:grant_type:redelegate")
+        client2.isAllowIntrospection = false
 
-		dataService.importData(reader);
-		verify(blSiteRepository, times(3)).save(capturedBlacklistedSites.capture());
+        val configJson = ("{" +
+                "\"" + MITREidDataService.SYSTEMSCOPES + "\": [], " +
+                "\"" + MITREidDataService.ACCESSTOKENS + "\": [], " +
+                "\"" + MITREidDataService.REFRESHTOKENS + "\": [], " +
+                "\"" + MITREidDataService.GRANTS + "\": [], " +
+                "\"" + MITREidDataService.WHITELISTEDSITES + "\": [], " +
+                "\"" + MITREidDataService.BLACKLISTEDSITES + "\": [], " +
+                "\"" + MITREidDataService.AUTHENTICATIONHOLDERS + "\": [], " +
+                "\"" + MITREidDataService.CLIENTS + "\": [" +
+                "{\"id\":1,\"accessTokenValiditySeconds\":3600,\"clientId\":\"client1\",\"secret\":\"clientsecret1\","
+                + "\"redirectUris\":[\"http://foo.com/\"],"
+                + "\"scope\":[\"foo\",\"bar\",\"baz\",\"dolphin\"],"
+                + "\"grantTypes\":[\"implicit\",\"authorization_code\",\"urn:ietf:params:oauth:grant_type:redelegate\",\"refresh_token\"],"
+                + "\"allowIntrospection\":true}," +
+                "{\"id\":2,\"accessTokenValiditySeconds\":3600,\"clientId\":\"client2\",\"secret\":\"clientsecret2\","
+                + "\"redirectUris\":[\"http://bar.baz.com/\"],"
+                + "\"scope\":[\"foo\",\"dolphin\",\"electric-wombat\"],"
+                + "\"grantTypes\":[\"client_credentials\",\"urn:ietf:params:oauth:grant_type:redelegate\"],"
+                + "\"allowIntrospection\":false}" +
+                "  ]" +
+                "}")
 
-		List<BlacklistedSite> savedSites = capturedBlacklistedSites.getAllValues();
+        System.err.println(configJson)
 
-		assertThat(savedSites.size(), is(3));
+        val reader = JsonReader(StringReader(configJson))
 
-		assertThat(savedSites.get(0).getUri(), equalTo(site1.getUri()));
-		assertThat(savedSites.get(1).getUri(), equalTo(site2.getUri()));
-		assertThat(savedSites.get(2).getUri(), equalTo(site3.getUri()));
-	}
+        dataService.importData(reader)
+        Mockito.verify(clientRepository, Mockito.times(2)).saveClient(capture(capturedClients))
 
-	@Test
-	public void testImportWhitelistedSites() throws IOException {
-		WhitelistedSite site1 = new WhitelistedSite();
-		site1.setId(1L);
-		site1.setClientId("foo");
+        val savedClients = capturedClients.allValues
 
-		WhitelistedSite site2 = new WhitelistedSite();
-		site2.setId(2L);
-		site2.setClientId("bar");
+        Assert.assertThat(savedClients.size, CoreMatchers.`is`(2))
 
-		WhitelistedSite site3 = new WhitelistedSite();
-		site3.setId(3L);
-		site3.setClientId("baz");
+        Assert.assertThat(savedClients[0].accessTokenValiditySeconds, CoreMatchers.equalTo(client1.accessTokenValiditySeconds))
+        Assert.assertThat(savedClients[0].clientId, CoreMatchers.equalTo(client1.clientId))
+        Assert.assertThat(savedClients[0].clientSecret, CoreMatchers.equalTo(client1.clientSecret))
+        Assert.assertThat(savedClients[0].redirectUris, CoreMatchers.equalTo(client1.redirectUris))
+        Assert.assertThat<Set<String>>(savedClients[0].scope, CoreMatchers.equalTo(client1.scope))
+        Assert.assertThat<Set<String>>(savedClients[0].grantTypes, CoreMatchers.equalTo(client1.grantTypes))
+        Assert.assertThat(savedClients[0].isAllowIntrospection, CoreMatchers.equalTo(client1.isAllowIntrospection))
 
-		String configJson = "{" +
-				"\"" + MITREidDataService.CLIENTS + "\": [], " +
-				"\"" + MITREidDataService.ACCESSTOKENS + "\": [], " +
-				"\"" + MITREidDataService.REFRESHTOKENS + "\": [], " +
-				"\"" + MITREidDataService.GRANTS + "\": [], " +
-				"\"" + MITREidDataService.BLACKLISTEDSITES + "\": [], " +
-				"\"" + MITREidDataService.SYSTEMSCOPES + "\": [], " +
-				"\"" + MITREidDataService.AUTHENTICATIONHOLDERS + "\": [], " +
-				"\"" + MITREidDataService.WHITELISTEDSITES + "\": [" +
+        Assert.assertThat(savedClients[1].accessTokenValiditySeconds, CoreMatchers.equalTo(client2.accessTokenValiditySeconds))
+        Assert.assertThat(savedClients[1].clientId, CoreMatchers.equalTo(client2.clientId))
+        Assert.assertThat(savedClients[1].clientSecret, CoreMatchers.equalTo(client2.clientSecret))
+        Assert.assertThat(savedClients[1].redirectUris, CoreMatchers.equalTo(client2.redirectUris))
+        Assert.assertThat<Set<String>>(savedClients[1].scope, CoreMatchers.equalTo(client2.scope))
+        Assert.assertThat<Set<String>>(savedClients[1].grantTypes, CoreMatchers.equalTo(client2.grantTypes))
+        Assert.assertThat(savedClients[1].isAllowIntrospection, CoreMatchers.equalTo(client2.isAllowIntrospection))
+    }
 
-				"{\"id\":1,\"clientId\":\"foo\"}," +
-				"{\"id\":2,\"clientId\":\"bar\"}," +
-				"{\"id\":3,\"clientId\":\"baz\"}" +
+    @Test
+    @Throws(IOException::class)
+    fun testImportBlacklistedSites() {
+        val site1 = BlacklistedSite()
+        site1.id = 1L
+        site1.uri = "http://foo.com"
 
-				"  ]" +
-				"}";
+        val site2 = BlacklistedSite()
+        site2.id = 2L
+        site2.uri = "http://bar.com"
 
-		System.err.println(configJson);
+        val site3 = BlacklistedSite()
+        site3.id = 3L
+        site3.uri = "http://baz.com"
 
-		JsonReader reader = new JsonReader(new StringReader(configJson));
+        val configJson = "{" +
+                "\"" + MITREidDataService.CLIENTS + "\": [], " +
+                "\"" + MITREidDataService.ACCESSTOKENS + "\": [], " +
+                "\"" + MITREidDataService.REFRESHTOKENS + "\": [], " +
+                "\"" + MITREidDataService.GRANTS + "\": [], " +
+                "\"" + MITREidDataService.WHITELISTEDSITES + "\": [], " +
+                "\"" + MITREidDataService.SYSTEMSCOPES + "\": [], " +
+                "\"" + MITREidDataService.AUTHENTICATIONHOLDERS + "\": [], " +
+                "\"" + MITREidDataService.BLACKLISTEDSITES + "\": [" +
+                "{\"id\":1,\"uri\":\"http://foo.com\"}," +
+                "{\"id\":2,\"uri\":\"http://bar.com\"}," +
+                "{\"id\":3,\"uri\":\"http://baz.com\"}" +
+                "  ]" +
+                "}"
 
-		final Map<Long, WhitelistedSite> fakeDb = new HashMap<>();
-		when(wlSiteRepository.save(isA(WhitelistedSite.class))).thenAnswer(new Answer<WhitelistedSite>() {
-			Long id = 345L;
-			@Override
-			public WhitelistedSite answer(InvocationOnMock invocation) throws Throwable {
-				WhitelistedSite _site = (WhitelistedSite) invocation.getArguments()[0];
-				if(_site.getId() == null) {
-					_site.setId(id++);
-				}
-				fakeDb.put(_site.getId(), _site);
-				return _site;
-			}
-		});
-		// unused by mockito (causs unnecessary stubbing exception
-/*
+
+        System.err.println(configJson)
+
+        val reader = JsonReader(StringReader(configJson))
+
+        dataService.importData(reader)
+        Mockito.verify(blSiteRepository, Mockito.times(3)).save(capture(capturedBlacklistedSites))
+
+        val savedSites = capturedBlacklistedSites.allValues
+
+        Assert.assertThat(savedSites.size, CoreMatchers.`is`(3))
+
+        Assert.assertThat(savedSites[0].uri, CoreMatchers.equalTo(site1.uri))
+        Assert.assertThat(savedSites[1].uri, CoreMatchers.equalTo(site2.uri))
+        Assert.assertThat(savedSites[2].uri, CoreMatchers.equalTo(site3.uri))
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun testImportWhitelistedSites() {
+        val site1 = WhitelistedSite()
+        site1.id = 1L
+        site1.clientId = "foo"
+
+        val site2 = WhitelistedSite()
+        site2.id = 2L
+        site2.clientId = "bar"
+
+        val site3 = WhitelistedSite()
+        site3.id = 3L
+        site3.clientId = "baz"
+
+        val configJson = "{" +
+                "\"" + MITREidDataService.CLIENTS + "\": [], " +
+                "\"" + MITREidDataService.ACCESSTOKENS + "\": [], " +
+                "\"" + MITREidDataService.REFRESHTOKENS + "\": [], " +
+                "\"" + MITREidDataService.GRANTS + "\": [], " +
+                "\"" + MITREidDataService.BLACKLISTEDSITES + "\": [], " +
+                "\"" + MITREidDataService.SYSTEMSCOPES + "\": [], " +
+                "\"" + MITREidDataService.AUTHENTICATIONHOLDERS + "\": [], " +
+                "\"" + MITREidDataService.WHITELISTEDSITES + "\": [" +
+                "{\"id\":1,\"clientId\":\"foo\"}," +
+                "{\"id\":2,\"clientId\":\"bar\"}," +
+                "{\"id\":3,\"clientId\":\"baz\"}" +
+                "  ]" +
+                "}"
+
+        System.err.println(configJson)
+
+        val reader = JsonReader(StringReader(configJson))
+
+        val fakeDb: MutableMap<Long?, WhitelistedSite> = HashMap()
+        whenever<WhitelistedSite>(wlSiteRepository.save(isA<WhitelistedSite>()))
+            .thenAnswer(object : Answer<WhitelistedSite> {
+                var id: Long = 345L
+                @Throws(Throwable::class)
+                override fun answer(invocation: InvocationOnMock): WhitelistedSite {
+                    val _site = invocation.arguments[0] as WhitelistedSite
+                    if (_site.id == null) {
+                        _site.id = id++
+                    }
+                    fakeDb[_site.id] = _site
+                    return _site
+                }
+            })
+
+        // unused by mockito (causs unnecessary stubbing exception
+        /*
 		when(wlSiteRepository.getById(anyLong())).thenAnswer(new Answer<WhitelistedSite>() {
 			@Override
 			public WhitelistedSite answer(InvocationOnMock invocation) throws Throwable {
@@ -578,97 +575,91 @@ public class TestMITREidDataService_1_0 {
 			}
 		});
 */
+        dataService.importData(reader)
+        Mockito.verify(wlSiteRepository, Mockito.times(3)).save(capture(capturedWhitelistedSites))
 
-		dataService.importData(reader);
-		verify(wlSiteRepository, times(3)).save(capturedWhitelistedSites.capture());
+        val savedSites = capturedWhitelistedSites.allValues
 
-		List<WhitelistedSite> savedSites = capturedWhitelistedSites.getAllValues();
+        Assert.assertThat(savedSites.size, CoreMatchers.`is`(3))
 
-		assertThat(savedSites.size(), is(3));
+        Assert.assertThat(savedSites[0].clientId, CoreMatchers.equalTo(site1.clientId))
+        Assert.assertThat(savedSites[1].clientId, CoreMatchers.equalTo(site2.clientId))
+        Assert.assertThat(savedSites[2].clientId, CoreMatchers.equalTo(site3.clientId))
+    }
 
-		assertThat(savedSites.get(0).getClientId(), equalTo(site1.getClientId()));
-		assertThat(savedSites.get(1).getClientId(), equalTo(site2.getClientId()));
-		assertThat(savedSites.get(2).getClientId(), equalTo(site3.getClientId()));
-	}
+    @Test
+    @Throws(IOException::class, ParseException::class)
+    fun testImportGrants() {
+        val creationDate1 = formatter.parse("2014-09-10T22:49:44.090+00:00", Locale.ENGLISH)
+        val accessDate1 = formatter.parse("2014-09-10T23:49:44.090+00:00", Locale.ENGLISH)
 
-	@Test
-	public void testImportGrants() throws IOException, ParseException {
-		Date creationDate1 = formatter.parse("2014-09-10T22:49:44.090+00:00", Locale.ENGLISH);
-		Date accessDate1 = formatter.parse("2014-09-10T23:49:44.090+00:00", Locale.ENGLISH);
+        val mockToken1 = Mockito.mock(OAuth2AccessTokenEntity::class.java)
 
-		OAuth2AccessTokenEntity mockToken1 = mock(OAuth2AccessTokenEntity.class);
-		// unused by mockito (causs unnecessary stubbing exception
+        // unused by mockito (causs unnecessary stubbing exception
 //		when(mockToken1.getId()).thenReturn(1L);
+        val site1 = ApprovedSite()
+        site1.id = 1L
+        site1.clientId = "foo"
+        site1.creationDate = creationDate1
+        site1.accessDate = accessDate1
+        site1.userId = "user1"
+        site1.allowedScopes = ImmutableSet.of("openid", "phone")
 
-		ApprovedSite site1 = new ApprovedSite();
-		site1.setId(1L);
-		site1.setClientId("foo");
-		site1.setCreationDate(creationDate1);
-		site1.setAccessDate(accessDate1);
-		site1.setUserId("user1");
-		site1.setAllowedScopes(ImmutableSet.of("openid", "phone"));
-		// unused by mockito (causs unnecessary stubbing exception
+        // unused by mockito (causs unnecessary stubbing exception
 //		when(mockToken1.getApprovedSite()).thenReturn(site1);
+        val creationDate2 = formatter.parse("2014-09-11T18:49:44.090+00:00", Locale.ENGLISH)
+        val accessDate2 = formatter.parse("2014-09-11T20:49:44.090+00:00", Locale.ENGLISH)
+        val timeoutDate2 = formatter.parse("2014-10-01T20:49:44.090+00:00", Locale.ENGLISH)
 
-		Date creationDate2 = formatter.parse("2014-09-11T18:49:44.090+00:00", Locale.ENGLISH);
-		Date accessDate2 = formatter.parse("2014-09-11T20:49:44.090+00:00", Locale.ENGLISH);
-		Date timeoutDate2 = formatter.parse("2014-10-01T20:49:44.090+00:00", Locale.ENGLISH);
+        val site2 = ApprovedSite()
+        site2.id = 2L
+        site2.clientId = "bar"
+        site2.creationDate = creationDate2
+        site2.accessDate = accessDate2
+        site2.userId = "user2"
+        site2.allowedScopes = ImmutableSet.of("openid", "offline_access", "email", "profile")
+        site2.timeoutDate = timeoutDate2
 
-		ApprovedSite site2 = new ApprovedSite();
-		site2.setId(2L);
-		site2.setClientId("bar");
-		site2.setCreationDate(creationDate2);
-		site2.setAccessDate(accessDate2);
-		site2.setUserId("user2");
-		site2.setAllowedScopes(ImmutableSet.of("openid", "offline_access", "email", "profile"));
-		site2.setTimeoutDate(timeoutDate2);
+        val configJson = ("{" +
+                "\"" + MITREidDataService.CLIENTS + "\": [], " +
+                "\"" + MITREidDataService.ACCESSTOKENS + "\": [], " +
+                "\"" + MITREidDataService.REFRESHTOKENS + "\": [], " +
+                "\"" + MITREidDataService.WHITELISTEDSITES + "\": [], " +
+                "\"" + MITREidDataService.BLACKLISTEDSITES + "\": [], " +
+                "\"" + MITREidDataService.SYSTEMSCOPES + "\": [], " +
+                "\"" + MITREidDataService.AUTHENTICATIONHOLDERS + "\": [], " +
+                "\"" + MITREidDataService.GRANTS + "\": [" +
+                "{\"id\":1,\"clientId\":\"foo\",\"creationDate\":\"2014-09-10T22:49:44.090+00:00\",\"accessDate\":\"2014-09-10T23:49:44.090+00:00\","
+                + "\"userId\":\"user1\",\"whitelistedSiteId\":null,\"allowedScopes\":[\"openid\",\"phone\"], \"whitelistedSiteId\":1,"
+                + "\"approvedAccessTokens\":[1]}," +
+                "{\"id\":2,\"clientId\":\"bar\",\"creationDate\":\"2014-09-11T18:49:44.090+00:00\",\"accessDate\":\"2014-09-11T20:49:44.090+00:00\","
+                + "\"timeoutDate\":\"2014-10-01T20:49:44.090+00:00\",\"userId\":\"user2\","
+                + "\"allowedScopes\":[\"openid\",\"offline_access\",\"email\",\"profile\"]}" +
+                "  ]" +
+                "}")
 
-		String configJson = "{" +
-				"\"" + MITREidDataService.CLIENTS + "\": [], " +
-				"\"" + MITREidDataService.ACCESSTOKENS + "\": [], " +
-				"\"" + MITREidDataService.REFRESHTOKENS + "\": [], " +
-				"\"" + MITREidDataService.WHITELISTEDSITES + "\": [], " +
-				"\"" + MITREidDataService.BLACKLISTEDSITES + "\": [], " +
-				"\"" + MITREidDataService.SYSTEMSCOPES + "\": [], " +
-				"\"" + MITREidDataService.AUTHENTICATIONHOLDERS + "\": [], " +
-				"\"" + MITREidDataService.GRANTS + "\": [" +
+        System.err.println(configJson)
 
-				"{\"id\":1,\"clientId\":\"foo\",\"creationDate\":\"2014-09-10T22:49:44.090+00:00\",\"accessDate\":\"2014-09-10T23:49:44.090+00:00\","
-				+ "\"userId\":\"user1\",\"whitelistedSiteId\":null,\"allowedScopes\":[\"openid\",\"phone\"], \"whitelistedSiteId\":1,"
-				+ "\"approvedAccessTokens\":[1]}," +
-				"{\"id\":2,\"clientId\":\"bar\",\"creationDate\":\"2014-09-11T18:49:44.090+00:00\",\"accessDate\":\"2014-09-11T20:49:44.090+00:00\","
-				+ "\"timeoutDate\":\"2014-10-01T20:49:44.090+00:00\",\"userId\":\"user2\","
-				+ "\"allowedScopes\":[\"openid\",\"offline_access\",\"email\",\"profile\"]}" +
+        val reader = JsonReader(StringReader(configJson))
 
-				"  ]" +
-				"}";
-
-		System.err.println(configJson);
-
-		JsonReader reader = new JsonReader(new StringReader(configJson));
-
-		final Map<Long, ApprovedSite> fakeDb = new HashMap<>();
-		when(approvedSiteRepository.save(isA(ApprovedSite.class))).thenAnswer(new Answer<ApprovedSite>() {
-			Long id = 343L;
-			@Override
-			public ApprovedSite answer(InvocationOnMock invocation) throws Throwable {
-				ApprovedSite _site = (ApprovedSite) invocation.getArguments()[0];
-				if(_site.getId() == null) {
-					_site.setId(id++);
-				}
-				fakeDb.put(_site.getId(), _site);
-				return _site;
-			}
-		});
-		when(approvedSiteRepository.getById(anyLong())).thenAnswer(new Answer<ApprovedSite>() {
-			@Override
-			public ApprovedSite answer(InvocationOnMock invocation) throws Throwable {
-				Long _id = (Long) invocation.getArguments()[0];
-				return fakeDb.get(_id);
-			}
-		});
-		// unused by mockito (causs unnecessary stubbing exception
-/*
+        val fakeDb: MutableMap<Long, ApprovedSite> = HashMap()
+        whenever(approvedSiteRepository.save(isA<ApprovedSite>()))
+            .thenAnswer(object : Answer<ApprovedSite> {
+                var id: Long = 343L
+                @Throws(Throwable::class)
+                override fun answer(invocation: InvocationOnMock): ApprovedSite {
+                    val _site = invocation.arguments[0] as ApprovedSite
+                    val id = _site.id ?: (id++).also { _site.id = it }
+                    fakeDb[id] = _site
+                    return _site
+                }
+            })
+        whenever(approvedSiteRepository.getById(isA())).thenAnswer { invocation ->
+            val _id = invocation.arguments[0] as Long
+            fakeDb[_id]
+        }
+        // unused by mockito (causs unnecessary stubbing exception
+        /*
 		when(wlSiteRepository.getById(isNull(Long.class))).thenAnswer(new Answer<WhitelistedSite>() {
 			Long id = 244L;
 			@Override
@@ -679,319 +670,317 @@ public class TestMITREidDataService_1_0 {
 			}
 		});
 */
-		when(tokenRepository.getAccessTokenById(ArgumentMatchers.eq(401L))).thenAnswer(new Answer<OAuth2AccessTokenEntity>() {
-			Long id = 221L;
-			@Override
-			public OAuth2AccessTokenEntity answer(InvocationOnMock invocation) throws Throwable {
-				OAuth2AccessTokenEntity _token = mock(OAuth2AccessTokenEntity.class);
-				// unused by mockito (causs unnecessary stubbing exception
+        whenever(tokenRepository.getAccessTokenById(eq((401L).toJavaId())))
+            .thenAnswer(object : Answer<OAuth2AccessTokenEntity> {
+                var id: Long = 221L
+                @Throws(Throwable::class)
+                override fun answer(invocation: InvocationOnMock): OAuth2AccessTokenEntity {
+                    val _token = Mockito.mock(OAuth2AccessTokenEntity::class.java)
+                    // unused by mockito (causs unnecessary stubbing exception
 //				when(_token.getId()).thenReturn(id++);
-				return _token;
-			}
-		});
-		// unused by mockito (causs unnecessary stubbing exception
+                    return _token
+                }
+            })
+        // unused by mockito (causs unnecessary stubbing exception
 //		when(tokenRepository.getAccessTokensForApprovedSite(site1)).thenReturn(Lists.newArrayList(mockToken1));
-		maps.getAccessTokenOldToNewIdMap().put(1L, 401L);
-		dataService.importData(reader);
-		//2 for sites, 1 for updating access token ref on #1
-		verify(approvedSiteRepository, times(3)).save(capturedApprovedSites.capture());
+        maps.accessTokenOldToNewIdMap[1L] = 401L
+        dataService.importData(reader)
+        //2 for sites, 1 for updating access token ref on #1
+        verify(approvedSiteRepository, Mockito.times(3)).save(capture(capturedApprovedSites))
 
-		List<ApprovedSite> savedSites = new ArrayList(fakeDb.values());
+        val savedSites: List<ApprovedSite> = fakeDb.values.toList()
 
-		assertThat(savedSites.size(), is(2));
+        Assert.assertThat(savedSites.size, CoreMatchers.`is`(2))
 
-		assertThat(savedSites.get(0).getClientId(), equalTo(site1.getClientId()));
-		assertThat(savedSites.get(0).getAccessDate(), equalTo(site1.getAccessDate()));
-		assertThat(savedSites.get(0).getCreationDate(), equalTo(site1.getCreationDate()));
-		assertThat(savedSites.get(0).getAllowedScopes(), equalTo(site1.getAllowedScopes()));
-		assertThat(savedSites.get(0).getTimeoutDate(), equalTo(site1.getTimeoutDate()));
+        Assert.assertThat(savedSites[0].clientId, CoreMatchers.equalTo(site1.clientId))
+        Assert.assertThat(savedSites[0].accessDate, CoreMatchers.equalTo(site1.accessDate))
+        Assert.assertThat(savedSites[0].creationDate, CoreMatchers.equalTo(site1.creationDate))
+        Assert.assertThat(savedSites[0].allowedScopes, CoreMatchers.equalTo(site1.allowedScopes))
+        Assert.assertThat(savedSites[0].timeoutDate, CoreMatchers.equalTo(site1.timeoutDate))
 
-		assertThat(savedSites.get(1).getClientId(), equalTo(site2.getClientId()));
-		assertThat(savedSites.get(1).getAccessDate(), equalTo(site2.getAccessDate()));
-		assertThat(savedSites.get(1).getCreationDate(), equalTo(site2.getCreationDate()));
-		assertThat(savedSites.get(1).getAllowedScopes(), equalTo(site2.getAllowedScopes()));
-		assertThat(savedSites.get(1).getTimeoutDate(), equalTo(site2.getTimeoutDate()));
-	}
+        Assert.assertThat(savedSites[1].clientId, CoreMatchers.equalTo(site2.clientId))
+        Assert.assertThat(savedSites[1].accessDate, CoreMatchers.equalTo(site2.accessDate))
+        Assert.assertThat(savedSites[1].creationDate, CoreMatchers.equalTo(site2.creationDate))
+        Assert.assertThat(savedSites[1].allowedScopes, CoreMatchers.equalTo(site2.allowedScopes))
+        Assert.assertThat(savedSites[1].timeoutDate, CoreMatchers.equalTo(site2.timeoutDate))
+    }
 
-	@Test
-	public void testImportAuthenticationHolders() throws IOException {
-		OAuth2Request req1 = new OAuth2Request(new HashMap<String, String>(), "client1", new ArrayList<GrantedAuthority>(),
-				true, new HashSet<String>(), new HashSet<String>(), "http://foo.com",
-				new HashSet<String>(), null);
-		Authentication mockAuth1 = mock(Authentication.class, withSettings().serializable());
-		OAuth2Authentication auth1 = new OAuth2Authentication(req1, mockAuth1);
+    @Test
+    @Throws(IOException::class)
+    fun testImportAuthenticationHolders() {
+        val req1 = OAuth2Request(
+            HashMap(), "client1", ArrayList(),
+            true, HashSet(), HashSet(), "http://foo.com",
+            HashSet(), null
+        )
+        val mockAuth1 = Mockito.mock(Authentication::class.java, Mockito.withSettings().serializable())
+        val auth1 = OAuth2Authentication(req1, mockAuth1)
 
-		AuthenticationHolderEntity holder1 = new AuthenticationHolderEntity();
-		holder1.setId(1L);
-		holder1.setAuthentication(auth1);
+        val holder1 = AuthenticationHolderEntity()
+        holder1.id = 1L
+        holder1.authentication = auth1
 
-		OAuth2Request req2 = new OAuth2Request(new HashMap<String, String>(), "client2", new ArrayList<GrantedAuthority>(),
-				true, new HashSet<String>(), new HashSet<String>(), "http://bar.com",
-				new HashSet<String>(), null);
-		Authentication mockAuth2 = mock(Authentication.class, withSettings().serializable());
-		OAuth2Authentication auth2 = new OAuth2Authentication(req2, mockAuth2);
+        val req2 = OAuth2Request(
+            HashMap(), "client2", ArrayList(),
+            true, HashSet(), HashSet(), "http://bar.com",
+            HashSet(), null
+        )
+        val mockAuth2 = Mockito.mock(Authentication::class.java, Mockito.withSettings().serializable())
+        val auth2 = OAuth2Authentication(req2, mockAuth2)
 
-		AuthenticationHolderEntity holder2 = new AuthenticationHolderEntity();
-		holder2.setId(2L);
-		holder2.setAuthentication(auth2);
+        val holder2 = AuthenticationHolderEntity()
+        holder2.id = 2L
+        holder2.authentication = auth2
 
-		String configJson = "{" +
-				"\"" + MITREidDataService.CLIENTS + "\": [], " +
-				"\"" + MITREidDataService.ACCESSTOKENS + "\": [], " +
-				"\"" + MITREidDataService.REFRESHTOKENS + "\": [], " +
-				"\"" + MITREidDataService.GRANTS + "\": [], " +
-				"\"" + MITREidDataService.WHITELISTEDSITES + "\": [], " +
-				"\"" + MITREidDataService.BLACKLISTEDSITES + "\": [], " +
-				"\"" + MITREidDataService.SYSTEMSCOPES + "\": [], " +
-				"\"" + MITREidDataService.AUTHENTICATIONHOLDERS + "\": [" +
+        val configJson = ("{" +
+                "\"" + MITREidDataService.CLIENTS + "\": [], " +
+                "\"" + MITREidDataService.ACCESSTOKENS + "\": [], " +
+                "\"" + MITREidDataService.REFRESHTOKENS + "\": [], " +
+                "\"" + MITREidDataService.GRANTS + "\": [], " +
+                "\"" + MITREidDataService.WHITELISTEDSITES + "\": [], " +
+                "\"" + MITREidDataService.BLACKLISTEDSITES + "\": [], " +
+                "\"" + MITREidDataService.SYSTEMSCOPES + "\": [], " +
+                "\"" + MITREidDataService.AUTHENTICATIONHOLDERS + "\": [" +
+                "{\"id\":1,\"authentication\":{\"clientAuthorization\":{\"clientId\":\"client1\",\"redirectUri\":\"http://foo.com\"},"
+                + "\"userAuthentication\":null}}," +
+                "{\"id\":2,\"authentication\":{\"clientAuthorization\":{\"clientId\":\"client2\",\"redirectUri\":\"http://bar.com\"},"
+                + "\"userAuthentication\":null}}" +
+                "  ]" +
+                "}")
 
-				"{\"id\":1,\"authentication\":{\"clientAuthorization\":{\"clientId\":\"client1\",\"redirectUri\":\"http://foo.com\"},"
-				+ "\"userAuthentication\":null}}," +
-				"{\"id\":2,\"authentication\":{\"clientAuthorization\":{\"clientId\":\"client2\",\"redirectUri\":\"http://bar.com\"},"
-				+ "\"userAuthentication\":null}}" +
-				"  ]" +
-				"}";
+        System.err.println(configJson)
 
-		System.err.println(configJson);
+        val reader = JsonReader(StringReader(configJson))
 
-		JsonReader reader = new JsonReader(new StringReader(configJson));
+        val fakeDb: MutableMap<Long?, AuthenticationHolderEntity> = HashMap()
+        whenever<AuthenticationHolderEntity>(authHolderRepository.save(isA<AuthenticationHolderEntity>()))
+            .thenAnswer(object : Answer<AuthenticationHolderEntity> {
+                var id: Long = 356L
+                @Throws(Throwable::class)
+                override fun answer(invocation: InvocationOnMock): AuthenticationHolderEntity {
+                    val _holder = invocation.arguments[0] as AuthenticationHolderEntity
+                    if (_holder.id == null) {
+                        _holder.id = id++
+                    }
+                    fakeDb[_holder.id] = _holder
+                    return _holder
+                }
+            })
 
-		final Map<Long, AuthenticationHolderEntity> fakeDb = new HashMap<>();
-		when(authHolderRepository.save(isA(AuthenticationHolderEntity.class))).thenAnswer(new Answer<AuthenticationHolderEntity>() {
-			Long id = 356L;
-			@Override
-			public AuthenticationHolderEntity answer(InvocationOnMock invocation) throws Throwable {
-				AuthenticationHolderEntity _holder = (AuthenticationHolderEntity) invocation.getArguments()[0];
-				if(_holder.getId() == null) {
-					_holder.setId(id++);
-				}
-				fakeDb.put(_holder.getId(), _holder);
-				return _holder;
-			}
-		});
+        dataService.importData(reader)
+        Mockito.verify(authHolderRepository, Mockito.times(2)).save(capture(capturedAuthHolders))
 
-		dataService.importData(reader);
-		verify(authHolderRepository, times(2)).save(capturedAuthHolders.capture());
+        val savedAuthHolders = capturedAuthHolders.allValues
 
-		List<AuthenticationHolderEntity> savedAuthHolders = capturedAuthHolders.getAllValues();
+        Assert.assertThat(savedAuthHolders.size, CoreMatchers.`is`(2))
+        Assert.assertThat(savedAuthHolders[0].authentication.oAuth2Request.clientId, CoreMatchers.equalTo(holder1.authentication.oAuth2Request.clientId))
+        Assert.assertThat(savedAuthHolders[1].authentication.oAuth2Request.clientId, CoreMatchers.equalTo(holder2.authentication.oAuth2Request.clientId))
+    }
 
-		assertThat(savedAuthHolders.size(), is(2));
-		assertThat(savedAuthHolders.get(0).getAuthentication().getOAuth2Request().getClientId(), equalTo(holder1.getAuthentication().getOAuth2Request().getClientId()));
-		assertThat(savedAuthHolders.get(1).getAuthentication().getOAuth2Request().getClientId(), equalTo(holder2.getAuthentication().getOAuth2Request().getClientId()));
-	}
+    @Test
+    @Throws(IOException::class)
+    fun testImportSystemScopes() {
+        val scope1 = SystemScope()
+        scope1.id = 1L
+        scope1.value = "scope1"
+        scope1.description = "Scope 1"
+        scope1.isRestricted = true
+        scope1.isDefaultScope = false
+        scope1.icon = "glass"
 
-	@Test
-	public void testImportSystemScopes() throws IOException {
-		SystemScope scope1 = new SystemScope();
-		scope1.setId(1L);
-		scope1.setValue("scope1");
-		scope1.setDescription("Scope 1");
-		scope1.setRestricted(true);
-		scope1.setDefaultScope(false);
-		scope1.setIcon("glass");
+        val scope2 = SystemScope()
+        scope2.id = 2L
+        scope2.value = "scope2"
+        scope2.description = "Scope 2"
+        scope2.isRestricted = false
+        scope2.isDefaultScope = false
+        scope2.icon = "ball"
 
-		SystemScope scope2 = new SystemScope();
-		scope2.setId(2L);
-		scope2.setValue("scope2");
-		scope2.setDescription("Scope 2");
-		scope2.setRestricted(false);
-		scope2.setDefaultScope(false);
-		scope2.setIcon("ball");
+        val scope3 = SystemScope()
+        scope3.id = 3L
+        scope3.value = "scope3"
+        scope3.description = "Scope 3"
+        scope3.isRestricted = false
+        scope3.isDefaultScope = true
+        scope3.icon = "road"
 
-		SystemScope scope3 = new SystemScope();
-		scope3.setId(3L);
-		scope3.setValue("scope3");
-		scope3.setDescription("Scope 3");
-		scope3.setRestricted(false);
-		scope3.setDefaultScope(true);
-		scope3.setIcon("road");
+        val configJson = "{" +
+                "\"" + MITREidDataService.CLIENTS + "\": [], " +
+                "\"" + MITREidDataService.ACCESSTOKENS + "\": [], " +
+                "\"" + MITREidDataService.REFRESHTOKENS + "\": [], " +
+                "\"" + MITREidDataService.GRANTS + "\": [], " +
+                "\"" + MITREidDataService.WHITELISTEDSITES + "\": [], " +
+                "\"" + MITREidDataService.BLACKLISTEDSITES + "\": [], " +
+                "\"" + MITREidDataService.AUTHENTICATIONHOLDERS + "\": [], " +
+                "\"" + MITREidDataService.SYSTEMSCOPES + "\": [" +
+                "{\"id\":1,\"description\":\"Scope 1\",\"icon\":\"glass\",\"value\":\"scope1\",\"allowDynReg\":false,\"defaultScope\":false}," +
+                "{\"id\":2,\"description\":\"Scope 2\",\"icon\":\"ball\",\"value\":\"scope2\",\"allowDynReg\":true,\"defaultScope\":false}," +
+                "{\"id\":3,\"description\":\"Scope 3\",\"icon\":\"road\",\"value\":\"scope3\",\"allowDynReg\":true,\"defaultScope\":true}" +
+                "  ]" +
+                "}"
 
-		String configJson = "{" +
-				"\"" + MITREidDataService.CLIENTS + "\": [], " +
-				"\"" + MITREidDataService.ACCESSTOKENS + "\": [], " +
-				"\"" + MITREidDataService.REFRESHTOKENS + "\": [], " +
-				"\"" + MITREidDataService.GRANTS + "\": [], " +
-				"\"" + MITREidDataService.WHITELISTEDSITES + "\": [], " +
-				"\"" + MITREidDataService.BLACKLISTEDSITES + "\": [], " +
-				"\"" + MITREidDataService.AUTHENTICATIONHOLDERS + "\": [], " +
-				"\"" + MITREidDataService.SYSTEMSCOPES + "\": [" +
+        System.err.println(configJson)
 
-				"{\"id\":1,\"description\":\"Scope 1\",\"icon\":\"glass\",\"value\":\"scope1\",\"allowDynReg\":false,\"defaultScope\":false}," +
-				"{\"id\":2,\"description\":\"Scope 2\",\"icon\":\"ball\",\"value\":\"scope2\",\"allowDynReg\":true,\"defaultScope\":false}," +
-				"{\"id\":3,\"description\":\"Scope 3\",\"icon\":\"road\",\"value\":\"scope3\",\"allowDynReg\":true,\"defaultScope\":true}" +
+        val reader = JsonReader(StringReader(configJson))
 
-				"  ]" +
-				"}";
+        dataService.importData(reader)
+        Mockito.verify(sysScopeRepository, Mockito.times(3)).save(capture(capturedScope))
 
-		System.err.println(configJson);
+        val savedScopes = capturedScope.allValues
 
-		JsonReader reader = new JsonReader(new StringReader(configJson));
+        Assert.assertThat(savedScopes.size, CoreMatchers.`is`(3))
+        Assert.assertThat(savedScopes[0].value, CoreMatchers.equalTo(scope1.value))
+        Assert.assertThat(savedScopes[0].description, CoreMatchers.equalTo(scope1.description))
+        Assert.assertThat(savedScopes[0].icon, CoreMatchers.equalTo(scope1.icon))
+        Assert.assertThat(savedScopes[0].isDefaultScope, CoreMatchers.equalTo(scope1.isDefaultScope))
+        Assert.assertThat(savedScopes[0].isRestricted, CoreMatchers.equalTo(scope1.isRestricted))
 
-		dataService.importData(reader);
-		verify(sysScopeRepository, times(3)).save(capturedScope.capture());
+        Assert.assertThat(savedScopes[1].value, CoreMatchers.equalTo(scope2.value))
+        Assert.assertThat(savedScopes[1].description, CoreMatchers.equalTo(scope2.description))
+        Assert.assertThat(savedScopes[1].icon, CoreMatchers.equalTo(scope2.icon))
+        Assert.assertThat(savedScopes[1].isDefaultScope, CoreMatchers.equalTo(scope2.isDefaultScope))
+        Assert.assertThat(savedScopes[1].isRestricted, CoreMatchers.equalTo(scope2.isRestricted))
 
-		List<SystemScope> savedScopes = capturedScope.getAllValues();
+        Assert.assertThat(savedScopes[2].value, CoreMatchers.equalTo(scope3.value))
+        Assert.assertThat(savedScopes[2].description, CoreMatchers.equalTo(scope3.description))
+        Assert.assertThat(savedScopes[2].icon, CoreMatchers.equalTo(scope3.icon))
+        Assert.assertThat(savedScopes[2].isDefaultScope, CoreMatchers.equalTo(scope3.isDefaultScope))
+        Assert.assertThat(savedScopes[2].isRestricted, CoreMatchers.equalTo(scope3.isRestricted))
+    }
 
-		assertThat(savedScopes.size(), is(3));
-		assertThat(savedScopes.get(0).getValue(), equalTo(scope1.getValue()));
-		assertThat(savedScopes.get(0).getDescription(), equalTo(scope1.getDescription()));
-		assertThat(savedScopes.get(0).getIcon(), equalTo(scope1.getIcon()));
-		assertThat(savedScopes.get(0).isDefaultScope(), equalTo(scope1.isDefaultScope()));
-		assertThat(savedScopes.get(0).isRestricted(), equalTo(scope1.isRestricted()));
+    @Test
+    @Throws(IOException::class, ParseException::class)
+    fun testFixRefreshTokenAuthHolderReferencesOnImport() {
+        val expiration1 = "2014-09-10T22:49:44.090+00:00"
+        val expirationDate1 = formatter.parse(expiration1, Locale.ENGLISH)
 
-		assertThat(savedScopes.get(1).getValue(), equalTo(scope2.getValue()));
-		assertThat(savedScopes.get(1).getDescription(), equalTo(scope2.getDescription()));
-		assertThat(savedScopes.get(1).getIcon(), equalTo(scope2.getIcon()));
-		assertThat(savedScopes.get(1).isDefaultScope(), equalTo(scope2.isDefaultScope()));
-		assertThat(savedScopes.get(1).isRestricted(), equalTo(scope2.isRestricted()));
+        val mockedClient1 = Mockito.mock(ClientDetailsEntity::class.java)
 
-		assertThat(savedScopes.get(2).getValue(), equalTo(scope3.getValue()));
-		assertThat(savedScopes.get(2).getDescription(), equalTo(scope3.getDescription()));
-		assertThat(savedScopes.get(2).getIcon(), equalTo(scope3.getIcon()));
-		assertThat(savedScopes.get(2).isDefaultScope(), equalTo(scope3.isDefaultScope()));
-		assertThat(savedScopes.get(2).isRestricted(), equalTo(scope3.isRestricted()));
-
-	}
-
-	@Test
-	public void testFixRefreshTokenAuthHolderReferencesOnImport() throws IOException, ParseException {
-		String expiration1 = "2014-09-10T22:49:44.090+00:00";
-		Date expirationDate1 = formatter.parse(expiration1, Locale.ENGLISH);
-
-		ClientDetailsEntity mockedClient1 = mock(ClientDetailsEntity.class);
-		// unused by mockito (causs unnecessary stubbing exception
+        // unused by mockito (causs unnecessary stubbing exception
 //		when(mockedClient1.getClientId()).thenReturn("mocked_client_1");
+        val req1 = OAuth2Request(
+            HashMap(), "client1", ArrayList(),
+            true, HashSet(), HashSet(), "http://foo.com",
+            HashSet(), null
+        )
+        val mockAuth1 = Mockito.mock(Authentication::class.java, Mockito.withSettings().serializable())
+        val auth1 = OAuth2Authentication(req1, mockAuth1)
 
-		OAuth2Request req1 = new OAuth2Request(new HashMap<String, String>(), "client1", new ArrayList<GrantedAuthority>(),
-				true, new HashSet<String>(), new HashSet<String>(), "http://foo.com",
-				new HashSet<String>(), null);
-		Authentication mockAuth1 = mock(Authentication.class, withSettings().serializable());
-		OAuth2Authentication auth1 = new OAuth2Authentication(req1, mockAuth1);
+        val holder1 = AuthenticationHolderEntity()
+        holder1.id = 1L
+        holder1.authentication = auth1
 
-		AuthenticationHolderEntity holder1 = new AuthenticationHolderEntity();
-		holder1.setId(1L);
-		holder1.setAuthentication(auth1);
+        val token1 = OAuth2RefreshTokenEntity()
+        token1.id = 1L
+        token1.client = mockedClient1
+        token1.expiration = expirationDate1
+        token1.jwt =
+            JWTParser.parse("eyJhbGciOiJub25lIn0.eyJqdGkiOiJmOTg4OWQyOS0xMTk1LTQ4ODEtODgwZC1lZjVlYzAwY2Y4NDIifQ.")
+        token1.authenticationHolder = holder1
 
-		OAuth2RefreshTokenEntity token1 = new OAuth2RefreshTokenEntity();
-		token1.setId(1L);
-		token1.setClient(mockedClient1);
-		token1.setExpiration(expirationDate1);
-		token1.setJwt(JWTParser.parse("eyJhbGciOiJub25lIn0.eyJqdGkiOiJmOTg4OWQyOS0xMTk1LTQ4ODEtODgwZC1lZjVlYzAwY2Y4NDIifQ."));
-		token1.setAuthenticationHolder(holder1);
+        val expiration2 = "2015-01-07T18:31:50.079+00:00"
+        val expirationDate2 = formatter.parse(expiration2, Locale.ENGLISH)
 
-		String expiration2 = "2015-01-07T18:31:50.079+00:00";
-		Date expirationDate2 = formatter.parse(expiration2, Locale.ENGLISH);
+        val mockedClient2 = Mockito.mock(ClientDetailsEntity::class.java)
 
-		ClientDetailsEntity mockedClient2 = mock(ClientDetailsEntity.class);
-		// unused by mockito (causs unnecessary stubbing exception
+        // unused by mockito (causs unnecessary stubbing exception
 //		when(mockedClient2.getClientId()).thenReturn("mocked_client_2");
+        val req2 = OAuth2Request(
+            HashMap(), "client2", ArrayList(),
+            true, HashSet(), HashSet(), "http://bar.com",
+            HashSet(), null
+        )
+        val mockAuth2 = Mockito.mock(Authentication::class.java, Mockito.withSettings().serializable())
+        val auth2 = OAuth2Authentication(req2, mockAuth2)
 
-		OAuth2Request req2 = new OAuth2Request(new HashMap<String, String>(), "client2", new ArrayList<GrantedAuthority>(),
-				true, new HashSet<String>(), new HashSet<String>(), "http://bar.com",
-				new HashSet<String>(), null);
-		Authentication mockAuth2 = mock(Authentication.class, withSettings().serializable());
-		OAuth2Authentication auth2 = new OAuth2Authentication(req2, mockAuth2);
+        val holder2 = AuthenticationHolderEntity()
+        holder2.id = 2L
+        holder2.authentication = auth2
 
-		AuthenticationHolderEntity holder2 = new AuthenticationHolderEntity();
-		holder2.setId(2L);
-		holder2.setAuthentication(auth2);
+        val token2 = OAuth2RefreshTokenEntity()
+        token2.id = 2L
+        token2.client = mockedClient2
+        token2.expiration = expirationDate2
+        token2.jwt =
+            JWTParser.parse("eyJhbGciOiJub25lIn0.eyJqdGkiOiJlYmEyYjc3My0xNjAzLTRmNDAtOWQ3MS1hMGIxZDg1OWE2MDAifQ.")
+        token2.authenticationHolder = holder2
 
-		OAuth2RefreshTokenEntity token2 = new OAuth2RefreshTokenEntity();
-		token2.setId(2L);
-		token2.setClient(mockedClient2);
-		token2.setExpiration(expirationDate2);
-		token2.setJwt(JWTParser.parse("eyJhbGciOiJub25lIn0.eyJqdGkiOiJlYmEyYjc3My0xNjAzLTRmNDAtOWQ3MS1hMGIxZDg1OWE2MDAifQ."));
-		token2.setAuthenticationHolder(holder2);
+        val configJson = ("{" +
+                "\"" + MITREidDataService.SYSTEMSCOPES + "\": [], " +
+                "\"" + MITREidDataService.ACCESSTOKENS + "\": [], " +
+                "\"" + MITREidDataService.CLIENTS + "\": [], " +
+                "\"" + MITREidDataService.GRANTS + "\": [], " +
+                "\"" + MITREidDataService.WHITELISTEDSITES + "\": [], " +
+                "\"" + MITREidDataService.BLACKLISTEDSITES + "\": [], " +
+                "\"" + MITREidDataService.AUTHENTICATIONHOLDERS + "\": [" +
+                "{\"id\":1,\"authentication\":{\"clientAuthorization\":{\"clientId\":\"client1\",\"redirectUri\":\"http://foo.com\"},"
+                + "\"userAuthentication\":null}}," +
+                "{\"id\":2,\"authentication\":{\"clientAuthorization\":{\"clientId\":\"client2\",\"redirectUri\":\"http://bar.com\"},"
+                + "\"userAuthentication\":null}}" +
+                "  ]," +
+                "\"" + MITREidDataService.REFRESHTOKENS + "\": [" +
+                "{\"id\":1,\"clientId\":\"mocked_client_1\",\"expiration\":\"2014-09-10T22:49:44.090+00:00\","
+                + "\"authenticationHolderId\":1,\"value\":\"eyJhbGciOiJub25lIn0.eyJqdGkiOiJmOTg4OWQyOS0xMTk1LTQ4ODEtODgwZC1lZjVlYzAwY2Y4NDIifQ.\"}," +
+                "{\"id\":2,\"clientId\":\"mocked_client_2\",\"expiration\":\"2015-01-07T18:31:50.079+00:00\","
+                + "\"authenticationHolderId\":2,\"value\":\"eyJhbGciOiJub25lIn0.eyJqdGkiOiJlYmEyYjc3My0xNjAzLTRmNDAtOWQ3MS1hMGIxZDg1OWE2MDAifQ.\"}" +
+                "  ]" +
+                "}")
+        System.err.println(configJson)
 
-		String configJson = "{" +
-				"\"" + MITREidDataService.SYSTEMSCOPES + "\": [], " +
-				"\"" + MITREidDataService.ACCESSTOKENS + "\": [], " +
-				"\"" + MITREidDataService.CLIENTS + "\": [], " +
-				"\"" + MITREidDataService.GRANTS + "\": [], " +
-				"\"" + MITREidDataService.WHITELISTEDSITES + "\": [], " +
-				"\"" + MITREidDataService.BLACKLISTEDSITES + "\": [], " +
-				"\"" + MITREidDataService.AUTHENTICATIONHOLDERS + "\": [" +
-
-				"{\"id\":1,\"authentication\":{\"clientAuthorization\":{\"clientId\":\"client1\",\"redirectUri\":\"http://foo.com\"},"
-				+ "\"userAuthentication\":null}}," +
-				"{\"id\":2,\"authentication\":{\"clientAuthorization\":{\"clientId\":\"client2\",\"redirectUri\":\"http://bar.com\"},"
-				+ "\"userAuthentication\":null}}" +
-				"  ]," +
-				"\"" + MITREidDataService.REFRESHTOKENS + "\": [" +
-
-				"{\"id\":1,\"clientId\":\"mocked_client_1\",\"expiration\":\"2014-09-10T22:49:44.090+00:00\","
-				+ "\"authenticationHolderId\":1,\"value\":\"eyJhbGciOiJub25lIn0.eyJqdGkiOiJmOTg4OWQyOS0xMTk1LTQ4ODEtODgwZC1lZjVlYzAwY2Y4NDIifQ.\"}," +
-				"{\"id\":2,\"clientId\":\"mocked_client_2\",\"expiration\":\"2015-01-07T18:31:50.079+00:00\","
-				+ "\"authenticationHolderId\":2,\"value\":\"eyJhbGciOiJub25lIn0.eyJqdGkiOiJlYmEyYjc3My0xNjAzLTRmNDAtOWQ3MS1hMGIxZDg1OWE2MDAifQ.\"}" +
-
-				"  ]" +
-				"}";
-		System.err.println(configJson);
-
-		JsonReader reader = new JsonReader(new StringReader(configJson));
-		final Map<Long, OAuth2RefreshTokenEntity> fakeRefreshTokenTable = new HashMap<>();
-		final Map<Long, AuthenticationHolderEntity> fakeAuthHolderTable = new HashMap<>();
-		when(tokenRepository.saveRefreshToken(isA(OAuth2RefreshTokenEntity.class))).thenAnswer(new Answer<OAuth2RefreshTokenEntity>() {
-			Long id = 343L;
-			@Override
-			public OAuth2RefreshTokenEntity answer(InvocationOnMock invocation) throws Throwable {
-				OAuth2RefreshTokenEntity _token = (OAuth2RefreshTokenEntity) invocation.getArguments()[0];
-				if(_token.getId() == null) {
-					_token.setId(id++);
-				}
-				fakeRefreshTokenTable.put(_token.getId(), _token);
-				return _token;
-			}
-		});
-		when(tokenRepository.getRefreshTokenById(anyLong())).thenAnswer(new Answer<OAuth2RefreshTokenEntity>() {
-			@Override
-			public OAuth2RefreshTokenEntity answer(InvocationOnMock invocation) throws Throwable {
-				Long _id = (Long) invocation.getArguments()[0];
-				return fakeRefreshTokenTable.get(_id);
-			}
-		});
-		when(clientRepository.getClientByClientId(anyString())).thenAnswer(new Answer<ClientDetailsEntity>() {
-			@Override
-			public ClientDetailsEntity answer(InvocationOnMock invocation) throws Throwable {
-				String _clientId = (String) invocation.getArguments()[0];
-				ClientDetailsEntity _client = mock(ClientDetailsEntity.class);
-				// unused by mockito (causs unnecessary stubbing exception
+        val reader = JsonReader(StringReader(configJson))
+        val fakeRefreshTokenTable: MutableMap<Long, OAuth2RefreshTokenEntity> = HashMap()
+        val fakeAuthHolderTable: MutableMap<Long, AuthenticationHolderEntity> = HashMap()
+        whenever(tokenRepository.saveRefreshToken(isA<OAuth2RefreshTokenEntity>()))
+            .thenAnswer(object : Answer<OAuth2RefreshTokenEntity> {
+                var id: Long = 343L
+                @Throws(Throwable::class)
+                override fun answer(invocation: InvocationOnMock): OAuth2RefreshTokenEntity {
+                    val _token = invocation.arguments[0] as OAuth2RefreshTokenEntity
+                    val id = _token.id ?: (id++).also { _token.id = it }
+                    fakeRefreshTokenTable[id] = _token
+                    return _token
+                }
+            })
+        whenever(tokenRepository.getRefreshTokenById(isA())).thenAnswer { invocation ->
+            val _id = invocation.arguments[0] as Long
+            fakeRefreshTokenTable[_id]
+        }
+        whenever(clientRepository.getClientByClientId(ArgumentMatchers.anyString())).thenAnswer { invocation ->
+            val _clientId = invocation.arguments[0] as String
+            val _client = Mockito.mock(ClientDetailsEntity::class.java)
+            // unused by mockito (causs unnecessary stubbing exception
 //				when(_client.getClientId()).thenReturn(_clientId);
-				return _client;
-			}
-		});
-		when(authHolderRepository.save(isA(AuthenticationHolderEntity.class))).thenAnswer(new Answer<AuthenticationHolderEntity>() {
-			Long id = 356L;
-			@Override
-			public AuthenticationHolderEntity answer(InvocationOnMock invocation) throws Throwable {
-				AuthenticationHolderEntity _holder = (AuthenticationHolderEntity) invocation.getArguments()[0];
-				if(_holder.getId() == null) {
-					_holder.setId(id++);
-				}
-				fakeAuthHolderTable.put(_holder.getId(), _holder);
-				return _holder;
-			}
-		});
-		when(authHolderRepository.getById(anyLong())).thenAnswer(new Answer<AuthenticationHolderEntity>() {
-			@Override
-			public AuthenticationHolderEntity answer(InvocationOnMock invocation) throws Throwable {
-				Long _id = (Long) invocation.getArguments()[0];
-				return fakeAuthHolderTable.get(_id);
-			}
-		});
-		dataService.importData(reader);
+            _client
+        }
+        whenever<AuthenticationHolderEntity>(authHolderRepository.save(isA<AuthenticationHolderEntity>()))
+            .thenAnswer(object : Answer<AuthenticationHolderEntity> {
+                var id: Long = 356L
+                @Throws(Throwable::class)
+                override fun answer(invocation: InvocationOnMock): AuthenticationHolderEntity {
+                    val _holder = invocation.arguments[0] as AuthenticationHolderEntity
+                    val id = _holder.id ?: (id++).also { _holder.id = it }
+                    fakeAuthHolderTable[id] = _holder
+                    return _holder
+                }
+            })
+        whenever(authHolderRepository.getById(ArgumentMatchers.anyLong())).thenAnswer { invocation ->
+            val _id = invocation.arguments[0] as Long
+            fakeAuthHolderTable[_id]
+        }
+        dataService.importData(reader)
 
-		List<OAuth2RefreshTokenEntity> savedRefreshTokens = new ArrayList(fakeRefreshTokenTable.values()); //capturedRefreshTokens.getAllValues();
-		Collections.sort(savedRefreshTokens, new refreshTokenIdComparator());
+        val savedRefreshTokens: List<OAuth2RefreshTokenEntity> = fakeRefreshTokenTable.values.sortedWith(refreshTokenIdComparator())
+            ArrayList<Any?>(fakeRefreshTokenTable.values) //capturedRefreshTokens.getAllValues();
+        Collections.sort(savedRefreshTokens, refreshTokenIdComparator())
 
-		assertThat(savedRefreshTokens.get(0).getAuthenticationHolder().getId(), equalTo(356L));
-		assertThat(savedRefreshTokens.get(1).getAuthenticationHolder().getId(), equalTo(357L));
-	}
+        Assert.assertThat(savedRefreshTokens[0].authenticationHolder.id, CoreMatchers.equalTo(356L))
+        Assert.assertThat(savedRefreshTokens[1].authenticationHolder.id, CoreMatchers.equalTo(357L))
+    }
 
-	@Test(expected = UnsupportedOperationException.class)
-	public void testExportDisabled() throws IOException {
-		JsonWriter writer = new JsonWriter(new StringWriter());
-		dataService.exportData(writer);
-	}
-
+    @Test(expected = UnsupportedOperationException::class)
+    @Throws(IOException::class)
+    fun testExportDisabled() {
+        val writer = JsonWriter(StringWriter())
+        dataService.exportData(writer)
+    }
 }
