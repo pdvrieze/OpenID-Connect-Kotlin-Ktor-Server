@@ -59,7 +59,7 @@ class ResourceSet {
 
     @get:JoinColumn(name = "resource_set_id")
     @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
-    var policies: Collection<Policy>? = HashSet()
+    var policies: MutableCollection<Policy>? = HashSet()
 
     /* (non-Javadoc)
     * @see java.lang.Object#toString()
