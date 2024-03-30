@@ -18,6 +18,7 @@ package org.mitre.uma.repository
 import org.mitre.uma.model.Permission
 import org.mitre.uma.model.PermissionTicket
 import org.mitre.uma.model.ResourceSet
+import java.lang.Long
 
 /**
  * @author jricher
@@ -26,7 +27,7 @@ interface PermissionRepository {
     /**
      * Save a permission ticket.
      */
-    fun save(p: PermissionTicket?): PermissionTicket?
+    fun save(p: PermissionTicket): PermissionTicket?
 
     /**
      * Get the permission indicated by its ticket value.
@@ -41,20 +42,20 @@ interface PermissionRepository {
     /**
      * Save a permission object with no associated ticket (used by the import/export API)
      */
-    fun saveRawPermission(p: Permission?): Permission?
+    fun saveRawPermission(p: Permission): Permission
 
     /**
      * Get a permission object by its ID (used by the import/export API)
      */
-    fun getById(permissionId: Long?): Permission?
+    fun getById(permissionId: Long): Permission?
 
     /**
      * Get all permission tickets issued against a resource set (called when RS is deleted)
      */
-    fun getPermissionTicketsForResourceSet(rs: ResourceSet?): Collection<PermissionTicket?>?
+    fun getPermissionTicketsForResourceSet(rs: ResourceSet): Collection<PermissionTicket>?
 
     /**
      * Remove the specified ticket.
      */
-    fun remove(ticket: PermissionTicket?)
+    fun remove(ticket: PermissionTicket)
 }
