@@ -375,7 +375,6 @@ class TestMITREidDataService_1_1 {
 
         val savedAccessTokens: List<OAuth2AccessTokenEntity> = fakeDb.values.sortedWith(accessTokenIdComparator())
             //capturedAccessTokens.getAllValues();
-        Collections.sort(savedAccessTokens, accessTokenIdComparator())
 
         Assert.assertThat(savedAccessTokens.size, CoreMatchers.`is`(2))
 
@@ -968,7 +967,6 @@ class TestMITREidDataService_1_1 {
 
         val savedRefreshTokens: List<OAuth2RefreshTokenEntity> = fakeRefreshTokenTable.values.sortedWith(refreshTokenIdComparator())
              //capturedRefreshTokens.getAllValues();
-        Collections.sort(savedRefreshTokens, refreshTokenIdComparator())
 
         Assert.assertThat(savedRefreshTokens[0].authenticationHolder.id, CoreMatchers.equalTo(356L))
         Assert.assertThat(savedRefreshTokens[1].authenticationHolder.id, CoreMatchers.equalTo(357L))

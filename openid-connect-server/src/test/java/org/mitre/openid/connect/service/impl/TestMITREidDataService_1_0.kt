@@ -237,8 +237,6 @@ class TestMITREidDataService_1_0 {
         val savedRefreshTokens: List<OAuth2RefreshTokenEntity> = fakeDb.values.sortedWith(refreshTokenIdComparator())
             //capturedRefreshTokens.getAllValues();
 
-        Collections.sort(savedRefreshTokens, refreshTokenIdComparator())
-
         Assert.assertThat(savedRefreshTokens.size, CoreMatchers.`is`(2))
 
         Assert.assertThat(savedRefreshTokens[0].client!!.clientId, CoreMatchers.equalTo(token1.client!!.clientId))
@@ -371,8 +369,7 @@ class TestMITREidDataService_1_0 {
         //2 times for token, 2 times to update client, 2 times to update authHolder, 1 times to update refresh token
         Mockito.verify(tokenRepository, Mockito.times(7)).saveAccessToken(capture(capturedAccessTokens))
 
-        val savedAccessTokens: List<OAuth2AccessTokenEntity> =fakeDb.values.toList()
-        Collections.sort(savedAccessTokens, accessTokenIdComparator())
+        val savedAccessTokens: List<OAuth2AccessTokenEntity> = fakeDb.values.sortedWith(accessTokenIdComparator())
 
         Assert.assertThat(savedAccessTokens.size, CoreMatchers.`is`(2))
 
@@ -970,8 +967,7 @@ class TestMITREidDataService_1_0 {
         dataService.importData(reader)
 
         val savedRefreshTokens: List<OAuth2RefreshTokenEntity> = fakeRefreshTokenTable.values.sortedWith(refreshTokenIdComparator())
-            ArrayList<Any?>(fakeRefreshTokenTable.values) //capturedRefreshTokens.getAllValues();
-        Collections.sort(savedRefreshTokens, refreshTokenIdComparator())
+            //capturedRefreshTokens.getAllValues();
 
         Assert.assertThat(savedRefreshTokens[0].authenticationHolder.id, CoreMatchers.equalTo(356L))
         Assert.assertThat(savedRefreshTokens[1].authenticationHolder.id, CoreMatchers.equalTo(357L))
