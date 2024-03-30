@@ -5,145 +5,117 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
+ */
+package org.mitre.uma.service.impl
 
-package org.mitre.uma.service.impl;
-
-import java.util.Collection;
-
-import org.mitre.oauth2.model.ClientDetailsEntity;
-import org.mitre.oauth2.model.OAuth2AccessTokenEntity;
-import org.mitre.oauth2.repository.OAuth2TokenRepository;
-import org.mitre.uma.model.PermissionTicket;
-import org.mitre.uma.model.Policy;
-import org.mitre.uma.model.ResourceSet;
-import org.mitre.uma.repository.PermissionRepository;
-import org.mitre.uma.repository.ResourceSetRepository;
-import org.mitre.uma.service.ResourceSetService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Service;
+import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.OAuth2AccessTokenEntity
+import org.mitre.oauth2.repository.OAuth2TokenRepository
+import org.mitre.uma.model.ResourceSet
+import org.mitre.uma.repository.PermissionRepository
+import org.mitre.uma.repository.ResourceSetRepository
+import org.mitre.uma.service.ResourceSetService
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Primary
+import org.springframework.stereotype.Service
 
 /**
  * @author jricher
- *
  */
 @Service
 @Primary
-public class DefaultResourceSetService implements ResourceSetService {
+class DefaultResourceSetService : ResourceSetService {
+    @Autowired
+    private lateinit var repository: ResourceSetRepository
 
-	private static final Logger logger = LoggerFactory.getLogger(DefaultResourceSetService.class);
+    @Autowired
+    private lateinit var tokenRepository: OAuth2TokenRepository
 
-	@Autowired
-	private ResourceSetRepository repository;
+    @Autowired
+    private lateinit var ticketRepository: PermissionRepository
 
-	@Autowired
-	private OAuth2TokenRepository tokenRepository;
+    override fun saveNew(rs: ResourceSet): ResourceSet {
+        require(rs.id == null) { "Can't save a new resource set with an ID already set to it." }
 
-	@Autowired
-	private PermissionRepository ticketRepository;
+        require(checkScopeConsistency(rs)) { "Can't save a resource set with inconsistent claims." }
 
-	@Override
-	public ResourceSet saveNew(ResourceSet rs) {
+        val saved = repository.save(rs)
 
-		if (rs.getId() != null) {
-			throw new IllegalArgumentException("Can't save a new resource set with an ID already set to it.");
-		}
+        return saved
+    }
 
-		if (!checkScopeConsistency(rs)) {
-			throw new IllegalArgumentException("Can't save a resource set with inconsistent claims.");
-		}
+    override fun getById(id: java.lang.Long): ResourceSet? {
+        return repository.getById(id)
+    }
 
-		ResourceSet saved = repository.save(rs);
+    override fun update(oldRs: ResourceSet, newRs: ResourceSet): ResourceSet {
+        require(!(oldRs.id == null || newRs.id == null || oldRs.id != newRs.id)) { "Resource set IDs mismatched" }
 
-		return saved;
+        require(checkScopeConsistency(newRs)) { "Can't save a resource set with inconsistent claims." }
 
-	}
+        newRs.owner = oldRs.owner // preserve the owner tag across updates
+        newRs.clientId = oldRs.clientId // preserve the client id across updates
 
-	@Override
-	public ResourceSet getById(Long id) {
-		return repository.getById(id);
-	}
+        val saved = repository.save(newRs)
 
-	@Override
-	public ResourceSet update(ResourceSet oldRs, ResourceSet newRs) {
+        return saved
+    }
 
-		if (oldRs.getId() == null || newRs.getId() == null
-				|| !oldRs.getId().equals(newRs.getId())) {
+    override fun remove(rs: ResourceSet?) {
+        // find all the access tokens issued against this resource set and revoke them
+        val tokens: Collection<OAuth2AccessTokenEntity> = tokenRepository.getAccessTokensForResourceSet(rs!!)
+        for (token in tokens) {
+            tokenRepository.removeAccessToken(token)
+        }
 
-			throw new IllegalArgumentException("Resource set IDs mismatched");
+        // find all outstanding tickets issued against this resource set and revoke them too
+        val tickets = ticketRepository.getPermissionTicketsForResourceSet(rs)
+        for (ticket in tickets!!) {
+            ticketRepository.remove(ticket)
+        }
 
-		}
+        repository.remove(rs)
+    }
 
-		if (!checkScopeConsistency(newRs)) {
-			throw new IllegalArgumentException("Can't save a resource set with inconsistent claims.");
-		}
+    override fun getAllForOwner(owner: String?): Collection<ResourceSet?>? {
+        return repository.getAllForOwner(owner)
+    }
 
-		newRs.setOwner(oldRs.getOwner()); // preserve the owner tag across updates
-		newRs.setClientId(oldRs.getClientId()); // preserve the client id across updates
+    override fun getAllForOwnerAndClient(owner: String?, clientId: String?): Collection<ResourceSet> {
+        return repository.getAllForOwnerAndClient(owner, clientId)
+    }
 
-		ResourceSet saved = repository.save(newRs);
+    private fun checkScopeConsistency(rs: ResourceSet): Boolean {
+        if (rs.policies == null) {
+            // nothing to check, no problem!
+            return true
+        }
+        for (policy in rs.policies!!) {
+            if (!rs.scopes.containsAll(policy.scopes!!)) {
+                return false
+            }
+        }
+        // we've checked everything, we're good
+        return true
+    }
 
-		return saved;
-
-	}
-
-	@Override
-	public void remove(ResourceSet rs) {
-		// find all the access tokens issued against this resource set and revoke them
-		Collection<OAuth2AccessTokenEntity> tokens = tokenRepository.getAccessTokensForResourceSet(rs);
-		for (OAuth2AccessTokenEntity token : tokens) {
-			tokenRepository.removeAccessToken(token);
-		}
-
-		// find all outstanding tickets issued against this resource set and revoke them too
-		Collection<PermissionTicket> tickets = ticketRepository.getPermissionTicketsForResourceSet(rs);
-		for (PermissionTicket ticket : tickets) {
-			ticketRepository.remove(ticket);
-		}
-
-		repository.remove(rs);
-	}
-
-	@Override
-	public Collection<ResourceSet> getAllForOwner(String owner) {
-		return repository.getAllForOwner(owner);
-	}
-
-	@Override
-	public Collection<ResourceSet> getAllForOwnerAndClient(String owner, String clientId) {
-		return repository.getAllForOwnerAndClient(owner, clientId);
-	}
-
-	private boolean checkScopeConsistency(ResourceSet rs) {
-		if (rs.getPolicies() == null) {
-			// nothing to check, no problem!
-			return true;
-		}
-		for (Policy policy : rs.getPolicies()) {
-			if (!rs.getScopes().containsAll(policy.getScopes())) {
-				return false;
-			}
-		}
-		// we've checked everything, we're good
-		return true;
-	}
-
-	/* (non-Javadoc)
+    /* (non-Javadoc)
 	 * @see org.mitre.uma.service.ResourceSetService#getAllForClient(org.mitre.oauth2.model.ClientDetailsEntity)
 	 */
-	@Override
-	public Collection<ResourceSet> getAllForClient(ClientDetailsEntity client) {
-		return repository.getAllForClient(client.getClientId());
-	}
+    override fun getAllForClient(client: ClientDetailsEntity?): Collection<ResourceSet?>? {
+        return repository.getAllForClient(client!!.clientId)
+    }
 
+    companion object {
+        private val logger: Logger = LoggerFactory.getLogger(DefaultResourceSetService::class.java)
+    }
 }

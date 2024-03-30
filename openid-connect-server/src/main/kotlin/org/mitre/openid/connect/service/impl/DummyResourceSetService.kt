@@ -19,6 +19,7 @@ import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.uma.model.ResourceSet
 import org.mitre.uma.service.ResourceSetService
 import org.springframework.stereotype.Service
+import java.lang.Long
 
 /**
  * Dummy resource set service that doesn't do anything; acts as a stub for the
@@ -28,15 +29,15 @@ import org.springframework.stereotype.Service
  */
 @Service
 class DummyResourceSetService : ResourceSetService {
-    override fun saveNew(rs: ResourceSet?): Nothing {
+    override fun saveNew(rs: ResourceSet): ResourceSet {
         throw UnsupportedOperationException()
     }
 
-    override fun getById(id: Long?): Nothing {
+    override fun getById(id: Long): Nothing {
         throw UnsupportedOperationException()
     }
 
-    override fun update(oldRs: ResourceSet?, newRs: ResourceSet?): Nothing {
+    override fun update(oldRs: ResourceSet, newRs: ResourceSet): ResourceSet {
         throw UnsupportedOperationException()
     }
 

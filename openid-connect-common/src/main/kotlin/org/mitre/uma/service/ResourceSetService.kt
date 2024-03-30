@@ -25,11 +25,11 @@ import org.mitre.uma.model.ResourceSet
  * @author jricher
  */
 interface ResourceSetService {
-    fun saveNew(rs: ResourceSet?): ResourceSet?
+    fun saveNew(rs: ResourceSet): ResourceSet
 
-    fun getById(id: Long?): ResourceSet?
+    fun getById(id: java.lang.Long): ResourceSet?
 
-    fun update(oldRs: ResourceSet?, newRs: ResourceSet?): ResourceSet?
+    fun update(oldRs: ResourceSet, newRs: ResourceSet): ResourceSet
 
     fun remove(rs: ResourceSet?)
 

@@ -30,7 +30,7 @@ interface ResourceSetRepository {
 
     fun getAllForOwner(owner: String?): Collection<ResourceSet?>?
 
-    fun getAllForOwnerAndClient(owner: String?, clientId: String?): Collection<ResourceSet?>?
+    fun getAllForOwnerAndClient(owner: String?, clientId: String?): Collection<ResourceSet>
 
     val all: Collection<ResourceSet?>?
 

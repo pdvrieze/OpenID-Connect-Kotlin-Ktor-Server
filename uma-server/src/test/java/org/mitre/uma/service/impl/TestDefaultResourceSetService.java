@@ -16,19 +16,15 @@
 
 package org.mitre.uma.service.impl;
 
-import static org.mockito.ArgumentMatchers.any;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mitre.uma.model.ResourceSet;
 import org.mitre.uma.repository.ResourceSetRepository;
-import org.mockito.AdditionalAnswers;
+import org.mitre.uma.service.ResourceSetService;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import static org.mockito.Mockito.when;
 
 /**
  * @author jricher
@@ -55,7 +51,7 @@ public class TestDefaultResourceSetService {
 	}
 
 	/**
-	 * Test method for {@link org.mitre.uma.service.impl.DefaultResourceSetService#saveNew(org.mitre.uma.model.ResourceSet)}.
+	 * Test method for {@link ResourceSetService#saveNew(ResourceSet)}.
 	 */
 	@Test(expected = IllegalArgumentException.class)
 	public void testSaveNew_hasId() {
