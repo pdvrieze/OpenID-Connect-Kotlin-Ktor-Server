@@ -7,232 +7,217 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.openid.connect.service.impl;
+ */
+package org.mitre.openid.connect.service.impl
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mitre.oauth2.model.ClientDetailsEntity;
-import org.mitre.oauth2.model.ClientDetailsEntity.SubjectType;
-import org.mitre.oauth2.service.ClientDetailsEntityService;
-import org.mitre.openid.connect.model.DefaultUserInfo;
-import org.mitre.openid.connect.model.UserInfo;
-import org.mitre.openid.connect.repository.UserInfoRepository;
-import org.mitre.openid.connect.service.PairwiseIdentiferService;
-import org.mockito.ArgumentMatchers;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.junit.MockitoJUnitRunner;
-import org.mockito.stubbing.Answer;
-
-import static org.junit.Assert.*;
+import org.junit.Assert
+import org.junit.Assert.assertEquals
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.ClientDetailsEntity.SubjectType
+import org.mitre.oauth2.service.ClientDetailsEntityService
+import org.mitre.openid.connect.model.DefaultUserInfo
+import org.mitre.openid.connect.model.UserInfo
+import org.mitre.openid.connect.repository.UserInfoRepository
+import org.mitre.openid.connect.service.PairwiseIdentiferService
+import org.mockito.InjectMocks
+import org.mockito.Mock
+import org.mockito.Mockito
+import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.kotlin.isA
+import org.mockito.kotlin.whenever
 
 /**
  * @author jricher
- *
  */
-@RunWith(MockitoJUnitRunner.class)
-public class TestDefaultUserInfoService {
-	@InjectMocks
-	private DefaultUserInfoService service = new DefaultUserInfoService();
+@RunWith(MockitoJUnitRunner::class)
+class TestDefaultUserInfoService {
+    @InjectMocks
+    private val service = DefaultUserInfoService()
 
-	@Mock
-	private UserInfoRepository userInfoRepository;
+    @Mock
+    private lateinit var userInfoRepository: UserInfoRepository
 
-	@Mock
-	private ClientDetailsEntityService clientDetailsEntityService;
+    @Mock
+    private lateinit var clientDetailsEntityService: ClientDetailsEntityService
 
-	@Mock
-	private PairwiseIdentiferService pairwiseIdentiferService;
+    @Mock
+    private lateinit var pairwiseIdentiferService: PairwiseIdentiferService
 
-	private UserInfo userInfoAdmin;
-	private UserInfo userInfoRegular;
+    private lateinit var userInfoAdmin: UserInfo
+    private lateinit var userInfoRegular: UserInfo
 
-	private ClientDetailsEntity publicClient1;
-	private ClientDetailsEntity publicClient2;
-	private ClientDetailsEntity pairwiseClient1;
-	private ClientDetailsEntity pairwiseClient2;
-	private ClientDetailsEntity pairwiseClient3;
-	private ClientDetailsEntity pairwiseClient4;
-
-	private String adminUsername = "username";
-	private String regularUsername = "regular";
-	private String adminSub = "adminSub12d3a1f34a2";
-	private String regularSub = "regularSub652ha23b";
-
-	private String pairwiseSub12 = "regularPairwise-12-31ijoef";
-	private String pairwiseSub3 = "regularPairwise-3-1ojadsio";
-	private String pairwiseSub4 = "regularPairwise-4-1ojadsio";
-
-	private String publicClientId1 = "publicClient-1-313124";
-	private String publicClientId2 = "publicClient-2-4109312";
-	private String pairwiseClientId1 = "pairwiseClient-1-2312";
-	private String pairwiseClientId2 = "pairwiseClient-2-324416";
-	private String pairwiseClientId3 = "pairwiseClient-3-154157";
-	private String pairwiseClientId4 = "pairwiseClient-4-4589723";
-
-	private String sectorIdentifier1 = "https://sector-identifier-12/url";
-	private String sectorIdentifier2 = "https://sector-identifier-12/url2";
-	private String sectorIdentifier3 = "https://sector-identifier-3/url";
+    private lateinit var publicClient1: ClientDetailsEntity
+    private lateinit var publicClient2: ClientDetailsEntity
+    private lateinit var pairwiseClient1: ClientDetailsEntity
+    private lateinit var pairwiseClient2: ClientDetailsEntity
+    private lateinit var pairwiseClient3: ClientDetailsEntity
+    private lateinit var pairwiseClient4: ClientDetailsEntity
 
 
 
+    /**
+     * Initialize the service and the mocked repository.
+     * Initialize 2 users, one of them an admin, for use in unit tests.
+     */
+    @Before
+    fun prepare() {
+        userInfoAdmin = DefaultUserInfo()
+        userInfoAdmin.preferredUsername = adminUsername
+        userInfoAdmin.sub = adminSub
 
-	/**
-	 * Initialize the service and the mocked repository.
-	 * Initialize 2 users, one of them an admin, for use in unit tests.
-	 */
-	@Before
-	public void prepare() {
+        userInfoRegular = DefaultUserInfo()
+        userInfoRegular.preferredUsername = regularUsername
+        userInfoRegular.sub = regularSub
 
+        publicClient1 = ClientDetailsEntity()
+        publicClient1.clientId = publicClientId1
 
-		userInfoAdmin = new DefaultUserInfo();
-		userInfoAdmin.setPreferredUsername(adminUsername);
-		userInfoAdmin.setSub(adminSub);
+        publicClient2 = ClientDetailsEntity()
+        publicClient2.clientId = publicClientId2
+        publicClient2.subjectType = SubjectType.PUBLIC
 
-		userInfoRegular = new DefaultUserInfo();
-		userInfoRegular.setPreferredUsername(regularUsername);
-		userInfoRegular.setSub(regularSub);
+        // pairwise set 1
+        pairwiseClient1 = ClientDetailsEntity()
+        pairwiseClient1.clientId = pairwiseClientId1
+        pairwiseClient1.subjectType = SubjectType.PAIRWISE
+        pairwiseClient1.sectorIdentifierUri = sectorIdentifier1
 
-		publicClient1 = new ClientDetailsEntity();
-		publicClient1.setClientId(publicClientId1);
+        pairwiseClient2 = ClientDetailsEntity()
+        pairwiseClient2.clientId = pairwiseClientId2
+        pairwiseClient2.subjectType = SubjectType.PAIRWISE
+        pairwiseClient2.sectorIdentifierUri = sectorIdentifier2
 
-		publicClient2 = new ClientDetailsEntity();
-		publicClient2.setClientId(publicClientId2);
-		publicClient2.setSubjectType(SubjectType.PUBLIC);
+        // pairwise set 2
+        pairwiseClient3 = ClientDetailsEntity()
+        pairwiseClient3.clientId = pairwiseClientId3
+        pairwiseClient3.subjectType = SubjectType.PAIRWISE
+        pairwiseClient3.sectorIdentifierUri = sectorIdentifier3
 
-		// pairwise set 1
-		pairwiseClient1 = new ClientDetailsEntity();
-		pairwiseClient1.setClientId(pairwiseClientId1);
-		pairwiseClient1.setSubjectType(SubjectType.PAIRWISE);
-		pairwiseClient1.setSectorIdentifierUri(sectorIdentifier1);
+        // pairwise with null sector
+        pairwiseClient4 = ClientDetailsEntity()
+        pairwiseClient4.clientId = pairwiseClientId4
+        pairwiseClient4.subjectType = SubjectType.PAIRWISE
+    }
 
-		pairwiseClient2 = new ClientDetailsEntity();
-		pairwiseClient2.setClientId(pairwiseClientId2);
-		pairwiseClient2.setSubjectType(SubjectType.PAIRWISE);
-		pairwiseClient2.setSectorIdentifierUri(sectorIdentifier2);
+    /**
+     * Test loading an admin user, ensuring that the UserDetails object returned
+     * has both the ROLE_USER and ROLE_ADMIN authorities.
+     */
+    @Test
+    fun loadByUsername_admin_success() {
+        whenever(userInfoRepository.getByUsername(adminUsername)).thenReturn(userInfoAdmin)
+        val user = service.getByUsername(adminUsername)
+        assertEquals(user!!.sub, adminSub)
+    }
 
-		// pairwise set 2
-		pairwiseClient3 = new ClientDetailsEntity();
-		pairwiseClient3.setClientId(pairwiseClientId3);
-		pairwiseClient3.setSubjectType(SubjectType.PAIRWISE);
-		pairwiseClient3.setSectorIdentifierUri(sectorIdentifier3);
+    /**
+     * Test loading a regular, non-admin user, ensuring that the returned UserDetails
+     * object has ROLE_USER but *not* ROLE_ADMIN.
+     */
+    @Test
+    fun loadByUsername_regular_success() {
+        whenever(userInfoRepository.getByUsername(regularUsername)).thenReturn(userInfoRegular)
+        val user = service.getByUsername(regularUsername)
+        assertEquals(user!!.sub, regularSub)
+    }
 
-		// pairwise with null sector
-		pairwiseClient4 = new ClientDetailsEntity();
-		pairwiseClient4.setClientId(pairwiseClientId4);
-		pairwiseClient4.setSubjectType(SubjectType.PAIRWISE);
+    /**
+     * If a user is not found, the loadByUsername method should throw an exception.
+     */
+    @Test
+    fun loadByUsername_nullUser() {
+        whenever(userInfoRepository.getByUsername(adminUsername)).thenReturn(null)
+        val user = service.getByUsername(adminUsername)
 
+        Assert.assertNull(user)
+    }
 
+    @Test
+    fun getByUsernameAndClientId_publicClients() {
+        whenever(clientDetailsEntityService.loadClientByClientId(publicClientId1)).thenReturn(publicClient1)
+        whenever(clientDetailsEntityService.loadClientByClientId(publicClientId2)).thenReturn(publicClient2)
 
+        whenever(userInfoRepository.getByUsername(regularUsername)).thenReturn(userInfoRegular)
 
-	}
+        Mockito.verify(pairwiseIdentiferService, Mockito.never())
+            .getIdentifier(isA<UserInfo>(), isA<ClientDetailsEntity>())
 
-	/**
-	 * Test loading an admin user, ensuring that the UserDetails object returned
-	 * has both the ROLE_USER and ROLE_ADMIN authorities.
-	 */
-	@Test
-	public void loadByUsername_admin_success() {
-		Mockito.when(userInfoRepository.getByUsername(adminUsername)).thenReturn(userInfoAdmin);
-		UserInfo user = service.getByUsername(adminUsername);
-		assertEquals(user.getSub(), adminSub);
-	}
+        val user1 = service.getByUsernameAndClientId(regularUsername, publicClientId1)!!
+        val user2 = service.getByUsernameAndClientId(regularUsername, publicClientId2)!!
 
-	/**
-	 * Test loading a regular, non-admin user, ensuring that the returned UserDetails
-	 * object has ROLE_USER but *not* ROLE_ADMIN.
-	 */
-	@Test
-	public void loadByUsername_regular_success() {
+        assertEquals(regularSub, user1.sub)
+        assertEquals(regularSub, user2.sub)
+    }
 
-		Mockito.when(userInfoRepository.getByUsername(regularUsername)).thenReturn(userInfoRegular);
-		UserInfo user = service.getByUsername(regularUsername);
-		assertEquals(user.getSub(), regularSub);
+    @Test
+    fun getByUsernameAndClientId_pairwiseClients() {
+        whenever(clientDetailsEntityService.loadClientByClientId(pairwiseClientId1))
+            .thenReturn(pairwiseClient1)
+        whenever(clientDetailsEntityService.loadClientByClientId(pairwiseClientId2))
+            .thenReturn(pairwiseClient2)
+        whenever(clientDetailsEntityService.loadClientByClientId(pairwiseClientId3))
+            .thenReturn(pairwiseClient3)
+        whenever(clientDetailsEntityService.loadClientByClientId(pairwiseClientId4))
+            .thenReturn(pairwiseClient4)
 
-	}
+        whenever(userInfoRepository.getByUsername(regularUsername)).thenAnswer {
+            val userInfo: UserInfo = DefaultUserInfo()
+            userInfo.preferredUsername = regularUsername
+            userInfo.sub = regularSub
+            userInfo
+        }
 
-	/**
-	 * If a user is not found, the loadByUsername method should throw an exception.
-	 */
-	@Test()
-	public void loadByUsername_nullUser() {
+        whenever(pairwiseIdentiferService.getIdentifier(userInfoRegular, pairwiseClient1))
+            .thenReturn(pairwiseSub12)
+        whenever(pairwiseIdentiferService.getIdentifier(userInfoRegular, pairwiseClient2))
+            .thenReturn(pairwiseSub12)
+        whenever(pairwiseIdentiferService.getIdentifier(userInfoRegular, pairwiseClient3))
+            .thenReturn(pairwiseSub3)
+        whenever(pairwiseIdentiferService.getIdentifier(userInfoRegular, pairwiseClient4))
+            .thenReturn(pairwiseSub4)
 
-		Mockito.when(userInfoRepository.getByUsername(adminUsername)).thenReturn(null);
-		UserInfo user = service.getByUsername(adminUsername);
+        val user1 = service.getByUsernameAndClientId(regularUsername, pairwiseClientId1)
+        val user2 = service.getByUsernameAndClientId(regularUsername, pairwiseClientId2)
+        val user3 = service.getByUsernameAndClientId(regularUsername, pairwiseClientId3)
+        val user4 = service.getByUsernameAndClientId(regularUsername, pairwiseClientId4)
 
-		assertNull(user);
-	}
+        assertEquals(pairwiseSub12, user1!!.sub)
+        assertEquals(pairwiseSub12, user2!!.sub)
+        assertEquals(pairwiseSub3, user3!!.sub)
+        assertEquals(pairwiseSub4, user4!!.sub)
+    }
+    
+    
+    companion object {
+        private const val adminUsername = "username"
+        private const val regularUsername = "regular"
+        private const val adminSub = "adminSub12d3a1f34a2"
+        private const val regularSub = "regularSub652ha23b"
 
-	/**
-	 * Clients with public subs should always return the same sub
-	 */
-	@Test
-	public void getByUsernameAndClientId_publicClients() {
+        private const val pairwiseSub12 = "regularPairwise-12-31ijoef"
+        private const val pairwiseSub3 = "regularPairwise-3-1ojadsio"
+        private const val pairwiseSub4 = "regularPairwise-4-1ojadsio"
 
-		Mockito.when(clientDetailsEntityService.loadClientByClientId(publicClientId1)).thenReturn(publicClient1);
-		Mockito.when(clientDetailsEntityService.loadClientByClientId(publicClientId2)).thenReturn(publicClient2);
+        private const val publicClientId1 = "publicClient-1-313124"
+        private const val publicClientId2 = "publicClient-2-4109312"
+        private const val pairwiseClientId1 = "pairwiseClient-1-2312"
+        private const val pairwiseClientId2 = "pairwiseClient-2-324416"
+        private const val pairwiseClientId3 = "pairwiseClient-3-154157"
+        private const val pairwiseClientId4 = "pairwiseClient-4-4589723"
 
-		Mockito.when(userInfoRepository.getByUsername(regularUsername)).thenReturn(userInfoRegular);
+        private const val sectorIdentifier1 = "https://sector-identifier-12/url"
+        private const val sectorIdentifier2 = "https://sector-identifier-12/url2"
+        private const val sectorIdentifier3 = "https://sector-identifier-3/url"
 
-		Mockito.verify(pairwiseIdentiferService, Mockito.never()).getIdentifier(ArgumentMatchers.any(UserInfo.class), ArgumentMatchers.any(ClientDetailsEntity.class));
-
-		UserInfo user1 = service.getByUsernameAndClientId(regularUsername, publicClientId1);
-		UserInfo user2 = service.getByUsernameAndClientId(regularUsername, publicClientId2);
-
-		assertEquals(regularSub, user1.getSub());
-		assertEquals(regularSub, user2.getSub());
-	}
-
-	/**
-	 * Clients with pairwise subs should be grouped by the sector URI
-	 */
-	@Test
-	public void getByUsernameAndClientId_pairwiseClients() {
-
-		Mockito.when(clientDetailsEntityService.loadClientByClientId(pairwiseClientId1)).thenReturn(pairwiseClient1);
-		Mockito.when(clientDetailsEntityService.loadClientByClientId(pairwiseClientId2)).thenReturn(pairwiseClient2);
-		Mockito.when(clientDetailsEntityService.loadClientByClientId(pairwiseClientId3)).thenReturn(pairwiseClient3);
-		Mockito.when(clientDetailsEntityService.loadClientByClientId(pairwiseClientId4)).thenReturn(pairwiseClient4);
-
-		Mockito.when(userInfoRepository.getByUsername(regularUsername)).thenAnswer(new Answer<UserInfo>() {
-			@Override
-			public UserInfo answer(InvocationOnMock invocation) throws Throwable {
-				UserInfo userInfo = new DefaultUserInfo();
-				userInfo.setPreferredUsername(regularUsername);
-				userInfo.setSub(regularSub);
-
-				return userInfo;
-			}
-		});
-
-		Mockito.when(pairwiseIdentiferService.getIdentifier(userInfoRegular, pairwiseClient1)).thenReturn(pairwiseSub12);
-		Mockito.when(pairwiseIdentiferService.getIdentifier(userInfoRegular, pairwiseClient2)).thenReturn(pairwiseSub12);
-		Mockito.when(pairwiseIdentiferService.getIdentifier(userInfoRegular, pairwiseClient3)).thenReturn(pairwiseSub3);
-		Mockito.when(pairwiseIdentiferService.getIdentifier(userInfoRegular, pairwiseClient4)).thenReturn(pairwiseSub4);
-
-		UserInfo user1 = service.getByUsernameAndClientId(regularUsername, pairwiseClientId1);
-		UserInfo user2 = service.getByUsernameAndClientId(regularUsername, pairwiseClientId2);
-		UserInfo user3 = service.getByUsernameAndClientId(regularUsername, pairwiseClientId3);
-		UserInfo user4 = service.getByUsernameAndClientId(regularUsername, pairwiseClientId4);
-
-		assertEquals(pairwiseSub12, user1.getSub());
-		assertEquals(pairwiseSub12, user2.getSub());
-		assertEquals(pairwiseSub3, user3.getSub());
-		assertEquals(pairwiseSub4, user4.getSub());
-
-	}
-
-
-
+    }
 }
