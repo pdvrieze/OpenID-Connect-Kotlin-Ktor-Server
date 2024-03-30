@@ -131,7 +131,7 @@ class ConnectTokenEnhancer : TokenEnhancer {
      * @param authentication current authentication
      */
     protected fun addCustomAccessTokenClaims(
-        builder: JWTClaimsSet.Builder?, token: OAuth2AccessTokenEntity?,
+        builder: JWTClaimsSet.Builder, token: OAuth2AccessTokenEntity?,
         authentication: OAuth2Authentication?
     ) {
     }

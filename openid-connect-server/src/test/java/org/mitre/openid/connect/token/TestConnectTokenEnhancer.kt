@@ -7,102 +7,101 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.openid.connect.token;
+ */
+package org.mitre.openid.connect.token
 
-import java.text.ParseException;
+import com.nimbusds.jose.JWSAlgorithm
+import com.nimbusds.jwt.JWTClaimsSet
+import org.junit.Assert
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.mitre.jwt.signer.service.JWTSigningAndValidationService
+import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.OAuth2AccessTokenEntity
+import org.mitre.oauth2.service.ClientDetailsEntityService
+import org.mitre.openid.connect.config.ConfigurationPropertiesBean
+import org.mitre.openid.connect.service.OIDCTokenService
+import org.mitre.openid.connect.service.UserInfoService
+import org.mockito.InjectMocks
+import org.mockito.Mock
+import org.mockito.Mockito
+import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.kotlin.whenever
+import org.springframework.security.oauth2.provider.OAuth2Authentication
+import org.springframework.security.oauth2.provider.OAuth2Request
+import java.text.ParseException
 
-import org.mitre.jwt.signer.service.JWTSigningAndValidationService;
-import org.mitre.oauth2.model.ClientDetailsEntity;
-import org.mitre.oauth2.model.OAuth2AccessTokenEntity;
-import org.mitre.oauth2.service.ClientDetailsEntityService;
-import org.mitre.openid.connect.config.ConfigurationPropertiesBean;
-import org.mitre.openid.connect.model.UserInfo;
-import org.mitre.openid.connect.service.OIDCTokenService;
-import org.mitre.openid.connect.service.UserInfoService;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.security.oauth2.provider.OAuth2Request;
+@RunWith(MockitoJUnitRunner::class)
+class TestConnectTokenEnhancer {
+    private val configBean = ConfigurationPropertiesBean()
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+    @Mock
+    private lateinit var jwtService: JWTSigningAndValidationService
 
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTClaimsSet.Builder;
+    @Mock
+    private lateinit var clientService: ClientDetailsEntityService
 
-@RunWith(MockitoJUnitRunner.class)
-public class TestConnectTokenEnhancer {
+    @Mock
+    private lateinit var userInfoService: UserInfoService
 
-	private static final String CLIENT_ID = "client";
-	private static final String KEY_ID = "key";
+    @Mock
+    private lateinit var connectTokenService: OIDCTokenService
 
-	private ConfigurationPropertiesBean configBean = new ConfigurationPropertiesBean();
+    @Mock
+    private lateinit var authentication: OAuth2Authentication
 
-	@Mock
-	private JWTSigningAndValidationService jwtService;
+    private val request: OAuth2Request = object : OAuth2Request(CLIENT_ID) {}
 
-	@Mock
-	private ClientDetailsEntityService clientService;
+    @InjectMocks
+    private var enhancer = ConnectTokenEnhancer()
 
-	@Mock
-	private UserInfoService userInfoService;
+    @Before
+    fun prepare() {
+        configBean.issuer = "https://auth.example.org/"
+        enhancer.configBean = configBean
 
-	@Mock
-	private OIDCTokenService connectTokenService;
+        val client = ClientDetailsEntity()
+        client.clientId = CLIENT_ID
+        whenever(clientService.loadClientByClientId(Mockito.anyString())).thenReturn(client)
+        whenever(authentication.oAuth2Request).thenReturn(request)
+        whenever(jwtService.defaultSigningAlgorithm).thenReturn(JWSAlgorithm.RS256)
+        whenever(jwtService.defaultSignerKeyId).thenReturn(KEY_ID)
+    }
 
-	@Mock
-	private OAuth2Authentication authentication;
+    @Test
+    @Throws(ParseException::class)
+    fun invokesCustomClaimsHook() {
+        configure(object : ConnectTokenEnhancer() {
+            override fun addCustomAccessTokenClaims(
+                builder: JWTClaimsSet.Builder, token: OAuth2AccessTokenEntity?,
+                authentication: OAuth2Authentication?
+            ) {
+                builder.claim("test", "foo")
+            }
+        }.also { enhancer = it })
 
-	private OAuth2Request request = new OAuth2Request(CLIENT_ID) { };
+        val token = OAuth2AccessTokenEntity()
 
-	@InjectMocks
-	private ConnectTokenEnhancer enhancer = new ConnectTokenEnhancer();
+        val enhanced = enhancer.enhance(token, authentication) as OAuth2AccessTokenEntity
+        Assert.assertEquals("foo", enhanced.jwt!!.jwtClaimsSet.getClaim("test"))
+    }
 
-	@Before
-	public void prepare() {
-		configBean.setIssuer("https://auth.example.org/");
-		enhancer.setConfigBean(configBean);
+    private fun configure(e: ConnectTokenEnhancer) {
+        e.configBean = configBean
+        e.jwtService = jwtService
+        e.clientService = clientService
+    }
 
-		ClientDetailsEntity client = new ClientDetailsEntity();
-		client.setClientId(CLIENT_ID);
-		Mockito.when(clientService.loadClientByClientId(Mockito.anyString())).thenReturn(client);
-		Mockito.when(authentication.getOAuth2Request()).thenReturn(request);
-		Mockito.when(jwtService.getDefaultSigningAlgorithm()).thenReturn(JWSAlgorithm.RS256);
-		Mockito.when(jwtService.getDefaultSignerKeyId()).thenReturn(KEY_ID);
-	}
-
-	@Test
-	public void invokesCustomClaimsHook() throws ParseException {
-		configure(enhancer = new ConnectTokenEnhancer() {
-				@Override
-				protected void addCustomAccessTokenClaims(Builder builder, OAuth2AccessTokenEntity token,
-				    OAuth2Authentication authentication) {
-					builder.claim("test", "foo");
-				}
-			});
-
-		OAuth2AccessTokenEntity token = new OAuth2AccessTokenEntity();
-
-		OAuth2AccessTokenEntity enhanced = (OAuth2AccessTokenEntity) enhancer.enhance(token, authentication);
-		Assert.assertEquals("foo", enhanced.getJwt().getJWTClaimsSet().getClaim("test"));
-	}
-
-	private void configure(ConnectTokenEnhancer e) {
-		e.setConfigBean(configBean);
-		e.setJwtService(jwtService);
-		e.setClientService(clientService);
-	}
+    companion object {
+        private const val CLIENT_ID = "client"
+        private const val KEY_ID = "key"
+    }
 }
