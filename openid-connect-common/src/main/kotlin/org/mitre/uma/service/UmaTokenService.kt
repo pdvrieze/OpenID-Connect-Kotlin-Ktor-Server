@@ -30,8 +30,8 @@ interface UmaTokenService {
      * Create the RPT from the given authentication and ticket.
      */
     fun createRequestingPartyToken(
-        o2auth: OAuth2Authentication?,
-        ticket: PermissionTicket?,
-        policy: Policy?
+        o2auth: OAuth2Authentication,
+        ticket: PermissionTicket,
+        policy: Policy
     ): OAuth2AccessTokenEntity?
 }
