@@ -7,183 +7,176 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.oauth2.service.impl;
+ */
+package org.mitre.oauth2.service.impl
 
-import java.util.Set;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mitre.oauth2.model.SystemScope;
-import org.mitre.oauth2.repository.SystemScopeRepository;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import com.google.common.collect.Sets;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-
-import static org.junit.Assert.assertThat;
+import com.google.common.collect.Sets
+import org.hamcrest.CoreMatchers
+import org.junit.Assert
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.mitre.oauth2.model.SystemScope
+import org.mitre.oauth2.repository.SystemScopeRepository
+import org.mockito.InjectMocks
+import org.mockito.Mock
+import org.mockito.Mockito
+import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.whenever
 
 /**
  * @author wkim
- *
  */
-@RunWith(MockitoJUnitRunner.class)
-public class TestDefaultSystemScopeService {
+@RunWith(MockitoJUnitRunner::class)
+class TestDefaultSystemScopeService {
+    // test fixture
+    private lateinit var defaultDynScope1: SystemScope
+    private lateinit var defaultDynScope2: SystemScope
+    private lateinit var defaultScope1: SystemScope
+    private lateinit var defaultScope2: SystemScope
+    private lateinit var dynScope1: SystemScope
+    private lateinit var restrictedScope1: SystemScope
 
-	// test fixture
-	private SystemScope defaultDynScope1;
-	private SystemScope defaultDynScope2;
-	private SystemScope defaultScope1;
-	private SystemScope defaultScope2;
-	private SystemScope dynScope1;
-	private SystemScope restrictedScope1;
+    private lateinit var allScopes: Set<SystemScope>
+    private lateinit var allScopeStrings: Set<String>
+    private lateinit var allScopesWithValue: Set<SystemScope>
+    private lateinit var allScopeStringsWithValue: Set<String>
 
-	private String defaultDynScope1String = "defaultDynScope1";
-	private String defaultDynScope2String = "defaultDynScope2";
-	private String defaultScope1String = "defaultScope1";
-	private String defaultScope2String = "defaultScope2";
-	private String dynScope1String = "dynScope1";
-	private String restrictedScope1String = "restrictedScope1";
+    @Mock
+    private lateinit var repository: SystemScopeRepository
 
-	private Set<SystemScope> allScopes;
-	private Set<String> allScopeStrings;
-	private Set<SystemScope> allScopesWithValue;
-	private Set<String> allScopeStringsWithValue;
+    @InjectMocks
+    private lateinit var service: DefaultSystemScopeService
 
-	@Mock
-	private SystemScopeRepository repository;
+    /**
+     * Assumes these SystemScope defaults: isDefaultScope=false and isAllowDynReg=false.
+     */
+    @Before
+    fun prepare() {
+        Mockito.reset(repository)
 
-	@InjectMocks
-	private DefaultSystemScopeService service;
+        // two default and dynamically registerable scopes (unrestricted)
+        defaultDynScope1 = SystemScope(defaultDynScope1String)
+        defaultDynScope2 = SystemScope(defaultDynScope2String)
+        defaultDynScope1.isDefaultScope = true
+        defaultDynScope2.isDefaultScope = true
 
-	/**
-	 * Assumes these SystemScope defaults: isDefaultScope=false and isAllowDynReg=false.
-	 */
-	@Before
-	public void prepare() {
+        // two strictly default scopes (restricted)
+        defaultScope1 = SystemScope(defaultScope1String)
+        defaultScope2 = SystemScope(defaultScope2String)
+        defaultScope1.isRestricted = true
+        defaultScope2.isRestricted = true
+        defaultScope1.isDefaultScope = true
+        defaultScope2.isDefaultScope = true
 
-		Mockito.reset(repository);
+        // one strictly dynamically registerable scope (isDefault false)
+        dynScope1 = SystemScope(dynScope1String)
 
-		// two default and dynamically registerable scopes (unrestricted)
-		defaultDynScope1 = new SystemScope(defaultDynScope1String);
-		defaultDynScope2 = new SystemScope(defaultDynScope2String);
-		defaultDynScope1.setDefaultScope(true);
-		defaultDynScope2.setDefaultScope(true);
-
-		// two strictly default scopes (restricted)
-		defaultScope1 = new SystemScope(defaultScope1String);
-		defaultScope2 = new SystemScope(defaultScope2String);
-		defaultScope1.setRestricted(true);
-		defaultScope2.setRestricted(true);
-		defaultScope1.setDefaultScope(true);
-		defaultScope2.setDefaultScope(true);
-
-		// one strictly dynamically registerable scope (isDefault false)
-		dynScope1 = new SystemScope(dynScope1String);
-
-		// extraScope1 : extra scope that is neither restricted nor default (defaults to false/false)
-		restrictedScope1 = new SystemScope(restrictedScope1String);
-		restrictedScope1.setRestricted(true);
+        // extraScope1 : extra scope that is neither restricted nor default (defaults to false/false)
+        restrictedScope1 = SystemScope(restrictedScope1String)
+        restrictedScope1.isRestricted = true
 
 
-		allScopes = Sets.newHashSet(defaultDynScope1, defaultDynScope2, defaultScope1, defaultScope2, dynScope1, restrictedScope1);
-		allScopeStrings = Sets.newHashSet(defaultDynScope1String, defaultDynScope2String, defaultScope1String, defaultScope2String, dynScope1String, restrictedScope1String);
+        allScopes =
+            Sets.newHashSet(defaultDynScope1, defaultDynScope2, defaultScope1, defaultScope2, dynScope1, restrictedScope1)
+        allScopeStrings =
+            Sets.newHashSet(defaultDynScope1String, defaultDynScope2String, defaultScope1String, defaultScope2String, dynScope1String, restrictedScope1String)
 
-		allScopesWithValue = Sets.newHashSet(defaultDynScope1, defaultDynScope2, defaultScope1, defaultScope2, dynScope1, restrictedScope1);
-		allScopeStringsWithValue = Sets.newHashSet(defaultDynScope1String, defaultDynScope2String, defaultScope1String, defaultScope2String, dynScope1String, restrictedScope1String);
+        allScopesWithValue =
+            Sets.newHashSet(defaultDynScope1, defaultDynScope2, defaultScope1, defaultScope2, dynScope1, restrictedScope1)
+        allScopeStringsWithValue =
+            Sets.newHashSet(defaultDynScope1String, defaultDynScope2String, defaultScope1String, defaultScope2String, dynScope1String, restrictedScope1String)
 
-		Mockito.when(repository.getByValue(defaultDynScope1String)).thenReturn(defaultDynScope1);
-		Mockito.when(repository.getByValue(defaultDynScope2String)).thenReturn(defaultDynScope2);
-		Mockito.when(repository.getByValue(defaultScope1String)).thenReturn(defaultScope1);
-		Mockito.when(repository.getByValue(defaultScope2String)).thenReturn(defaultScope2);
-		Mockito.when(repository.getByValue(dynScope1String)).thenReturn(dynScope1);
-		Mockito.when(repository.getByValue(restrictedScope1String)).thenReturn(restrictedScope1);
+        whenever(repository.getByValue(defaultDynScope1String)).doReturn(defaultDynScope1)
+        whenever(repository.getByValue(defaultDynScope2String)).doReturn(defaultDynScope2)
+        whenever(repository.getByValue(defaultScope1String)).doReturn(defaultScope1)
+        whenever(repository.getByValue(defaultScope2String)).doReturn(defaultScope2)
+        whenever(repository.getByValue(dynScope1String)).doReturn(dynScope1)
+        whenever(repository.getByValue(restrictedScope1String)).doReturn(restrictedScope1)
 
-		Mockito.when(repository.getAll()).thenReturn(allScopes);
-	}
+        whenever(repository.all).doReturn(allScopes)
+    }
 
-	@Test
-	public void getAll() {
+    @Test
+    fun getAll(): Unit {
+        Assert.assertThat(service.all, CoreMatchers.equalTo(allScopes))
+    }
 
-		assertThat(service.getAll(), equalTo(allScopes));
-	}
+    @Test
+    fun getDefaults(): Unit {
+        val defaults: Set<SystemScope?> =
+            Sets.newHashSet(defaultDynScope1, defaultDynScope2, defaultScope1, defaultScope2)
 
-	@Test
-	public void getDefaults() {
+        Assert.assertThat<Set<SystemScope?>>(service.defaults, CoreMatchers.equalTo(defaults))
+    }
 
-		Set<SystemScope> defaults = Sets.newHashSet(defaultDynScope1, defaultDynScope2, defaultScope1, defaultScope2);
+    @Test
+    fun getUnrestricted(): Unit {
+        val unrestricted: Set<SystemScope?> = Sets.newHashSet(defaultDynScope1, defaultDynScope2, dynScope1)
 
-		assertThat(service.getDefaults(), equalTo(defaults));
-	}
+        Assert.assertThat<Set<SystemScope?>>(service.unrestricted, CoreMatchers.equalTo(unrestricted))
+    }
 
-	@Test
-	public void getUnrestricted() {
+    @Test
+    fun getRestricted(): Unit {
+        val restricted: Set<SystemScope?> = Sets.newHashSet(defaultScope1, defaultScope2, restrictedScope1)
 
-		Set<SystemScope> unrestricted = Sets.newHashSet(defaultDynScope1, defaultDynScope2, dynScope1);
+        Assert.assertThat<Set<SystemScope?>>(service.restricted, CoreMatchers.equalTo(restricted))
+    }
 
-		assertThat(service.getUnrestricted(), equalTo(unrestricted));
-	}
+    @Test
+    fun fromStrings() {
+        // check null condition
 
-	@Test
-	public void getRestricted() {
-		Set<SystemScope> restricted = Sets.newHashSet(defaultScope1, defaultScope2, restrictedScope1);
+        Assert.assertThat(service.fromStrings(null), CoreMatchers.`is`(CoreMatchers.nullValue()))
 
-		assertThat(service.getRestricted(), equalTo(restricted));
+        Assert.assertThat(service.fromStrings(allScopeStrings), CoreMatchers.equalTo(allScopes))
 
-	}
+        Assert.assertThat(service.fromStrings(allScopeStringsWithValue), CoreMatchers.equalTo(allScopesWithValue))
+    }
 
-	@Test
-	public void fromStrings() {
+    @Test
+    fun toStrings() {
+        // check null condition
 
-		// check null condition
-		assertThat(service.fromStrings(null), is(nullValue()));
+        Assert.assertThat(service.toStrings(null), CoreMatchers.`is`(CoreMatchers.nullValue()))
 
-		assertThat(service.fromStrings(allScopeStrings), equalTo(allScopes));
+        Assert.assertThat(service.toStrings(allScopes), CoreMatchers.equalTo(allScopeStrings))
 
-		assertThat(service.fromStrings(allScopeStringsWithValue), equalTo(allScopesWithValue));
-	}
+        Assert.assertThat(service.toStrings(allScopesWithValue), CoreMatchers.equalTo(allScopeStringsWithValue))
+    }
 
-	@Test
-	public void toStrings() {
+    @Test
+    fun scopesMatch() {
+        val expected: Set<String> = Sets.newHashSet("foo", "bar", "baz")
+        val actualGood: Set<String> = Sets.newHashSet("foo", "baz", "bar")
+        val actualGood2: Set<String> = Sets.newHashSet("foo", "bar")
+        val actualBad: Set<String> = Sets.newHashSet("foo", "bob", "bar")
 
-		// check null condition
-		assertThat(service.toStrings(null), is(nullValue()));
+        // same scopes, different order
+        Assert.assertThat(service.scopesMatch(expected, actualGood), CoreMatchers.`is`(true))
 
-		assertThat(service.toStrings(allScopes), equalTo(allScopeStrings));
+        // subset
+        Assert.assertThat(service.scopesMatch(expected, actualGood2), CoreMatchers.`is`(true))
 
-		assertThat(service.toStrings(allScopesWithValue), equalTo(allScopeStringsWithValue));
-	}
+        // extra scope (fail)
+        Assert.assertThat(service.scopesMatch(expected, actualBad), CoreMatchers.`is`(false))
+    }
 
-	@Test
-	public void scopesMatch() {
-
-		Set<String> expected = Sets.newHashSet("foo", "bar", "baz");
-		Set<String> actualGood = Sets.newHashSet("foo", "baz", "bar");
-		Set<String> actualGood2 = Sets.newHashSet("foo", "bar");
-		Set<String> actualBad = Sets.newHashSet("foo", "bob", "bar");
-
-		// same scopes, different order
-		assertThat(service.scopesMatch(expected, actualGood), is(true));
-
-		// subset
-		assertThat(service.scopesMatch(expected, actualGood2), is(true));
-
-		// extra scope (fail)
-		assertThat(service.scopesMatch(expected, actualBad), is(false));
-	}
-
+    companion object {
+        private const val defaultDynScope1String = "defaultDynScope1"
+        private const val defaultDynScope2String = "defaultDynScope2"
+        private const val defaultScope1String = "defaultScope1"
+        private const val defaultScope2String = "defaultScope2"
+        private const val dynScope1String = "dynScope1"
+        private const val restrictedScope1String = "restrictedScope1"
+    }
 }
