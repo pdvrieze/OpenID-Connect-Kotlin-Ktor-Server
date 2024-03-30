@@ -16,9 +16,7 @@
 
 package org.mitre.uma.service.impl;
 
-import java.util.Set;
-import java.util.UUID;
-
+import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,24 +24,23 @@ import org.mitre.oauth2.service.SystemScopeService;
 import org.mitre.uma.model.PermissionTicket;
 import org.mitre.uma.model.ResourceSet;
 import org.mitre.uma.repository.PermissionRepository;
+import org.mitre.uma.service.PermissionService;
 import org.mockito.AdditionalAnswers;
-import org.mockito.InjectMocks;
 import org.mockito.ArgumentMatchers;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.springframework.security.oauth2.common.exceptions.InsufficientScopeException;
 
-import com.google.common.collect.ImmutableSet;
+import java.util.Set;
+import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
-
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
-
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
 
 /**
  * @author jricher
@@ -111,7 +108,7 @@ public class TestDefaultPermissionService {
 
 
 	/**
-	 * Test method for {@link org.mitre.uma.service.impl.DefaultPermissionService#createTicket(org.mitre.uma.model.ResourceSet, java.util.Set)}.
+	 * Test method for {@link PermissionService#createTicket(ResourceSet, Set)}.
 	 */
 	@Test
 	public void testCreate_ticket() {

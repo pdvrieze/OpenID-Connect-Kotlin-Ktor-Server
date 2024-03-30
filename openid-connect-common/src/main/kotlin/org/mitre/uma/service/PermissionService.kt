@@ -28,7 +28,7 @@ interface PermissionService {
      * @return the created (and stored) permission object, with ticket
      * @throws InsufficientScopeException if the scopes in scopes don't match those in resourceSet.getScopes
      */
-    fun createTicket(resourceSet: ResourceSet?, scopes: Set<String?>?): PermissionTicket?
+    fun createTicket(resourceSet: ResourceSet, scopes: Set<String>): PermissionTicket?
 
     /**
      * Read the permission associated with the given ticket.
@@ -41,5 +41,5 @@ interface PermissionService {
     /**
      * Save the updated permission ticket to the database. Does not create a new ticket.
      */
-    fun updateTicket(ticket: PermissionTicket?): PermissionTicket?
+    fun updateTicket(ticket: PermissionTicket): PermissionTicket?
 }
