@@ -33,9 +33,9 @@ interface ResourceSetService {
 
     fun remove(rs: ResourceSet?)
 
-    fun getAllForOwner(owner: String?): Collection<ResourceSet?>?
+    fun getAllForOwner(owner: String): Collection<ResourceSet>
 
     fun getAllForOwnerAndClient(owner: String?, authClientId: String?): Collection<ResourceSet>
 
-    fun getAllForClient(client: ClientDetailsEntity?): Collection<ResourceSet?>?
+    fun getAllForClient(client: ClientDetailsEntity): Collection<ResourceSet>
 }

@@ -28,11 +28,11 @@ interface ResourceSetRepository {
 
     fun remove(rs: ResourceSet)
 
-    fun getAllForOwner(owner: String?): Collection<ResourceSet?>?
+    fun getAllForOwner(owner: String): Collection<ResourceSet>
 
     fun getAllForOwnerAndClient(owner: String?, clientId: String?): Collection<ResourceSet>
 
-    val all: Collection<ResourceSet?>?
+    val all: Collection<ResourceSet>?
 
-    fun getAllForClient(clientId: String?): Collection<ResourceSet?>?
+    fun getAllForClient(clientId: String): Collection<ResourceSet>
 }

@@ -45,7 +45,7 @@ class DummyResourceSetService : ResourceSetService {
         throw UnsupportedOperationException()
     }
 
-    override fun getAllForOwner(owner: String?): Nothing {
+    override fun getAllForOwner(owner: String): Collection<ResourceSet> {
         throw UnsupportedOperationException()
     }
 
@@ -53,7 +53,7 @@ class DummyResourceSetService : ResourceSetService {
         return emptySet()
     }
 
-    override fun getAllForClient(client: ClientDetailsEntity?): Collection<ResourceSet> {
+    override fun getAllForClient(client: ClientDetailsEntity): Collection<ResourceSet> {
         return emptySet()
     }
 }

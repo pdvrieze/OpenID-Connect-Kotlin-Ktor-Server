@@ -86,7 +86,7 @@ class DefaultResourceSetService : ResourceSetService {
         repository.remove(rs)
     }
 
-    override fun getAllForOwner(owner: String?): Collection<ResourceSet?>? {
+    override fun getAllForOwner(owner: String): Collection<ResourceSet> {
         return repository.getAllForOwner(owner)
     }
 
@@ -111,8 +111,9 @@ class DefaultResourceSetService : ResourceSetService {
     /* (non-Javadoc)
 	 * @see org.mitre.uma.service.ResourceSetService#getAllForClient(org.mitre.oauth2.model.ClientDetailsEntity)
 	 */
-    override fun getAllForClient(client: ClientDetailsEntity?): Collection<ResourceSet?>? {
-        return repository.getAllForClient(client!!.clientId)
+    override fun getAllForClient(client: ClientDetailsEntity): Collection<ResourceSet> {
+        val clientId = requireNotNull(client.clientId) { "missing client id in entity" }
+        return repository.getAllForClient(clientId)
     }
 
     companion object {

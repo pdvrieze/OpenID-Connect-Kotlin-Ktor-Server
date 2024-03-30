@@ -52,7 +52,7 @@ open class JpaResourceSetRepository : ResourceSetRepository {
         }
     }
 
-    override fun getAllForOwner(owner: String?): Collection<ResourceSet?>? {
+    override fun getAllForOwner(owner: String): Collection<ResourceSet> {
         val query = em.createNamedQuery(ResourceSet.QUERY_BY_OWNER, ResourceSet::class.java)
         query.setParameter(ResourceSet.PARAM_OWNER, owner)
         return query.resultList
@@ -65,7 +65,7 @@ open class JpaResourceSetRepository : ResourceSetRepository {
         return query.resultList
     }
 
-    override val all: Collection<ResourceSet>
+    override val all: Collection<ResourceSet>?
         get() {
             val query = em.createNamedQuery(ResourceSet.QUERY_ALL, ResourceSet::class.java)
             return query.resultList
@@ -74,7 +74,7 @@ open class JpaResourceSetRepository : ResourceSetRepository {
     /* (non-Javadoc)
 	 * @see org.mitre.uma.repository.ResourceSetRepository#getAllForClient(org.mitre.oauth2.model.ClientDetailsEntity)
 	 */
-    override fun getAllForClient(clientId: String?): Collection<ResourceSet?>? {
+    override fun getAllForClient(clientId: String): Collection<ResourceSet> {
         val query = em.createNamedQuery(ResourceSet.QUERY_BY_CLIENT, ResourceSet::class.java)
         query.setParameter(ResourceSet.PARAM_CLIENTID, clientId)
         return query.resultList
