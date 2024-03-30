@@ -17,7 +17,6 @@
  */
 package org.mitre.oauth2.service
 
-import com.google.common.collect.Sets
 import org.mitre.oauth2.model.SystemScope
 
 /**
@@ -92,7 +91,7 @@ interface SystemScopeService {
         const val UMA_PROTECTION_SCOPE: String = "uma_protection"
         const val UMA_AUTHORIZATION_SCOPE: String = "uma_authorization"
 
-        val reservedScopes: Set<SystemScope> = Sets.newHashSet(
+        val reservedScopes: Set<SystemScope> = hashSetOf(
             SystemScope(REGISTRATION_TOKEN_SCOPE),
             SystemScope(RESOURCE_TOKEN_SCOPE)
         )

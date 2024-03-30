@@ -17,8 +17,6 @@
  */
 package org.mitre.oauth2.introspectingfilter
 
-import com.google.common.base.Splitter
-import com.google.common.collect.Sets
 import com.google.gson.JsonObject
 import org.springframework.security.oauth2.common.OAuth2AccessToken
 import org.springframework.security.oauth2.common.OAuth2RefreshToken
@@ -36,7 +34,7 @@ class OAuth2AccessTokenImpl(introspectionResponse: JsonObject, tokenString: Stri
         this.introspectionResponse = introspectionResponse
         this.tokenString = tokenString
         if (introspectionResponse["scope"] != null) {
-            scopes = Sets.newHashSet(Splitter.on(" ").split(introspectionResponse["scope"].asString))
+            scopes = introspectionResponse["scope"].asString.split(' ').toHashSet()
         }
 
         if (introspectionResponse["exp"] != null) {
@@ -71,7 +69,7 @@ class OAuth2AccessTokenImpl(introspectionResponse: JsonObject, tokenString: Stri
 
     override fun getExpiresIn(): Int {
         return expireDate?.let {
-            TimeUnit.MILLISECONDS.toSeconds(it.getTime() - Date().time).toInt()
+            TimeUnit.MILLISECONDS.toSeconds(it.time - Date().time).toInt()
         } ?: 0
     }
 

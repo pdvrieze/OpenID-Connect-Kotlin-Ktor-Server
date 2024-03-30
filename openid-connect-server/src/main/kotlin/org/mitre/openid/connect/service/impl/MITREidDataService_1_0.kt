@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.service.impl
 
-import com.google.common.collect.Sets
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
 import com.google.gson.stream.JsonWriter
@@ -772,7 +771,7 @@ class MITREidDataService_1_0 : MITREidDataServiceSupport(), MITREidDataService {
                             name == "initiateLoginUri" -> client.initiateLoginUri = reader.nextString()
 
                             name == "postLogoutRedirectUri" ->
-                                client.postLogoutRedirectUris = Sets.newHashSet(reader.nextString())
+                                client.postLogoutRedirectUris = hashSetOf(reader.nextString())
 
                             name == "requestUris" -> client.requestUris = readSet(reader)
                             name == "description" -> client.clientDescription = reader.nextString()

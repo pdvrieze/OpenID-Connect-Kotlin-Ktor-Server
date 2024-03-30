@@ -17,7 +17,6 @@
  */
 package org.mitre.oauth2.service.impl
 
-import com.google.common.collect.Sets
 import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -26,7 +25,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
-import org.junit.jupiter.api.fail
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
@@ -135,7 +133,7 @@ class TestDefaultOAuth2ProviderTokenService {
         storedAuthentication = authentication
         storedAuthRequest = clientAuth
         storedAuthHolder = Mockito.mock(AuthenticationHolderEntity::class.java)
-        storedScope = Sets.newHashSet(scope)
+        storedScope = scope.toHashSet()
 
         whenever(refreshToken.authenticationHolder) doReturn (storedAuthHolder)
         whenever(storedAuthHolder.authentication) doReturn (storedAuthentication)
@@ -195,18 +193,12 @@ class TestDefaultOAuth2ProviderTokenService {
     fun createAccessToken_nullAuth() {
         whenever(authentication.oAuth2Request) doReturn (null)
 
-        try {
+        assertThrows<AuthenticationCredentialsNotFoundException> {
             service.createAccessToken(null)
-            fail("Authentication parameter is null. Excpected a AuthenticationCredentialsNotFoundException.")
-        } catch (e: AuthenticationCredentialsNotFoundException) {
-            assertThat(e, CoreMatchers.`is`(CoreMatchers.notNullValue()))
         }
 
-        try {
+        assertThrows<AuthenticationCredentialsNotFoundException> {
             service.createAccessToken(authentication)
-            fail("AuthorizationRequest is null. Excpected a AuthenticationCredentialsNotFoundException.")
-        } catch (e: AuthenticationCredentialsNotFoundException) {
-            assertThat(e, CoreMatchers.`is`(CoreMatchers.notNullValue()))
         }
     }
 
@@ -251,7 +243,7 @@ class TestDefaultOAuth2ProviderTokenService {
     @Test
     fun createAccessToken_yesRefresh() {
         val clientAuth =
-            OAuth2Request(null, clientId, null, true, Sets.newHashSet(SystemScopeService.OFFLINE_ACCESS), null, null, null, null)
+            OAuth2Request(null, clientId, null, true, hashSetOf(SystemScopeService.OFFLINE_ACCESS), null, null, null, null)
         whenever(authentication.oAuth2Request) doReturn (clientAuth)
         whenever(client.isAllowRefresh) doReturn (true)
 
@@ -425,7 +417,7 @@ class TestDefaultOAuth2ProviderTokenService {
 
     @Test
     fun refreshAccessToken_requestingLessScope() {
-        val lessScope: Set<String> = Sets.newHashSet("openid", "profile")
+        val lessScope: Set<String> = hashSetOf("openid", "profile")
 
         tokenRequest.setScope(lessScope)
 
@@ -465,7 +457,7 @@ class TestDefaultOAuth2ProviderTokenService {
 
     @Test
     fun refreshAccessToken_requestingEmptyScope() {
-        val emptyScope: Set<String> = Sets.newHashSet()
+        val emptyScope: Set<String> = hashSetOf()
 
         tokenRequest.setScope(emptyScope)
 
@@ -514,7 +506,7 @@ class TestDefaultOAuth2ProviderTokenService {
 
     @Test
     fun getAllAccessTokensForUser() {
-        whenever<Set<OAuth2AccessTokenEntity?>>(tokenRepository.getAccessTokensByUserName(userName)) doReturn(Sets.newHashSet(accessToken))
+        whenever<Set<OAuth2AccessTokenEntity?>>(tokenRepository.getAccessTokensByUserName(userName)) doReturn(hashSetOf(accessToken))
 
         val tokens: Set<OAuth2AccessTokenEntity?> = service.getAllAccessTokensForUser(userName)
         assertEquals(1, tokens.size)
@@ -523,7 +515,7 @@ class TestDefaultOAuth2ProviderTokenService {
 
     @Test
     fun getAllRefreshTokensForUser() {
-        whenever<Set<OAuth2RefreshTokenEntity?>>(tokenRepository.getRefreshTokensByUserName(userName)) doReturn(Sets.newHashSet(refreshToken))
+        whenever<Set<OAuth2RefreshTokenEntity?>>(tokenRepository.getRefreshTokensByUserName(userName)) doReturn(hashSetOf(refreshToken))
 
         val tokens: Set<OAuth2RefreshTokenEntity?> = service.getAllRefreshTokensForUser(userName)
         assertEquals(1, tokens.size)

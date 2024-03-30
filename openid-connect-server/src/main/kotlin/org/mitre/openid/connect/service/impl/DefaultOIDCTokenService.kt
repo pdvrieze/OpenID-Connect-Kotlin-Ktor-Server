@@ -20,7 +20,6 @@ package org.mitre.openid.connect.service.impl
 import com.google.common.base.Strings
 import com.google.common.collect.Lists
 import com.google.common.collect.Maps
-import com.google.common.collect.Sets
 import com.nimbusds.jose.Algorithm
 import com.nimbusds.jose.JWEHeader
 import com.nimbusds.jose.JWEObject
@@ -196,12 +195,12 @@ open class DefaultOIDCTokenService : OIDCTokenService {
      * @throws AuthenticationException
      */
     override fun createRegistrationAccessToken(client: ClientDetailsEntity): OAuth2AccessTokenEntity? {
-        return createAssociatedToken(client, Sets.newHashSet(SystemScopeService.REGISTRATION_TOKEN_SCOPE))
+        return createAssociatedToken(client, hashSetOf(SystemScopeService.REGISTRATION_TOKEN_SCOPE))
     }
 
 
     override fun createResourceAccessToken(client: ClientDetailsEntity): OAuth2AccessTokenEntity? {
-        return createAssociatedToken(client, Sets.newHashSet(SystemScopeService.RESOURCE_TOKEN_SCOPE))
+        return createAssociatedToken(client, hashSetOf(SystemScopeService.RESOURCE_TOKEN_SCOPE))
     }
 
     override fun rotateRegistrationAccessTokenForClient(client: ClientDetailsEntity): OAuth2AccessTokenEntity? {
@@ -228,7 +227,7 @@ open class DefaultOIDCTokenService : OIDCTokenService {
         val authorizationParameters: Map<String, String> = Maps.newHashMap()
         val clientAuth = OAuth2Request(
             authorizationParameters, client.clientId,
-            Sets.newHashSet(SimpleGrantedAuthority("ROLE_CLIENT")), true,
+            hashSetOf(SimpleGrantedAuthority("ROLE_CLIENT")), true,
             scope, null, null, null, null
         )
         val authentication = OAuth2Authentication(clientAuth, null)

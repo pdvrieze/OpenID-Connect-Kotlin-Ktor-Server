@@ -19,7 +19,6 @@ package org.mitre.openid.connect.web
 
 import com.google.common.base.Strings
 import com.google.common.collect.ImmutableSet
-import com.google.common.collect.Sets
 import com.google.gson.JsonSyntaxException
 import com.nimbusds.jose.EncryptionMethod
 import com.nimbusds.jose.JWEAlgorithm
@@ -429,10 +428,10 @@ class DynamicClientRegistrationEndpoint {
         if (newClient!!.grantTypes == null || newClient.grantTypes.isEmpty()) {
             if (newClient.scope.contains("offline_access")) { // client asked for offline access
                 newClient.grantTypes =
-                    Sets.newHashSet("authorization_code", "refresh_token") // allow authorization code and refresh token grant types by default
+                    hashSetOf("authorization_code", "refresh_token") // allow authorization code and refresh token grant types by default
             } else {
                 newClient.grantTypes =
-                    Sets.newHashSet("authorization_code") // allow authorization code grant type by default
+                    hashSetOf("authorization_code") // allow authorization code grant type by default
             }
             if (config!!.isDualClient) {
                 val extendedGrandTypes = newClient.grantTypes
@@ -596,19 +595,19 @@ class DynamicClientRegistrationEndpoint {
                         when (claim) {
                             SOFTWARE_STATEMENT -> throw ValidationException("invalid_client_metadata", "Software statement can't include another software statement", HttpStatus.BAD_REQUEST)
                             CLAIMS_REDIRECT_URIS -> newClient.claimsRedirectUris =
-                                Sets.newHashSet(claimSet.getStringListClaim(claim))
+                                claimSet.getStringListClaim(claim).toHashSet()
 
                             CLIENT_SECRET_EXPIRES_AT -> throw ValidationException("invalid_client_metadata", "Software statement can't include a client secret expiration time", HttpStatus.BAD_REQUEST)
                             CLIENT_ID_ISSUED_AT -> throw ValidationException("invalid_client_metadata", "Software statement can't include a client ID issuance time", HttpStatus.BAD_REQUEST)
                             REGISTRATION_CLIENT_URI -> throw ValidationException("invalid_client_metadata", "Software statement can't include a client configuration endpoint", HttpStatus.BAD_REQUEST)
                             REGISTRATION_ACCESS_TOKEN -> throw ValidationException("invalid_client_metadata", "Software statement can't include a client registration access token", HttpStatus.BAD_REQUEST)
-                            REQUEST_URIS -> newClient.requestUris = Sets.newHashSet(claimSet.getStringListClaim(claim))
+                            REQUEST_URIS -> newClient.requestUris = claimSet.getStringListClaim(claim).toHashSet()
                             POST_LOGOUT_REDIRECT_URIS -> newClient.postLogoutRedirectUris =
-                                Sets.newHashSet(claimSet.getStringListClaim(claim))
+                                claimSet.getStringListClaim(claim).toHashSet()
 
                             INITIATE_LOGIN_URI -> newClient.initiateLoginUri = claimSet.getStringClaim(claim)
                             DEFAULT_ACR_VALUES -> newClient.defaultACRvalues =
-                                Sets.newHashSet(claimSet.getStringListClaim(claim))
+                                claimSet.getStringListClaim(claim).toHashSet()
 
                             REQUIRE_AUTH_TIME -> newClient.requireAuthTime = claimSet.getBooleanClaim(claim)
                             DEFAULT_MAX_AGE -> newClient.defaultMaxAge = claimSet.getIntegerClaim(claim)
@@ -647,20 +646,20 @@ class DynamicClientRegistrationEndpoint {
                             JWKS -> newClient.jwks = JWKSet.parse(claimSet.getJSONObjectClaim(claim).toJSONString())
                             POLICY_URI -> newClient.policyUri = claimSet.getStringClaim(claim)
                             RESPONSE_TYPES -> newClient.responseTypes =
-                                Sets.newHashSet(claimSet.getStringListClaim(claim))
+                                claimSet.getStringListClaim(claim).toHashSet()
 
-                            GRANT_TYPES -> newClient.grantTypes = Sets.newHashSet(claimSet.getStringListClaim(claim))
+                            GRANT_TYPES -> newClient.grantTypes = claimSet.getStringListClaim(claim).toHashSet()
                             SCOPE -> newClient.setScope(OAuth2Utils.parseParameterList(claimSet.getStringClaim(claim)))
                             TOKEN_ENDPOINT_AUTH_METHOD -> newClient.tokenEndpointAuthMethod =
                                 AuthMethod.getByValue(claimSet.getStringClaim(claim))
 
                             TOS_URI -> newClient.tosUri = claimSet.getStringClaim(claim)
-                            CONTACTS -> newClient.contacts = Sets.newHashSet(claimSet.getStringListClaim(claim))
+                            CONTACTS -> newClient.contacts = claimSet.getStringListClaim(claim).toHashSet()
                             LOGO_URI -> newClient.logoUri = claimSet.getStringClaim(claim)
                             CLIENT_URI -> newClient.clientUri = claimSet.getStringClaim(claim)
                             CLIENT_NAME -> newClient.clientName = claimSet.getStringClaim(claim)
                             REDIRECT_URIS -> newClient.redirectUris =
-                                Sets.newHashSet(claimSet.getStringListClaim(claim))
+                                claimSet.getStringListClaim(claim).toHashSet()
 
                             CLIENT_SECRET -> throw ValidationException("invalid_client_metadata", "Software statement can't contain client secret", HttpStatus.BAD_REQUEST)
                             CLIENT_ID -> throw ValidationException("invalid_client_metadata", "Software statement can't contain client ID", HttpStatus.BAD_REQUEST)

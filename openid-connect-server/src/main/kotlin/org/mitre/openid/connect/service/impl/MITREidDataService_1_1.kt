@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.service.impl
 
-import com.google.common.collect.Sets
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
 import com.google.gson.stream.JsonWriter
@@ -765,7 +764,7 @@ class MITREidDataService_1_1 : MITREidDataServiceSupport(), MITREidDataService {
                         } else if (name == "initiateLoginUri") {
                             client.initiateLoginUri = reader.nextString()
                         } else if (name == "postLogoutRedirectUri") {
-                            val postLogoutUris = Sets.newHashSet(reader.nextString())
+                            val postLogoutUris = hashSetOf(reader.nextString())
                             client.postLogoutRedirectUris = postLogoutUris
                         } else if (name == "requestUris") {
                             val requestUris = readSet<String>(reader)

@@ -18,7 +18,6 @@
 package org.mitre.openid.connect.client.service.impl
 
 import com.google.common.collect.ImmutableMap
-import com.google.common.collect.Sets
 import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -46,7 +45,7 @@ class TestPlainAuthRequestUrlBuilder {
 
         clientConfig = Mockito.mock(RegisteredClient::class.java)
         Mockito.`when`(clientConfig.clientId).thenReturn("s6BhdRkqt3")
-        Mockito.`when`(clientConfig.scope).thenReturn(Sets.newHashSet("openid", "profile"))
+        Mockito.`when`(clientConfig.scope).thenReturn(hashSetOf("openid", "profile"))
     }
 
     @Test

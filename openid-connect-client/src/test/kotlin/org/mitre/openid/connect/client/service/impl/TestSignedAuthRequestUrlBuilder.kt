@@ -19,7 +19,6 @@ package org.mitre.openid.connect.client.service.impl
 
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.Maps
-import com.google.common.collect.Sets
 import com.nimbusds.jose.Algorithm
 import com.nimbusds.jose.jwk.JWK
 import com.nimbusds.jose.jwk.KeyUse
@@ -99,7 +98,7 @@ class TestSignedAuthRequestUrlBuilder {
 
         clientConfig = Mockito.mock(RegisteredClient::class.java)
         Mockito.`when`(clientConfig.clientId).thenReturn("s6BhdRkqt3")
-        Mockito.`when`(clientConfig.scope).thenReturn(Sets.newHashSet("openid", "profile"))
+        Mockito.`when`(clientConfig.scope).thenReturn(hashSetOf("openid", "profile"))
     }
 
     /**

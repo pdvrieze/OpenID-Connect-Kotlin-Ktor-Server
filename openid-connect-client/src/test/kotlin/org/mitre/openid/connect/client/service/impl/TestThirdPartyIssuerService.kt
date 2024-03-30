@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.client.service.impl
 
-import com.google.common.collect.Sets
 import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -82,7 +81,7 @@ class TestThirdPartyIssuerService {
 
     @Test
     fun getIssuer_isWhitelisted() {
-        service.whitelist = Sets.newHashSet(iss)
+        service.whitelist = hashSetOf(iss)
 
         val response = service.getIssuer(request)
 
@@ -95,7 +94,7 @@ class TestThirdPartyIssuerService {
 
     @Test
     fun getIssuer_notWhitelisted() {
-        service.whitelist = Sets.newHashSet("some.other.site")
+        service.whitelist = hashSetOf("some.other.site")
 
         assertThrows<AuthenticationServiceException> {
             service.getIssuer(request)
@@ -104,7 +103,7 @@ class TestThirdPartyIssuerService {
 
     @Test
     fun getIssuer_blacklisted() {
-        service.blacklist = Sets.newHashSet(iss)
+        service.blacklist = hashSetOf(iss)
 
         assertThrows<AuthenticationServiceException> {
             service.getIssuer(request)

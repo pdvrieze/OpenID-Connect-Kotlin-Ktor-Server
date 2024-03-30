@@ -38,27 +38,22 @@ class DefaultIntrospectionResultAssembler : IntrospectionResultAssembler {
         authScopes: Set<String>
     ): Map<String, Any> {
         val result: MutableMap<String, Any> = Maps.newLinkedHashMap()
-        val authentication = accessToken.authenticationHolder!!.authentication
+        val authentication = accessToken.authenticationHolder.authentication
 
         result[IntrospectionResultAssembler.ACTIVE] = true
 
-        if (accessToken.permissions != null && !accessToken.permissions!!.isEmpty()) {
-            val permissions: MutableSet<Any> = Sets.newHashSet()
-
-            for (perm in accessToken.permissions!!) {
-                val o: MutableMap<String, Any> = Maps.newLinkedHashMap()
-                o["resource_set_id"] = perm.resourceSet!!.id.toString()
-                val scopes: Set<String> = Sets.newHashSet(perm.scopes)
-                o["scopes"] = scopes
-                permissions.add(o)
+        val accessPermissions = accessToken.permissions
+        if (!accessPermissions.isNullOrEmpty()) {
+            result["permissions"] = accessPermissions.mapTo(HashSet<Map<String, Any>>()) { perm ->
+                hashMapOf(
+                    "resource_set_id" to perm.resourceSet!!.id.toString(),
+                    "scopes" to (perm.scopes?.toHashSet() ?: emptySet()),
+                )
             }
-
-            result["permissions"] = permissions
         } else {
-            val scopes: Set<String> = Sets.intersection(authScopes, accessToken.scope)
+            val scopes = accessToken.scope?.let { authScopes.intersect(it) } ?: emptySet()
 
-            result[IntrospectionResultAssembler.SCOPE] =
-                Joiner.on(IntrospectionResultAssembler.SCOPE_SEPARATOR).join(scopes)
+            result[IntrospectionResultAssembler.SCOPE] = scopes.joinToString(IntrospectionResultAssembler.SCOPE_SEPARATOR)
         }
 
         val expiration = accessToken.expiration
