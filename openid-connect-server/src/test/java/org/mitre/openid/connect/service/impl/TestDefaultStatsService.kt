@@ -7,170 +7,159 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.openid.connect.service.impl;
+ */
+package org.mitre.openid.connect.service.impl
 
-import java.util.HashSet;
-import java.util.Map;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mitre.oauth2.model.ClientDetailsEntity;
-import org.mitre.openid.connect.model.ApprovedSite;
-import org.mitre.openid.connect.service.ApprovedSiteService;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import com.google.common.collect.Sets;
-
-import static org.hamcrest.CoreMatchers.is;
-
-import static org.junit.Assert.assertThat;
+import org.hamcrest.CoreMatchers
+import org.junit.Assert
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.openid.connect.model.ApprovedSite
+import org.mitre.openid.connect.service.ApprovedSiteService
+import org.mockito.InjectMocks
+import org.mockito.Mock
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.reset
+import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.kotlin.whenever
 
 /**
  * @author wkim
- *
  */
-@RunWith(MockitoJUnitRunner.class)
-public class TestDefaultStatsService {
+@RunWith(MockitoJUnitRunner::class)
+class TestDefaultStatsService {
 
-	// Test fixtures:
-	// Currently tests 4 approved sites with a total of 2 users and 3 clients for those sites.
-	// There is an extra client in the system to make sure the stats only count for approved sites.
+    private val ap1: ApprovedSite = mock()
+    private val ap2: ApprovedSite = mock()
+    private val ap3: ApprovedSite = mock()
+    private val ap4: ApprovedSite = mock()
+    private val ap5: ApprovedSite = mock()
+    private val ap6: ApprovedSite = mock()
 
-	private String userId1 = "batman";
-	private String userId2 = "alfred";
+    private val client1: ClientDetailsEntity = mock()
+    private val client2: ClientDetailsEntity = mock()
+    private val client3: ClientDetailsEntity = mock()
+    private val client4: ClientDetailsEntity = mock()
 
-	private String clientId1 = "bar";
-	private String clientId2 = "pawnshop";
-	private String clientId3 = "pizzastore";
-	private String clientId4 = "gasstation";
+    @Mock
+    private lateinit var approvedSiteService: ApprovedSiteService
 
-	private ApprovedSite ap1 = Mockito.mock(ApprovedSite.class);
-	private ApprovedSite ap2 = Mockito.mock(ApprovedSite.class);
-	private ApprovedSite ap3 = Mockito.mock(ApprovedSite.class);
-	private ApprovedSite ap4 = Mockito.mock(ApprovedSite.class);
-	private ApprovedSite ap5 = Mockito.mock(ApprovedSite.class);
-	private ApprovedSite ap6 = Mockito.mock(ApprovedSite.class);
+    @InjectMocks
+    private val service = DefaultStatsService()
 
-	private ClientDetailsEntity client1 = Mockito.mock(ClientDetailsEntity.class);
-	private ClientDetailsEntity client2 = Mockito.mock(ClientDetailsEntity.class);
-	private ClientDetailsEntity client3 = Mockito.mock(ClientDetailsEntity.class);
-	private ClientDetailsEntity client4 = Mockito.mock(ClientDetailsEntity.class);
+    /**
+     * Prepares a collection of ApprovedSite mocks to be returned from the approvedSiteService
+     * and a collection of ClientDetailEntity mocks to be returned from the clientService.
+     */
+    @Before
+    fun prepare() {
+        reset(approvedSiteService)
 
-	@Mock
-	private ApprovedSiteService approvedSiteService;
+        whenever(ap1.userId).thenReturn(userId1)
+        whenever(ap1.clientId).thenReturn(clientId1)
 
-	@InjectMocks
-	private DefaultStatsService service = new DefaultStatsService();
+        whenever(ap2.userId).thenReturn(userId1)
+        whenever(ap2.clientId).thenReturn(clientId1)
 
-	/**
-	 * Prepares a collection of ApprovedSite mocks to be returned from the approvedSiteService
-	 * and a collection of ClientDetailEntity mocks to be returned from the clientService.
-	 */
-	@Before
-	public void prepare() {
+        whenever(ap3.userId).thenReturn(userId2)
+        whenever(ap3.clientId).thenReturn(clientId2)
 
-		Mockito.reset(approvedSiteService);
+        whenever(ap4.userId).thenReturn(userId2)
+        whenever(ap4.clientId).thenReturn(clientId3)
 
-		Mockito.when(ap1.getUserId()).thenReturn(userId1);
-		Mockito.when(ap1.getClientId()).thenReturn(clientId1);
+        whenever(ap5.userId).thenReturn(userId2)
+        whenever(ap5.clientId).thenReturn(clientId1)
 
-		Mockito.when(ap2.getUserId()).thenReturn(userId1);
-		Mockito.when(ap2.getClientId()).thenReturn(clientId1);
+        whenever(ap6.userId).thenReturn(userId1)
+        whenever(ap6.clientId).thenReturn(clientId4)
 
-		Mockito.when(ap3.getUserId()).thenReturn(userId2);
-		Mockito.when(ap3.getClientId()).thenReturn(clientId2);
+        whenever(approvedSiteService.all).thenReturn(setOf(ap1, ap2, ap3, ap4))
 
-		Mockito.when(ap4.getUserId()).thenReturn(userId2);
-		Mockito.when(ap4.getClientId()).thenReturn(clientId3);
-
-		Mockito.when(ap5.getUserId()).thenReturn(userId2);
-		Mockito.when(ap5.getClientId()).thenReturn(clientId1);
-
-		Mockito.when(ap6.getUserId()).thenReturn(userId1);
-		Mockito.when(ap6.getClientId()).thenReturn(clientId4);
-
-		Mockito.when(approvedSiteService.getAll()).thenReturn(Sets.newHashSet(ap1, ap2, ap3, ap4));
-
-		// unused by mockito (causs unnecessary stubbing exception
+        // unused by mockito (causs unnecessary stubbing exception
 //		Mockito.when(client1.getId()).thenReturn(1L);
 //		Mockito.when(client2.getId()).thenReturn(2L);
 //		Mockito.when(client3.getId()).thenReturn(3L);
 //		Mockito.when(client4.getId()).thenReturn(4L);
+        whenever(approvedSiteService.getByClientId(clientId1)).thenReturn(setOf(ap1, ap2))
+        whenever(approvedSiteService.getByClientId(clientId2)).thenReturn(setOf(ap3))
+        whenever(approvedSiteService.getByClientId(clientId3)).thenReturn(setOf(ap4))
+        whenever(approvedSiteService.getByClientId(clientId4)).thenReturn(emptySet())
+    }
 
-		Mockito.when(approvedSiteService.getByClientId(clientId1)).thenReturn(Sets.newHashSet(ap1, ap2));
-		Mockito.when(approvedSiteService.getByClientId(clientId2)).thenReturn(Sets.newHashSet(ap3));
-		Mockito.when(approvedSiteService.getByClientId(clientId3)).thenReturn(Sets.newHashSet(ap4));
-		Mockito.when(approvedSiteService.getByClientId(clientId4)).thenReturn(Sets.newHashSet());
-	}
+    @Test
+    fun calculateSummaryStats_empty() {
+        whenever(approvedSiteService.all).thenReturn(HashSet())
 
-	@Test
-	public void calculateSummaryStats_empty() {
+        val stats = service.summaryStats
 
-		Mockito.when(approvedSiteService.getAll()).thenReturn(new HashSet<ApprovedSite>());
+        Assert.assertThat(stats["approvalCount"], CoreMatchers.`is`(0))
+        Assert.assertThat(stats["userCount"], CoreMatchers.`is`(0))
+        Assert.assertThat(stats["clientCount"], CoreMatchers.`is`(0))
+    }
 
-		Map<String, Integer> stats = service.getSummaryStats();
+    @Test
+    fun calculateSummaryStats() {
+        val stats = service.summaryStats
 
-		assertThat(stats.get("approvalCount"), is(0));
-		assertThat(stats.get("userCount"), is(0));
-		assertThat(stats.get("clientCount"), is(0));
-	}
+        Assert.assertThat(stats["approvalCount"], CoreMatchers.`is`(4))
+        Assert.assertThat(stats["userCount"], CoreMatchers.`is`(2))
+        Assert.assertThat(stats["clientCount"], CoreMatchers.`is`(3))
+    }
 
-	@Test
-	public void calculateSummaryStats() {
-		Map<String, Integer> stats = service.getSummaryStats();
+    @Test
+    fun countForClientId() {
+        // stats for ap1..ap4
+        Assert.assertThat(service.getCountForClientId(clientId1)!!.approvedSiteCount, CoreMatchers.`is`(2))
+        Assert.assertThat(service.getCountForClientId(clientId2)!!.approvedSiteCount, CoreMatchers.`is`(1))
+        Assert.assertThat(service.getCountForClientId(clientId3)!!.approvedSiteCount, CoreMatchers.`is`(1))
+        Assert.assertThat(service.getCountForClientId(clientId4)!!.approvedSiteCount, CoreMatchers.`is`(0))
+    }
 
-		assertThat(stats.get("approvalCount"), is(4));
-		assertThat(stats.get("userCount"), is(2));
-		assertThat(stats.get("clientCount"), is(3));
-	}
+    @Test
+    fun cacheAndReset() {
+        val stats = service.summaryStats
 
-	@Test
-	public void countForClientId() {
-		// stats for ap1..ap4
-		assertThat(service.getCountForClientId(clientId1).getApprovedSiteCount(), is(2));
-		assertThat(service.getCountForClientId(clientId2).getApprovedSiteCount(), is(1));
-		assertThat(service.getCountForClientId(clientId3).getApprovedSiteCount(), is(1));
-		assertThat(service.getCountForClientId(clientId4).getApprovedSiteCount(), is(0));
-	}
+        Assert.assertThat(stats["approvalCount"], CoreMatchers.`is`(4))
+        Assert.assertThat(stats["userCount"], CoreMatchers.`is`(2))
+        Assert.assertThat(stats["clientCount"], CoreMatchers.`is`(3))
 
-	@Test
-	public void cacheAndReset() {
+        whenever(approvedSiteService.all).thenReturn(setOf(ap1, ap2, ap3, ap4, ap5, ap6))
 
-		Map<String, Integer> stats = service.getSummaryStats();
+        val stats2 = service.summaryStats
 
-		assertThat(stats.get("approvalCount"), is(4));
-		assertThat(stats.get("userCount"), is(2));
-		assertThat(stats.get("clientCount"), is(3));
+        // cache should remain the same due to memoized functions
+        Assert.assertThat(stats2["approvalCount"], CoreMatchers.`is`(4))
+        Assert.assertThat(stats2["userCount"], CoreMatchers.`is`(2))
+        Assert.assertThat(stats2["clientCount"], CoreMatchers.`is`(3))
 
-		Mockito.when(approvedSiteService.getAll()).thenReturn(Sets.newHashSet(ap1, ap2, ap3, ap4, ap5, ap6));
+        // reset the cache and make sure the count goes up
+        service.resetCache()
 
-		Map<String, Integer> stats2 = service.getSummaryStats();
+        val stats3 = service.summaryStats
 
-		// cache should remain the same due to memoized functions
-		assertThat(stats2.get("approvalCount"), is(4));
-		assertThat(stats2.get("userCount"), is(2));
-		assertThat(stats2.get("clientCount"), is(3));
+        Assert.assertThat(stats3["approvalCount"], CoreMatchers.`is`(6))
+        Assert.assertThat(stats3["userCount"], CoreMatchers.`is`(2))
+        Assert.assertThat(stats3["clientCount"], CoreMatchers.`is`(4))
+    }
 
-		// reset the cache and make sure the count goes up
-		service.resetCache();
-
-		Map<String, Integer> stats3 = service.getSummaryStats();
-
-		assertThat(stats3.get("approvalCount"), is(6));
-		assertThat(stats3.get("userCount"), is(2));
-		assertThat(stats3.get("clientCount"), is(4));
-
-	}
+    companion object {
+        // Test fixtures:
+        // Currently tests 4 approved sites with a total of 2 users and 3 clients for those sites.
+        // There is an extra client in the system to make sure the stats only count for approved sites.
+        private val userId1 = "batman"
+        private val userId2 = "alfred"
+        private val clientId1 = "bar"
+        private val clientId2 = "pawnshop"
+        private val clientId3 = "pizzastore"
+        private val clientId4 = "gasstation"
+    }
 }
