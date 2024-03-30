@@ -43,9 +43,11 @@ import javax.servlet.http.HttpServletRequest
  * Use Webfinger to discover the appropriate issuer for a user-given input string.
  * @author jricher
  */
-class WebfingerIssuerService @JvmOverloads constructor(
-    httpClient: HttpClient? = HttpClientBuilder.create().useSystemProperties().build()
+class WebfingerIssuerService(
+    httpClient: HttpClient?
 ) : IssuerService {
+    constructor() : this(HttpClientBuilder.create().useSystemProperties().build())
+
     // map of user input -> issuer, loaded dynamically from webfinger discover
     private val issuers: LoadingCache<String, LoadingResult>
 
