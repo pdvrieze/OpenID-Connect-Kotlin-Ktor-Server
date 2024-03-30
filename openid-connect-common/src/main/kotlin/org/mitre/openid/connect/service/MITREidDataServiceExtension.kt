@@ -44,7 +44,7 @@ interface MITREidDataServiceExtension {
      * Returns "true" if the item was processed, "false" otherwise.
      */
     @Throws(IOException::class)
-    fun importExtensionData(name: String?, reader: JsonReader?): Boolean
+    fun importExtensionData(name: String?, reader: JsonReader): Boolean
 
     /**
      * Signal the extension to wrap up all object processing and finalize its
