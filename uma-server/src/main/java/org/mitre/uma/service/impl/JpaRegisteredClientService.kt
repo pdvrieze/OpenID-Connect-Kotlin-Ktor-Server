@@ -5,89 +5,68 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
+ */
+package org.mitre.uma.service.impl
 
-package org.mitre.uma.service.impl;
-
-import org.mitre.oauth2.model.RegisteredClient;
-import org.mitre.openid.connect.client.service.RegisteredClientService;
-import org.mitre.uma.model.SavedRegisteredClient;
-import org.mitre.uma.service.SavedRegisteredClientService;
-import org.mitre.util.jpa.JpaUtil;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
-
-import java.util.Collection;
+import org.mitre.oauth2.model.RegisteredClient
+import org.mitre.openid.connect.client.service.RegisteredClientService
+import org.mitre.uma.model.SavedRegisteredClient
+import org.mitre.uma.service.SavedRegisteredClientService
+import org.mitre.util.jpa.JpaUtil.getSingleResult
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import javax.persistence.EntityManager
+import javax.persistence.PersistenceContext
 
 /**
  * @author jricher
- *
  */
 @Service
-public class JpaRegisteredClientService implements RegisteredClientService, SavedRegisteredClientService{
+open class JpaRegisteredClientService : RegisteredClientService, SavedRegisteredClientService {
+    @PersistenceContext(unitName = "defaultPersistenceUnit")
+    private lateinit var em: EntityManager
 
-	@PersistenceContext(unitName="defaultPersistenceUnit")
-	private EntityManager em;
-
-	/* (non-Javadoc)
+    /* (non-Javadoc)
 	 * @see org.mitre.openid.connect.client.service.RegisteredClientService#getByIssuer(java.lang.String)
 	 */
-	@Override
-	public RegisteredClient getByIssuer(String issuer) {
-		SavedRegisteredClient saved = getSavedRegisteredClientFromStorage(issuer);
+    override fun getByIssuer(issuer: String): RegisteredClient? {
+        val saved = getSavedRegisteredClientFromStorage(issuer)
 
-		if (saved == null) {
-			return null;
-		} else {
-			return saved.getRegisteredClient();
-		}
-	}
+        return saved?.registeredClient
+    }
 
-	/* (non-Javadoc)
+    /* (non-Javadoc)
 	 * @see org.mitre.openid.connect.client.service.RegisteredClientService#save(java.lang.String, org.mitre.oauth2.model.RegisteredClient)
 	 */
-	@Override
-	@Transactional(value="defaultTransactionManager")
-	public void save(String issuer, RegisteredClient client) {
+    @Transactional(value = "defaultTransactionManager")
+    override fun save(issuer: String, client: RegisteredClient) {
+        val saved = getSavedRegisteredClientFromStorage(issuer)
+            ?: SavedRegisteredClient().also { it.issuer = issuer }
+
+        saved.registeredClient = client
+
+        em.persist(saved)
+    }
+
+    private fun getSavedRegisteredClientFromStorage(issuer: String): SavedRegisteredClient? {
+        val query =
+            em.createQuery("SELECT c from SavedRegisteredClient c where c.issuer = :issuer", SavedRegisteredClient::class.java)
+        query.setParameter("issuer", issuer)
+
+        return getSingleResult(query.resultList)
+    }
 
 
-		SavedRegisteredClient saved = getSavedRegisteredClientFromStorage(issuer);
-
-		if (saved == null) {
-			saved = new SavedRegisteredClient();
-			saved.setIssuer(issuer);
-		}
-
-		saved.setRegisteredClient(client);
-
-		em.persist(saved);
-
-	}
-
-	private SavedRegisteredClient getSavedRegisteredClientFromStorage(String issuer) {
-		TypedQuery<SavedRegisteredClient> query = em.createQuery("SELECT c from SavedRegisteredClient c where c.issuer = :issuer", SavedRegisteredClient.class);
-		query.setParameter("issuer", issuer);
-
-		SavedRegisteredClient saved = JpaUtil.getSingleResult(query.getResultList());
-		return saved;
-	}
-
-
-	@Override
-	public Collection<SavedRegisteredClient> getAll() {
-		TypedQuery<SavedRegisteredClient> query = em.createQuery("SELECT c from SavedRegisteredClient c", SavedRegisteredClient.class);
-		return query.getResultList();
-	}
-
+    override val all: Collection<SavedRegisteredClient>
+        get() {
+            val query = em.createQuery("SELECT c from SavedRegisteredClient c", SavedRegisteredClient::class.java)
+            return query.resultList
+        }
 }
