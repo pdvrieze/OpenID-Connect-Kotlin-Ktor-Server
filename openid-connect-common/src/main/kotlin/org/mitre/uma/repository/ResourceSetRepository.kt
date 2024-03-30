@@ -16,16 +16,17 @@
 package org.mitre.uma.repository
 
 import org.mitre.uma.model.ResourceSet
+import java.lang.Long
 
 /**
  * @author jricher
  */
 interface ResourceSetRepository {
-    fun save(rs: ResourceSet?): ResourceSet?
+    fun save(rs: ResourceSet): ResourceSet
 
-    fun getById(id: Long?): ResourceSet?
+    fun getById(id: Long): ResourceSet?
 
-    fun remove(rs: ResourceSet?)
+    fun remove(rs: ResourceSet)
 
     fun getAllForOwner(owner: String?): Collection<ResourceSet?>?
 
