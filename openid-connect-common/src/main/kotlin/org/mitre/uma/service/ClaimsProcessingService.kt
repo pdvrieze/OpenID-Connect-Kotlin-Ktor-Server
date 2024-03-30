@@ -35,5 +35,5 @@ interface ClaimsProcessingService {
      * @param ticket the supplied claims to test
      * @return the result of the claims processing action
      */
-    fun claimsAreSatisfied(rs: ResourceSet, ticket: PermissionTicket): ClaimProcessingResult?
+    fun claimsAreSatisfied(rs: ResourceSet, ticket: PermissionTicket): ClaimProcessingResult
 }
