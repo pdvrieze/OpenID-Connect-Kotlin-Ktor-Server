@@ -274,7 +274,7 @@ open class DefaultOIDCTokenService : OIDCTokenService {
      * @param accessToken the access token
      */
     protected fun addCustomIdTokenClaims(
-        idClaims: JWTClaimsSet.Builder?, client: ClientDetailsEntity?, request: OAuth2Request?,
+        idClaims: JWTClaimsSet.Builder, client: ClientDetailsEntity?, request: OAuth2Request?,
         sub: String?, accessToken: OAuth2AccessTokenEntity?
     ) {
     }
