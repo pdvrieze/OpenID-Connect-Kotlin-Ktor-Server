@@ -7,106 +7,108 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
-package org.mitre.openid.connect.service.impl;
+ */
+package org.mitre.openid.connect.service.impl
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mitre.openid.connect.model.WhitelistedSite;
-import org.mitre.openid.connect.repository.WhitelistedSiteRepository;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.*;
+import org.hamcrest.CoreMatchers
+import org.junit.Assert
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.mitre.openid.connect.model.WhitelistedSite
+import org.mitre.openid.connect.repository.WhitelistedSiteRepository
+import org.mockito.InjectMocks
+import org.mockito.Mock
+import org.mockito.Mockito
+import org.mockito.Mockito.mock
+import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 /**
  * @author wkim
- *
  */
-@RunWith(MockitoJUnitRunner.class)
-public class TestDefaultWhitelistedSiteService {
+@RunWith(MockitoJUnitRunner::class)
+class TestDefaultWhitelistedSiteService {
+    @Mock
+    private lateinit var repository: WhitelistedSiteRepository
 
-	@Mock
-	private WhitelistedSiteRepository repository;
+    @InjectMocks
+    private lateinit var service: DefaultWhitelistedSiteService
 
-	@InjectMocks
-	private DefaultWhitelistedSiteService service;
+    @Before
+    fun prepare() {
+        Mockito.reset(repository)
+    }
 
-	@Before
-	public void prepare() {
-		Mockito.reset(repository);
-	}
+    @Test(expected = IllegalArgumentException::class)
+    fun saveNew_notNullId() {
+        val site = mock<WhitelistedSite>()
+        whenever(site.id).thenReturn(12345L) // arbitrary long value
 
-	@Test(expected = IllegalArgumentException.class)
-	public void saveNew_notNullId() {
+        service.saveNew(site)
+    }
 
-		WhitelistedSite site = Mockito.mock(WhitelistedSite.class);
-		Mockito.when(site.getId()).thenReturn(12345L); // arbitrary long value
+    @Test
+    fun saveNew_success() {
+        val site = mock<WhitelistedSite>()
+        whenever(site.id).thenReturn(null)
 
-		service.saveNew(site);
-	}
+        service.saveNew(site)
 
-	@Test
-	public void saveNew_success() {
-		WhitelistedSite site = Mockito.mock(WhitelistedSite.class);
-		Mockito.when(site.getId()).thenReturn(null);
+        verify(repository).save(site)
+    }
 
-		service.saveNew(site);
+    @Test
+    fun update_nullSites() {
+        val oldSite = mock<WhitelistedSite>()
+        val newSite = mock<WhitelistedSite>()
 
-		Mockito.verify(repository).save(site);
-	}
+        // old client null
+        try {
+            service.update(null as WhitelistedSite, newSite)
+            Assert.fail("Old site input is null. Expected a IllegalArgumentException.")
+        } catch (e: NullPointerException) {
+            Assert.assertThat<RuntimeException>(e, CoreMatchers.`is`(CoreMatchers.notNullValue()))
+        } catch (e: IllegalArgumentException) {
+            Assert.assertThat<RuntimeException>(e, CoreMatchers.`is`(CoreMatchers.notNullValue()))
+        }
 
-	@Test
-	public void update_nullSites() {
+        // new client null
+        try {
+            service.update(oldSite, null as WhitelistedSite)
+            Assert.fail("New site input is null. Expected a IllegalArgumentException.")
+        } catch (e: NullPointerException) {
+            Assert.assertThat<RuntimeException>(e, CoreMatchers.`is`(CoreMatchers.notNullValue()))
+        } catch (e: IllegalArgumentException) {
+            Assert.assertThat<RuntimeException>(e, CoreMatchers.`is`(CoreMatchers.notNullValue()))
+        }
 
-		WhitelistedSite oldSite = Mockito.mock(WhitelistedSite.class);
-		WhitelistedSite newSite = Mockito.mock(WhitelistedSite.class);
+        // both clients null
+        try {
+            service.update(null as WhitelistedSite, null as WhitelistedSite)
+            Assert.fail("Both site inputs are null. Expected a IllegalArgumentException.")
+        } catch (e: NullPointerException) {
+            Assert.assertThat<RuntimeException>(e, CoreMatchers.`is`(CoreMatchers.notNullValue()))
+        } catch (e: IllegalArgumentException) {
+            Assert.assertThat<RuntimeException>(e, CoreMatchers.`is`(CoreMatchers.notNullValue()))
+        }
+    }
 
-		// old client null
-		try {
-			service.update(null, newSite);
-			fail("Old site input is null. Expected a IllegalArgumentException.");
-		} catch (NullPointerException | IllegalArgumentException e) {
-			assertThat(e, is(notNullValue()));
-		}
+    @Test
+    fun update_success() {
+        val oldSite = mock<WhitelistedSite>()
+        val newSite = mock<WhitelistedSite>()
 
-		// new client null
-		try {
-			service.update(oldSite, null);
-			fail("New site input is null. Expected a IllegalArgumentException.");
-		} catch (NullPointerException | IllegalArgumentException e) {
-			assertThat(e, is(notNullValue()));
-		}
+        service.update(oldSite, newSite)
 
-		// both clients null
-		try {
-			service.update(null, null);
-			fail("Both site inputs are null. Expected a IllegalArgumentException.");
-		} catch (NullPointerException | IllegalArgumentException e) {
-			assertThat(e, is(notNullValue()));
-		}
-	}
-
-	@Test
-	public void update_success() {
-
-		WhitelistedSite oldSite = Mockito.mock(WhitelistedSite.class);
-		WhitelistedSite newSite = Mockito.mock(WhitelistedSite.class);
-
-		service.update(oldSite, newSite);
-
-		Mockito.verify(repository).update(oldSite, newSite);
-	}
+        Mockito.verify(repository).update(oldSite, newSite)
+    }
 }
