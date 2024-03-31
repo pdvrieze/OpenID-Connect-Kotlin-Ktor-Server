@@ -18,8 +18,8 @@ dependencies {
     implementation(libs.javax.ann)
 
     testImplementation(libs.hamcrest.core)
-    testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.jupiter)
+    testImplementation(libs.mockito.kotlin)
     testImplementation(libs.junit.jupiter.api)
 
     testRuntimeOnly(libs.junit.jupiter.engine)

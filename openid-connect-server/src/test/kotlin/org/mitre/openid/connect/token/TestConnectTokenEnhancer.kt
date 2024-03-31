@@ -30,9 +30,9 @@ import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.service.OIDCTokenService
 import org.mitre.openid.connect.service.UserInfoService
+import org.mockito.ArgumentMatchers.anyString
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito
 import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.whenever
 import org.springframework.security.oauth2.provider.OAuth2Authentication
@@ -70,7 +70,7 @@ class TestConnectTokenEnhancer {
 
         val client = ClientDetailsEntity()
         client.clientId = CLIENT_ID
-        whenever(clientService.loadClientByClientId(Mockito.anyString())).thenReturn(client)
+        whenever(clientService.loadClientByClientId(anyString())).thenReturn(client)
         whenever(authentication.oAuth2Request).thenReturn(request)
         whenever(jwtService.defaultSigningAlgorithm).thenReturn(JWSAlgorithm.RS256)
         whenever(jwtService.defaultSignerKeyId).thenReturn(KEY_ID)

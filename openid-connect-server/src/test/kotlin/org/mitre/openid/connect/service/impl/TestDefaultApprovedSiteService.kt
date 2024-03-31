@@ -28,9 +28,10 @@ import org.mitre.openid.connect.service.ApprovedSiteService
 import org.mitre.openid.connect.service.StatsService
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito
 import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.isA
+import org.mockito.kotlin.never
+import org.mockito.kotlin.reset
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -85,7 +86,7 @@ class TestDefaultApprovedSiteService {
             it.clientId = clientId
         }
 
-        Mockito.reset(repository, statsService)
+        reset(repository, statsService)
     }
 
     /**
@@ -116,8 +117,8 @@ class TestDefaultApprovedSiteService {
         client.clientId = otherId
         service.clearApprovedSitesForClient(client)
         // unused by mockito (causs unnecessary stubbing exception
-//		Mockito.when(repository.getByClientId(otherId)).thenReturn(new HashSet<ApprovedSite>());
-        Mockito.verify(repository, Mockito.never()).remove(isA<ApprovedSite>())
+//		whenever(repository.getByClientId(otherId)).thenReturn(new HashSet<ApprovedSite>());
+        verify(repository, never()).remove(isA<ApprovedSite>())
     }
 
     companion object {

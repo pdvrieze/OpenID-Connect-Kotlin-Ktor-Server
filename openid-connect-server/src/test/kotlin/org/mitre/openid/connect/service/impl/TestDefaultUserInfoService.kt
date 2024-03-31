@@ -31,9 +31,10 @@ import org.mitre.openid.connect.repository.UserInfoRepository
 import org.mitre.openid.connect.service.PairwiseIdentiferService
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito
 import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.isA
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 /**
@@ -149,7 +150,7 @@ class TestDefaultUserInfoService {
 
         whenever(userInfoRepository.getByUsername(regularUsername)).thenReturn(userInfoRegular)
 
-        Mockito.verify(pairwiseIdentiferService, Mockito.never())
+        verify(pairwiseIdentiferService, never())
             .getIdentifier(isA<UserInfo>(), isA<ClientDetailsEntity>())
 
         val user1 = service.getByUsernameAndClientId(regularUsername, publicClientId1)!!

@@ -23,7 +23,8 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.mockito.Mockito
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import org.springframework.security.authentication.AuthenticationServiceException
 import javax.servlet.http.HttpServletRequest
 
@@ -47,11 +48,11 @@ class TestThirdPartyIssuerService {
     fun prepare() {
         service.accountChooserUrl = accountChooserUrl
 
-        request = Mockito.mock(HttpServletRequest::class.java)
-        Mockito.`when`(request.getParameter("iss")).thenReturn(iss)
-        Mockito.`when`(request.getParameter("login_hint")).thenReturn(login_hint)
-        Mockito.`when`(request.getParameter("target_link_uri")).thenReturn(target_link_uri)
-        Mockito.`when`(request.requestURL).thenReturn(StringBuffer(redirect_uri))
+        request = mock<HttpServletRequest>()
+        whenever(request.getParameter("iss")).thenReturn(iss)
+        whenever(request.getParameter("login_hint")).thenReturn(login_hint)
+        whenever(request.getParameter("target_link_uri")).thenReturn(target_link_uri)
+        whenever(request.requestURL).thenReturn(StringBuffer(redirect_uri))
     }
 
     @Test
@@ -67,7 +68,7 @@ class TestThirdPartyIssuerService {
 
     @Test
     fun getIssuer_noIssuer() {
-        Mockito.`when`(request.getParameter("iss")).thenReturn(null)
+        whenever(request.getParameter("iss")).thenReturn(null)
 
         val response = service.getIssuer(request)
 
@@ -113,7 +114,7 @@ class TestThirdPartyIssuerService {
 
     @Test
     fun getIssuer_badUri() {
-        Mockito.`when`(request.getParameter("iss")).thenReturn(null)
+        whenever(request.getParameter("iss")).thenReturn(null)
         service.accountChooserUrl = "e=mc^2"
 
         assertThrows<AuthenticationServiceException> {

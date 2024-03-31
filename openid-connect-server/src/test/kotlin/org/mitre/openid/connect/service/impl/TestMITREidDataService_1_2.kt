@@ -47,11 +47,12 @@ import org.mockito.ArgumentMatchers
 import org.mockito.Captor
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.capture
 import org.mockito.kotlin.isA
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.reset
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -127,7 +128,7 @@ class TestMITREidDataService_1_2 {
         formatter = DateFormatter()
         formatter.setIso(DateTimeFormat.ISO.DATE_TIME)
 
-        Mockito.reset(clientRepository, approvedSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository, wlSiteRepository, blSiteRepository)
+        reset(clientRepository, approvedSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository, wlSiteRepository, blSiteRepository)
 
         val mapsField = ReflectionUtils.findField(MITREidDataService_1_2::class.java, "maps")
         mapsField.isAccessible = true
@@ -147,10 +148,10 @@ class TestMITREidDataService_1_2 {
         val expiration1 = "2014-09-10T22:49:44.090+00:00"
         val expirationDate1 = formatter.parse(expiration1, Locale.ENGLISH)
 
-        val mockedClient1 = Mockito.mock(ClientDetailsEntity::class.java)
+        val mockedClient1 = mock<ClientDetailsEntity>()
         whenever(mockedClient1.clientId).thenReturn("mocked_client_1")
 
-        val mockedAuthHolder1 = Mockito.mock(AuthenticationHolderEntity::class.java)
+        val mockedAuthHolder1 = mock<AuthenticationHolderEntity>()
 
         // unused by mockito (causs unnecessary stubbing exception
 //		when(mockedAuthHolder1.getId()).thenReturn(1L);
@@ -165,10 +166,10 @@ class TestMITREidDataService_1_2 {
         val expiration2 = "2015-01-07T18:31:50.079+00:00"
         val expirationDate2 = formatter.parse(expiration2, Locale.ENGLISH)
 
-        val mockedClient2 = Mockito.mock(ClientDetailsEntity::class.java)
+        val mockedClient2 = mock<ClientDetailsEntity>()
         whenever(mockedClient2.clientId).thenReturn("mocked_client_2")
 
-        val mockedAuthHolder2 = Mockito.mock(AuthenticationHolderEntity::class.java)
+        val mockedAuthHolder2 = mock<AuthenticationHolderEntity>()
 
         // unused by mockito (causs unnecessary stubbing exception
 //		when(mockedAuthHolder2.getId()).thenReturn(2L);
@@ -217,7 +218,7 @@ class TestMITREidDataService_1_2 {
         }
         whenever(clientRepository.getClientByClientId(ArgumentMatchers.anyString())).thenAnswer { invocation ->
             val _clientId = invocation.arguments[0] as String
-            val _client = Mockito.mock(ClientDetailsEntity::class.java)
+            val _client = mock<ClientDetailsEntity>()
             whenever(_client.clientId).thenReturn(_clientId)
             _client
         }
@@ -226,7 +227,7 @@ class TestMITREidDataService_1_2 {
                 var id: Long = 131L
                 @Throws(Throwable::class)
                 override fun answer(invocation: InvocationOnMock): AuthenticationHolderEntity {
-                    val _auth = Mockito.mock(AuthenticationHolderEntity::class.java)
+                    val _auth = mock<AuthenticationHolderEntity>()
                     // unused by mockito (causs unnecessary stubbing exception
 //				when(_auth.getId()).thenReturn(id);
                     id++
@@ -263,10 +264,10 @@ class TestMITREidDataService_1_2 {
         val expiration1 = "2014-09-10T22:49:44.090+00:00"
         val expirationDate1 = formatter.parse(expiration1, Locale.ENGLISH)
 
-        val mockedClient1 = Mockito.mock(ClientDetailsEntity::class.java)
+        val mockedClient1 = mock<ClientDetailsEntity>()
         whenever(mockedClient1.clientId).thenReturn("mocked_client_1")
 
-        val mockedAuthHolder1 = Mockito.mock(AuthenticationHolderEntity::class.java)
+        val mockedAuthHolder1 = mock<AuthenticationHolderEntity>()
 
         // unused by mockito (causs unnecessary stubbing exception
 //		when(mockedAuthHolder1.getId()).thenReturn(1L);
@@ -283,14 +284,14 @@ class TestMITREidDataService_1_2 {
         val expiration2 = "2015-01-07T18:31:50.079+00:00"
         val expirationDate2 = formatter.parse(expiration2, Locale.ENGLISH)
 
-        val mockedClient2 = Mockito.mock(ClientDetailsEntity::class.java)
+        val mockedClient2 = mock<ClientDetailsEntity>()
         whenever(mockedClient2.clientId).thenReturn("mocked_client_2")
 
-        val mockedAuthHolder2 = Mockito.mock(AuthenticationHolderEntity::class.java)
+        val mockedAuthHolder2 = mock<AuthenticationHolderEntity>()
 
         // unused by mockito (causs unnecessary stubbing exception
 //		when(mockedAuthHolder2.getId()).thenReturn(2L);
-        val mockRefreshToken2 = Mockito.mock(OAuth2RefreshTokenEntity::class.java)
+        val mockRefreshToken2 = mock<OAuth2RefreshTokenEntity>()
 
         // unused by mockito (causs unnecessary stubbing exception
 //		when(mockRefreshToken2.getId()).thenReturn(1L);
@@ -348,7 +349,7 @@ class TestMITREidDataService_1_2 {
         }
         whenever(clientRepository.getClientByClientId(ArgumentMatchers.anyString())).thenAnswer { invocation ->
             val _clientId = invocation.arguments[0] as String
-            val _client = Mockito.mock(ClientDetailsEntity::class.java)
+            val _client = mock<ClientDetailsEntity>()
             whenever(_client.clientId).thenReturn(_clientId)
             _client
         }
@@ -357,7 +358,7 @@ class TestMITREidDataService_1_2 {
                 var id: Long = 133L
                 @Throws(Throwable::class)
                 override fun answer(invocation: InvocationOnMock): AuthenticationHolderEntity {
-                    val _auth = Mockito.mock(AuthenticationHolderEntity::class.java)
+                    val _auth = mock<AuthenticationHolderEntity>()
                     // unused by mockito (causs unnecessary stubbing exception
 //				when(_auth.getId()).thenReturn(id);
                     id++
@@ -586,7 +587,7 @@ class TestMITREidDataService_1_2 {
         val creationDate1 = formatter.parse("2014-09-10T22:49:44.090+00:00", Locale.ENGLISH)
         val accessDate1 = formatter.parse("2014-09-10T23:49:44.090+00:00", Locale.ENGLISH)
 
-        val mockToken1 = Mockito.mock(OAuth2AccessTokenEntity::class.java)
+        val mockToken1 = mock<OAuth2AccessTokenEntity>()
 
         // unused by mockito (causs unnecessary stubbing exception
 //		when(mockToken1.getId()).thenReturn(1L);
@@ -667,7 +668,7 @@ class TestMITREidDataService_1_2 {
                 var id: Long = 245L
                 @Throws(Throwable::class)
                 override fun answer(invocation: InvocationOnMock): OAuth2AccessTokenEntity {
-                    val _token = Mockito.mock(OAuth2AccessTokenEntity::class.java)
+                    val _token = mock<OAuth2AccessTokenEntity>()
                     // unused by mockito (causs unnecessary stubbing exception
 //				when(_token.getId()).thenReturn(id++);
                     return _token
@@ -703,7 +704,7 @@ class TestMITREidDataService_1_2 {
             true, HashSet(), HashSet(), "http://foo.com",
             HashSet(), null
         )
-        val mockAuth1 = Mockito.mock(Authentication::class.java, Mockito.withSettings().serializable())
+        val mockAuth1 = mock<Authentication>(serializable = true)
         val auth1 = OAuth2Authentication(req1, mockAuth1)
 
         val holder1 = AuthenticationHolderEntity()
@@ -715,7 +716,7 @@ class TestMITREidDataService_1_2 {
             true, HashSet(), HashSet(), "http://bar.com",
             HashSet(), null
         )
-        val mockAuth2 = Mockito.mock(Authentication::class.java, Mockito.withSettings().serializable())
+        val mockAuth2 = mock<Authentication>(serializable = true)
         val auth2 = OAuth2Authentication(req2, mockAuth2)
 
         val holder2 = AuthenticationHolderEntity()
@@ -844,7 +845,7 @@ class TestMITREidDataService_1_2 {
         val expiration1 = "2014-09-10T22:49:44.090+00:00"
         val expirationDate1 = formatter.parse(expiration1, Locale.ENGLISH)
 
-        val mockedClient1 = Mockito.mock(ClientDetailsEntity::class.java)
+        val mockedClient1 = mock<ClientDetailsEntity>()
 
         // unused by mockito (causs unnecessary stubbing exception
 //		when(mockedClient1.getClientId()).thenReturn("mocked_client_1");
@@ -853,7 +854,7 @@ class TestMITREidDataService_1_2 {
             true, HashSet(), HashSet(), "http://foo.com",
             HashSet(), null
         )
-        val mockAuth1 = Mockito.mock(Authentication::class.java, Mockito.withSettings().serializable())
+        val mockAuth1 = mock<Authentication>(serializable = true)
         val auth1 = OAuth2Authentication(req1, mockAuth1)
 
         val holder1 = AuthenticationHolderEntity()
@@ -871,7 +872,7 @@ class TestMITREidDataService_1_2 {
         val expiration2 = "2015-01-07T18:31:50.079+00:00"
         val expirationDate2 = formatter.parse(expiration2, Locale.ENGLISH)
 
-        val mockedClient2 = Mockito.mock(ClientDetailsEntity::class.java)
+        val mockedClient2 = mock<ClientDetailsEntity>()
 
         // unused by mockito (causs unnecessary stubbing exception
 //		when(mockedClient2.getClientId()).thenReturn("mocked_client_2");
@@ -880,7 +881,7 @@ class TestMITREidDataService_1_2 {
             true, HashSet(), HashSet(), "http://bar.com",
             HashSet(), null
         )
-        val mockAuth2 = Mockito.mock(Authentication::class.java, Mockito.withSettings().serializable())
+        val mockAuth2 = mock<Authentication>(serializable = true)
         val auth2 = OAuth2Authentication(req2, mockAuth2)
 
         val holder2 = AuthenticationHolderEntity()
@@ -937,7 +938,7 @@ class TestMITREidDataService_1_2 {
         }
         whenever(clientRepository.getClientByClientId(ArgumentMatchers.anyString())).thenAnswer { invocation ->
             val _clientId = invocation.arguments[0] as String
-            val _client = Mockito.mock(ClientDetailsEntity::class.java)
+            val _client = mock<ClientDetailsEntity>()
             // unused by mockito (causs unnecessary stubbing exception
 //				when(_client.getClientId()).thenReturn(_clientId);
             _client

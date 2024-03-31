@@ -34,7 +34,8 @@ import org.junit.jupiter.api.fail
 import org.mitre.jwt.signer.service.impl.DefaultJWTSigningAndValidationService
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.openid.connect.config.ServerConfiguration
-import org.mockito.Mockito
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import org.springframework.security.authentication.AuthenticationServiceException
 import org.springframework.web.util.UriComponentsBuilder
 import java.net.URI
@@ -93,12 +94,12 @@ class TestSignedAuthRequestUrlBuilder {
 
         urlBuilder.signingAndValidationService = signingAndValidationService
 
-        serverConfig = Mockito.mock(ServerConfiguration::class.java)
-        Mockito.`when`(serverConfig.authorizationEndpointUri).thenReturn("https://server.example.com/authorize")
+        serverConfig = mock<ServerConfiguration>()
+        whenever(serverConfig.authorizationEndpointUri).thenReturn("https://server.example.com/authorize")
 
-        clientConfig = Mockito.mock(RegisteredClient::class.java)
-        Mockito.`when`(clientConfig.clientId).thenReturn("s6BhdRkqt3")
-        Mockito.`when`(clientConfig.scope).thenReturn(hashSetOf("openid", "profile"))
+        clientConfig = mock<RegisteredClient>()
+        whenever(clientConfig.clientId).thenReturn("s6BhdRkqt3")
+        whenever(clientConfig.scope).thenReturn(hashSetOf("openid", "profile"))
     }
 
     /**
@@ -186,7 +187,7 @@ class TestSignedAuthRequestUrlBuilder {
 
     @Test
     fun buildAuthRequestUrl_badUri() {
-        Mockito.`when`(serverConfig.authorizationEndpointUri).thenReturn("e=mc^2")
+        whenever(serverConfig.authorizationEndpointUri).thenReturn("e=mc^2")
 
         org.junit.jupiter.api.assertThrows<AuthenticationServiceException> {
             urlBuilder.buildAuthRequestUrl(serverConfig, clientConfig, "example.com", "", "", options, null)

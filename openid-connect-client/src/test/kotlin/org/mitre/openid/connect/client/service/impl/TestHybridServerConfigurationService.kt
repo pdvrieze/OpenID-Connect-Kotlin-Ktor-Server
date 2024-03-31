@@ -27,8 +27,11 @@ import org.mitre.openid.connect.config.ServerConfiguration
 import org.mockito.ArgumentMatchers
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito
 import org.mockito.junit.jupiter.MockitoExtension
+import org.mockito.kotlin.never
+import org.mockito.kotlin.reset
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 
 /**
@@ -52,45 +55,45 @@ class TestHybridServerConfigurationService {
 
     @BeforeEach
     fun prepare() {
-        Mockito.reset(mockDynamicService, mockStaticService)
+        reset(mockDynamicService, mockStaticService)
     }
 
 
     @Test
     fun getServerConfiguration_useStatic(): Unit {
-        Mockito.`when`(mockStaticService.getServerConfiguration(issuer)).thenReturn(mockServerConfig)
+        whenever(mockStaticService.getServerConfiguration(issuer)).thenReturn(mockServerConfig)
 
         val result = hybridService.getServerConfiguration(issuer)
 
-        Mockito.verify(mockStaticService).getServerConfiguration(issuer)
-        Mockito.verify(mockDynamicService, Mockito.never()).getServerConfiguration(ArgumentMatchers.anyString())
+        verify(mockStaticService).getServerConfiguration(issuer)
+        verify(mockDynamicService, never()).getServerConfiguration(ArgumentMatchers.anyString())
         assertEquals(mockServerConfig, result)
     }
 
     @Test
     fun getServerConfiguration_useDynamic(): Unit {
-        Mockito.`when`(mockStaticService.getServerConfiguration(issuer)).thenReturn(null)
-        Mockito.`when`(mockDynamicService.getServerConfiguration(issuer)).thenReturn(mockServerConfig)
+        whenever(mockStaticService.getServerConfiguration(issuer)).thenReturn(null)
+        whenever(mockDynamicService.getServerConfiguration(issuer)).thenReturn(mockServerConfig)
 
         val result = hybridService.getServerConfiguration(issuer)
 
-        Mockito.verify(mockStaticService).getServerConfiguration(issuer)
-        Mockito.verify(mockDynamicService).getServerConfiguration(issuer)
+        verify(mockStaticService).getServerConfiguration(issuer)
+        verify(mockDynamicService).getServerConfiguration(issuer)
         assertEquals(mockServerConfig, result)
     }
 
     @Test
     fun getServerConfiguration_noIssuer(): Unit {
         // unused by mockito (causs unnecessary stubbing exception
-//		Mockito.when(mockStaticService.getServerConfiguration(issuer)).thenReturn(mockServerConfig);
-//		Mockito.when(mockDynamicService.getServerConfiguration(issuer)).thenReturn(mockServerConfig);
+//		whenever(mockStaticService.getServerConfiguration(issuer)).thenReturn(mockServerConfig);
+//		whenever(mockDynamicService.getServerConfiguration(issuer)).thenReturn(mockServerConfig);
 
         val badIssuer = "www.badexample.com"
 
         val result = hybridService.getServerConfiguration(badIssuer)
 
-        Mockito.verify(mockStaticService).getServerConfiguration(badIssuer)
-        Mockito.verify(mockDynamicService).getServerConfiguration(badIssuer)
+        verify(mockStaticService).getServerConfiguration(badIssuer)
+        verify(mockDynamicService).getServerConfiguration(badIssuer)
         assertThat(result, CoreMatchers.`is`(CoreMatchers.nullValue()))
     }
 }

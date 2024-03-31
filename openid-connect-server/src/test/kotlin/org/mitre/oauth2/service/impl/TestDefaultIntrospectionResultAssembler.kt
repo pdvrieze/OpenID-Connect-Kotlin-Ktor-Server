@@ -22,7 +22,6 @@ import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.service.IntrospectionResultAssembler
 import org.mitre.openid.connect.model.UserInfo
 import org.mitre.uma.model.Permission
-import org.mockito.BDDMockito
 import org.mockito.Mockito
 import org.mockito.kotlin.given
 import org.mockito.kotlin.mock
@@ -318,8 +317,8 @@ class TestDefaultIntrospectionResultAssembler {
 
 
     private fun userInfo(sub: String): UserInfo {
-        val userInfo = Mockito.mock(UserInfo::class.java)
-        BDDMockito.given(userInfo.sub).willReturn(sub)
+        val userInfo = mock<UserInfo>()
+        given(userInfo.sub).willReturn(sub)
         return userInfo
     }
 
@@ -340,7 +339,8 @@ class TestDefaultIntrospectionResultAssembler {
     }
 
     private fun refreshToken(exp: Date?, authentication: OAuth2Authentication): OAuth2RefreshTokenEntity {
-        return Mockito.mock(OAuth2RefreshTokenEntity::class.java, Mockito.RETURNS_DEEP_STUBS).apply {
+        mock<OAuth2AccessTokenEntity>(defaultAnswer = Mockito.RETURNS_DEEP_STUBS)
+        return mock<OAuth2RefreshTokenEntity>(defaultAnswer = Mockito.RETURNS_DEEP_STUBS).apply {
             given(expiration).willReturn(exp)
             given(authenticationHolder.authentication).willReturn(authentication)
         }
@@ -371,7 +371,7 @@ class TestDefaultIntrospectionResultAssembler {
     }
 
     private fun permission(resourceSetId: Long, vararg scopes: String): Permission {
-        val permission = Mockito.mock(Permission::class.java, Mockito.RETURNS_DEEP_STUBS)
+        val permission = mock<Permission>(defaultAnswer = Mockito.RETURNS_DEEP_STUBS)
         given(permission.resourceSet!!.id).willReturn(resourceSetId)
         given(permission.scopes).willReturn(scopes(*scopes))
         return permission

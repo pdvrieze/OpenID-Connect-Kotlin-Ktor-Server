@@ -40,12 +40,13 @@ import org.mockito.AdditionalAnswers
 import org.mockito.ArgumentMatchers
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
 import org.mockito.kotlin.atLeastOnce
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.isA
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.reset
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
@@ -89,7 +90,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
 
     @BeforeEach
     fun prepare() {
-        Mockito.reset(clientRepository, tokenRepository, approvedSiteService, whitelistedSiteService, blacklistedSiteService, scopeService, statsService)
+        reset(clientRepository, tokenRepository, approvedSiteService, whitelistedSiteService, blacklistedSiteService, scopeService, statsService)
 
         whenever(clientRepository.saveClient(isA()))
             .thenAnswer { invocation ->
@@ -137,7 +138,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
     fun saveNewClient_badId() {
         // Set up a mock client.
 
-        val client = Mockito.mock(ClientDetailsEntity::class.java)
+        val client = mock<ClientDetailsEntity>()
         whenever(client.id) doReturn (12345L) // any non-null ID will work
 
         assertThrows<IllegalArgumentException> {
@@ -150,7 +151,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
      */
     @Test
     fun saveNewClient_blacklisted() {
-        val client = Mockito.mock(ClientDetailsEntity::class.java)
+        val client = mock<ClientDetailsEntity>()
         whenever(client.id) doReturn (null)
 
         val badUri = "badplace.xxx"
@@ -167,12 +168,12 @@ class TestDefaultOAuth2ClientDetailsEntityService {
     fun saveNewClient_idWasAssigned() {
         // Set up a mock client.
 
-        val client = Mockito.mock(ClientDetailsEntity::class.java)
+        val client = mock<ClientDetailsEntity>()
         whenever(client.id) doReturn (null)
 
         service.saveNewClient(client)
 
-        Mockito.verify(client).clientId = ArgumentMatchers.anyString()
+        verify(client).clientId = ArgumentMatchers.anyString()
     }
 
     /**
@@ -195,7 +196,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
 
         val client = service.saveNewClient(ClientDetailsEntity())
 
-        Mockito.verify(scopeService, Mockito.atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
+        verify(scopeService, atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
 
         assertFalse(SystemScopeService.OFFLINE_ACCESS in client.scope)
     }
@@ -231,7 +232,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
     @Test
     fun deleteClient_badId() {
         val id = 12345L
-        val client = Mockito.mock(ClientDetailsEntity::class.java)
+        val client = mock<ClientDetailsEntity>()
         whenever(client.id) doReturn (id)
         whenever(clientRepository.getById(id.toJavaId())) doReturn (null)
 
@@ -245,29 +246,29 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         val id = 12345L
         val clientId = "b00g3r"
 
-        val client = Mockito.mock(ClientDetailsEntity::class.java)
+        val client = mock<ClientDetailsEntity>()
         whenever(client.id) doReturn (id)
         whenever(client.clientId) doReturn (clientId)
 
         whenever(clientRepository.getById(id.toJavaId())) doReturn (client)
 
-        val site = Mockito.mock(WhitelistedSite::class.java)
+        val site = mock<WhitelistedSite>()
         whenever(whitelistedSiteService.getByClientId(clientId)) doReturn (site)
 
         whenever(resourceSetService.getAllForClient(client)) doReturn (HashSet())
 
         service.deleteClient(client)
 
-        Mockito.verify(tokenRepository).clearTokensForClient(client)
-        Mockito.verify(approvedSiteService).clearApprovedSitesForClient(client)
-        Mockito.verify(whitelistedSiteService).remove(site)
-        Mockito.verify(clientRepository).deleteClient(client)
+        verify(tokenRepository).clearTokensForClient(client)
+        verify(approvedSiteService).clearApprovedSitesForClient(client)
+        verify(whitelistedSiteService).remove(site)
+        verify(clientRepository).deleteClient(client)
     }
 
     @Test
     fun updateClient_nullClients() {
-        val oldClient = Mockito.mock(ClientDetailsEntity::class.java)
-        val newClient = Mockito.mock(ClientDetailsEntity::class.java)
+        val oldClient = mock<ClientDetailsEntity>()
+        val newClient = mock<ClientDetailsEntity>()
 
         assertThrows<IllegalArgumentException> {
             service.updateClient(oldClient, null)
@@ -284,8 +285,8 @@ class TestDefaultOAuth2ClientDetailsEntityService {
 
     @Test
     fun updateClient_blacklistedUri() {
-        val oldClient = Mockito.mock(ClientDetailsEntity::class.java)
-        val newClient = Mockito.mock(ClientDetailsEntity::class.java)
+        val oldClient = mock<ClientDetailsEntity>()
+        val newClient = mock<ClientDetailsEntity>()
 
         val badSite = "badsite.xxx"
 
@@ -323,7 +324,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
 
         val client = service.updateClient(oldClient, ClientDetailsEntity())
 
-        Mockito.verify(scopeService, Mockito.atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
+        verify(scopeService, atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
 
         assertFalse(SystemScopeService.OFFLINE_ACCESS in client.scope)
     }

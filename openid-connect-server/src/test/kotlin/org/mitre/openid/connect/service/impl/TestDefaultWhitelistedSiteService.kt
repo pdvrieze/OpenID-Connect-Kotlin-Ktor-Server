@@ -26,9 +26,9 @@ import org.mitre.openid.connect.model.WhitelistedSite
 import org.mitre.openid.connect.repository.WhitelistedSiteRepository
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito
-import org.mockito.Mockito.mock
 import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.reset
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
@@ -45,7 +45,7 @@ class TestDefaultWhitelistedSiteService {
 
     @Before
     fun prepare() {
-        Mockito.reset(repository)
+        reset(repository)
     }
 
     @Test(expected = IllegalArgumentException::class)
@@ -109,6 +109,6 @@ class TestDefaultWhitelistedSiteService {
 
         service.update(oldSite, newSite)
 
-        Mockito.verify(repository).update(oldSite, newSite)
+        verify(repository).update(oldSite, newSite)
     }
 }

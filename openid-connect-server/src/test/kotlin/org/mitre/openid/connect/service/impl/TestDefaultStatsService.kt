@@ -27,9 +27,9 @@ import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.openid.connect.service.ApprovedSiteService
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.reset
 import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.reset
 import org.mockito.kotlin.whenever
 
 /**
@@ -85,10 +85,10 @@ class TestDefaultStatsService {
         whenever(approvedSiteService.all).thenReturn(setOf(ap1, ap2, ap3, ap4))
 
         // unused by mockito (causs unnecessary stubbing exception
-//		Mockito.when(client1.getId()).thenReturn(1L);
-//		Mockito.when(client2.getId()).thenReturn(2L);
-//		Mockito.when(client3.getId()).thenReturn(3L);
-//		Mockito.when(client4.getId()).thenReturn(4L);
+//		whenever(client1.getId()).thenReturn(1L);
+//		whenever(client2.getId()).thenReturn(2L);
+//		whenever(client3.getId()).thenReturn(3L);
+//		whenever(client4.getId()).thenReturn(4L);
         whenever(approvedSiteService.getByClientId(clientId1)).thenReturn(setOf(ap1, ap2))
         whenever(approvedSiteService.getByClientId(clientId2)).thenReturn(setOf(ap3))
         whenever(approvedSiteService.getByClientId(clientId3)).thenReturn(setOf(ap4))

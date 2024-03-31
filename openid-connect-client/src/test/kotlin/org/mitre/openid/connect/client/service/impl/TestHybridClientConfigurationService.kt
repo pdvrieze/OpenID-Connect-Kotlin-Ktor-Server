@@ -7,11 +7,15 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.openid.connect.config.ServerConfiguration
-import org.mockito.ArgumentMatchers
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito
 import org.mockito.junit.jupiter.MockitoExtension
+import org.mockito.kotlin.isA
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.reset
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 /**
  * @author wkim
@@ -38,33 +42,32 @@ class TestHybridClientConfigurationService {
 
     @BeforeEach
     fun prepare() {
-        Mockito.reset(mockDynamicService, mockStaticService)
+        reset(mockDynamicService, mockStaticService)
 
         // unused by mockito (causs unnecessary stubbing exception
-//		Mockito.when(mockServerConfig.getIssuer()).thenReturn(issuer);
+//		whenever(mockServerConfig.getIssuer()).thenReturn(issuer);
     }
 
     @Test
     fun getClientConfiguration_useStatic() {
-        Mockito.`when`(mockStaticService.getClientConfiguration(mockServerConfig)).thenReturn(mockClient)
+        whenever(mockStaticService.getClientConfiguration(mockServerConfig)).thenReturn(mockClient)
 
         val result = hybridService.getClientConfiguration(mockServerConfig)
 
-        Mockito.verify(mockStaticService).getClientConfiguration(mockServerConfig)
-        Mockito.verify(mockDynamicService, Mockito.never())
-            .getClientConfiguration(ArgumentMatchers.any() ?: mockServerConfig)
+        verify(mockStaticService).getClientConfiguration(mockServerConfig)
+        verify(mockDynamicService, never()).getClientConfiguration(isA<ServerConfiguration>())
         assertEquals(mockClient, result)
     }
 
     @Test
     fun getClientConfiguration_useDynamic() {
-        Mockito.`when`(mockStaticService.getClientConfiguration(mockServerConfig)).thenReturn(null)
-        Mockito.`when`(mockDynamicService.getClientConfiguration(mockServerConfig)).thenReturn(mockClient)
+        whenever(mockStaticService.getClientConfiguration(mockServerConfig)).thenReturn(null)
+        whenever(mockDynamicService.getClientConfiguration(mockServerConfig)).thenReturn(mockClient)
 
         val result = hybridService.getClientConfiguration(mockServerConfig)
 
-        Mockito.verify(mockStaticService).getClientConfiguration(mockServerConfig)
-        Mockito.verify(mockDynamicService).getClientConfiguration(mockServerConfig)
+        verify(mockStaticService).getClientConfiguration(mockServerConfig)
+        verify(mockDynamicService).getClientConfiguration(mockServerConfig)
         assertEquals(mockClient, result)
     }
 
@@ -72,19 +75,19 @@ class TestHybridClientConfigurationService {
     fun getClientConfiguration_noIssuer() {
         // The mockServerConfig is known to both services
         // unused by mockito (causs unnecessary stubbing exception
-//		Mockito.when(mockStaticService.getClientConfiguration(mockServerConfig)).thenReturn(mockClient);
-//		Mockito.when(mockDynamicService.getClientConfiguration(mockServerConfig)).thenReturn(mockClient);
+//		whenever(mockStaticService.getClientConfiguration(mockServerConfig)).thenReturn(mockClient);
+//		whenever(mockDynamicService.getClientConfiguration(mockServerConfig)).thenReturn(mockClient);
 
         // But oh noes! We're going to ask it to find us some other issuer
         // unused by mockito (causs unnecessary stubbing exception
 
-        val badIssuer = Mockito.mock(ServerConfiguration::class.java)
+        val badIssuer = mock<ServerConfiguration>()
 
-        //		Mockito.when(badIssuer.getIssuer()).thenReturn("www.badexample.com");
+        //		whenever(badIssuer.getIssuer()).thenReturn("www.badexample.com");
         val result = hybridService.getClientConfiguration(badIssuer)
 
-        Mockito.verify(mockStaticService).getClientConfiguration(badIssuer)
-        Mockito.verify(mockDynamicService).getClientConfiguration(badIssuer)
+        verify(mockStaticService).getClientConfiguration(badIssuer)
+        verify(mockDynamicService).getClientConfiguration(badIssuer)
         assertNull(result)
     }
 }

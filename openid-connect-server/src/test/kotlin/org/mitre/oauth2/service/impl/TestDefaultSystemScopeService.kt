@@ -25,9 +25,9 @@ import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.repository.SystemScopeRepository
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito
 import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.reset
 import org.mockito.kotlin.whenever
 
 /**
@@ -59,7 +59,7 @@ class TestDefaultSystemScopeService {
      */
     @Before
     fun prepare() {
-        Mockito.reset(repository)
+        reset(repository)
 
         // two default and dynamically registerable scopes (unrestricted)
         defaultDynScope1 = SystemScope(defaultDynScope1String)

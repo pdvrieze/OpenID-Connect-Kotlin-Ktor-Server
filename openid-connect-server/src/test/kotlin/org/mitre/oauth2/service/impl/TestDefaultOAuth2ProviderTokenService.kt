@@ -36,14 +36,18 @@ import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.SystemScopeService
 import org.mockito.AdditionalAnswers
 import org.mockito.ArgumentMatchers
+import org.mockito.ArgumentMatchers.anySet
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
+import org.mockito.kotlin.atLeastOnce
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.isA
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.reset
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
@@ -100,13 +104,13 @@ class TestDefaultOAuth2ProviderTokenService {
      */
     @BeforeEach
     fun prepare() {
-        Mockito.reset(tokenRepository, authenticationHolderRepository, clientDetailsService, tokenEnhancer)
+        reset(tokenRepository, authenticationHolderRepository, clientDetailsService, tokenEnhancer)
 
-        authentication = Mockito.mock(OAuth2Authentication::class.java)
+        authentication = mock<OAuth2Authentication>()
         val clientAuth = OAuth2Request(null, clientId, null, true, scope, null, null, null, null)
         whenever(authentication.getOAuth2Request()) doReturn (clientAuth)
 
-        client = Mockito.mock(ClientDetailsEntity::class.java)
+        client = mock<ClientDetailsEntity>()
         whenever(client.getClientId()) doReturn (clientId)
         whenever(clientDetailsService.loadClientByClientId(clientId)) doReturn (client)
         whenever(client.isReuseRefreshToken) doReturn (true)
@@ -117,22 +121,22 @@ class TestDefaultOAuth2ProviderTokenService {
         // by default, clear access tokens on refresh
         whenever(client.isClearAccessTokensOnRefresh) doReturn (true)
 
-        badClient = Mockito.mock(ClientDetailsEntity::class.java)
+        badClient = mock<ClientDetailsEntity>()
         whenever(badClient.getClientId()) doReturn (badClientId)
         whenever(clientDetailsService.loadClientByClientId(badClientId)) doReturn (badClient)
 
-        refreshToken = Mockito.mock(OAuth2RefreshTokenEntity::class.java)
+        refreshToken = mock<OAuth2RefreshTokenEntity>()
         whenever(tokenRepository.getRefreshTokenByValue(refreshTokenValue)) doReturn (refreshToken)
         whenever(refreshToken.client) doReturn (client)
         whenever(refreshToken.isExpired) doReturn (false)
 
-        accessToken = Mockito.mock(OAuth2AccessTokenEntity::class.java)
+        accessToken = mock<OAuth2AccessTokenEntity>()
 
         tokenRequest = TokenRequest(null, clientId, null, null)
 
         storedAuthentication = authentication
         storedAuthRequest = clientAuth
-        storedAuthHolder = Mockito.mock(AuthenticationHolderEntity::class.java)
+        storedAuthHolder = mock<AuthenticationHolderEntity>()
         storedScope = scope.toHashSet()
 
         whenever(refreshToken.authenticationHolder) doReturn (storedAuthHolder)
@@ -141,7 +145,7 @@ class TestDefaultOAuth2ProviderTokenService {
 
         whenever(authenticationHolderRepository.save(isA())) doReturn (storedAuthHolder)
 
-        whenever(scopeService.fromStrings(ArgumentMatchers.anySet())).thenAnswer { invocation ->
+        whenever(scopeService.fromStrings(anySet())).thenAnswer { invocation ->
             val args = invocation.arguments
             val input = args[0] as Set<String>
             val output: MutableSet<SystemScope> = HashSet()
@@ -151,7 +155,7 @@ class TestDefaultOAuth2ProviderTokenService {
             output
         }
 
-        whenever(scopeService.toStrings(ArgumentMatchers.anySet())).thenAnswer { invocation ->
+        whenever(scopeService.toStrings(anySet())).thenAnswer { invocation ->
             val args = invocation.arguments
             val input = args[0] as Set<SystemScope>
             val output: MutableSet<String?> = HashSet()
@@ -162,7 +166,7 @@ class TestDefaultOAuth2ProviderTokenService {
         }
 
         // we're not testing restricted or reserved scopes here, just pass through
-        whenever(scopeService.removeReservedScopes(ArgumentMatchers.anySet()))
+        whenever(scopeService.removeReservedScopes(anySet()))
             .then(AdditionalAnswers.returnsFirstArg<Any>())
 
         // unused by mockito (causs unnecessary stubbing exception
@@ -224,15 +228,12 @@ class TestDefaultOAuth2ProviderTokenService {
         val token = service.createAccessToken(authentication)
 
         verify(clientDetailsService).loadClientByClientId(ArgumentMatchers.anyString())
-        verify(authenticationHolderRepository)
-            .save(isA<AuthenticationHolderEntity>())
-        verify(tokenEnhancer)
-            .enhance(isA<OAuth2AccessTokenEntity>(), eq(authentication))
+        verify(authenticationHolderRepository).save(isA<AuthenticationHolderEntity>())
+        verify(tokenEnhancer).enhance(isA<OAuth2AccessTokenEntity>(), eq(authentication))
         verify(tokenRepository).saveAccessToken(isA<OAuth2AccessTokenEntity>())
-        verify(scopeService, Mockito.atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
+        verify(scopeService, atLeastOnce()).removeReservedScopes(anySet())
 
-        verify(tokenRepository, Mockito.never())
-            .saveRefreshToken(isA<OAuth2RefreshTokenEntity>())
+        verify(tokenRepository, never()).saveRefreshToken(isA<OAuth2RefreshTokenEntity>())
 
         assertThat(token.refreshToken, CoreMatchers.`is`(CoreMatchers.nullValue()))
     }
@@ -250,9 +251,9 @@ class TestDefaultOAuth2ProviderTokenService {
         val token = service.createAccessToken(authentication)
 
         // Note: a refactor may be appropriate to only save refresh tokens once to the repository during creation.
-        verify(tokenRepository, Mockito.atLeastOnce())
+        verify(tokenRepository, atLeastOnce())
             .saveRefreshToken(isA<OAuth2RefreshTokenEntity>())
-        verify(scopeService, Mockito.atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
+        verify(scopeService, atLeastOnce()).removeReservedScopes(anySet())
 
         assertThat(token.refreshToken, CoreMatchers.`is`(CoreMatchers.notNullValue()))
     }
@@ -278,7 +279,7 @@ class TestDefaultOAuth2ProviderTokenService {
         val lowerBoundRefreshTokens = Date(start + (refreshTokenValiditySeconds * 1000L) - DELTA)
         val upperBoundRefreshTokens = Date(end + (refreshTokenValiditySeconds * 1000L) + DELTA)
 
-        verify(scopeService, Mockito.atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
+        verify(scopeService, atLeastOnce()).removeReservedScopes(anySet())
 
         assertTrue(
             token.expiration!!.after(lowerBoundAccessTokens) && token.expiration!!
@@ -291,7 +292,7 @@ class TestDefaultOAuth2ProviderTokenService {
     fun createAccessToken_checkClient() {
         val token = service.createAccessToken(authentication)
 
-        verify(scopeService, Mockito.atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
+        verify(scopeService, atLeastOnce()).removeReservedScopes(anySet())
 
         assertEquals(clientId, token.client!!.clientId)
     }
@@ -300,14 +301,14 @@ class TestDefaultOAuth2ProviderTokenService {
     fun createAccessToken_checkScopes() {
         val token = service.createAccessToken(authentication)
 
-        verify(scopeService, Mockito.atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
+        verify(scopeService, atLeastOnce()).removeReservedScopes(anySet())
 
         assertEquals(scope, token.scope)
     }
 
     @Test
     fun createAccessToken_checkAttachedAuthentication() {
-        val authHolder = Mockito.mock(AuthenticationHolderEntity::class.java)
+        val authHolder = mock<AuthenticationHolderEntity>()
         whenever(authHolder.authentication) doReturn (authentication)
 
         whenever(authenticationHolderRepository.save(isA<AuthenticationHolderEntity>())) doReturn (authHolder)
@@ -315,9 +316,8 @@ class TestDefaultOAuth2ProviderTokenService {
         val token = service.createAccessToken(authentication)
 
         assertEquals(authentication, token.authenticationHolder.authentication)
-        verify(authenticationHolderRepository)
-            .save(isA<AuthenticationHolderEntity>())
-        verify(scopeService, Mockito.atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
+        verify(authenticationHolderRepository).save(isA<AuthenticationHolderEntity>())
+        verify(scopeService, atLeastOnce()).removeReservedScopes(anySet())
     }
 
     @Test
@@ -368,7 +368,7 @@ class TestDefaultOAuth2ProviderTokenService {
 
         verify(tokenEnhancer).enhance(token, storedAuthentication)
         verify(tokenRepository).saveAccessToken(token)
-        verify(scopeService, Mockito.atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
+        verify(scopeService, atLeastOnce()).removeReservedScopes(anySet())
     }
 
     @Test
@@ -386,7 +386,7 @@ class TestDefaultOAuth2ProviderTokenService {
         verify(tokenEnhancer).enhance(token, storedAuthentication)
         verify(tokenRepository).saveAccessToken(token)
         verify(tokenRepository).removeRefreshToken(refreshToken)
-        verify(scopeService, Mockito.atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
+        verify(scopeService, atLeastOnce()).removeReservedScopes(anySet())
     }
 
     @Test
@@ -395,7 +395,7 @@ class TestDefaultOAuth2ProviderTokenService {
 
         val token = service.refreshAccessToken(refreshTokenValue, tokenRequest)
 
-        verify(tokenRepository, Mockito.never()).clearAccessTokensForRefreshToken(refreshToken)
+        verify(tokenRepository, never()).clearAccessTokensForRefreshToken(refreshToken)
 
         assertEquals(client, token.client)
         assertEquals(refreshToken, token.refreshToken)
@@ -403,14 +403,14 @@ class TestDefaultOAuth2ProviderTokenService {
 
         verify(tokenEnhancer).enhance(token, storedAuthentication)
         verify(tokenRepository).saveAccessToken(token)
-        verify(scopeService, Mockito.atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
+        verify(scopeService, atLeastOnce()).removeReservedScopes(anySet())
     }
 
     @Test
     fun refreshAccessToken_requestingSameScope() {
         val token = service.refreshAccessToken(refreshTokenValue, tokenRequest)
 
-        verify(scopeService, Mockito.atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
+        verify(scopeService, atLeastOnce()).removeReservedScopes(anySet())
 
         assertEquals(storedScope, token.scope)
     }
@@ -423,7 +423,7 @@ class TestDefaultOAuth2ProviderTokenService {
 
         val token = service.refreshAccessToken(refreshTokenValue, tokenRequest)
 
-        verify(scopeService, Mockito.atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
+        verify(scopeService, atLeastOnce()).removeReservedScopes(anySet())
 
         assertEquals(lessScope, token.scope)
     }
@@ -463,7 +463,7 @@ class TestDefaultOAuth2ProviderTokenService {
 
         val token = service.refreshAccessToken(refreshTokenValue, tokenRequest)
 
-        verify(scopeService, Mockito.atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
+        verify(scopeService, atLeastOnce()).removeReservedScopes(anySet())
 
         assertEquals(storedScope, token.scope)
     }
@@ -474,7 +474,7 @@ class TestDefaultOAuth2ProviderTokenService {
 
         val token = service.refreshAccessToken(refreshTokenValue, tokenRequest)
 
-        verify(scopeService, Mockito.atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
+        verify(scopeService, atLeastOnce()).removeReservedScopes(anySet())
 
         assertEquals(storedScope, token.scope)
     }
@@ -496,12 +496,11 @@ class TestDefaultOAuth2ProviderTokenService {
         val lowerBoundAccessTokens = Date(start + (accessTokenValiditySeconds * 1000L) - DELTA)
         val upperBoundAccessTokens = Date(end + (accessTokenValiditySeconds * 1000L) + DELTA)
 
-        verify(scopeService, Mockito.atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
+        verify(scopeService, atLeastOnce()).removeReservedScopes(anySet())
 
-        assertTrue(
-            token.expiration!!.after(lowerBoundAccessTokens) && token.expiration!!
-                .before(upperBoundAccessTokens)
-        )
+        assertTrue(token.expiration!!.after(lowerBoundAccessTokens))
+
+        assertTrue(token.expiration!!.before(upperBoundAccessTokens))
     }
 
     @Test

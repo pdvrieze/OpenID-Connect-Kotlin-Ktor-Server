@@ -26,8 +26,8 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.openid.connect.config.ServerConfiguration
 import org.mockito.Mock
-import org.mockito.Mockito
 import org.mockito.junit.jupiter.MockitoExtension
+import org.mockito.kotlin.whenever
 
 /**
  * @author wkim
@@ -53,7 +53,7 @@ class TestStaticClientConfigurationService {
 
         service.clients = clients
 
-        Mockito.`when`(mockServerConfig.issuer).thenReturn(issuer)
+        whenever(mockServerConfig.issuer).thenReturn(issuer)
     }
 
     @Test
@@ -66,7 +66,7 @@ class TestStaticClientConfigurationService {
 
     @Test
     fun getClientConfiguration_noIssuer() {
-        Mockito.`when`(mockServerConfig.issuer).thenReturn("www.badexample.net")
+        whenever(mockServerConfig.issuer).thenReturn("www.badexample.net")
 
         val actualClient = service.getClientConfiguration(mockServerConfig)
 

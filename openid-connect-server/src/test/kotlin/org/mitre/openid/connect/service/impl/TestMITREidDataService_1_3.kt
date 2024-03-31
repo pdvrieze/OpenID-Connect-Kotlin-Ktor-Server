@@ -52,11 +52,14 @@ import org.mockito.ArgumentMatchers
 import org.mockito.Captor
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.junit.MockitoJUnitRunner.Silent
 import org.mockito.kotlin.capture
 import org.mockito.kotlin.isA
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.reset
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.mockito.stubbing.Answer
 import org.slf4j.Logger
@@ -133,7 +136,7 @@ class TestMITREidDataService_1_3 {
         formatter = DateFormatter()
         formatter.setIso(DateTimeFormat.ISO.DATE_TIME)
 
-        Mockito.reset(clientRepository, approvedSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository, wlSiteRepository, blSiteRepository)
+        reset(clientRepository, approvedSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository, wlSiteRepository, blSiteRepository)
 
         val mapsField = ReflectionUtils.findField(MITREidDataService_1_3::class.java, "maps")
         mapsField.isAccessible = true
@@ -146,10 +149,10 @@ class TestMITREidDataService_1_3 {
         val expiration1 = "2014-09-10T22:49:44.090+00:00"
         val expirationDate1 = formatter.parse(expiration1, Locale.ENGLISH)
 
-        val mockedClient1 = Mockito.mock(ClientDetailsEntity::class.java)
+        val mockedClient1 = mock<ClientDetailsEntity>()
         whenever(mockedClient1.clientId).thenReturn("mocked_client_1")
 
-        val mockedAuthHolder1 = Mockito.mock(AuthenticationHolderEntity::class.java)
+        val mockedAuthHolder1 = mock<AuthenticationHolderEntity>()
         whenever(mockedAuthHolder1.id).thenReturn(1L)
 
         val token1 = OAuth2RefreshTokenEntity()
@@ -163,10 +166,10 @@ class TestMITREidDataService_1_3 {
         val expiration2 = "2015-01-07T18:31:50.079+00:00"
         val expirationDate2 = formatter.parse(expiration2, Locale.ENGLISH)
 
-        val mockedClient2 = Mockito.mock(ClientDetailsEntity::class.java)
+        val mockedClient2 = mock<ClientDetailsEntity>()
         whenever(mockedClient2.clientId).thenReturn("mocked_client_2")
 
-        val mockedAuthHolder2 = Mockito.mock(AuthenticationHolderEntity::class.java)
+        val mockedAuthHolder2 = mock<AuthenticationHolderEntity>()
         whenever(mockedAuthHolder2.id).thenReturn(2L)
 
         val token2 = OAuth2RefreshTokenEntity()
@@ -271,10 +274,10 @@ class TestMITREidDataService_1_3 {
         val expiration1 = "2014-09-10T22:49:44.090+00:00"
         val expirationDate1 = formatter.parse(expiration1, Locale.ENGLISH)
 
-        val mockedClient1 = Mockito.mock(ClientDetailsEntity::class.java)
+        val mockedClient1 = mock<ClientDetailsEntity>()
         whenever(mockedClient1.clientId).thenReturn("mocked_client_1")
 
-        val mockedAuthHolder1 = Mockito.mock(AuthenticationHolderEntity::class.java)
+        val mockedAuthHolder1 = mock<AuthenticationHolderEntity>()
         whenever(mockedAuthHolder1.id).thenReturn(1L)
 
         val token1 = OAuth2RefreshTokenEntity()
@@ -288,10 +291,10 @@ class TestMITREidDataService_1_3 {
         val expiration2 = "2015-01-07T18:31:50.079+00:00"
         val expirationDate2 = formatter.parse(expiration2, Locale.ENGLISH)
 
-        val mockedClient2 = Mockito.mock(ClientDetailsEntity::class.java)
+        val mockedClient2 = mock<ClientDetailsEntity>()
         whenever(mockedClient2.clientId).thenReturn("mocked_client_2")
 
-        val mockedAuthHolder2 = Mockito.mock(AuthenticationHolderEntity::class.java)
+        val mockedAuthHolder2 = mock<AuthenticationHolderEntity>()
         whenever(mockedAuthHolder2.id).thenReturn(2L)
 
         val token2 = OAuth2RefreshTokenEntity()
@@ -340,7 +343,7 @@ class TestMITREidDataService_1_3 {
         }
         whenever(clientRepository.getClientByClientId(ArgumentMatchers.anyString())).thenAnswer { invocation ->
             val _clientId = invocation.arguments[0] as String
-            val _client = Mockito.mock(ClientDetailsEntity::class.java)
+            val _client = mock<ClientDetailsEntity>()
             whenever(_client.clientId).thenReturn(_clientId)
             _client
         }
@@ -350,7 +353,7 @@ class TestMITREidDataService_1_3 {
 
                 @Throws(Throwable::class)
                 override fun answer(invocation: InvocationOnMock): AuthenticationHolderEntity {
-                    val _auth = Mockito.mock(AuthenticationHolderEntity::class.java)
+                    val _auth = mock<AuthenticationHolderEntity>()
                     whenever(_auth.id).thenReturn(id)
                     id++
                     return _auth
@@ -358,7 +361,7 @@ class TestMITREidDataService_1_3 {
             })
         dataService.importData(reader)
         //2 times for token, 2 times to update client, 2 times to update authHolder
-        Mockito.verify(tokenRepository, Mockito.times(6)).saveRefreshToken(capture(capturedRefreshTokens))
+        verify(tokenRepository, times(6)).saveRefreshToken(capture(capturedRefreshTokens))
 
         val savedRefreshTokens: List<OAuth2RefreshTokenEntity> = fakeDb.values.sortedWith(refreshTokenIdComparator())
         ArrayList<Any>(fakeDb.values) //capturedRefreshTokens.getAllValues();
@@ -381,10 +384,10 @@ class TestMITREidDataService_1_3 {
         val expiration1 = "2014-09-10T22:49:44.090+00:00"
         val expirationDate1 = formatter.parse(expiration1, Locale.ENGLISH)
 
-        val mockedClient1 = Mockito.mock(ClientDetailsEntity::class.java)
+        val mockedClient1 = mock<ClientDetailsEntity>()
         whenever(mockedClient1.clientId).thenReturn("mocked_client_1")
 
-        val mockedAuthHolder1 = Mockito.mock(AuthenticationHolderEntity::class.java)
+        val mockedAuthHolder1 = mock<AuthenticationHolderEntity>()
         whenever(mockedAuthHolder1.id).thenReturn(1L)
 
         val token1 = OAuth2AccessTokenEntity()
@@ -400,13 +403,13 @@ class TestMITREidDataService_1_3 {
         val expiration2 = "2015-01-07T18:31:50.079+00:00"
         val expirationDate2 = formatter.parse(expiration2, Locale.ENGLISH)
 
-        val mockedClient2 = Mockito.mock(ClientDetailsEntity::class.java)
+        val mockedClient2 = mock<ClientDetailsEntity>()
         whenever(mockedClient2.clientId).thenReturn("mocked_client_2")
 
-        val mockedAuthHolder2 = Mockito.mock(AuthenticationHolderEntity::class.java)
+        val mockedAuthHolder2 = mock<AuthenticationHolderEntity>()
         whenever(mockedAuthHolder2.id).thenReturn(2L)
 
-        val mockRefreshToken2 = Mockito.mock(OAuth2RefreshTokenEntity::class.java)
+        val mockRefreshToken2 = mock<OAuth2RefreshTokenEntity>()
         whenever(mockRefreshToken2.id).thenReturn(1L)
 
         val token2 = OAuth2AccessTokenEntity()
@@ -521,10 +524,10 @@ class TestMITREidDataService_1_3 {
         val expiration1 = "2014-09-10T22:49:44.090+00:00"
         val expirationDate1 = formatter.parse(expiration1, Locale.ENGLISH)
 
-        val mockedClient1 = Mockito.mock(ClientDetailsEntity::class.java)
+        val mockedClient1 = mock<ClientDetailsEntity>()
         whenever(mockedClient1.clientId).thenReturn("mocked_client_1")
 
-        val mockedAuthHolder1 = Mockito.mock(AuthenticationHolderEntity::class.java)
+        val mockedAuthHolder1 = mock<AuthenticationHolderEntity>()
         whenever(mockedAuthHolder1.id).thenReturn(1L)
 
         val token1 = OAuth2AccessTokenEntity()
@@ -540,13 +543,13 @@ class TestMITREidDataService_1_3 {
         val expiration2 = "2015-01-07T18:31:50.079+00:00"
         val expirationDate2 = formatter.parse(expiration2, Locale.ENGLISH)
 
-        val mockedClient2 = Mockito.mock(ClientDetailsEntity::class.java)
+        val mockedClient2 = mock<ClientDetailsEntity>()
         whenever(mockedClient2.clientId).thenReturn("mocked_client_2")
 
-        val mockedAuthHolder2 = Mockito.mock(AuthenticationHolderEntity::class.java)
+        val mockedAuthHolder2 = mock<AuthenticationHolderEntity>()
         whenever(mockedAuthHolder2.id).thenReturn(2L)
 
-        val mockRefreshToken2 = Mockito.mock(OAuth2RefreshTokenEntity::class.java)
+        val mockRefreshToken2 = mock<OAuth2RefreshTokenEntity>()
         whenever(mockRefreshToken2.id).thenReturn(1L)
 
         val token2 = OAuth2AccessTokenEntity()
@@ -602,7 +605,7 @@ class TestMITREidDataService_1_3 {
         }
         whenever(clientRepository.getClientByClientId(ArgumentMatchers.anyString())).thenAnswer { invocation ->
             val _clientId = invocation.arguments[0] as String
-            val _client = Mockito.mock(ClientDetailsEntity::class.java)
+            val _client = mock<ClientDetailsEntity>()
             whenever(_client.clientId).thenReturn(_clientId)
             _client
         }
@@ -612,7 +615,7 @@ class TestMITREidDataService_1_3 {
 
                 @Throws(Throwable::class)
                 override fun answer(invocation: InvocationOnMock): AuthenticationHolderEntity {
-                    val _auth = Mockito.mock(AuthenticationHolderEntity::class.java)
+                    val _auth = mock<AuthenticationHolderEntity>()
                     whenever(_auth.id).thenReturn(id)
                     id++
                     return _auth
@@ -623,7 +626,7 @@ class TestMITREidDataService_1_3 {
         maps.authHolderOldToNewIdMap[2L] = 223L
         dataService.importData(reader)
         //2 times for token, 2 times to update client, 2 times to update authHolder, 1 times to update refresh token
-        Mockito.verify(tokenRepository, Mockito.times(7)).saveAccessToken(capture(capturedAccessTokens))
+        verify(tokenRepository, times(7)).saveAccessToken(capture(capturedAccessTokens))
 
         val savedAccessTokens: List<OAuth2AccessTokenEntity> = fakeDb.values.sortedWith(accessTokenIdComparator())
         //capturedAccessTokens.getAllValues();
@@ -799,7 +802,7 @@ class TestMITREidDataService_1_3 {
         val reader = JsonReader(StringReader(configJson))
 
         dataService.importData(reader)
-        Mockito.verify(clientRepository, Mockito.times(2)).saveClient(capture(capturedClients))
+        verify(clientRepository, times(2)).saveClient(capture(capturedClients))
 
         val savedClients = capturedClients.allValues
 
@@ -951,7 +954,7 @@ class TestMITREidDataService_1_3 {
         val reader = JsonReader(StringReader(configJson))
 
         dataService.importData(reader)
-        Mockito.verify(blSiteRepository, Mockito.times(3)).save(capture(capturedBlacklistedSites))
+        verify(blSiteRepository, times(3)).save(capture(capturedBlacklistedSites))
 
         val savedSites = capturedBlacklistedSites.allValues
 
@@ -1109,7 +1112,7 @@ class TestMITREidDataService_1_3 {
         }
 
         dataService.importData(reader)
-        Mockito.verify(wlSiteRepository, Mockito.times(3)).save(capture(capturedWhitelistedSites))
+        verify(wlSiteRepository, times(3)).save(capture(capturedWhitelistedSites))
 
         val savedSites = capturedWhitelistedSites.allValues
 
@@ -1126,7 +1129,7 @@ class TestMITREidDataService_1_3 {
         val creationDate1 = formatter.parse("2014-09-10T22:49:44.090+00:00", Locale.ENGLISH)
         val accessDate1 = formatter.parse("2014-09-10T23:49:44.090+00:00", Locale.ENGLISH)
 
-        val mockToken1 = Mockito.mock(OAuth2AccessTokenEntity::class.java)
+        val mockToken1 = mock<OAuth2AccessTokenEntity>()
         whenever(mockToken1.id).thenReturn(1L)
 
         val site1 = ApprovedSite()
@@ -1242,7 +1245,7 @@ class TestMITREidDataService_1_3 {
         val creationDate1 = formatter.parse("2014-09-10T22:49:44.090+00:00", Locale.ENGLISH)
         val accessDate1 = formatter.parse("2014-09-10T23:49:44.090+00:00", Locale.ENGLISH)
 
-        val mockToken1 = Mockito.mock(OAuth2AccessTokenEntity::class.java)
+        val mockToken1 = mock<OAuth2AccessTokenEntity>()
         whenever(mockToken1.id).thenReturn(1L)
 
         val site1 = ApprovedSite()
@@ -1312,7 +1315,7 @@ class TestMITREidDataService_1_3 {
 
                 @Throws(Throwable::class)
                 override fun answer(invocation: InvocationOnMock): WhitelistedSite {
-                    val _site = Mockito.mock(WhitelistedSite::class.java)
+                    val _site = mock<WhitelistedSite>()
                     whenever(_site.id).thenReturn(id++)
                     return _site
                 }
@@ -1323,7 +1326,7 @@ class TestMITREidDataService_1_3 {
 
                 @Throws(Throwable::class)
                 override fun answer(invocation: InvocationOnMock): OAuth2AccessTokenEntity {
-                    val _token = Mockito.mock(OAuth2AccessTokenEntity::class.java)
+                    val _token = mock<OAuth2AccessTokenEntity>()
                     whenever(_token.id).thenReturn(id++)
                     return _token
                 }
@@ -1332,7 +1335,7 @@ class TestMITREidDataService_1_3 {
         maps.accessTokenOldToNewIdMap[1L] = 245L
         dataService.importData(reader)
         //2 for sites, 1 for updating access token ref on #1
-        Mockito.verify(approvedSiteRepository, Mockito.times(3)).save(capture(capturedApprovedSites))
+        verify(approvedSiteRepository, times(3)).save(capture(capturedApprovedSites))
 
         val savedSites: List<ApprovedSite> = fakeDb.values.toList()
 
@@ -1472,7 +1475,7 @@ class TestMITREidDataService_1_3 {
             true, HashSet(), HashSet(), "http://foo.com",
             HashSet(), null
         )
-        val mockAuth1 = Mockito.mock(Authentication::class.java, Mockito.withSettings().serializable())
+        val mockAuth1 = mock<Authentication>(serializable = true)
         val auth1 = OAuth2Authentication(req1, mockAuth1)
 
         val holder1 = AuthenticationHolderEntity()
@@ -1484,7 +1487,7 @@ class TestMITREidDataService_1_3 {
             true, HashSet(), HashSet(), "http://bar.com",
             HashSet(), null
         )
-        val mockAuth2 = Mockito.mock(Authentication::class.java, Mockito.withSettings().serializable())
+        val mockAuth2 = mock<Authentication>(serializable = true)
         val auth2 = OAuth2Authentication(req2, mockAuth2)
 
         val holder2 = AuthenticationHolderEntity()
@@ -1526,7 +1529,7 @@ class TestMITREidDataService_1_3 {
             })
 
         dataService.importData(reader)
-        Mockito.verify(authHolderRepository, Mockito.times(2)).save(capture(capturedAuthHolders))
+        verify(authHolderRepository, times(2)).save(capture(capturedAuthHolders))
 
         val savedAuthHolders = capturedAuthHolders.allValues
 
@@ -1692,7 +1695,7 @@ class TestMITREidDataService_1_3 {
         val reader = JsonReader(StringReader(configJson))
 
         dataService.importData(reader)
-        Mockito.verify(sysScopeRepository, Mockito.times(3)).save(capture(capturedScope))
+        verify(sysScopeRepository, times(3)).save(capture(capturedScope))
 
         val savedScopes = capturedScope.allValues
 
@@ -1722,7 +1725,7 @@ class TestMITREidDataService_1_3 {
         val expiration1 = "2014-09-10T22:49:44.090+00:00"
         val expirationDate1 = formatter.parse(expiration1, Locale.ENGLISH)
 
-        val mockedClient1 = Mockito.mock(ClientDetailsEntity::class.java)
+        val mockedClient1 = mock<ClientDetailsEntity>()
         whenever(mockedClient1.clientId).thenReturn("mocked_client_1")
 
         val req1 = OAuth2Request(
@@ -1730,7 +1733,7 @@ class TestMITREidDataService_1_3 {
             true, HashSet(), HashSet(), "http://foo.com",
             HashSet(), null
         )
-        val mockAuth1 = Mockito.mock(Authentication::class.java, Mockito.withSettings().serializable())
+        val mockAuth1 = mock<Authentication>(serializable = true)
         val auth1 = OAuth2Authentication(req1, mockAuth1)
 
         val holder1 = AuthenticationHolderEntity()
@@ -1748,7 +1751,7 @@ class TestMITREidDataService_1_3 {
         val expiration2 = "2015-01-07T18:31:50.079+00:00"
         val expirationDate2 = formatter.parse(expiration2, Locale.ENGLISH)
 
-        val mockedClient2 = Mockito.mock(ClientDetailsEntity::class.java)
+        val mockedClient2 = mock<ClientDetailsEntity>()
         whenever(mockedClient2.clientId).thenReturn("mocked_client_2")
 
         val req2 = OAuth2Request(
@@ -1756,7 +1759,7 @@ class TestMITREidDataService_1_3 {
             true, HashSet(), HashSet(), "http://bar.com",
             HashSet(), null
         )
-        val mockAuth2 = Mockito.mock(Authentication::class.java, Mockito.withSettings().serializable())
+        val mockAuth2 = mock<Authentication>(serializable = true)
         val auth2 = OAuth2Authentication(req2, mockAuth2)
 
         val holder2 = AuthenticationHolderEntity()
@@ -1814,7 +1817,7 @@ class TestMITREidDataService_1_3 {
         }
         whenever(clientRepository.getClientByClientId(ArgumentMatchers.anyString())).thenAnswer { invocation ->
             val _clientId = invocation.arguments[0] as String
-            val _client = Mockito.mock(ClientDetailsEntity::class.java)
+            val _client = mock<ClientDetailsEntity>()
             whenever(_client.clientId).thenReturn(_clientId)
             _client
         }

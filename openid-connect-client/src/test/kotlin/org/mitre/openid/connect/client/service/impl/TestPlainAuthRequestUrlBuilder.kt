@@ -24,7 +24,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.openid.connect.config.ServerConfiguration
-import org.mockito.Mockito
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import org.springframework.security.authentication.AuthenticationServiceException
 
 /**
@@ -39,12 +40,12 @@ class TestPlainAuthRequestUrlBuilder {
 
     @BeforeEach
     fun prepare() {
-        serverConfig = Mockito.mock(ServerConfiguration::class.java)
-        Mockito.`when`(serverConfig.authorizationEndpointUri).thenReturn("https://server.example.com/authorize")
+        serverConfig = mock<ServerConfiguration>()
+        whenever(serverConfig.authorizationEndpointUri).thenReturn("https://server.example.com/authorize")
 
-        clientConfig = Mockito.mock(RegisteredClient::class.java)
-        Mockito.`when`(clientConfig.clientId).thenReturn("s6BhdRkqt3")
-        Mockito.`when`(clientConfig.scope).thenReturn(hashSetOf("openid", "profile"))
+        clientConfig = mock<RegisteredClient>()
+        whenever(clientConfig.clientId).thenReturn("s6BhdRkqt3")
+        whenever(clientConfig.scope).thenReturn(hashSetOf("openid", "profile"))
     }
 
     @Test
@@ -88,7 +89,7 @@ class TestPlainAuthRequestUrlBuilder {
 
     @Test
     fun buildAuthRequestUrl_badUri() {
-        Mockito.`when`(serverConfig.authorizationEndpointUri).thenReturn("e=mc^2")
+        whenever(serverConfig.authorizationEndpointUri).thenReturn("e=mc^2")
 
         val options: Map<String, String> = ImmutableMap.of("foo", "bar")
 
