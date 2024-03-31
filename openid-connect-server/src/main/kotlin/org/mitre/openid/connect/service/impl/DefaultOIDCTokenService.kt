@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.service.impl
 
-import com.google.common.collect.Maps
 import com.nimbusds.jose.Algorithm
 import com.nimbusds.jose.JWEHeader
 import com.nimbusds.jose.JWEObject
@@ -222,7 +221,7 @@ open class DefaultOIDCTokenService : OIDCTokenService {
         }
 
         // create a new token
-        val authorizationParameters: Map<String, String> = Maps.newHashMap()
+        val authorizationParameters: Map<String, String> = hashMapOf()
         val clientAuth = OAuth2Request(
             authorizationParameters, client.clientId,
             hashSetOf(SimpleGrantedAuthority("ROLE_CLIENT")), true,

@@ -15,8 +15,6 @@
  */
 package org.mitre.oauth2.service.impl
 
-import com.google.common.collect.Maps
-import com.google.common.collect.Sets
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.service.IntrospectionResultAssembler
@@ -36,7 +34,7 @@ class DefaultIntrospectionResultAssembler : IntrospectionResultAssembler {
         userInfo: UserInfo?,
         authScopes: Set<String>
     ): Map<String, Any> {
-        val result: MutableMap<String, Any> = Maps.newLinkedHashMap()
+        val result: MutableMap<String, Any> = mutableMapOf()
         val authentication = accessToken.authenticationHolder.authentication
 
         result[IntrospectionResultAssembler.ACTIVE] = true
@@ -90,12 +88,12 @@ class DefaultIntrospectionResultAssembler : IntrospectionResultAssembler {
         userInfo: UserInfo?,
         authScopes: Set<String>
     ): Map<String, Any> {
-        val result: MutableMap<String, Any> = Maps.newLinkedHashMap()
-        val authentication = refreshToken.authenticationHolder!!.authentication
+        val result: MutableMap<String, Any> = mutableMapOf()
+        val authentication = refreshToken.authenticationHolder.authentication
 
         result[IntrospectionResultAssembler.ACTIVE] = true
 
-        val scopes: Set<String> = Sets.intersection(authScopes, authentication.oAuth2Request.scope)
+        val scopes: Set<String> = authScopes.intersect(authentication.oAuth2Request.scope)
 
         result[IntrospectionResultAssembler.SCOPE] =
             scopes.joinToString(IntrospectionResultAssembler.SCOPE_SEPARATOR)

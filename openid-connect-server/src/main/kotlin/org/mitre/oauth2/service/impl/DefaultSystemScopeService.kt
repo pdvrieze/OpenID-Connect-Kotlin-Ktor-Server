@@ -17,11 +17,6 @@
  */
 package org.mitre.oauth2.service.impl
 
-import com.google.common.base.Function
-import com.google.common.base.Predicate
-import com.google.common.base.Predicates
-import com.google.common.collect.Collections2
-import com.google.common.collect.Sets
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.repository.SystemScopeRepository
 import org.mitre.oauth2.service.SystemScopeService
@@ -37,26 +32,22 @@ class DefaultSystemScopeService : SystemScopeService {
     @Autowired
     private lateinit var repository: SystemScopeRepository
 
-    private val isDefault: Predicate<SystemScope> = Predicate { input -> input != null && input.isDefaultScope }
+    private val isDefault: (SystemScope?) -> Boolean = { input -> input != null && input.isDefaultScope }
 
-    private val isRestricted: Predicate<SystemScope> = Predicate { input -> input != null && input.isRestricted }
+    private val isRestricted: (SystemScope?) -> Boolean = { input -> input != null && input.isRestricted }
 
-    private val isReserved: Predicate<SystemScope> = Predicate { input -> input != null && reserved.contains(input) }
+    private val isReserved: (SystemScope?) -> Boolean = { input -> input != null && input in reserved }
 
-    private val stringToSystemScope: Function<String, SystemScope> = object : Function<String, SystemScope> {
-        override fun apply(input: String?): SystemScope? {
-            if (input.isNullOrEmpty()) return null
+    private val stringToSystemScope: (String?) -> SystemScope? = { input ->
+        when {
+            input.isNullOrEmpty() -> null
 
             // get the real scope if it's available,make a fake one otherwise
-            return getByValue(input) ?: SystemScope(input)
+            else -> getByValue(input) ?: SystemScope(input)
         }
     }
 
-    private val systemScopeToString: Function<SystemScope, String> = object : Function<SystemScope, String> {
-        override fun apply(input: SystemScope?): String? {
-            return input?.value
-        }
-    }
+    private val systemScopeToString: (SystemScope?) -> String? = { input -> input?.value }
 
     override val all: Set<SystemScope>
         /* (non-Javadoc)
@@ -90,7 +81,7 @@ class DefaultSystemScopeService : SystemScopeService {
 	 */
     override fun save(scope: SystemScope): SystemScope? = when {
         // don't allow saving of reserved scopes
-        isReserved.apply(scope) -> null
+        isReserved(scope) -> null
         else -> repository.save(scope)
     }
 
@@ -98,10 +89,9 @@ class DefaultSystemScopeService : SystemScopeService {
 	 * @see org.mitre.oauth2.service.SystemScopeService#fromStrings(java.util.Set)
 	 */
     override fun fromStrings(scope: Set<String>?): Set<SystemScope>? {
-        return if (scope == null) {
-            null
-        } else {
-            LinkedHashSet(Collections2.filter(Collections2.transform(scope, stringToSystemScope), Predicates.notNull()))
+        return when (scope) {
+            null -> null
+            else -> scope.mapNotNullTo(mutableSetOf(), stringToSystemScope)
         }
     }
 
@@ -109,10 +99,9 @@ class DefaultSystemScopeService : SystemScopeService {
 	 * @see org.mitre.oauth2.service.SystemScopeService#toStrings(java.util.Set)
 	 */
     override fun toStrings(scope: Set<SystemScope>?): Set<String>? {
-        return if (scope == null) {
-            null
-        } else {
-            LinkedHashSet(Collections2.filter(Collections2.transform(scope, systemScopeToString), Predicates.notNull()))
+        return when (scope) {
+            null -> null
+            else -> scope.mapNotNullTo(mutableSetOf(), systemScopeToString)
         }
     }
 
@@ -123,36 +112,29 @@ class DefaultSystemScopeService : SystemScopeService {
         val ex = fromStrings(expected) ?: return false
         val act = fromStrings(actual) ?: return false
 
-        for (actScope in act) {
-            // first check to see if there's an exact match
-            if (actScope !in ex) {
-                return false
-            }
-            // if we did find an exact match, we need to check the rest
-        }
-
-        // if we got all the way down here, the setup passed
-        return true
+        return act.all { it in ex }
     }
 
     override val defaults: Set<SystemScope>
-        get() = Sets.filter(all, isDefault)
+        get() = all.filterTo(HashSet(), isDefault)
 
 
     override val reserved: Set<SystemScope>
         get() = reservedScopes
 
     override val restricted: Set<SystemScope>
-        get() = Sets.filter(all, isRestricted)
+        get() = all.filterTo(mutableSetOf(), isRestricted)
 
     override val unrestricted: Set<SystemScope>
-        get() = Sets.filter(all, Predicates.not(isRestricted))
+        get() = all.filterNotTo(mutableSetOf(), isRestricted)
 
     override fun removeRestrictedAndReservedScopes(scopes: Set<SystemScope>): Set<SystemScope> {
-        return Sets.filter(scopes, Predicates.not(Predicates.or(isRestricted, isReserved)))
+        return scopes.filterNotTo(mutableSetOf()) {
+            it.isRestricted || it in reserved
+        }
     }
 
     override fun removeReservedScopes(scopes: Set<SystemScope>): Set<SystemScope> {
-        return Sets.filter(scopes, Predicates.not(isReserved))
+        return scopes.filterNotTo(hashSetOf(), isReserved)
     }
 }

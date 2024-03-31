@@ -17,7 +17,6 @@
  */
 package org.mitre.oauth2.token
 
-import com.google.common.collect.Sets
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.OAuth2TokenEntityService
 import org.springframework.beans.factory.annotation.Autowired
@@ -64,7 +63,7 @@ class ChainedTokenGranter @Autowired constructor(// keep down-cast versions so w
             } else {
                 // if scopes were asked for, give only the subset of scopes requested
                 // this allows safe downscoping
-                tokenRequest.setScope(Sets.intersection(requestedScopes, approvedScopes))
+                tokenRequest.setScope(requestedScopes.intersect(approvedScopes))
             }
 
             // NOTE: don't revoke the existing access token

@@ -218,7 +218,7 @@ class DeviceEndpoint {
         }
 
         // add in any scopes that aren't system scopes to the end of the list
-        sortedScopes.addAll(Sets.difference(scopes, systemScopes))
+        sortedScopes.addAll(scopes - systemScopes)
 
         model["scopes"] = sortedScopes
 

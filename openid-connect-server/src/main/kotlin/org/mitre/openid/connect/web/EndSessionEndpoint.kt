@@ -15,7 +15,6 @@
  */
 package org.mitre.openid.connect.web
 
-import com.google.common.collect.Iterables
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.JWTParser
 import org.mitre.jwt.assertion.impl.SelfAssertionValidator
@@ -84,13 +83,13 @@ class EndSessionEndpoint {
             try {
                 val idToken = JWTParser.parse(idTokenHint)
 
-                if (validator!!.isValid(idToken)) {
+                if (validator.isValid(idToken)) {
                     // we issued this ID token, figure out who it's for
                     idTokenClaims = idToken.jwtClaimsSet
 
-                    val clientId = Iterables.getOnlyElement(idTokenClaims.audience)
+                    val clientId = idTokenClaims.audience.single()
 
-                    client = clientService!!.loadClientByClientId(clientId)
+                    client = clientService.loadClientByClientId(clientId)
 
 
                     // save a reference in the session for us to pick up later
@@ -116,7 +115,7 @@ class EndSessionEndpoint {
 
             // see who the current user is
 
-            val ui = userInfoService!!.getByUsername(auth.name)
+            val ui = userInfoService.getByUsername(auth.name)
 
             if (idTokenClaims != null) {
                 val subject = idTokenClaims.subject

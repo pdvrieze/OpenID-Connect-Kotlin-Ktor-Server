@@ -15,7 +15,6 @@
  */
 package org.mitre.uma.web
 
-import com.google.common.collect.Sets
 import com.google.gson.Gson
 import org.mitre.oauth2.util.toJavaId
 import org.mitre.openid.connect.view.HttpCodeView
@@ -180,11 +179,12 @@ class PolicyAPI {
             }
         }
 
-        rs.policies!!.add(p)
+        val rsPolicies = rs.policies!!
+        rsPolicies.add(p)
         val saved = resourceSetService.update(rs, rs)
 
         // find the new policy object
-        val newPolicies: Collection<Policy> = Sets.difference(HashSet(saved.policies), HashSet(rs.policies))
+        val newPolicies = saved.policies!!.toSet() - rsPolicies.toSet()
 
         if (newPolicies.size == 1) {
             val newPolicy = newPolicies.iterator().next()

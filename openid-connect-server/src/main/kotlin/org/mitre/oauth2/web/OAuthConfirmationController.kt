@@ -17,7 +17,6 @@
  */
 package org.mitre.oauth2.web
 
-import com.google.common.collect.Sets
 import org.apache.http.client.utils.URIBuilder
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.SystemScope
@@ -144,7 +143,7 @@ class OAuthConfirmationController {
         }
 
         // add in any scopes that aren't system scopes to the end of the list
-        sortedScopes.addAll(Sets.difference(scopes, systemScopes))
+        sortedScopes.addAll(scopes - systemScopes)
 
         model["scopes"] = sortedScopes
 

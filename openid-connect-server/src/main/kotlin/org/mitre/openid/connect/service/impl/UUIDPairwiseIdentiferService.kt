@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.service.impl
 
-import com.google.common.collect.Iterables
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.openid.connect.model.PairwiseIdentifier
 import org.mitre.openid.connect.model.UserInfo
@@ -47,7 +46,7 @@ class UUIDPairwiseIdentiferService : PairwiseIdentiferService {
             sectorIdentifier = uri.host // calculate based on the host component only
         } else {
             val redirectUris = client.redirectUris
-            val uri = UriComponentsBuilder.fromUriString(Iterables.getOnlyElement(redirectUris)).build()
+            val uri = UriComponentsBuilder.fromUriString(redirectUris.single()).build()
             sectorIdentifier = uri.host // calculate based on the host of the only redirect URI
         }
 
