@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect
 
-import com.google.common.collect.ImmutableSet
 import com.nimbusds.jose.EncryptionMethod
 import com.nimbusds.jose.JWEAlgorithm
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -64,10 +63,10 @@ class ClientDetailsEntityJsonProcessorTest {
         val c = parse(json)
 
         assertEquals(ClientDetailsEntity.AppType.WEB, c!!.applicationType)
-        assertEquals(ImmutableSet.of("https://client.example.org/callback", "https://client.example.org/callback2"), c.redirectUris)
+        assertEquals(setOf("https://client.example.org/callback", "https://client.example.org/callback2"), c.redirectUris)
         assertEquals("My Example", c.clientName)
-        assertEquals(ImmutableSet.of("code", "token"), c.responseTypes)
-        assertEquals(ImmutableSet.of("authorization_code", "implicit"), c.grantTypes)
+        assertEquals(setOf("code", "token"), c.responseTypes)
+        assertEquals(setOf("authorization_code", "implicit"), c.grantTypes)
         assertEquals("https://client.example.org/logo.png", c.logoUri)
         assertEquals(ClientDetailsEntity.SubjectType.PAIRWISE, c.subjectType)
         assertEquals("https://other.example.net/file_of_redirect_uris.json", c.sectorIdentifierUri)
@@ -75,8 +74,8 @@ class ClientDetailsEntityJsonProcessorTest {
         assertEquals("https://client.example.org/my_public_keys.jwks", c.jwksUri)
         assertEquals(JWEAlgorithm.RSA1_5, c.userInfoEncryptedResponseAlg)
         assertEquals(EncryptionMethod.A128CBC_HS256, c.userInfoEncryptedResponseEnc)
-        assertEquals(ImmutableSet.of("ve7jtb@example.org", "mary@example.org"), c.contacts)
-        assertEquals(ImmutableSet.of("https://client.example.org/rf.txt#qpXaRLh_n93TTR9F252ValdatUQvQiJi5BDub2BeznA"), c.requestUris)
+        assertEquals(setOf("ve7jtb@example.org", "mary@example.org"), c.contacts)
+        assertEquals(setOf("https://client.example.org/rf.txt#qpXaRLh_n93TTR9F252ValdatUQvQiJi5BDub2BeznA"), c.requestUris)
     }
 
     /**
@@ -125,10 +124,10 @@ class ClientDetailsEntityJsonProcessorTest {
         assertEquals("this.is.an.access.token.value.ffx83", c.registrationAccessToken)
         assertEquals("https://server.example.com/connect/register?client_id=s6BhdRkqt3", c.registrationClientUri)
         assertEquals(ClientDetailsEntity.AppType.WEB, c.applicationType)
-        assertEquals(ImmutableSet.of("https://client.example.org/callback", "https://client.example.org/callback2"), c.redirectUris)
+        assertEquals(setOf("https://client.example.org/callback", "https://client.example.org/callback2"), c.redirectUris)
         assertEquals("My Example", c.clientName)
-        assertEquals(ImmutableSet.of("code", "token"), c.responseTypes)
-        assertEquals(ImmutableSet.of("authorization_code", "implicit"), c.grantTypes)
+        assertEquals(setOf("code", "token"), c.responseTypes)
+        assertEquals(setOf("authorization_code", "implicit"), c.grantTypes)
         assertEquals("https://client.example.org/logo.png", c.logoUri)
         assertEquals(ClientDetailsEntity.SubjectType.PAIRWISE, c.subjectType)
         assertEquals("https://other.example.net/file_of_redirect_uris.json", c.sectorIdentifierUri)
@@ -136,8 +135,8 @@ class ClientDetailsEntityJsonProcessorTest {
         assertEquals("https://client.example.org/my_public_keys.jwks", c.jwksUri)
         assertEquals(JWEAlgorithm.RSA1_5, c.userInfoEncryptedResponseAlg)
         assertEquals(EncryptionMethod.A128CBC_HS256, c.userInfoEncryptedResponseEnc)
-        assertEquals(ImmutableSet.of("ve7jtb@example.org", "mary@example.org"), c.contacts)
-        assertEquals(ImmutableSet.of("https://client.example.org/rf.txt#qpXaRLh_n93TTR9F252ValdatUQvQiJi5BDub2BeznA"), c.requestUris)
+        assertEquals(setOf("ve7jtb@example.org", "mary@example.org"), c.contacts)
+        assertEquals(setOf("https://client.example.org/rf.txt#qpXaRLh_n93TTR9F252ValdatUQvQiJi5BDub2BeznA"), c.requestUris)
     }
 
     /**
@@ -153,10 +152,10 @@ class ClientDetailsEntityJsonProcessorTest {
         c.registrationAccessToken = "this.is.an.access.token.value.ffx83"
         c.registrationClientUri = "https://server.example.com/connect/register?client_id=s6BhdRkqt3"
         c.applicationType = ClientDetailsEntity.AppType.WEB
-        c.redirectUris = ImmutableSet.of("https://client.example.org/callback", "https://client.example.org/callback2")
+        c.redirectUris = setOf("https://client.example.org/callback", "https://client.example.org/callback2")
         c.clientName = "My Example"
-        c.responseTypes = ImmutableSet.of("code", "token")
-        c.grantTypes = ImmutableSet.of("authorization_code", "implicit")
+        c.responseTypes = setOf("code", "token")
+        c.grantTypes = setOf("authorization_code", "implicit")
         c.logoUri = "https://client.example.org/logo.png"
         c.subjectType = ClientDetailsEntity.SubjectType.PAIRWISE
         c.sectorIdentifierUri = "https://other.example.net/file_of_redirect_uris.json"
@@ -164,8 +163,8 @@ class ClientDetailsEntityJsonProcessorTest {
         c.jwksUri = "https://client.example.org/my_public_keys.jwks"
         c.userInfoEncryptedResponseAlg = JWEAlgorithm.RSA1_5
         c.userInfoEncryptedResponseEnc = EncryptionMethod.A128CBC_HS256
-        c.contacts = ImmutableSet.of("ve7jtb@example.org", "mary@example.org")
-        c.requestUris = ImmutableSet.of("https://client.example.org/rf.txt#qpXaRLh_n93TTR9F252ValdatUQvQiJi5BDub2BeznA")
+        c.contacts = setOf("ve7jtb@example.org", "mary@example.org")
+        c.requestUris = setOf("https://client.example.org/rf.txt#qpXaRLh_n93TTR9F252ValdatUQvQiJi5BDub2BeznA")
 
         val j = serialize(c)
 
@@ -177,16 +176,16 @@ class ClientDetailsEntityJsonProcessorTest {
         assertEquals(ClientDetailsEntity.AppType.WEB.value, j["application_type"].asString)
         for (e in j["redirect_uris"].asJsonArray) {
             assertTrue(
-                ImmutableSet.of("https://client.example.org/callback", "https://client.example.org/callback2")
+                setOf("https://client.example.org/callback", "https://client.example.org/callback2")
                     .contains(e.asString)
             )
         }
         assertEquals("My Example", j["client_name"].asString)
         for (e in j["response_types"].asJsonArray) {
-            assertTrue(ImmutableSet.of("code", "token").contains(e.asString))
+            assertTrue(setOf("code", "token").contains(e.asString))
         }
         for (e in j["grant_types"].asJsonArray) {
-            assertTrue(ImmutableSet.of("authorization_code", "implicit").contains(e.asString))
+            assertTrue(setOf("authorization_code", "implicit").contains(e.asString))
         }
         assertEquals("https://client.example.org/logo.png", j["logo_uri"].asString)
         assertEquals(ClientDetailsEntity.SubjectType.PAIRWISE.value, j["subject_type"].asString)
@@ -196,11 +195,11 @@ class ClientDetailsEntityJsonProcessorTest {
         assertEquals(JWEAlgorithm.RSA1_5.name, j["userinfo_encrypted_response_alg"].asString)
         assertEquals(EncryptionMethod.A128CBC_HS256.name, j["userinfo_encrypted_response_enc"].asString)
         for (e in j["contacts"].asJsonArray) {
-            assertTrue(ImmutableSet.of("ve7jtb@example.org", "mary@example.org").contains(e.asString))
+            assertTrue(setOf("ve7jtb@example.org", "mary@example.org").contains(e.asString))
         }
         for (e in j["request_uris"].asJsonArray) {
             assertTrue(
-                ImmutableSet.of("https://client.example.org/rf.txt#qpXaRLh_n93TTR9F252ValdatUQvQiJi5BDub2BeznA")
+                setOf("https://client.example.org/rf.txt#qpXaRLh_n93TTR9F252ValdatUQvQiJi5BDub2BeznA")
                     .contains(e.asString)
             )
         }

@@ -16,7 +16,6 @@
 package org.mitre.openid.connect.service.impl
 
 import com.google.common.collect.ImmutableList
-import com.google.common.collect.ImmutableSet
 import com.google.gson.JsonArray
 import com.google.gson.JsonParser
 import com.google.gson.stream.JsonReader
@@ -178,7 +177,7 @@ class TestMITREidDataService_1_3 {
             JWTParser.parse("eyJhbGciOiJub25lIn0.eyJqdGkiOiJlYmEyYjc3My0xNjAzLTRmNDAtOWQ3MS1hMGIxZDg1OWE2MDAifQ.")
         token2.authenticationHolder = mockedAuthHolder2
 
-        val allRefreshTokens: Set<OAuth2RefreshTokenEntity> = ImmutableSet.of(token1, token2)
+        val allRefreshTokens: Set<OAuth2RefreshTokenEntity> = setOf(token1, token2)
 
         whenever(clientRepository.allClients).thenReturn(HashSet())
         whenever(approvedSiteRepository.all).thenReturn(HashSet())
@@ -397,7 +396,7 @@ class TestMITREidDataService_1_3 {
         token1.jwt =
             JWTParser.parse("eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0MTI3ODk5NjgsInN1YiI6IjkwMzQyLkFTREZKV0ZBIiwiYXRfaGFzaCI6InptTmt1QmNRSmNYQktNaVpFODZqY0EiLCJhdWQiOlsiY2xpZW50Il0sImlzcyI6Imh0dHA6XC9cL2xvY2FsaG9zdDo4MDgwXC9vcGVuaWQtY29ubmVjdC1zZXJ2ZXItd2ViYXBwXC8iLCJpYXQiOjE0MTI3ODkzNjh9.xkEJ9IMXpH7qybWXomfq9WOOlpGYnrvGPgey9UQ4GLzbQx7JC0XgJK83PmrmBZosvFPCmota7FzI_BtwoZLgAZfFiH6w3WIlxuogoH-TxmYbxEpTHoTsszZppkq9mNgOlArV4jrR9y3TPo4MovsH71dDhS_ck-CvAlJunHlqhs0")
         token1.authenticationHolder = mockedAuthHolder1
-        token1.scope = ImmutableSet.of("id-token")
+        token1.scope = setOf("id-token")
         token1.tokenType = "Bearer"
 
         val expiration2 = "2015-01-07T18:31:50.079+00:00"
@@ -420,10 +419,10 @@ class TestMITREidDataService_1_3 {
             JWTParser.parse("eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0MTI3OTI5NjgsImF1ZCI6WyJjbGllbnQiXSwiaXNzIjoiaHR0cDpcL1wvbG9jYWxob3N0OjgwODBcL29wZW5pZC1jb25uZWN0LXNlcnZlci13ZWJhcHBcLyIsImp0aSI6IjBmZGE5ZmRiLTYyYzItNGIzZS05OTdiLWU0M2VhMDUwMzNiOSIsImlhdCI6MTQxMjc4OTM2OH0.xgaVpRLYE5MzbgXfE0tZt823tjAm6Oh3_kdR1P2I9jRLR6gnTlBQFlYi3Y_0pWNnZSerbAE8Tn6SJHZ9k-curVG0-ByKichV7CNvgsE5X_2wpEaUzejvKf8eZ-BammRY-ie6yxSkAarcUGMvGGOLbkFcz5CtrBpZhfd75J49BIQ")
         token2.authenticationHolder = mockedAuthHolder2
         token2.refreshToken = mockRefreshToken2
-        token2.scope = ImmutableSet.of("openid", "offline_access", "email", "profile")
+        token2.scope = setOf("openid", "offline_access", "email", "profile")
         token2.tokenType = "Bearer"
 
-        val allAccessTokens: Set<OAuth2AccessTokenEntity> = ImmutableSet.of(token1, token2)
+        val allAccessTokens: Set<OAuth2AccessTokenEntity> = setOf(token1, token2)
 
         whenever(clientRepository.allClients).thenReturn(HashSet())
         whenever(approvedSiteRepository.all).thenReturn(HashSet())
@@ -537,7 +536,7 @@ class TestMITREidDataService_1_3 {
         token1.jwt =
             JWTParser.parse("eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0MTI3ODk5NjgsInN1YiI6IjkwMzQyLkFTREZKV0ZBIiwiYXRfaGFzaCI6InptTmt1QmNRSmNYQktNaVpFODZqY0EiLCJhdWQiOlsiY2xpZW50Il0sImlzcyI6Imh0dHA6XC9cL2xvY2FsaG9zdDo4MDgwXC9vcGVuaWQtY29ubmVjdC1zZXJ2ZXItd2ViYXBwXC8iLCJpYXQiOjE0MTI3ODkzNjh9.xkEJ9IMXpH7qybWXomfq9WOOlpGYnrvGPgey9UQ4GLzbQx7JC0XgJK83PmrmBZosvFPCmota7FzI_BtwoZLgAZfFiH6w3WIlxuogoH-TxmYbxEpTHoTsszZppkq9mNgOlArV4jrR9y3TPo4MovsH71dDhS_ck-CvAlJunHlqhs0")
         token1.authenticationHolder = mockedAuthHolder1
-        token1.scope = ImmutableSet.of("id-token")
+        token1.scope = setOf("id-token")
         token1.tokenType = "Bearer"
 
         val expiration2 = "2015-01-07T18:31:50.079+00:00"
@@ -560,7 +559,7 @@ class TestMITREidDataService_1_3 {
             JWTParser.parse("eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0MTI3OTI5NjgsImF1ZCI6WyJjbGllbnQiXSwiaXNzIjoiaHR0cDpcL1wvbG9jYWxob3N0OjgwODBcL29wZW5pZC1jb25uZWN0LXNlcnZlci13ZWJhcHBcLyIsImp0aSI6IjBmZGE5ZmRiLTYyYzItNGIzZS05OTdiLWU0M2VhMDUwMzNiOSIsImlhdCI6MTQxMjc4OTM2OH0.xgaVpRLYE5MzbgXfE0tZt823tjAm6Oh3_kdR1P2I9jRLR6gnTlBQFlYi3Y_0pWNnZSerbAE8Tn6SJHZ9k-curVG0-ByKichV7CNvgsE5X_2wpEaUzejvKf8eZ-BammRY-ie6yxSkAarcUGMvGGOLbkFcz5CtrBpZhfd75J49BIQ")
         token2.authenticationHolder = mockedAuthHolder2
         token2.refreshToken = mockRefreshToken2
-        token2.scope = ImmutableSet.of("openid", "offline_access", "email", "profile")
+        token2.scope = setOf("openid", "offline_access", "email", "profile")
         token2.tokenType = "Bearer"
 
         val configJson = ("{" +
@@ -656,10 +655,10 @@ class TestMITREidDataService_1_3 {
         client1.accessTokenValiditySeconds = 3600
         client1.clientId = "client1"
         client1.clientSecret = "clientsecret1"
-        client1.redirectUris = ImmutableSet.of("http://foo.com/")
-        client1.setScope(ImmutableSet.of("foo", "bar", "baz", "dolphin"))
+        client1.redirectUris = setOf("http://foo.com/")
+        client1.setScope(setOf("foo", "bar", "baz", "dolphin"))
         client1.grantTypes =
-            ImmutableSet.of("implicit", "authorization_code", "urn:ietf:params:oauth:grant_type:redelegate", "refresh_token")
+            hashSetOf("implicit", "authorization_code", "urn:ietf:params:oauth:grant_type:redelegate", "refresh_token")
         client1.isAllowIntrospection = true
 
         val client2 = ClientDetailsEntity()
@@ -667,13 +666,13 @@ class TestMITREidDataService_1_3 {
         client2.accessTokenValiditySeconds = 3600
         client2.clientId = "client2"
         client2.clientSecret = "clientsecret2"
-        client2.redirectUris = ImmutableSet.of("http://bar.baz.com/")
-        client2.setScope(ImmutableSet.of("foo", "dolphin", "electric-wombat"))
-        client2.grantTypes = ImmutableSet.of("client_credentials", "urn:ietf:params:oauth:grant_type:redelegate")
+        client2.redirectUris = setOf("http://bar.baz.com/")
+        client2.setScope(setOf("foo", "dolphin", "electric-wombat"))
+        client2.grantTypes = hashSetOf("client_credentials", "urn:ietf:params:oauth:grant_type:redelegate")
         client2.isAllowIntrospection = false
         client2.codeChallengeMethod = PKCEAlgorithm.S256
 
-        val allClients: Set<ClientDetailsEntity> = ImmutableSet.of(client1, client2)
+        val allClients: Set<ClientDetailsEntity> = setOf(client1, client2)
 
         whenever(clientRepository.allClients).thenReturn(allClients)
         whenever(approvedSiteRepository.all).thenReturn(HashSet())
@@ -765,10 +764,10 @@ class TestMITREidDataService_1_3 {
         client1.accessTokenValiditySeconds = 3600
         client1.clientId = "client1"
         client1.clientSecret = "clientsecret1"
-        client1.redirectUris = ImmutableSet.of("http://foo.com/")
-        client1.setScope(ImmutableSet.of("foo", "bar", "baz", "dolphin"))
+        client1.redirectUris = setOf("http://foo.com/")
+        client1.setScope(setOf("foo", "bar", "baz", "dolphin"))
         client1.grantTypes =
-            ImmutableSet.of("implicit", "authorization_code", "urn:ietf:params:oauth:grant_type:redelegate", "refresh_token")
+            hashSetOf("implicit", "authorization_code", "urn:ietf:params:oauth:grant_type:redelegate", "refresh_token")
         client1.isAllowIntrospection = true
 
         val client2 = ClientDetailsEntity()
@@ -776,9 +775,9 @@ class TestMITREidDataService_1_3 {
         client2.accessTokenValiditySeconds = 3600
         client2.clientId = "client2"
         client2.clientSecret = "clientsecret2"
-        client2.redirectUris = ImmutableSet.of("http://bar.baz.com/")
-        client2.setScope(ImmutableSet.of("foo", "dolphin", "electric-wombat"))
-        client2.grantTypes = ImmutableSet.of("client_credentials", "urn:ietf:params:oauth:grant_type:redelegate")
+        client2.redirectUris = setOf("http://bar.baz.com/")
+        client2.setScope(setOf("foo", "dolphin", "electric-wombat"))
+        client2.grantTypes = hashSetOf("client_credentials", "urn:ietf:params:oauth:grant_type:redelegate")
         client2.isAllowIntrospection = false
 
         val configJson = ("{" +
@@ -846,7 +845,7 @@ class TestMITREidDataService_1_3 {
         site3.id = 3L
         site3.uri = "http://baz.com"
 
-        val allBlacklistedSites: Set<BlacklistedSite> = ImmutableSet.of(site1, site2, site3)
+        val allBlacklistedSites: Set<BlacklistedSite> = setOf(site1, site2, site3)
 
         whenever(clientRepository.allClients).thenReturn(HashSet())
         whenever(approvedSiteRepository.all).thenReturn(HashSet())
@@ -986,7 +985,7 @@ class TestMITREidDataService_1_3 {
         site3.id = 3L
         site3.clientId = "baz"
 
-        val allWhitelistedSites: Set<WhitelistedSite> = ImmutableSet.of(site1, site2, site3)
+        val allWhitelistedSites: Set<WhitelistedSite> = setOf(site1, site2, site3)
 
         whenever(clientRepository.allClients).thenReturn(HashSet())
         whenever(approvedSiteRepository.all).thenReturn(HashSet())
@@ -1143,7 +1142,7 @@ class TestMITREidDataService_1_3 {
         site1.creationDate = creationDate1
         site1.accessDate = accessDate1
         site1.userId = "user1"
-        site1.allowedScopes = ImmutableSet.of("openid", "phone")
+        site1.allowedScopes = setOf("openid", "phone")
         whenever(mockToken1.approvedSite).thenReturn(site1)
 
         val creationDate2 = formatter.parse("2014-09-11T18:49:44.090+00:00", Locale.ENGLISH)
@@ -1156,10 +1155,10 @@ class TestMITREidDataService_1_3 {
         site2.creationDate = creationDate2
         site2.accessDate = accessDate2
         site2.userId = "user2"
-        site2.allowedScopes = ImmutableSet.of("openid", "offline_access", "email", "profile")
+        site2.allowedScopes = setOf("openid", "offline_access", "email", "profile")
         site2.timeoutDate = timeoutDate2
 
-        val allApprovedSites: Set<ApprovedSite> = ImmutableSet.of(site1, site2)
+        val allApprovedSites: Set<ApprovedSite> = setOf(site1, site2)
 
         whenever(clientRepository.allClients).thenReturn(HashSet())
         whenever(approvedSiteRepository.all).thenReturn(allApprovedSites)
@@ -1259,7 +1258,7 @@ class TestMITREidDataService_1_3 {
         site1.creationDate = creationDate1
         site1.accessDate = accessDate1
         site1.userId = "user1"
-        site1.allowedScopes = ImmutableSet.of("openid", "phone")
+        site1.allowedScopes = setOf("openid", "phone")
         whenever(mockToken1.approvedSite).thenReturn(site1)
 
         val creationDate2 = formatter.parse("2014-09-11T18:49:44.090+00:00", Locale.ENGLISH)
@@ -1272,7 +1271,7 @@ class TestMITREidDataService_1_3 {
         site2.creationDate = creationDate2
         site2.accessDate = accessDate2
         site2.userId = "user2"
-        site2.allowedScopes = ImmutableSet.of("openid", "offline_access", "email", "profile")
+        site2.allowedScopes = setOf("openid", "offline_access", "email", "profile")
         site2.timeoutDate = timeoutDate2
 
         val configJson = ("{" +
@@ -1566,7 +1565,7 @@ class TestMITREidDataService_1_3 {
         scope3.isDefaultScope = true
         scope3.icon = "road"
 
-        val allScopes: Set<SystemScope> = ImmutableSet.of(scope1, scope2, scope3)
+        val allScopes: Set<SystemScope> = setOf(scope1, scope2, scope3)
 
         whenever(clientRepository.allClients).thenReturn(HashSet())
         whenever(approvedSiteRepository.all).thenReturn(HashSet())

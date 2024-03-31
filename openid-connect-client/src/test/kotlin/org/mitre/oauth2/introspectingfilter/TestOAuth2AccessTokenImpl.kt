@@ -15,7 +15,6 @@
  */
 package org.mitre.oauth2.introspectingfilter
 
-import com.google.common.collect.ImmutableSet
 import com.google.gson.JsonObject
 import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert.assertThat
@@ -86,7 +85,7 @@ class TestOAuth2AccessTokenImpl {
     companion object {
         private const val tokenString = "thisisatokenstring"
 
-        private val scopes: Set<String> = ImmutableSet.of("bar", "foo")
+        private val scopes: Set<String> = setOf("bar", "foo")
         private const val scopeString = "foo bar"
 
         private val exp = Date(123 * 1000L)

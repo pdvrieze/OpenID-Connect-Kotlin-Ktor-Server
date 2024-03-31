@@ -17,7 +17,6 @@
  */
 package org.mitre.oauth2.model
 
-import com.google.common.collect.ImmutableSet
 import com.nimbusds.jose.EncryptionMethod
 import com.nimbusds.jose.JWEAlgorithm
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -43,7 +42,7 @@ class RegisteredClientTest {
             registrationAccessToken = "this.is.an.access.token.value.ffx83"
             registrationClientUri = "https://server.example.com/connect/register?client_id=s6BhdRkqt3"
             applicationType = ClientDetailsEntity.AppType.WEB
-            redirectUris = ImmutableSet.of("https://client.example.org/callback", "https://client.example.org/callback2")
+            redirectUris = setOf("https://client.example.org/callback", "https://client.example.org/callback2")
             clientName = "My Example"
             logoUri = "https://client.example.org/logo.png"
             subjectType = ClientDetailsEntity.SubjectType.PAIRWISE
@@ -52,8 +51,8 @@ class RegisteredClientTest {
             jwksUri = "https://client.example.org/my_public_keys.jwks"
             userInfoEncryptedResponseAlg = JWEAlgorithm.RSA1_5
             userInfoEncryptedResponseEnc = EncryptionMethod.A128CBC_HS256
-            contacts = ImmutableSet.of("ve7jtb@example.org", "mary@example.org")
-            requestUris = ImmutableSet.of("https://client.example.org/rf.txt#qpXaRLh_n93TTR9F252ValdatUQvQiJi5BDub2BeznA")
+            contacts = setOf("ve7jtb@example.org", "mary@example.org")
+            requestUris = setOf("https://client.example.org/rf.txt#qpXaRLh_n93TTR9F252ValdatUQvQiJi5BDub2BeznA")
         }
 
 
@@ -63,7 +62,7 @@ class RegisteredClientTest {
         assertEquals("this.is.an.access.token.value.ffx83", c.registrationAccessToken)
         assertEquals("https://server.example.com/connect/register?client_id=s6BhdRkqt3", c.registrationClientUri)
         assertEquals(ClientDetailsEntity.AppType.WEB, c.applicationType)
-        assertEquals(ImmutableSet.of("https://client.example.org/callback", "https://client.example.org/callback2"), c.redirectUris)
+        assertEquals(setOf("https://client.example.org/callback", "https://client.example.org/callback2"), c.redirectUris)
         assertEquals("My Example", c.clientName)
         assertEquals("https://client.example.org/logo.png", c.logoUri)
         assertEquals(ClientDetailsEntity.SubjectType.PAIRWISE, c.subjectType)
@@ -72,8 +71,8 @@ class RegisteredClientTest {
         assertEquals("https://client.example.org/my_public_keys.jwks", c.jwksUri)
         assertEquals(JWEAlgorithm.RSA1_5, c.userInfoEncryptedResponseAlg)
         assertEquals(EncryptionMethod.A128CBC_HS256, c.userInfoEncryptedResponseEnc)
-        assertEquals(ImmutableSet.of("ve7jtb@example.org", "mary@example.org"), c.contacts)
-        assertEquals(ImmutableSet.of("https://client.example.org/rf.txt#qpXaRLh_n93TTR9F252ValdatUQvQiJi5BDub2BeznA"), c.requestUris)
+        assertEquals(setOf("ve7jtb@example.org", "mary@example.org"), c.contacts)
+        assertEquals(setOf("https://client.example.org/rf.txt#qpXaRLh_n93TTR9F252ValdatUQvQiJi5BDub2BeznA"), c.requestUris)
     }
 
     /**
@@ -85,7 +84,7 @@ class RegisteredClientTest {
             clientId = "s6BhdRkqt3"
             clientSecret = "ZJYCqe3GGRvdrudKyZS0XhGv_Z45DuKhCUk0gBR1vZk"
             applicationType = ClientDetailsEntity.AppType.WEB
-            redirectUris = ImmutableSet.of("https://client.example.org/callback", "https://client.example.org/callback2")
+            redirectUris = setOf("https://client.example.org/callback", "https://client.example.org/callback2")
             clientName = "My Example"
             logoUri = "https://client.example.org/logo.png"
             subjectType = ClientDetailsEntity.SubjectType.PAIRWISE
@@ -94,8 +93,8 @@ class RegisteredClientTest {
             jwksUri = "https://client.example.org/my_public_keys.jwks"
             userInfoEncryptedResponseAlg = JWEAlgorithm.RSA1_5
             userInfoEncryptedResponseEnc = EncryptionMethod.A128CBC_HS256
-            contacts = ImmutableSet.of("ve7jtb@example.org", "mary@example.org")
-            requestUris = ImmutableSet.of("https://client.example.org/rf.txt#qpXaRLh_n93TTR9F252ValdatUQvQiJi5BDub2BeznA")
+            contacts = setOf("ve7jtb@example.org", "mary@example.org")
+            requestUris = setOf("https://client.example.org/rf.txt#qpXaRLh_n93TTR9F252ValdatUQvQiJi5BDub2BeznA")
         }
 
 
@@ -113,7 +112,7 @@ class RegisteredClientTest {
         assertEquals("this.is.an.access.token.value.ffx83", rc.registrationAccessToken)
         assertEquals("https://server.example.com/connect/register?client_id=s6BhdRkqt3", rc.registrationClientUri)
         assertEquals(ClientDetailsEntity.AppType.WEB, rc.applicationType)
-        assertEquals(ImmutableSet.of("https://client.example.org/callback", "https://client.example.org/callback2"), rc.redirectUris)
+        assertEquals(setOf("https://client.example.org/callback", "https://client.example.org/callback2"), rc.redirectUris)
         assertEquals("My Example", rc.clientName)
         assertEquals("https://client.example.org/logo.png", rc.logoUri)
         assertEquals(ClientDetailsEntity.SubjectType.PAIRWISE, rc.subjectType)
@@ -122,8 +121,8 @@ class RegisteredClientTest {
         assertEquals("https://client.example.org/my_public_keys.jwks", rc.jwksUri)
         assertEquals(JWEAlgorithm.RSA1_5, rc.userInfoEncryptedResponseAlg)
         assertEquals(EncryptionMethod.A128CBC_HS256, rc.userInfoEncryptedResponseEnc)
-        assertEquals(ImmutableSet.of("ve7jtb@example.org", "mary@example.org"), rc.contacts)
-        assertEquals(ImmutableSet.of("https://client.example.org/rf.txt#qpXaRLh_n93TTR9F252ValdatUQvQiJi5BDub2BeznA"), rc.requestUris)
+        assertEquals(setOf("ve7jtb@example.org", "mary@example.org"), rc.contacts)
+        assertEquals(setOf("https://client.example.org/rf.txt#qpXaRLh_n93TTR9F252ValdatUQvQiJi5BDub2BeznA"), rc.requestUris)
     }
 
     /**
@@ -135,7 +134,7 @@ class RegisteredClientTest {
             clientId = "s6BhdRkqt3"
             clientSecret = "ZJYCqe3GGRvdrudKyZS0XhGv_Z45DuKhCUk0gBR1vZk"
             applicationType = ClientDetailsEntity.AppType.WEB
-            redirectUris = ImmutableSet.of("https://client.example.org/callback", "https://client.example.org/callback2")
+            redirectUris = setOf("https://client.example.org/callback", "https://client.example.org/callback2")
             clientName = "My Example"
             logoUri = "https://client.example.org/logo.png"
             subjectType = ClientDetailsEntity.SubjectType.PAIRWISE
@@ -144,8 +143,8 @@ class RegisteredClientTest {
             jwksUri = "https://client.example.org/my_public_keys.jwks"
             userInfoEncryptedResponseAlg = JWEAlgorithm.RSA1_5
             userInfoEncryptedResponseEnc = EncryptionMethod.A128CBC_HS256
-            contacts = ImmutableSet.of("ve7jtb@example.org", "mary@example.org")
-            requestUris = ImmutableSet.of("https://client.example.org/rf.txt#qpXaRLh_n93TTR9F252ValdatUQvQiJi5BDub2BeznA")
+            contacts = setOf("ve7jtb@example.org", "mary@example.org")
+            requestUris = setOf("https://client.example.org/rf.txt#qpXaRLh_n93TTR9F252ValdatUQvQiJi5BDub2BeznA")
         }
 
 
@@ -159,7 +158,7 @@ class RegisteredClientTest {
         assertEquals("this.is.an.access.token.value.ffx83", rc.registrationAccessToken)
         assertEquals("https://server.example.com/connect/register?client_id=s6BhdRkqt3", rc.registrationClientUri)
         assertEquals(ClientDetailsEntity.AppType.WEB, rc.applicationType)
-        assertEquals(ImmutableSet.of("https://client.example.org/callback", "https://client.example.org/callback2"), rc.redirectUris)
+        assertEquals(setOf("https://client.example.org/callback", "https://client.example.org/callback2"), rc.redirectUris)
         assertEquals("My Example", rc.clientName)
         assertEquals("https://client.example.org/logo.png", rc.logoUri)
         assertEquals(ClientDetailsEntity.SubjectType.PAIRWISE, rc.subjectType)
@@ -168,7 +167,7 @@ class RegisteredClientTest {
         assertEquals("https://client.example.org/my_public_keys.jwks", rc.jwksUri)
         assertEquals(JWEAlgorithm.RSA1_5, rc.userInfoEncryptedResponseAlg)
         assertEquals(EncryptionMethod.A128CBC_HS256, rc.userInfoEncryptedResponseEnc)
-        assertEquals(ImmutableSet.of("ve7jtb@example.org", "mary@example.org"), rc.contacts)
-        assertEquals(ImmutableSet.of("https://client.example.org/rf.txt#qpXaRLh_n93TTR9F252ValdatUQvQiJi5BDub2BeznA"), rc.requestUris)
+        assertEquals(setOf("ve7jtb@example.org", "mary@example.org"), rc.contacts)
+        assertEquals(setOf("https://client.example.org/rf.txt#qpXaRLh_n93TTR9F252ValdatUQvQiJi5BDub2BeznA"), rc.requestUris)
     }
 }

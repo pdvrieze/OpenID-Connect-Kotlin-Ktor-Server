@@ -18,7 +18,6 @@
 package org.mitre.openid.connect.web
 
 import com.google.common.base.Strings
-import com.google.common.collect.ImmutableSet
 import com.google.gson.JsonSyntaxException
 import com.nimbusds.jose.EncryptionMethod
 import com.nimbusds.jose.JWEAlgorithm
@@ -444,11 +443,7 @@ class DynamicClientRegistrationEndpoint {
         // TODO: make this a pluggable service
         val requestedGrantTypes: MutableSet<String> = HashSet(newClient.grantTypes)
         requestedGrantTypes.retainAll(
-            ImmutableSet.of(
-                "authorization_code", "implicit",
-                "password", "client_credentials", "refresh_token",
-                "urn:ietf:params:oauth:grant_type:redelegate"
-            )
+            setOf("authorization_code", "implicit", "password", "client_credentials", "refresh_token", "urn:ietf:params:oauth:grant_type:redelegate")
         )
 
         // don't allow "password" grant type for dynamic registration

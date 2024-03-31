@@ -1,7 +1,6 @@
 package org.mitre.openid.connect.assertion
 
 import com.google.common.collect.ImmutableList
-import com.google.common.collect.ImmutableSet
 import com.nimbusds.jose.EncryptionMethod
 import com.nimbusds.jose.JWEAlgorithm
 import com.nimbusds.jose.JWEHeader
@@ -68,7 +67,7 @@ class TestJWTBearerAuthenticationProvider {
 
         whenever(client.clientId).thenReturn(CLIENT_ID)
         whenever(client.tokenEndpointAuthMethod).thenReturn(AuthMethod.NONE)
-        whenever(client.authorities).thenReturn(ImmutableSet.of(authority1, authority2, authority3))
+        whenever(client.authorities).thenReturn(setOf(authority1, authority2, authority3))
 
         whenever(validators.getValidator(client, JWSAlgorithm.RS256)).thenReturn(validator)
         whenever(validator.validateSignature(isA<SignedJWT>())).thenReturn(true)

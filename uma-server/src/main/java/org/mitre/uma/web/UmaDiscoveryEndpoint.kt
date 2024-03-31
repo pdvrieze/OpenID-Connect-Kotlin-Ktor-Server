@@ -15,7 +15,6 @@
  */
 package org.mitre.uma.web
 
-import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Lists
 import org.mitre.oauth2.web.IntrospectionEndpoint
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
@@ -38,7 +37,7 @@ class UmaDiscoveryEndpoint {
     fun umaConfiguration(model: Model): String {
 
         val issuer = config.issuer
-        val tokenProfiles = ImmutableSet.of("bearer")
+        val tokenProfiles = setOf("bearer")
         val grantTypes =
             Lists.newArrayList("authorization_code", "implicit", "urn:ietf:params:oauth:grant-type:jwt-bearer", "client_credentials", "urn:ietf:params:oauth:grant_type:redelegate")
 
