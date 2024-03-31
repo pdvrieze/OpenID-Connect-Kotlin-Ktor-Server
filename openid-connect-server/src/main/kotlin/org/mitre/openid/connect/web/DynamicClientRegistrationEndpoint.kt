@@ -23,6 +23,7 @@ import com.nimbusds.jose.EncryptionMethod
 import com.nimbusds.jose.JWEAlgorithm
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.jwk.JWKSet
+import com.nimbusds.jose.util.JSONObjectUtils
 import org.mitre.jwt.assertion.AssertionValidator
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.ClientDetailsEntity.*
@@ -638,7 +639,7 @@ class DynamicClientRegistrationEndpoint {
                                 AppType.getByValue(claimSet.getStringClaim(claim))
 
                             JWKS_URI -> newClient.jwksUri = claimSet.getStringClaim(claim)
-                            JWKS -> newClient.jwks = JWKSet.parse(claimSet.getJSONObjectClaim(claim).toJSONString())
+                            JWKS -> newClient.jwks = JWKSet.parse(JSONObjectUtils.toJSONString(claimSet.getJSONObjectClaim(claim)))
                             POLICY_URI -> newClient.policyUri = claimSet.getStringClaim(claim)
                             RESPONSE_TYPES -> newClient.responseTypes =
                                 claimSet.getStringListClaim(claim).toHashSet()
