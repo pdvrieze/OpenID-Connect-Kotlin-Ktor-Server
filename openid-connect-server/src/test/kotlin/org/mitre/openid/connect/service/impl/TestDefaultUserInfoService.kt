@@ -17,10 +17,10 @@
  */
 package org.mitre.openid.connect.service.impl
 
-import org.junit.Assert
-import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.runner.RunWith
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.ClientDetailsEntity.SubjectType
@@ -117,8 +117,8 @@ class TestDefaultUserInfoService {
     @Test
     fun loadByUsername_admin_success() {
         whenever(userInfoRepository.getByUsername(adminUsername)).thenReturn(userInfoAdmin)
-        val user = service.getByUsername(adminUsername)
-        assertEquals(user!!.sub, adminSub)
+        val user = service.getByUsername(adminUsername)!!
+        assertEquals(user.sub, adminSub)
     }
 
     /**
@@ -128,8 +128,8 @@ class TestDefaultUserInfoService {
     @Test
     fun loadByUsername_regular_success() {
         whenever(userInfoRepository.getByUsername(regularUsername)).thenReturn(userInfoRegular)
-        val user = service.getByUsername(regularUsername)
-        assertEquals(user!!.sub, regularSub)
+        val user = service.getByUsername(regularUsername)!!
+        assertEquals(user.sub, regularSub)
     }
 
     /**
@@ -140,7 +140,7 @@ class TestDefaultUserInfoService {
         whenever(userInfoRepository.getByUsername(adminUsername)).thenReturn(null)
         val user = service.getByUsername(adminUsername)
 
-        Assert.assertNull(user)
+        assertNull(user)
     }
 
     @Test

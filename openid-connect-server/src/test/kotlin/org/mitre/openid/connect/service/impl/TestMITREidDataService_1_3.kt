@@ -20,11 +20,9 @@ import com.google.gson.JsonParser
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
 import com.nimbusds.jwt.JWTParser
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 import org.junit.runner.RunWith
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
@@ -45,7 +43,6 @@ import org.mitre.openid.connect.repository.BlacklistedSiteRepository
 import org.mitre.openid.connect.repository.WhitelistedSiteRepository
 import org.mitre.openid.connect.service.MITREidDataService
 import org.mitre.openid.connect.service.MITREidDataServiceMaps
-import org.mitre.openid.connect.service.impl.MITREidDataService_1_3
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
 import org.mockito.Captor
@@ -137,7 +134,7 @@ class TestMITREidDataService_1_3 {
 
         reset(clientRepository, approvedSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository, wlSiteRepository, blSiteRepository)
 
-        val mapsField = ReflectionUtils.findField(MITREidDataService_1_3::class.java, "maps")
+        val mapsField = ReflectionUtils.findField(MITREidDataService_1_3::class.java, "maps")!!
         mapsField.isAccessible = true
         maps = ReflectionUtils.getField(mapsField, dataService) as MITREidDataServiceMaps
     }
@@ -246,7 +243,7 @@ class TestMITREidDataService_1_3 {
             }
 
             if (compare == null) {
-                Assert.fail("Could not find matching id: " + token["id"].asString)
+                fail("Could not find matching id: ${token["id"].asString}")
             } else {
                 assertEquals(compare.id, token["id"].asLong)
                 assertEquals(compare.client!!.clientId, token["clientId"].asString)
@@ -478,7 +475,7 @@ class TestMITREidDataService_1_3 {
         // check for both of our access tokens in turn
         val checked: MutableSet<OAuth2AccessTokenEntity> = HashSet()
         for (e in accessTokens) {
-            Assert.assertTrue(e.isJsonObject)
+            assertTrue(e.isJsonObject)
             val token = e.asJsonObject
 
             var compare: OAuth2AccessTokenEntity? = null
@@ -489,7 +486,7 @@ class TestMITREidDataService_1_3 {
             }
 
             if (compare == null) {
-                Assert.fail("Could not find matching id: " + token["id"].asString)
+                fail("Could not find matching id: ${token["id"].asString}")
             } else {
                 assertEquals(compare.id, token["id"].asLong)
                 assertEquals(compare.client!!.clientId, token["clientId"].asString)
@@ -497,10 +494,10 @@ class TestMITREidDataService_1_3 {
                 assertEquals(compare.value, token["value"].asString)
                 assertEquals(compare.tokenType, token["type"].asString)
                 assertEquals(compare.authenticationHolder.id, token["authenticationHolderId"].asLong)
-                Assert.assertTrue(token["scope"].isJsonArray)
+                assertTrue(token["scope"].isJsonArray)
                 assertEquals(compare.scope, jsonArrayToStringSet(token.getAsJsonArray("scope")))
                 if (token["refreshTokenId"].isJsonNull) {
-                    Assert.assertNull(compare.refreshToken)
+                    assertNull(compare.refreshToken)
                 } else {
                     assertEquals(compare.refreshToken!!.id, token["refreshTokenId"].asLong)
                 }
@@ -733,7 +730,7 @@ class TestMITREidDataService_1_3 {
             }
 
             if (compare == null) {
-                Assert.fail("Could not find matching clientId: " + client["clientId"].asString)
+                fail("Could not find matching clientId: " + client["clientId"].asString)
             } else {
                 assertEquals(compare.clientId, client["clientId"].asString)
                 assertEquals(compare.clientSecret, client["secret"].asString)
@@ -907,7 +904,7 @@ class TestMITREidDataService_1_3 {
             }
 
             if (compare == null) {
-                Assert.fail("Could not find matching blacklisted site id: " + site["id"].asString)
+                fail("Could not find matching blacklisted site id: " + site["id"].asString)
             } else {
                 assertEquals(compare.uri, site["uri"].asString)
                 checked.add(compare)
@@ -1047,7 +1044,7 @@ class TestMITREidDataService_1_3 {
             }
 
             if (compare == null) {
-                Assert.fail("Could not find matching whitelisted site id: " + site["id"].asString)
+                fail("Could not find matching whitelisted site id: " + site["id"].asString)
             } else {
                 assertEquals(compare.clientId, site["clientId"].asString)
                 checked.add(compare)
@@ -1219,13 +1216,13 @@ class TestMITREidDataService_1_3 {
             }
 
             if (compare == null) {
-                Assert.fail("Could not find matching whitelisted site id: " + site["id"].asString)
+                fail("Could not find matching whitelisted site id: " + site["id"].asString)
             } else {
                 assertEquals(compare.clientId, site["clientId"].asString)
                 assertEquals(formatter.print(compare.creationDate, Locale.ENGLISH), site["creationDate"].asString)
                 assertEquals(formatter.print(compare.accessDate, Locale.ENGLISH), site["accessDate"].asString)
                 if (site["timeoutDate"].isJsonNull) {
-                    Assert.assertNull(compare.timeoutDate)
+                    assertNull(compare.timeoutDate)
                 } else {
                     assertEquals(formatter.print(compare.timeoutDate, Locale.ENGLISH), site["timeoutDate"].asString)
                 }
@@ -1447,17 +1444,17 @@ class TestMITREidDataService_1_3 {
             }
 
             if (compare == null) {
-                Assert.fail("Could not find matching authentication holder id: " + holder["id"].asString)
+                fail("Could not find matching authentication holder id: " + holder["id"].asString)
             } else {
-                Assert.assertTrue(holder["clientId"].asString == compare.clientId)
-                Assert.assertTrue(holder["approved"].asBoolean == compare.isApproved)
-                Assert.assertTrue(holder["redirectUri"].asString == compare.redirectUri)
+                assertTrue(holder["clientId"].asString == compare.clientId)
+                assertTrue(holder["approved"].asBoolean == compare.isApproved)
+                assertTrue(holder["redirectUri"].asString == compare.redirectUri)
                 if (compare.userAuth != null) {
-                    Assert.assertTrue(holder["savedUserAuthentication"].isJsonObject)
+                    assertTrue(holder["savedUserAuthentication"].isJsonObject)
                     val savedAuth = holder["savedUserAuthentication"].asJsonObject
-                    Assert.assertTrue(savedAuth["name"].asString == compare.userAuth!!.name)
-                    Assert.assertTrue(savedAuth["authenticated"].asBoolean == compare.userAuth!!.isAuthenticated)
-                    Assert.assertTrue(savedAuth["sourceClass"].asString == compare.userAuth!!.sourceClass)
+                    assertTrue(savedAuth["name"].asString == compare.userAuth!!.name)
+                    assertTrue(savedAuth["authenticated"].asBoolean == compare.userAuth!!.isAuthenticated)
+                    assertTrue(savedAuth["sourceClass"].asString == compare.userAuth!!.sourceClass)
                 }
                 checked.add(compare)
             }
@@ -1633,7 +1630,7 @@ class TestMITREidDataService_1_3 {
             }
 
             if (compare == null) {
-                Assert.fail("Could not find matching scope value: " + scope["value"].asString)
+                fail("Could not find matching scope value: " + scope["value"].asString)
             } else {
                 assertEquals(compare.value, scope["value"].asString)
                 assertEquals(compare.description, scope["description"].asString)

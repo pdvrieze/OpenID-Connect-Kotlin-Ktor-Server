@@ -17,10 +17,10 @@
  */
 package org.mitre.openid.connect.service.impl
 
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.runner.RunWith
 import org.mitre.openid.connect.model.BlacklistedSite
 import org.mitre.openid.connect.repository.BlacklistedSiteRepository
@@ -70,7 +70,7 @@ class TestDefaultBlacklistedSiteService {
     }
 
     @Test
-    fun isBlacklisted_no(): Unit {
+    fun isBlacklisted_no() {
         whenever(mockRepository.all).thenReturn(blackListedSitesSet)
 
         assertFalse(service.isBlacklisted(uri3))

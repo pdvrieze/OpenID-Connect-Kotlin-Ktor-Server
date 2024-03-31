@@ -17,9 +17,9 @@ package org.mitre.openid.connect.service.impl
 
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jwt.JWTClaimsSet
-import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.runner.RunWith
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.oauth2.model.ClientDetailsEntity
@@ -64,8 +64,8 @@ class TestDefaultOIDCTokenService {
         }
         configure(s)
 
-        val token = s.createIdToken(client, request, Date(), "sub", accessToken)
-        assertEquals("foo", token!!.jwtClaimsSet.getClaim("test"))
+        val token = s.createIdToken(client, request, Date(), "sub", accessToken)!!
+        assertEquals("foo", token.jwtClaimsSet.getClaim("test"))
     }
 
 
