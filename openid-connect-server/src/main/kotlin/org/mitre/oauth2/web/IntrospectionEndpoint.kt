@@ -17,7 +17,6 @@
  */
 package org.mitre.oauth2.web
 
-import com.google.common.collect.ImmutableMap
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
@@ -122,7 +121,7 @@ class IntrospectionEndpoint {
         // first make sure the token is there
         if (tokenValue.isNullOrEmpty()) {
             logger.error("Verify failed; token value is null")
-            val entity: Map<String, Boolean> = ImmutableMap.of("active", java.lang.Boolean.FALSE)
+            val entity: Map<String, Boolean> = mapOf("active" to java.lang.Boolean.FALSE)
             model.addAttribute(JsonEntityView.ENTITY, entity)
             return JsonEntityView.VIEWNAME
         }
@@ -157,7 +156,7 @@ class IntrospectionEndpoint {
             } catch (e2: InvalidTokenException) {
                 logger.error("Invalid refresh token")
                 val entity: Map<String, Boolean> =
-                    ImmutableMap.of(IntrospectionResultAssembler.ACTIVE, java.lang.Boolean.FALSE)
+                    mapOf(IntrospectionResultAssembler.ACTIVE to java.lang.Boolean.FALSE)
                 model.addAttribute(JsonEntityView.ENTITY, entity)
                 return JsonEntityView.VIEWNAME
             }
@@ -174,7 +173,7 @@ class IntrospectionEndpoint {
             // no tokens were found (we shouldn't get here)
             logger.error("Verify failed; Invalid access/refresh token")
             val entity: Map<String, Boolean> =
-                ImmutableMap.of(IntrospectionResultAssembler.ACTIVE, java.lang.Boolean.FALSE)
+                mapOf(IntrospectionResultAssembler.ACTIVE to java.lang.Boolean.FALSE)
             model.addAttribute(JsonEntityView.ENTITY, entity)
             return JsonEntityView.VIEWNAME
         }

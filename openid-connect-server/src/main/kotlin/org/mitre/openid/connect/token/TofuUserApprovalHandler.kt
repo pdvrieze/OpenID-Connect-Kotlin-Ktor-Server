@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.token
 
-import com.google.common.base.Splitter
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.openid.connect.request.ConnectRequestParameters
 import org.mitre.openid.connect.service.ApprovedSiteService
@@ -110,8 +109,9 @@ class TofuUserApprovalHandler : UserApprovalHandler {
 
         // find out if we're supposed to force a prompt on the user or not
         val prompt = authorizationRequest.extensions[ConnectRequestParameters.PROMPT] as String?
-        val prompts = Splitter.on(ConnectRequestParameters.PROMPT_SEPARATOR).splitToList((prompt ?: ""))
-        if (!prompts.contains(ConnectRequestParameters.PROMPT_CONSENT)) {
+        val prompts = prompt?.split(ConnectRequestParameters.PROMPT_SEPARATOR) ?: emptyList()
+
+        if (ConnectRequestParameters.PROMPT_CONSENT !in prompts) {
             // if the prompt parameter is set to "consent" then we can't use approved sites or whitelisted sites
             // otherwise, we need to check them below
 

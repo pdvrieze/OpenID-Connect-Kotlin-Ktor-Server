@@ -15,7 +15,6 @@
  */
 package org.mitre.uma.web
 
-import com.google.common.collect.ImmutableMap
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -114,7 +113,7 @@ class AuthorizationRequestEndpoint {
                                 tokenService.revokeAccessToken(incomingRpt)
                             }
 
-                            val entity: Map<String, String> = ImmutableMap.of("rpt", token!!.value)
+                            val entity: Map<String, String> = mapOf("rpt" to token!!.value)
 
                             m.addAttribute(JsonEntityView.ENTITY, entity)
 

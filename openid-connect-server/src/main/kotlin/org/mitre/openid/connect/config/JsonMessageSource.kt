@@ -15,7 +15,6 @@
  */
 package org.mitre.openid.connect.config
 
-import com.google.common.base.Splitter
 import com.google.gson.JsonElement
 import com.google.gson.JsonIOException
 import com.google.gson.JsonObject
@@ -76,7 +75,7 @@ class JsonMessageSource : AbstractMessageSource() {
 
         var e: JsonElement = lang
 
-        val parts = Splitter.on('.').split(code)
+        val parts = code.split('.')
         val it: Iterator<String> = parts.iterator()
 
         var value: String? = null

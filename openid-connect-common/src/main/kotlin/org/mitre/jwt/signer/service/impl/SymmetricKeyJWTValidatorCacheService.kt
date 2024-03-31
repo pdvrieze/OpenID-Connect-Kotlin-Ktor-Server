@@ -18,7 +18,6 @@ package org.mitre.jwt.signer.service.impl
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
-import com.google.common.collect.ImmutableMap
 import com.google.common.util.concurrent.UncheckedExecutionException
 import com.nimbusds.jose.jwk.JWK
 import com.nimbusds.jose.jwk.KeyUse
@@ -87,7 +86,7 @@ class SymmetricKeyJWTValidatorCacheService {
                     .keyUse(KeyUse.SIGNATURE)
                     .keyID(id)
                     .build()
-                val keys: Map<String, JWK> = ImmutableMap.of(id, jwk)
+                val keys: Map<String, JWK> = mapOf(id to jwk)
                 val service: JWTSigningAndValidationService = DefaultJWTSigningAndValidationService(keys)
 
                 return service

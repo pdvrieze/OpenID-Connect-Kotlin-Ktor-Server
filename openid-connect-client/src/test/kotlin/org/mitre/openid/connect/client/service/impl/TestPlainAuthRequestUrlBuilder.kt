@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.client.service.impl
 
-import com.google.common.collect.ImmutableMap
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -59,7 +58,7 @@ class TestPlainAuthRequestUrlBuilder {
                 "&state=af0ifjsldkj" +
                 "&foo=bar"
 
-        val options: Map<String, String> = ImmutableMap.of("foo", "bar")
+        val options: Map<String, String> = mapOf("foo" to "bar")
 
         val actualUrl =
             urlBuilder.buildAuthRequestUrl(serverConfig, clientConfig, "https://client.example.org/", "34fasf3ds", "af0ifjsldkj", options, null)
@@ -79,7 +78,7 @@ class TestPlainAuthRequestUrlBuilder {
                 "&foo=bar" +
                 "&login_hint=bob"
 
-        val options: Map<String, String> = ImmutableMap.of("foo", "bar")
+        val options: Map<String, String> = mapOf("foo" to "bar")
 
         val actualUrl =
             urlBuilder.buildAuthRequestUrl(serverConfig, clientConfig, "https://client.example.org/", "34fasf3ds", "af0ifjsldkj", options, "bob")
@@ -91,7 +90,7 @@ class TestPlainAuthRequestUrlBuilder {
     fun buildAuthRequestUrl_badUri() {
         whenever(serverConfig.authorizationEndpointUri).thenReturn("e=mc^2")
 
-        val options: Map<String, String> = ImmutableMap.of("foo", "bar")
+        val options: Map<String, String> = mapOf("foo" to "bar")
 
         assertThrows<AuthenticationServiceException> {
             urlBuilder.buildAuthRequestUrl(serverConfig, clientConfig, "example.com", "", "", options, null)

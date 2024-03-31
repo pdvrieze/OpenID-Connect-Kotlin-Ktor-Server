@@ -17,8 +17,6 @@
  */
 package org.mitre.openid.connect.client.service.impl
 
-import com.google.common.collect.ImmutableMap
-import com.google.common.collect.Maps
 import com.nimbusds.jose.Algorithm
 import com.nimbusds.jose.jwk.JWK
 import com.nimbusds.jose.jwk.KeyUse
@@ -56,7 +54,7 @@ class TestSignedAuthRequestUrlBuilder {
     private val nonce = "34fasf3ds"
     private val state = "af0ifjsldkj"
     private val responseType = "code"
-    private val options: Map<String, String> = ImmutableMap.of("foo", "bar")
+    private val options: Map<String, String> = mapOf("foo" to "bar")
 
 
     // RSA key properties:
@@ -85,8 +83,7 @@ class TestSignedAuthRequestUrlBuilder {
     fun prepare() {
         val key =
             RSAKey(Base64URL(n), Base64URL(e), Base64URL(d), KeyUse.SIGNATURE, null, Algorithm(alg), kid, null, null, null, null, null)
-        val keys: MutableMap<String, JWK> = Maps.newHashMap()
-        keys["client"] = key
+        val keys: MutableMap<String, JWK> = mutableMapOf("client" to key)
 
         signingAndValidationService = DefaultJWTSigningAndValidationService(keys)
         signingAndValidationService.defaultSignerKeyId = "client"
