@@ -2,7 +2,6 @@ package org.mitre.discovery.web
 
 import com.google.common.base.Function
 import com.google.common.collect.Collections2
-import com.google.common.collect.Lists
 import com.nimbusds.jose.Algorithm
 import com.nimbusds.jose.JWSAlgorithm
 import org.mitre.discovery.util.WebfingerURLNormalizer
@@ -246,14 +245,15 @@ class DiscoveryEndpoint {
         }
 
         signService.allSigningAlgsSupported
-        Lists.newArrayList(JWSAlgorithm.HS256, JWSAlgorithm.HS384, JWSAlgorithm.HS512)
-        val clientSymmetricAndAsymmetricSigningAlgs: Collection<JWSAlgorithm> = Lists.newArrayList(
+        listOf(JWSAlgorithm.HS256, JWSAlgorithm.HS384, JWSAlgorithm.HS512)
+
+        val clientSymmetricAndAsymmetricSigningAlgs: Collection<JWSAlgorithm> = listOf(
             JWSAlgorithm.HS256, JWSAlgorithm.HS384, JWSAlgorithm.HS512,
             JWSAlgorithm.RS256, JWSAlgorithm.RS384, JWSAlgorithm.RS512,
             JWSAlgorithm.ES256, JWSAlgorithm.ES384, JWSAlgorithm.ES512,
             JWSAlgorithm.PS256, JWSAlgorithm.PS384, JWSAlgorithm.PS512
         )
-        val clientSymmetricAndAsymmetricSigningAlgsWithNone: Collection<Algorithm> = Lists.newArrayList(
+        val clientSymmetricAndAsymmetricSigningAlgsWithNone: Collection<Algorithm> = listOf(
             JWSAlgorithm.HS256, JWSAlgorithm.HS384, JWSAlgorithm.HS512,
             JWSAlgorithm.RS256, JWSAlgorithm.RS384, JWSAlgorithm.RS512,
             JWSAlgorithm.ES256, JWSAlgorithm.ES384, JWSAlgorithm.ES512,
@@ -261,7 +261,7 @@ class DiscoveryEndpoint {
             Algorithm.NONE
         )
         val grantTypes =
-            Lists.newArrayList("authorization_code", "implicit", "urn:ietf:params:oauth:grant-type:jwt-bearer", "client_credentials", "urn:ietf:params:oauth:grant_type:redelegate", "urn:ietf:params:oauth:grant-type:device_code", "refresh_token")
+            listOf("authorization_code", "implicit", "urn:ietf:params:oauth:grant-type:jwt-bearer", "client_credentials", "urn:ietf:params:oauth:grant_type:redelegate", "urn:ietf:params:oauth:grant-type:device_code", "refresh_token")
 
         val m: MutableMap<String, Any> = HashMap()
         m["issuer"] = config.issuer
@@ -275,10 +275,10 @@ class DiscoveryEndpoint {
         m["scopes_supported"] =
             scopeService.toStrings(scopeService.unrestricted)?.toHashSet() ?: hashSetOf<String>() // these are the scopes that you can dynamically register for, which is what matters for discovery
         m["response_types_supported"] =
-            Lists.newArrayList("code", "token") // we don't support these yet: , "id_token", "id_token token"));
+            listOf("code", "token") // we don't support these yet: , "id_token", "id_token token"));
         m["grant_types_supported"] = grantTypes
         //acr_values_supported
-        m["subject_types_supported"] = Lists.newArrayList("public", "pairwise")
+        m["subject_types_supported"] = listOf("public", "pairwise")
         m["userinfo_signing_alg_values_supported"] =
             Collections2.transform(clientSymmetricAndAsymmetricSigningAlgs, toAlgorithmName)
         m["userinfo_encryption_alg_values_supported"] =
@@ -298,12 +298,12 @@ class DiscoveryEndpoint {
         m["request_object_encryption_enc_values_supported"] =
             Collections2.transform(encService.allEncryptionEncsSupported, toAlgorithmName)
         m["token_endpoint_auth_methods_supported"] =
-            Lists.newArrayList("client_secret_post", "client_secret_basic", "client_secret_jwt", "private_key_jwt", "none")
+            listOf("client_secret_post", "client_secret_basic", "client_secret_jwt", "private_key_jwt", "none")
         m["token_endpoint_auth_signing_alg_values_supported"] =
             Collections2.transform(clientSymmetricAndAsymmetricSigningAlgs, toAlgorithmName)
         //display_types_supported
         m["claim_types_supported"] = listOf("normal")
-        m["claims_supported"] = Lists.newArrayList(
+        m["claims_supported"] = listOf(
             "sub",
             "name",
             "preferred_username",
@@ -339,7 +339,7 @@ class DiscoveryEndpoint {
             baseUrl + IntrospectionEndpoint.URL // token introspection endpoint for verifying tokens
         m["revocation_endpoint"] = baseUrl + RevocationEndpoint.URL // token revocation endpoint
 
-        m["code_challenge_methods_supported"] = Lists.newArrayList(PKCEAlgorithm.plain.name, PKCEAlgorithm.S256.name)
+        m["code_challenge_methods_supported"] = listOf(PKCEAlgorithm.plain.name, PKCEAlgorithm.S256.name)
 
         m["device_authorization_endpoint"] = baseUrl + DeviceEndpoint.URL
 

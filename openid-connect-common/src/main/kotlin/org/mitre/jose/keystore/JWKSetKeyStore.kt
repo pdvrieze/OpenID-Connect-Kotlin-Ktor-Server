@@ -17,7 +17,6 @@
  */
 package org.mitre.jose.keystore
 
-import com.google.common.base.Charsets
 import com.nimbusds.jose.jwk.JWK
 import com.nimbusds.jose.jwk.JWKSet
 import org.springframework.core.io.Resource

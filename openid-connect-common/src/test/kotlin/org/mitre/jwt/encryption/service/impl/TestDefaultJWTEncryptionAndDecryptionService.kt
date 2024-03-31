@@ -17,7 +17,6 @@
  */
 package org.mitre.jwt.encryption.service.impl
 
-import com.google.common.collect.ImmutableMap
 import com.nimbusds.jose.EncryptionMethod
 import com.nimbusds.jose.JOSEException
 import com.nimbusds.jose.JWEAlgorithm
@@ -123,21 +122,20 @@ class TestDefaultJWTEncryptionAndDecryptionService {
     )
 
 
-    private val keys: Map<String, JWK> = ImmutableMap.Builder<String, JWK>()
-        .put(RSAkid, RSAjwk)
-        .build()
-    private val keys_2: Map<String, JWK> = ImmutableMap.Builder<String, JWK>()
-        .put(RSAkid, RSAjwk)
-        .put(RSAkid_2, RSAjwk_2)
-        .build()
-    private val keys_3: Map<String, JWK> = ImmutableMap.Builder<String, JWK>()
-        .put(AESkid, AESjwk)
-        .build()
-    private val keys_4: Map<String, JWK> = ImmutableMap.Builder<String, JWK>()
-        .put(RSAkid, RSAjwk)
-        .put(RSAkid_2, RSAjwk_2)
-        .put(AESkid, AESjwk)
-        .build()
+    private val keys: Map<String, JWK> = mapOf(RSAkid to RSAjwk)
+
+    private val keys_2: Map<String, JWK> = mapOf(
+        RSAkid to RSAjwk,
+        RSAkid_2 to RSAjwk_2
+    )
+
+    private val keys_3: Map<String, JWK> = mapOf(AESkid to AESjwk)
+
+    private val keys_4: Map<String, JWK> = mapOf(
+        RSAkid to RSAjwk,
+        RSAkid_2 to RSAjwk_2,
+        AESkid to AESjwk,
+    )
 
 
     private val keys_list: MutableList<JWK> = LinkedList()

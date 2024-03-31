@@ -675,7 +675,7 @@ class TestMITREidDataService_1_0 {
                 }
             })
         // unused by mockito (causs unnecessary stubbing exception
-//		when(tokenRepository.getAccessTokensForApprovedSite(site1)).thenReturn(Lists.newArrayList(mockToken1));
+//		when(tokenRepository.getAccessTokensForApprovedSite(site1)).thenReturn(listOf(mockToken1));
         maps.accessTokenOldToNewIdMap[1L] = 401L
         dataService.importData(reader)
         //2 for sites, 1 for updating access token ref on #1

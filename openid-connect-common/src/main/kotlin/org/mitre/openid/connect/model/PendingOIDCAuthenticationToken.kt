@@ -15,7 +15,6 @@
  */
 package org.mitre.openid.connect.model
 
-import com.google.common.collect.ImmutableMap
 import com.nimbusds.jwt.JWT
 import com.nimbusds.jwt.JWTParser
 import org.mitre.openid.connect.config.ServerConfiguration
@@ -52,8 +51,8 @@ class PendingOIDCAuthenticationToken(//
     val accessTokenValue: String,
     val refreshTokenValue: String,
 ) : AbstractAuthenticationToken(ArrayList(0)) {
-    private val principal: ImmutableMap<String, String> =
-        ImmutableMap.of("sub", sub, "iss", issuer)
+    private val principal: Map<String, String> =
+        mapOf("sub" to sub, "iss" to issuer)
 
     init {
         isAuthenticated = false

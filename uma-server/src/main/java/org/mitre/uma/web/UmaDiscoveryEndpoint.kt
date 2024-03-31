@@ -15,7 +15,6 @@
  */
 package org.mitre.uma.web
 
-import com.google.common.collect.Lists
 import org.mitre.oauth2.web.IntrospectionEndpoint
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.view.JsonEntityView
@@ -39,7 +38,7 @@ class UmaDiscoveryEndpoint {
         val issuer = config.issuer
         val tokenProfiles = setOf("bearer")
         val grantTypes =
-            Lists.newArrayList("authorization_code", "implicit", "urn:ietf:params:oauth:grant-type:jwt-bearer", "client_credentials", "urn:ietf:params:oauth:grant_type:redelegate")
+            listOf("authorization_code", "implicit", "urn:ietf:params:oauth:grant-type:jwt-bearer", "client_credentials", "urn:ietf:params:oauth:grant_type:redelegate")
 
         val m = mapOf(
             "version" to "1.0",
