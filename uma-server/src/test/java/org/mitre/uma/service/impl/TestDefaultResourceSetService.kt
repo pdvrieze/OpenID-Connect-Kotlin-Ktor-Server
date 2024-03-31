@@ -58,8 +58,7 @@ class TestDefaultResourceSetService {
 
     @Test(expected = IllegalArgumentException::class)
     fun testUpdate_nullId() {
-        val rs = ResourceSet()
-        rs.id = 1L
+        val rs = ResourceSet().apply { id = 1L }
 
         val rs2 = ResourceSet()
 
