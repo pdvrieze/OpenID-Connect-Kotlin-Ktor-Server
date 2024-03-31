@@ -5,94 +5,82 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *******************************************************************************/
+ */
+package org.mitre.uma.service.impl
 
-package org.mitre.uma.service.impl;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mitre.uma.model.ResourceSet;
-import org.mitre.uma.repository.ResourceSetRepository;
-import org.mitre.uma.service.ResourceSetService;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.mitre.uma.model.ResourceSet
+import org.mitre.uma.repository.ResourceSetRepository
+import org.mockito.InjectMocks
+import org.mockito.Mock
+import org.mockito.junit.MockitoJUnitRunner
 
 /**
  * @author jricher
- *
  */
-@RunWith(MockitoJUnitRunner.class)
-public class TestDefaultResourceSetService {
+@RunWith(MockitoJUnitRunner::class)
+class TestDefaultResourceSetService {
+    @Mock
+    private lateinit var repository: ResourceSetRepository
 
-	@Mock
-	private ResourceSetRepository repository;
+    @InjectMocks
+    private lateinit var resourceSetService: DefaultResourceSetService
 
-	@InjectMocks
-	private DefaultResourceSetService resourceSetService;
-
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@Before
-	public void setUp() throws Exception {
-
-		// unused by mockito (causs unnecessary stubbing exception
+    /**
+     * @throws java.lang.Exception
+     */
+    @Before
+    @Throws(Exception::class)
+    fun setUp() {
+        // unused by mockito (causs unnecessary stubbing exception
 //		when(repository.save(any(ResourceSet.class))).then(AdditionalAnswers.returnsFirstArg());
+    }
 
-	}
+    /**
+     * Test method for [ResourceSetService.saveNew].
+     */
+    @Test(expected = IllegalArgumentException::class)
+    fun testSaveNew_hasId() {
+        val rs = ResourceSet()
+        rs.id = 1L
 
-	/**
-	 * Test method for {@link ResourceSetService#saveNew(ResourceSet)}.
-	 */
-	@Test(expected = IllegalArgumentException.class)
-	public void testSaveNew_hasId() {
+        resourceSetService.saveNew(rs)
+    }
 
-		ResourceSet rs = new ResourceSet();
-		rs.setId(1L);
+    @Test(expected = IllegalArgumentException::class)
+    fun testUpdate_nullId() {
+        val rs = ResourceSet()
+        rs.id = 1L
 
-		resourceSetService.saveNew(rs);
+        val rs2 = ResourceSet()
 
-	}
+        resourceSetService.update(rs, rs2)
+    }
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testUpdate_nullId() {
-		ResourceSet rs = new ResourceSet();
-		rs.setId(1L);
+    @Test(expected = IllegalArgumentException::class)
+    fun testUpdate_nullId2() {
+        val rs = ResourceSet()
 
-		ResourceSet rs2 = new ResourceSet();
+        val rs2 = ResourceSet().apply { id = 1L }
 
-		resourceSetService.update(rs, rs2);
-	}
+        resourceSetService.update(rs, rs2)
+    }
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testUpdate_nullId2() {
-		ResourceSet rs = new ResourceSet();
+    @Test(expected = IllegalArgumentException::class)
+    fun testUpdate_mismatchedIds() {
+        val rs = ResourceSet().apply { id = 1L }
 
-		ResourceSet rs2 = new ResourceSet();
-		rs2.setId(1L);
+        val rs2 = ResourceSet().apply { id = 2L }
 
-		resourceSetService.update(rs, rs2);
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void testUpdate_mismatchedIds() {
-		ResourceSet rs = new ResourceSet();
-		rs.setId(1L);
-
-		ResourceSet rs2 = new ResourceSet();
-		rs2.setId(2L);
-
-		resourceSetService.update(rs, rs2);
-
-	}
-
+        resourceSetService.update(rs, rs2)
+    }
 }
