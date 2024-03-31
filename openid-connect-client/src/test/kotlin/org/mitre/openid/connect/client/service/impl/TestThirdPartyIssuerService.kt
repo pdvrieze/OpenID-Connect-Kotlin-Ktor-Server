@@ -19,6 +19,7 @@ package org.mitre.openid.connect.client.service.impl
 
 import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -57,9 +58,9 @@ class TestThirdPartyIssuerService {
     fun getIssuer_hasIssuer() {
         val response = service.getIssuer(request)
 
-        assertThat(response.issuer, CoreMatchers.equalTo(iss))
-        assertThat(response.loginHint, CoreMatchers.equalTo(login_hint))
-        assertThat(response.targetLinkUri, CoreMatchers.equalTo(target_link_uri))
+        Assertions.assertEquals(iss, response.issuer)
+        Assertions.assertEquals(login_hint, response.loginHint)
+        Assertions.assertEquals(target_link_uri, response.targetLinkUri)
 
         assertThat(response.redirectUrl, CoreMatchers.nullValue())
     }
@@ -76,7 +77,7 @@ class TestThirdPartyIssuerService {
 
         val expectedRedirectUrl =
             "$accountChooserUrl?redirect_uri=https%3A%2F%2Fwww.example.com" // url-encoded string of the request url
-        assertThat(response.redirectUrl, CoreMatchers.equalTo(expectedRedirectUrl))
+        Assertions.assertEquals(expectedRedirectUrl, response.redirectUrl)
     }
 
     @Test
@@ -85,9 +86,9 @@ class TestThirdPartyIssuerService {
 
         val response = service.getIssuer(request)
 
-        assertThat(response.issuer, CoreMatchers.equalTo(iss))
-        assertThat(response.loginHint, CoreMatchers.equalTo(login_hint))
-        assertThat(response.targetLinkUri, CoreMatchers.equalTo(target_link_uri))
+        Assertions.assertEquals(iss, response.issuer)
+        Assertions.assertEquals(login_hint, response.loginHint)
+        Assertions.assertEquals(target_link_uri, response.targetLinkUri)
 
         assertThat(response.redirectUrl, CoreMatchers.nullValue())
     }

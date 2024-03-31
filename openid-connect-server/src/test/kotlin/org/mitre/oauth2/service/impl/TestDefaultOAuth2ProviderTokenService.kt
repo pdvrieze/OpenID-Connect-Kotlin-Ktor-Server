@@ -293,7 +293,7 @@ class TestDefaultOAuth2ProviderTokenService {
 
         verify(scopeService, Mockito.atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
 
-        assertThat(token.client!!.clientId, CoreMatchers.equalTo(clientId))
+        assertEquals(clientId, token.client!!.clientId)
     }
 
     @Test
@@ -302,7 +302,7 @@ class TestDefaultOAuth2ProviderTokenService {
 
         verify(scopeService, Mockito.atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
 
-        assertThat(token.scope, CoreMatchers.equalTo(scope))
+        assertEquals(scope, token.scope)
     }
 
     @Test
@@ -314,7 +314,7 @@ class TestDefaultOAuth2ProviderTokenService {
 
         val token = service.createAccessToken(authentication)
 
-        assertThat(token.authenticationHolder.authentication, CoreMatchers.equalTo(authentication))
+        assertEquals(authentication, token.authenticationHolder.authentication)
         verify(authenticationHolderRepository)
             .save(isA<AuthenticationHolderEntity>())
         verify(scopeService, Mockito.atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
@@ -362,9 +362,9 @@ class TestDefaultOAuth2ProviderTokenService {
 
         verify(tokenRepository).clearAccessTokensForRefreshToken(refreshToken)
 
-        assertThat(token.client, CoreMatchers.equalTo(client))
-        assertThat(token.refreshToken, CoreMatchers.equalTo(refreshToken))
-        assertThat(token.authenticationHolder, CoreMatchers.equalTo(storedAuthHolder))
+        assertEquals(client, token.client)
+        assertEquals(refreshToken, token.refreshToken)
+        assertEquals(storedAuthHolder, token.authenticationHolder)
 
         verify(tokenEnhancer).enhance(token, storedAuthentication)
         verify(tokenRepository).saveAccessToken(token)
@@ -379,9 +379,9 @@ class TestDefaultOAuth2ProviderTokenService {
 
         verify(tokenRepository).clearAccessTokensForRefreshToken(refreshToken)
 
-        assertThat(token.client, CoreMatchers.equalTo(client))
+        assertEquals(client, token.client)
         assertThat(token.refreshToken, CoreMatchers.not(CoreMatchers.equalTo(refreshToken)))
-        assertThat(token.authenticationHolder, CoreMatchers.equalTo(storedAuthHolder))
+        assertEquals(storedAuthHolder, token.authenticationHolder)
 
         verify(tokenEnhancer).enhance(token, storedAuthentication)
         verify(tokenRepository).saveAccessToken(token)
@@ -397,9 +397,9 @@ class TestDefaultOAuth2ProviderTokenService {
 
         verify(tokenRepository, Mockito.never()).clearAccessTokensForRefreshToken(refreshToken)
 
-        assertThat(token.client, CoreMatchers.equalTo(client))
-        assertThat(token.refreshToken, CoreMatchers.equalTo(refreshToken))
-        assertThat(token.authenticationHolder, CoreMatchers.equalTo(storedAuthHolder))
+        assertEquals(client, token.client)
+        assertEquals(refreshToken, token.refreshToken)
+        assertEquals(storedAuthHolder, token.authenticationHolder)
 
         verify(tokenEnhancer).enhance(token, storedAuthentication)
         verify(tokenRepository).saveAccessToken(token)
@@ -412,7 +412,7 @@ class TestDefaultOAuth2ProviderTokenService {
 
         verify(scopeService, Mockito.atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
 
-        assertThat(token.scope, CoreMatchers.equalTo(storedScope))
+        assertEquals(storedScope, token.scope)
     }
 
     @Test
@@ -425,7 +425,7 @@ class TestDefaultOAuth2ProviderTokenService {
 
         verify(scopeService, Mockito.atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
 
-        assertThat(token.scope, CoreMatchers.equalTo(lessScope))
+        assertEquals(lessScope, token.scope)
     }
 
     @Test
@@ -465,7 +465,7 @@ class TestDefaultOAuth2ProviderTokenService {
 
         verify(scopeService, Mockito.atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
 
-        assertThat(token.scope, CoreMatchers.equalTo(storedScope))
+        assertEquals(storedScope, token.scope)
     }
 
     @Test
@@ -476,7 +476,7 @@ class TestDefaultOAuth2ProviderTokenService {
 
         verify(scopeService, Mockito.atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
 
-        assertThat(token.scope, CoreMatchers.equalTo(storedScope))
+        assertEquals(storedScope, token.scope)
     }
 
     /**

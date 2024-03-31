@@ -25,6 +25,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
+import org.junit.jupiter.api.Assertions
 import org.junit.runner.RunWith
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
@@ -245,11 +246,11 @@ class TestMITREidDataService_1_3 {
             if (compare == null) {
                 Assert.fail("Could not find matching id: " + token["id"].asString)
             } else {
-                assertThat(token["id"].asLong, CoreMatchers.equalTo(compare.id))
-                assertThat(token["clientId"].asString, CoreMatchers.equalTo(compare.client!!.clientId))
-                assertThat(token["expiration"].asString, CoreMatchers.equalTo(formatter.print(compare.expiration!!, Locale.ENGLISH)))
-                assertThat(token["value"].asString, CoreMatchers.equalTo(compare.value))
-                assertThat(token["authenticationHolderId"].asLong, CoreMatchers.equalTo(compare.authenticationHolder.id))
+                Assertions.assertEquals(compare.id, token["id"].asLong)
+                Assertions.assertEquals(compare.client!!.clientId, token["clientId"].asString)
+                Assertions.assertEquals(formatter.print(compare.expiration!!, Locale.ENGLISH), token["expiration"].asString)
+                Assertions.assertEquals(compare.value, token["value"].asString)
+                Assertions.assertEquals(compare.authenticationHolder.id, token["authenticationHolderId"].asLong)
                 checked.add(compare)
             }
         }
@@ -324,6 +325,7 @@ class TestMITREidDataService_1_3 {
         whenever<OAuth2RefreshTokenEntity>(tokenRepository.saveRefreshToken(isA<OAuth2RefreshTokenEntity>()))
             .thenAnswer(object : Answer<OAuth2RefreshTokenEntity> {
                 var id: Long = 332L
+
                 @Throws(Throwable::class)
                 override fun answer(invocation: InvocationOnMock): OAuth2RefreshTokenEntity {
                     val _token = invocation.arguments[0] as OAuth2RefreshTokenEntity
@@ -345,6 +347,7 @@ class TestMITREidDataService_1_3 {
         whenever(authHolderRepository.getById(ArgumentMatchers.isNull(Long::class.java)))
             .thenAnswer(object : Answer<AuthenticationHolderEntity> {
                 var id: Long = 131L
+
                 @Throws(Throwable::class)
                 override fun answer(invocation: InvocationOnMock): AuthenticationHolderEntity {
                     val _auth = Mockito.mock(AuthenticationHolderEntity::class.java)
@@ -358,22 +361,18 @@ class TestMITREidDataService_1_3 {
         Mockito.verify(tokenRepository, Mockito.times(6)).saveRefreshToken(capture(capturedRefreshTokens))
 
         val savedRefreshTokens: List<OAuth2RefreshTokenEntity> = fakeDb.values.sortedWith(refreshTokenIdComparator())
-            ArrayList<Any>(fakeDb.values) //capturedRefreshTokens.getAllValues();
+        ArrayList<Any>(fakeDb.values) //capturedRefreshTokens.getAllValues();
         Collections.sort(savedRefreshTokens, refreshTokenIdComparator())
 
         assertThat(savedRefreshTokens.size, CoreMatchers.`is`(2))
 
-        assertThat(savedRefreshTokens[0].client!!.clientId, CoreMatchers.equalTo(token1.client!!.clientId))
-        assertThat(savedRefreshTokens[0].expiration, CoreMatchers.equalTo(token1.expiration))
-        assertThat(
-            savedRefreshTokens[0].value, CoreMatchers.equalTo(token1.value)
-        )
+        Assertions.assertEquals(token1.client!!.clientId, savedRefreshTokens[0].client!!.clientId)
+        Assertions.assertEquals(token1.expiration, savedRefreshTokens[0].expiration)
+        Assertions.assertEquals(token1.value, savedRefreshTokens[0].value)
 
-        assertThat(savedRefreshTokens[1].client!!.clientId, CoreMatchers.equalTo(token2.client!!.clientId))
-        assertThat(savedRefreshTokens[1].expiration, CoreMatchers.equalTo(token2.expiration))
-        assertThat(
-            savedRefreshTokens[1].value, CoreMatchers.equalTo(token2.value)
-        )
+        Assertions.assertEquals(token2.client!!.clientId, savedRefreshTokens[1].client!!.clientId)
+        Assertions.assertEquals(token2.expiration, savedRefreshTokens[1].expiration)
+        Assertions.assertEquals(token2.value, savedRefreshTokens[1].value)
     }
 
     @Test
@@ -490,18 +489,18 @@ class TestMITREidDataService_1_3 {
             if (compare == null) {
                 Assert.fail("Could not find matching id: " + token["id"].asString)
             } else {
-                assertThat(token["id"].asLong, CoreMatchers.equalTo(compare.id))
-                assertThat(token["clientId"].asString, CoreMatchers.equalTo(compare.client!!.clientId))
-                assertThat(token["expiration"].asString, CoreMatchers.equalTo(formatter.print(compare.expiration, Locale.ENGLISH)))
-                assertThat(token["value"].asString, CoreMatchers.equalTo(compare.value))
-                assertThat(token["type"].asString, CoreMatchers.equalTo(compare.tokenType))
-                assertThat(token["authenticationHolderId"].asLong, CoreMatchers.equalTo(compare.authenticationHolder.id))
+                Assertions.assertEquals(compare.id, token["id"].asLong)
+                Assertions.assertEquals(compare.client!!.clientId, token["clientId"].asString)
+                Assertions.assertEquals(formatter.print(compare.expiration, Locale.ENGLISH), token["expiration"].asString)
+                Assertions.assertEquals(compare.value, token["value"].asString)
+                Assertions.assertEquals(compare.tokenType, token["type"].asString)
+                Assertions.assertEquals(compare.authenticationHolder.id, token["authenticationHolderId"].asLong)
                 Assert.assertTrue(token["scope"].isJsonArray)
-                assertThat(jsonArrayToStringSet(token.getAsJsonArray("scope")), CoreMatchers.equalTo(compare.scope))
+                Assertions.assertEquals(compare.scope, jsonArrayToStringSet(token.getAsJsonArray("scope")))
                 if (token["refreshTokenId"].isJsonNull) {
                     Assert.assertNull(compare.refreshToken)
                 } else {
-                    assertThat(token["refreshTokenId"].asLong, CoreMatchers.equalTo(compare.refreshToken!!.id))
+                    Assertions.assertEquals(compare.refreshToken!!.id, token["refreshTokenId"].asLong)
                 }
                 checked.add(compare)
             }
@@ -588,6 +587,7 @@ class TestMITREidDataService_1_3 {
         whenever<OAuth2AccessTokenEntity>(tokenRepository.saveAccessToken(isA<OAuth2AccessTokenEntity>()))
             .thenAnswer(object : Answer<OAuth2AccessTokenEntity> {
                 var id: Long = 324L
+
                 @Throws(Throwable::class)
                 override fun answer(invocation: InvocationOnMock): OAuth2AccessTokenEntity {
                     val _token = invocation.arguments[0] as OAuth2AccessTokenEntity
@@ -609,6 +609,7 @@ class TestMITREidDataService_1_3 {
         whenever(authHolderRepository.getById(isA()))
             .thenAnswer(object : Answer<AuthenticationHolderEntity> {
                 var id: Long = 133L
+
                 @Throws(Throwable::class)
                 override fun answer(invocation: InvocationOnMock): AuthenticationHolderEntity {
                     val _auth = Mockito.mock(AuthenticationHolderEntity::class.java)
@@ -625,25 +626,17 @@ class TestMITREidDataService_1_3 {
         Mockito.verify(tokenRepository, Mockito.times(7)).saveAccessToken(capture(capturedAccessTokens))
 
         val savedAccessTokens: List<OAuth2AccessTokenEntity> = fakeDb.values.sortedWith(accessTokenIdComparator())
-            //capturedAccessTokens.getAllValues();
+        //capturedAccessTokens.getAllValues();
 
         assertThat(savedAccessTokens.size, CoreMatchers.`is`(2))
 
-        assertThat(savedAccessTokens[0].client!!.clientId, CoreMatchers.equalTo(token1.client!!.clientId))
-        assertThat(
-            savedAccessTokens[0].expiration, CoreMatchers.equalTo(token1.expiration)
-        )
-        assertThat(
-            savedAccessTokens[0].value, CoreMatchers.equalTo(token1.value)
-        )
+        Assertions.assertEquals(token1.client!!.clientId, savedAccessTokens[0].client!!.clientId)
+        Assertions.assertEquals(token1.expiration, savedAccessTokens[0].expiration)
+        Assertions.assertEquals(token1.value, savedAccessTokens[0].value)
 
-        assertThat(savedAccessTokens[1].client!!.clientId, CoreMatchers.equalTo(token2.client!!.clientId))
-        assertThat(
-            savedAccessTokens[1].expiration, CoreMatchers.equalTo(token2.expiration)
-        )
-        assertThat(
-            savedAccessTokens[1].value, CoreMatchers.equalTo(token2.value)
-        )
+        Assertions.assertEquals(token2.client!!.clientId, savedAccessTokens[1].client!!.clientId)
+        Assertions.assertEquals(token2.expiration, savedAccessTokens[1].expiration)
+        Assertions.assertEquals(token2.value, savedAccessTokens[1].value)
     }
 
     @Test
@@ -740,14 +733,14 @@ class TestMITREidDataService_1_3 {
             if (compare == null) {
                 Assert.fail("Could not find matching clientId: " + client["clientId"].asString)
             } else {
-                assertThat(client["clientId"].asString, CoreMatchers.equalTo(compare.clientId))
-                assertThat(client["secret"].asString, CoreMatchers.equalTo(compare.clientSecret))
-                assertThat(client["accessTokenValiditySeconds"].asInt, CoreMatchers.equalTo(compare.accessTokenValiditySeconds))
-                assertThat(client["allowIntrospection"].asBoolean, CoreMatchers.equalTo(compare.isAllowIntrospection))
-                assertThat(jsonArrayToStringSet(client["redirectUris"].asJsonArray), CoreMatchers.equalTo(compare.redirectUris))
-                assertThat(jsonArrayToStringSet(client["scope"].asJsonArray), CoreMatchers.equalTo(compare.scope))
-                assertThat(jsonArrayToStringSet(client["grantTypes"].asJsonArray), CoreMatchers.equalTo(compare.grantTypes))
-                assertThat(if ((client.has("codeChallengeMethod") && !client["codeChallengeMethod"].isJsonNull)) parse(client["codeChallengeMethod"].asString) else null, CoreMatchers.equalTo(compare.codeChallengeMethod))
+                Assertions.assertEquals(compare.clientId, client["clientId"].asString)
+                Assertions.assertEquals(compare.clientSecret, client["secret"].asString)
+                Assertions.assertEquals(compare.accessTokenValiditySeconds, client["accessTokenValiditySeconds"].asInt)
+                Assertions.assertEquals(compare.isAllowIntrospection, client["allowIntrospection"].asBoolean)
+                Assertions.assertEquals(compare.redirectUris, jsonArrayToStringSet(client["redirectUris"].asJsonArray))
+                Assertions.assertEquals(compare.scope, jsonArrayToStringSet(client["scope"].asJsonArray))
+                Assertions.assertEquals(compare.grantTypes, jsonArrayToStringSet(client["grantTypes"].asJsonArray))
+                Assertions.assertEquals(compare.codeChallengeMethod, if ((client.has("codeChallengeMethod") && !client["codeChallengeMethod"].isJsonNull)) parse(client["codeChallengeMethod"].asString) else null)
                 checked.add(compare)
             }
         }
@@ -812,21 +805,21 @@ class TestMITREidDataService_1_3 {
 
         assertThat(savedClients.size, CoreMatchers.`is`(2))
 
-        assertThat(savedClients[0].accessTokenValiditySeconds, CoreMatchers.equalTo(client1.accessTokenValiditySeconds))
-        assertThat(savedClients[0].clientId, CoreMatchers.equalTo(client1.clientId))
-        assertThat(savedClients[0].clientSecret, CoreMatchers.equalTo(client1.clientSecret))
-        assertThat(savedClients[0].redirectUris, CoreMatchers.equalTo(client1.redirectUris))
-        assertThat<Set<String>>(savedClients[0].scope, CoreMatchers.equalTo(client1.scope))
-        assertThat<Set<String>>(savedClients[0].grantTypes, CoreMatchers.equalTo(client1.grantTypes))
-        assertThat(savedClients[0].isAllowIntrospection, CoreMatchers.equalTo(client1.isAllowIntrospection))
+        Assertions.assertEquals(client1.accessTokenValiditySeconds, savedClients[0].accessTokenValiditySeconds)
+        Assertions.assertEquals(client1.clientId, savedClients[0].clientId)
+        Assertions.assertEquals(client1.clientSecret, savedClients[0].clientSecret)
+        Assertions.assertEquals(client1.redirectUris, savedClients[0].redirectUris)
+        Assertions.assertEquals(client1.scope, savedClients[0].scope)
+        Assertions.assertEquals(client1.grantTypes, savedClients[0].grantTypes)
+        Assertions.assertEquals(client1.isAllowIntrospection, savedClients[0].isAllowIntrospection)
 
-        assertThat(savedClients[1].accessTokenValiditySeconds, CoreMatchers.equalTo(client2.accessTokenValiditySeconds))
-        assertThat(savedClients[1].clientId, CoreMatchers.equalTo(client2.clientId))
-        assertThat(savedClients[1].clientSecret, CoreMatchers.equalTo(client2.clientSecret))
-        assertThat(savedClients[1].redirectUris, CoreMatchers.equalTo(client2.redirectUris))
-        assertThat<Set<String>>(savedClients[1].scope, CoreMatchers.equalTo(client2.scope))
-        assertThat<Set<String>>(savedClients[1].grantTypes, CoreMatchers.equalTo(client2.grantTypes))
-        assertThat(savedClients[1].isAllowIntrospection, CoreMatchers.equalTo(client2.isAllowIntrospection))
+        Assertions.assertEquals(client2.accessTokenValiditySeconds, savedClients[1].accessTokenValiditySeconds)
+        Assertions.assertEquals(client2.clientId, savedClients[1].clientId)
+        Assertions.assertEquals(client2.clientSecret, savedClients[1].clientSecret)
+        Assertions.assertEquals(client2.redirectUris, savedClients[1].redirectUris)
+        Assertions.assertEquals(client2.scope, savedClients[1].scope)
+        Assertions.assertEquals(client2.grantTypes, savedClients[1].grantTypes)
+        Assertions.assertEquals(client2.isAllowIntrospection, savedClients[1].isAllowIntrospection)
     }
 
     @Test
@@ -914,7 +907,7 @@ class TestMITREidDataService_1_3 {
             if (compare == null) {
                 Assert.fail("Could not find matching blacklisted site id: " + site["id"].asString)
             } else {
-                assertThat(site["uri"].asString, CoreMatchers.equalTo(compare.uri))
+                Assertions.assertEquals(compare.uri, site["uri"].asString)
                 checked.add(compare)
             }
         }
@@ -964,9 +957,9 @@ class TestMITREidDataService_1_3 {
 
         assertThat(savedSites.size, CoreMatchers.`is`(3))
 
-        assertThat(savedSites[0].uri, CoreMatchers.equalTo(site1.uri))
-        assertThat(savedSites[1].uri, CoreMatchers.equalTo(site2.uri))
-        assertThat(savedSites[2].uri, CoreMatchers.equalTo(site3.uri))
+        Assertions.assertEquals(site1.uri, savedSites[0].uri)
+        Assertions.assertEquals(site2.uri, savedSites[1].uri)
+        Assertions.assertEquals(site3.uri, savedSites[2].uri)
     }
 
     @Test
@@ -1054,7 +1047,7 @@ class TestMITREidDataService_1_3 {
             if (compare == null) {
                 Assert.fail("Could not find matching whitelisted site id: " + site["id"].asString)
             } else {
-                assertThat(site["clientId"].asString, CoreMatchers.equalTo(compare.clientId))
+                Assertions.assertEquals(compare.clientId, site["clientId"].asString)
                 checked.add(compare)
             }
         }
@@ -1101,6 +1094,7 @@ class TestMITREidDataService_1_3 {
         whenever<WhitelistedSite>(wlSiteRepository.save(isA<WhitelistedSite>()))
             .thenAnswer(object : Answer<WhitelistedSite> {
                 var id: Long = 333L
+
                 @Throws(Throwable::class)
                 override fun answer(invocation: InvocationOnMock): WhitelistedSite {
                     val _site = invocation.arguments[0] as WhitelistedSite
@@ -1121,9 +1115,9 @@ class TestMITREidDataService_1_3 {
 
         assertThat(savedSites.size, CoreMatchers.`is`(3))
 
-        assertThat(savedSites[0].clientId, CoreMatchers.equalTo(site1.clientId))
-        assertThat(savedSites[1].clientId, CoreMatchers.equalTo(site2.clientId))
-        assertThat(savedSites[2].clientId, CoreMatchers.equalTo(site3.clientId))
+        Assertions.assertEquals(site1.clientId, savedSites[0].clientId)
+        Assertions.assertEquals(site2.clientId, savedSites[1].clientId)
+        Assertions.assertEquals(site3.clientId, savedSites[2].clientId)
     }
 
     @Test
@@ -1225,16 +1219,16 @@ class TestMITREidDataService_1_3 {
             if (compare == null) {
                 Assert.fail("Could not find matching whitelisted site id: " + site["id"].asString)
             } else {
-                assertThat(site["clientId"].asString, CoreMatchers.equalTo(compare.clientId))
-                assertThat(site["creationDate"].asString, CoreMatchers.equalTo(formatter.print(compare.creationDate, Locale.ENGLISH)))
-                assertThat(site["accessDate"].asString, CoreMatchers.equalTo(formatter.print(compare.accessDate, Locale.ENGLISH)))
+                Assertions.assertEquals(compare.clientId, site["clientId"].asString)
+                Assertions.assertEquals(formatter.print(compare.creationDate, Locale.ENGLISH), site["creationDate"].asString)
+                Assertions.assertEquals(formatter.print(compare.accessDate, Locale.ENGLISH), site["accessDate"].asString)
                 if (site["timeoutDate"].isJsonNull) {
                     Assert.assertNull(compare.timeoutDate)
                 } else {
-                    assertThat(site["timeoutDate"].asString, CoreMatchers.equalTo(formatter.print(compare.timeoutDate, Locale.ENGLISH)))
+                    Assertions.assertEquals(formatter.print(compare.timeoutDate, Locale.ENGLISH), site["timeoutDate"].asString)
                 }
-                assertThat(site["userId"].asString, CoreMatchers.equalTo(compare.userId))
-                assertThat(jsonArrayToStringSet(site.getAsJsonArray("allowedScopes")), CoreMatchers.equalTo(compare.allowedScopes))
+                Assertions.assertEquals(compare.userId, site["userId"].asString)
+                Assertions.assertEquals(compare.allowedScopes, jsonArrayToStringSet(site.getAsJsonArray("allowedScopes")))
                 checked.add(compare)
             }
         }
@@ -1299,6 +1293,7 @@ class TestMITREidDataService_1_3 {
         whenever<ApprovedSite>(approvedSiteRepository.save(isA<ApprovedSite>()))
             .thenAnswer(object : Answer<ApprovedSite> {
                 var id: Long = 364L
+
                 @Throws(Throwable::class)
                 override fun answer(invocation: InvocationOnMock): ApprovedSite {
                     val _site = invocation.arguments[0] as ApprovedSite
@@ -1314,6 +1309,7 @@ class TestMITREidDataService_1_3 {
         whenever(wlSiteRepository.getById(isA()))
             .thenAnswer(object : Answer<WhitelistedSite> {
                 var id: Long = 432L
+
                 @Throws(Throwable::class)
                 override fun answer(invocation: InvocationOnMock): WhitelistedSite {
                     val _site = Mockito.mock(WhitelistedSite::class.java)
@@ -1324,6 +1320,7 @@ class TestMITREidDataService_1_3 {
         whenever(tokenRepository.getAccessTokenById(isA()))
             .thenAnswer(object : Answer<OAuth2AccessTokenEntity> {
                 var id: Long = 245L
+
                 @Throws(Throwable::class)
                 override fun answer(invocation: InvocationOnMock): OAuth2AccessTokenEntity {
                     val _token = Mockito.mock(OAuth2AccessTokenEntity::class.java)
@@ -1341,17 +1338,17 @@ class TestMITREidDataService_1_3 {
 
         assertThat(savedSites.size, CoreMatchers.`is`(2))
 
-        assertThat(savedSites[0].clientId, CoreMatchers.equalTo(site1.clientId))
-        assertThat(savedSites[0].accessDate, CoreMatchers.equalTo(site1.accessDate))
-        assertThat(savedSites[0].creationDate, CoreMatchers.equalTo(site1.creationDate))
-        assertThat(savedSites[0].allowedScopes, CoreMatchers.equalTo(site1.allowedScopes))
-        assertThat(savedSites[0].timeoutDate, CoreMatchers.equalTo(site1.timeoutDate))
+        Assertions.assertEquals(site1.clientId, savedSites[0].clientId)
+        Assertions.assertEquals(site1.accessDate, savedSites[0].accessDate)
+        Assertions.assertEquals(site1.creationDate, savedSites[0].creationDate)
+        Assertions.assertEquals(site1.allowedScopes, savedSites[0].allowedScopes)
+        Assertions.assertEquals(site1.timeoutDate, savedSites[0].timeoutDate)
 
-        assertThat(savedSites[1].clientId, CoreMatchers.equalTo(site2.clientId))
-        assertThat(savedSites[1].accessDate, CoreMatchers.equalTo(site2.accessDate))
-        assertThat(savedSites[1].creationDate, CoreMatchers.equalTo(site2.creationDate))
-        assertThat(savedSites[1].allowedScopes, CoreMatchers.equalTo(site2.allowedScopes))
-        assertThat(savedSites[1].timeoutDate, CoreMatchers.equalTo(site2.timeoutDate))
+        Assertions.assertEquals(site2.clientId, savedSites[1].clientId)
+        Assertions.assertEquals(site2.accessDate, savedSites[1].accessDate)
+        Assertions.assertEquals(site2.creationDate, savedSites[1].creationDate)
+        Assertions.assertEquals(site2.allowedScopes, savedSites[1].allowedScopes)
+        Assertions.assertEquals(site2.timeoutDate, savedSites[1].timeoutDate)
     }
 
     @Test
@@ -1518,6 +1515,7 @@ class TestMITREidDataService_1_3 {
         whenever<AuthenticationHolderEntity>(authHolderRepository.save(isA<AuthenticationHolderEntity>()))
             .thenAnswer(object : Answer<AuthenticationHolderEntity> {
                 var id: Long = 243L
+
                 @Throws(Throwable::class)
                 override fun answer(invocation: InvocationOnMock): AuthenticationHolderEntity {
                     val _site = invocation.arguments[0] as AuthenticationHolderEntity
@@ -1533,8 +1531,8 @@ class TestMITREidDataService_1_3 {
         val savedAuthHolders = capturedAuthHolders.allValues
 
         assertThat(savedAuthHolders.size, CoreMatchers.`is`(2))
-        assertThat(savedAuthHolders[0].authentication.oAuth2Request.clientId, CoreMatchers.equalTo(holder1.authentication.oAuth2Request.clientId))
-        assertThat(savedAuthHolders[1].authentication.oAuth2Request.clientId, CoreMatchers.equalTo(holder2.authentication.oAuth2Request.clientId))
+        Assertions.assertEquals(holder1.authentication.oAuth2Request.clientId, savedAuthHolders[0].authentication.oAuth2Request.clientId)
+        Assertions.assertEquals(holder2.authentication.oAuth2Request.clientId, savedAuthHolders[1].authentication.oAuth2Request.clientId)
     }
 
     @Test
@@ -1635,11 +1633,11 @@ class TestMITREidDataService_1_3 {
             if (compare == null) {
                 Assert.fail("Could not find matching scope value: " + scope["value"].asString)
             } else {
-                assertThat(scope["value"].asString, CoreMatchers.equalTo(compare.value))
-                assertThat(scope["description"].asString, CoreMatchers.equalTo(compare.description))
-                assertThat(scope["icon"].asString, CoreMatchers.equalTo(compare.icon))
-                assertThat(scope["restricted"].asBoolean, CoreMatchers.equalTo(compare.isRestricted))
-                assertThat(scope["defaultScope"].asBoolean, CoreMatchers.equalTo(compare.isDefaultScope))
+                Assertions.assertEquals(compare.value, scope["value"].asString)
+                Assertions.assertEquals(compare.description, scope["description"].asString)
+                Assertions.assertEquals(compare.icon, scope["icon"].asString)
+                Assertions.assertEquals(compare.isRestricted, scope["restricted"].asBoolean)
+                Assertions.assertEquals(compare.isDefaultScope, scope["defaultScope"].asBoolean)
                 checked.add(compare)
             }
         }
@@ -1699,23 +1697,23 @@ class TestMITREidDataService_1_3 {
         val savedScopes = capturedScope.allValues
 
         assertThat(savedScopes.size, CoreMatchers.`is`(3))
-        assertThat(savedScopes[0].value, CoreMatchers.equalTo(scope1.value))
-        assertThat(savedScopes[0].description, CoreMatchers.equalTo(scope1.description))
-        assertThat(savedScopes[0].icon, CoreMatchers.equalTo(scope1.icon))
-        assertThat(savedScopes[0].isDefaultScope, CoreMatchers.equalTo(scope1.isDefaultScope))
-        assertThat(savedScopes[0].isRestricted, CoreMatchers.equalTo(scope1.isRestricted))
+        Assertions.assertEquals(scope1.value, savedScopes[0].value)
+        Assertions.assertEquals(scope1.description, savedScopes[0].description)
+        Assertions.assertEquals(scope1.icon, savedScopes[0].icon)
+        Assertions.assertEquals(scope1.isDefaultScope, savedScopes[0].isDefaultScope)
+        Assertions.assertEquals(scope1.isRestricted, savedScopes[0].isRestricted)
 
-        assertThat(savedScopes[1].value, CoreMatchers.equalTo(scope2.value))
-        assertThat(savedScopes[1].description, CoreMatchers.equalTo(scope2.description))
-        assertThat(savedScopes[1].icon, CoreMatchers.equalTo(scope2.icon))
-        assertThat(savedScopes[1].isDefaultScope, CoreMatchers.equalTo(scope2.isDefaultScope))
-        assertThat(savedScopes[1].isRestricted, CoreMatchers.equalTo(scope2.isRestricted))
+        Assertions.assertEquals(scope2.value, savedScopes[1].value)
+        Assertions.assertEquals(scope2.description, savedScopes[1].description)
+        Assertions.assertEquals(scope2.icon, savedScopes[1].icon)
+        Assertions.assertEquals(scope2.isDefaultScope, savedScopes[1].isDefaultScope)
+        Assertions.assertEquals(scope2.isRestricted, savedScopes[1].isRestricted)
 
-        assertThat(savedScopes[2].value, CoreMatchers.equalTo(scope3.value))
-        assertThat(savedScopes[2].description, CoreMatchers.equalTo(scope3.description))
-        assertThat(savedScopes[2].icon, CoreMatchers.equalTo(scope3.icon))
-        assertThat(savedScopes[2].isDefaultScope, CoreMatchers.equalTo(scope3.isDefaultScope))
-        assertThat(savedScopes[2].isRestricted, CoreMatchers.equalTo(scope3.isRestricted))
+        Assertions.assertEquals(scope3.value, savedScopes[2].value)
+        Assertions.assertEquals(scope3.description, savedScopes[2].description)
+        Assertions.assertEquals(scope3.icon, savedScopes[2].icon)
+        Assertions.assertEquals(scope3.isDefaultScope, savedScopes[2].isDefaultScope)
+        Assertions.assertEquals(scope3.isRestricted, savedScopes[2].isRestricted)
     }
 
     @Test
@@ -1801,6 +1799,7 @@ class TestMITREidDataService_1_3 {
         whenever<OAuth2RefreshTokenEntity>(tokenRepository.saveRefreshToken(isA<OAuth2RefreshTokenEntity>()))
             .thenAnswer(object : Answer<OAuth2RefreshTokenEntity> {
                 var id: Long = 343L
+
                 @Throws(Throwable::class)
                 override fun answer(invocation: InvocationOnMock): OAuth2RefreshTokenEntity {
                     val _token = invocation.arguments[0] as OAuth2RefreshTokenEntity
@@ -1822,6 +1821,7 @@ class TestMITREidDataService_1_3 {
         whenever<AuthenticationHolderEntity>(authHolderRepository.save(isA<AuthenticationHolderEntity>()))
             .thenAnswer(object : Answer<AuthenticationHolderEntity> {
                 var id: Long = 356L
+
                 @Throws(Throwable::class)
                 override fun answer(invocation: InvocationOnMock): AuthenticationHolderEntity {
                     val _holder = invocation.arguments[0] as AuthenticationHolderEntity
@@ -1836,11 +1836,12 @@ class TestMITREidDataService_1_3 {
         }
         dataService.importData(reader)
 
-        val savedRefreshTokens: List<OAuth2RefreshTokenEntity> = fakeRefreshTokenTable.values.sortedWith(refreshTokenIdComparator())
-            //capturedRefreshTokens.getAllValues();
+        val savedRefreshTokens: List<OAuth2RefreshTokenEntity> =
+            fakeRefreshTokenTable.values.sortedWith(refreshTokenIdComparator())
+        //capturedRefreshTokens.getAllValues();
 
-        assertThat(savedRefreshTokens[0].authenticationHolder.id, CoreMatchers.equalTo(356L))
-        assertThat(savedRefreshTokens[1].authenticationHolder.id, CoreMatchers.equalTo(357L))
+        Assertions.assertEquals(356L, savedRefreshTokens[0].authenticationHolder.id)
+        Assertions.assertEquals(357L, savedRefreshTokens[1].authenticationHolder.id)
     }
 
     private fun jsonArrayToStringSet(a: JsonArray): Set<String> {

@@ -1,8 +1,7 @@
 package org.mitre.openid.connect.client.service.impl
 
-import org.hamcrest.CoreMatchers
-import org.hamcrest.MatcherAssert
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -86,6 +85,6 @@ class TestHybridClientConfigurationService {
 
         Mockito.verify(mockStaticService).getClientConfiguration(badIssuer)
         Mockito.verify(mockDynamicService).getClientConfiguration(badIssuer)
-        MatcherAssert.assertThat(result, CoreMatchers.`is`(CoreMatchers.nullValue()))
+        assertNull(result)
     }
 }

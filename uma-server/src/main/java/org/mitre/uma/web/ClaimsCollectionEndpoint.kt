@@ -16,7 +16,6 @@
 package org.mitre.uma.web
 
 import com.google.common.base.Strings
-import com.google.common.collect.Sets
 import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
 import org.mitre.oauth2.service.ClientDetailsEntityService
@@ -135,7 +134,7 @@ class ClaimsCollectionEndpoint {
 
     private fun mkClaim(issuer: String, name: String, value: JsonElement): Claim {
         val c = Claim()
-        c.issuer = Sets.newHashSet(issuer)
+        c.issuer = hashSetOf(issuer)
         c.name = name
         c.value = value
         return c

@@ -14,6 +14,7 @@ import org.hamcrest.CoreMatchers
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
+import org.junit.jupiter.api.Assertions
 import org.junit.runner.RunWith
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.jwt.signer.service.impl.ClientKeyCacheService
@@ -76,12 +77,12 @@ class TestJWTBearerAuthenticationProvider {
 
     @Test
     fun should_not_support_UsernamePasswordAuthenticationToken() {
-        Assert.assertThat(jwtBearerAuthenticationProvider.supports(UsernamePasswordAuthenticationToken::class.java), CoreMatchers.`is`(false))
+        Assertions.assertFalse(jwtBearerAuthenticationProvider.supports(UsernamePasswordAuthenticationToken::class.java))
     }
 
     @Test
     fun should_support_JWTBearerAssertionAuthenticationToken() {
-        Assert.assertThat(jwtBearerAuthenticationProvider.supports(JWTBearerAssertionAuthenticationToken::class.java), CoreMatchers.`is`(true))
+        Assertions.assertTrue(jwtBearerAuthenticationProvider.supports(JWTBearerAssertionAuthenticationToken::class.java))
     }
 
     @Test

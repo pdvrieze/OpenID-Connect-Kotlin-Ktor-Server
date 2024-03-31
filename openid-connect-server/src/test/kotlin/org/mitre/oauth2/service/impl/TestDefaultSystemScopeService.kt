@@ -17,11 +17,9 @@
  */
 package org.mitre.oauth2.service.impl
 
-import com.google.common.collect.Sets
-import org.hamcrest.CoreMatchers
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
+import org.junit.jupiter.api.Assertions.*
 import org.junit.runner.RunWith
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.repository.SystemScopeRepository
@@ -86,14 +84,14 @@ class TestDefaultSystemScopeService {
 
 
         allScopes =
-            Sets.newHashSet(defaultDynScope1, defaultDynScope2, defaultScope1, defaultScope2, dynScope1, restrictedScope1)
+            hashSetOf(defaultDynScope1, defaultDynScope2, defaultScope1, defaultScope2, dynScope1, restrictedScope1)
         allScopeStrings =
-            Sets.newHashSet(defaultDynScope1String, defaultDynScope2String, defaultScope1String, defaultScope2String, dynScope1String, restrictedScope1String)
+            hashSetOf(defaultDynScope1String, defaultDynScope2String, defaultScope1String, defaultScope2String, dynScope1String, restrictedScope1String)
 
         allScopesWithValue =
-            Sets.newHashSet(defaultDynScope1, defaultDynScope2, defaultScope1, defaultScope2, dynScope1, restrictedScope1)
+            hashSetOf(defaultDynScope1, defaultDynScope2, defaultScope1, defaultScope2, dynScope1, restrictedScope1)
         allScopeStringsWithValue =
-            Sets.newHashSet(defaultDynScope1String, defaultDynScope2String, defaultScope1String, defaultScope2String, dynScope1String, restrictedScope1String)
+            hashSetOf(defaultDynScope1String, defaultDynScope2String, defaultScope1String, defaultScope2String, dynScope1String, restrictedScope1String)
 
         whenever(repository.getByValue(defaultDynScope1String)).doReturn(defaultDynScope1)
         whenever(repository.getByValue(defaultDynScope2String)).doReturn(defaultDynScope2)
@@ -107,68 +105,68 @@ class TestDefaultSystemScopeService {
 
     @Test
     fun getAll(): Unit {
-        Assert.assertThat(service.all, CoreMatchers.equalTo(allScopes))
+        assertEquals(allScopes, service.all)
     }
 
     @Test
-    fun getDefaults(): Unit {
+    fun getDefaults() {
         val defaults: Set<SystemScope?> =
-            Sets.newHashSet(defaultDynScope1, defaultDynScope2, defaultScope1, defaultScope2)
+            hashSetOf(defaultDynScope1, defaultDynScope2, defaultScope1, defaultScope2)
 
-        Assert.assertThat<Set<SystemScope?>>(service.defaults, CoreMatchers.equalTo(defaults))
+        assertEquals(defaults, service.defaults)
     }
 
     @Test
-    fun getUnrestricted(): Unit {
-        val unrestricted: Set<SystemScope?> = Sets.newHashSet(defaultDynScope1, defaultDynScope2, dynScope1)
+    fun getUnrestricted() {
+        val unrestricted: Set<SystemScope?> = hashSetOf(defaultDynScope1, defaultDynScope2, dynScope1)
 
-        Assert.assertThat<Set<SystemScope?>>(service.unrestricted, CoreMatchers.equalTo(unrestricted))
+        assertEquals(unrestricted, service.unrestricted)
     }
 
     @Test
-    fun getRestricted(): Unit {
-        val restricted: Set<SystemScope?> = Sets.newHashSet(defaultScope1, defaultScope2, restrictedScope1)
+    fun getRestricted() {
+        val restricted: Set<SystemScope?> = hashSetOf(defaultScope1, defaultScope2, restrictedScope1)
 
-        Assert.assertThat<Set<SystemScope?>>(service.restricted, CoreMatchers.equalTo(restricted))
+        assertEquals(restricted, service.restricted)
     }
 
     @Test
     fun fromStrings() {
         // check null condition
 
-        Assert.assertThat(service.fromStrings(null), CoreMatchers.`is`(CoreMatchers.nullValue()))
+        assertNull(service.fromStrings(null))
 
-        Assert.assertThat(service.fromStrings(allScopeStrings), CoreMatchers.equalTo(allScopes))
+        assertEquals(allScopes, service.fromStrings(allScopeStrings))
 
-        Assert.assertThat(service.fromStrings(allScopeStringsWithValue), CoreMatchers.equalTo(allScopesWithValue))
+        assertEquals(allScopesWithValue, service.fromStrings(allScopeStringsWithValue))
     }
 
     @Test
     fun toStrings() {
         // check null condition
 
-        Assert.assertThat(service.toStrings(null), CoreMatchers.`is`(CoreMatchers.nullValue()))
+        assertNull(service.toStrings(null))
 
-        Assert.assertThat(service.toStrings(allScopes), CoreMatchers.equalTo(allScopeStrings))
+        assertEquals(allScopeStrings, service.toStrings(allScopes))
 
-        Assert.assertThat(service.toStrings(allScopesWithValue), CoreMatchers.equalTo(allScopeStringsWithValue))
+        assertEquals(allScopeStringsWithValue, service.toStrings(allScopesWithValue))
     }
 
     @Test
     fun scopesMatch() {
-        val expected: Set<String> = Sets.newHashSet("foo", "bar", "baz")
-        val actualGood: Set<String> = Sets.newHashSet("foo", "baz", "bar")
-        val actualGood2: Set<String> = Sets.newHashSet("foo", "bar")
-        val actualBad: Set<String> = Sets.newHashSet("foo", "bob", "bar")
+        val expected: Set<String> = hashSetOf("foo", "bar", "baz")
+        val actualGood: Set<String> = hashSetOf("foo", "baz", "bar")
+        val actualGood2: Set<String> = hashSetOf("foo", "bar")
+        val actualBad: Set<String> = hashSetOf("foo", "bob", "bar")
 
         // same scopes, different order
-        Assert.assertThat(service.scopesMatch(expected, actualGood), CoreMatchers.`is`(true))
+        assertTrue(service.scopesMatch(expected, actualGood))
 
         // subset
-        Assert.assertThat(service.scopesMatch(expected, actualGood2), CoreMatchers.`is`(true))
+        assertTrue(service.scopesMatch(expected, actualGood2))
 
         // extra scope (fail)
-        Assert.assertThat(service.scopesMatch(expected, actualBad), CoreMatchers.`is`(false))
+        assertFalse(service.scopesMatch(expected, actualBad))
     }
 
     companion object {

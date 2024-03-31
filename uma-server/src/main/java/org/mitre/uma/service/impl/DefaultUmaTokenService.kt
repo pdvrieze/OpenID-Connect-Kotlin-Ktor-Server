@@ -16,7 +16,6 @@
 package org.mitre.uma.service.impl
 
 import com.google.common.collect.Lists
-import com.google.common.collect.Sets
 import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
@@ -80,7 +79,7 @@ class DefaultUmaTokenService : UmaTokenService {
         perm.resourceSet = ticket.permission!!.resourceSet
         perm.scopes = ticketScopes.intersect(policyScopes)
 
-        token.permissions = Sets.newHashSet(perm)
+        token.permissions = hashSetOf(perm)
 
         val claims = JWTClaimsSet.Builder()
 

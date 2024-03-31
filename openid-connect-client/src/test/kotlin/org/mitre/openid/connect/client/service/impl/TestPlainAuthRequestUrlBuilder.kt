@@ -18,8 +18,7 @@
 package org.mitre.openid.connect.client.service.impl
 
 import com.google.common.collect.ImmutableMap
-import org.hamcrest.CoreMatchers
-import org.hamcrest.MatcherAssert.assertThat
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -64,7 +63,7 @@ class TestPlainAuthRequestUrlBuilder {
         val actualUrl =
             urlBuilder.buildAuthRequestUrl(serverConfig, clientConfig, "https://client.example.org/", "34fasf3ds", "af0ifjsldkj", options, null)
 
-        assertThat(actualUrl, CoreMatchers.equalTo(expectedUrl))
+        assertEquals(expectedUrl, actualUrl)
     }
 
     @Test
@@ -84,7 +83,7 @@ class TestPlainAuthRequestUrlBuilder {
         val actualUrl =
             urlBuilder.buildAuthRequestUrl(serverConfig, clientConfig, "https://client.example.org/", "34fasf3ds", "af0ifjsldkj", options, "bob")
 
-        assertThat(actualUrl, CoreMatchers.equalTo(expectedUrl))
+        assertEquals(expectedUrl, actualUrl)
     }
 
     @Test
