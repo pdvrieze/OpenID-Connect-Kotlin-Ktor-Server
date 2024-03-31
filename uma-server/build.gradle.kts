@@ -43,6 +43,10 @@ dependencies {
 
     testImplementation(libs.junit4)
     testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.junit.jupiter.api)
+    testRuntimeOnly(libs.junit.jupiter.vintage)
+    testRuntimeOnly(libs.junit.jupiter.engine)
 }
 
 tasks.named<Test>("test") {
