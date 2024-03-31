@@ -1,7 +1,6 @@
 package org.mitre.discovery.web
 
 import com.google.common.base.Function
-import com.google.common.base.Strings
 import com.google.common.collect.Collections2
 import com.google.common.collect.Lists
 import com.nimbusds.jose.Algorithm
@@ -90,7 +89,7 @@ class DiscoveryEndpoint {
                     if (user != null) {
                         // username matched, check the host component
                         val issuerComponents = UriComponentsBuilder.fromHttpUrl(config.issuer).build()
-                        if (Strings.nullToEmpty(issuerComponents.host) != Strings.nullToEmpty(resourceUri.host)) {
+                        if ((issuerComponents.host ?: "") != (resourceUri.host ?: "")) {
                             logger.info("Host mismatch, expected " + issuerComponents.host + " got " + resourceUri.host)
                             model.addAttribute(HttpCodeView.CODE, HttpStatus.NOT_FOUND)
                             return HttpCodeView.VIEWNAME

@@ -15,7 +15,6 @@
  */
 package org.mitre.oauth2.service.impl
 
-import com.google.common.base.Strings
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.service.BlacklistedSiteService
 import org.springframework.beans.factory.annotation.Autowired
@@ -70,7 +69,7 @@ class BlacklistAwareRedirectResolver : DefaultRedirectResolver() {
         return when {
             isStrictMatch ->
                 // we're doing a strict string match for all clients
-                Strings.nullToEmpty(requestedRedirect) == redirectUri
+                (requestedRedirect ?: "") == redirectUri
 
             else ->
                 // otherwise do the prefix-match from the library

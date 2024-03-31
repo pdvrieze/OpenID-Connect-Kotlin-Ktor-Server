@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.client.service.impl
 
-import com.google.common.collect.Sets
 import org.mitre.openid.connect.client.model.IssuerServiceResponse
 import org.mitre.openid.connect.client.service.IssuerService
 import javax.servlet.http.HttpServletRequest
@@ -63,14 +62,14 @@ class HybridIssuerService : IssuerService {
     }
 
     var whitelist: Set<String>
-        get() = Sets.union(thirdPartyIssuerService.whitelist, webfingerIssuerService.whitelist)
+        get() = thirdPartyIssuerService.whitelist + webfingerIssuerService.whitelist
         set(whitelist) {
             thirdPartyIssuerService.whitelist = whitelist
             webfingerIssuerService.whitelist = whitelist
         }
 
     var blacklist: Set<String>
-        get() = Sets.union(thirdPartyIssuerService.blacklist, webfingerIssuerService.whitelist)
+        get() = thirdPartyIssuerService.blacklist + webfingerIssuerService.whitelist
         set(blacklist) {
             thirdPartyIssuerService.blacklist = blacklist
             webfingerIssuerService.blacklist = blacklist

@@ -17,7 +17,6 @@
  */
 package org.mitre.oauth2.service.impl
 
-import com.google.common.base.Strings
 import org.mitre.oauth2.model.ClientDetailsEntity.AuthMethod
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
@@ -53,7 +52,7 @@ class DefaultClientUserDetailsService : UserDetailsService {
             val client = clientDetailsService.loadClientByClientId(clientId)
 
             if (client != null) {
-                var password = Strings.nullToEmpty(client.clientSecret)
+                var password = (client.clientSecret ?: "")
 
                 if (config.isHeartMode ||  // if we're running HEART mode turn off all client secrets
                     (client.tokenEndpointAuthMethod != null &&

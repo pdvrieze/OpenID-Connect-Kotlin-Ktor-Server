@@ -15,7 +15,6 @@
  */
 package org.mitre.oauth2.service.impl
 
-import com.google.common.base.Strings
 import org.mitre.oauth2.model.ClientDetailsEntity.AuthMethod
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
@@ -56,7 +55,7 @@ class UriEncodedClientUserDetailsService : UserDetailsService {
             val client = clientDetailsService.loadClientByClientId(decodedClientId)
                 ?: throw UsernameNotFoundException("Client not found: $clientId")
 
-            var encodedPassword = UriUtils.encodePathSegment(Strings.nullToEmpty(client.clientSecret), "UTF-8")
+            var encodedPassword = UriUtils.encodePathSegment((client.clientSecret ?: ""), "UTF-8")
 
             if (config.isHeartMode ||  // if we're running HEART mode turn off all client secrets
                 (client.tokenEndpointAuthMethod != null &&

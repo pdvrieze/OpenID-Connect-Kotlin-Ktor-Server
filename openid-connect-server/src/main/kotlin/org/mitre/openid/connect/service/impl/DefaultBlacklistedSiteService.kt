@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.service.impl
 
-import com.google.common.base.Strings
 import org.mitre.openid.connect.model.BlacklistedSite
 import org.mitre.openid.connect.repository.BlacklistedSiteRepository
 import org.mitre.openid.connect.service.BlacklistedSiteService
@@ -80,7 +79,7 @@ class DefaultBlacklistedSiteService : BlacklistedSiteService {
 
         // TODO: rewrite this to do regex matching and use the Guava predicates collection
         for (blacklistedSite in sites) {
-            if (Strings.nullToEmpty(blacklistedSite.uri) == uri) {
+            if ((blacklistedSite.uri ?: "") == uri) {
                 return true
             }
         }

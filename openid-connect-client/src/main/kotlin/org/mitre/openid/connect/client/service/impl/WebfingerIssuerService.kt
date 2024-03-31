@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.client.service.impl
 
-import com.google.common.base.Strings
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
@@ -139,7 +138,7 @@ class WebfingerIssuerService(
                 scheme
                         + key.host
                         + (if (key.port >= 0) ":" + key.port else "")
-                        + Strings.nullToEmpty(key.path)
+                        + (key.path ?: "")
                         + "/.well-known/webfinger"
                         + (if (key.query.isNullOrEmpty()) "" else "?" + key.query)
             )
