@@ -79,7 +79,6 @@ abstract class AbstractClientEntityView : AbstractView() {
 
 
     protected abstract val exclusionStrategy: ExclusionStrategy?
-        get
 
 
     override fun renderMergedOutputModel(

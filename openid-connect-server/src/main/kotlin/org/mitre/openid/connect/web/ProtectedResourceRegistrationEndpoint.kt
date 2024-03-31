@@ -369,7 +369,7 @@ class ProtectedResourceRegistrationEndpoint {
     }
 
     @Throws(ValidationException::class)
-    private fun validateAuth(newClient: ClientDetailsEntity?): ClientDetailsEntity? {
+    private fun validateAuth(newClient: ClientDetailsEntity?): ClientDetailsEntity {
         var newClient = newClient
         if (newClient!!.tokenEndpointAuthMethod == null) {
             newClient.tokenEndpointAuthMethod = AuthMethod.SECRET_BASIC
@@ -397,7 +397,7 @@ class ProtectedResourceRegistrationEndpoint {
     private fun fetchValidRegistrationToken(
         auth: OAuth2Authentication,
         client: ClientDetailsEntity
-    ): OAuth2AccessTokenEntity? {
+    ): OAuth2AccessTokenEntity {
         val details = auth.details as OAuth2AuthenticationDetails
         val token = tokenService.readAccessToken(details.tokenValue)
 

@@ -47,7 +47,7 @@ import java.util.concurrent.ExecutionException
 /**
  * @author jricher
  */
-class DynamicRegistrationClientConfigurationService @JvmOverloads constructor(
+class DynamicRegistrationClientConfigurationService(
     httpClient: HttpClient? = HttpClientBuilder.create().useSystemProperties().build()
 ) : ClientConfigurationService {
     private val clients: LoadingCache<ServerConfiguration, RegisteredClient?> =
@@ -62,11 +62,11 @@ class DynamicRegistrationClientConfigurationService @JvmOverloads constructor(
 
     override fun getClientConfiguration(issuer: ServerConfiguration): RegisteredClient? {
         try {
-            if (!whitelist.isEmpty() && !whitelist.contains(issuer!!.issuer)) {
+            if (!whitelist.isEmpty() && !whitelist.contains(issuer.issuer)) {
                 throw AuthenticationServiceException("Whitelist was nonempty, issuer was not in whitelist: $issuer")
             }
 
-            if (blacklist.contains(issuer!!.issuer)) {
+            if (blacklist.contains(issuer.issuer)) {
                 throw AuthenticationServiceException("Issuer was in blacklist: $issuer")
             }
 
@@ -105,7 +105,7 @@ class DynamicRegistrationClientConfigurationService @JvmOverloads constructor(
      *
      * @author jricher
      */
-    inner class DynamicClientRegistrationLoader @JvmOverloads constructor(
+    inner class DynamicClientRegistrationLoader(
         httpClient: HttpClient? = HttpClientBuilder.create().useSystemProperties().build()
     ) : CacheLoader<ServerConfiguration, RegisteredClient?>() {
         private val httpFactory = HttpComponentsClientHttpRequestFactory(httpClient)

@@ -184,11 +184,7 @@ class OAuthConfirmationController {
         // if the client is over a week old and has more than one registration, don't give such a big warning
         // instead, tag as "Generally Recognized As Safe" (gras)
         val lastWeek = Date(System.currentTimeMillis() - (60 * 60 * 24 * 7 * 1000))
-        if (count!! > 1 && client.createdAt != null && client.createdAt!!.before(lastWeek)) {
-            model["gras"] = true
-        } else {
-            model["gras"] = false
-        }
+        model["gras"] = count!! > 1 && client.createdAt != null && client.createdAt!!.before(lastWeek)
 
         return "approve"
     }

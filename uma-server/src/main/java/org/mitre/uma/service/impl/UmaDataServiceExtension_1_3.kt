@@ -182,7 +182,7 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceSupport(), MITREidDataServ
     private fun writeResourceSets(writer: JsonWriter?) {
         for (rs in resourceSetRepository.all!!) {
             writer!!.beginObject()
-            writer.name(ID).value(rs!!.id)
+            writer.name(ID).value(rs.id)
             writer.name(CLIENT_ID).value(rs.clientId)
             writer.name(ICON_URI).value(rs.iconUri)
             writer.name(NAME).value(rs.name)

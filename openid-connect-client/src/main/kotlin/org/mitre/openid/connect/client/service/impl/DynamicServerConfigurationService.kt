@@ -45,7 +45,7 @@ import java.util.concurrent.ExecutionException
  *
  * @author jricher
  */
-class DynamicServerConfigurationService @JvmOverloads constructor(
+class DynamicServerConfigurationService(
     httpClient: HttpClient? = HttpClientBuilder.create().useSystemProperties().build()
 ) : ServerConfigurationService {
     // map of issuer -> server configuration, loaded dynamically from service discovery

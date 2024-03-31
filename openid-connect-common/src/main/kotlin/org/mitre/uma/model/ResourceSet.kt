@@ -92,7 +92,7 @@ class ResourceSet {
         result = 31 * result + (name?.hashCode() ?: 0)
         result = 31 * result + (uri?.hashCode() ?: 0)
         result = 31 * result + (type?.hashCode() ?: 0)
-        result = 31 * result + (scopes?.hashCode() ?: 0)
+        result = 31 * result + scopes.hashCode()
         result = 31 * result + (iconUri?.hashCode() ?: 0)
         result = 31 * result + (owner?.hashCode() ?: 0)
         result = 31 * result + (clientId?.hashCode() ?: 0)

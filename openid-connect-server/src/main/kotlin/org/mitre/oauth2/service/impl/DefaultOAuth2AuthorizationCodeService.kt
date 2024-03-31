@@ -108,7 +108,7 @@ class DefaultOAuth2AuthorizationCodeService : AuthorizationCodeServices {
                 return repository.expiredCodes
             }
 
-            protected override fun doOperation(item: AuthorizationCodeEntity) {
+            override fun doOperation(item: AuthorizationCodeEntity) {
                 repository.remove(item)
             }
         }.execute()

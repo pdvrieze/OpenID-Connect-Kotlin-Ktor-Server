@@ -51,10 +51,7 @@ class ResourceSetEntityAbbreviatedView : AbstractView() {
 
             override fun shouldSkipClass(clazz: Class<*>): Boolean {
                 // skip the JPA binding wrapper
-                if (clazz == BeanPropertyBindingResult::class.java) {
-                    return true
-                }
-                return false
+                return clazz == BeanPropertyBindingResult::class.java
             }
         })
         .serializeNulls()

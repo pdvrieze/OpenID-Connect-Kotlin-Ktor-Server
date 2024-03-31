@@ -116,9 +116,8 @@ class MITREidDataService_1_2 : MITREidDataServiceSupport(), MITREidDataService {
             val tok = reader.peek()
             when (tok) {
                 JsonToken.NAME -> {
-                    val name = reader.nextName()
                     // find out which member it is
-                    when (name) {
+                    when (val name = reader.nextName()) {
                         MITREidDataService.CLIENTS -> readClients(reader)
                         MITREidDataService.GRANTS -> readGrants(reader)
                         MITREidDataService.WHITELISTEDSITES -> readWhitelistedSites(reader)
@@ -772,7 +771,7 @@ class MITREidDataService_1_2 : MITREidDataServiceSupport(), MITREidDataService {
         }
         for (oldAccessTokenId in maps.accessTokenToAuthHolderRefs.keys) {
             val oldAuthHolderId = maps.accessTokenToAuthHolderRefs[oldAccessTokenId]
-            val newAuthHolderId = maps.authHolderOldToNewIdMap[oldAuthHolderId] ?: error("Missing authHolder map $oldAuthHolderId");
+            val newAuthHolderId = maps.authHolderOldToNewIdMap[oldAuthHolderId] ?: error("Missing authHolder map $oldAuthHolderId")
             val authHolder = authHolderRepository.getById(newAuthHolderId) ?: error("Missing authHolder $newAuthHolderId")
             val newAccessTokenId = maps.accessTokenOldToNewIdMap[oldAccessTokenId]
             val accessToken = tokenRepository.getAccessTokenById(newAccessTokenId.toJavaId())!!

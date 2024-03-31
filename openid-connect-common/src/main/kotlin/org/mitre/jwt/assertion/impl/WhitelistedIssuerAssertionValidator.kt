@@ -71,11 +71,7 @@ class WhitelistedIssuerAssertionValidator : AssertionValidator {
 
         val validator = jwkCache.getValidator(jwksUri) ?: return false
 
-        return if (validator.validateSignature(assertion)) {
-            true
-        } else {
-            false
-        }
+        return validator.validateSignature(assertion)
     }
 
     companion object {

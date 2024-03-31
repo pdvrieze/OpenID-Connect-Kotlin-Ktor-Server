@@ -48,7 +48,7 @@ import java.util.concurrent.TimeUnit
  * Utility class to fetch userinfo from the userinfo endpoint, if available. Caches the results.
  * @author jricher
  */
-class UserInfoFetcher @JvmOverloads constructor(
+class UserInfoFetcher(
     httpClient: HttpClient = HttpClientBuilder.create().useSystemProperties().build()
 ) {
     private val cache: LoadingCache<PendingOIDCAuthenticationToken, UserInfo?> =

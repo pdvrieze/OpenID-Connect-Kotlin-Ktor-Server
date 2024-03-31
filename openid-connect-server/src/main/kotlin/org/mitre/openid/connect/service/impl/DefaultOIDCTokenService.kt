@@ -56,7 +56,7 @@ import java.util.*
  * @author Amanda Anganes
  */
 @Service
-open class DefaultOIDCTokenService : OIDCTokenService {
+class DefaultOIDCTokenService : OIDCTokenService {
     @Autowired
     lateinit var jwtService: JWTSigningAndValidationService
 

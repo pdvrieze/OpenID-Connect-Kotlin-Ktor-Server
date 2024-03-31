@@ -307,7 +307,7 @@ class OIDCAuthenticationFilter : AbstractAuthenticationProcessingFilter(FILTER_P
         val form: MultiValueMap<String, String?> = LinkedMultiValueMap()
         form.add("grant_type", "authorization_code")
         form.add("code", authorizationCode)
-        form.setAll(authRequestOptionsService.getTokenOptions(serverConfig!!, clientConfig!!, request))
+        form.setAll(authRequestOptionsService.getTokenOptions(serverConfig, clientConfig!!, request))
 
         val codeVerifier = getStoredCodeVerifier(session)
         if (codeVerifier != null) {
@@ -515,7 +515,7 @@ class OIDCAuthenticationFilter : AbstractAuthenticationProcessingFilter(FILTER_P
                             symmetricCacheService!!.getSymmetricValidtor(clientConfig.client)
                         } else {
                             // otherwise load from the server's public key
-                            validationServices!!.getValidator(serverConfig.jwksUri!!)
+                            validationServices!!.getValidator(serverConfig.jwksUri)
                         }
 
                     if (jwtValidator != null) {

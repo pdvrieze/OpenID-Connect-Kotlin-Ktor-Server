@@ -231,7 +231,7 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
     private fun createRefreshToken(
         client: ClientDetailsEntity?,
         authHolder: AuthenticationHolderEntity
-    ): OAuth2RefreshTokenEntity? {
+    ): OAuth2RefreshTokenEntity {
         val refreshToken = OAuth2RefreshTokenEntity() //refreshTokenFactory.createNewRefreshToken();
         val refreshClaims = JWTClaimsSet.Builder()
 
@@ -483,7 +483,7 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
 	 */
     @Transactional(value = "defaultTransactionManager")
     override fun saveRefreshToken(refreshToken: OAuth2RefreshTokenEntity): OAuth2RefreshTokenEntity {
-        return tokenRepository.saveRefreshToken(refreshToken)!!
+        return tokenRepository.saveRefreshToken(refreshToken)
     }
 
     override fun getRegistrationAccessTokenForClient(client: ClientDetailsEntity): OAuth2AccessTokenEntity? {

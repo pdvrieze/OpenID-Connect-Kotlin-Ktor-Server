@@ -36,7 +36,7 @@ class ConfigurationBeanLocaleResolver : AbstractLocaleContextResolver() {
     private lateinit var config: ConfigurationPropertiesBean
 
     override fun getDefaultLocale(): Locale? {
-        return config.locale ?: super.getDefaultLocale()
+        return config.locale
     }
 
     override fun resolveLocaleContext(request: HttpServletRequest): LocaleContext {

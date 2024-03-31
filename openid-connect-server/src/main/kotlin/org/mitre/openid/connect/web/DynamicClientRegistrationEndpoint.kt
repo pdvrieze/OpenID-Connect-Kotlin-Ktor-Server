@@ -177,11 +177,11 @@ class DynamicClientRegistrationEndpoint {
             if (newClient.tokenEndpointAuthMethod == AuthMethod.SECRET_BASIC || newClient.tokenEndpointAuthMethod == AuthMethod.SECRET_JWT || newClient.tokenEndpointAuthMethod == AuthMethod.SECRET_POST) {
                 // we need to generate a secret
 
-                newClient = clientService!!.generateClientSecret(newClient)
+                newClient = clientService.generateClientSecret(newClient)
             }
 
             // set some defaults for token timeouts
-            if (config!!.isHeartMode) {
+            if (config.isHeartMode) {
                 // heart mode has different defaults depending on primary grant type
                 if (newClient.grantTypes.contains("authorization_code")) {
                     newClient.accessTokenValiditySeconds =
@@ -214,11 +214,11 @@ class DynamicClientRegistrationEndpoint {
 
             // now save it
             try {
-                val savedClient = clientService!!.saveNewClient(newClient)
+                val savedClient = clientService.saveNewClient(newClient)
 
                 // generate the registration access token
-                var token = connectTokenService!!.createRegistrationAccessToken(savedClient!!)
-                token = tokenService!!.saveAccessToken(token!!)
+                var token = connectTokenService.createRegistrationAccessToken(savedClient!!)
+                token = tokenService.saveAccessToken(token!!)
 
                 // send it all out to the view
                 val registered =
@@ -251,12 +251,12 @@ class DynamicClientRegistrationEndpoint {
     @PreAuthorize("hasRole('ROLE_CLIENT') and #oauth2.hasScope('" + SystemScopeService.REGISTRATION_TOKEN_SCOPE + "')")
     @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun readClientConfiguration(@PathVariable("id") clientId: String, m: Model, auth: OAuth2Authentication): String {
-        val client = clientService!!.loadClientByClientId(clientId)
+        val client = clientService.loadClientByClientId(clientId)
 
         if (client != null && client.clientId == auth.oAuth2Request.clientId) {
             val token = rotateRegistrationTokenIfNecessary(auth, client)
             val registered =
-                RegisteredClient(client, token!!.value, config!!.issuer + "register/" + UriUtils.encodePathSegment(client.clientId, "UTF-8"))
+                RegisteredClient(client, token!!.value, config.issuer + "register/" + UriUtils.encodePathSegment(client.clientId, "UTF-8"))
 
             // send it all out to the view
             m.addAttribute("client", registered)
@@ -296,7 +296,7 @@ class DynamicClientRegistrationEndpoint {
             m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST) // http 400
             return HttpCodeView.VIEWNAME
         }
-        val oldClient = clientService!!.loadClientByClientId(clientId)
+        val oldClient = clientService.loadClientByClientId(clientId)
 
         if (// we have an existing client and the new one parsed
             newClient != null && oldClient != null && oldClient.clientId == auth.oAuth2Request.clientId && oldClient.clientId == newClient.clientId // the client passed in the body matches the one in the URI
@@ -341,7 +341,7 @@ class DynamicClientRegistrationEndpoint {
                 val token = rotateRegistrationTokenIfNecessary(auth, savedClient)
 
                 val registered =
-                    RegisteredClient(savedClient, token!!.value, config!!.issuer + "register/" + UriUtils.encodePathSegment(savedClient.clientId, "UTF-8"))
+                    RegisteredClient(savedClient, token!!.value, config.issuer + "register/" + UriUtils.encodePathSegment(savedClient.clientId, "UTF-8"))
 
                 // send it all out to the view
                 m.addAttribute("client", registered)
@@ -375,7 +375,7 @@ class DynamicClientRegistrationEndpoint {
     @PreAuthorize("hasRole('ROLE_CLIENT') and #oauth2.hasScope('" + SystemScopeService.REGISTRATION_TOKEN_SCOPE + "')")
     @RequestMapping(value = ["/{id}"], method = [RequestMethod.DELETE], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun deleteClient(@PathVariable("id") clientId: String, m: Model, auth: OAuth2Authentication): String {
-        val client = clientService!!.loadClientByClientId(clientId)
+        val client = clientService.loadClientByClientId(clientId)
 
         if (client != null && client.clientId == auth.oAuth2Request.clientId) {
             clientService.deleteClient(client)
@@ -396,7 +396,7 @@ class DynamicClientRegistrationEndpoint {
     }
 
     @Throws(ValidationException::class)
-    private fun validateScopes(newClient: ClientDetailsEntity): ClientDetailsEntity? {
+    private fun validateScopes(newClient: ClientDetailsEntity): ClientDetailsEntity {
         // scopes that the client is asking for
         val requestedScopes = scopeService.fromStrings(newClient.scope)!!
 
@@ -414,7 +414,7 @@ class DynamicClientRegistrationEndpoint {
     }
 
     @Throws(ValidationException::class)
-    private fun validateResponseTypes(newClient: ClientDetailsEntity?): ClientDetailsEntity? {
+    private fun validateResponseTypes(newClient: ClientDetailsEntity?): ClientDetailsEntity {
         if (newClient!!.responseTypes == null) {
             newClient.responseTypes = HashSet()
         }
@@ -422,7 +422,7 @@ class DynamicClientRegistrationEndpoint {
     }
 
     @Throws(ValidationException::class)
-    private fun validateGrantTypes(newClient: ClientDetailsEntity?): ClientDetailsEntity? {
+    private fun validateGrantTypes(newClient: ClientDetailsEntity?): ClientDetailsEntity {
         // set default grant types if needed
         if (newClient!!.grantTypes == null || newClient.grantTypes.isEmpty()) {
             if (newClient.scope.contains("offline_access")) { // client asked for offline access
@@ -432,7 +432,7 @@ class DynamicClientRegistrationEndpoint {
                 newClient.grantTypes =
                     hashSetOf("authorization_code") // allow authorization code grant type by default
             }
-            if (config!!.isDualClient) {
+            if (config.isDualClient) {
                 val extendedGrandTypes = newClient.grantTypes
                 extendedGrandTypes.add("client_credentials")
                 newClient.grantTypes = extendedGrandTypes
@@ -457,7 +457,7 @@ class DynamicClientRegistrationEndpoint {
             // check for incompatible grants
 
             if (newClient.grantTypes.contains("implicit") ||
-                (!config!!.isDualClient && newClient.grantTypes.contains("client_credentials"))
+                (!config.isDualClient && newClient.grantTypes.contains("client_credentials"))
             ) {
                 // return an error, you can't have these grant types together
                 throw ValidationException("invalid_client_metadata", "Incompatible grant types requested: " + newClient.grantTypes, HttpStatus.BAD_REQUEST)
@@ -475,7 +475,7 @@ class DynamicClientRegistrationEndpoint {
             // check for incompatible grants
 
             if (newClient.grantTypes.contains("authorization_code") ||
-                (!config!!.isDualClient && newClient.grantTypes.contains("client_credentials"))
+                (!config.isDualClient && newClient.grantTypes.contains("client_credentials"))
             ) {
                 // return an error, you can't have these grant types together
                 throw ValidationException("invalid_client_metadata", "Incompatible grant types requested: " + newClient.grantTypes, HttpStatus.BAD_REQUEST)
@@ -496,7 +496,7 @@ class DynamicClientRegistrationEndpoint {
         if (newClient.grantTypes.contains("client_credentials")) {
             // check for incompatible grants
 
-            if (!config!!.isDualClient &&
+            if (!config.isDualClient &&
                 (newClient.grantTypes.contains("authorization_code") || newClient.grantTypes.contains("implicit"))
             ) {
                 // return an error, you can't have these grant types together
@@ -522,7 +522,7 @@ class DynamicClientRegistrationEndpoint {
     }
 
     @Throws(ValidationException::class)
-    private fun validateRedirectUris(newClient: ClientDetailsEntity?): ClientDetailsEntity? {
+    private fun validateRedirectUris(newClient: ClientDetailsEntity?): ClientDetailsEntity {
         // check to make sure this client registered a redirect URI if using a redirect flow
         if (newClient!!.grantTypes.contains("authorization_code") || newClient.grantTypes.contains("implicit")) {
             if (newClient.redirectUris == null || newClient.redirectUris.isEmpty()) {
@@ -531,7 +531,7 @@ class DynamicClientRegistrationEndpoint {
             }
 
             for (uri in newClient.redirectUris) {
-                if (blacklistService!!.isBlacklisted(uri)) {
+                if (blacklistService.isBlacklisted(uri)) {
                     // return an error
                     throw ValidationException("invalid_redirect_uri", "Redirect URI is not allowed: $uri", HttpStatus.BAD_REQUEST)
                 }
@@ -547,7 +547,7 @@ class DynamicClientRegistrationEndpoint {
     }
 
     @Throws(ValidationException::class)
-    private fun validateAuth(newClient: ClientDetailsEntity?): ClientDetailsEntity? {
+    private fun validateAuth(newClient: ClientDetailsEntity?): ClientDetailsEntity {
         var newClient = newClient
         if (newClient!!.tokenEndpointAuthMethod == null) {
             newClient.tokenEndpointAuthMethod = AuthMethod.SECRET_BASIC
@@ -556,7 +556,7 @@ class DynamicClientRegistrationEndpoint {
         if (newClient.tokenEndpointAuthMethod == AuthMethod.SECRET_BASIC || newClient.tokenEndpointAuthMethod == AuthMethod.SECRET_JWT || newClient.tokenEndpointAuthMethod == AuthMethod.SECRET_POST) {
             if (newClient.clientSecret.isNullOrEmpty()) {
                 // no secret yet, we need to generate a secret
-                newClient = clientService!!.generateClientSecret(newClient)
+                newClient = clientService.generateClientSecret(newClient)
             }
         } else if (newClient.tokenEndpointAuthMethod == AuthMethod.PRIVATE_KEY) {
             if (newClient.jwksUri.isNullOrEmpty() && newClient.jwks == null) {
@@ -579,7 +579,7 @@ class DynamicClientRegistrationEndpoint {
     @Throws(ValidationException::class)
     private fun validateSoftwareStatement(newClient: ClientDetailsEntity): ClientDetailsEntity {
         if (newClient.softwareStatement != null) {
-            if (assertionValidator!!.isValid(newClient.softwareStatement!!)) {
+            if (assertionValidator.isValid(newClient.softwareStatement!!)) {
                 // we have a software statement and its envelope passed all the checks from our validator
 
                 // swap out all of the client's fields for the associated parts of the software statement
@@ -683,18 +683,18 @@ class DynamicClientRegistrationEndpoint {
     private fun rotateRegistrationTokenIfNecessary(
         auth: OAuth2Authentication,
         client: ClientDetailsEntity
-    ): OAuth2AccessTokenEntity? {
+    ): OAuth2AccessTokenEntity {
         val details = auth.details as OAuth2AuthenticationDetails
-        val token = tokenService!!.readAccessToken(details.tokenValue)
+        val token = tokenService.readAccessToken(details.tokenValue)
 
-        if (config!!.regTokenLifeTime != null) {
+        if (config.regTokenLifeTime != null) {
             try {
                 // Re-issue the token if it has been issued before [currentTime - validity]
                 val validToDate = Date(System.currentTimeMillis() - config.regTokenLifeTime!! * 1000)
                 if (token.jwt!!.jwtClaimsSet.issueTime.before(validToDate)) {
                     logger.info("Rotating the registration access token for " + client.clientId)
                     tokenService.revokeAccessToken(token)
-                    val newToken = connectTokenService!!.createRegistrationAccessToken(client)
+                    val newToken = connectTokenService.createRegistrationAccessToken(client)
                     tokenService.saveAccessToken(newToken!!)
                     return newToken
                 } else {

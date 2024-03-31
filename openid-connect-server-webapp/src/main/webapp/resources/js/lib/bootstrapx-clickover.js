@@ -78,7 +78,7 @@
 
         this.options.esc_close && $(document).bind('keyup.clickery', function(e) {
             if (e.keyCode == 27) { that.clickery(); }
-            return;
+
         });
 
         // first check for others that might be open

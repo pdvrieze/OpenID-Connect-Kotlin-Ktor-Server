@@ -10,7 +10,6 @@ import com.nimbusds.jwt.JWT
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.PlainJWT
 import com.nimbusds.jwt.SignedJWT
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -79,7 +78,7 @@ class TestJWTBearerAuthenticationProvider {
 
     @Test
     fun should_not_support_UsernamePasswordAuthenticationToken() {
-        Assertions.assertFalse(jwtBearerAuthenticationProvider.supports(UsernamePasswordAuthenticationToken::class.java))
+        assertFalse(jwtBearerAuthenticationProvider.supports(UsernamePasswordAuthenticationToken::class.java))
     }
 
     @Test

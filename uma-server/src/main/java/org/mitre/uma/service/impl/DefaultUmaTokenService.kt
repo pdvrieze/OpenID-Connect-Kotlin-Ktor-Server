@@ -59,7 +59,7 @@ class DefaultUmaTokenService : UmaTokenService {
         o2auth: OAuth2Authentication,
         ticket: PermissionTicket,
         policy: Policy
-    ): OAuth2AccessTokenEntity? {
+    ): OAuth2AccessTokenEntity {
         val token = OAuth2AccessTokenEntity()
         val authHolder = AuthenticationHolderEntity().run {
             authentication = o2auth

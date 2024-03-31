@@ -29,15 +29,19 @@ class ScopeBasedIntrospectionAuthoritiesGranter : IntrospectionAuthorityGranter 
     var authorities: List<GrantedAuthority> = AuthorityUtils.createAuthorityList("ROLE_API")
 
     override fun getAuthorities(introspectionResponse: JsonObject): List<GrantedAuthority> {
-        val auth: MutableList<GrantedAuthority> = ArrayList(authorities)
+        when {
+            !introspectionResponse.has("scope") || !introspectionResponse["scope"].isJsonPrimitive ->
+                return authorities.toList()
 
-        if (introspectionResponse.has("scope") && introspectionResponse["scope"].isJsonPrimitive) {
-            val scopeString = introspectionResponse["scope"].asString
+            else -> {
+                val scopeString = introspectionResponse["scope"].asString
 
-            OAuth2Utils.parseParameterList(scopeString)
-                .mapTo(auth) { SimpleGrantedAuthority("OAUTH_SCOPE_$it") }
+                val auth = authorities.toMutableList()
+                OAuth2Utils.parseParameterList(scopeString)
+                    .mapTo(auth) { SimpleGrantedAuthority("OAUTH_SCOPE_$it") }
+                return auth
+            }
         }
 
-        return auth
     }
 }

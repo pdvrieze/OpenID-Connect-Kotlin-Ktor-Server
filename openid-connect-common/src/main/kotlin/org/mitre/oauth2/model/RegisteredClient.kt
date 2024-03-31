@@ -30,7 +30,7 @@ import java.util.*
 /**
  * @author jricher
  */
-class RegisteredClient @JvmOverloads constructor(
+class RegisteredClient(
     var client: ClientDetailsEntity = ClientDetailsEntity(),// these fields are needed in addition to the ones in ClientDetailsEntity
     var registrationAccessToken: String? = null, var registrationClientUri: String? = null
 ) {
@@ -99,12 +99,12 @@ class RegisteredClient @JvmOverloads constructor(
         }
 
     val authorizedGrantTypes: Set<String>
-        get() = client.authorizedGrantTypes ?: emptySet()
+        get() = client.authorizedGrantTypes
 
     var authorities: Set<GrantedAuthority>
         get() = client.authorities
         set(authorities) {
-            client.setAuthorities(authorities)
+            client.authorities = authorities
         }
 
     var accessTokenValiditySeconds: Int?
@@ -131,7 +131,7 @@ class RegisteredClient @JvmOverloads constructor(
     var resourceIds: Set<String>
         get() = client.resourceIds
         set(resourceIds) {
-            client.setResourceIds(resourceIds)
+            client.resourceIds = resourceIds
         }
     
     val additionalInformation: Map<String, Any>

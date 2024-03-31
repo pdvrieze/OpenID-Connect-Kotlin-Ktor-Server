@@ -50,7 +50,7 @@ class JpaOAuth2ClientRepository : OAuth2ClientRepository {
 	 * @see org.mitre.oauth2.repository.OAuth2ClientRepository#getClientById(java.lang.String)
 	 */
     override fun getClientByClientId(clientId: String): ClientDetailsEntity? {
-        val query = manager!!.createNamedQuery(ClientDetailsEntity.QUERY_BY_CLIENT_ID, ClientDetailsEntity::class.java)
+        val query = manager.createNamedQuery(ClientDetailsEntity.QUERY_BY_CLIENT_ID, ClientDetailsEntity::class.java)
         query.setParameter(ClientDetailsEntity.PARAM_CLIENT_ID, clientId)
         return getSingleResult(query.resultList)
     }
@@ -59,7 +59,7 @@ class JpaOAuth2ClientRepository : OAuth2ClientRepository {
 	 * @see org.mitre.oauth2.repository.OAuth2ClientRepository#saveClient(org.mitre.oauth2.model.ClientDetailsEntity)
 	 */
     override fun saveClient(client: ClientDetailsEntity): ClientDetailsEntity {
-        return saveOrUpdate(client.clientId, manager!!, client)
+        return saveOrUpdate(client.clientId, manager, client)
     }
 
     /* (non-Javadoc)

@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit
  * @author jricher
  */
 @Service("inMemoryClientLogoLoadingService")
-class InMemoryClientLogoLoadingService @JvmOverloads constructor(
+class InMemoryClientLogoLoadingService(
     httpClient: HttpClient = HttpClientBuilder.create().useSystemProperties().build()
 ) : ClientLogoLoadingService {
     private val cache: LoadingCache<ClientDetailsEntity, CachedImage> = CacheBuilder.newBuilder()
@@ -65,7 +65,7 @@ class InMemoryClientLogoLoadingService @JvmOverloads constructor(
     /**
      * @author jricher
      */
-    inner class ClientLogoFetcher @JvmOverloads constructor(
+    inner class ClientLogoFetcher(
         private val httpClient: HttpClient = HttpClientBuilder.create().useSystemProperties().build()
     ) : CacheLoader<ClientDetailsEntity, CachedImage>() {
         /* (non-Javadoc)

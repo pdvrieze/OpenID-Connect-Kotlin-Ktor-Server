@@ -36,7 +36,7 @@ import java.text.ParseException
 class NamedAdminAuthoritiesMapper : OIDCAuthoritiesMapper {
     var admins: Set<SubjectIssuerGrantedAuthority> = HashSet()
 
-    override fun mapAuthorities(idToken: JWT, userInfo: UserInfo?): Collection<GrantedAuthority>? {
+    override fun mapAuthorities(idToken: JWT, userInfo: UserInfo?): Collection<GrantedAuthority> {
         val out: MutableSet<GrantedAuthority> = HashSet()
         try {
             val claims = idToken.jwtClaimsSet

@@ -115,11 +115,11 @@ class DefaultDeviceCodeService : DeviceCodeService {
     @Transactional(value = "defaultTransactionManager")
     override fun clearExpiredDeviceCodes() {
         object : AbstractPageOperationTemplate<DeviceCode>("clearExpiredDeviceCodes") {
-            override fun fetchPage(): Collection<DeviceCode>? {
+            override fun fetchPage(): Collection<DeviceCode> {
                 return repository.expiredCodes
             }
 
-            protected override fun doOperation(item: DeviceCode) {
+            override fun doOperation(item: DeviceCode) {
                 repository.remove(item)
             }
         }.execute()

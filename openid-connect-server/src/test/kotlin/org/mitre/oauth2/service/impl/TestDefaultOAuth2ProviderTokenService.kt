@@ -17,7 +17,6 @@
  */
 package org.mitre.oauth2.service.impl
 
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -106,10 +105,10 @@ class TestDefaultOAuth2ProviderTokenService {
 
         authentication = mock<OAuth2Authentication>()
         val clientAuth = OAuth2Request(null, clientId, null, true, scope, null, null, null, null)
-        whenever(authentication.getOAuth2Request()) doReturn (clientAuth)
+        whenever(authentication.oAuth2Request) doReturn (clientAuth)
 
         client = mock<ClientDetailsEntity>()
-        whenever(client.getClientId()) doReturn (clientId)
+        whenever(client.clientId) doReturn (clientId)
         whenever(clientDetailsService.loadClientByClientId(clientId)) doReturn (client)
         whenever(client.isReuseRefreshToken) doReturn (true)
 
@@ -120,7 +119,7 @@ class TestDefaultOAuth2ProviderTokenService {
         whenever(client.isClearAccessTokensOnRefresh) doReturn (true)
 
         badClient = mock<ClientDetailsEntity>()
-        whenever(badClient.getClientId()) doReturn (badClientId)
+        whenever(badClient.clientId) doReturn (badClientId)
         whenever(clientDetailsService.loadClientByClientId(badClientId)) doReturn (badClient)
 
         refreshToken = mock<OAuth2RefreshTokenEntity>()
@@ -223,7 +222,7 @@ class TestDefaultOAuth2ProviderTokenService {
 
         verify(tokenRepository, never()).saveRefreshToken(isA<OAuth2RefreshTokenEntity>())
 
-        Assertions.assertNull(token.refreshToken)
+        assertNull(token.refreshToken)
     }
 
     /**
@@ -367,7 +366,7 @@ class TestDefaultOAuth2ProviderTokenService {
         verify(tokenRepository).clearAccessTokensForRefreshToken(refreshToken)
 
         assertEquals(client, token.client)
-        Assertions.assertNotEquals(refreshToken, token.refreshToken)
+        assertNotEquals(refreshToken, token.refreshToken)
         assertEquals(storedAuthHolder, token.authenticationHolder)
 
         verify(tokenEnhancer).enhance(token, storedAuthentication)

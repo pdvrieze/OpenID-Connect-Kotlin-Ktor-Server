@@ -173,7 +173,7 @@ class AbstractPageOperationTemplateTest {
             return page
         }
 
-        protected override fun doOperation(item: String?) {
+        override fun doOperation(item: String?) {
             counter++
         }
     }
@@ -187,7 +187,7 @@ class AbstractPageOperationTemplateTest {
 
     private class EmptyPageCountingPageOperation(maxPages: Int, maxTime: Long) :
         CountingPageOperation(maxPages, maxTime) {
-        override fun fetchPage(): Collection<String>? {
+        override fun fetchPage(): Collection<String> {
             return ArrayList(0)
         }
     }

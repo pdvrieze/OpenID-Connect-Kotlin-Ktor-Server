@@ -134,7 +134,7 @@ class IntrospectionEndpoint {
         try {
             // check access tokens first (includes ID tokens)
 
-            accessToken = tokenServices.readAccessToken(tokenValue!!)
+            accessToken = tokenServices.readAccessToken(tokenValue)
 
             tokenClient = accessToken.client
 
@@ -146,7 +146,7 @@ class IntrospectionEndpoint {
             try {
                 // check refresh tokens next
 
-                refreshToken = tokenServices.getRefreshToken(tokenValue!!)
+                refreshToken = tokenServices.getRefreshToken(tokenValue)
 
                 tokenClient = refreshToken!!.client
 

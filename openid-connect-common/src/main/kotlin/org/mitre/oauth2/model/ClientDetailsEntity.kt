@@ -324,7 +324,7 @@ open class ClientDetailsEntity : ClientDetails {
     @get:Transient
     val isAllowRefresh: Boolean
         get() {
-            return grantTypes?.let { "refresh_token" in it } ?: false
+            return grantTypes.let { "refresh_token" in it }
             // if there are no grants, we can't be refreshing them, can we?
         }
 

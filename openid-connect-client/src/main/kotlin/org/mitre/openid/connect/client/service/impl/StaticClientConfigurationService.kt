@@ -39,7 +39,7 @@ class StaticClientConfigurationService : ClientConfigurationService {
      * @see org.mitre.openid.connect.client.service.ClientConfigurationService.getClientConfiguration
      */
     override fun getClientConfiguration(issuer: ServerConfiguration): RegisteredClient? {
-        return clients[issuer!!.issuer]
+        return clients[issuer.issuer]
     }
 
     @PostConstruct

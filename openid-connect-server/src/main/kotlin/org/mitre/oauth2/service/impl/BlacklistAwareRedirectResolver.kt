@@ -69,7 +69,7 @@ class BlacklistAwareRedirectResolver : DefaultRedirectResolver() {
         return when {
             isStrictMatch ->
                 // we're doing a strict string match for all clients
-                (requestedRedirect ?: "") == redirectUri
+                requestedRedirect == redirectUri
 
             else ->
                 // otherwise do the prefix-match from the library

@@ -54,7 +54,7 @@ import java.util.*
  * based on the response from the introspection endpoint.
  * @author jricher
  */
-class IntrospectingTokenService @JvmOverloads constructor(
+class IntrospectingTokenService(
     httpClient: HttpClient? = HttpClientBuilder.create().useSystemProperties().build()
 ) : ResourceServerTokenServices {
     var introspectionConfigurationService: IntrospectionConfigurationService? = null

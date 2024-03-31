@@ -320,7 +320,7 @@ class DefaultOAuth2ClientDetailsEntityService : ClientDetailsEntityService {
 
         // clear out resource sets registered for this client
         val resourceSets = resourceSetService.getAllForClient(client)
-        for (rs in resourceSets!!) {
+        for (rs in resourceSets) {
             resourceSetService.remove(rs)
         }
 

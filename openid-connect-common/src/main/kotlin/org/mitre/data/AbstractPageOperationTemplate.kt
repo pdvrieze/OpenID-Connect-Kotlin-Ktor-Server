@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory
  * @property maxTime long specifying the maximum execution time in milliseconds
  * @property operationName String that is used for logging in final tallies
  */
-abstract class AbstractPageOperationTemplate<T> @JvmOverloads constructor(
+abstract class AbstractPageOperationTemplate<T>(
     var operationName: String,
     var maxPages: Int = DEFAULT_MAX_PAGES,
     var maxTime: Long = DEFAULT_MAX_TIME_MILLIS,
@@ -55,7 +55,7 @@ abstract class AbstractPageOperationTemplate<T> @JvmOverloads constructor(
      * swallowException (default true) field is set true.
      */
     fun execute() {
-        logger.debug("[" + operationName + "] Starting execution of paged operation. maximum time: " + maxTime + ", maximum pages: " + maxPages)
+        logger.debug("[$operationName] Starting execution of paged operation. maximum time: $maxTime, maximum pages: $maxPages")
 
         val startTime = System.currentTimeMillis()
         var executionTime: Long = 0
@@ -121,10 +121,10 @@ abstract class AbstractPageOperationTemplate<T> @JvmOverloads constructor(
         exceptionsSwallowedClasses: Set<String>
     ) {
         if (operationsCompleted > 0 || exceptionsSwallowedCount > 0) {
-            logger.info("[" + operationName + "] Paged operation run: completed " + operationsCompleted + "; swallowed " + exceptionsSwallowedCount + " exceptions")
+            logger.info("[$operationName] Paged operation run: completed $operationsCompleted; swallowed $exceptionsSwallowedCount exceptions")
         }
         for (className in exceptionsSwallowedClasses) {
-            logger.warn("[" + operationName + "] Paged operation swallowed at least one exception of type " + className)
+            logger.warn("[$operationName] Paged operation swallowed at least one exception of type $className")
         }
     }
 

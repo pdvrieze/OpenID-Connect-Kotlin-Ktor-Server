@@ -45,11 +45,7 @@ class ClientEntityViewForUsers : AbstractClientEntityView() {
             return object : ExclusionStrategy {
                 override fun shouldSkipField(f: FieldAttributes): Boolean {
                     // whitelist the handful of fields that are good
-                    return if (whitelistedFields.contains(f.name)) {
-                        false
-                    } else {
-                        true
-                    }
+                    return !whitelistedFields.contains(f.name)
                 }
 
                 override fun shouldSkipClass(clazz: Class<*>): Boolean {
