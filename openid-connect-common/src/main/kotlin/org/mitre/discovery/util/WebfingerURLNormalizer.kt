@@ -17,7 +17,6 @@
  */
 package org.mitre.discovery.util
 
-import com.google.common.base.Strings
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.util.StringUtils
@@ -61,7 +60,7 @@ object WebfingerURLNormalizer {
         // try to parse the URI
         // NOTE: we can't use the Java built-in URI class because it doesn't split the parts appropriately
 
-        if (Strings.isNullOrEmpty(identifier)) {
+        if (identifier.isNullOrEmpty()) {
             logger.warn("Can't normalize null or empty URI: $identifier")
             return null // nothing we can do
         } else {
@@ -75,7 +74,7 @@ object WebfingerURLNormalizer {
                 builder.userInfo(m.group(6))
                 builder.host(m.group(8))
                 val port = m.group(10)
-                if (!Strings.isNullOrEmpty(port)) {
+                if (!port.isNullOrEmpty()) {
                     builder.port(port.toInt())
                 }
                 builder.path(m.group(11))
@@ -90,9 +89,9 @@ object WebfingerURLNormalizer {
             val n = builder.build()
 
             if (n.scheme.isNullOrEmpty()) {
-                if ((!Strings.isNullOrEmpty(n.userInfo)
-                            && Strings.isNullOrEmpty(n.path)
-                            && Strings.isNullOrEmpty(n.query)) && n.port < 0
+                if ((!n.userInfo.isNullOrEmpty()
+                            && n.path.isNullOrEmpty()
+                            && n.query.isNullOrEmpty()) && n.port < 0
                 ) {
                     // scheme empty, userinfo is not empty, path/query/port are empty
                     // set to "acct" (rule 2)

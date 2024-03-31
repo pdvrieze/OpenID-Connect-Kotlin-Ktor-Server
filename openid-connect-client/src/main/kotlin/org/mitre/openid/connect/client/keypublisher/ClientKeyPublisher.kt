@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.client.keypublisher
 
-import com.google.common.base.Strings
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.openid.connect.view.JWKSetView
 import org.springframework.beans.BeansException
@@ -45,14 +44,14 @@ class ClientKeyPublisher : BeanDefinitionRegistryPostProcessor {
      */
     @Throws(BeansException::class)
     override fun postProcessBeanFactory(beanFactory: ConfigurableListableBeanFactory) {
-        if (!Strings.isNullOrEmpty(jwkPublishUrl)) {
+        if (!jwkPublishUrl.isNullOrEmpty()) {
             // add a mapping to this class
 
             val clientKeyMapping = BeanDefinitionBuilder.rootBeanDefinition(ClientKeyPublisherMapping::class.java)
             // custom view resolver
             val viewResolver = BeanDefinitionBuilder.rootBeanDefinition(JwkViewResolver::class.java)
 
-            if (!Strings.isNullOrEmpty(jwkPublishUrl)) {
+            if (!jwkPublishUrl.isNullOrEmpty()) {
                 clientKeyMapping.addPropertyValue("jwkPublishUrl", jwkPublishUrl)
 
                 // randomize view name to make sure it doesn't conflict with local views

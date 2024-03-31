@@ -67,7 +67,7 @@ class DiscoveryEndpoint {
         @RequestParam(value = "rel", required = false) rel: String,
         model: Model
     ): String {
-        if (!Strings.isNullOrEmpty(rel) && rel != "http://openid.net/specs/connect/1.0/issuer") {
+        if (!rel.isNullOrEmpty() && rel != "http://openid.net/specs/connect/1.0/issuer") {
             logger.warn("Responding to webfinger request for non-OIDC relation: $rel")
         }
 

@@ -72,7 +72,7 @@ class DefaultBlacklistedSiteService : BlacklistedSiteService {
 	 * @see org.mitre.openid.connect.service.BlacklistedSiteService#isBlacklisted(java.lang.String)
 	 */
     override fun isBlacklisted(uri: String): Boolean {
-        if (Strings.isNullOrEmpty(uri)) {
+        if (uri.isNullOrEmpty()) {
             return false // can't be blacklisted if you don't exist
         }
 

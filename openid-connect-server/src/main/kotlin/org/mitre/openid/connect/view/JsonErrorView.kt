@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.view
 
-import com.google.common.base.Strings
 import com.google.gson.ExclusionStrategy
 import com.google.gson.FieldAttributes
 import com.google.gson.Gson
@@ -78,7 +77,7 @@ class JsonErrorView : AbstractView() {
             val out: Writer = response.writer
 
             var errorTitle = model[ERROR] as String?
-            if (Strings.isNullOrEmpty(errorTitle)) {
+            if (errorTitle.isNullOrEmpty()) {
                 errorTitle = "mitreid_error"
             }
             val errorMessage = model[ERROR_MESSAGE] as String?

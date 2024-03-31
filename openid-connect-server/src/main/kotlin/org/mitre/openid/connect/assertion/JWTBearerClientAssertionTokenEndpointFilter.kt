@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.assertion
 
-import com.google.common.base.Strings
 import com.nimbusds.jwt.JWTParser
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.Authentication
@@ -100,7 +99,7 @@ class JWTBearerClientAssertionTokenEndpointFilter(additionalMatcher: RequestMatc
             val assertionType = request.getParameter("client_assertion_type")
             val assertion = request.getParameter("client_assertion")
 
-            if (Strings.isNullOrEmpty(assertionType) || Strings.isNullOrEmpty(assertion)) {
+            if (assertionType.isNullOrEmpty() || assertion.isNullOrEmpty()) {
                 return false
             } else if (assertionType != "urn:ietf:params:oauth:client-assertion-type:jwt-bearer") {
                 return false

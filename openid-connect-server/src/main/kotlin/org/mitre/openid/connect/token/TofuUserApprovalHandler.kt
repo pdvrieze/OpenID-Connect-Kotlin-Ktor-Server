@@ -184,7 +184,7 @@ class TofuUserApprovalHandler : UserApprovalHandler {
 
             //Only store an ApprovedSite if the user has checked "remember this decision":
             val remember = authorizationRequest.approvalParameters["remember"]
-            if (!Strings.isNullOrEmpty(remember) && remember != "none") {
+            if (!remember.isNullOrEmpty() && remember != "none") {
                 var timeout: Date? = null
                 if (remember == "one-hour") {
                     // set the timeout to one hour from now

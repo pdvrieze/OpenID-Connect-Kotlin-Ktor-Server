@@ -15,7 +15,6 @@
  */
 package org.mitre.jwt.assertion.impl
 
-import com.google.common.base.Strings
 import com.nimbusds.jwt.JWT
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
@@ -55,7 +54,7 @@ class SelfAssertionValidator : AssertionValidator {
         }
 
         // make sure the issuer exists
-        if (Strings.isNullOrEmpty(claims.issuer)) {
+        if (claims.issuer.isNullOrEmpty()) {
             logger.debug("No issuer for assertion, rejecting")
             return false
         }

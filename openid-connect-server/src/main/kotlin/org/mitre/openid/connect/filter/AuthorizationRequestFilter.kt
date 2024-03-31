@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.filter
 
-import com.google.common.base.Strings
 import org.apache.http.client.utils.URIBuilder
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.service.ClientDetailsEntityService
@@ -88,7 +87,7 @@ class AuthorizationRequestFilter : GenericFilterBean() {
             authRequest = authRequestFactory
                 .createAuthorizationRequest(createRequestMap(request.parameterMap as Map<String, Array<String>?>))
 
-            if (!Strings.isNullOrEmpty(authRequest.clientId)) {
+            if (!authRequest.clientId.isNullOrEmpty()) {
                 client = clientService.loadClientByClientId(authRequest.clientId)
             }
 
@@ -96,7 +95,7 @@ class AuthorizationRequestFilter : GenericFilterBean() {
             // but first check to see if the login hint makes any sense
             val loginHint =
                 loginHintExtracter.extractHint(authRequest.extensions[ConnectRequestParameters.LOGIN_HINT] as String?)
-            if (!Strings.isNullOrEmpty(loginHint)) {
+            if (!loginHint.isNullOrEmpty()) {
                 session.setAttribute(ConnectRequestParameters.LOGIN_HINT, loginHint)
             } else {
                 session.removeAttribute(ConnectRequestParameters.LOGIN_HINT)
@@ -127,7 +126,7 @@ class AuthorizationRequestFilter : GenericFilterBean() {
                                 val uriBuilder = URIBuilder(url)
 
                                 uriBuilder.addParameter(ConnectRequestParameters.ERROR, ConnectRequestParameters.LOGIN_REQUIRED)
-                                if (!Strings.isNullOrEmpty(authRequest.state)) {
+                                if (!authRequest.state.isNullOrEmpty()) {
                                     uriBuilder.addParameter(ConnectRequestParameters.STATE, authRequest.state) // copy the state parameter if one was given
                                 }
 

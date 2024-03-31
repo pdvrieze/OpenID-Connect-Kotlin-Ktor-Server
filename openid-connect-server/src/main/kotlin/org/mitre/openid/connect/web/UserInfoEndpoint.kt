@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.web
 
-import com.google.common.base.Strings
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.openid.connect.service.UserInfoService
@@ -83,7 +82,7 @@ class UserInfoEndpoint {
 
         model.addAttribute(UserInfoView.AUTHORIZED_CLAIMS, auth.oAuth2Request.extensions["claims"])
 
-        if (!Strings.isNullOrEmpty(claimsRequestJsonString)) {
+        if (!claimsRequestJsonString.isNullOrEmpty()) {
             model.addAttribute(UserInfoView.REQUESTED_CLAIMS, claimsRequestJsonString)
         }
 

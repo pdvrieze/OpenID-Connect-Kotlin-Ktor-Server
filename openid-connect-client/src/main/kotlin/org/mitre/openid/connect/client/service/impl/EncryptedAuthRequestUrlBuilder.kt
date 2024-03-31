@@ -18,7 +18,6 @@
 package org.mitre.openid.connect.client.service.impl
 
 import com.google.common.base.Joiner
-import com.google.common.base.Strings
 import com.nimbusds.jose.EncryptionMethod
 import com.nimbusds.jose.JWEAlgorithm
 import com.nimbusds.jose.JWEHeader
@@ -78,7 +77,7 @@ class EncryptedAuthRequestUrlBuilder : AuthRequestUrlBuilder {
         }
 
         // if there's a login hint, send it
-        if (!Strings.isNullOrEmpty(loginHint)) {
+        if (!loginHint.isNullOrEmpty()) {
             claims.claim("login_hint", loginHint)
         }
 

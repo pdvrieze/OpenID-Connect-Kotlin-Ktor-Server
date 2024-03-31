@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.client
 
-import com.google.common.base.Strings
 import org.mitre.openid.connect.model.OIDCAuthenticationToken
 import org.mitre.openid.connect.model.PendingOIDCAuthenticationToken
 import org.mitre.openid.connect.model.UserInfo
@@ -62,7 +61,7 @@ class OIDCAuthenticationProvider : AuthenticationProvider {
                 // user info not found -- could be an error, could be fine
             } else {
                 // if we found userinfo, double check it
-                if (!Strings.isNullOrEmpty(userInfo.sub) && userInfo.sub != token.sub) {
+                if (!userInfo.sub.isNullOrEmpty() && userInfo.sub != token.sub) {
                     // the userinfo came back and the user_id fields don't match what was in the id_token
                     throw UsernameNotFoundException("user_id mismatch between id_token and user_info call: " + token.sub + " / " + userInfo.sub)
                 }

@@ -17,7 +17,6 @@
  */
 package org.mitre.oauth2.web
 
-import com.google.common.base.Strings
 import com.google.common.collect.ImmutableMap
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
@@ -121,7 +120,7 @@ class IntrospectionEndpoint {
         // by here we're allowed to introspect, now we need to look up the token in our token stores
 
         // first make sure the token is there
-        if (Strings.isNullOrEmpty(tokenValue)) {
+        if (tokenValue.isNullOrEmpty()) {
             logger.error("Verify failed; token value is null")
             val entity: Map<String, Boolean> = ImmutableMap.of("active", java.lang.Boolean.FALSE)
             model.addAttribute(JsonEntityView.ENTITY, entity)

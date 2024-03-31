@@ -15,7 +15,6 @@
  */
 package org.mitre.openid.connect.view
 
-import com.google.common.base.Strings
 import com.google.common.collect.Lists
 import com.google.gson.JsonObject
 import com.nimbusds.jose.Algorithm
@@ -84,7 +83,7 @@ class UserInfoJWTView : UserInfoView() {
 
 
             if (client.userInfoEncryptedResponseAlg != null && client.userInfoEncryptedResponseAlg != Algorithm.NONE && client.userInfoEncryptedResponseEnc != null && client.userInfoEncryptedResponseEnc != Algorithm.NONE
-                && (!Strings.isNullOrEmpty(client.jwksUri) || client.jwks != null)
+                && (!client.jwksUri.isNullOrEmpty() || client.jwks != null)
             ) {
                 // encrypt it to the client's key
 

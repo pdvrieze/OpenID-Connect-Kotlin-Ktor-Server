@@ -19,7 +19,6 @@ package org.mitre.openid.connect
 
 import com.google.common.base.Joiner
 import com.google.common.base.Splitter
-import com.google.common.base.Strings
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -194,7 +193,7 @@ object ClientDetailsEntityJsonProcessor {
 
             // note that this does not process or validate the software statement, that's handled in other components
             val softwareStatement = JsonUtils.getAsString(o, SOFTWARE_STATEMENT)
-            if (!Strings.isNullOrEmpty(softwareStatement)) {
+            if (!softwareStatement.isNullOrEmpty()) {
                 try {
                     val softwareStatementJwt = JWTParser.parse(softwareStatement)
                     c.softwareStatement = softwareStatementJwt

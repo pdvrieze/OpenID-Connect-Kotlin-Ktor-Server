@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.request
 
-import com.google.common.base.Strings
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.nimbusds.jose.Algorithm
@@ -290,7 +289,7 @@ class ConnectOAuth2RequestFactory
 
 
     private fun parseClaimRequest(claimRequestString: String?): JsonObject? {
-        if (Strings.isNullOrEmpty(claimRequestString)) {
+        if (claimRequestString.isNullOrEmpty()) {
             return null
         } else {
             val el = parser.parse(claimRequestString)

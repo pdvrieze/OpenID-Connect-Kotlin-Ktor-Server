@@ -15,7 +15,6 @@
  */
 package org.mitre.oauth2.model.convert
 
-import com.google.common.base.Strings
 import com.google.gson.JsonElement
 import com.google.gson.JsonParser
 import javax.persistence.AttributeConverter
@@ -36,7 +35,7 @@ class JsonElementStringConverter : AttributeConverter<JsonElement?, String?> {
 	 * @see javax.persistence.AttributeConverter#convertToEntityAttribute(java.lang.Object)
 	 */
     override fun convertToEntityAttribute(dbData: String?): JsonElement? {
-        return if (!Strings.isNullOrEmpty(dbData)) {
+        return if (!dbData.isNullOrEmpty()) {
             parser.parse(dbData)
         } else {
             null

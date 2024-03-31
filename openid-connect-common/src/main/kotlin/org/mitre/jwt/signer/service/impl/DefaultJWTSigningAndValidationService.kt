@@ -17,7 +17,6 @@
  */
 package org.mitre.jwt.signer.service.impl
 
-import com.google.common.base.Strings
 import com.nimbusds.jose.JOSEException
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.JWSSigner
@@ -87,7 +86,7 @@ class DefaultJWTSigningAndValidationService : JWTSigningAndValidationService {
         // convert all keys in the keystore to a map based on key id
         if (keyStore?.jwkSet != null) {
             for (key in keyStore.keys) {
-                if (!Strings.isNullOrEmpty(key.keyID)) {
+                if (!key.keyID.isNullOrEmpty()) {
                     // use the key ID that's built into the key itself
                     keys[key.keyID] = key
                 } else {

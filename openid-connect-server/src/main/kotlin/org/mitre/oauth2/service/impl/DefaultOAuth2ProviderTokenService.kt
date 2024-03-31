@@ -17,7 +17,6 @@
  */
 package org.mitre.oauth2.service.impl
 
-import com.google.common.base.Strings
 import com.nimbusds.jose.util.Base64URL
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.PlainJWT
@@ -263,7 +262,7 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
     @Transactional(value = "defaultTransactionManager")
     @Throws(AuthenticationException::class)
     override fun refreshAccessToken(refreshTokenValue: String, authRequest: TokenRequest): OAuth2AccessTokenEntity {
-        if (Strings.isNullOrEmpty(refreshTokenValue)) {
+        if (refreshTokenValue.isNullOrEmpty()) {
             // throw an invalid token exception if there's no refresh token value at all
             throw InvalidTokenException("Invalid refresh token: $refreshTokenValue")
         }

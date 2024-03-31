@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.client
 
-import com.google.common.base.Strings
 import com.google.common.collect.Lists
 import com.google.gson.JsonParser
 import com.nimbusds.jose.Algorithm
@@ -160,12 +159,12 @@ class OIDCAuthenticationFilter : AbstractAuthenticationProcessingFilter(FILTER_P
 	 */
     @Throws(AuthenticationException::class, IOException::class, ServletException::class)
     override fun attemptAuthentication(request: HttpServletRequest, response: HttpServletResponse): Authentication? {
-        if (!Strings.isNullOrEmpty(request.getParameter("error"))) {
+        if (!request.getParameter("error").isNullOrEmpty()) {
             // there's an error coming back from the server, need to handle this
 
             handleError(request, response)
             return null // no auth, response is sent to display page or something
-        } else if (!Strings.isNullOrEmpty(request.getParameter("code"))) {
+        } else if (!request.getParameter("code").isNullOrEmpty()) {
             // we got back the code, need to process this to get our tokens
 
             val auth = handleAuthorizationCodeResponse(request, response)
@@ -203,7 +202,7 @@ class OIDCAuthenticationFilter : AbstractAuthenticationProcessingFilter(FILTER_P
         } else {
             val issuer = issResp.issuer
 
-            if (!Strings.isNullOrEmpty(issResp.targetLinkUri)) {
+            if (!issResp.targetLinkUri.isNullOrEmpty()) {
                 // there's a target URL in the response, we should save this so we can forward to it later
                 session.setAttribute(TARGET_SESSION_VARIABLE, issResp.targetLinkUri)
             }
@@ -577,7 +576,7 @@ class OIDCAuthenticationFilter : AbstractAuthenticationProcessingFilter(FILTER_P
 
                 // compare the nonce to our stored claim
                 val nonce = idClaims.getStringClaim("nonce")
-                if (Strings.isNullOrEmpty(nonce)) {
+                if (nonce.isNullOrEmpty()) {
                     logger.error("ID token did not contain a nonce claim.")
 
                     throw AuthenticationServiceException("ID token did not contain a nonce claim.")
@@ -654,7 +653,7 @@ class OIDCAuthenticationFilter : AbstractAuthenticationProcessingFilter(FILTER_P
             // check to see if we've got a target
             var target = getStoredSessionString(session, TARGET_SESSION_VARIABLE)
 
-            if (!Strings.isNullOrEmpty(target)) {
+            if (!target.isNullOrEmpty()) {
                 session.removeAttribute(TARGET_SESSION_VARIABLE)
 
                 if (deepLinkFilter != null) {

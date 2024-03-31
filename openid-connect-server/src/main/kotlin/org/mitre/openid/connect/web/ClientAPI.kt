@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.web
 
-import com.google.common.base.Strings
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonDeserializer
@@ -229,7 +228,7 @@ class ClientAPI {
         }
 
         // if they leave the client identifier empty, force it to be generated
-        if (Strings.isNullOrEmpty(client.clientId)) {
+        if (client.clientId.isNullOrEmpty()) {
             client = clientService.generateClientId(client)
         }
 
@@ -241,12 +240,12 @@ class ClientAPI {
             // if they've asked for us to generate a client secret (or they left it blank but require one), do so here
 
             if (json.has("generateClientSecret") && json["generateClientSecret"].asBoolean
-                || Strings.isNullOrEmpty(client.clientSecret)
+                || client.clientSecret.isNullOrEmpty()
             ) {
                 client = clientService.generateClientSecret(client)
             }
         } else if (client.tokenEndpointAuthMethod == AuthMethod.PRIVATE_KEY) {
-            if (Strings.isNullOrEmpty(client.jwksUri) && client.jwks == null) {
+            if (client.jwksUri.isNullOrEmpty() && client.jwks == null) {
                 logger.error("tried to create client with private key auth but no private key")
                 m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
                 m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Can not create a client with private key authentication without registering a key via the JWK Set URI or JWK Set Value.")
@@ -339,7 +338,7 @@ class ClientAPI {
         }
 
         // if they leave the client identifier empty, force it to be generated
-        if (Strings.isNullOrEmpty(client.clientId)) {
+        if (client.clientId.isNullOrEmpty()) {
             client = clientService.generateClientId(client)
         }
 
@@ -351,12 +350,12 @@ class ClientAPI {
             // if they've asked for us to generate a client secret (or they left it blank but require one), do so here
 
             if (json.has("generateClientSecret") && json["generateClientSecret"].asBoolean
-                || Strings.isNullOrEmpty(client.clientSecret)
+                || client.clientSecret.isNullOrEmpty()
             ) {
                 client = clientService.generateClientSecret(client)
             }
         } else if (client.tokenEndpointAuthMethod == AuthMethod.PRIVATE_KEY) {
-            if (Strings.isNullOrEmpty(client.jwksUri) && client.jwks == null) {
+            if (client.jwksUri.isNullOrEmpty() && client.jwks == null) {
                 logger.error("tried to create client with private key auth but no private key")
                 m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
                 m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Can not create a client with private key authentication without registering a key via the JWK Set URI or JWK Set Value.")
@@ -444,7 +443,7 @@ class ClientAPI {
 
         if (client == null) {
             return ResponseEntity(HttpStatus.NOT_FOUND)
-        } else if (Strings.isNullOrEmpty(client.logoUri)) {
+        } else if (client.logoUri.isNullOrEmpty()) {
             return ResponseEntity(HttpStatus.NOT_FOUND)
         } else {
             // get the image from cache

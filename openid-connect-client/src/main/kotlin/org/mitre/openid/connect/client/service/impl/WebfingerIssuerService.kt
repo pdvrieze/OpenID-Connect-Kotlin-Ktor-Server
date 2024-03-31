@@ -81,7 +81,7 @@ class WebfingerIssuerService(
 	 */
     override fun getIssuer(request: HttpServletRequest): IssuerServiceResponse? {
         val identifier = request.getParameter(parameterName)
-        if (!Strings.isNullOrEmpty(identifier)) {
+        if (!identifier.isNullOrEmpty()) {
             try {
                 val lr = issuers[identifier]
                 if (!whitelist.isEmpty() && !whitelist.contains(lr.issuer)) {
@@ -124,7 +124,7 @@ class WebfingerIssuerService(
             var scheme = key!!.scheme
 
             // preserving http scheme is strictly for demo system use only.
-            if (!Strings.isNullOrEmpty(scheme) && scheme == "http") {
+            if (!scheme.isNullOrEmpty() && scheme == "http") {
                 // add on colon and slashes.
                 require(!isForceHttps) { "Scheme must not be 'http'" }
                 logger.warn("Webfinger endpoint MUST use the https URI scheme, overriding by configuration")
@@ -141,7 +141,7 @@ class WebfingerIssuerService(
                         + (if (key.port >= 0) ":" + key.port else "")
                         + Strings.nullToEmpty(key.path)
                         + "/.well-known/webfinger"
-                        + (if (Strings.isNullOrEmpty(key.query)) "" else "?" + key.query)
+                        + (if (key.query.isNullOrEmpty()) "" else "?" + key.query)
             )
             builder.addParameter("resource", identifier)
             builder.addParameter("rel", "http://openid.net/specs/connect/1.0/issuer")

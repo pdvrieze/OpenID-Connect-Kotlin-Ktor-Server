@@ -17,7 +17,6 @@
  */
 package org.mitre.jwt.encryption.service.impl
 
-import com.google.common.base.Strings
 import com.nimbusds.jose.EncryptionMethod
 import com.nimbusds.jose.JOSEException
 import com.nimbusds.jose.JWEAlgorithm
@@ -91,7 +90,7 @@ class DefaultJWTEncryptionAndDecryptionService : JWTEncryptionAndDecryptionServi
         // convert all keys in the keystore to a map based on key id
 
         for (key in keyStore.keys) {
-            if (!Strings.isNullOrEmpty(key.keyID)) {
+            if (!key.keyID.isNullOrEmpty()) {
                 keys[key.keyID] = key
             } else {
                 throw IllegalArgumentException("Tried to load a key from a keystore without a 'kid' field: $key")

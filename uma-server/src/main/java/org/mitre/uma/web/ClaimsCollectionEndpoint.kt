@@ -15,7 +15,6 @@
  */
 package org.mitre.uma.web
 
-import com.google.common.base.Strings
 import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
 import org.mitre.oauth2.service.ClientDetailsEntityService
@@ -105,7 +104,7 @@ class ClaimsCollectionEndpoint {
 
         val updatedTicket = permissionService.updateTicket(ticket)
 
-        if (Strings.isNullOrEmpty(redirectUri)) {
+        if (redirectUri.isNullOrEmpty()) {
             if (client.claimsRedirectUris!!.size == 1) {
                 redirectUri =
                     client.claimsRedirectUris!!.iterator().next() // get the first (and only) redirect URI to use here
@@ -121,7 +120,7 @@ class ClaimsCollectionEndpoint {
 
         val template = UriComponentsBuilder.fromUriString(redirectUri)
         template.queryParam("authorization_state", "claims_submitted")
-        if (!Strings.isNullOrEmpty(state)) {
+        if (!state.isNullOrEmpty()) {
             template.queryParam("state", state)
         }
 

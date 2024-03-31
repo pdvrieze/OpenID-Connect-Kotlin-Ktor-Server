@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.web
 
-import com.google.common.base.Strings
 import com.google.gson.JsonSyntaxException
 import com.nimbusds.jose.EncryptionMethod
 import com.nimbusds.jose.JWEAlgorithm
@@ -555,12 +554,12 @@ class DynamicClientRegistrationEndpoint {
         }
 
         if (newClient.tokenEndpointAuthMethod == AuthMethod.SECRET_BASIC || newClient.tokenEndpointAuthMethod == AuthMethod.SECRET_JWT || newClient.tokenEndpointAuthMethod == AuthMethod.SECRET_POST) {
-            if (Strings.isNullOrEmpty(newClient.clientSecret)) {
+            if (newClient.clientSecret.isNullOrEmpty()) {
                 // no secret yet, we need to generate a secret
                 newClient = clientService!!.generateClientSecret(newClient)
             }
         } else if (newClient.tokenEndpointAuthMethod == AuthMethod.PRIVATE_KEY) {
-            if (Strings.isNullOrEmpty(newClient.jwksUri) && newClient.jwks == null) {
+            if (newClient.jwksUri.isNullOrEmpty() && newClient.jwks == null) {
                 throw ValidationException("invalid_client_metadata", "JWK Set URI required when using private key authentication", HttpStatus.BAD_REQUEST)
             }
 

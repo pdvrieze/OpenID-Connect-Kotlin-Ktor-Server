@@ -15,7 +15,6 @@
  */
 package org.mitre.uma.model.convert
 
-import com.google.common.base.Strings
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.openid.connect.ClientDetailsEntityJsonProcessor.parseRegistered
 import javax.persistence.AttributeConverter
@@ -31,7 +30,7 @@ class RegisteredClientStringConverter : AttributeConverter<RegisteredClient?, St
     }
 
     override fun convertToEntityAttribute(dbData: String?): RegisteredClient? {
-        return if (Strings.isNullOrEmpty(dbData)) {
+        return if (dbData.isNullOrEmpty()) {
             null
         } else {
             parseRegistered(dbData)

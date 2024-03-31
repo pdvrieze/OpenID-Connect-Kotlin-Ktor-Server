@@ -15,7 +15,6 @@
  */
 package org.mitre.jwt.signer.service.impl
 
-import com.google.common.base.Strings
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
@@ -63,7 +62,7 @@ class SymmetricKeyJWTValidatorCacheService {
             return null
         }
 
-        if (Strings.isNullOrEmpty(client.clientSecret)) {
+        if (client.clientSecret.isNullOrEmpty()) {
             logger.error("Couldn't create symmetric validator for client " + client.clientId + " without a client secret")
             return null
         }

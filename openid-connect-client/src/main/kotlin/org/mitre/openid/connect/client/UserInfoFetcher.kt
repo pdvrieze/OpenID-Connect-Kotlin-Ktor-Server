@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.client
 
-import com.google.common.base.Strings
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
@@ -83,7 +82,7 @@ class UserInfoFetcher @JvmOverloads constructor(
                 return null
             }
 
-            if (Strings.isNullOrEmpty(serverConfiguration.userInfoUri)) {
+            if (serverConfiguration.userInfoUri.isNullOrEmpty()) {
                 logger.warn("No userinfo endpoint, not fetching.")
                 return null
             }
@@ -116,7 +115,7 @@ class UserInfoFetcher @JvmOverloads constructor(
             }
 
 
-            if (!Strings.isNullOrEmpty(userInfoString)) {
+            if (!userInfoString.isNullOrEmpty()) {
                 val userInfoJson = JsonParser().parse(userInfoString).asJsonObject
 
                 val userInfo = fromJson(userInfoJson)

@@ -15,7 +15,6 @@
  */
 package org.mitre.openid.connect.web
 
-import com.google.common.base.Strings
 import com.google.common.collect.Iterables
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.JWTParser
@@ -72,16 +71,16 @@ class EndSessionEndpoint {
         var idTokenClaims: JWTClaimsSet? = null // pulled from the parsed and validated ID token
         var client: ClientDetailsEntity? = null // pulled from ID token's audience field
 
-        if (!Strings.isNullOrEmpty(postLogoutRedirectUri)) {
+        if (!postLogoutRedirectUri.isNullOrEmpty()) {
             session.setAttribute(REDIRECT_URI_KEY, postLogoutRedirectUri)
         }
-        if (!Strings.isNullOrEmpty(state)) {
+        if (!state.isNullOrEmpty()) {
             session.setAttribute(STATE_KEY, state)
         }
 
 
         // parse the ID token hint to see if it's valid
-        if (!Strings.isNullOrEmpty(idTokenHint)) {
+        if (!idTokenHint.isNullOrEmpty()) {
             try {
                 val idToken = JWTParser.parse(idTokenHint)
 
@@ -123,7 +122,7 @@ class EndSessionEndpoint {
                 val subject = idTokenClaims.subject
                 // see if the current user is the same as the one in the ID token
                 // TODO: should we do anything different in these cases?
-                if (!Strings.isNullOrEmpty(subject) && subject == ui!!.sub) {
+                if (!subject.isNullOrEmpty() && subject == ui!!.sub) {
                     // it's the same user
                 } else {
                     // it's not the same user
@@ -151,7 +150,7 @@ class EndSessionEndpoint {
         val state = session.getAttribute(STATE_KEY) as String
         val client = session.getAttribute(CLIENT_KEY) as ClientDetailsEntity?
 
-        if (!Strings.isNullOrEmpty(approved)) {
+        if (!approved.isNullOrEmpty()) {
             // use approved, perform the logout
             if (auth != null) {
                 SecurityContextLogoutHandler().logout(request, response, auth)
@@ -166,7 +165,7 @@ class EndSessionEndpoint {
 
         // if we have a client AND the client has post-logout redirect URIs
         // registered AND the URI given is in that list, then...
-        if (!Strings.isNullOrEmpty(redirectUri) && client != null && client.postLogoutRedirectUris != null) {
+        if (!redirectUri.isNullOrEmpty() && client != null && client.postLogoutRedirectUris != null) {
             if (client.postLogoutRedirectUris!!.contains(redirectUri)) {
                 // TODO: future, add the redirect URI to the model for the display page for an interstitial
                 // m.addAttribute("redirectUri", postLogoutRedirectUri);

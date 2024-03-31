@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.service.impl
 
-import com.google.common.base.Strings
 import com.google.common.collect.Lists
 import com.google.common.collect.Maps
 import com.nimbusds.jose.Algorithm
@@ -125,7 +124,7 @@ open class DefaultOIDCTokenService : OIDCTokenService {
         idClaims.jwtID(UUID.randomUUID().toString()) // set a random NONCE in the middle of it
 
         val nonce = request.extensions[ConnectRequestParameters.NONCE] as String?
-        if (!Strings.isNullOrEmpty(nonce)) {
+        if (!nonce.isNullOrEmpty()) {
             idClaims.claim("nonce", nonce)
         }
 
@@ -140,7 +139,7 @@ open class DefaultOIDCTokenService : OIDCTokenService {
         addCustomIdTokenClaims(idClaims, client, request, sub, accessToken)
 
         if (client.idTokenEncryptedResponseAlg != null && client.idTokenEncryptedResponseAlg != Algorithm.NONE && client.idTokenEncryptedResponseEnc != null && client.idTokenEncryptedResponseEnc != Algorithm.NONE
-            && (!Strings.isNullOrEmpty(client.jwksUri) || client.jwks != null)
+            && (!client.jwksUri.isNullOrEmpty() || client.jwks != null)
         ) {
             val encrypter = encrypters.getEncrypter(client)
 

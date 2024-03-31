@@ -17,7 +17,6 @@
  */
 package org.mitre.oauth2.service.impl
 
-import com.google.common.base.Strings
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
@@ -106,7 +105,7 @@ class DefaultOAuth2ClientDetailsEntityService : ClientDetailsEntityService {
 
         // assign a random clientid if it's empty
         // NOTE: don't assign a random client secret without asking, since public clients have no secret
-        if (Strings.isNullOrEmpty(client.clientId)) {
+        if (client.clientId.isNullOrEmpty()) {
             client = generateClientId(client)
         }
 
@@ -164,7 +163,7 @@ class DefaultOAuth2ClientDetailsEntityService : ClientDetailsEntityService {
      * Load the sector identifier URI if it exists and check the redirect URIs against it
      */
     private fun checkSectorIdentifierUri(client: ClientDetailsEntity?) {
-        if (!Strings.isNullOrEmpty(client!!.sectorIdentifierUri)) {
+        if (!client!!.sectorIdentifierUri.isNullOrEmpty()) {
             try {
                 val redirects = sectorRedirects[client.sectorIdentifierUri]
 
@@ -240,10 +239,10 @@ class DefaultOAuth2ClientDetailsEntityService : ClientDetailsEntityService {
             require(!client.grantTypes.contains("password")) { "[HEART mode] Password grant type is forbidden" }
 
             // make sure we don't have a client secret
-            require(Strings.isNullOrEmpty(client.clientSecret)) { "[HEART mode] Client secrets are not allowed" }
+            require(client.clientSecret.isNullOrEmpty()) { "[HEART mode] Client secrets are not allowed" }
 
             // make sure we've got a key registered
-            require(!(client.jwks == null && Strings.isNullOrEmpty(client.jwksUri))) { "[HEART mode] All clients must have a key registered" }
+            require(!(client.jwks == null && client.jwksUri.isNullOrEmpty())) { "[HEART mode] All clients must have a key registered" }
 
             // make sure our redirect URIs each fit one of the allowed categories
             if (client.redirectUris.isNotEmpty()) {

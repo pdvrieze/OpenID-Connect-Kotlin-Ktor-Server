@@ -18,7 +18,6 @@
 package org.mitre.oauth2.web
 
 import com.google.common.base.Joiner
-import com.google.common.base.Strings
 import com.google.common.collect.Sets
 import org.apache.http.client.utils.URIBuilder
 import org.mitre.oauth2.model.ClientDetailsEntity
@@ -112,7 +111,7 @@ class OAuthConfirmationController {
                 val uriBuilder = URIBuilder(url)
 
                 uriBuilder.addParameter("error", "interaction_required")
-                if (!Strings.isNullOrEmpty(authRequest.state)) {
+                if (!authRequest.state.isNullOrEmpty()) {
                     uriBuilder.addParameter("state", authRequest.state) // copy the state parameter if one was given
                 }
 

@@ -15,7 +15,6 @@
  */
 package org.mitre.uma.web
 
-import com.google.common.base.Strings
 import com.google.gson.JsonParseException
 import com.google.gson.JsonParser
 import org.mitre.oauth2.service.SystemScopeService
@@ -90,7 +89,7 @@ class ResourceSetRegistrationEndpoint {
 
         rs = validateScopes(rs)
 
-        if (Strings.isNullOrEmpty(rs.name) // there was no name (required)
+        if (rs.name.isNullOrEmpty() // there was no name (required)
             || rs.scopes == null // there were no scopes (required)
         ) {
             logger.warn("Resource set registration missing one or more required fields.")
@@ -148,7 +147,7 @@ class ResourceSetRegistrationEndpoint {
 
         if (// there were no scopes (required)
             (newRs == null // there was no resource set in the body
-                    || Strings.isNullOrEmpty(newRs.name)) || newRs.scopes == null || newRs.id == null || newRs.id != id // the IDs didn't match
+                    || newRs.name.isNullOrEmpty()) || newRs.scopes == null || newRs.id == null || newRs.id != id // the IDs didn't match
         ) {
             logger.warn("Resource set registration missing one or more required fields.")
 

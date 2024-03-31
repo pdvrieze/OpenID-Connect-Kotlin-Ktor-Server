@@ -15,7 +15,6 @@
  */
 package org.mitre.uma.view
 
-import com.google.common.base.Strings
 import com.google.gson.ExclusionStrategy
 import com.google.gson.FieldAttributes
 import com.google.gson.Gson
@@ -79,7 +78,7 @@ class ResourceSetEntityView : AbstractView() {
         response.setStatus(code.value())
 
         val location = model["location"] as String?
-        if (!Strings.isNullOrEmpty(location)) {
+        if (!location.isNullOrEmpty()) {
             response.setHeader(HttpHeaders.LOCATION, location)
         }
 
