@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.service.impl
 
-import com.google.common.collect.Lists
 import com.google.common.collect.Maps
 import com.nimbusds.jose.Algorithm
 import com.nimbusds.jose.JWEHeader
@@ -120,7 +119,7 @@ open class DefaultOIDCTokenService : OIDCTokenService {
 
         idClaims.issuer(configBean.issuer)
         idClaims.subject(sub)
-        idClaims.audience(Lists.newArrayList(client.clientId))
+        idClaims.audience(listOf(client.clientId))
         idClaims.jwtID(UUID.randomUUID().toString()) // set a random NONCE in the middle of it
 
         val nonce = request.extensions[ConnectRequestParameters.NONCE] as String?
@@ -241,7 +240,7 @@ open class DefaultOIDCTokenService : OIDCTokenService {
         token.authenticationHolder = authHolder
 
         val claims = JWTClaimsSet.Builder()
-            .audience(Lists.newArrayList(client.clientId))
+            .audience(listOf(client.clientId))
             .issuer(configBean.issuer)
             .issueTime(Date())
             .expirationTime(token.expiration)

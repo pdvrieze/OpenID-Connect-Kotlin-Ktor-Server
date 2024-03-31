@@ -303,7 +303,7 @@ class DiscoveryEndpoint {
         m["token_endpoint_auth_signing_alg_values_supported"] =
             Collections2.transform(clientSymmetricAndAsymmetricSigningAlgs, toAlgorithmName)
         //display_types_supported
-        m["claim_types_supported"] = Lists.newArrayList("normal" /*, "aggregated", "distributed"*/)
+        m["claim_types_supported"] = listOf("normal")
         m["claims_supported"] = Lists.newArrayList(
             "sub",
             "name",

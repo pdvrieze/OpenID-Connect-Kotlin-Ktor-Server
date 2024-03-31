@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.token
 
-import com.google.common.collect.Lists
 import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
@@ -71,7 +70,7 @@ class ConnectTokenEnhancer : TokenEnhancer {
 
         val audience = authentication.oAuth2Request.extensions["aud"] as String?
         if (!audience.isNullOrEmpty()) {
-            builder.audience(Lists.newArrayList(audience))
+            builder.audience(listOf(audience))
         }
 
         addCustomAccessTokenClaims(builder, token, authentication)

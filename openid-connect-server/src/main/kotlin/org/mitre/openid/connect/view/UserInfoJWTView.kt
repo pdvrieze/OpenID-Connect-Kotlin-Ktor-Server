@@ -15,7 +15,6 @@
  */
 package org.mitre.openid.connect.view
 
-import com.google.common.collect.Lists
 import com.google.gson.JsonObject
 import com.nimbusds.jose.Algorithm
 import com.nimbusds.jose.JWEHeader
@@ -75,7 +74,7 @@ class UserInfoJWTView : UserInfoView() {
             response.contentType = JOSE_MEDIA_TYPE_VALUE
 
             val claims = JWTClaimsSet.Builder(JWTClaimsSet.parse(writer.toString()))
-                .audience(Lists.newArrayList(client.clientId))
+                .audience(listOf(client.clientId))
                 .issuer(config.issuer)
                 .issueTime(Date())
                 .jwtID(UUID.randomUUID().toString()) // set a random NONCE in the middle of it

@@ -20,7 +20,6 @@ package org.mitre.openid.connect.client.service.impl
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
-import com.google.common.collect.Lists
 import com.google.common.util.concurrent.UncheckedExecutionException
 import com.google.gson.Gson
 import org.apache.http.client.HttpClient
@@ -126,7 +125,7 @@ class DynamicRegistrationClientConfigurationService @JvmOverloads constructor(
 
                 val headers = HttpHeaders()
                 headers.contentType = MediaType.APPLICATION_JSON
-                headers.accept = Lists.newArrayList(MediaType.APPLICATION_JSON)
+                headers.accept = listOf(MediaType.APPLICATION_JSON)
 
                 val entity = HttpEntity(serializedClient, headers)
 
@@ -153,7 +152,7 @@ class DynamicRegistrationClientConfigurationService @JvmOverloads constructor(
                     val headers = HttpHeaders()
                     headers["Authorization"] =
                         String.format("%s %s", OAuth2AccessToken.BEARER_TYPE, knownClient.registrationAccessToken)
-                    headers.accept = Lists.newArrayList(MediaType.APPLICATION_JSON)
+                    headers.accept = listOf(MediaType.APPLICATION_JSON)
 
                     val entity = HttpEntity<String>(headers)
 

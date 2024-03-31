@@ -15,7 +15,6 @@
  */
 package org.mitre.uma.service.impl
 
-import com.google.common.collect.Lists
 import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
@@ -83,7 +82,7 @@ class DefaultUmaTokenService : UmaTokenService {
 
         val claims = JWTClaimsSet.Builder()
 
-        claims.audience(Lists.newArrayList(ticket.permission!!.resourceSet!!.id.toString()))
+        claims.audience(listOf(ticket.permission!!.resourceSet!!.id.toString()))
         claims.issuer(config.issuer)
         claims.jwtID(UUID.randomUUID().toString())
 

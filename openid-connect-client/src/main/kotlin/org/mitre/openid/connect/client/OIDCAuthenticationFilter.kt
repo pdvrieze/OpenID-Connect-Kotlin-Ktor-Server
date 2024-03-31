@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.client
 
-import com.google.common.collect.Lists
 import com.google.gson.JsonParser
 import com.nimbusds.jose.Algorithm
 import com.nimbusds.jose.JWSAlgorithm
@@ -393,7 +392,7 @@ class OIDCAuthenticationFilter : AbstractAuthenticationProcessingFilter(FILTER_P
 
                 claimsSet.issuer(clientConfig.clientId)
                 claimsSet.subject(clientConfig.clientId)
-                claimsSet.audience(Lists.newArrayList(serverConfig.tokenEndpointUri))
+                claimsSet.audience(listOf(serverConfig.tokenEndpointUri))
                 claimsSet.jwtID(UUID.randomUUID().toString())
 
                 // TODO: make this configurable
