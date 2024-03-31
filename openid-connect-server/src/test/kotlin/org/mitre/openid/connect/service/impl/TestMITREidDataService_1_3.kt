@@ -15,7 +15,6 @@
  */
 package org.mitre.openid.connect.service.impl
 
-import com.google.common.collect.ImmutableList
 import com.google.gson.JsonArray
 import com.google.gson.JsonParser
 import com.google.gson.stream.JsonReader
@@ -1382,7 +1381,7 @@ class TestMITREidDataService_1_3 {
         holder2.id = 2L
         holder2.authentication = auth2
 
-        val allAuthHolders: List<AuthenticationHolderEntity> = ImmutableList.of(holder1, holder2)
+        val allAuthHolders: List<AuthenticationHolderEntity> = listOf(holder1,holder2)
 
         whenever(clientRepository.allClients).thenReturn(HashSet())
         whenever(approvedSiteRepository.all).thenReturn(HashSet())

@@ -1,6 +1,5 @@
 package org.mitre.openid.connect.assertion
 
-import com.google.common.collect.ImmutableList
 import com.nimbusds.jose.EncryptionMethod
 import com.nimbusds.jose.JWEAlgorithm
 import com.nimbusds.jose.JWEHeader
@@ -308,7 +307,7 @@ class TestJWTBearerAuthenticationProvider {
             .issuer(CLIENT_ID)
             .subject(SUBJECT)
             .expirationTime(Date())
-            .audience(ImmutableList.of("http://issuer.com/token", "invalid"))
+            .audience(listOf("http://issuer.com/token", "invalid"))
             .build()
         val jwt: JWT = mockSignedJWTAuthAttempt(jwtClaimsSet)
 
@@ -329,7 +328,7 @@ class TestJWTBearerAuthenticationProvider {
             .issuer(CLIENT_ID)
             .subject(SUBJECT)
             .expirationTime(Date())
-            .audience(ImmutableList.of("http://issuer.com/token"))
+            .audience(listOf("http://issuer.com/token"))
             .build()
         val jwt: JWT = mockSignedJWTAuthAttempt(jwtClaimsSet)
         whenever(config.issuer).thenReturn("http://issuer.com/")

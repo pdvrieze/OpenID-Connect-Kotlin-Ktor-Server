@@ -17,14 +17,12 @@
  */
 package org.mitre.openid.connect.web
 
-import com.google.common.collect.ImmutableList
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
 import com.google.gson.stream.JsonWriter
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.service.MITREidDataService
 import org.mitre.openid.connect.service.impl.MITREidDataService_1_3
-import org.mitre.openid.connect.web.DataAPI
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -59,7 +57,7 @@ class DataAPI {
     @Autowired
     private lateinit var importers: List<MITREidDataService>
 
-    private val supportedVersions: List<String> = ImmutableList.of(
+    private val supportedVersions: List<String> = listOf(
         MITREidDataService.MITREID_CONNECT_1_0,
         MITREidDataService.MITREID_CONNECT_1_1,
         MITREidDataService.MITREID_CONNECT_1_2,
@@ -71,30 +69,30 @@ class DataAPI {
 
     @RequestMapping(method = [RequestMethod.POST], consumes = [MediaType.APPLICATION_JSON_VALUE])
     @Throws(IOException::class)
-    fun importData(`in`: Reader?, m: Model?): String {
-        val reader = JsonReader(`in`)
+    fun importData(reader: Reader?, m: Model?): String {
+        val jsonReader = JsonReader(reader)
 
-        reader.beginObject()
+        jsonReader.beginObject()
 
-        while (reader.hasNext()) {
-            val tok = reader.peek()
+        while (jsonReader.hasNext()) {
+            val tok = jsonReader.peek()
             when (tok) {
                 JsonToken.NAME -> {
-                    val name = reader.nextName()
+                    val name = jsonReader.nextName()
 
                     if (supportedVersions.contains(name)) {
                         // we're working with a known data version tag
                         for (dataService in importers) {
                             // dispatch to the correct service
                             if (dataService.supportsVersion(name)) {
-                                dataService.importData(reader)
+                                dataService.importData(jsonReader)
                                 break
                             }
                         }
                     } else {
                         // consume the next bit silently for now
                         logger.debug("Skipping value for $name") // TODO: write these out?
-                        reader.skipValue()
+                        jsonReader.skipValue()
                     }
                 }
 
@@ -110,7 +108,7 @@ class DataAPI {
             }
         }
 
-        reader.endObject()
+        jsonReader.endObject()
 
         return "httpCodeView"
     }
