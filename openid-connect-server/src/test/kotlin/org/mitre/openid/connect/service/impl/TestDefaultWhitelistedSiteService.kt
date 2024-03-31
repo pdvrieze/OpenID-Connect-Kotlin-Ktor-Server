@@ -17,14 +17,15 @@
  */
 package org.mitre.openid.connect.service.impl
 
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.openid.connect.model.WhitelistedSite
 import org.mitre.openid.connect.repository.WhitelistedSiteRepository
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.reset
 import org.mockito.kotlin.verify
@@ -33,7 +34,7 @@ import org.mockito.kotlin.whenever
 /**
  * @author wkim
  */
-@RunWith(MockitoJUnitRunner::class)
+@ExtendWith(MockitoExtension::class)
 class TestDefaultWhitelistedSiteService {
     @Mock
     private lateinit var repository: WhitelistedSiteRepository
@@ -41,17 +42,19 @@ class TestDefaultWhitelistedSiteService {
     @InjectMocks
     private lateinit var service: DefaultWhitelistedSiteService
 
-    @Before
+    @BeforeEach
     fun prepare() {
         reset(repository)
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun saveNew_notNullId() {
         val site = mock<WhitelistedSite>()
         whenever(site.id).thenReturn(12345L) // arbitrary long value
 
-        service.saveNew(site)
+        assertThrows<IllegalArgumentException> {
+            service.saveNew(site)
+        }
     }
 
     @Test

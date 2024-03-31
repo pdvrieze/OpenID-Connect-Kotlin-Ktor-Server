@@ -17,23 +17,26 @@
  */
 package org.mitre.oauth2.service.impl
 
-import org.junit.Before
-import org.junit.Test
 import org.junit.jupiter.api.Assertions.*
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.repository.SystemScopeRepository
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.junit.jupiter.MockitoExtension
+import org.mockito.junit.jupiter.MockitoSettings
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.reset
 import org.mockito.kotlin.whenever
+import org.mockito.quality.Strictness
 
 /**
  * @author wkim
  */
-@RunWith(MockitoJUnitRunner::class)
+@ExtendWith(MockitoExtension::class)
+@MockitoSettings(strictness = Strictness.WARN)
 class TestDefaultSystemScopeService {
     // test fixture
     private lateinit var defaultDynScope1: SystemScope
@@ -57,7 +60,7 @@ class TestDefaultSystemScopeService {
     /**
      * Assumes these SystemScope defaults: isDefaultScope=false and isAllowDynReg=false.
      */
-    @Before
+    @BeforeEach
     fun prepare() {
         reset(repository)
 

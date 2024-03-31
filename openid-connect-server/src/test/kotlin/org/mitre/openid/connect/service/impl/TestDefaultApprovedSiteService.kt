@@ -17,9 +17,9 @@
  */
 package org.mitre.openid.connect.service.impl
 
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.openid.connect.model.ApprovedSite
@@ -28,7 +28,7 @@ import org.mitre.openid.connect.service.ApprovedSiteService
 import org.mitre.openid.connect.service.StatsService
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.isA
 import org.mockito.kotlin.never
 import org.mockito.kotlin.reset
@@ -37,7 +37,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.test.annotation.Rollback
 
-@RunWith(MockitoJUnitRunner::class)
+@ExtendWith(MockitoExtension::class)
 class TestDefaultApprovedSiteService {
     private lateinit var site1: ApprovedSite
     private lateinit var site2: ApprovedSite
@@ -62,7 +62,7 @@ class TestDefaultApprovedSiteService {
      * Initialize the service and repository mock. Initialize a client and
      * several ApprovedSite objects for use in unit tests.
      */
-    @Before
+    @BeforeEach
     fun prepare() {
         client = ClientDetailsEntity().also {
             it.clientId = clientId

@@ -41,14 +41,14 @@ dependencies {
     implementation(libs.javax.persistence)
 //    implementation(libs.javax.ann)
 
-    testImplementation(libs.junit4)
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.mockito.jupiter)
     testImplementation(libs.junit.jupiter.api)
-    testRuntimeOnly(libs.junit.jupiter.vintage)
+
     testRuntimeOnly(libs.junit.jupiter.engine)
 }
 
 tasks.named<Test>("test") {
-    useJUnit()
+    useJUnitPlatform()
 }

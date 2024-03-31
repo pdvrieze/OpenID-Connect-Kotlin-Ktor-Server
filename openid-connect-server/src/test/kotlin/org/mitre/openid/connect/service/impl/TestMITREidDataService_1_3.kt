@@ -20,10 +20,10 @@ import com.google.gson.JsonParser
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
 import com.nimbusds.jwt.JWTParser
-import org.junit.Before
-import org.junit.Test
 import org.junit.jupiter.api.Assertions.*
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
@@ -49,7 +49,8 @@ import org.mockito.Captor
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.invocation.InvocationOnMock
-import org.mockito.junit.MockitoJUnitRunner.Silent
+import org.mockito.junit.jupiter.MockitoExtension
+import org.mockito.junit.jupiter.MockitoSettings
 import org.mockito.kotlin.capture
 import org.mockito.kotlin.isA
 import org.mockito.kotlin.mock
@@ -57,6 +58,7 @@ import org.mockito.kotlin.reset
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import org.mockito.quality.Strictness
 import org.mockito.stubbing.Answer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -74,7 +76,8 @@ import java.io.StringWriter
 import java.text.ParseException
 import java.util.*
 
-@RunWith(Silent::class)
+@MockitoSettings(strictness = Strictness.WARN)
+@ExtendWith(MockitoExtension::class)
 class TestMITREidDataService_1_3 {
     @Mock
     private lateinit var clientRepository: OAuth2ClientRepository
@@ -127,7 +130,7 @@ class TestMITREidDataService_1_3 {
 
     private lateinit var maps: MITREidDataServiceMaps
 
-    @Before
+    @BeforeEach
     fun prepare() {
         formatter = DateFormatter()
         formatter.setIso(DateTimeFormat.ISO.DATE_TIME)

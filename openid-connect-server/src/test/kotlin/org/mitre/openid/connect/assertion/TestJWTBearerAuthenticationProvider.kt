@@ -10,11 +10,11 @@ import com.nimbusds.jwt.JWT
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.PlainJWT
 import com.nimbusds.jwt.SignedJWT
-import org.junit.Before
-import org.junit.Test
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.*
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.jwt.signer.service.impl.ClientKeyCacheService
 import org.mitre.oauth2.model.ClientDetailsEntity
@@ -23,9 +23,11 @@ import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.junit.jupiter.MockitoExtension
+import org.mockito.junit.jupiter.MockitoSettings
 import org.mockito.kotlin.isA
 import org.mockito.kotlin.whenever
+import org.mockito.quality.Strictness
 import org.springframework.security.authentication.AuthenticationServiceException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.GrantedAuthority
@@ -35,7 +37,8 @@ import org.springframework.security.oauth2.common.exceptions.InvalidClientExcept
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-@RunWith(MockitoJUnitRunner::class)
+@ExtendWith(MockitoExtension::class)
+@MockitoSettings(strictness = Strictness.WARN)
 class TestJWTBearerAuthenticationProvider {
     @Mock
     private lateinit var validators: ClientKeyCacheService
@@ -58,7 +61,7 @@ class TestJWTBearerAuthenticationProvider {
     @Mock
     private lateinit var validator: JWTSigningAndValidationService
 
-    @Before
+    @BeforeEach
     fun setup() {
         whenever(clientService.loadClientByClientId(CLIENT_ID)).thenReturn(client)
 

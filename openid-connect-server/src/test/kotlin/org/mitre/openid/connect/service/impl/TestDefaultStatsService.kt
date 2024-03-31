@@ -17,24 +17,27 @@
  */
 package org.mitre.openid.connect.service.impl
 
-import org.junit.Before
-import org.junit.Test
 import org.junit.jupiter.api.Assertions
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.openid.connect.service.ApprovedSiteService
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.junit.jupiter.MockitoExtension
+import org.mockito.junit.jupiter.MockitoSettings
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.reset
 import org.mockito.kotlin.whenever
+import org.mockito.quality.Strictness
 
 /**
  * @author wkim
  */
-@RunWith(MockitoJUnitRunner::class)
+@ExtendWith(MockitoExtension::class)
+@MockitoSettings(strictness = Strictness.WARN)
 class TestDefaultStatsService {
 
     private val ap1: ApprovedSite = mock()
@@ -59,7 +62,7 @@ class TestDefaultStatsService {
      * Prepares a collection of ApprovedSite mocks to be returned from the approvedSiteService
      * and a collection of ClientDetailEntity mocks to be returned from the clientService.
      */
-    @Before
+    @BeforeEach
     fun prepare() {
         reset(approvedSiteService)
 

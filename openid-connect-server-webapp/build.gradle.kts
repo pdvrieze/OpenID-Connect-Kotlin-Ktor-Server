@@ -36,9 +36,11 @@ dependencies {
     implementation(libs.bcprov)
 */
 
-    testImplementation(libs.junit4)
+    testImplementation(libs.junit.jupiter.api)
+
+    testRuntimeOnly(libs.junit.jupiter.engine)
 }
 
 tasks.named<Test>("test") {
-    useJUnit()
+    useJUnitPlatform()
 }

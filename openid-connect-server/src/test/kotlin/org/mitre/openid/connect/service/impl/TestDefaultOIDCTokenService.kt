@@ -17,22 +17,22 @@ package org.mitre.openid.connect.service.impl
 
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jwt.JWTClaimsSet
-import org.junit.Before
-import org.junit.Test
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mockito.Mock
-import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.whenever
 import org.springframework.security.oauth2.provider.OAuth2Request
 import java.text.ParseException
 import java.util.*
 
-@RunWith(MockitoJUnitRunner::class)
+@ExtendWith(MockitoExtension::class)
 class TestDefaultOIDCTokenService {
     private val configBean = ConfigurationPropertiesBean()
     private val client = ClientDetailsEntity()
@@ -42,7 +42,7 @@ class TestDefaultOIDCTokenService {
     @Mock
     private lateinit var jwtService: JWTSigningAndValidationService
 
-    @Before
+    @BeforeEach
     fun prepare() {
         configBean.issuer = "https://auth.example.org/"
 

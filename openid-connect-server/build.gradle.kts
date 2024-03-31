@@ -27,7 +27,6 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.jwt)
 
-    testImplementation(libs.junit4)
     testImplementation(libs.mockito.inline)
     testImplementation(libs.mockito.jupiter)
     testImplementation(libs.mockito.kotlin)
@@ -35,7 +34,6 @@ dependencies {
     testImplementation(libs.junit.jupiter.api)
 
     testRuntimeOnly(libs.junit.jupiter.engine)
-    testRuntimeOnly(libs.junit.jupiter.vintage)
     testRuntimeOnly(libs.eclipse.persistence.jpa)
     testRuntimeOnly(libs.eclipse.persistence.core)
 }

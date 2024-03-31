@@ -17,11 +17,11 @@
  */
 package org.mitre.openid.connect.service.impl
 
-import org.junit.Before
-import org.junit.Test
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.ClientDetailsEntity.SubjectType
 import org.mitre.oauth2.service.ClientDetailsEntityService
@@ -31,7 +31,7 @@ import org.mitre.openid.connect.repository.UserInfoRepository
 import org.mitre.openid.connect.service.PairwiseIdentiferService
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.isA
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
@@ -40,7 +40,7 @@ import org.mockito.kotlin.whenever
 /**
  * @author jricher
  */
-@RunWith(MockitoJUnitRunner::class)
+@ExtendWith(MockitoExtension::class)
 class TestDefaultUserInfoService {
     @InjectMocks
     private val service = DefaultUserInfoService()
@@ -70,7 +70,7 @@ class TestDefaultUserInfoService {
      * Initialize the service and the mocked repository.
      * Initialize 2 users, one of them an admin, for use in unit tests.
      */
-    @Before
+    @BeforeEach
     fun prepare() {
         userInfoAdmin = DefaultUserInfo()
         userInfoAdmin.preferredUsername = adminUsername

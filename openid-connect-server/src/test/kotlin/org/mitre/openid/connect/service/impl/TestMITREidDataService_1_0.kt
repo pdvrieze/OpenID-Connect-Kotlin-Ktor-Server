@@ -20,10 +20,11 @@ package org.mitre.openid.connect.service.impl
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
 import com.nimbusds.jwt.JWTParser
-import org.junit.Before
-import org.junit.Test
 import org.junit.jupiter.api.Assertions
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
@@ -48,7 +49,7 @@ import org.mockito.Captor
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.invocation.InvocationOnMock
-import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.capture
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.isA
@@ -70,7 +71,7 @@ import java.io.StringWriter
 import java.text.ParseException
 import java.util.*
 
-@RunWith(MockitoJUnitRunner::class)
+@ExtendWith(MockitoExtension::class)
 class TestMITREidDataService_1_0 {
     @Mock
     private lateinit var clientRepository: OAuth2ClientRepository
@@ -124,7 +125,7 @@ class TestMITREidDataService_1_0 {
 
     private lateinit var maps: MITREidDataServiceMaps
 
-    @Before
+    @BeforeEach
     fun prepare() {
         formatter = DateFormatter()
         formatter.setIso(DateTimeFormat.ISO.DATE_TIME)
@@ -969,10 +970,11 @@ class TestMITREidDataService_1_0 {
         Assertions.assertEquals(357L, savedRefreshTokens[1].authenticationHolder.id)
     }
 
-    @Test(expected = UnsupportedOperationException::class)
-    @Throws(IOException::class)
+    @Test
     fun testExportDisabled() {
         val writer = JsonWriter(StringWriter())
-        dataService.exportData(writer)
+        assertThrows<UnsupportedOperationException> {
+            dataService.exportData(writer)
+        }
     }
 }

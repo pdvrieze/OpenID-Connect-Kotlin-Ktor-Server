@@ -15,19 +15,20 @@
  */
 package org.mitre.uma.service.impl
 
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.uma.model.ResourceSet
 import org.mitre.uma.repository.ResourceSetRepository
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.junit.jupiter.MockitoExtension
 
 /**
  * @author jricher
  */
-@RunWith(MockitoJUnitRunner::class)
+@ExtendWith(MockitoExtension::class)
 class TestDefaultResourceSetService {
     @Mock
     private lateinit var repository: ResourceSetRepository
@@ -38,7 +39,7 @@ class TestDefaultResourceSetService {
     /**
      * @throws java.lang.Exception
      */
-    @Before
+    @BeforeEach
     @Throws(Exception::class)
     fun setUp() {
         // unused by mockito (causs unnecessary stubbing exception
@@ -48,38 +49,46 @@ class TestDefaultResourceSetService {
     /**
      * Test method for [ResourceSetService.saveNew].
      */
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun testSaveNew_hasId() {
         val rs = ResourceSet()
         rs.id = 1L
 
-        resourceSetService.saveNew(rs)
+        assertThrows<IllegalArgumentException> {
+            resourceSetService.saveNew(rs)
+        }
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun testUpdate_nullId() {
         val rs = ResourceSet().apply { id = 1L }
 
         val rs2 = ResourceSet()
 
-        resourceSetService.update(rs, rs2)
+        assertThrows<IllegalArgumentException> {
+            resourceSetService.update(rs, rs2)
+        }
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun testUpdate_nullId2() {
         val rs = ResourceSet()
 
         val rs2 = ResourceSet().apply { id = 1L }
 
-        resourceSetService.update(rs, rs2)
+        assertThrows<IllegalArgumentException> {
+            resourceSetService.update(rs, rs2)
+        }
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun testUpdate_mismatchedIds() {
         val rs = ResourceSet().apply { id = 1L }
 
         val rs2 = ResourceSet().apply { id = 2L }
 
-        resourceSetService.update(rs, rs2)
+        assertThrows<IllegalArgumentException> {
+            resourceSetService.update(rs, rs2)
+        }
     }
 }

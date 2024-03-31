@@ -15,11 +15,12 @@
  */
 package org.mitre.uma.service.impl
 
-import org.junit.Before
-import org.junit.Test
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.uma.model.PermissionTicket
 import org.mitre.uma.model.ResourceSet
@@ -28,7 +29,7 @@ import org.mockito.AdditionalAnswers.returnsFirstArg
 import org.mockito.ArgumentMatchers.anySet
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.isA
 import org.mockito.kotlin.whenever
 import org.springframework.security.oauth2.common.exceptions.InsufficientScopeException
@@ -37,7 +38,7 @@ import java.util.*
 /**
  * @author jricher
  */
-@RunWith(MockitoJUnitRunner::class)
+@ExtendWith(MockitoExtension::class)
 class TestDefaultPermissionService {
     @Mock
     private lateinit var permissionRepository: PermissionRepository
@@ -63,7 +64,7 @@ class TestDefaultPermissionService {
     private val rs2Id = 2L
 
 
-    @Before
+    @BeforeEach
     fun prepare() {
         rs1 = ResourceSet()
         rs1.name = rs1Name
@@ -76,7 +77,9 @@ class TestDefaultPermissionService {
         rs2.owner = rs2Owner
         rs2.id = rs2Id
         rs2.scopes = scopes2
+    }
 
+    private fun mocks() {
         // have the repository just pass the argument through
         whenever(permissionRepository.save(isA<PermissionTicket>()))
             .then(returnsFirstArg<Any>())
@@ -96,6 +99,8 @@ class TestDefaultPermissionService {
      */
     @Test
     fun testCreate_ticket() {
+        mocks()
+
         val perm = permissionService.createTicket(rs1, scopes1)!!
 
         // we want there to be a non-null ticket
@@ -104,6 +109,8 @@ class TestDefaultPermissionService {
 
     @Test
     fun testCreate_uuid() {
+        mocks()
+
         val perm = permissionService.createTicket(rs1, scopes1)!!
 
         // we expect this to be a UUID
@@ -114,6 +121,8 @@ class TestDefaultPermissionService {
 
     @Test
     fun testCreate_differentTicketsSameClient() {
+        mocks()
+
         val perm1 = permissionService.createTicket(rs1, scopes1)!!
         val perm2 = permissionService.createTicket(rs1, scopes1)!!
 
@@ -126,6 +135,8 @@ class TestDefaultPermissionService {
 
     @Test
     fun testCreate_differentTicketsDifferentClient() {
+        mocks()
+
         val perm1 = permissionService.createTicket(rs1, scopes1)!!
         val perm2 = permissionService.createTicket(rs2, scopes2)!!
 
@@ -136,9 +147,20 @@ class TestDefaultPermissionService {
         assertNotEquals(perm2.ticket, perm1.ticket)
     }
 
-    @Test(expected = InsufficientScopeException::class)
+    @Test
     fun testCreate_scopeMismatch() {
+        // have the repository just pass the argument through
+        whenever(scopeService.scopesMatch(anySet(), anySet()))
+            .then { invocation ->
+                val arguments = invocation.arguments
+                val expected = arguments[0] as Set<String>
+                val actual = arguments[1] as Set<String>
+                expected.containsAll(actual)
+            }
+
         // try to get scopes outside of what we're allowed to do, this should throw an exception
-        permissionService.createTicket(rs1, scopes2)
+        assertThrows<InsufficientScopeException> {
+            permissionService.createTicket(rs1, scopes2)
+        }
     }
 }

@@ -17,11 +17,12 @@
  */
 package org.mitre.openid.connect.service.impl
 
-import org.junit.Before
-import org.junit.Test
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotSame
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.ClientDetailsEntity.SubjectType
 import org.mitre.openid.connect.model.DefaultUserInfo
@@ -31,7 +32,7 @@ import org.mitre.openid.connect.repository.PairwiseIdentifierRepository
 import org.mitre.openid.connect.service.PairwiseIdentiferService
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
 import org.mockito.kotlin.atLeast
 import org.mockito.kotlin.verify
@@ -41,7 +42,7 @@ import java.util.*
 /**
  * @author jricher
  */
-@RunWith(MockitoJUnitRunner::class)
+@ExtendWith(MockitoExtension::class)
 class TestUUIDPairwiseIdentiferService {
     @Mock
     private lateinit var pairwiseIdentifierRepository: PairwiseIdentifierRepository
@@ -60,7 +61,7 @@ class TestUUIDPairwiseIdentiferService {
 
     private lateinit var savedPairwiseIdentifier: PairwiseIdentifier
 
-    @Before
+    @BeforeEach
     fun prepare() {
         userInfoRegular = DefaultUserInfo()
         userInfoRegular.preferredUsername = regularUsername
@@ -139,7 +140,7 @@ class TestUUIDPairwiseIdentiferService {
 
         assertEquals(pairwise1, pairwise2)
 
-        // see if the pairwise id's are actual UUIDs
+        // see if the pairwise ids are actual UUIDs
         UUID.fromString(pairwise1)
         UUID.fromString(pairwise2)
     }
@@ -155,17 +156,20 @@ class TestUUIDPairwiseIdentiferService {
         assertNotSame(pairwise1, pairwise4)
         assertNotSame(pairwise3, pairwise4)
 
-        // see if the pairwise id's are actual UUIDs
+        // see if the pairwise ids are actual UUIDs
         UUID.fromString(pairwise1)
         UUID.fromString(pairwise3)
         UUID.fromString(pairwise4)
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun testGetIdentifier_multipleRedirectError() {
-        service.getIdentifier(userInfoRegular, pairwiseClient5)
+        assertThrows<IllegalArgumentException> {
+            service.getIdentifier(userInfoRegular, pairwiseClient5)
+        }
     }
 
+    @Suppress("ConstPropertyName")
     companion object {
         private const val regularUsername = "regular"
         private const val regularSub = "regularSub652ha23b"
