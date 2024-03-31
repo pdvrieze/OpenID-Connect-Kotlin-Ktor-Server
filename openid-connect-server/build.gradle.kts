@@ -27,7 +27,6 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.jwt)
 
-    testImplementation(libs.mockito.inline)
     testImplementation(libs.mockito.jupiter)
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.spring.test)
