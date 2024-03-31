@@ -15,7 +15,6 @@
  */
 package org.mitre.oauth2.service.impl
 
-import com.google.common.base.Joiner
 import com.google.common.collect.Maps
 import com.google.common.collect.Sets
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
@@ -99,7 +98,7 @@ class DefaultIntrospectionResultAssembler : IntrospectionResultAssembler {
         val scopes: Set<String> = Sets.intersection(authScopes, authentication.oAuth2Request.scope)
 
         result[IntrospectionResultAssembler.SCOPE] =
-            Joiner.on(IntrospectionResultAssembler.SCOPE_SEPARATOR).join(scopes)
+            scopes.joinToString(IntrospectionResultAssembler.SCOPE_SEPARATOR)
 
         val expiration = refreshToken.expiration
         if (expiration != null) {

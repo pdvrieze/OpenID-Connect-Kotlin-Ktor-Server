@@ -17,7 +17,6 @@
  */
 package org.mitre.oauth2.web
 
-import com.google.common.base.Joiner
 import com.google.common.collect.Sets
 import org.apache.http.client.utils.URIBuilder
 import org.mitre.oauth2.model.ClientDetailsEntity
@@ -179,7 +178,7 @@ class OAuthConfirmationController {
 
         // contacts
         if (client.contacts != null) {
-            val contacts = Joiner.on(", ").join(client.contacts)
+            val contacts = client.contacts?.joinToString(", ")
             model["contacts"] = contacts
         }
 

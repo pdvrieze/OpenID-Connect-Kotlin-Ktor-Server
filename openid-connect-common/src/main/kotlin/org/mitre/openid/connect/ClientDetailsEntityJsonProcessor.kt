@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect
 
-import com.google.common.base.Joiner
 import com.google.common.base.Splitter
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
@@ -284,7 +283,7 @@ object ClientDetailsEntityJsonProcessor {
             o.add(CONTACTS, JsonUtils.getAsArray(c.contacts))
             o.addProperty(TOS_URI, c.tosUri)
             o.addProperty(TOKEN_ENDPOINT_AUTH_METHOD, if (c.tokenEndpointAuthMethod != null) c.tokenEndpointAuthMethod!!.value else null)
-            o.addProperty(SCOPE, if (c.scope != null) Joiner.on(SCOPE_SEPARATOR).join(c.scope) else null)
+            o.addProperty(SCOPE, if (c.scope != null) c.scope?.joinToString(SCOPE_SEPARATOR) else null)
             o.add(GRANT_TYPES, JsonUtils.getAsArray(c.grantTypes))
             o.add(RESPONSE_TYPES, JsonUtils.getAsArray(c.responseTypes))
             o.addProperty(POLICY_URI, c.policyUri)

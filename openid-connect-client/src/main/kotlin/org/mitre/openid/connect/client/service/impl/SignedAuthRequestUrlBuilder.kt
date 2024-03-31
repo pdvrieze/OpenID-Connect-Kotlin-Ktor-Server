@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.client.service.impl
 
-import com.google.common.base.Joiner
 import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
@@ -46,36 +45,38 @@ class SignedAuthRequestUrlBuilder : AuthRequestUrlBuilder {
     ): String {
         // create our signed JWT for the request object
 
-        val claims = JWTClaimsSet.Builder()
+        val claims = JWTClaimsSet.Builder().apply {
+            //set parameters to JwtClaims
+            claim("response_type", "code")
+            claim("client_id", clientConfig.clientId)
+            claim("scope", clientConfig.scope?.joinToString(" "))
 
-        //set parameters to JwtClaims
-        claims.claim("response_type", "code")
-        claims.claim("client_id", clientConfig.clientId)
-        claims.claim("scope", Joiner.on(" ").join(clientConfig.scope))
+            // build our redirect URI
+            claim("redirect_uri", redirectUri)
 
-        // build our redirect URI
-        claims.claim("redirect_uri", redirectUri)
+            // this comes back in the id token
+            claim("nonce", nonce)
 
-        // this comes back in the id token
-        claims.claim("nonce", nonce)
+            // this comes back in the auth request return
+            claim("state", state)
 
-        // this comes back in the auth request return
-        claims.claim("state", state)
+            // Optional parameters
+            for ((key, value) in options) {
+                claim(key, value)
+            }
 
-        // Optional parameters
-        for ((key, value) in options) {
-            claims.claim(key, value)
-        }
+            // if there's a login hint, send it
+            if (!loginHint.isNullOrEmpty()) {
+                claim("login_hint", loginHint)
+            }
+        }.build()
 
-        // if there's a login hint, send it
-        if (!loginHint.isNullOrEmpty()) {
-            claims.claim("login_hint", loginHint)
-        }
+
 
         val alg = clientConfig.requestObjectSigningAlg
             ?: signingAndValidationService.defaultSigningAlgorithm
 
-        val jwt = SignedJWT(JWSHeader(alg), claims.build())
+        val jwt = SignedJWT(JWSHeader(alg), claims)
 
         signingAndValidationService.signJwt(jwt, alg!!)
 

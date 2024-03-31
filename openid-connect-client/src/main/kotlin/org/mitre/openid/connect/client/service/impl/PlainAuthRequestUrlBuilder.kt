@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.client.service.impl
 
-import com.google.common.base.Joiner
 import org.apache.http.client.utils.URIBuilder
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.openid.connect.client.service.AuthRequestUrlBuilder
@@ -45,7 +44,7 @@ class PlainAuthRequestUrlBuilder : AuthRequestUrlBuilder {
             return URIBuilder(serverConfig.authorizationEndpointUri).apply {
                 addParameter("response_type", "code")
                 addParameter("client_id", clientConfig.clientId)
-                addParameter("scope", Joiner.on(" ").join(clientConfig.scope))
+                addParameter("scope", clientConfig.scope?.joinToString(" "))
 
                 addParameter("redirect_uri", redirectUri)
 

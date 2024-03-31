@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.client.service.impl
 
-import com.google.common.base.Joiner
 import com.nimbusds.jose.EncryptionMethod
 import com.nimbusds.jose.JWEAlgorithm
 import com.nimbusds.jose.JWEHeader
@@ -60,7 +59,7 @@ class EncryptedAuthRequestUrlBuilder : AuthRequestUrlBuilder {
         //set parameters to JwtClaims
         claims.claim("response_type", "code")
         claims.claim("client_id", clientConfig.clientId)
-        claims.claim("scope", Joiner.on(" ").join(clientConfig.scope))
+        claims.claim("scope", clientConfig.scope?.joinToString(" "))
 
         // build our redirect URI
         claims.claim("redirect_uri", redirectUri)
@@ -83,9 +82,9 @@ class EncryptedAuthRequestUrlBuilder : AuthRequestUrlBuilder {
 
         val jwt = EncryptedJWT(JWEHeader(alg, enc), claims.build())
 
-        val encryptor = encrypterService.getEncrypter(serverConfig.jwksUri)
+        val encryptor = encrypterService.getEncrypter(serverConfig.jwksUri)!!
 
-        encryptor!!.encryptJwt(jwt)
+        encryptor.encryptJwt(jwt)
 
         try {
             val uriBuilder = URIBuilder(serverConfig.authorizationEndpointUri)
