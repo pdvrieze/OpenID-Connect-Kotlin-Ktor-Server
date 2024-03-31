@@ -29,7 +29,7 @@ import org.springframework.stereotype.Service
  */
 @Service("scopeClaimTranslator")
 class DefaultScopeClaimTranslationService : ScopeClaimTranslationService {
-    private val scopesToClaims: SetMultimap<String, String> = HashMultimap.create<String?, String?>().apply {
+    private val scopesToClaims: SetMultimap<String, String> = HashMultimap.create<String, String>().apply {
         put("openid", "sub")
 
         put("profile", "name")
