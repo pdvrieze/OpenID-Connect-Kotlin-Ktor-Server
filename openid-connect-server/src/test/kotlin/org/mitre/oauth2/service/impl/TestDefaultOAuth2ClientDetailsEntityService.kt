@@ -105,23 +105,13 @@ class TestDefaultOAuth2ClientDetailsEntityService {
             }
 
         whenever(scopeService.fromStrings(ArgumentMatchers.anySet())).thenAnswer { invocation ->
-            val args = invocation.arguments
-            val input = args[0] as Set<String>
-            val output: MutableSet<SystemScope> = HashSet()
-            for (scope in input) {
-                output.add(SystemScope(scope))
-            }
-            output
+            val input = invocation.arguments[0] as Set<String>
+            input.mapTo(HashSet()) { SystemScope(it) }
         }
 
         whenever(scopeService.toStrings(ArgumentMatchers.anySet())).thenAnswer { invocation ->
-            val args = invocation.arguments
-            val input = args[0] as Set<SystemScope>
-            val output: MutableSet<String?> = HashSet()
-            for (scope in input) {
-                output.add(scope.value)
-            }
-            output
+            val input = invocation.arguments[0] as Set<SystemScope>
+            input.mapTo(HashSet()) { it.value }
         }
 
         // we're not testing reserved scopes here, just pass through when it's called
@@ -203,19 +193,6 @@ class TestDefaultOAuth2ClientDetailsEntityService {
 
     @Test
     fun loadClientByClientId_badId() {
-        // null id
-
-/*      This doesn't compile with Kotlin
-        try {
-            service!!.loadClientByClientId(null)
-            Assert.fail("Null client id. Expected an IllegalArgumentException.")
-        } catch (e: IllegalArgumentException) {
-            Assert.assertThat<RuntimeException>(e, CoreMatchers.`is`(CoreMatchers.notNullValue()))
-        } catch (e: NullPointerException) {
-            Assert.assertThat<RuntimeException>(e, CoreMatchers.`is`(CoreMatchers.notNullValue()))
-        }
-*/
-
         // empty id
         assertThrows<IllegalArgumentException> {
             service.loadClientByClientId("")

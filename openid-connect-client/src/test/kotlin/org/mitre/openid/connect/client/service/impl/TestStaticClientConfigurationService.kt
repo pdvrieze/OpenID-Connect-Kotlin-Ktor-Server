@@ -17,8 +17,7 @@
  */
 package org.mitre.openid.connect.client.service.impl
 
-import org.hamcrest.CoreMatchers
-import org.hamcrest.MatcherAssert.assertThat
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -60,7 +59,7 @@ class TestStaticClientConfigurationService {
     fun getClientConfiguration_success() {
         val result = service.getClientConfiguration(mockServerConfig)
 
-        assertThat(mockClient, CoreMatchers.`is`(CoreMatchers.notNullValue()))
+        Assertions.assertNotNull(mockClient)
         assertEquals(mockClient, result)
     }
 
@@ -70,6 +69,6 @@ class TestStaticClientConfigurationService {
 
         val actualClient = service.getClientConfiguration(mockServerConfig)
 
-        assertThat(actualClient, CoreMatchers.`is`(CoreMatchers.nullValue()))
+        Assertions.assertNull(actualClient)
     }
 }

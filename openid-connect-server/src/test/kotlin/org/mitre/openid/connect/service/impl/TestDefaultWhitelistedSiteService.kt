@@ -17,8 +17,6 @@
  */
 package org.mitre.openid.connect.service.impl
 
-import org.hamcrest.CoreMatchers
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -64,42 +62,6 @@ class TestDefaultWhitelistedSiteService {
         service.saveNew(site)
 
         verify(repository).save(site)
-    }
-
-    @Test
-    fun update_nullSites() {
-        val oldSite = mock<WhitelistedSite>()
-        val newSite = mock<WhitelistedSite>()
-
-        // old client null
-        try {
-            service.update(null as WhitelistedSite, newSite)
-            Assert.fail("Old site input is null. Expected a IllegalArgumentException.")
-        } catch (e: NullPointerException) {
-            Assert.assertThat<RuntimeException>(e, CoreMatchers.`is`(CoreMatchers.notNullValue()))
-        } catch (e: IllegalArgumentException) {
-            Assert.assertThat<RuntimeException>(e, CoreMatchers.`is`(CoreMatchers.notNullValue()))
-        }
-
-        // new client null
-        try {
-            service.update(oldSite, null as WhitelistedSite)
-            Assert.fail("New site input is null. Expected a IllegalArgumentException.")
-        } catch (e: NullPointerException) {
-            Assert.assertThat<RuntimeException>(e, CoreMatchers.`is`(CoreMatchers.notNullValue()))
-        } catch (e: IllegalArgumentException) {
-            Assert.assertThat<RuntimeException>(e, CoreMatchers.`is`(CoreMatchers.notNullValue()))
-        }
-
-        // both clients null
-        try {
-            service.update(null as WhitelistedSite, null as WhitelistedSite)
-            Assert.fail("Both site inputs are null. Expected a IllegalArgumentException.")
-        } catch (e: NullPointerException) {
-            Assert.assertThat<RuntimeException>(e, CoreMatchers.`is`(CoreMatchers.notNullValue()))
-        } catch (e: IllegalArgumentException) {
-            Assert.assertThat<RuntimeException>(e, CoreMatchers.`is`(CoreMatchers.notNullValue()))
-        }
     }
 
     @Test

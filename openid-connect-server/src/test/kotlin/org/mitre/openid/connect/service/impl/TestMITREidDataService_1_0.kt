@@ -20,8 +20,6 @@ package org.mitre.openid.connect.service.impl
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
 import com.nimbusds.jwt.JWTParser
-import org.hamcrest.CoreMatchers
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.jupiter.api.Assertions
@@ -202,6 +200,7 @@ class TestMITREidDataService_1_0 {
         whenever(tokenRepository.saveRefreshToken(isA<OAuth2RefreshTokenEntity>()))
             .thenAnswer(object : Answer<OAuth2RefreshTokenEntity> {
                 var id: Long = 343L
+
                 @Throws(Throwable::class)
                 override fun answer(invocation: InvocationOnMock): OAuth2RefreshTokenEntity {
                     val _token = invocation.arguments[0] as OAuth2RefreshTokenEntity
@@ -223,6 +222,7 @@ class TestMITREidDataService_1_0 {
         whenever(authHolderRepository.getById(ArgumentMatchers.isNull(Long::class.java)))
             .thenAnswer(object : Answer<AuthenticationHolderEntity> {
                 var id: Long = 678L
+
                 @Throws(Throwable::class)
                 override fun answer(invocation: InvocationOnMock): AuthenticationHolderEntity {
                     val _auth = mock<AuthenticationHolderEntity>()
@@ -237,9 +237,9 @@ class TestMITREidDataService_1_0 {
         verify(tokenRepository, times(6)).saveRefreshToken(capture(capturedRefreshTokens))
 
         val savedRefreshTokens: List<OAuth2RefreshTokenEntity> = fakeDb.values.sortedWith(refreshTokenIdComparator())
-            //capturedRefreshTokens.getAllValues();
+        //capturedRefreshTokens.getAllValues();
 
-        Assert.assertThat(savedRefreshTokens.size, CoreMatchers.`is`(2))
+        Assertions.assertEquals(2, savedRefreshTokens.size)
 
         Assertions.assertEquals(token1.client!!.clientId, savedRefreshTokens[0].client!!.clientId)
         Assertions.assertEquals(token1.expiration, savedRefreshTokens[0].expiration)
@@ -330,6 +330,7 @@ class TestMITREidDataService_1_0 {
         whenever<OAuth2AccessTokenEntity>(tokenRepository.saveAccessToken(isA<OAuth2AccessTokenEntity>()))
             .thenAnswer(object : Answer<OAuth2AccessTokenEntity> {
                 var id: Long = 343L
+
                 @Throws(Throwable::class)
                 override fun answer(invocation: InvocationOnMock): OAuth2AccessTokenEntity {
                     val _token = invocation.arguments[0] as OAuth2AccessTokenEntity
@@ -351,6 +352,7 @@ class TestMITREidDataService_1_0 {
         whenever(authHolderRepository.getById(ArgumentMatchers.argThat { x: Long? -> true }))
             .thenAnswer(object : Answer<AuthenticationHolderEntity> {
                 var id: Long = 234L
+
                 @Throws(Throwable::class)
                 override fun answer(invocation: InvocationOnMock): AuthenticationHolderEntity {
                     val _auth = mock<AuthenticationHolderEntity>()
@@ -369,7 +371,7 @@ class TestMITREidDataService_1_0 {
 
         val savedAccessTokens: List<OAuth2AccessTokenEntity> = fakeDb.values.sortedWith(accessTokenIdComparator())
 
-        Assert.assertThat(savedAccessTokens.size, CoreMatchers.`is`(2))
+        Assertions.assertEquals(2, savedAccessTokens.size)
 
         Assertions.assertEquals(token1.client!!.clientId, savedAccessTokens[0].client!!.clientId)
         Assertions.assertEquals(token1.expiration, savedAccessTokens[0].expiration)
@@ -437,7 +439,7 @@ class TestMITREidDataService_1_0 {
 
         val savedClients = capturedClients.allValues
 
-        Assert.assertThat(savedClients.size, CoreMatchers.`is`(2))
+        Assertions.assertEquals(2, savedClients.size)
 
         Assertions.assertEquals(client1.accessTokenValiditySeconds, savedClients[0].accessTokenValiditySeconds)
         Assertions.assertEquals(client1.clientId, savedClients[0].clientId)
@@ -496,7 +498,7 @@ class TestMITREidDataService_1_0 {
 
         val savedSites = capturedBlacklistedSites.allValues
 
-        Assert.assertThat(savedSites.size, CoreMatchers.`is`(3))
+        Assertions.assertEquals(3, savedSites.size)
 
         Assertions.assertEquals(site1.uri, savedSites[0].uri)
         Assertions.assertEquals(site2.uri, savedSites[1].uri)
@@ -541,6 +543,7 @@ class TestMITREidDataService_1_0 {
         whenever<WhitelistedSite>(wlSiteRepository.save(isA<WhitelistedSite>()))
             .thenAnswer(object : Answer<WhitelistedSite> {
                 var id: Long = 345L
+
                 @Throws(Throwable::class)
                 override fun answer(invocation: InvocationOnMock): WhitelistedSite {
                     val _site = invocation.arguments[0] as WhitelistedSite
@@ -567,7 +570,7 @@ class TestMITREidDataService_1_0 {
 
         val savedSites = capturedWhitelistedSites.allValues
 
-        Assert.assertThat(savedSites.size, CoreMatchers.`is`(3))
+        Assertions.assertEquals(3, savedSites.size)
 
         Assertions.assertEquals(site1.clientId, savedSites[0].clientId)
         Assertions.assertEquals(site2.clientId, savedSites[1].clientId)
@@ -633,6 +636,7 @@ class TestMITREidDataService_1_0 {
         whenever(approvedSiteRepository.save(isA<ApprovedSite>()))
             .thenAnswer(object : Answer<ApprovedSite> {
                 var id: Long = 343L
+
                 @Throws(Throwable::class)
                 override fun answer(invocation: InvocationOnMock): ApprovedSite {
                     val _site = invocation.arguments[0] as ApprovedSite
@@ -660,6 +664,7 @@ class TestMITREidDataService_1_0 {
         whenever(tokenRepository.getAccessTokenById(eq((401L).toJavaId())))
             .thenAnswer(object : Answer<OAuth2AccessTokenEntity> {
                 var id: Long = 221L
+
                 @Throws(Throwable::class)
                 override fun answer(invocation: InvocationOnMock): OAuth2AccessTokenEntity {
                     val _token = mock<OAuth2AccessTokenEntity>()
@@ -677,7 +682,7 @@ class TestMITREidDataService_1_0 {
 
         val savedSites: List<ApprovedSite> = fakeDb.values.toList()
 
-        Assert.assertThat(savedSites.size, CoreMatchers.`is`(2))
+        Assertions.assertEquals(2, savedSites.size)
 
         Assertions.assertEquals(site1.clientId, savedSites[0].clientId)
         Assertions.assertEquals(site1.accessDate, savedSites[0].accessDate)
@@ -743,6 +748,7 @@ class TestMITREidDataService_1_0 {
         whenever<AuthenticationHolderEntity>(authHolderRepository.save(isA<AuthenticationHolderEntity>()))
             .thenAnswer(object : Answer<AuthenticationHolderEntity> {
                 var id: Long = 356L
+
                 @Throws(Throwable::class)
                 override fun answer(invocation: InvocationOnMock): AuthenticationHolderEntity {
                     val _holder = invocation.arguments[0] as AuthenticationHolderEntity
@@ -759,7 +765,7 @@ class TestMITREidDataService_1_0 {
 
         val savedAuthHolders = capturedAuthHolders.allValues
 
-        Assert.assertThat(savedAuthHolders.size, CoreMatchers.`is`(2))
+        Assertions.assertEquals(2, savedAuthHolders.size)
         Assertions.assertEquals(holder1.authentication.oAuth2Request.clientId, savedAuthHolders[0].authentication.oAuth2Request.clientId)
         Assertions.assertEquals(holder2.authentication.oAuth2Request.clientId, savedAuthHolders[1].authentication.oAuth2Request.clientId)
     }
@@ -815,7 +821,7 @@ class TestMITREidDataService_1_0 {
 
         val savedScopes = capturedScope.allValues
 
-        Assert.assertThat(savedScopes.size, CoreMatchers.`is`(3))
+        Assertions.assertEquals(3, savedScopes.size)
         Assertions.assertEquals(scope1.value, savedScopes[0].value)
         Assertions.assertEquals(scope1.description, savedScopes[0].description)
         Assertions.assertEquals(scope1.icon, savedScopes[0].icon)

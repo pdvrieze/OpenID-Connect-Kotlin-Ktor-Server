@@ -17,10 +17,9 @@
  */
 package org.mitre.openid.connect.service.impl
 
-import org.hamcrest.CoreMatchers
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
+import org.junit.jupiter.api.Assertions
 import org.junit.runner.RunWith
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.openid.connect.model.ApprovedSite
@@ -101,54 +100,54 @@ class TestDefaultStatsService {
 
         val stats = service.summaryStats
 
-        Assert.assertThat(stats["approvalCount"], CoreMatchers.`is`(0))
-        Assert.assertThat(stats["userCount"], CoreMatchers.`is`(0))
-        Assert.assertThat(stats["clientCount"], CoreMatchers.`is`(0))
+        Assertions.assertEquals(0, stats["approvalCount"])
+        Assertions.assertEquals(0, stats["userCount"])
+        Assertions.assertEquals(0, stats["clientCount"])
     }
 
     @Test
     fun calculateSummaryStats() {
         val stats = service.summaryStats
 
-        Assert.assertThat(stats["approvalCount"], CoreMatchers.`is`(4))
-        Assert.assertThat(stats["userCount"], CoreMatchers.`is`(2))
-        Assert.assertThat(stats["clientCount"], CoreMatchers.`is`(3))
+        Assertions.assertEquals(4, stats["approvalCount"])
+        Assertions.assertEquals(2, stats["userCount"])
+        Assertions.assertEquals(3, stats["clientCount"])
     }
 
     @Test
     fun countForClientId() {
         // stats for ap1..ap4
-        Assert.assertThat(service.getCountForClientId(clientId1)!!.approvedSiteCount, CoreMatchers.`is`(2))
-        Assert.assertThat(service.getCountForClientId(clientId2)!!.approvedSiteCount, CoreMatchers.`is`(1))
-        Assert.assertThat(service.getCountForClientId(clientId3)!!.approvedSiteCount, CoreMatchers.`is`(1))
-        Assert.assertThat(service.getCountForClientId(clientId4)!!.approvedSiteCount, CoreMatchers.`is`(0))
+        Assertions.assertEquals(2, service.getCountForClientId(clientId1)!!.approvedSiteCount)
+        Assertions.assertEquals(1, service.getCountForClientId(clientId2)!!.approvedSiteCount)
+        Assertions.assertEquals(1, service.getCountForClientId(clientId3)!!.approvedSiteCount)
+        Assertions.assertEquals(0, service.getCountForClientId(clientId4)!!.approvedSiteCount)
     }
 
     @Test
     fun cacheAndReset() {
         val stats = service.summaryStats
 
-        Assert.assertThat(stats["approvalCount"], CoreMatchers.`is`(4))
-        Assert.assertThat(stats["userCount"], CoreMatchers.`is`(2))
-        Assert.assertThat(stats["clientCount"], CoreMatchers.`is`(3))
+        Assertions.assertEquals(4, stats["approvalCount"])
+        Assertions.assertEquals(2, stats["userCount"])
+        Assertions.assertEquals(3, stats["clientCount"])
 
         whenever(approvedSiteService.all).thenReturn(setOf(ap1, ap2, ap3, ap4, ap5, ap6))
 
         val stats2 = service.summaryStats
 
         // cache should remain the same due to memoized functions
-        Assert.assertThat(stats2["approvalCount"], CoreMatchers.`is`(4))
-        Assert.assertThat(stats2["userCount"], CoreMatchers.`is`(2))
-        Assert.assertThat(stats2["clientCount"], CoreMatchers.`is`(3))
+        Assertions.assertEquals(4, stats2["approvalCount"])
+        Assertions.assertEquals(2, stats2["userCount"])
+        Assertions.assertEquals(3, stats2["clientCount"])
 
         // reset the cache and make sure the count goes up
         service.resetCache()
 
         val stats3 = service.summaryStats
 
-        Assert.assertThat(stats3["approvalCount"], CoreMatchers.`is`(6))
-        Assert.assertThat(stats3["userCount"], CoreMatchers.`is`(2))
-        Assert.assertThat(stats3["clientCount"], CoreMatchers.`is`(4))
+        Assertions.assertEquals(6, stats3["approvalCount"])
+        Assertions.assertEquals(2, stats3["userCount"])
+        Assertions.assertEquals(4, stats3["clientCount"])
     }
 
     companion object {

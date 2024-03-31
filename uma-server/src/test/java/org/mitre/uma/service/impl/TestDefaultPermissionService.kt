@@ -15,10 +15,9 @@
  */
 package org.mitre.uma.service.impl
 
-import org.hamcrest.CoreMatchers
-import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Before
 import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.runner.RunWith
 import org.mitre.oauth2.service.SystemScopeService
@@ -122,7 +121,7 @@ class TestDefaultPermissionService {
         assertNotNull(perm2.ticket)
 
         // make sure these are different from each other
-        assertThat(perm1.ticket, CoreMatchers.not(CoreMatchers.equalTo(perm2.ticket)))
+        assertNotEquals(perm2.ticket, perm1.ticket)
     }
 
     @Test
@@ -134,7 +133,7 @@ class TestDefaultPermissionService {
         assertNotNull(perm2.ticket)
 
         // make sure these are different from each other
-        assertThat(perm1.ticket, CoreMatchers.not(CoreMatchers.equalTo(perm2.ticket)))
+        assertNotEquals(perm2.ticket, perm1.ticket)
     }
 
     @Test(expected = InsufficientScopeException::class)

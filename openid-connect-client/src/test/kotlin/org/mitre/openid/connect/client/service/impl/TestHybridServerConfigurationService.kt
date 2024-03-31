@@ -17,9 +17,8 @@
  */
 package org.mitre.openid.connect.client.service.impl
 
-import org.hamcrest.CoreMatchers
-import org.hamcrest.MatcherAssert.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -60,7 +59,7 @@ class TestHybridServerConfigurationService {
 
 
     @Test
-    fun getServerConfiguration_useStatic(): Unit {
+    fun getServerConfiguration_useStatic() {
         whenever(mockStaticService.getServerConfiguration(issuer)).thenReturn(mockServerConfig)
 
         val result = hybridService.getServerConfiguration(issuer)
@@ -94,6 +93,6 @@ class TestHybridServerConfigurationService {
 
         verify(mockStaticService).getServerConfiguration(badIssuer)
         verify(mockDynamicService).getServerConfiguration(badIssuer)
-        assertThat(result, CoreMatchers.`is`(CoreMatchers.nullValue()))
+        assertNull(result)
     }
 }

@@ -17,10 +17,8 @@
  */
 package org.mitre.oauth2.service.impl
 
-import org.hamcrest.CoreMatchers
-import org.hamcrest.MatcherAssert.assertThat
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -146,23 +144,13 @@ class TestDefaultOAuth2ProviderTokenService {
         whenever(authenticationHolderRepository.save(isA())) doReturn (storedAuthHolder)
 
         whenever(scopeService.fromStrings(anySet())).thenAnswer { invocation ->
-            val args = invocation.arguments
-            val input = args[0] as Set<String>
-            val output: MutableSet<SystemScope> = HashSet()
-            for (scope in input) {
-                output.add(SystemScope(scope))
-            }
-            output
+            val input = invocation.arguments[0] as Set<String>
+            input.mapTo(HashSet()) { SystemScope(it) }
         }
 
         whenever(scopeService.toStrings(anySet())).thenAnswer { invocation ->
-            val args = invocation.arguments
-            val input = args[0] as Set<SystemScope>
-            val output: MutableSet<String?> = HashSet()
-            for (scope in input) {
-                output.add(scope.value)
-            }
-            output
+            val input = invocation.arguments[0] as Set<SystemScope>
+            input.mapTo(HashSet()) { it.value }
         }
 
         // we're not testing restricted or reserved scopes here, just pass through
@@ -235,7 +223,7 @@ class TestDefaultOAuth2ProviderTokenService {
 
         verify(tokenRepository, never()).saveRefreshToken(isA<OAuth2RefreshTokenEntity>())
 
-        assertThat(token.refreshToken, CoreMatchers.`is`(CoreMatchers.nullValue()))
+        Assertions.assertNull(token.refreshToken)
     }
 
     /**
@@ -251,11 +239,10 @@ class TestDefaultOAuth2ProviderTokenService {
         val token = service.createAccessToken(authentication)
 
         // Note: a refactor may be appropriate to only save refresh tokens once to the repository during creation.
-        verify(tokenRepository, atLeastOnce())
-            .saveRefreshToken(isA<OAuth2RefreshTokenEntity>())
+        verify(tokenRepository, atLeastOnce()).saveRefreshToken(isA<OAuth2RefreshTokenEntity>())
         verify(scopeService, atLeastOnce()).removeReservedScopes(anySet())
 
-        assertThat(token.refreshToken, CoreMatchers.`is`(CoreMatchers.notNullValue()))
+        assertNotNull(token.refreshToken)
     }
 
     /**
@@ -281,11 +268,11 @@ class TestDefaultOAuth2ProviderTokenService {
 
         verify(scopeService, atLeastOnce()).removeReservedScopes(anySet())
 
-        assertTrue(
-            token.expiration!!.after(lowerBoundAccessTokens) && token.expiration!!
-                .before(upperBoundAccessTokens)
-        )
-        assertTrue(token.refreshToken!!.expiration!!.after(lowerBoundRefreshTokens) && token.refreshToken!!.expiration!!.before(upperBoundRefreshTokens))
+        assertTrue(token.expiration!!.after(lowerBoundAccessTokens))
+        assertTrue(token.expiration!!.before(upperBoundAccessTokens))
+
+        assertTrue(token.refreshToken!!.expiration!!.after(lowerBoundRefreshTokens))
+        assertTrue(token.refreshToken!!.expiration!!.before(upperBoundRefreshTokens))
     }
 
     @Test
@@ -380,7 +367,7 @@ class TestDefaultOAuth2ProviderTokenService {
         verify(tokenRepository).clearAccessTokensForRefreshToken(refreshToken)
 
         assertEquals(client, token.client)
-        assertThat(token.refreshToken, CoreMatchers.not(CoreMatchers.equalTo(refreshToken)))
+        Assertions.assertNotEquals(refreshToken, token.refreshToken)
         assertEquals(storedAuthHolder, token.authenticationHolder)
 
         verify(tokenEnhancer).enhance(token, storedAuthentication)

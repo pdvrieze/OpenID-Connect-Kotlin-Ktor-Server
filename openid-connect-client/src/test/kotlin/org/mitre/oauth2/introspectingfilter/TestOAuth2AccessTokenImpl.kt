@@ -16,8 +16,7 @@
 package org.mitre.oauth2.introspectingfilter
 
 import com.google.gson.JsonObject
-import org.hamcrest.CoreMatchers
-import org.hamcrest.MatcherAssert.assertThat
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.*
 
@@ -34,8 +33,8 @@ class TestOAuth2AccessTokenImpl {
 
         val tok = OAuth2AccessTokenImpl(tokenObj, tokenString)
 
-        assertThat(tok.scope, CoreMatchers.`is`(CoreMatchers.equalTo(scopes)))
-        assertThat(tok.expiration, CoreMatchers.`is`(CoreMatchers.equalTo(exp)))
+        assertEquals(scopes, tok.scope)
+        assertEquals(exp, tok.expiration)
     }
 
     @Test
@@ -49,8 +48,8 @@ class TestOAuth2AccessTokenImpl {
 
         val tok = OAuth2AccessTokenImpl(tokenObj, tokenString)
 
-        assertThat(tok.scope, CoreMatchers.`is`(CoreMatchers.equalTo(scopes)))
-        assertThat(tok.expiration, CoreMatchers.`is`(CoreMatchers.equalTo(null)))
+        assertEquals(scopes, tok.scope)
+        assertEquals(null, tok.expiration)
     }
 
     @Test
@@ -64,8 +63,8 @@ class TestOAuth2AccessTokenImpl {
 
         val tok = OAuth2AccessTokenImpl(tokenObj, tokenString)
 
-        assertThat(tok.scope, CoreMatchers.`is`(CoreMatchers.equalTo(Collections.EMPTY_SET)))
-        assertThat(tok.expiration, CoreMatchers.`is`(CoreMatchers.equalTo(exp)))
+        assertEquals(Collections.EMPTY_SET, tok.scope)
+        assertEquals(exp, tok.expiration)
     }
 
     @Test
@@ -78,8 +77,8 @@ class TestOAuth2AccessTokenImpl {
 
         val tok = OAuth2AccessTokenImpl(tokenObj, tokenString)
 
-        assertThat(tok.scope, CoreMatchers.`is`(CoreMatchers.equalTo(Collections.EMPTY_SET)))
-        assertThat(tok.expiration, CoreMatchers.`is`(CoreMatchers.equalTo(null)))
+        assertEquals(Collections.EMPTY_SET, tok.scope)
+        assertEquals(null, tok.expiration)
     }
 
     companion object {

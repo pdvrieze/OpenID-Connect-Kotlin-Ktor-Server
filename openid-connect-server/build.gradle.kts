@@ -32,9 +32,8 @@ dependencies {
     testImplementation(libs.mockito.jupiter)
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.spring.test)
-    testImplementation(libs.hamcrest.all)
-    testImplementation(libs.hamcrest.core)
     testImplementation(libs.junit.jupiter.api)
+
     testRuntimeOnly(libs.junit.jupiter.engine)
     testRuntimeOnly(libs.junit.jupiter.vintage)
     testRuntimeOnly(libs.eclipse.persistence.jpa)

@@ -17,9 +17,8 @@
  */
 package org.mitre.openid.connect.client.service.impl
 
-import org.hamcrest.CoreMatchers
-import org.hamcrest.MatcherAssert.assertThat
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -59,11 +58,11 @@ class TestThirdPartyIssuerService {
     fun getIssuer_hasIssuer() {
         val response = service.getIssuer(request)
 
-        Assertions.assertEquals(iss, response.issuer)
-        Assertions.assertEquals(login_hint, response.loginHint)
-        Assertions.assertEquals(target_link_uri, response.targetLinkUri)
+        assertEquals(iss, response.issuer)
+        assertEquals(login_hint, response.loginHint)
+        assertEquals(target_link_uri, response.targetLinkUri)
 
-        assertThat(response.redirectUrl, CoreMatchers.nullValue())
+        assertNull(response.redirectUrl)
     }
 
     @Test
@@ -72,13 +71,14 @@ class TestThirdPartyIssuerService {
 
         val response = service.getIssuer(request)
 
-        assertThat(response.issuer, CoreMatchers.nullValue())
-        assertThat(response.loginHint, CoreMatchers.nullValue())
-        assertThat(response.targetLinkUri, CoreMatchers.nullValue())
+        assertNull(response.issuer)
+        assertNull(response.loginHint)
+        assertNull(response.targetLinkUri)
 
-        val expectedRedirectUrl =
-            "$accountChooserUrl?redirect_uri=https%3A%2F%2Fwww.example.com" // url-encoded string of the request url
-        Assertions.assertEquals(expectedRedirectUrl, response.redirectUrl)
+        // url-encoded string of the request url
+        val expectedRedirectUrl = "$accountChooserUrl?redirect_uri=https%3A%2F%2Fwww.example.com"
+
+        assertEquals(expectedRedirectUrl, response.redirectUrl)
     }
 
     @Test
@@ -87,11 +87,11 @@ class TestThirdPartyIssuerService {
 
         val response = service.getIssuer(request)
 
-        Assertions.assertEquals(iss, response.issuer)
-        Assertions.assertEquals(login_hint, response.loginHint)
-        Assertions.assertEquals(target_link_uri, response.targetLinkUri)
+        assertEquals(iss, response.issuer)
+        assertEquals(login_hint, response.loginHint)
+        assertEquals(target_link_uri, response.targetLinkUri)
 
-        assertThat(response.redirectUrl, CoreMatchers.nullValue())
+        assertNull(response.redirectUrl)
     }
 
     @Test

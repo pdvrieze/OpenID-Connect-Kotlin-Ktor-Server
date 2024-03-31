@@ -33,8 +33,6 @@ import com.nimbusds.jose.util.Base64URL
 import com.nimbusds.jose.util.JSONObjectUtils
 import com.nimbusds.jwt.EncryptedJWT
 import com.nimbusds.jwt.JWTClaimsSet
-import org.hamcrest.CoreMatchers
-import org.hamcrest.MatcherAssert.assertThat
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.BeforeEach
@@ -187,7 +185,7 @@ class TestDefaultJWTEncryptionAndDecryptionService {
 
         val jwt = JWEObject.parse(compactSerializedJwe)
 
-        assertThat(jwt.payload, CoreMatchers.nullValue()) // observe..nothing is there
+        assertNull(jwt.payload) // observe..nothing is there
 
         service.decryptJwt(jwt)
         val result = jwt.payload.toString() // and voila! decrypto-magic
@@ -218,7 +216,7 @@ class TestDefaultJWTEncryptionAndDecryptionService {
         val serialized = jwt.serialize()
 
         val encryptedJwt = EncryptedJWT.parse(serialized)
-        assertThat(encryptedJwt.jwtClaimsSet, CoreMatchers.nullValue())
+        assertNull(encryptedJwt.jwtClaimsSet)
         service.decryptJwt(encryptedJwt)
 
         val resultClaims = encryptedJwt.jwtClaimsSet
@@ -251,7 +249,7 @@ class TestDefaultJWTEncryptionAndDecryptionService {
         val serialized = jwt.serialize()
 
         val encryptedJwt = EncryptedJWT.parse(serialized)
-        assertThat(encryptedJwt.jwtClaimsSet, CoreMatchers.nullValue())
+        assertNull(encryptedJwt.jwtClaimsSet)
         service.decryptJwt(encryptedJwt)
 
         val resultClaims = encryptedJwt.jwtClaimsSet
@@ -305,7 +303,7 @@ class TestDefaultJWTEncryptionAndDecryptionService {
             val serialized = jwt.serialize()
 
             val encryptedJwt = EncryptedJWT.parse(serialized)
-            assertThat(encryptedJwt.jwtClaimsSet, CoreMatchers.nullValue())
+            assertNull(encryptedJwt.jwtClaimsSet)
 
             assertEquals(null, service_2.defaultDecryptionKeyId)
             service_2.decryptJwt(encryptedJwt)

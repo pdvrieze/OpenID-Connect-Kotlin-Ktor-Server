@@ -17,7 +17,6 @@ dependencies {
     implementation(libs.servlet.api)
     implementation(libs.javax.ann)
 
-    testImplementation(libs.hamcrest.core)
     testImplementation(libs.mockito.jupiter)
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.junit.jupiter.api)
