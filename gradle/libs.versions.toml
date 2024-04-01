@@ -107,12 +107,14 @@ jaxb-bindapi = { module = "jakarta.xml.bind:jakarta.xml.bind-api", version = "3.
 jaxb-api = { module = "javax.xml.bind:jaxb-api", version = "2.3.1" }
 javax-activation = { module = "javax.activation:activation", version = "1.1" }
 jaxb-runtime = { module = "org.glassfish.jaxb:jaxb-runtime", version = "2.3.0-b170127.1453" }
-
+kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version = "1.6.3"}
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.6.3"}
 
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-plugins-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
 kotlin-plugins-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kotlin" }
+kotlin-plugins-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
