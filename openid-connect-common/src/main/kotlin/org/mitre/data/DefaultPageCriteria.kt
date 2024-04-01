@@ -21,7 +21,7 @@ package org.mitre.data
  *
  * @author Colm Smyth
  */
-class DefaultPageCriteria(
+data class DefaultPageCriteria(
     override val pageNumber: Int = DEFAULT_PAGE_NUMBER,
     override val pageSize: Int = DEFAULT_PAGE_SIZE
 ) : PageCriteria {

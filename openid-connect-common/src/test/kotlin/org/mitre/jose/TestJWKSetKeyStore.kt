@@ -27,7 +27,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.junit.jupiter.api.fail
 import org.mitre.jose.keystore.JWKSetKeyStore
 import org.springframework.core.io.FileSystemResource
 import org.springframework.core.io.Resource
@@ -120,8 +119,8 @@ class TestJWKSetKeyStore {
         val ks = JWKSetKeyStore(jwkSet)
         assertEquals(ks.jwkSet, jwkSet)
 
-        val ks_empty = JWKSetKeyStore()
-        assertEquals(ks_empty.jwkSet, null)
+//        val ks_empty = JWKSetKeyStore("")
+//        assertEquals(ks_empty.jwkSet, null)
     }
 
     /* Misformatted JWK */
@@ -133,46 +132,27 @@ class TestJWKSetKeyStore {
             out.write(jwtbyte)
             out.close()
 
-            var ks_badJWK = JWKSetKeyStore()
             val loc: Resource = FileSystemResource(ks_file_badJWK)
             assertTrue(loc.exists())
+            val ks_badJWK = JWKSetKeyStore(loc)
 
-            ks_badJWK.location = loc
             assertEquals(loc.filename, ks_file_badJWK)
-
-            fail("This should not be reached")
+            assertEquals(loc, ks_badJWK.location)
         }
-
-//        ks_badJWK = JWKSetKeyStore((null as JWKSet))
     }
 
     /* Empty constructor with valid Resource */
     @Test
     fun ksEmptyConstructorkLoc() {
-        val ks = JWKSetKeyStore()
-
         val file = File(ks_file)
 
         val loc: Resource = FileSystemResource(file)
         assertTrue(loc.exists())
         assertTrue(loc.isReadable)
 
-        ks.location = loc
+        val ks = JWKSetKeyStore(loc)
 
         assertEquals(loc.filename, ks.location!!.filename)
     }
 
-
-    @Test
-    fun ksSetJwkSet() {
-        val ks = JWKSetKeyStore()
-        var thrown = false
-        assertThrows<IllegalArgumentException> {
-            ks.jwkSet = null
-        }
-
-        ks.jwkSet = jwkSet
-
-        assertEquals(ks.jwkSet, jwkSet)
-    }
 }

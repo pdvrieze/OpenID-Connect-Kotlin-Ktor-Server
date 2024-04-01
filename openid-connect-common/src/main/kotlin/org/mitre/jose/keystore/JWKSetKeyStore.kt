@@ -27,46 +27,33 @@ import java.text.ParseException
 /**
  * @author jricher
  */
-class JWKSetKeyStore() {
+class JWKSetKeyStore private constructor(val jwkSet: JWKSet, val location: Resource?) {
 
-    var jwkSet: JWKSet? = null
-        set(value) {
-            field = value
-            initializeJwkSet()
-        }
+    constructor(jwkSet: JWKSet) : this(jwkSet, null)
 
-    var location: Resource? = null
-        set(value) {
-            field = value
-            initializeJwkSet()
-        }
-
-    constructor(jwkSet: JWKSet) : this() {
-        this.jwkSet = jwkSet
-    }
-
-    private fun initializeJwkSet(): JWKSet = when (val j = jwkSet) {
-        null -> {
-            val location = requireNotNull(location) { "Key store must be initialized with at least one of a jwkSet or a location." }
-            require(location.exists() && location.isReadable) { "Key Set resource could not be read: $location" }
-            try {
-                // read in the file from disk
-                val s = InputStreamReader(location.inputStream, Charsets.UTF_8).readText()
-
-                // parse it into a jwkSet object
-                JWKSet.parse(s).also { jwkSet = it }
-            } catch (e: IOException) {
-                throw IllegalArgumentException("Key Set resource could not be read: $location")
-            } catch (e: ParseException) {
-                throw IllegalArgumentException("Key Set resource could not be parsed: $location")
-            }
-        }
-        else -> j
-    }
+    constructor(location: Resource) : this(retrieveJwkSet(location), location)
 
     /**
      * Get the list of keys in this keystore. This is a passthrough to the underlying JWK Set
      */
     val keys: List<JWK>
-        get() = (jwkSet ?: initializeJwkSet()).keys
+        get() = jwkSet.keys
+
+    companion object {
+        private fun retrieveJwkSet(location: Resource): JWKSet {
+            require(location.exists() && location.isReadable) { "Key Set resource could not be read: $location" }
+            return try {
+                // read in the file from disk
+                val s = location.inputStream.use { inStream ->
+                    InputStreamReader(inStream, Charsets.UTF_8).readText()
+                }
+                // parse it into a jwkSet object
+                JWKSet.parse(s)
+            } catch (e: IOException) {
+                throw IllegalArgumentException("Key Set resource could not be read: $location", e)
+            } catch (e: ParseException) {
+                throw IllegalArgumentException("Key Set resource could not be parsed: $location", e)
+            }
+        }
+    }
 }

@@ -56,7 +56,7 @@ object WebfingerURLNormalizer {
      * @return the normalized string, or null if the string can't be normalized
      */
 	@JvmStatic
-	fun normalizeResource(identifier: String): UriComponents? {
+	fun normalizeResource(identifier: String?): UriComponents? {
         // try to parse the URI
         // NOTE: we can't use the Java built-in URI class because it doesn't split the parts appropriately
 
@@ -64,6 +64,7 @@ object WebfingerURLNormalizer {
             logger.warn("Can't normalize null or empty URI: $identifier")
             return null // nothing we can do
         } else {
+            // TODO URI's are not regular, replace with a proper parser (or use URI)
             //UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(identifier);
 
             val builder = UriComponentsBuilder.newInstance()
@@ -114,10 +115,8 @@ object WebfingerURLNormalizer {
 
     @JvmStatic
 	fun serializeURL(uri: UriComponents): String {
-        if (uri.scheme != null &&
-            (uri.scheme == "acct" || uri.scheme == "mailto" || uri.scheme == "tel" || uri.scheme == "device"
-                    )
-        ) {
+
+        if (uri.scheme in SPECIAL_SCHEMES) {
             // serializer copied from HierarchicalUriComponents but with "//" removed
 
             val uriBuilder = StringBuilder()
@@ -165,4 +164,6 @@ object WebfingerURLNormalizer {
             return uri.toUriString()
         }
     }
+
+    private val SPECIAL_SCHEMES = hashSetOf("acct", "mailto", "tel", "device")
 }
