@@ -19,6 +19,7 @@ import com.google.gson.JsonParser
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
 import com.google.gson.stream.JsonWriter
+import kotlinx.serialization.json.Json
 import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.oauth2.util.toJavaId
 import org.mitre.openid.connect.ClientDetailsEntityJsonProcessor.parseRegistered
@@ -385,8 +386,7 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceSupport(), MITREidDataServ
                                             } else if (cname == NAME) {
                                                 c.name = reader.nextString()
                                             } else if (cname == VALUE) {
-                                                val e = parser.parse(reader.nextString())
-                                                c.value = e
+                                                c.value = Json.parseToJsonElement(reader.nextString())
                                             } else {
                                                 logger.debug("Found unexpected entry")
                                                 reader.skipValue()
@@ -535,8 +535,7 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceSupport(), MITREidDataServ
                                                                 } else if (cname == NAME) {
                                                                     c.name = reader.nextString()
                                                                 } else if (cname == VALUE) {
-                                                                    val e = parser.parse(reader.nextString())
-                                                                    c.value = e
+                                                                    c.value = Json.parseToJsonElement(reader.nextString())
                                                                 } else {
                                                                     logger.debug("Found unexpected entry")
                                                                     reader.skipValue()

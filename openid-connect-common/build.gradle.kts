@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.plugins.jpa)
     alias(libs.plugins.kotlin.plugins.spring)
+    alias(libs.plugins.kotlin.plugins.serialization)
 }
 
 base {
@@ -31,6 +32,8 @@ dependencies {
     implementation(libs.javax.persistence)
     implementation(libs.javax.ann)
     implementation(libs.bcprov)
+
+    api(libs.kotlinx.serialization.json)
 
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)

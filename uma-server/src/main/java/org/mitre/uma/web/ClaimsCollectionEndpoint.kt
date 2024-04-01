@@ -15,8 +15,8 @@
  */
 package org.mitre.uma.web
 
-import com.google.gson.JsonElement
-import com.google.gson.JsonPrimitive
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.model.OIDCAuthenticationToken
 import org.mitre.openid.connect.view.HttpCodeView

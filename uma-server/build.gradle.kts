@@ -16,6 +16,7 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.spring.webmvc)
     implementation(libs.spring.tx)
+    implementation(libs.kotlinx.serialization.json)
 /*
     implementation(libs.spring.core) {
         exclude("commons-logging:commons-logging")

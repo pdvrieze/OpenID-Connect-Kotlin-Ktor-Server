@@ -15,7 +15,7 @@
  */
 package org.mitre.uma.model
 
-import com.google.gson.JsonElement
+import kotlinx.serialization.json.JsonElement
 import org.mitre.oauth2.model.convert.JsonElementStringConverter
 import javax.persistence.Basic
 import javax.persistence.CollectionTable

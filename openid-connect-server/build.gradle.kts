@@ -9,7 +9,7 @@ base {
 }
 
 dependencies {
-    implementation(projects.openidConnectCommon)
+    api(projects.openidConnectCommon)
     implementation(libs.servlet.api)
     implementation(libs.spring.tx)
     implementation(libs.spring.orm) {
@@ -26,6 +26,7 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.guava)
     implementation(libs.jwt)
+    implementation(libs.kotlinx.serialization.json)
 
     testImplementation(libs.mockito.jupiter)
     testImplementation(libs.mockito.kotlin)

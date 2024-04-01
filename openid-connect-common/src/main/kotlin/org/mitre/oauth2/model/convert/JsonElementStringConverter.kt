@@ -15,8 +15,8 @@
  */
 package org.mitre.oauth2.model.convert
 
-import com.google.gson.JsonElement
-import com.google.gson.JsonParser
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 import javax.persistence.AttributeConverter
 import javax.persistence.Converter
 
@@ -25,8 +25,6 @@ import javax.persistence.Converter
  */
 @Converter
 class JsonElementStringConverter : AttributeConverter<JsonElement?, String?> {
-    private val parser = JsonParser()
-
     override fun convertToDatabaseColumn(attribute: JsonElement?): String? {
         return attribute?.toString()
     }
@@ -34,11 +32,8 @@ class JsonElementStringConverter : AttributeConverter<JsonElement?, String?> {
     /* (non-Javadoc)
 	 * @see javax.persistence.AttributeConverter#convertToEntityAttribute(java.lang.Object)
 	 */
-    override fun convertToEntityAttribute(dbData: String?): JsonElement? {
-        return if (!dbData.isNullOrEmpty()) {
-            parser.parse(dbData)
-        } else {
-            null
-        }
+    override fun convertToEntityAttribute(dbData: String?): JsonElement? = when {
+        !dbData.isNullOrEmpty() -> Json.parseToJsonElement(dbData)
+        else -> null
     }
 }
