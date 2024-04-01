@@ -17,6 +17,7 @@
  */
 package org.mitre.oauth2.web
 
+import kotlinx.serialization.json.JsonPrimitive
 import org.apache.http.client.utils.URIBuilder
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.SystemScope
@@ -155,16 +156,17 @@ class OAuthConfirmationController {
 
             for (systemScope in sortedScopes) {
                 val claimValues: MutableMap<String, String> = HashMap()
+                val scopeValue = systemScope!!.value!!
 
-                val claims = scopeClaimTranslationService.getClaimsForScope(systemScope!!.value!!)
+                val claims = scopeClaimTranslationService.getClaimsForScope(scopeValue)
                 for (claim in claims!!) {
-                    if (userJson!!.has(claim) && userJson[claim].isJsonPrimitive) {
+                    (userJson[claim] as? JsonPrimitive)?.let {
                         // TODO: this skips the address claim
-                        claimValues[claim] = userJson[claim].asString
+                        claimValues[claim] = it.toString()
                     }
                 }
 
-                claimsForScopes[systemScope.value] = claimValues
+                claimsForScopes[scopeValue] = claimValues
             }
         }
 

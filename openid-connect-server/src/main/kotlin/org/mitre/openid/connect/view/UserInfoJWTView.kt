@@ -15,7 +15,6 @@
  */
 package org.mitre.openid.connect.view
 
-import com.google.gson.JsonObject
 import com.nimbusds.jose.Algorithm
 import com.nimbusds.jose.JWEHeader
 import com.nimbusds.jose.JWSAlgorithm
@@ -23,6 +22,9 @@ import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jwt.EncryptedJWT
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.jwt.signer.service.impl.ClientKeyCacheService
 import org.mitre.jwt.signer.service.impl.SymmetricKeyJWTValidatorCacheService
@@ -34,7 +36,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import java.io.IOException
-import java.io.StringWriter
 import java.io.Writer
 import java.text.ParseException
 import java.util.*
@@ -59,7 +60,7 @@ class UserInfoJWTView : UserInfoView() {
     private lateinit var symmetricCacheService: SymmetricKeyJWTValidatorCacheService
 
     override fun writeOut(
-        json: JsonObject?,
+        json: JsonObject,
         model: Map<String, Any>,
         request: HttpServletRequest?,
         response: HttpServletResponse
@@ -68,12 +69,11 @@ class UserInfoJWTView : UserInfoView() {
             val client = model[CLIENT] as ClientDetailsEntity
 
             // use the parser to import the user claims into the object
-            val writer = StringWriter()
-            gson.toJson(json, writer)
+            val encodedJson = Json.encodeToString(json)
 
             response.contentType = JOSE_MEDIA_TYPE_VALUE
 
-            val claims = JWTClaimsSet.Builder(JWTClaimsSet.parse(writer.toString()))
+            val claims = JWTClaimsSet.Builder(JWTClaimsSet.parse(encodedJson))
                 .audience(listOf(client.clientId))
                 .issuer(config.issuer)
                 .issueTime(Date())

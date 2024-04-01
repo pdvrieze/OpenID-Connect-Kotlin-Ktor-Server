@@ -17,9 +17,13 @@
  */
 package org.mitre.openid.connect.model
 
-import com.google.gson.JsonObject
-import com.google.gson.JsonParser
-import org.mitre.openid.connect.model.DefaultAddress
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.jsonObject
 import org.mitre.openid.connect.model.convert.JsonObjectStringConverter
 import java.io.IOException
 import java.io.ObjectInputStream
@@ -138,49 +142,50 @@ class DefaultUserInfo : UserInfo {
     override var source: JsonObject? = null // source JSON if this is loaded remotely
 
 
-    override fun toJson(): JsonObject? {
-        if (source == null) {
-            val obj = JsonObject()
+    override fun toJson(): JsonObject {
+        source?.let { return it }
 
-            obj.addProperty("sub", this.sub)
+        val data = buildMap<String, JsonElement> {
 
-            obj.addProperty("name", this.name)
-            obj.addProperty("preferred_username", this.preferredUsername)
-            obj.addProperty("given_name", this.givenName)
-            obj.addProperty("family_name", this.familyName)
-            obj.addProperty("middle_name", this.middleName)
-            obj.addProperty("nickname", this.nickname)
-            obj.addProperty("profile", this.profile)
-            obj.addProperty("picture", this.picture)
-            obj.addProperty("website", this.website)
-            obj.addProperty("gender", this.gender)
-            obj.addProperty("zoneinfo", this.zoneinfo)
-            obj.addProperty("locale", this.locale)
-            obj.addProperty("updated_at", this.updatedTime)
-            obj.addProperty("birthdate", this.birthdate)
+            put("sub", JsonPrimitive(sub))
+            put("name", JsonPrimitive(name))
+            put("preferred_username", JsonPrimitive(preferredUsername))
+            put("given_name", JsonPrimitive(givenName))
+            put("family_name", JsonPrimitive(familyName))
+            put("middle_name", JsonPrimitive(middleName))
+            put("nickname", JsonPrimitive(nickname))
+            put("profile", JsonPrimitive(profile))
+            put("picture", JsonPrimitive(picture))
+            put("website", JsonPrimitive(website))
+            put("gender", JsonPrimitive(gender))
+            put("zoneinfo", JsonPrimitive(zoneinfo))
+            put("locale", JsonPrimitive(locale))
+            put("updated_at", JsonPrimitive(updatedTime))
+            put("birthdate", JsonPrimitive(birthdate))
 
-            obj.addProperty("email", this.email)
-            obj.addProperty("email_verified", this.emailVerified)
+            put("email", JsonPrimitive(email))
+            put("email_verified", JsonPrimitive(emailVerified))
 
-            obj.addProperty("phone_number", this.phoneNumber)
-            obj.addProperty("phone_number_verified", this.phoneNumberVerified)
+            put("phone_number", JsonPrimitive(phoneNumber))
+            put("phone_number_verified", JsonPrimitive(phoneNumberVerified))
 
-            if (this.address != null) {
-                val addr = JsonObject()
-                addr.addProperty("formatted", address!!.formatted)
-                addr.addProperty("street_address", address!!.streetAddress)
-                addr.addProperty("locality", address!!.locality)
-                addr.addProperty("region", address!!.region)
-                addr.addProperty("postal_code", address!!.postalCode)
-                addr.addProperty("country", address!!.country)
-
-                obj.add("address", addr)
+            address?.let {
+                put(
+                    "address", JsonObject(
+                        mapOf(
+                            "formatted" to JsonPrimitive(address!!.formatted),
+                            "street_address" to JsonPrimitive(address!!.streetAddress),
+                            "locality" to JsonPrimitive(address!!.locality),
+                            "region" to JsonPrimitive(address!!.region),
+                            "postal_code" to JsonPrimitive(address!!.postalCode),
+                            "country" to JsonPrimitive(address!!.country),
+                        )
+                    )
+                )
             }
-
-            return obj
-        } else {
-            return source
         }
+
+        return JsonObject(data)
     }
 
 
@@ -198,12 +203,11 @@ class DefaultUserInfo : UserInfo {
     }
 
     @Throws(IOException::class, ClassNotFoundException::class)
-    private fun readObject(`in`: ObjectInputStream) {
-        `in`.defaultReadObject()
-        val o = `in`.readObject()
+    private fun readObject(input: ObjectInputStream) {
+        input.defaultReadObject()
+        val o = input.readObject() as String?
         if (o != null) {
-            val parser = JsonParser()
-            source = parser.parse(o as String).asJsonObject
+            source = Json.encodeToJsonElement(o).jsonObject
         }
     }
 
@@ -294,23 +298,23 @@ class DefaultUserInfo : UserInfo {
             ui.birthdate = nullSafeGetString(obj, "birthdate")
 
             ui.email = nullSafeGetString(obj, "email")
-            ui.emailVerified =
-                if (obj.has("email_verified") && obj["email_verified"].isJsonPrimitive) obj["email_verified"].asBoolean else null
+            ui.emailVerified = (obj["email_verified"] as? JsonPrimitive)?.boolean
 
             ui.phoneNumber = nullSafeGetString(obj, "phone_number")
-            ui.phoneNumberVerified =
-                if (obj.has("phone_number_verified") && obj["phone_number_verified"].isJsonPrimitive) obj["phone_number_verified"].asBoolean else null
+            ui.phoneNumberVerified = (obj["phone_number_verified"] as? JsonPrimitive)?.boolean
 
-            if (obj.has("address") && obj["address"].isJsonObject) {
-                val addr = obj["address"].asJsonObject
-                ui.address = DefaultAddress()
+            (obj["address"] as? JsonObject)?.let { addr ->
 
-                ui.address!!.formatted = nullSafeGetString(addr, "formatted")
-                ui.address!!.streetAddress = nullSafeGetString(addr, "street_address")
-                ui.address!!.locality = nullSafeGetString(addr, "locality")
-                ui.address!!.region = nullSafeGetString(addr, "region")
-                ui.address!!.postalCode = nullSafeGetString(addr, "postal_code")
-                ui.address!!.country = nullSafeGetString(addr, "country")
+                ui.address = DefaultAddress().apply {
+                    formatted = nullSafeGetString(addr, "formatted")
+                    streetAddress = nullSafeGetString(addr, "street_address")
+                    locality = nullSafeGetString(addr, "locality")
+                    region = nullSafeGetString(addr, "region")
+                    postalCode = nullSafeGetString(addr, "postal_code")
+                    country = nullSafeGetString(addr, "country")
+
+                }
+
             }
 
 
@@ -318,7 +322,7 @@ class DefaultUserInfo : UserInfo {
         }
 
         private fun nullSafeGetString(obj: JsonObject, field: String): String? {
-            return if (obj.has(field) && obj[field].isJsonPrimitive) obj[field].asString else null
+            return (obj[field] as? JsonPrimitive)?.toString()
         }
     }
 }

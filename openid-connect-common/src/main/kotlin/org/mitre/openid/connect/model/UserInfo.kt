@@ -17,7 +17,7 @@
  */
 package org.mitre.openid.connect.model
 
-import com.google.gson.JsonObject
+import kotlinx.serialization.json.JsonObject
 import java.io.Serializable
 
 interface UserInfo : Serializable {
@@ -85,7 +85,7 @@ interface UserInfo : Serializable {
 
     var birthdate: String?
 
-    fun toJson(): JsonObject?
+    fun toJson(): JsonObject
 
     val source: JsonObject?
 }

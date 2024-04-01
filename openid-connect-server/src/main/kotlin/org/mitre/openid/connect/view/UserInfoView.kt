@@ -17,12 +17,11 @@
  */
 package org.mitre.openid.connect.view
 
-import com.google.gson.ExclusionStrategy
-import com.google.gson.FieldAttributes
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
-import com.google.gson.JsonObject
-import com.google.gson.JsonParser
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.encodeToStream
 import org.mitre.openid.connect.model.UserInfo
 import org.mitre.openid.connect.service.ScopeClaimTranslationService
 import org.slf4j.Logger
@@ -30,10 +29,9 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
-import org.springframework.validation.BeanPropertyBindingResult
 import org.springframework.web.servlet.view.AbstractView
 import java.io.IOException
-import java.io.Writer
+import java.io.OutputStream
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
@@ -41,17 +39,6 @@ import javax.servlet.http.HttpServletResponse
 class UserInfoView : AbstractView() {
     @Autowired
     private lateinit var translator: ScopeClaimTranslationService
-
-    protected var gson: Gson = GsonBuilder().setExclusionStrategies(object : ExclusionStrategy {
-        override fun shouldSkipField(f: FieldAttributes): Boolean {
-            return false
-        }
-
-        override fun shouldSkipClass(clazz: Class<*>): Boolean {
-            // skip the JPA binding wrapper
-            return clazz == BeanPropertyBindingResult::class.java
-        }
-    }).create()
 
     /*
 	 * (non-Javadoc)
@@ -77,25 +64,28 @@ class UserInfoView : AbstractView() {
         var authorizedClaims: JsonObject? = null
         var requestedClaims: JsonObject? = null
         if (model[AUTHORIZED_CLAIMS] != null) {
-            authorizedClaims = jsonParser.parse(model[AUTHORIZED_CLAIMS] as String?).asJsonObject
+            authorizedClaims = (model[AUTHORIZED_CLAIMS] as String?)
+                ?.let { Json.parseToJsonElement(it) as? JsonObject }
         }
         if (model[REQUESTED_CLAIMS] != null) {
-            requestedClaims = jsonParser.parse(model[REQUESTED_CLAIMS] as String?).asJsonObject
+            requestedClaims = (model[REQUESTED_CLAIMS] as String?)
+                ?.let { Json.parseToJsonElement(it) as? JsonObject }
         }
         val json = toJsonFromRequestObj(userInfo, scope, authorizedClaims, requestedClaims)
 
         writeOut(json, model, request, response)
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
     protected fun writeOut(
-        json: JsonObject?,
+        json: JsonObject,
         model: Map<String, Any>,
         request: HttpServletRequest?,
         response: HttpServletResponse
     ) {
         try {
-            val out: Writer = response.writer
-            gson.toJson(json, out)
+            val out: OutputStream = response.outputStream
+            Json.encodeToStream(JsonElement.serializer(), json, out)
         } catch (e: IOException) {
             Companion.logger.error("IOException in UserInfoView.java: ", e)
         }
@@ -130,8 +120,8 @@ class UserInfoView : AbstractView() {
         // Filter claims by performing a manual intersection of claims that are allowed by the given scope, requested, and authorized.
         // We cannot use Sets.intersection() or similar because Entry<> objects will evaluate to being unequal if their values are
         // different, whereas we are only interested in matching the Entry<>'s key values.
-        val result = JsonObject()
-        for ((key, value) in obj!!.entrySet()) {
+        val result = mutableMapOf<String, JsonElement>()
+        for ((key, value) in obj.entries) {
             if (allowedByScope!!.contains(key)
                 || authorizedByClaims.contains(key)
             ) {
@@ -139,12 +129,12 @@ class UserInfoView : AbstractView() {
 
                 if (requestedByClaims.isEmpty() || requestedByClaims.contains(key)) {
                     // the requested claims are empty (so we allow all), or they're not empty and this claim was specifically asked for
-                    result.add(key, value)
+                    result.put(key, value)
                 } // otherwise there were specific claims requested and this wasn't one of them
             }
         }
 
-        return result
+        return JsonObject(result)
     }
 
     /**
@@ -155,9 +145,9 @@ class UserInfoView : AbstractView() {
     private fun extractUserInfoClaimsIntoSet(claims: JsonObject?): Set<String> {
         val target: MutableSet<String> = HashSet()
         if (claims != null) {
-            val userinfoAuthorized = claims.getAsJsonObject("userinfo")
+            val userinfoAuthorized = claims["userinfo"] as? JsonObject
             if (userinfoAuthorized != null) {
-                for ((key) in userinfoAuthorized.entrySet()) {
+                for (key in userinfoAuthorized.keys) {
                     target.add(key)
                 }
             }
@@ -172,8 +162,6 @@ class UserInfoView : AbstractView() {
         const val USER_INFO: String = "userInfo"
 
         const val VIEWNAME: String = "userInfoView"
-
-        private val jsonParser = JsonParser()
 
         /**
          * Logger for this class

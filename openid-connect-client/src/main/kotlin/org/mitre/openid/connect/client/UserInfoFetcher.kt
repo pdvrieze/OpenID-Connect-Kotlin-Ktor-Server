@@ -21,8 +21,8 @@ import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
 import com.google.common.util.concurrent.UncheckedExecutionException
-import com.google.gson.JsonObject
-import com.google.gson.JsonParser
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
 import org.apache.http.client.HttpClient
 import org.apache.http.client.utils.URIBuilder
 import org.apache.http.impl.client.HttpClientBuilder
@@ -116,7 +116,7 @@ class UserInfoFetcher(
 
 
             if (!userInfoString.isNullOrEmpty()) {
-                val userInfoJson = JsonParser().parse(userInfoString).asJsonObject
+                val userInfoJson = Json.parseToJsonElement(userInfoString) as JsonObject
 
                 val userInfo = fromJson(userInfoJson)
 
@@ -128,8 +128,8 @@ class UserInfoFetcher(
         }
     }
 
-    protected fun fromJson(userInfoJson: JsonObject?): UserInfo {
-        return DefaultUserInfo.fromJson(userInfoJson!!)
+    protected fun fromJson(userInfoJson: JsonObject): UserInfo {
+        return DefaultUserInfo.fromJson(userInfoJson)
     }
 
     companion object {
