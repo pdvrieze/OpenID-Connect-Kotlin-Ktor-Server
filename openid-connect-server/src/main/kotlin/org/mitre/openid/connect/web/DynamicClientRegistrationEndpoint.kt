@@ -23,6 +23,7 @@ import com.nimbusds.jose.JWEAlgorithm
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jose.util.JSONObjectUtils
+import kotlinx.serialization.SerializationException
 import org.mitre.jwt.assertion.AssertionValidator
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.ClientDetailsEntity.*
@@ -132,8 +133,8 @@ class DynamicClientRegistrationEndpoint {
     fun registerNewClient(@RequestBody jsonString: String?, m: Model): String {
         var newClient: ClientDetailsEntity? = null
         try {
-            newClient = parse(jsonString)
-        } catch (e: JsonSyntaxException) {
+            newClient = jsonString?.let { parse(it) }
+        } catch (e: SerializationException) {
             // bad parse
             // didn't parse, this is a bad request
             logger.error("registerNewClient failed; submitted JSON is malformed")
@@ -141,107 +142,106 @@ class DynamicClientRegistrationEndpoint {
             return HttpCodeView.VIEWNAME
         }
 
-        if (newClient != null) {
-            // it parsed!
-
-            //
-            // Now do some post-processing consistency checks on it
-            //
-
-            // clear out any spurious id/secret (clients don't get to pick)
-
-            newClient.clientId = null
-            newClient.clientSecret = null
-
-            // do validation on the fields
-            try {
-                newClient =
-                    validateSoftwareStatement(newClient) // need to handle the software statement first because it might override requested values
-                newClient = validateScopes(newClient)
-                newClient = validateResponseTypes(newClient)
-                newClient = validateGrantTypes(newClient)
-                newClient = validateRedirectUris(newClient)
-                newClient = validateAuth(newClient)
-            } catch (ve: ValidationException) {
-                // validation failed, return an error
-                m.addAttribute(JsonErrorView.ERROR, ve.error)
-                m.addAttribute(JsonErrorView.ERROR_MESSAGE, ve.errorDescription)
-                m.addAttribute(HttpCodeView.CODE, ve.status)
-                return JsonErrorView.VIEWNAME
-            }
-
-            if (newClient!!.tokenEndpointAuthMethod == null) {
-                newClient.tokenEndpointAuthMethod = AuthMethod.SECRET_BASIC
-            }
-
-            if (newClient.tokenEndpointAuthMethod == AuthMethod.SECRET_BASIC || newClient.tokenEndpointAuthMethod == AuthMethod.SECRET_JWT || newClient.tokenEndpointAuthMethod == AuthMethod.SECRET_POST) {
-                // we need to generate a secret
-
-                newClient = clientService.generateClientSecret(newClient)
-            }
-
-            // set some defaults for token timeouts
-            if (config.isHeartMode) {
-                // heart mode has different defaults depending on primary grant type
-                if (newClient.grantTypes.contains("authorization_code")) {
-                    newClient.accessTokenValiditySeconds =
-                        TimeUnit.HOURS.toSeconds(1).toInt() // access tokens good for 1hr
-                    newClient.idTokenValiditySeconds = TimeUnit.MINUTES.toSeconds(5).toInt() // id tokens good for 5min
-                    newClient.refreshTokenValiditySeconds =
-                        TimeUnit.HOURS.toSeconds(24).toInt() // refresh tokens good for 24hr
-                } else if (newClient.grantTypes.contains("implicit")) {
-                    newClient.accessTokenValiditySeconds =
-                        TimeUnit.MINUTES.toSeconds(15).toInt() // access tokens good for 15min
-                    newClient.idTokenValiditySeconds = TimeUnit.MINUTES.toSeconds(5).toInt() // id tokens good for 5min
-                    newClient.refreshTokenValiditySeconds = 0 // no refresh tokens
-                } else if (newClient.grantTypes.contains("client_credentials")) {
-                    newClient.accessTokenValiditySeconds =
-                        TimeUnit.HOURS.toSeconds(6).toInt() // access tokens good for 6hr
-                    newClient.idTokenValiditySeconds = 0 // no id tokens
-                    newClient.refreshTokenValiditySeconds = 0 // no refresh tokens
-                }
-            } else {
-                newClient.accessTokenValiditySeconds = TimeUnit.HOURS.toSeconds(1).toInt() // access tokens good for 1hr
-                newClient.idTokenValiditySeconds = TimeUnit.MINUTES.toSeconds(10).toInt() // id tokens good for 10min
-                newClient.refreshTokenValiditySeconds = null // refresh tokens good until revoked
-            }
-
-            // this client has been dynamically registered (obviously)
-            newClient.isDynamicallyRegistered = true
-
-            // this client can't do token introspection
-            newClient.isAllowIntrospection = false
-
-            // now save it
-            try {
-                val savedClient = clientService.saveNewClient(newClient)
-
-                // generate the registration access token
-                var token = connectTokenService.createRegistrationAccessToken(savedClient!!)
-                token = tokenService.saveAccessToken(token!!)
-
-                // send it all out to the view
-                val registered =
-                    RegisteredClient(savedClient, token.value, config.issuer + "register/" + UriUtils.encodePathSegment(savedClient.clientId, "UTF-8"))
-                m.addAttribute("client", registered)
-                m.addAttribute(HttpCodeView.CODE, HttpStatus.CREATED) // http 201
-
-                return ClientInformationResponseView.VIEWNAME
-            } catch (e: IllegalArgumentException) {
-                logger.error("Couldn't save client", e)
-
-                m.addAttribute(JsonErrorView.ERROR, "invalid_client_metadata")
-                m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Unable to save client due to invalid or inconsistent metadata.")
-                m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST) // http 400
-
-                return JsonErrorView.VIEWNAME
-            }
-        } else {
+        if (newClient == null) {
             // didn't parse, this is a bad request
             logger.error("registerNewClient failed; submitted JSON is malformed")
             m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST) // http 400
 
             return HttpCodeView.VIEWNAME
+        }
+        // it parsed!
+
+        //
+        // Now do some post-processing consistency checks on it
+        //
+
+        // clear out any spurious id/secret (clients don't get to pick)
+
+        newClient.clientId = null
+        newClient.clientSecret = null
+
+        // do validation on the fields
+        try {
+            newClient =
+                validateSoftwareStatement(newClient) // need to handle the software statement first because it might override requested values
+            newClient = validateScopes(newClient)
+            newClient = validateResponseTypes(newClient)
+            newClient = validateGrantTypes(newClient)
+            newClient = validateRedirectUris(newClient)
+            newClient = validateAuth(newClient)
+        } catch (ve: ValidationException) {
+            // validation failed, return an error
+            m.addAttribute(JsonErrorView.ERROR, ve.error)
+            m.addAttribute(JsonErrorView.ERROR_MESSAGE, ve.errorDescription)
+            m.addAttribute(HttpCodeView.CODE, ve.status)
+            return JsonErrorView.VIEWNAME
+        }
+
+        if (newClient!!.tokenEndpointAuthMethod == null) {
+            newClient.tokenEndpointAuthMethod = AuthMethod.SECRET_BASIC
+        }
+
+        if (newClient.tokenEndpointAuthMethod == AuthMethod.SECRET_BASIC || newClient.tokenEndpointAuthMethod == AuthMethod.SECRET_JWT || newClient.tokenEndpointAuthMethod == AuthMethod.SECRET_POST) {
+            // we need to generate a secret
+
+            newClient = clientService.generateClientSecret(newClient)
+        }
+
+        // set some defaults for token timeouts
+        if (config.isHeartMode) {
+            // heart mode has different defaults depending on primary grant type
+            if (newClient.grantTypes.contains("authorization_code")) {
+                newClient.accessTokenValiditySeconds =
+                    TimeUnit.HOURS.toSeconds(1).toInt() // access tokens good for 1hr
+                newClient.idTokenValiditySeconds = TimeUnit.MINUTES.toSeconds(5).toInt() // id tokens good for 5min
+                newClient.refreshTokenValiditySeconds =
+                    TimeUnit.HOURS.toSeconds(24).toInt() // refresh tokens good for 24hr
+            } else if (newClient.grantTypes.contains("implicit")) {
+                newClient.accessTokenValiditySeconds =
+                    TimeUnit.MINUTES.toSeconds(15).toInt() // access tokens good for 15min
+                newClient.idTokenValiditySeconds = TimeUnit.MINUTES.toSeconds(5).toInt() // id tokens good for 5min
+                newClient.refreshTokenValiditySeconds = 0 // no refresh tokens
+            } else if (newClient.grantTypes.contains("client_credentials")) {
+                newClient.accessTokenValiditySeconds =
+                    TimeUnit.HOURS.toSeconds(6).toInt() // access tokens good for 6hr
+                newClient.idTokenValiditySeconds = 0 // no id tokens
+                newClient.refreshTokenValiditySeconds = 0 // no refresh tokens
+            }
+        } else {
+            newClient.accessTokenValiditySeconds = TimeUnit.HOURS.toSeconds(1).toInt() // access tokens good for 1hr
+            newClient.idTokenValiditySeconds = TimeUnit.MINUTES.toSeconds(10).toInt() // id tokens good for 10min
+            newClient.refreshTokenValiditySeconds = null // refresh tokens good until revoked
+        }
+
+        // this client has been dynamically registered (obviously)
+        newClient.isDynamicallyRegistered = true
+
+        // this client can't do token introspection
+        newClient.isAllowIntrospection = false
+
+        // now save it
+        try {
+            val savedClient = clientService.saveNewClient(newClient)
+
+            // generate the registration access token
+            var token = connectTokenService.createRegistrationAccessToken(savedClient!!)
+            token = tokenService.saveAccessToken(token!!)
+
+            // send it all out to the view
+            val registered =
+                RegisteredClient(savedClient, token.value, config.issuer + "register/" + UriUtils.encodePathSegment(savedClient.clientId, "UTF-8"))
+            m.addAttribute("client", registered)
+            m.addAttribute(HttpCodeView.CODE, HttpStatus.CREATED) // http 201
+
+            return ClientInformationResponseView.VIEWNAME
+        } catch (e: IllegalArgumentException) {
+            logger.error("Couldn't save client", e)
+
+            m.addAttribute(JsonErrorView.ERROR, "invalid_client_metadata")
+            m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Unable to save client due to invalid or inconsistent metadata.")
+            m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST) // http 400
+
+            return JsonErrorView.VIEWNAME
         }
     }
 
@@ -288,7 +288,7 @@ class DynamicClientRegistrationEndpoint {
     ): String {
         var newClient: ClientDetailsEntity? = null
         try {
-            newClient = parse(jsonString)
+            newClient = jsonString?.let { parse(it) }
         } catch (e: JsonSyntaxException) {
             // bad parse
             // didn't parse, this is a bad request
@@ -296,76 +296,77 @@ class DynamicClientRegistrationEndpoint {
             m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST) // http 400
             return HttpCodeView.VIEWNAME
         }
+
         val oldClient = clientService.loadClientByClientId(clientId)
 
-        if (// we have an existing client and the new one parsed
-            newClient != null && oldClient != null && oldClient.clientId == auth.oAuth2Request.clientId && oldClient.clientId == newClient.clientId // the client passed in the body matches the one in the URI
+        if (newClient == null || oldClient == null || oldClient.clientId != auth.oAuth2Request.clientId || oldClient.clientId != newClient.clientId
         ) {
-            // a client can't ask to update its own client secret to any particular value
-
-            newClient.clientSecret = oldClient.clientSecret
-
-            // we need to copy over all of the local and SECOAUTH fields
-            newClient.accessTokenValiditySeconds = oldClient.accessTokenValiditySeconds
-            newClient.idTokenValiditySeconds = oldClient.idTokenValiditySeconds
-            newClient.refreshTokenValiditySeconds = oldClient.refreshTokenValiditySeconds
-            newClient.isDynamicallyRegistered = true // it's still dynamically registered
-            newClient.isAllowIntrospection =
-                false // dynamically registered clients can't do introspection -- use the resource registration instead
-            newClient.authorities = oldClient.authorities
-            newClient.clientDescription = oldClient.clientDescription
-            newClient.createdAt = oldClient.createdAt
-            newClient.isReuseRefreshToken = oldClient.isReuseRefreshToken
-
-            // do validation on the fields
-            try {
-                newClient =
-                    validateSoftwareStatement(newClient) // need to handle the software statement first because it might override requested values
-                newClient = validateScopes(newClient)
-                newClient = validateResponseTypes(newClient)
-                newClient = validateGrantTypes(newClient)
-                newClient = validateRedirectUris(newClient)
-                newClient = validateAuth(newClient)
-            } catch (ve: ValidationException) {
-                // validation failed, return an error
-                m.addAttribute(JsonErrorView.ERROR, ve.error)
-                m.addAttribute(JsonErrorView.ERROR_MESSAGE, ve.errorDescription)
-                m.addAttribute(HttpCodeView.CODE, ve.status)
-                return JsonErrorView.VIEWNAME
-            }
-
-            try {
-                // save the client
-                val savedClient = clientService.updateClient(oldClient, newClient)
-
-                val token = rotateRegistrationTokenIfNecessary(auth, savedClient)
-
-                val registered =
-                    RegisteredClient(savedClient, token!!.value, config.issuer + "register/" + UriUtils.encodePathSegment(savedClient.clientId, "UTF-8"))
-
-                // send it all out to the view
-                m.addAttribute("client", registered)
-                m.addAttribute(HttpCodeView.CODE, HttpStatus.OK) // http 200
-
-                return ClientInformationResponseView.VIEWNAME
-            } catch (e: IllegalArgumentException) {
-                logger.error("Couldn't save client", e)
-
-                m.addAttribute(JsonErrorView.ERROR, "invalid_client_metadata")
-                m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Unable to save client due to invalid or inconsistent metadata.")
-                m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST) // http 400
-
-                return JsonErrorView.VIEWNAME
-            }
-        } else {
             // client mismatch
             logger.error(
-                "updateClient failed, client ID mismatch: "
-                        + clientId + " and " + auth.oAuth2Request.clientId + " do not match."
+                "updateClient failed, client ID mismatch: $clientId and ${auth.oAuth2Request.clientId} do not match."
             )
             m.addAttribute(HttpCodeView.CODE, HttpStatus.FORBIDDEN) // http 403
 
             return HttpCodeView.VIEWNAME
+        }
+
+        // we have an existing client and the new one parsed
+
+        // a client can't ask to update its own client secret to any particular value
+
+        newClient.clientSecret = oldClient.clientSecret
+
+        // we need to copy over all of the local and SECOAUTH fields
+        newClient.accessTokenValiditySeconds = oldClient.accessTokenValiditySeconds
+        newClient.idTokenValiditySeconds = oldClient.idTokenValiditySeconds
+        newClient.refreshTokenValiditySeconds = oldClient.refreshTokenValiditySeconds
+        newClient.isDynamicallyRegistered = true // it's still dynamically registered
+        newClient.isAllowIntrospection =
+            false // dynamically registered clients can't do introspection -- use the resource registration instead
+        newClient.authorities = oldClient.authorities
+        newClient.clientDescription = oldClient.clientDescription
+        newClient.createdAt = oldClient.createdAt
+        newClient.isReuseRefreshToken = oldClient.isReuseRefreshToken
+
+        // do validation on the fields
+        try {
+            newClient =
+                validateSoftwareStatement(newClient) // need to handle the software statement first because it might override requested values
+            newClient = validateScopes(newClient)
+            newClient = validateResponseTypes(newClient)
+            newClient = validateGrantTypes(newClient)
+            newClient = validateRedirectUris(newClient)
+            newClient = validateAuth(newClient)
+        } catch (ve: ValidationException) {
+            // validation failed, return an error
+            m.addAttribute(JsonErrorView.ERROR, ve.error)
+            m.addAttribute(JsonErrorView.ERROR_MESSAGE, ve.errorDescription)
+            m.addAttribute(HttpCodeView.CODE, ve.status)
+            return JsonErrorView.VIEWNAME
+        }
+
+        try {
+            // save the client
+            val savedClient = clientService.updateClient(oldClient, newClient)
+
+            val token = rotateRegistrationTokenIfNecessary(auth, savedClient)
+
+            val registered =
+                RegisteredClient(savedClient, token!!.value, config.issuer + "register/" + UriUtils.encodePathSegment(savedClient.clientId, "UTF-8"))
+
+            // send it all out to the view
+            m.addAttribute("client", registered)
+            m.addAttribute(HttpCodeView.CODE, HttpStatus.OK) // http 200
+
+            return ClientInformationResponseView.VIEWNAME
+        } catch (e: IllegalArgumentException) {
+            logger.error("Couldn't save client", e)
+
+            m.addAttribute(JsonErrorView.ERROR, "invalid_client_metadata")
+            m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Unable to save client due to invalid or inconsistent metadata.")
+            m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST) // http 400
+
+            return JsonErrorView.VIEWNAME
         }
     }
 
@@ -522,10 +523,10 @@ class DynamicClientRegistrationEndpoint {
     }
 
     @Throws(ValidationException::class)
-    private fun validateRedirectUris(newClient: ClientDetailsEntity?): ClientDetailsEntity {
+    private fun validateRedirectUris(newClient: ClientDetailsEntity): ClientDetailsEntity {
         // check to make sure this client registered a redirect URI if using a redirect flow
-        if (newClient!!.grantTypes.contains("authorization_code") || newClient.grantTypes.contains("implicit")) {
-            if (newClient.redirectUris == null || newClient.redirectUris.isEmpty()) {
+        if (newClient.grantTypes.contains("authorization_code") || newClient.grantTypes.contains("implicit")) {
+            if (newClient.redirectUris.isEmpty()) {
                 // return an error
                 throw ValidationException("invalid_redirect_uri", "Clients using a redirect-based grant type must register at least one redirect URI.", HttpStatus.BAD_REQUEST)
             }
@@ -547,9 +548,9 @@ class DynamicClientRegistrationEndpoint {
     }
 
     @Throws(ValidationException::class)
-    private fun validateAuth(newClient: ClientDetailsEntity?): ClientDetailsEntity {
+    private fun validateAuth(newClient: ClientDetailsEntity): ClientDetailsEntity {
         var newClient = newClient
-        if (newClient!!.tokenEndpointAuthMethod == null) {
+        if (newClient.tokenEndpointAuthMethod == null) {
             newClient.tokenEndpointAuthMethod = AuthMethod.SECRET_BASIC
         }
 

@@ -18,6 +18,6 @@ package org.mitre.openid.connect.model
 /**
  * @author jricher
  */
-class ClientStat {
+class ClientStat(
     var approvedSiteCount: Int? = null
-}
+)

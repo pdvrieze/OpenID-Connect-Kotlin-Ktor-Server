@@ -67,7 +67,7 @@ class ClientDetailsEntityJsonProcessorTest {
   }"""
         val c = parse(json)
 
-        assertEquals(ClientDetailsEntity.AppType.WEB, c!!.applicationType)
+        assertEquals(ClientDetailsEntity.AppType.WEB, c.applicationType)
         assertEquals(setOf("https://client.example.org/callback", "https://client.example.org/callback2"), c.redirectUris)
         assertEquals("My Example", c.clientName)
         assertEquals(setOf("code", "token"), c.responseTypes)
@@ -122,8 +122,7 @@ class ClientDetailsEntityJsonProcessorTest {
 
         val c = parseRegistered(json)
 
-
-        assertEquals("s6BhdRkqt3", c!!.clientId)
+        assertEquals("s6BhdRkqt3", c.clientId)
         assertEquals("ZJYCqe3GGRvdrudKyZS0XhGv_Z45DuKhCUk0gBR1vZk", c.clientSecret)
         assertEquals(Date(1577858400L * 1000L), c.clientSecretExpiresAt)
         assertEquals("this.is.an.access.token.value.ffx83", c.registrationAccessToken)

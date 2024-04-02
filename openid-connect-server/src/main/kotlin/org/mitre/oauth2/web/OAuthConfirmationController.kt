@@ -41,7 +41,8 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.SessionAttributes
 import java.net.URISyntaxException
 import java.security.Principal
-import java.util.*
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 /**
  * @author jricher
@@ -173,7 +174,7 @@ class OAuthConfirmationController {
         model["claims"] = claimsForScopes
 
         // client stats
-        val count = statsService.getCountForClientId(client.clientId!!)!!.approvedSiteCount
+        val count = statsService.getCountForClientId(client.clientId!!)!!.approvedSiteCount ?: 0
         model["count"] = count
 
 
@@ -185,8 +186,9 @@ class OAuthConfirmationController {
 
         // if the client is over a week old and has more than one registration, don't give such a big warning
         // instead, tag as "Generally Recognized As Safe" (gras)
-        val lastWeek = Date(System.currentTimeMillis() - (60 * 60 * 24 * 7 * 1000))
-        model["gras"] = count!! > 1 && client.createdAt != null && client.createdAt!!.before(lastWeek)
+        val lastWeek = Instant.now().minus(1, ChronoUnit.WEEKS)
+        val createdAt = client.createdAt
+        model["gras"] = count > 1 && createdAt != null && createdAt.toInstant().isBefore(lastWeek)
 
         return "approve"
     }

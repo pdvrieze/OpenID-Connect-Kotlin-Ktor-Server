@@ -628,8 +628,10 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceSupport(), MITREidDataServ
                 }
             }
             reader.endObject()
+            requireNotNull(clientString) { "Missing client string" }
+            requireNotNull(issuer) { "Missing issuer" }
             val client = parseRegistered(clientString)
-            registeredClientService.save(issuer!!, client!!)
+            registeredClientService.save(issuer, client)
             logger.debug("Saved registered client")
         }
         reader.endArray()

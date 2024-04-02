@@ -16,6 +16,7 @@
 package org.mitre.openid.connect.web
 
 import com.google.gson.JsonSyntaxException
+import kotlinx.serialization.SerializationException
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.ClientDetailsEntity.AuthMethod
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
@@ -31,7 +32,6 @@ import org.mitre.openid.connect.service.OIDCTokenService
 import org.mitre.openid.connect.view.ClientInformationResponseView
 import org.mitre.openid.connect.view.HttpCodeView
 import org.mitre.openid.connect.view.JsonErrorView
-import org.mitre.openid.connect.web.ProtectedResourceRegistrationEndpoint
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -72,11 +72,11 @@ class ProtectedResourceRegistrationEndpoint {
      * Create a new Client, issue a client ID, and create a registration access token.
      */
     @RequestMapping(method = [RequestMethod.POST], consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun registerNewProtectedResource(@RequestBody jsonString: String?, m: Model): String {
+    fun registerNewProtectedResource(@RequestBody jsonString: String, m: Model): String {
         var newClient: ClientDetailsEntity? = null
         try {
             newClient = parse(jsonString)
-        } catch (e: JsonSyntaxException) {
+        } catch (e: SerializationException) {
             // bad parse
             // didn't parse, this is a bad request
             logger.error("registerNewProtectedResource failed; submitted JSON is malformed")
@@ -110,7 +110,7 @@ class ProtectedResourceRegistrationEndpoint {
 
 
             // no grant types are allowed
-            newClient!!.grantTypes = HashSet()
+            newClient.grantTypes = HashSet()
             newClient.responseTypes = HashSet()
             newClient.redirectUris = HashSet()
 
@@ -207,7 +207,7 @@ class ProtectedResourceRegistrationEndpoint {
             val token = fetchValidRegistrationToken(auth, client)
 
             val registered =
-                RegisteredClient(client, token!!.value, config.issuer + "resource/" + UriUtils.encodePathSegment(client.clientId, "UTF-8"))
+                RegisteredClient(client, token.value, config.issuer + "resource/" + UriUtils.encodePathSegment(client.clientId, "UTF-8"))
 
             // send it all out to the view
             m.addAttribute("client", registered)
@@ -237,9 +237,9 @@ class ProtectedResourceRegistrationEndpoint {
         m: Model,
         auth: OAuth2Authentication
     ): String {
-        var newClient: ClientDetailsEntity? = null
+        var newClient: ClientDetailsEntity?
         try {
-            newClient = parse(jsonString)
+            newClient = jsonString?.let { parse(it) }
         } catch (e: JsonSyntaxException) {
             // bad parse
             // didn't parse, this is a bad request
@@ -250,95 +250,93 @@ class ProtectedResourceRegistrationEndpoint {
 
         val oldClient = clientService.loadClientByClientId(clientId)
 
-        if (// we have an existing client and the new one parsed
-            newClient != null && oldClient != null && oldClient.clientId == auth.oAuth2Request.clientId && oldClient.clientId == newClient.clientId // the client passed in the body matches the one in the URI
-        ) {
-            // a client can't ask to update its own client secret to any particular value
-
-            newClient.clientSecret = oldClient.clientSecret
-
-            newClient.createdAt = oldClient.createdAt
-
-            // no grant types are allowed
-            newClient.grantTypes = HashSet()
-            newClient.responseTypes = HashSet()
-            newClient.redirectUris = HashSet()
-
-            // don't issue tokens to this client
-            newClient.accessTokenValiditySeconds = 0
-            newClient.idTokenValiditySeconds = 0
-            newClient.refreshTokenValiditySeconds = 0
-
-            // clear out unused fields
-            newClient.defaultACRvalues = HashSet()
-            newClient.defaultMaxAge = null
-            newClient.idTokenEncryptedResponseAlg = null
-            newClient.idTokenEncryptedResponseEnc = null
-            newClient.idTokenSignedResponseAlg = null
-            newClient.initiateLoginUri = null
-            newClient.postLogoutRedirectUris = null
-            newClient.requestObjectSigningAlg = null
-            newClient.requireAuthTime = null
-            newClient.isReuseRefreshToken = false
-            newClient.sectorIdentifierUri = null
-            newClient.subjectType = null
-            newClient.userInfoEncryptedResponseAlg = null
-            newClient.userInfoEncryptedResponseEnc = null
-            newClient.userInfoSignedResponseAlg = null
-
-            // this client has been dynamically registered (obviously)
-            newClient.isDynamicallyRegistered = true
-
-            // this client has access to the introspection endpoint
-            newClient.isAllowIntrospection = true
-
-            // do validation on the fields
-            try {
-                newClient = validateScopes(newClient)
-                newClient = validateAuth(newClient)
-            } catch (ve: ValidationException) {
-                // validation failed, return an error
-                m.addAttribute(JsonErrorView.ERROR, ve.error)
-                m.addAttribute(JsonErrorView.ERROR_MESSAGE, ve.errorDescription)
-                m.addAttribute(HttpCodeView.CODE, ve.status)
-                return JsonErrorView.VIEWNAME
-            }
-
-
-            try {
-                // save the client
-                val savedClient = clientService.updateClient(oldClient, newClient)
-
-                // possibly update the token
-                val token = fetchValidRegistrationToken(auth, savedClient)
-
-                val registered =
-                    RegisteredClient(savedClient, token!!.value, config.issuer + "resource/" + UriUtils.encodePathSegment(savedClient.clientId, "UTF-8"))
-
-                // send it all out to the view
-                m.addAttribute("client", registered)
-                m.addAttribute(HttpCodeView.CODE, HttpStatus.OK) // http 200
-
-                return ClientInformationResponseView.VIEWNAME
-            } catch (e: IllegalArgumentException) {
-                logger.error("Couldn't save client", e)
-
-                m.addAttribute(JsonErrorView.ERROR, "invalid_client_metadata")
-                m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Unable to save client due to invalid or inconsistent metadata.")
-                m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST) // http 400
-
-                return JsonErrorView.VIEWNAME
-            }
-        } else {
+        if (newClient == null || oldClient == null ||
+            oldClient.clientId != auth.oAuth2Request.clientId || oldClient.clientId != newClient.clientId) {
             // client mismatch
             logger.error(
-                "updateProtectedResource" +
-                        " failed, client ID mismatch: "
-                        + clientId + " and " + auth.oAuth2Request.clientId + " do not match."
+                "updateProtectedResource failed, client ID mismatch: $clientId and ${auth.oAuth2Request.clientId} do not match."
             )
             m.addAttribute(HttpCodeView.CODE, HttpStatus.FORBIDDEN) // http 403
 
             return HttpCodeView.VIEWNAME
+        }
+
+        // we have an existing client and the new one parsed
+        // a client can't ask to update its own client secret to any particular value
+
+        newClient.clientSecret = oldClient.clientSecret
+
+        newClient.createdAt = oldClient.createdAt
+
+        // no grant types are allowed
+        newClient.grantTypes = HashSet()
+        newClient.responseTypes = HashSet()
+        newClient.redirectUris = HashSet()
+
+        // don't issue tokens to this client
+        newClient.accessTokenValiditySeconds = 0
+        newClient.idTokenValiditySeconds = 0
+        newClient.refreshTokenValiditySeconds = 0
+
+        // clear out unused fields
+        newClient.defaultACRvalues = HashSet()
+        newClient.defaultMaxAge = null
+        newClient.idTokenEncryptedResponseAlg = null
+        newClient.idTokenEncryptedResponseEnc = null
+        newClient.idTokenSignedResponseAlg = null
+        newClient.initiateLoginUri = null
+        newClient.postLogoutRedirectUris = null
+        newClient.requestObjectSigningAlg = null
+        newClient.requireAuthTime = null
+        newClient.isReuseRefreshToken = false
+        newClient.sectorIdentifierUri = null
+        newClient.subjectType = null
+        newClient.userInfoEncryptedResponseAlg = null
+        newClient.userInfoEncryptedResponseEnc = null
+        newClient.userInfoSignedResponseAlg = null
+
+        // this client has been dynamically registered (obviously)
+        newClient.isDynamicallyRegistered = true
+
+        // this client has access to the introspection endpoint
+        newClient.isAllowIntrospection = true
+
+        // do validation on the fields
+        try {
+            newClient = validateScopes(newClient)
+            newClient = validateAuth(newClient)
+        } catch (ve: ValidationException) {
+            // validation failed, return an error
+            m.addAttribute(JsonErrorView.ERROR, ve.error)
+            m.addAttribute(JsonErrorView.ERROR_MESSAGE, ve.errorDescription)
+            m.addAttribute(HttpCodeView.CODE, ve.status)
+            return JsonErrorView.VIEWNAME
+        }
+
+
+        try {
+            // save the client
+            val savedClient = clientService.updateClient(oldClient, newClient)
+
+            // possibly update the token
+            val token = fetchValidRegistrationToken(auth, savedClient)
+
+            val registered =
+                RegisteredClient(savedClient, token.value, config.issuer + "resource/" + UriUtils.encodePathSegment(savedClient.clientId, "UTF-8"))
+
+            // send it all out to the view
+            m.addAttribute("client", registered)
+            m.addAttribute(HttpCodeView.CODE, HttpStatus.OK) // http 200
+
+            return ClientInformationResponseView.VIEWNAME
+        } catch (e: IllegalArgumentException) {
+            logger.error("Couldn't save client", e)
+
+            m.addAttribute(JsonErrorView.ERROR, "invalid_client_metadata")
+            m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Unable to save client due to invalid or inconsistent metadata.")
+            m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST) // http 400
+
+            return JsonErrorView.VIEWNAME
         }
     }
 
