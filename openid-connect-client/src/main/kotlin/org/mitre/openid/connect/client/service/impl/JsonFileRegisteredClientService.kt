@@ -17,32 +17,22 @@
  */
 package org.mitre.openid.connect.client.service.impl
 
-import com.google.common.reflect.TypeToken
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
-import com.google.gson.JsonDeserializer
-import com.google.gson.JsonSerializer
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromStream
+import kotlinx.serialization.json.encodeToStream
 import org.mitre.oauth2.model.RegisteredClient
-import org.mitre.openid.connect.ClientDetailsEntityJsonProcessor.parseRegistered
-import org.mitre.openid.connect.ClientDetailsEntityJsonProcessor.serialize
 import org.mitre.openid.connect.client.service.RegisteredClientService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
-import java.io.FileReader
-import java.io.FileWriter
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.io.IOException
 
 /**
  * @author jricher
  */
 class JsonFileRegisteredClientService(filename: String) : RegisteredClientService {
-    private val gson: Gson = GsonBuilder()
-        .registerTypeAdapter(RegisteredClient::class.java, JsonSerializer<RegisteredClient> { src, typeOfSrc, context -> serialize(src)!! })
-        .registerTypeAdapter(RegisteredClient::class.java, JsonDeserializer { json, typeOfT, context -> parseRegistered(json) })
-        .setPrettyPrinting()
-        .create()
-
     private val file = File(filename)
 
     private var clients: MutableMap<String, RegisteredClient> = HashMap()
@@ -77,8 +67,8 @@ class JsonFileRegisteredClientService(filename: String) : RegisteredClientServic
                 file.createNewFile()
             }
 
-            FileWriter(file).use { out ->
-                gson.toJson(clients, object : TypeToken<Map<String?, RegisteredClient?>?>() {}.type, out)
+            FileOutputStream(file).use { out ->
+                Json { prettyPrint = true }.encodeToStream(clients, out)
             }
         } catch (e: IOException) {
             logger.error("Could not write to output file", e)
@@ -94,8 +84,8 @@ class JsonFileRegisteredClientService(filename: String) : RegisteredClientServic
                 logger.info("No sved clients file found in $file")
                 return
             }
-            FileReader(file).use { reader ->
-                clients = gson.fromJson(reader, object : TypeToken<Map<String?, RegisteredClient?>?>() {}.type)
+            FileInputStream(file).use { reader ->
+                clients = Json.decodeFromStream(reader)
             }
         } catch (e: IOException) {
             logger.error("Could not read from input file", e)

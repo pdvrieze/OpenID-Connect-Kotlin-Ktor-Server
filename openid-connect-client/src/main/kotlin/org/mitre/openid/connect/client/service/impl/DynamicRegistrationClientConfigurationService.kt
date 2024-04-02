@@ -22,11 +22,12 @@ import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
 import com.google.common.util.concurrent.UncheckedExecutionException
 import com.google.gson.Gson
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.apache.http.client.HttpClient
 import org.apache.http.impl.client.HttpClientBuilder
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.openid.connect.ClientDetailsEntityJsonProcessor.parseRegistered
-import org.mitre.openid.connect.ClientDetailsEntityJsonProcessor.serialize
 import org.mitre.openid.connect.client.service.ClientConfigurationService
 import org.mitre.openid.connect.client.service.RegisteredClientService
 import org.mitre.openid.connect.config.ServerConfiguration
@@ -120,8 +121,7 @@ class DynamicRegistrationClientConfigurationService(
             if (knownClient == null) {
                 // dynamically register this client
 
-                val jsonRequest = serialize(template!!)
-                val serializedClient = gson.toJson(jsonRequest)
+                val serializedClient = Json.encodeToString(template!!)
 
                 val headers = HttpHeaders()
                 headers.contentType = MediaType.APPLICATION_JSON

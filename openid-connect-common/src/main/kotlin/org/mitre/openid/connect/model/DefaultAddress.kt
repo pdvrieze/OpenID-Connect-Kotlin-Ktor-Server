@@ -15,6 +15,9 @@
  */
 package org.mitre.openid.connect.model
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import javax.persistence.Basic
 import javax.persistence.Column
 import javax.persistence.Entity
@@ -25,55 +28,58 @@ import javax.persistence.Table
 
 @Entity
 @Table(name = "address")
-class DefaultAddress : Address {
+@Serializable
+class DefaultAddress(
     @get:Column(name = "id")
     @get:GeneratedValue(strategy = GenerationType.IDENTITY)
     @get:Id
-    override var id: Long? = null
+    @Transient
+    override var id: Long? = null,
 
     /**
      * The formatted address string
      */
     @get:Column(name = "formatted")
     @get:Basic
-    override var formatted: String? = null
+    override var formatted: String? = null,
 
     @get:Column(name = "street_address")
     @get:Basic
-    override var streetAddress: String? = null
+    @SerialName("street_address")
+    override var streetAddress: String? = null,
 
     @get:Column(name = "locality")
     @get:Basic
-    override var locality: String? = null
+    override var locality: String? = null,
 
     @get:Column(name = "region")
     @get:Basic
-    override var region: String? = null
+    override var region: String? = null,
 
     @get:Column(name = "postal_code")
     @get:Basic
-    override var postalCode: String? = null
+    @SerialName("postal_code")
+    override var postalCode: String? = null,
 
     @get:Column(name = "country")
     @get:Basic
-    override var country: String? = null
-
+    override var country: String? = null,
+) : Address {
     /**
      * Empty constructor
      */
-    constructor()
 
     /**
      * Copy constructor from an existing address.
      */
-    constructor(address: Address) {
-        formatted = address.formatted
-        streetAddress = address.streetAddress
-        locality = address.locality
-        region = address.region
-        postalCode = address.postalCode
-        country = address.country
-    }
+    constructor(address: Address) : this(
+        formatted = address.formatted,
+        streetAddress = address.streetAddress,
+        locality = address.locality,
+        region = address.region,
+        postalCode = address.postalCode,
+        country = address.country,
+    )
 
     companion object {
         private const val serialVersionUID = -1304880008685206811L

@@ -18,7 +18,6 @@
 package org.mitre.openid.connect
 
 import com.google.gson.JsonElement
-import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jwt.JWTParser
@@ -71,6 +70,7 @@ import org.mitre.util.JsonUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.text.ParseException
+import com.google.gson.JsonObject as GsonObject
 
 
 /**
@@ -240,12 +240,12 @@ object ClientDetailsEntityJsonProcessor {
     }
 
     @JvmStatic
-    fun serialize(c: RegisteredClient): JsonObject? {
+    fun serialize(c: RegisteredClient): GsonObject? {
         if (c.source != null) {
             // if we have the original object, just use that
             return c.source
         } else {
-            val o = JsonObject()
+            val o = GsonObject()
 
             o.addProperty(CLIENT_ID, c.clientId)
             if (c.clientSecret != null) {

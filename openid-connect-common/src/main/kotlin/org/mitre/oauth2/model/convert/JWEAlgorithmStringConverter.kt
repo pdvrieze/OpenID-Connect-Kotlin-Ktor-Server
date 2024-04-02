@@ -16,11 +16,20 @@
 package org.mitre.oauth2.model.convert
 
 import com.nimbusds.jose.JWEAlgorithm
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import javax.persistence.AttributeConverter
 import javax.persistence.Converter
 
 @Converter
-class JWEAlgorithmStringConverter : AttributeConverter<JWEAlgorithm?, String?> {
+class JWEAlgorithmStringConverter : AttributeConverter<JWEAlgorithm?, String?>, KSerializer<JWEAlgorithm> {
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor("com.nimbusds.jose.JWEAlgorithm", PrimitiveKind.STRING)
+
     override fun convertToDatabaseColumn(attribute: JWEAlgorithm?): String? {
         return attribute?.name
     }
@@ -30,5 +39,13 @@ class JWEAlgorithmStringConverter : AttributeConverter<JWEAlgorithm?, String?> {
 	 */
     override fun convertToEntityAttribute(dbData: String?): JWEAlgorithm? {
         return dbData?.let(JWEAlgorithm::parse)
+    }
+
+    override fun serialize(encoder: Encoder, value: JWEAlgorithm) {
+        encoder.encodeString(value.name)
+    }
+
+    override fun deserialize(decoder: Decoder): JWEAlgorithm {
+        return JWEAlgorithm.parse(decoder.decodeString())
     }
 }

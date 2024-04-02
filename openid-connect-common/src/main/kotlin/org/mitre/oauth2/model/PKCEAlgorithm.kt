@@ -17,16 +17,27 @@ package org.mitre.oauth2.model
 
 import com.nimbusds.jose.Algorithm
 import com.nimbusds.jose.Requirement
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 
 /**
  * @author jricher
  */
+@Serializable(PKCEAlgorithm.Companion::class)
 class PKCEAlgorithm : Algorithm {
     constructor(name: String?, req: Requirement?) : super(name, req)
 
     constructor(name: String?) : super(name, null)
 
-    companion object {
+    companion object : KSerializer<PKCEAlgorithm> {
+        override val descriptor: SerialDescriptor =
+            PrimitiveSerialDescriptor("org.mitre.oauth2.model.PKCEAlgorithm", PrimitiveKind.STRING)
+
         private const val serialVersionUID = 7752852583210088925L
 
         @JvmField
@@ -42,6 +53,14 @@ class PKCEAlgorithm : Algorithm {
                 S256.name -> S256
                 else -> PKCEAlgorithm(s)
             }
+        }
+
+        override fun serialize(encoder: Encoder, value: PKCEAlgorithm) {
+            encoder.encodeString(value.name)
+        }
+
+        override fun deserialize(decoder: Decoder): PKCEAlgorithm {
+            return parse(descriptor.toString())
         }
     }
 }

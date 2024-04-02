@@ -18,14 +18,8 @@
 package org.mitre.util
 
 import com.google.gson.Gson
-import com.google.gson.JsonElement
-import com.google.gson.JsonNull
-import com.google.gson.JsonObject
 import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
-import com.google.gson.stream.JsonReader
-import com.google.gson.stream.JsonToken
-import com.google.gson.stream.JsonWriter
 import com.nimbusds.jose.EncryptionMethod
 import com.nimbusds.jose.JWEAlgorithm
 import com.nimbusds.jose.JWSAlgorithm
@@ -35,6 +29,12 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.util.*
+import com.google.gson.JsonElement as GsonElement
+import com.google.gson.JsonNull as GsonNull
+import com.google.gson.JsonObject as GsonObject
+import com.google.gson.stream.JsonReader as GsonReader
+import com.google.gson.stream.JsonToken as GsonToken
+import com.google.gson.stream.JsonWriter as GsonWriter
 
 /**
  * A collection of null-safe converters from common classes and JSON elements, using GSON.
@@ -53,7 +53,7 @@ object JsonUtils {
      * Translate a set of strings to a JSON array, empty array returned as null
      */
     @JvmStatic
-    fun getAsArray(value: Set<String>?): JsonElement {
+    fun getAsArray(value: Set<String>?): GsonElement {
         return getAsArray(value, false)
     }
 
@@ -62,10 +62,10 @@ object JsonUtils {
      * Translate a set of strings to a JSON array, optionally preserving the empty array. Otherwise (default) empty array is returned as null.
      */
     @JvmStatic
-    fun getAsArray(value: Set<String>?, preserveEmpty: Boolean): JsonElement {
+    fun getAsArray(value: Set<String>?, preserveEmpty: Boolean): GsonElement {
         return if (!preserveEmpty && value != null && value.isEmpty()) {
             // if we're not preserving empty arrays and the value is empty, return null
-            JsonNull.INSTANCE
+            GsonNull.INSTANCE
         } else {
             gson.toJsonTree(value, object : TypeToken<Set<String>>() {}.type)
         }
@@ -75,7 +75,7 @@ object JsonUtils {
      * Gets the value of the given member (expressed as integer seconds since epoch) as a Date
      */
     @JvmStatic
-    fun getAsDate(o: JsonObject, member: String?): Date? {
+    fun getAsDate(o: GsonObject, member: String?): Date? {
         if (o.has(member)) {
             val e = o[member]
             return if (e?.isJsonPrimitive == true) {
@@ -92,7 +92,7 @@ object JsonUtils {
      * Gets the value of the given member as a JWE Algorithm, null if it doesn't exist
      */
     @JvmStatic
-    fun getAsJweAlgorithm(o: JsonObject, member: String?): JWEAlgorithm? {
+    fun getAsJweAlgorithm(o: GsonObject, member: String?): JWEAlgorithm? {
         return when (val s = getAsString(o, member)) {
             null -> null
             else -> JWEAlgorithm.parse(s)
@@ -103,7 +103,7 @@ object JsonUtils {
      * Gets the value of the given member as a JWE Encryption Method, null if it doesn't exist
      */
     @JvmStatic
-    fun getAsJweEncryptionMethod(o: JsonObject, member: String?): EncryptionMethod? {
+    fun getAsJweEncryptionMethod(o: GsonObject, member: String?): EncryptionMethod? {
         return when (val s = getAsString(o, member)) {
             null -> null
             else -> EncryptionMethod.parse(s)
@@ -114,7 +114,7 @@ object JsonUtils {
      * Gets the value of the given member as a JWS Algorithm, null if it doesn't exist
      */
     @JvmStatic
-    fun getAsJwsAlgorithm(o: JsonObject, member: String?): JWSAlgorithm? {
+    fun getAsJwsAlgorithm(o: GsonObject, member: String?): JWSAlgorithm? {
         return when (val s = getAsString(o, member)) {
             null -> null
             else -> JWSAlgorithm.parse(s)
@@ -125,7 +125,7 @@ object JsonUtils {
      * Gets the value of the given member as a PKCE Algorithm, null if it doesn't exist
      */
     @JvmStatic
-    fun getAsPkceAlgorithm(o: JsonObject, member: String?): PKCEAlgorithm? {
+    fun getAsPkceAlgorithm(o: GsonObject, member: String?): PKCEAlgorithm? {
         return when (val s = getAsString(o, member)) {
             null -> null
             else -> parse(s)
@@ -136,7 +136,7 @@ object JsonUtils {
      * Gets the value of the given member as a string, null if it doesn't exist
      */
     @JvmStatic
-    fun getAsString(o: JsonObject, member: String?): String? {
+    fun getAsString(o: GsonObject, member: String?): String? {
         val e = o[member]
         return when {
             e!=null && e.isJsonPrimitive -> e.asString
@@ -148,7 +148,7 @@ object JsonUtils {
      * Gets the value of the given member as a boolean, null if it doesn't exist
      */
     @JvmStatic
-    fun getAsBoolean(o: JsonObject, member: String?): Boolean? {
+    fun getAsBoolean(o: GsonObject, member: String?): Boolean? {
         val e = o[member]
         return when {
             e!=null && e.isJsonPrimitive -> e.asBoolean
@@ -160,7 +160,7 @@ object JsonUtils {
      * Gets the value of the given member as a Long, null if it doesn't exist
      */
     @JvmStatic
-    fun getAsLong(o: JsonObject, member: String?): Long? {
+    fun getAsLong(o: GsonObject, member: String?): Long? {
         val e = o[member]
         return when {
             e!=null && e.isJsonPrimitive -> e.asLong
@@ -173,7 +173,7 @@ object JsonUtils {
      */
     @Throws(JsonSyntaxException::class)
     @JvmStatic
-    fun getAsStringSet(o: JsonObject, member: String?): Set<String>? {
+    fun getAsStringSet(o: GsonObject, member: String?): Set<String>? {
         val e = o[member]
         return when {
             e == null -> null
@@ -187,7 +187,7 @@ object JsonUtils {
      */
     @Throws(JsonSyntaxException::class)
     @JvmStatic
-    fun getAsStringList(o: JsonObject, member: String?): List<String>? {
+    fun getAsStringList(o: GsonObject, member: String?): List<String>? {
         val e = o[member]
         return when {
             e == null -> null
@@ -200,7 +200,7 @@ object JsonUtils {
      * Gets the value of the given member as a list of JWS Algorithms, null if it doesn't exist
      */
     @JvmStatic
-    fun getAsJwsAlgorithmList(o: JsonObject, member: String?): List<JWSAlgorithm>? {
+    fun getAsJwsAlgorithmList(o: GsonObject, member: String?): List<JWSAlgorithm>? {
         val strings = getAsStringList(o, member) ?: return null
         return strings.map { JWSAlgorithm.parse(it) }
     }
@@ -209,7 +209,7 @@ object JsonUtils {
      * Gets the value of the given member as a list of JWS Algorithms, null if it doesn't exist
      */
     @JvmStatic
-    fun getAsJweAlgorithmList(o: JsonObject, member: String?): List<JWEAlgorithm>? {
+    fun getAsJweAlgorithmList(o: GsonObject, member: String?): List<JWEAlgorithm>? {
         val strings = getAsStringList(o, member) ?: return null
         return strings.map { JWEAlgorithm.parse(it) }
     }
@@ -218,23 +218,23 @@ object JsonUtils {
      * Gets the value of the given member as a list of JWS Algorithms, null if it doesn't exist
      */
     @JvmStatic
-    fun getAsEncryptionMethodList(o: JsonObject, member: String?): List<EncryptionMethod>? {
+    fun getAsEncryptionMethodList(o: GsonObject, member: String?): List<EncryptionMethod>? {
         val strings = getAsStringList(o, member) ?: return null
         return strings.map { EncryptionMethod.parse(it) }
     }
 
     @Throws(IOException::class)
     @JvmStatic
-    fun <V: Any> readMap(reader: JsonReader): Map<String, V> {
+    fun <V: Any> readMap(reader: GsonReader): Map<String, V> {
         val map: MutableMap<Any, Any> = HashMap<Any, Any>()
         reader.beginObject()
         while (reader.hasNext()) {
             val name = reader.nextName()
             var value: Any? = null
             value = when (reader.peek()) {
-                JsonToken.STRING -> reader.nextString()
-                JsonToken.BOOLEAN -> reader.nextBoolean()
-                JsonToken.NUMBER -> reader.nextLong()
+                GsonToken.STRING -> reader.nextString()
+                GsonToken.BOOLEAN -> reader.nextBoolean()
+                GsonToken.NUMBER -> reader.nextLong()
                 else -> {
                     logger.debug("Found unexpected entry")
                     reader.skipValue()
@@ -250,18 +250,18 @@ object JsonUtils {
 
     @Throws(IOException::class)
     @JvmStatic
-    fun <V> readSet(reader: JsonReader): Set<V> {
+    fun <V> readSet(reader: GsonReader): Set<V> {
         var arraySet: MutableSet<*>? = null
         reader.beginArray()
         when (reader.peek()) {
-            JsonToken.STRING -> {
+            GsonToken.STRING -> {
                 arraySet = HashSet<String>()
                 while (reader.hasNext()) {
                     arraySet.add(reader.nextString())
                 }
             }
 
-            JsonToken.NUMBER -> {
+            GsonToken.NUMBER -> {
                 arraySet = HashSet<Long>()
                 while (reader.hasNext()) {
                     arraySet.add(reader.nextLong())
@@ -277,7 +277,7 @@ object JsonUtils {
 
     @Throws(IOException::class)
     @JvmStatic
-    fun writeNullSafeArray(writer: JsonWriter, items: Set<String>?) {
+    fun writeNullSafeArray(writer: GsonWriter, items: Set<String>?) {
         if (items != null) {
             writer.beginArray()
             for (s in items) {

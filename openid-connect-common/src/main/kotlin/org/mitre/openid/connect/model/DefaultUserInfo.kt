@@ -17,11 +17,12 @@
  */
 package org.mitre.openid.connect.model
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
 import org.mitre.openid.connect.model.convert.JsonObjectStringConverter
@@ -45,147 +46,163 @@ import javax.persistence.Table
 @Entity
 @Table(name = "user_info")
 @NamedQueries(NamedQuery(name = DefaultUserInfo.QUERY_BY_USERNAME, query = "select u from DefaultUserInfo u WHERE u.preferredUsername = :" + DefaultUserInfo.PARAM_USERNAME), NamedQuery(name = DefaultUserInfo.QUERY_BY_EMAIL, query = "select u from DefaultUserInfo u WHERE u.email = :" + DefaultUserInfo.PARAM_EMAIL))
-class DefaultUserInfo : UserInfo {
+@Serializable
+class DefaultUserInfo(
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
-    var id: Long? = null
+    @kotlinx.serialization.Transient
+    var id: Long? = null,
 
     @get:Basic
     @get:Column(name = "sub")
-    override var sub: String? = null
+    override var sub: String? = null,
 
     @Basic
     @Column(name = "preferred_username")
-    override var preferredUsername: String? = null
+    override var preferredUsername: String? = null,
 
     @Basic
     @Column(name = "name")
-    override var name: String? = null
+    override var name: String? = null,
 
     @Basic
     @Column(name = "given_name")
-    override var givenName: String? = null
+    override var givenName: String? = null,
 
     @Basic
     @Column(name = "family_name")
-    override var familyName: String? = null
+    override var familyName: String? = null,
 
     @Basic
     @Column(name = "middle_name")
-    override var middleName: String? = null
+    override var middleName: String? = null,
 
     @Basic
     @Column(name = "nickname")
-    override var nickname: String? = null
+    override var nickname: String? = null,
 
     @Basic
     @Column(name = "profile")
-    override var profile: String? = null
+    override var profile: String? = null,
 
     @Basic
     @Column(name = "picture")
-    override var picture: String? = null
+    override var picture: String? = null,
 
     @Basic
     @Column(name = "website")
-    override var website: String? = null
+    override var website: String? = null,
 
     @Basic
     @Column(name = "email")
-    override var email: String? = null
+    override var email: String? = null,
 
     @Basic
     @Column(name = "email_verified")
-    override var emailVerified: Boolean? = null
+    override var emailVerified: Boolean? = null,
 
     @Basic
     @Column(name = "gender")
-    override var gender: String? = null
+    override var gender: String? = null,
 
     @Basic
     @Column(name = "zone_info")
-    override var zoneinfo: String? = null
+    override var zoneinfo: String? = null,
 
     @Basic
     @Column(name = "locale")
-    override var locale: String? = null
+    override var locale: String? = null,
 
     @Basic
     @Column(name = "phone_number")
-    override var phoneNumber: String? = null
+    override var phoneNumber: String? = null,
 
     @Basic
     @Column(name = "phone_number_verified")
-    override var phoneNumberVerified: Boolean? = null
+    override var phoneNumberVerified: Boolean? = null,
 
     @OneToOne(targetEntity = DefaultAddress::class, cascade = [CascadeType.ALL])
     @JoinColumn(name = "address_id")
-    override var address: Address? = null
-        set(value) {
-            field = address?.let { it as? DefaultAddress ?: DefaultAddress(it) }
-        }
+    @SerialName("address")
+    private var _address: DefaultAddress? = null,
 
     @Basic
     @Column(name = "updated_time")
-    override var updatedTime: String? = null
-
+    override var updatedTime: String? = null,
 
     @Basic
     @Column(name = "birthdate")
-    override var birthdate: String? = null
+    override var birthdate: String? = null,
 
     @get:Convert(converter = JsonObjectStringConverter::class)
     @get:Column(name = "src")
     @get:Basic
     @Transient
-    override var source: JsonObject? = null // source JSON if this is loaded remotely
+    @kotlinx.serialization.Transient
+    override var source: JsonObject? = null, // source JSON if this is loaded remotely
+) : UserInfo {
 
+//    @OneToOne(targetEntity = DefaultAddress::class, cascade = [CascadeType.ALL])
+//    @JoinColumn(name = "address_id")
+//    @SerialName("address")
+//    private var _address: DefaultAddress? = address?.let { it as? DefaultAddress ?: DefaultAddress(it) }
+
+    override var address: Address?
+        get() = _address
+        set(value) {
+            _address = value?.let { it as? DefaultAddress ?: DefaultAddress(it) }
+        }
+
+    constructor(
+        sub: String? = null,
+        preferredUsername: String? = null,
+        name: String? = null,
+        givenName: String? = null,
+        familyName: String? = null,
+        middleName: String? = null,
+        nickname: String? = null,
+        profile: String? = null,
+        picture: String? = null,
+        website: String? = null,
+        email: String? = null,
+        emailVerified: Boolean? = null,
+        gender: String? = null,
+        zoneinfo: String? = null,
+        locale: String? = null,
+        phoneNumber: String? = null,
+        phoneNumberVerified: Boolean? = null,
+        address: Address? = null,
+        updatedTime: String? = null,
+        birthdate: String? = null,
+        source: JsonObject? = null,
+    ) : this(
+        sub = sub,
+        preferredUsername = preferredUsername,
+        name = name,
+        givenName = givenName,
+        familyName = familyName,
+        middleName = middleName,
+        nickname = nickname,
+        profile = profile,
+        picture = picture,
+        website = website,
+        email = email,
+        emailVerified = emailVerified,
+        gender = gender,
+        zoneinfo = zoneinfo,
+        locale = locale,
+        phoneNumber = phoneNumber,
+        phoneNumberVerified = phoneNumberVerified,
+        _address = address?.let { it as? DefaultAddress ?: DefaultAddress(it) },
+        updatedTime = updatedTime,
+        birthdate = birthdate,
+        source = source,
+    )
 
     override fun toJson(): JsonObject {
         source?.let { return it }
-
-        val data = buildMap<String, JsonElement> {
-
-            put("sub", JsonPrimitive(sub))
-            put("name", JsonPrimitive(name))
-            put("preferred_username", JsonPrimitive(preferredUsername))
-            put("given_name", JsonPrimitive(givenName))
-            put("family_name", JsonPrimitive(familyName))
-            put("middle_name", JsonPrimitive(middleName))
-            put("nickname", JsonPrimitive(nickname))
-            put("profile", JsonPrimitive(profile))
-            put("picture", JsonPrimitive(picture))
-            put("website", JsonPrimitive(website))
-            put("gender", JsonPrimitive(gender))
-            put("zoneinfo", JsonPrimitive(zoneinfo))
-            put("locale", JsonPrimitive(locale))
-            put("updated_at", JsonPrimitive(updatedTime))
-            put("birthdate", JsonPrimitive(birthdate))
-
-            put("email", JsonPrimitive(email))
-            put("email_verified", JsonPrimitive(emailVerified))
-
-            put("phone_number", JsonPrimitive(phoneNumber))
-            put("phone_number_verified", JsonPrimitive(phoneNumberVerified))
-
-            address?.let {
-                put(
-                    "address", JsonObject(
-                        mapOf(
-                            "formatted" to JsonPrimitive(address!!.formatted),
-                            "street_address" to JsonPrimitive(address!!.streetAddress),
-                            "locality" to JsonPrimitive(address!!.locality),
-                            "region" to JsonPrimitive(address!!.region),
-                            "postal_code" to JsonPrimitive(address!!.postalCode),
-                            "country" to JsonPrimitive(address!!.country),
-                        )
-                    )
-                )
-            }
-        }
-
-        return JsonObject(data)
+        return Json.encodeToJsonElement<DefaultUserInfo>(this).jsonObject
     }
 
 
@@ -277,48 +294,7 @@ class DefaultUserInfo : UserInfo {
          */
         @JvmStatic
         fun fromJson(obj: JsonObject): UserInfo {
-            val ui = DefaultUserInfo()
-            ui.source = obj
-
-            ui.sub = nullSafeGetString(obj, "sub")
-
-            ui.name = nullSafeGetString(obj, "name")
-            ui.preferredUsername = nullSafeGetString(obj, "preferred_username")
-            ui.givenName = nullSafeGetString(obj, "given_name")
-            ui.familyName = nullSafeGetString(obj, "family_name")
-            ui.middleName = nullSafeGetString(obj, "middle_name")
-            ui.nickname = nullSafeGetString(obj, "nickname")
-            ui.profile = nullSafeGetString(obj, "profile")
-            ui.picture = nullSafeGetString(obj, "picture")
-            ui.website = nullSafeGetString(obj, "website")
-            ui.gender = nullSafeGetString(obj, "gender")
-            ui.zoneinfo = nullSafeGetString(obj, "zoneinfo")
-            ui.locale = nullSafeGetString(obj, "locale")
-            ui.updatedTime = nullSafeGetString(obj, "updated_at")
-            ui.birthdate = nullSafeGetString(obj, "birthdate")
-
-            ui.email = nullSafeGetString(obj, "email")
-            ui.emailVerified = (obj["email_verified"] as? JsonPrimitive)?.boolean
-
-            ui.phoneNumber = nullSafeGetString(obj, "phone_number")
-            ui.phoneNumberVerified = (obj["phone_number_verified"] as? JsonPrimitive)?.boolean
-
-            (obj["address"] as? JsonObject)?.let { addr ->
-
-                ui.address = DefaultAddress().apply {
-                    formatted = nullSafeGetString(addr, "formatted")
-                    streetAddress = nullSafeGetString(addr, "street_address")
-                    locality = nullSafeGetString(addr, "locality")
-                    region = nullSafeGetString(addr, "region")
-                    postalCode = nullSafeGetString(addr, "postal_code")
-                    country = nullSafeGetString(addr, "country")
-
-                }
-
-            }
-
-
-            return ui
+            return Json.decodeFromJsonElement<DefaultUserInfo>(obj)
         }
 
         private fun nullSafeGetString(obj: JsonObject, field: String): String? {

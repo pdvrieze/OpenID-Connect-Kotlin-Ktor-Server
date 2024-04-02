@@ -19,6 +19,12 @@ package org.mitre.openid.connect
 
 import com.nimbusds.jose.EncryptionMethod
 import com.nimbusds.jose.JWEAlgorithm
+import io.github.pdvrieze.test.util.asNumber
+import io.github.pdvrieze.test.util.asString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.jsonArray
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -26,7 +32,6 @@ import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.openid.connect.ClientDetailsEntityJsonProcessor.parse
 import org.mitre.openid.connect.ClientDetailsEntityJsonProcessor.parseRegistered
-import org.mitre.openid.connect.ClientDetailsEntityJsonProcessor.serialize
 import java.util.*
 
 /**
@@ -140,7 +145,7 @@ class ClientDetailsEntityJsonProcessorTest {
     }
 
     /**
-     * Test method for [org.mitre.openid.connect.ClientDetailsEntityJsonProcessor.serialize].
+     * Test method for serializing [RegisteredClient].
      */
     @Test
     fun testSerialize() {
@@ -166,25 +171,25 @@ class ClientDetailsEntityJsonProcessorTest {
         c.contacts = setOf("ve7jtb@example.org", "mary@example.org")
         c.requestUris = setOf("https://client.example.org/rf.txt#qpXaRLh_n93TTR9F252ValdatUQvQiJi5BDub2BeznA")
 
-        val j = serialize(c)
+        val j = Json.encodeToJsonElement(c) as JsonObject
 
-        assertEquals("s6BhdRkqt3", j!!["client_id"].asString)
+        assertEquals("s6BhdRkqt3", j["client_id"].asString)
         assertEquals("ZJYCqe3GGRvdrudKyZS0XhGv_Z45DuKhCUk0gBR1vZk", j["client_secret"].asString)
         assertEquals(1577858400L, j["client_secret_expires_at"].asNumber)
         assertEquals("this.is.an.access.token.value.ffx83", j["registration_access_token"].asString)
         assertEquals("https://server.example.com/connect/register?client_id=s6BhdRkqt3", j["registration_client_uri"].asString)
         assertEquals(ClientDetailsEntity.AppType.WEB.value, j["application_type"].asString)
-        for (e in j["redirect_uris"].asJsonArray) {
+        for (e in j["redirect_uris"]?.jsonArray ?: emptySet()) {
+            val s = e.asString
             assertTrue(
-                setOf("https://client.example.org/callback", "https://client.example.org/callback2")
-                    .contains(e.asString)
+                s == "https://client.example.org/callback" || s == "https://client.example.org/callback2"
             )
         }
         assertEquals("My Example", j["client_name"].asString)
-        for (e in j["response_types"].asJsonArray) {
+        for (e in j["response_types"]?.jsonArray ?: emptySet()) {
             assertTrue(setOf("code", "token").contains(e.asString))
         }
-        for (e in j["grant_types"].asJsonArray) {
+        for (e in j["grant_types"]?.jsonArray ?: emptySet()) {
             assertTrue(setOf("authorization_code", "implicit").contains(e.asString))
         }
         assertEquals("https://client.example.org/logo.png", j["logo_uri"].asString)
@@ -194,10 +199,10 @@ class ClientDetailsEntityJsonProcessorTest {
         assertEquals("https://client.example.org/my_public_keys.jwks", j["jwks_uri"].asString)
         assertEquals(JWEAlgorithm.RSA1_5.name, j["userinfo_encrypted_response_alg"].asString)
         assertEquals(EncryptionMethod.A128CBC_HS256.name, j["userinfo_encrypted_response_enc"].asString)
-        for (e in j["contacts"].asJsonArray) {
+        for (e in j["contacts"]?.jsonArray ?: emptySet()) {
             assertTrue(setOf("ve7jtb@example.org", "mary@example.org").contains(e.asString))
         }
-        for (e in j["request_uris"].asJsonArray) {
+        for (e in j["request_uris"]?.jsonArray ?: emptySet()) {
             assertTrue(
                 setOf("https://client.example.org/rf.txt#qpXaRLh_n93TTR9F252ValdatUQvQiJi5BDub2BeznA")
                     .contains(e.asString)

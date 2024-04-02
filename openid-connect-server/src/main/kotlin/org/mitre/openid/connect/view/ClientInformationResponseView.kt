@@ -17,11 +17,11 @@
  */
 package org.mitre.openid.connect.view
 
-import com.google.gson.Gson
-import com.google.gson.JsonIOException
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.encodeToStream
 import org.mitre.oauth2.model.RegisteredClient
-import org.mitre.openid.connect.ClientDetailsEntityJsonProcessor.serialize
-import org.mitre.openid.connect.view.ClientInformationResponseView
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -29,7 +29,6 @@ import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.servlet.view.AbstractView
 import java.io.IOException
-import java.io.Writer
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
@@ -42,12 +41,11 @@ import javax.servlet.http.HttpServletResponse
  */
 @Component(ClientInformationResponseView.VIEWNAME)
 class ClientInformationResponseView : AbstractView() {
-    // note that this won't serialize nulls by default
-    private val gson = Gson()
 
     /* (non-Javadoc)
 	 * @see org.springframework.web.servlet.view.AbstractView#renderMergedOutputModel(java.util.Map, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
 	 */
+    @OptIn(ExperimentalSerializationApi::class)
     override fun renderMergedOutputModel(
         model: Map<String, Any>,
         request: HttpServletRequest,
@@ -63,13 +61,12 @@ class ClientInformationResponseView : AbstractView() {
 
         response.setStatus(code.value())
 
-        val o = serialize(c)
-
         try {
-            val out: Writer = response.writer
-            gson.toJson(o, out)
-        } catch (e: JsonIOException) {
-            Companion.logger.error("JsonIOException in ClientInformationResponseView.java: ", e)
+            Json.encodeToStream(c, response.outputStream)
+//            val out: Writer = response.writer
+//            gson.toJson(o, out)
+        } catch (e: SerializationException) {
+            Companion.logger.error("SerializationException in ClientInformationResponseView.java: ", e)
         } catch (e: IOException) {
             Companion.logger.error("IOException in ClientInformationResponseView.java: ", e)
         }

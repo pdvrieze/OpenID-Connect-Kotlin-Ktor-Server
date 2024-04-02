@@ -23,20 +23,78 @@ import com.nimbusds.jose.JWEAlgorithm
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jwt.JWT
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonEncoder
 import org.mitre.oauth2.model.ClientDetailsEntity.*
+import org.mitre.oauth2.model.RegisteredClientFields.APPLICATION_TYPE
+import org.mitre.oauth2.model.RegisteredClientFields.CLAIMS_REDIRECT_URIS
+import org.mitre.oauth2.model.RegisteredClientFields.CLIENT_ID
+import org.mitre.oauth2.model.RegisteredClientFields.CLIENT_ID_ISSUED_AT
+import org.mitre.oauth2.model.RegisteredClientFields.CLIENT_NAME
+import org.mitre.oauth2.model.RegisteredClientFields.CLIENT_SECRET
+import org.mitre.oauth2.model.RegisteredClientFields.CLIENT_SECRET_EXPIRES_AT
+import org.mitre.oauth2.model.RegisteredClientFields.CLIENT_URI
+import org.mitre.oauth2.model.RegisteredClientFields.CODE_CHALLENGE_METHOD
+import org.mitre.oauth2.model.RegisteredClientFields.CONTACTS
+import org.mitre.oauth2.model.RegisteredClientFields.DEFAULT_ACR_VALUES
+import org.mitre.oauth2.model.RegisteredClientFields.DEFAULT_MAX_AGE
+import org.mitre.oauth2.model.RegisteredClientFields.GRANT_TYPES
+import org.mitre.oauth2.model.RegisteredClientFields.ID_TOKEN_ENCRYPTED_RESPONSE_ALG
+import org.mitre.oauth2.model.RegisteredClientFields.ID_TOKEN_ENCRYPTED_RESPONSE_ENC
+import org.mitre.oauth2.model.RegisteredClientFields.ID_TOKEN_SIGNED_RESPONSE_ALG
+import org.mitre.oauth2.model.RegisteredClientFields.INITIATE_LOGIN_URI
+import org.mitre.oauth2.model.RegisteredClientFields.JWKS
+import org.mitre.oauth2.model.RegisteredClientFields.JWKS_URI
+import org.mitre.oauth2.model.RegisteredClientFields.LOGO_URI
+import org.mitre.oauth2.model.RegisteredClientFields.POLICY_URI
+import org.mitre.oauth2.model.RegisteredClientFields.POST_LOGOUT_REDIRECT_URIS
+import org.mitre.oauth2.model.RegisteredClientFields.REDIRECT_URIS
+import org.mitre.oauth2.model.RegisteredClientFields.REGISTRATION_ACCESS_TOKEN
+import org.mitre.oauth2.model.RegisteredClientFields.REGISTRATION_CLIENT_URI
+import org.mitre.oauth2.model.RegisteredClientFields.REQUEST_OBJECT_SIGNING_ALG
+import org.mitre.oauth2.model.RegisteredClientFields.REQUEST_URIS
+import org.mitre.oauth2.model.RegisteredClientFields.REQUIRE_AUTH_TIME
+import org.mitre.oauth2.model.RegisteredClientFields.RESPONSE_TYPES
+import org.mitre.oauth2.model.RegisteredClientFields.SCOPE
+import org.mitre.oauth2.model.RegisteredClientFields.SECTOR_IDENTIFIER_URI
+import org.mitre.oauth2.model.RegisteredClientFields.SOFTWARE_ID
+import org.mitre.oauth2.model.RegisteredClientFields.SOFTWARE_STATEMENT
+import org.mitre.oauth2.model.RegisteredClientFields.SOFTWARE_VERSION
+import org.mitre.oauth2.model.RegisteredClientFields.SUBJECT_TYPE
+import org.mitre.oauth2.model.RegisteredClientFields.TOKEN_ENDPOINT_AUTH_METHOD
+import org.mitre.oauth2.model.RegisteredClientFields.TOKEN_ENDPOINT_AUTH_SIGNING_ALG
+import org.mitre.oauth2.model.RegisteredClientFields.TOS_URI
+import org.mitre.oauth2.model.RegisteredClientFields.USERINFO_ENCRYPTED_RESPONSE_ALG
+import org.mitre.oauth2.model.RegisteredClientFields.USERINFO_ENCRYPTED_RESPONSE_ENC
+import org.mitre.oauth2.model.RegisteredClientFields.USERINFO_SIGNED_RESPONSE_ALG
+import org.mitre.oauth2.model.convert.EpochInstant
+import org.mitre.oauth2.model.convert.JWEAlgorithmStringConverter
+import org.mitre.oauth2.model.convert.JWEEncryptionMethodStringConverter
+import org.mitre.oauth2.model.convert.JWKSetStringConverter
+import org.mitre.oauth2.model.convert.JWSAlgorithmStringConverter
+import org.mitre.oauth2.model.convert.JWTStringConverter
 import org.springframework.security.core.GrantedAuthority
 import java.util.*
 
 /**
  * @author jricher
  */
+@Serializable(RegisteredClient.Companion::class)
 class RegisteredClient(
     var client: ClientDetailsEntity = ClientDetailsEntity(),// these fields are needed in addition to the ones in ClientDetailsEntity
-    var registrationAccessToken: String? = null, var registrationClientUri: String? = null
+    var registrationAccessToken: String? = null,
+    var registrationClientUri: String? = null,
+    var clientSecretExpiresAt: Date? = null,
+    var clientIdIssuedAt: Date? = null,
+    var source: JsonObject? = null,
 ) {
-    var clientSecretExpiresAt: Date? = null
-    var clientIdIssuedAt: Date? = null
-    var source: JsonObject? = null
 
     var clientDescription: String
         get() = client.clientDescription
@@ -318,4 +376,173 @@ class RegisteredClient(
         set(softwareVersion) {
             client.softwareVersion = softwareVersion
         }
+
+    @Serializable
+    private class SerialDelegate(
+        @SerialName(CLIENT_ID) val clientId: String?,
+        @SerialName(CLIENT_SECRET) val clientSecret: String?,
+        @SerialName(CLIENT_SECRET_EXPIRES_AT) val clientSecretExpiresAt: EpochInstant?,
+        @SerialName(CLIENT_ID_ISSUED_AT) val clientIdIssuedAt: EpochInstant?,
+        @SerialName(REGISTRATION_ACCESS_TOKEN) val registrationAccessToken: String?,
+        @SerialName(REGISTRATION_CLIENT_URI) val registrationClientUri: String?,
+        @SerialName(REDIRECT_URIS) val redirectUris: Set<String>,
+        @SerialName(CLIENT_NAME) val clientName: String?,
+        @SerialName(CLIENT_URI) val clientUri: String?,
+        @SerialName(LOGO_URI) val logoUri: String?,
+        @SerialName(CONTACTS) val contacts: Set<String>?,
+        @SerialName(TOS_URI) val tosUri: String?,
+        @SerialName(TOKEN_ENDPOINT_AUTH_METHOD) val tokenEndpointAuthMethod: AuthMethod?,
+        @SerialName(SCOPE) val scope: String?,
+        @SerialName(GRANT_TYPES) val grantTypes: Set<String>,
+        @SerialName(RESPONSE_TYPES) val responseTypes: Set<String>,
+        @SerialName(POLICY_URI) val policyUri: String?,
+        @SerialName(JWKS_URI) val jwksUri: String?,
+        @SerialName(JWKS) val jwks: @Serializable(with = JWKSetStringConverter::class) JWKSet?,
+        @SerialName(APPLICATION_TYPE) val applicationType: AppType?,
+        @SerialName(SECTOR_IDENTIFIER_URI) val sectorIdentifierUri: String?,
+        @SerialName(SUBJECT_TYPE) val subjectType: SubjectType?,
+        @SerialName(REQUEST_OBJECT_SIGNING_ALG) val requestObjectSigningAlg: @Serializable(with = JWSAlgorithmStringConverter::class) JWSAlgorithm?,
+        @SerialName(USERINFO_SIGNED_RESPONSE_ALG) val userInfoSignedResponseAlg: @Serializable(with = JWSAlgorithmStringConverter::class) JWSAlgorithm?,
+        @SerialName(USERINFO_ENCRYPTED_RESPONSE_ALG) val userInfoEncryptedResponseAlg: @Serializable(with = JWEAlgorithmStringConverter::class) JWEAlgorithm?,
+        @SerialName(USERINFO_ENCRYPTED_RESPONSE_ENC) val userInfoEncryptedResponseEnc: @Serializable(with = JWEEncryptionMethodStringConverter::class) EncryptionMethod?,
+        @SerialName(ID_TOKEN_SIGNED_RESPONSE_ALG) val idTokenSignedResponseAlg: @Serializable(with = JWSAlgorithmStringConverter::class) JWSAlgorithm?,
+        @SerialName(ID_TOKEN_ENCRYPTED_RESPONSE_ALG) val idTokenEncryptedResponseAlg: @Serializable(with = JWEAlgorithmStringConverter::class) JWEAlgorithm?,
+        @SerialName(ID_TOKEN_ENCRYPTED_RESPONSE_ENC) val idTokenEncryptedResponseEnc: @Serializable(with = JWEEncryptionMethodStringConverter::class) EncryptionMethod?,
+        @SerialName(TOKEN_ENDPOINT_AUTH_SIGNING_ALG) val tokenEndpointAuthSigningAlg: @Serializable(with = JWSAlgorithmStringConverter::class) JWSAlgorithm?,
+        @SerialName(DEFAULT_MAX_AGE) val defaultMaxAge: Int?,
+        @SerialName(REQUIRE_AUTH_TIME) val requireAuthTime: Boolean?,
+        @SerialName(DEFAULT_ACR_VALUES) val defaultACRvalues: Set<String>?,
+        @SerialName(INITIATE_LOGIN_URI) val initiateLoginUri: String?,
+        @SerialName(POST_LOGOUT_REDIRECT_URIS) val postLogoutRedirectUris: Set<String>?,
+        @SerialName(REQUEST_URIS) val requestUris: Set<String>?,
+        @SerialName(CLAIMS_REDIRECT_URIS) val claimsRedirectUris: Set<String>?,
+        @SerialName(CODE_CHALLENGE_METHOD) val codeChallengeMethod: PKCEAlgorithm?,
+        @SerialName(SOFTWARE_ID) val softwareId: String?,
+        @SerialName(SOFTWARE_VERSION) val softwareVersion: String?,
+        @SerialName(SOFTWARE_STATEMENT) val softwareStatement: @Serializable(with = JWTStringConverter::class) JWT?,
+    ) {
+
+        constructor(client: RegisteredClient) : this(
+            clientId = client.clientId,
+            clientSecret = client.clientSecret,
+            clientSecretExpiresAt = client.clientSecretExpiresAt?.toInstant(),
+            clientIdIssuedAt = (client.clientIdIssuedAt ?: client.createdAt)?.toInstant(),
+            registrationAccessToken = client.registrationAccessToken,
+            registrationClientUri = client.registrationClientUri,
+            redirectUris = client.redirectUris,
+            clientName = client.clientName,
+            clientUri = client.clientUri,
+            logoUri = client.logoUri,
+            contacts = client.contacts,
+            tosUri = client.tosUri,
+            tokenEndpointAuthMethod = client.tokenEndpointAuthMethod,
+            scope = client.scope?.joinToString(" "),
+            grantTypes = client.grantTypes,
+            responseTypes = client.responseTypes,
+            policyUri = client.policyUri,
+            jwksUri = client.jwksUri,
+            jwks = client.jwks,
+            applicationType = client.applicationType,
+            sectorIdentifierUri = client.sectorIdentifierUri,
+            subjectType = client.subjectType,
+            requestObjectSigningAlg = client.requestObjectSigningAlg,
+            userInfoSignedResponseAlg = client.userInfoSignedResponseAlg,
+            userInfoEncryptedResponseAlg = client.userInfoEncryptedResponseAlg,
+            userInfoEncryptedResponseEnc = client.userInfoEncryptedResponseEnc,
+            idTokenSignedResponseAlg = client.idTokenSignedResponseAlg,
+            idTokenEncryptedResponseAlg = client.idTokenEncryptedResponseAlg,
+            idTokenEncryptedResponseEnc = client.idTokenEncryptedResponseEnc,
+            tokenEndpointAuthSigningAlg = client.tokenEndpointAuthSigningAlg,
+            defaultMaxAge = client.defaultMaxAge,
+            requireAuthTime = client.requireAuthTime,
+            defaultACRvalues = client.defaultACRvalues,
+            initiateLoginUri = client.initiateLoginUri,
+            postLogoutRedirectUris = client.postLogoutRedirectUris,
+            requestUris = client.requestUris,
+            claimsRedirectUris = client.claimsRedirectUris,
+            codeChallengeMethod = client.codeChallengeMethod,
+            softwareId = client.softwareId,
+            softwareVersion = client.softwareVersion,
+            softwareStatement = client.softwareStatement,
+        )
+
+        fun toClient(source: JsonElement? = null): RegisteredClient {
+//            clientSecretExpiresAt = clientSecretExpiresAt,
+//            clientIdIssuedAt = clientIdIssuedAt,
+
+            val details = ClientDetailsEntity(
+                clientSecret = clientSecret,
+                redirectUris = redirectUris,
+                clientName = clientName,
+                clientUri = clientUri,
+                logoUri = logoUri,
+                contacts = contacts,
+                tosUri = tosUri,
+                tokenEndpointAuthMethod = tokenEndpointAuthMethod,
+                scope = scope
+                    ?.run { splitToSequence(' ').filterNotTo(HashSet()) { it.isEmpty() }}
+                    ?: hashSetOf(),
+                grantTypes = grantTypes.toHashSet(),
+                responseTypes = responseTypes.toHashSet(),
+                policyUri = policyUri,
+                jwksUri = jwksUri,
+                jwks = jwks,
+                applicationType = applicationType,
+                sectorIdentifierUri = sectorIdentifierUri,
+                subjectType = subjectType,
+                requestObjectSigningAlg = requestObjectSigningAlg,
+                userInfoSignedResponseAlg = userInfoSignedResponseAlg,
+                userInfoEncryptedResponseAlg = userInfoEncryptedResponseAlg,
+                userInfoEncryptedResponseEnc = userInfoEncryptedResponseEnc,
+                idTokenSignedResponseAlg = idTokenSignedResponseAlg,
+                idTokenEncryptedResponseAlg = idTokenEncryptedResponseAlg,
+                idTokenEncryptedResponseEnc = idTokenEncryptedResponseEnc,
+                tokenEndpointAuthSigningAlg = tokenEndpointAuthSigningAlg,
+                defaultMaxAge = defaultMaxAge,
+                requireAuthTime = requireAuthTime,
+                defaultACRvalues = defaultACRvalues,
+                initiateLoginUri = initiateLoginUri,
+                postLogoutRedirectUris = postLogoutRedirectUris,
+                requestUris = requestUris,
+                claimsRedirectUris = claimsRedirectUris,
+                codeChallengeMethod = codeChallengeMethod,
+                softwareId = softwareId,
+                softwareVersion = softwareVersion,
+                softwareStatement = softwareStatement,
+            )
+
+            return RegisteredClient(
+                details,
+                registrationAccessToken,
+                registrationClientUri,
+                clientSecretExpiresAt?.let { Date.from(it) },
+                clientIdIssuedAt?.let { Date.from(it) },
+//                source,
+            )
+        }
+
+    }
+
+    companion object Serializer : KSerializer<RegisteredClient> {
+        private val delegate = SerialDelegate.serializer()
+        override val descriptor: SerialDescriptor = SerialDescriptor("org.mitre.oauth2.model.RegisteredClient", delegate.descriptor)
+
+        override fun serialize(encoder: Encoder, value: RegisteredClient) {
+            val source = value.source as Any?
+            if (encoder is JsonEncoder && source is JsonElement) {
+                encoder.encodeJsonElement(source)
+            } else {
+                delegate.serialize(encoder, SerialDelegate(value))
+            }
+        }
+
+        override fun deserialize(decoder: Decoder): RegisteredClient {
+            if (decoder is JsonDecoder) {
+                val source  = decoder.decodeJsonElement()
+                return decoder.json.decodeFromJsonElement(delegate, source).toClient(source)
+            } else {
+                return delegate.deserialize(decoder).toClient()
+            }
+        }
+    }
 }

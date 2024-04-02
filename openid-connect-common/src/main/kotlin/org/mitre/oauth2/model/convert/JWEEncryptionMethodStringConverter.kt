@@ -16,11 +16,20 @@
 package org.mitre.oauth2.model.convert
 
 import com.nimbusds.jose.EncryptionMethod
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import javax.persistence.AttributeConverter
 import javax.persistence.Converter
 
 @Converter
-class JWEEncryptionMethodStringConverter : AttributeConverter<EncryptionMethod?, String?> {
+class JWEEncryptionMethodStringConverter : AttributeConverter<EncryptionMethod?, String?>, KSerializer<EncryptionMethod> {
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor("com.nimbusds.jose.Algorithm", PrimitiveKind.STRING)
+
     override fun convertToDatabaseColumn(attribute: EncryptionMethod?): String? {
         return attribute?.name
     }
@@ -30,5 +39,13 @@ class JWEEncryptionMethodStringConverter : AttributeConverter<EncryptionMethod?,
 	 */
     override fun convertToEntityAttribute(dbData: String?): EncryptionMethod? {
         return dbData?.let(EncryptionMethod::parse)
+    }
+
+    override fun serialize(encoder: Encoder, value: EncryptionMethod) {
+        encoder.encodeString(value.name)
+    }
+
+    override fun deserialize(decoder: Decoder): EncryptionMethod {
+        return EncryptionMethod.parse(decoder.decodeString())
     }
 }

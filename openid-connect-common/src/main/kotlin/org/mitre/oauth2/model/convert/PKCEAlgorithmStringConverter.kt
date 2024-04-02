@@ -24,6 +24,7 @@ import javax.persistence.Converter
  */
 @Converter
 class PKCEAlgorithmStringConverter : AttributeConverter<PKCEAlgorithm?, String?> {
+
     override fun convertToDatabaseColumn(attribute: PKCEAlgorithm?): String? {
         return attribute?.name
     }

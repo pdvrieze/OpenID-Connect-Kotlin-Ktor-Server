@@ -16,6 +16,12 @@
 package org.mitre.oauth2.model.convert
 
 import com.nimbusds.jose.jwk.JWKSet
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.text.ParseException
@@ -26,7 +32,10 @@ import javax.persistence.Converter
  * @author jricher
  */
 @Converter
-class JWKSetStringConverter : AttributeConverter<JWKSet?, String?> {
+class JWKSetStringConverter : AttributeConverter<JWKSet?, String?>, KSerializer<JWKSet> {
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor("com.nimbusds.jose.jwk.JKWSet", PrimitiveKind.STRING)
+
     override fun convertToDatabaseColumn(attribute: JWKSet?): String? {
         return attribute?.toString()
     }
@@ -40,6 +49,14 @@ class JWKSetStringConverter : AttributeConverter<JWKSet?, String?> {
                 null
             }
         }
+    }
+
+    override fun serialize(encoder: Encoder, value: JWKSet) {
+        encoder.encodeString(value.toString())
+    }
+
+    override fun deserialize(decoder: Decoder): JWKSet {
+        return JWKSet.parse(decoder.decodeString())
     }
 
     companion object {
