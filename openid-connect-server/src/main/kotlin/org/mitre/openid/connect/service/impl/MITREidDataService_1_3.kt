@@ -42,6 +42,8 @@ import org.mitre.openid.connect.repository.ApprovedSiteRepository
 import org.mitre.openid.connect.repository.BlacklistedSiteRepository
 import org.mitre.openid.connect.repository.WhitelistedSiteRepository
 import org.mitre.openid.connect.service.MITREidDataService
+import org.mitre.openid.connect.service.MITREidDataService.Companion.toUTCString
+import org.mitre.openid.connect.service.MITREidDataService.Companion.utcToDate
 import org.mitre.openid.connect.service.MITREidDataServiceExtension
 import org.mitre.openid.connect.service.MITREidDataServiceMaps
 import org.mitre.util.JsonUtils.readMap
@@ -64,7 +66,7 @@ import java.text.ParseException
  * @author arielak
  */
 @Service
-class MITREidDataService_1_3 : MITREidDataServiceSupport(), MITREidDataService {
+class MITREidDataService_1_3 : MITREidDataService {
     @Autowired
     private lateinit var clientRepository: OAuth2ClientRepository
 
@@ -165,7 +167,7 @@ class MITREidDataService_1_3 : MITREidDataServiceSupport(), MITREidDataService {
             writer.name(ID).value(token.id)
             writer.name(EXPIRATION).value(toUTCString(token.expiration))
             writer.name(CLIENT_ID).value(token.client?.clientId)
-            writer.name(AUTHENTICATION_HOLDER_ID).value(token.authenticationHolder!!.id)
+            writer.name(AUTHENTICATION_HOLDER_ID).value(token.authenticationHolder.id)
             writer.name(VALUE).value(token.value)
             writer.endObject()
             logger.debug("Wrote refresh token {}", token.id)
@@ -384,8 +386,7 @@ class MITREidDataService_1_3 : MITREidDataServiceSupport(), MITREidDataService {
                 writer.name(POLICY_URI).value(client.policyUri)
                 writer.name(JWKS_URI).value(client.jwksUri)
                 writer.name(JWKS).value(if ((client.jwks != null)) client.jwks.toString() else null)
-                writer.name(APPLICATION_TYPE)
-                    .value(if ((client.applicationType != null)) client.applicationType!!.value else null)
+                writer.name(APPLICATION_TYPE).value(client.applicationType.value)
                 writer.name(SECTOR_IDENTIFIER_URI).value(client.sectorIdentifierUri)
                 writer.name(SUBJECT_TYPE)
                     .value(if ((client.subjectType != null)) client.subjectType!!.value else null)
@@ -409,7 +410,7 @@ class MITREidDataService_1_3 : MITREidDataServiceSupport(), MITREidDataService {
                 var requireAuthTime: Boolean? = null
                 try {
                     requireAuthTime = client.requireAuthTime
-                } catch (e: NullPointerException) {
+                } catch (_: NullPointerException) {
                 }
                 if (requireAuthTime != null) {
                     writer.name(REQUIRE_AUTH_TIME).value(requireAuthTime)

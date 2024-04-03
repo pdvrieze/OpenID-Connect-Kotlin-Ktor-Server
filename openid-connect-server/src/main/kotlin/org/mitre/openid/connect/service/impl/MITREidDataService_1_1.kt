@@ -42,6 +42,7 @@ import org.mitre.openid.connect.repository.ApprovedSiteRepository
 import org.mitre.openid.connect.repository.BlacklistedSiteRepository
 import org.mitre.openid.connect.repository.WhitelistedSiteRepository
 import org.mitre.openid.connect.service.MITREidDataService
+import org.mitre.openid.connect.service.MITREidDataService.Companion.utcToDate
 import org.mitre.openid.connect.service.MITREidDataServiceExtension
 import org.mitre.openid.connect.service.MITREidDataServiceMaps
 import org.mitre.util.JsonUtils.readMap
@@ -67,7 +68,7 @@ import java.text.ParseException
  * @author arielak
  */
 @Service
-class MITREidDataService_1_1 : MITREidDataServiceSupport(), MITREidDataService {
+class MITREidDataService_1_1 : MITREidDataService {
     @Autowired
     private lateinit var clientRepository: OAuth2ClientRepository
 

@@ -24,9 +24,10 @@ import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.oauth2.util.requireId
 import org.mitre.openid.connect.ClientDetailsEntityJsonProcessor.parseRegistered
 import org.mitre.openid.connect.service.MITREidDataService
+import org.mitre.openid.connect.service.MITREidDataService.Companion.toUTCString
+import org.mitre.openid.connect.service.MITREidDataService.Companion.utcToDate
 import org.mitre.openid.connect.service.MITREidDataServiceExtension
 import org.mitre.openid.connect.service.MITREidDataServiceMaps
-import org.mitre.openid.connect.service.impl.MITREidDataServiceSupport
 import org.mitre.uma.model.Claim
 import org.mitre.uma.model.Permission
 import org.mitre.uma.model.PermissionTicket
@@ -46,7 +47,7 @@ import java.io.IOException
  * @author jricher
  */
 @Service("umaDataExtension_1_3")
-class UmaDataServiceExtension_1_3 : MITREidDataServiceSupport(), MITREidDataServiceExtension {
+class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
     @Autowired
     private lateinit var registeredClientService: SavedRegisteredClientService
 
@@ -466,9 +467,9 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceSupport(), MITREidDataServ
 
 
     @Throws(IOException::class)
-    private fun readResourceSets(reader: JsonReader?) {
+    private fun readResourceSets(reader: JsonReader) {
         val parser = JsonParser()
-        reader!!.beginArray()
+        reader.beginArray()
         while (reader.hasNext()) {
             var oldId: Long? = null
             val rs = ResourceSet()

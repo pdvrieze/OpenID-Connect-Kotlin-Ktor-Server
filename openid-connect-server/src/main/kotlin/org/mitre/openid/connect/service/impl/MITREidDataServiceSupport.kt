@@ -15,62 +15,8 @@
  */
 package org.mitre.openid.connect.service.impl
 
-import kotlinx.serialization.json.Json
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-import org.springframework.format.annotation.DateTimeFormat
-import org.springframework.format.datetime.DateFormatter
-import java.text.ParseException
-import java.time.Instant
-import java.util.*
-
 abstract class MITREidDataServiceSupport {
-    private val dateFormatter = DateFormatter().apply {
-        setIso(DateTimeFormat.ISO.DATE_TIME)
-    }
-
-    protected fun utcToInstant(value: String?): Instant? {
-        if (value == null) return null
-
-        try {
-            return dateFormatter.parse(value, Locale.ENGLISH).toInstant()
-        } catch (ex: ParseException) {
-            logger.error("Unable to parse datetime {}", value, ex)
-        }
-        return null
-    }
-
-    protected fun utcToDate(value: String?): Date? {
-        if (value == null) return null
-
-        try {
-            return dateFormatter.parse(value, Locale.ENGLISH)
-        } catch (ex: ParseException) {
-            logger.error("Unable to parse datetime {}", value, ex)
-        }
-        return null
-    }
-
-    protected fun toUTCString(value: Instant?): String? {
-        if (value == null) return null
-
-        return dateFormatter.print(Date.from(value), Locale.ENGLISH)
-    }
-
-    protected fun toUTCString(value: Date?): String? {
-        if (value == null) return null
-
-        return dateFormatter.print(value, Locale.ENGLISH)
-    }
 
     companion object {
-        /**
-         * Logger for this class
-         */
-        private val logger: Logger = LoggerFactory.getLogger(MITREidDataServiceSupport::class.java)
-        internal val json: Json = Json {
-            ignoreUnknownKeys = true
-            prettyPrint = true
-        }
     }
 }

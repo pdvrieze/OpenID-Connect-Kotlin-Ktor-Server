@@ -20,8 +20,16 @@ package org.mitre.openid.connect.service
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.json.Json
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.springframework.format.annotation.DateTimeFormat
+import org.springframework.format.datetime.DateFormatter
 import java.io.IOException
 import java.io.StringReader
+import java.text.ParseException
+import java.time.Instant
+import java.util.*
 
 /**
  * @author jricher
@@ -58,6 +66,58 @@ interface MITREidDataService {
     fun supportsVersion(version: String?): Boolean
 
     companion object {
+        private val dateFormatter = DateFormatter().apply {
+            setIso(DateTimeFormat.ISO.DATE_TIME)
+        }
+
+        @JvmStatic
+        public fun utcToInstant(value: String?): Instant? {
+            if (value == null) return null
+
+            try {
+                return dateFormatter.parse(value, Locale.ENGLISH).toInstant()
+            } catch (ex: ParseException) {
+                logger.error("Unable to parse datetime {}", value, ex)
+            }
+            return null
+        }
+
+        @JvmStatic
+        public fun utcToDate(value: String?): Date? {
+            if (value == null) return null
+
+            try {
+                return dateFormatter.parse(value, Locale.ENGLISH)
+            } catch (ex: ParseException) {
+                logger.error("Unable to parse datetime {}", value, ex)
+            }
+            return null
+        }
+
+        @JvmStatic
+        public fun toUTCString(value: Instant?): String? {
+            if (value == null) return null
+
+            return dateFormatter.print(Date.from(value), Locale.ENGLISH)
+        }
+
+        @JvmStatic
+        public fun toUTCString(value: Date?): String? {
+            if (value == null) return null
+
+            return dateFormatter.print(value, Locale.ENGLISH)
+        }
+
+        /**
+         * Logger for this class
+         */
+        private val logger: Logger = LoggerFactory.getLogger(MITREidDataService::class.java)
+        val json: Json = Json {
+            ignoreUnknownKeys = true
+            prettyPrint = true
+        }
+
+
         /**
          * Data member for 1.X configurations
          */
