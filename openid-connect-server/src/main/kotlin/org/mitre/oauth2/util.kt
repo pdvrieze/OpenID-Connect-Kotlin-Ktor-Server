@@ -11,3 +11,5 @@ fun Long?.requireId(): Long {
     return requireNotNull(this) {"Missing id"}
 }
 
+@Deprecated("No need, is already not null", ReplaceWith("this"))
+fun Long.requireId(): Long = this

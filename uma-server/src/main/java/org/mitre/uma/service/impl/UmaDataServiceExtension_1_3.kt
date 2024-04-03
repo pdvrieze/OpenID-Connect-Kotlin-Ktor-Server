@@ -644,16 +644,16 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceSupport(), MITREidDataServ
     override fun fixExtensionObjectReferences(maps: MITREidDataServiceMaps) {
         for (permissionId in permissionToResourceRefs.keys) {
             val oldResourceId = permissionToResourceRefs[permissionId]
-            val newResourceId = resourceSetOldToNewIdMap[oldResourceId]
-            val p = permissionRepository.getById(permissionId)
-            val rs = resourceSetRepository.getById(newResourceId.requireId())
-            p!!.resourceSet = rs
+            val newResourceId = resourceSetOldToNewIdMap[oldResourceId].requireId()
+            val p = permissionRepository.getById(permissionId)!!
+            val rs = resourceSetRepository.getById(newResourceId)
+            p.resourceSet = rs
             permissionRepository.saveRawPermission(p)
             logger.debug("Mapping rsid $oldResourceId to $newResourceId for permission $permissionId")
         }
         for (tokenId in tokenToPermissionRefs.keys) {
-            val newTokenId = maps.accessTokenOldToNewIdMap[tokenId]
-            val token = tokenRepository.getAccessTokenById(newTokenId.requireId())!!
+            val newTokenId = maps.accessTokenOldToNewIdMap[tokenId].requireId()
+            val token = tokenRepository.getAccessTokenById(newTokenId)!!
 
             val permissions: MutableSet<Permission> = HashSet()
             for (permissionId in tokenToPermissionRefs[tokenId]!!) {

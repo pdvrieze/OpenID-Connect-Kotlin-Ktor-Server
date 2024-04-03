@@ -76,7 +76,6 @@ import org.mitre.oauth2.model.RegisteredClientFields.USERINFO_ENCRYPTED_RESPONSE
 import org.mitre.oauth2.model.RegisteredClientFields.USERINFO_ENCRYPTED_RESPONSE_ENC
 import org.mitre.oauth2.model.RegisteredClientFields.USERINFO_SIGNED_RESPONSE_ALG
 import org.mitre.oauth2.service.ClientDetailsEntityService
-import org.mitre.oauth2.util.requireId
 import org.mitre.oauth2.web.AuthenticationUtilities
 import org.mitre.openid.connect.exception.ValidationException
 import org.mitre.openid.connect.service.ClientLogoLoadingService
@@ -438,8 +437,8 @@ class ClientAPI {
      * Get the logo image for a client
      */
     @RequestMapping(value = ["/{id}/logo"], method = [RequestMethod.GET], produces = [MediaType.IMAGE_GIF_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE])
-    fun getClientLogo(@PathVariable("id") id: Long?, model: Model?): ResponseEntity<ByteArray?> {
-        val client = clientService.getClientById(id.requireId())
+    fun getClientLogo(@PathVariable("id") id: Long, model: Model?): ResponseEntity<ByteArray?> {
+        val client = clientService.getClientById(id)
 
         if (client == null) {
             return ResponseEntity(HttpStatus.NOT_FOUND)

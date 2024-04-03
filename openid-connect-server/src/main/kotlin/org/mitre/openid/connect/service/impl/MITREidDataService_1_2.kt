@@ -773,8 +773,8 @@ class MITREidDataService_1_2 : MITREidDataServiceSupport(), MITREidDataService {
             val oldAuthHolderId = maps.accessTokenToAuthHolderRefs[oldAccessTokenId]
             val newAuthHolderId = maps.authHolderOldToNewIdMap[oldAuthHolderId] ?: error("Missing authHolder map $oldAuthHolderId")
             val authHolder = authHolderRepository.getById(newAuthHolderId) ?: error("Missing authHolder $newAuthHolderId")
-            val newAccessTokenId = maps.accessTokenOldToNewIdMap[oldAccessTokenId]
-            val accessToken = tokenRepository.getAccessTokenById(newAccessTokenId.requireId())!!
+            val newAccessTokenId = maps.accessTokenOldToNewIdMap[oldAccessTokenId].requireId()
+            val accessToken = tokenRepository.getAccessTokenById(newAccessTokenId)!!
             accessToken.authenticationHolder = authHolder
             tokenRepository.saveAccessToken(accessToken)
         }

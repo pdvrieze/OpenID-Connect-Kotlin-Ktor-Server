@@ -16,7 +16,6 @@
 package org.mitre.uma.web
 
 import com.google.gson.Gson
-import org.mitre.oauth2.util.requireId
 import org.mitre.openid.connect.view.HttpCodeView
 import org.mitre.openid.connect.view.JsonEntityView
 import org.mitre.openid.connect.view.JsonErrorView
@@ -67,8 +66,8 @@ class PolicyAPI {
      * Get the indicated resource set
      */
     @RequestMapping(value = ["/{rsid}"], method = [RequestMethod.GET], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
-    fun getResourceSet(@PathVariable(value = "rsid") rsid: Long?, m: Model, auth: Authentication): String {
-        val rs = resourceSetService.getById(rsid.requireId())
+    fun getResourceSet(@PathVariable(value = "rsid") rsid: Long, m: Model, auth: Authentication): String {
+        val rs = resourceSetService.getById(rsid)
 
         if (rs == null) {
             m.addAttribute(HttpCodeView.CODE, HttpStatus.NOT_FOUND)
@@ -92,8 +91,8 @@ class PolicyAPI {
      * Delete the indicated resource set
      */
     @RequestMapping(value = ["/{rsid}"], method = [RequestMethod.DELETE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
-    fun deleteResourceSet(@PathVariable(value = "rsid") rsid: Long?, m: Model, auth: Authentication): String {
-        val rs = resourceSetService.getById(rsid.requireId())
+    fun deleteResourceSet(@PathVariable(value = "rsid") rsid: Long, m: Model, auth: Authentication): String {
+        val rs = resourceSetService.getById(rsid)
 
         if (rs == null) {
             m.addAttribute(HttpCodeView.CODE, HttpStatus.NOT_FOUND)
@@ -117,8 +116,8 @@ class PolicyAPI {
      * List all the policies for the given resource set
      */
     @RequestMapping(value = ["/{rsid}" + POLICYURL], method = [RequestMethod.GET], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
-    fun getPoliciesForResourceSet(@PathVariable(value = "rsid") rsid: Long?, m: Model, auth: Authentication): String {
-        val rs = resourceSetService.getById(rsid.requireId())
+    fun getPoliciesForResourceSet(@PathVariable(value = "rsid") rsid: Long, m: Model, auth: Authentication): String {
+        val rs = resourceSetService.getById(rsid)
 
         if (rs == null) {
             m.addAttribute(HttpCodeView.CODE, HttpStatus.NOT_FOUND)
@@ -143,12 +142,12 @@ class PolicyAPI {
      */
     @RequestMapping(value = ["/{rsid}" + POLICYURL], method = [RequestMethod.POST], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     fun createNewPolicyForResourceSet(
-        @PathVariable(value = "rsid") rsid: Long?,
+        @PathVariable(value = "rsid") rsid: Long,
         @RequestBody jsonString: String?,
         m: Model,
         auth: Authentication
     ): String {
-        val rs = resourceSetService.getById(rsid.requireId())
+        val rs = resourceSetService.getById(rsid)
 
         if (rs == null) {
             m.addAttribute(HttpCodeView.CODE, HttpStatus.NOT_FOUND)
@@ -202,12 +201,12 @@ class PolicyAPI {
      */
     @RequestMapping(value = ["/{rsid}" + POLICYURL + "/{pid}"], method = [RequestMethod.GET], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     fun getPolicy(
-        @PathVariable(value = "rsid") rsid: Long?,
+        @PathVariable(value = "rsid") rsid: Long,
         @PathVariable(value = "pid") pid: Long,
         m: Model,
         auth: Authentication
     ): String {
-        val rs = resourceSetService.getById(rsid.requireId())
+        val rs = resourceSetService.getById(rsid)
 
         if (rs == null) {
             m.addAttribute(HttpCodeView.CODE, HttpStatus.NOT_FOUND)
@@ -240,13 +239,13 @@ class PolicyAPI {
      */
     @RequestMapping(value = ["/{rsid}" + POLICYURL + "/{pid}"], method = [RequestMethod.PUT], consumes = [MimeTypeUtils.APPLICATION_JSON_VALUE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     fun setClaimsForResourceSet(
-        @PathVariable(value = "rsid") rsid: Long?,
+        @PathVariable(value = "rsid") rsid: Long,
         @PathVariable(value = "pid") pid: Long,
         @RequestBody jsonString: String?,
         m: Model,
         auth: Authentication
     ): String {
-        val rs = resourceSetService.getById(rsid.requireId())
+        val rs = resourceSetService.getById(rsid)
 
         if (rs == null) {
             m.addAttribute(HttpCodeView.CODE, HttpStatus.NOT_FOUND)
@@ -311,12 +310,12 @@ class PolicyAPI {
      */
     @RequestMapping(value = ["/{rsid}" + POLICYURL + "/{pid}"], method = [RequestMethod.DELETE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     fun deleteResourceSet(
-        @PathVariable("rsid") rsid: Long?,
+        @PathVariable("rsid") rsid: Long,
         @PathVariable(value = "pid") pid: Long,
         m: Model,
         auth: Authentication
     ): String {
-        val rs = resourceSetService.getById(rsid.requireId())
+        val rs = resourceSetService.getById(rsid)
 
         if (rs == null) {
             m.addAttribute(HttpCodeView.CODE, HttpStatus.NOT_FOUND)
