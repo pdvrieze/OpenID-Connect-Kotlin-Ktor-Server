@@ -745,6 +745,17 @@ class MITREidDataService_1_2 : MITREidDataService {
         logger.info("Done reading system scopes")
     }
 
+    override fun importClient(context: Context, client: MITREidDataService.ClientDetailsConfiguration) {
+        // New in 1.3
+        client.codeChallengeMethod = null
+        client.softwareId = null
+        client.softwareVersion = null
+        client.softwareStatement = null
+        client.createdAt = null
+
+        super.importClient(context, client)
+    }
+
     override fun Context.fixObjectReferences() {
         logger.info("Fixing object references...")
         for (oldRefreshTokenId in maps.refreshTokenToClientRefs.keys) {
