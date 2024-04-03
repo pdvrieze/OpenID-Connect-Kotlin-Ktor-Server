@@ -17,11 +17,16 @@
  */
 package org.mitre.oauth2.model
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.nimbusds.jwt.JWT
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import org.mitre.oauth2.model.convert.JWTStringConverter
 import org.mitre.openid.connect.model.ApprovedSite
+import org.mitre.openid.connect.model.convert.ISODate
 import org.mitre.uma.model.Permission
 import org.springframework.security.oauth2.common.OAuth2AccessToken
 import org.springframework.security.oauth2.common.OAuth2AccessTokenJackson2Deserializer
@@ -40,10 +45,8 @@ import javax.persistence.*
 @NamedQueries(
     NamedQuery(name = OAuth2AccessTokenEntity.QUERY_ALL, query = "select a from OAuth2AccessTokenEntity a"), NamedQuery(name = OAuth2AccessTokenEntity.QUERY_EXPIRED_BY_DATE, query = "select a from OAuth2AccessTokenEntity a where a.expiration <= :" + OAuth2AccessTokenEntity.PARAM_DATE), NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_REFRESH_TOKEN, query = "select a from OAuth2AccessTokenEntity a where a.refreshToken = :" + OAuth2AccessTokenEntity.PARAM_REFERSH_TOKEN), NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_CLIENT, query = "select a from OAuth2AccessTokenEntity a where a.client = :" + OAuth2AccessTokenEntity.PARAM_CLIENT), NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_TOKEN_VALUE, query = "select a from OAuth2AccessTokenEntity a where a.jwt = :" + OAuth2AccessTokenEntity.PARAM_TOKEN_VALUE), NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_APPROVED_SITE, query = "select a from OAuth2AccessTokenEntity a where a.approvedSite = :" + OAuth2AccessTokenEntity.PARAM_APPROVED_SITE), NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_RESOURCE_SET, query = "select a from OAuth2AccessTokenEntity a join a.permissions p where p.resourceSet.id = :" + OAuth2AccessTokenEntity.PARAM_RESOURCE_SET_ID), NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_NAME, query = "select r from OAuth2AccessTokenEntity r where r.authenticationHolder.userAuth.name = :" + OAuth2AccessTokenEntity.PARAM_NAME)
 )
-//@JsonSerialize(using = OAuth2AccessTokenJackson1Serializer::class)
-//@JsonDeserialize(using = OAuth2AccessTokenJackson1Deserializer::class)
-@com.fasterxml.jackson.databind.annotation.JsonSerialize(using = OAuth2AccessTokenJackson2Serializer::class)
-@com.fasterxml.jackson.databind.annotation.JsonDeserialize(using = OAuth2AccessTokenJackson2Deserializer::class)
+@JsonSerialize(using = OAuth2AccessTokenJackson2Serializer::class)
+@JsonDeserialize(using = OAuth2AccessTokenJackson2Deserializer::class)
 class OAuth2AccessTokenEntity : OAuth2AccessToken {
 	@get:Column(name = "id")
     @get:GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -177,6 +180,29 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
         if (idToken != null) {
             additionalInformation[ID_TOKEN_FIELD_NAME] = Json.parseToJsonElement(idToken.serialize())
         }
+    }
+
+    @Serializable
+    class SerialDelegate(
+        @SerialName("id") val currentId: Long,
+        @SerialName("expiration") val expiration: ISODate? = null,
+        @SerialName("value") val value: @Serializable(JWTStringConverter::class) JWT? = null,
+        @SerialName("clientId") val clientId: String,
+        @SerialName("authenticationHolderId") val authenticationHolderId: Long? = null,
+        @SerialName("refreshTokenId") val refreshTokenId: Long? = null,
+        @SerialName("scope") val scope: Set<String>? = null,
+        @SerialName("type") val tokenType: String? = null
+    ) {
+        constructor(s: OAuth2AccessTokenEntity): this(
+            currentId = s.id!!,
+            expiration = s.expiration,
+            value = s.jwt,
+            clientId = s.client!!.clientId!!,
+            authenticationHolderId = s.authenticationHolder.id,
+            refreshTokenId = s.refreshToken?.id,
+            scope = s.scope,
+            tokenType = s.tokenType
+        )
     }
 
     companion object {

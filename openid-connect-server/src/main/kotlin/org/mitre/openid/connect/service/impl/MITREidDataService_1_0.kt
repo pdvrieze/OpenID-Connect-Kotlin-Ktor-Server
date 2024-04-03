@@ -920,7 +920,7 @@ class MITREidDataService_1_0 : MITREidDataServiceSupport(), MITREidDataService {
         @SerialName(MITREidDataService.AUTHENTICATIONHOLDERS)
         val authenticationHolderIds: List<AuthenticationHolderEntity>,
         @SerialName(MITREidDataService.ACCESSTOKENS)
-        val accessTokens: List<JsonObject>,
+        val accessTokens: List<OAuth2AccessTokenEntity.SerialDelegate>,
         @SerialName(MITREidDataService.REFRESHTOKENS)
         val refreshTokens: List<JsonObject>,
         @SerialName(MITREidDataService.SYSTEMSCOPES)
