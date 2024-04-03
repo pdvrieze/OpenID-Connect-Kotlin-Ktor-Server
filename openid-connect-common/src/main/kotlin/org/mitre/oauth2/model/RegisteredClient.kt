@@ -194,7 +194,7 @@ class RegisteredClient(
     val additionalInformation: Map<String, Any>
         get() = client.additionalInformation
     
-    var applicationType: AppType?
+    var applicationType: AppType
         get() = client.applicationType
         set(applicationType) {
             client.applicationType = applicationType
@@ -488,7 +488,7 @@ class RegisteredClient(
                 policyUri = policyUri,
                 jwksUri = jwksUri,
                 jwks = jwks,
-                applicationType = applicationType,
+                applicationType = applicationType ?: AppType.WEB,
                 sectorIdentifierUri = sectorIdentifierUri,
                 subjectType = subjectType,
                 requestObjectSigningAlg = requestObjectSigningAlg,

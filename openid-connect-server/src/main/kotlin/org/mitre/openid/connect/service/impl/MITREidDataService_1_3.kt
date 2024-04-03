@@ -28,7 +28,7 @@ import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.ClientDetailsEntity.*
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
-import org.mitre.oauth2.model.PKCEAlgorithm.Companion.parse
+import org.mitre.oauth2.model.PKCEAlgorithm
 import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
@@ -987,7 +987,7 @@ class MITREidDataService_1_3 : MITREidDataServiceSupport(), MITREidDataService {
                             name == POLICY_URI -> client.policyUri = reader.nextString()
 
                             name == APPLICATION_TYPE ->
-                                client.applicationType = AppType.getByValue(reader.nextString())
+                                client.applicationType = AppType.valueOf(reader.nextString())
 
                             name == SECTOR_IDENTIFIER_URI -> client.sectorIdentifierUri = reader.nextString()
 
@@ -1045,7 +1045,7 @@ class MITREidDataService_1_3 : MITREidDataServiceSupport(), MITREidDataService {
                                 client.isDynamicallyRegistered = reader.nextBoolean()
 
                             name == CODE_CHALLENGE_METHOD ->
-                                client.codeChallengeMethod = parse(reader.nextString())
+                                client.codeChallengeMethod = PKCEAlgorithm.parse(reader.nextString())
 
                             name == SOFTWARE_ID -> client.softwareId = reader.nextString()
                             name == SOFTWARE_VERSION -> client.softwareVersion = reader.nextString()

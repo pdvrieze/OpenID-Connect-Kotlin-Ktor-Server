@@ -636,7 +636,7 @@ class DynamicClientRegistrationEndpoint {
 
                             SECTOR_IDENTIFIER_URI -> newClient.sectorIdentifierUri = claimSet.getStringClaim(claim)
                             APPLICATION_TYPE -> newClient.applicationType =
-                                AppType.getByValue(claimSet.getStringClaim(claim))
+                                AppType.valueOf(claimSet.getStringClaim(claim))
 
                             JWKS_URI -> newClient.jwksUri = claimSet.getStringClaim(claim)
                             JWKS -> newClient.jwks = JWKSet.parse(JSONObjectUtils.toJSONString(claimSet.getJSONObjectClaim(claim)))

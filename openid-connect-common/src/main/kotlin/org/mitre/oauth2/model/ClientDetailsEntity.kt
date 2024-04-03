@@ -174,7 +174,7 @@ open class ClientDetailsEntity(
     @get:Column(name = "application_type")
     @get:Enumerated(EnumType.STRING)
     @SerialName(APPLICATION_TYPE)
-    open var applicationType: AppType? = null, // application_type
+    open var applicationType: AppType = AppType.WEB, // application_type
 
     @get:Column(name = "sector_identifier_uri")
     @get:Basic

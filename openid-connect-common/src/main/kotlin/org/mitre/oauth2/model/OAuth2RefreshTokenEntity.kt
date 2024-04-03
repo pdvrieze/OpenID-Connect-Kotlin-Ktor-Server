@@ -18,10 +18,13 @@
 package org.mitre.oauth2.model
 
 import com.nimbusds.jwt.JWT
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.mitre.oauth2.model.convert.JWTStringConverter
 import org.mitre.openid.connect.model.convert.ISODate
 import org.springframework.security.oauth2.common.OAuth2RefreshToken
 import javax.persistence.*
+import javax.persistence.Transient as JPATransient
 
 /**
  * @author jricher
@@ -64,7 +67,7 @@ class OAuth2RefreshTokenEntity : OAuth2RefreshToken {
     /**
      * Get the JWT-encoded value of this token
      */
-    @Transient
+    @JPATransient
     override fun getValue(): String {
         return jwt!!.serialize()
     }
@@ -73,9 +76,29 @@ class OAuth2RefreshTokenEntity : OAuth2RefreshToken {
      * Has this token expired?
      * true if it has a timeout set and the timeout has passed
      */
-    @get:Transient
+    @get:JPATransient
     val isExpired: Boolean
         get() = expiration?.let { System.currentTimeMillis() > it.time } ?: false
+
+    @JPATransient
+    fun serialDelegate(): SerialDelegate = SerialDelegate(this)
+
+    @Serializable
+    class SerialDelegate(
+        @SerialName("id") val currentId: Long,
+        @SerialName("expiration") val expiration: ISODate? = null,
+        @SerialName("value") val value: @Serializable(JWTStringConverter::class) JWT? = null,
+        @SerialName("clientId") val clientId: String,
+        @SerialName("authenticationHolderId") val authenticationHolderId: Long,
+    ) {
+        constructor(s: OAuth2RefreshTokenEntity): this(
+            currentId = s.id!!,
+            expiration = s.expiration,
+            value = s.jwt,
+            clientId = s.client!!.clientId!!,
+            authenticationHolderId = s.authenticationHolder.id!!
+        )
+    }
 
     companion object {
         const val QUERY_BY_TOKEN_VALUE: String = "OAuth2RefreshTokenEntity.getByTokenValue"

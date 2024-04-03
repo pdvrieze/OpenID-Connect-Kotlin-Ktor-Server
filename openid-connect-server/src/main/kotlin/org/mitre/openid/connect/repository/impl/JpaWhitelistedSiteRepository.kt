@@ -57,7 +57,7 @@ class JpaWhitelistedSiteRepository : WhitelistedSiteRepository {
 
     @Transactional(value = "defaultTransactionManager")
     override fun save(whiteListedSite: WhitelistedSite): WhitelistedSite {
-        return saveOrUpdate(whiteListedSite.id!!, manager, whiteListedSite)
+        return saveOrUpdate(whiteListedSite.id, manager, whiteListedSite)
     }
 
     @Transactional(value = "defaultTransactionManager")
@@ -65,7 +65,7 @@ class JpaWhitelistedSiteRepository : WhitelistedSiteRepository {
         // sanity check
         whitelistedSite.id = oldWhitelistedSite.id
 
-        return saveOrUpdate(oldWhitelistedSite.id!!, manager, whitelistedSite)
+        return saveOrUpdate(oldWhitelistedSite.id, manager, whitelistedSite)
     }
 
     @Transactional(value = "defaultTransactionManager")

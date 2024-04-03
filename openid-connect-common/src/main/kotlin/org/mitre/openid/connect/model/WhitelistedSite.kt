@@ -67,6 +67,12 @@ class WhitelistedSite(
     @get:ElementCollection(fetch = FetchType.EAGER)
     var allowedScopes: Set<String>? = null,
 ) {
+
+    @Serializable
+    class SerialDelegate(
+
+    )
+
     companion object {
         const val QUERY_BY_CREATOR: String = "WhitelistedSite.getByCreatoruserId"
         const val QUERY_BY_CLIENT_ID: String = "WhitelistedSite.getByClientId"

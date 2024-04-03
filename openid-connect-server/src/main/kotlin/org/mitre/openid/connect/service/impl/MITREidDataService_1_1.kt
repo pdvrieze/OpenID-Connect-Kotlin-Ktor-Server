@@ -733,7 +733,7 @@ class MITREidDataService_1_1 : MITREidDataServiceSupport(), MITREidDataService {
                                 client.policyUri = reader.nextString()
 
                             name == "applicationType" ->
-                                client.applicationType = AppType.getByValue(reader.nextString())
+                                client.applicationType = AppType.valueOf(reader.nextString())
 
                             name == "sectorIdentifierUri" ->
                                 client.sectorIdentifierUri = reader.nextString()

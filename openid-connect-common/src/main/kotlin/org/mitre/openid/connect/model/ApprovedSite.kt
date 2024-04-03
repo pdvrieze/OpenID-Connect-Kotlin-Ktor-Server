@@ -17,6 +17,7 @@
  */
 package org.mitre.openid.connect.model
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.mitre.openid.connect.model.convert.ISODate
 import java.util.*
@@ -25,7 +26,6 @@ import javax.persistence.*
 @Entity
 @Table(name = "approved_site")
 @NamedQueries(NamedQuery(name = ApprovedSite.QUERY_ALL, query = "select a from ApprovedSite a"), NamedQuery(name = ApprovedSite.QUERY_BY_USER_ID, query = "select a from ApprovedSite a where a.userId = :" + ApprovedSite.PARAM_USER_ID), NamedQuery(name = ApprovedSite.QUERY_BY_CLIENT_ID, query = "select a from ApprovedSite a where a.clientId = :" + ApprovedSite.PARAM_CLIENT_ID), NamedQuery(name = ApprovedSite.QUERY_BY_CLIENT_ID_AND_USER_ID, query = "select a from ApprovedSite a where a.clientId = :" + ApprovedSite.PARAM_CLIENT_ID + " and a.userId = :" + ApprovedSite.PARAM_USER_ID))
-@Serializable
 class ApprovedSite {
 
     @get:Column(name = "id")
@@ -88,6 +88,23 @@ class ApprovedSite {
                 else -> Date().after(timeoutDate)
             }
         }
+
+    @Serializable
+    class SerialDelegate(
+        @SerialName("id") val currentId: Long,
+        @SerialName("accessDate") val accessDate: ISODate? = null,
+        @SerialName("clientId") val clientId: String? = null,
+        @SerialName("creationDate") val creationDate: ISODate? = null,
+        @SerialName("timeoutDate") val timeoutDate: ISODate? = null,
+        @SerialName("userId") val userId: String? = null,
+        @SerialName("allowedScopes") val allowedScopes: Set<String>? = null,
+        @SerialName("whitelistedSiteId") val whitelistedSiteId: Long? = null,
+        @SerialName("approvedAccessTokens") val approvedAccessTokens: Set<Long>? = null,
+    ) {
+        constructor(s: ApprovedSite): this(
+            s.id!!,
+        )
+    }
 
     companion object {
         const val QUERY_BY_CLIENT_ID_AND_USER_ID: String = "ApprovedSite.getByClientIdAndUserId"

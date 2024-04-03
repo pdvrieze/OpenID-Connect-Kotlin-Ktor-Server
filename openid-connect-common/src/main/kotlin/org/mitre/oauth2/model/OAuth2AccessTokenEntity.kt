@@ -34,6 +34,7 @@ import org.springframework.security.oauth2.common.OAuth2AccessTokenJackson2Seria
 import org.springframework.security.oauth2.common.OAuth2RefreshToken
 import java.util.*
 import javax.persistence.*
+import javax.persistence.Transient as JPATransient
 
 /**
  * Create a new, blank access token
@@ -92,7 +93,7 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
      * Get all additional information to be sent to the serializer as part of the token response.
      * This map is not persisted to the database.
      */
-    @Transient
+    @JPATransient
     override fun getAdditionalInformation(): MutableMap<String, JsonElement> {
         return additionalInformation
     }
@@ -100,7 +101,7 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
     /**
      * Get the string-encoded value of this access token.
      */
-    @Transient
+    @JPATransient
     override fun getValue(): String {
         return jwt!!.serialize()
     }
@@ -152,12 +153,12 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
         this.scope = scope
     }
 
-    @Transient
+    @JPATransient
     override fun isExpired(): Boolean {
         return getExpiration()?.let { System.currentTimeMillis() > it.time } ?: false
     }
 
-    @Transient
+    @JPATransient
     override fun getExpiresIn(): Int {
         return when (val e = getExpiration()) {
             null -> -1 // no expiration time
@@ -175,30 +176,33 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
     /**
      * Add the ID Token to the additionalInformation map for a token response.
      */
-    @Transient
+    @JPATransient
     fun setIdToken(idToken: JWT?) {
         if (idToken != null) {
             additionalInformation[ID_TOKEN_FIELD_NAME] = Json.parseToJsonElement(idToken.serialize())
         }
     }
 
+    @JPATransient
+    fun serialDelegate(): SerialDelegate = SerialDelegate(this)
+
     @Serializable
-    class SerialDelegate(
+    class SerialDelegate internal constructor(
         @SerialName("id") val currentId: Long,
         @SerialName("expiration") val expiration: ISODate? = null,
         @SerialName("value") val value: @Serializable(JWTStringConverter::class) JWT? = null,
         @SerialName("clientId") val clientId: String,
-        @SerialName("authenticationHolderId") val authenticationHolderId: Long? = null,
+        @SerialName("authenticationHolderId") val authenticationHolderId: Long,
         @SerialName("refreshTokenId") val refreshTokenId: Long? = null,
         @SerialName("scope") val scope: Set<String>? = null,
-        @SerialName("type") val tokenType: String? = null
+        @SerialName("type") val tokenType: String = OAuth2AccessToken.BEARER_TYPE
     ) {
         constructor(s: OAuth2AccessTokenEntity): this(
             currentId = s.id!!,
             expiration = s.expiration,
             value = s.jwt,
             clientId = s.client!!.clientId!!,
-            authenticationHolderId = s.authenticationHolder.id,
+            authenticationHolderId = s.authenticationHolder.id!!,
             refreshTokenId = s.refreshToken?.id,
             scope = s.scope,
             tokenType = s.tokenType

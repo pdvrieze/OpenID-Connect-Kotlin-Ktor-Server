@@ -17,7 +17,11 @@
  */
 package org.mitre.oauth2.model
 
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import javax.persistence.Basic
 import javax.persistence.Column
 import javax.persistence.Entity
@@ -34,7 +38,7 @@ import javax.persistence.Table
 @Entity
 @Table(name = "system_scope")
 @NamedQueries(NamedQuery(name = SystemScope.QUERY_ALL, query = "select s from SystemScope s ORDER BY s.id"), NamedQuery(name = SystemScope.QUERY_BY_VALUE, query = "select s from SystemScope s WHERE s.value = :" + SystemScope.PARAM_VALUE))
-@Serializable
+@Serializable(SystemScope.Companion::class)
 class SystemScope constructor(
     @get:Column(name = "id")
     @get:GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -150,10 +154,52 @@ class SystemScope constructor(
                 "restricted=$isRestricted]")
     }
 
-    companion object {
+    @Serializable
+    class SerialDelegate(
+        val id: Long? = null,
+        val value: String? = null, //value
+        val description: String? = null, //description
+        val allowDynReg: Boolean = true, //allowDynReg
+        val defaultScope: Boolean = false, //defaultScope
+        val icon: String? = null, //icon
+    ) {
+        constructor(s: SystemScope) : this (
+            id = s.id,
+            value = s.value,
+            description = s.description,
+            allowDynReg = ! s.isRestricted,
+            defaultScope = s.isDefaultScope,
+            icon = s.icon,
+        )
+
+        fun toSystemScope(): SystemScope = SystemScope(
+            id = id,
+            value = value,
+            description = description,
+            icon = icon,
+            isDefaultScope = defaultScope,
+            isRestricted = !allowDynReg
+        )
+    }
+
+
+    companion object : KSerializer<SystemScope> {
+        val delegate = SerialDelegate.serializer()
+        @Suppress("OPT_IN_USAGE")
+        override val descriptor: SerialDescriptor =
+            SerialDescriptor("org.mitre.oauth2.model.SystemScope", delegate.descriptor)
+
         const val QUERY_BY_VALUE: String = "SystemScope.getByValue"
         const val QUERY_ALL: String = "SystemScope.findAll"
 
         const val PARAM_VALUE: String = "value"
+
+        override fun serialize(encoder: Encoder, value: SystemScope) {
+            delegate.serialize(encoder, SerialDelegate(value))
+        }
+
+        override fun deserialize(decoder: Decoder): SystemScope {
+            return delegate.deserialize(decoder).toSystemScope()
+        }
     }
 }
