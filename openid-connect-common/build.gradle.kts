@@ -39,6 +39,12 @@ dependencies {
     testRuntimeOnly(libs.junit.jupiter.engine)
 }
 
+kotlin {
+    compilerOptions {
+        freeCompilerArgs = listOf("-Xjvm-default=all")
+    }
+}
+
 tasks.named<Test>("test") {
     useJUnitPlatform()
 }

@@ -39,6 +39,12 @@ dependencies {
     testRuntimeOnly(libs.eclipse.persistence.core)
 }
 
+kotlin {
+    compilerOptions {
+        freeCompilerArgs = listOf("-Xjvm-default=all")
+    }
+}
+
 tasks.named<Test>("test") {
     useJUnitPlatform()
 }
