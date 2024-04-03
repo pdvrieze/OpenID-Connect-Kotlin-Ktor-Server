@@ -43,6 +43,7 @@ import org.mitre.openid.connect.repository.BlacklistedSiteRepository
 import org.mitre.openid.connect.repository.WhitelistedSiteRepository
 import org.mitre.openid.connect.service.MITREidDataService
 import org.mitre.openid.connect.service.MITREidDataService.Companion.utcToDate
+import org.mitre.openid.connect.service.MITREidDataService.Context
 import org.mitre.openid.connect.service.MITREidDataServiceExtension
 import org.mitre.openid.connect.service.MITREidDataServiceMaps
 import org.mitre.util.JsonUtils.readMap
@@ -166,7 +167,8 @@ class MITREidDataService_1_1 : MITREidDataService {
                 }
             }
         }
-        fixObjectReferences()
+        val context = Context(clientRepository, approvedSiteRepository, wlSiteRepository, blSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository, extensions, maps)
+        context.fixObjectReferences()
         for (extension in extensions) {
             if (extension.supportsVersion(THIS_VERSION)) {
                 extension.fixExtensionObjectReferences(maps)
@@ -853,7 +855,7 @@ class MITREidDataService_1_1 : MITREidDataService {
         logger.info("Done reading system scopes")
     }
 
-    private fun fixObjectReferences() {
+    override fun Context.fixObjectReferences() {
         for ((oldRefreshTokenId, clientRef) in maps.refreshTokenToClientRefs) {
             val client = clientRepository.getClientByClientId(clientRef)
             val newRefreshTokenId = maps.refreshTokenOldToNewIdMap[oldRefreshTokenId]!!
