@@ -70,10 +70,10 @@ class TokenApiView : AbstractView() {
             o.addProperty("value", src.value)
             o.addProperty("id", src.id)
 
-            o.add("scopes", context.serialize(src.authenticationHolder.authentication.oAuth2Request.scope))
+            o.add("scopes", context.serialize(src.authenticationHolder!!.authentication.oAuth2Request.scope))
 
             o.addProperty("clientId", src.client!!.clientId)
-            o.addProperty("userId", src.authenticationHolder.authentication.name)
+            o.addProperty("userId", src.authenticationHolder!!.authentication.name)
 
             o.add("expiration", context.serialize(src.expiration))
             o

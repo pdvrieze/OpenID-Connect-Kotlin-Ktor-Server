@@ -89,7 +89,7 @@ class DefaultIntrospectionResultAssembler : IntrospectionResultAssembler {
         authScopes: Set<String>
     ): Map<String, Any> {
         val result: MutableMap<String, Any> = mutableMapOf()
-        val authentication = refreshToken.authenticationHolder.authentication
+        val authentication = refreshToken.authenticationHolder!!.authentication
 
         result[IntrospectionResultAssembler.ACTIVE] = true
 

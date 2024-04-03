@@ -965,8 +965,8 @@ class TestMITREidDataService_1_2 {
         val savedRefreshTokens: List<OAuth2RefreshTokenEntity> = fakeRefreshTokenTable.values.sortedWith(refreshTokenIdComparator())
             //capturedRefreshTokens.getAllValues();
 
-        Assertions.assertEquals(356L, savedRefreshTokens[0].authenticationHolder.id)
-        Assertions.assertEquals(357L, savedRefreshTokens[1].authenticationHolder.id)
+        Assertions.assertEquals(356L, savedRefreshTokens[0].authenticationHolder!!.id)
+        Assertions.assertEquals(357L, savedRefreshTokens[1].authenticationHolder!!.id)
     }
 
     private fun jsonArrayToStringSet(a: JsonArray): Set<String> {

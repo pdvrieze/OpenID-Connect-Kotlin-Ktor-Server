@@ -19,8 +19,8 @@ package org.mitre.oauth2.model
 
 import com.nimbusds.jwt.JWT
 import org.mitre.oauth2.model.convert.JWTStringConverter
+import org.mitre.openid.connect.model.convert.ISODate
 import org.springframework.security.oauth2.common.OAuth2RefreshToken
-import java.util.*
 import javax.persistence.*
 
 /**
@@ -59,7 +59,7 @@ class OAuth2RefreshTokenEntity : OAuth2RefreshToken {
     @get:Column(name = "expiration")
     @get:Temporal(TemporalType.TIMESTAMP)
     @get:Basic
-    var expiration: Date? = null
+    var expiration: ISODate? = null
 
     /**
      * Get the JWT-encoded value of this token

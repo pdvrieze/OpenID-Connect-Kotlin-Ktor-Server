@@ -258,7 +258,7 @@ class TestMITREidDataService_1_3 {
                 assertEquals(compare.client!!.clientId, token["clientId"].asString)
                 assertEquals(formatter.print(compare.expiration!!, Locale.ENGLISH), token["expiration"].asString)
                 assertEquals(compare.value, token["value"].asString)
-                assertEquals(compare.authenticationHolder.id, token["authenticationHolderId"].asLong)
+                assertEquals(compare.authenticationHolder!!.id, token["authenticationHolderId"].asLong)
                 checked.add(compare)
             }
         }
@@ -1850,8 +1850,8 @@ class TestMITREidDataService_1_3 {
             fakeRefreshTokenTable.values.sortedWith(refreshTokenIdComparator())
         //capturedRefreshTokens.getAllValues();
 
-        assertEquals(356L, savedRefreshTokens[0].authenticationHolder.id)
-        assertEquals(357L, savedRefreshTokens[1].authenticationHolder.id)
+        assertEquals(356L, savedRefreshTokens[0].authenticationHolder!!.id)
+        assertEquals(357L, savedRefreshTokens[1].authenticationHolder!!.id)
     }
 
     private fun jsonArrayToStringSet(a: JsonArray): Set<String> {

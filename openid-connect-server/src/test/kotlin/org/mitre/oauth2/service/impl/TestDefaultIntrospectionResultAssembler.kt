@@ -342,7 +342,7 @@ class TestDefaultIntrospectionResultAssembler {
         mock<OAuth2AccessTokenEntity>(defaultAnswer = Mockito.RETURNS_DEEP_STUBS)
         return mock<OAuth2RefreshTokenEntity>(defaultAnswer = Mockito.RETURNS_DEEP_STUBS).apply {
             given(expiration).willReturn(exp)
-            given(authenticationHolder.authentication).willReturn(authentication)
+            given(authenticationHolder!!.authentication).willReturn(authentication)
         }
     }
 

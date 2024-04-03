@@ -50,7 +50,7 @@ class TestJpaOAuth2TokenRepository {
     fun testGetRefreshTokensByUserName() {
         val tokens = repository.getRefreshTokensByUserName("user2")
         assertEquals(3, tokens.size.toLong())
-        assertEquals("user2", tokens.iterator().next().authenticationHolder.userAuth!!.name)
+        assertEquals("user2", tokens.iterator().next().authenticationHolder!!.userAuth!!.name)
     }
 
     @Test

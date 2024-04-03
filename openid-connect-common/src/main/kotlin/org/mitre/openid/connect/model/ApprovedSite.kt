@@ -17,12 +17,15 @@
  */
 package org.mitre.openid.connect.model
 
+import kotlinx.serialization.Serializable
+import org.mitre.openid.connect.model.convert.ISODate
 import java.util.*
 import javax.persistence.*
 
 @Entity
 @Table(name = "approved_site")
 @NamedQueries(NamedQuery(name = ApprovedSite.QUERY_ALL, query = "select a from ApprovedSite a"), NamedQuery(name = ApprovedSite.QUERY_BY_USER_ID, query = "select a from ApprovedSite a where a.userId = :" + ApprovedSite.PARAM_USER_ID), NamedQuery(name = ApprovedSite.QUERY_BY_CLIENT_ID, query = "select a from ApprovedSite a where a.clientId = :" + ApprovedSite.PARAM_CLIENT_ID), NamedQuery(name = ApprovedSite.QUERY_BY_CLIENT_ID_AND_USER_ID, query = "select a from ApprovedSite a where a.clientId = :" + ApprovedSite.PARAM_CLIENT_ID + " and a.userId = :" + ApprovedSite.PARAM_USER_ID))
+@Serializable
 class ApprovedSite {
 
     @get:Column(name = "id")
@@ -48,7 +51,7 @@ class ApprovedSite {
     @get:Column(name = "creation_date")
     @get:Temporal(TemporalType.TIMESTAMP)
     @get:Basic
-    var creationDate: Date? = null
+    var creationDate: ISODate? = null
 
     /**
      * when was this last accessed?
@@ -56,7 +59,7 @@ class ApprovedSite {
     @get:Column(name = "access_date")
     @get:Temporal(TemporalType.TIMESTAMP)
     @get:Basic
-    var accessDate: Date? = null
+    var accessDate: ISODate? = null
 
     /**
      * if this is a time-limited access, when does it run out?
@@ -64,7 +67,7 @@ class ApprovedSite {
     @get:Column(name = "timeout_date")
     @get:Temporal(TemporalType.TIMESTAMP)
     @get:Basic
-    var timeoutDate: Date? = null
+    var timeoutDate: ISODate? = null
 
     /**
      * What scopes have been allowed this should include all information for what data to access

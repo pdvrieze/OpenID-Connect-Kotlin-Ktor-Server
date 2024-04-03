@@ -26,7 +26,7 @@ import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jwt.JWTParser
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.ClientDetailsEntity.*
@@ -110,6 +110,7 @@ class MITREidDataService_1_0 : MITREidDataServiceSupport(), MITREidDataService {
     }
 
     override fun importData(configJson: String) {
+        val conf = json.decodeFromString<ConfigurationData_1_0>(configJson)
         super.importData(configJson)
     }
 
@@ -910,22 +911,21 @@ class MITREidDataService_1_0 : MITREidDataServiceSupport(), MITREidDataService {
     @Serializable
     class ConfigurationData_1_0(
         @SerialName(MITREidDataService.CLIENTS)
-        val clients: List<JsonElement>,
+        val clients: List<ClientDetailsEntity>,
         @SerialName(MITREidDataService.GRANTS)
-        val grants: List<JsonElement>,
+        val grants: List<ApprovedSite>,
         @SerialName(MITREidDataService.WHITELISTEDSITES)
         val whitelistedSites: List<WhitelistedSite>,
         @SerialName(MITREidDataService.BLACKLISTEDSITES)
         val blacklistedSites: List<BlacklistedSite>,
         @SerialName(MITREidDataService.AUTHENTICATIONHOLDERS)
-        val authenticationHolders: List<AuthenticationHolderEntity>,
+        val authenticationHolderIds: List<AuthenticationHolderEntity>,
         @SerialName(MITREidDataService.ACCESSTOKENS)
-        val accessTokens: List<JsonElement>,
+        val accessTokens: List<JsonObject>,
         @SerialName(MITREidDataService.REFRESHTOKENS)
-        val refreshTokens: List<JsonElement>,
+        val refreshTokens: List<JsonObject>,
         @SerialName(MITREidDataService.SYSTEMSCOPES)
         val systemScopes: List<SystemScope>,
-
     ) : MITREidDataService.ConfigurationData {
 
     }

@@ -991,8 +991,8 @@ class TestMITREidDataService_1_0 {
             fakeRefreshTokenTable.values.sortedWith(refreshTokenIdComparator())
         //capturedRefreshTokens.getAllValues();
 
-        assertEquals(356L, savedRefreshTokens[0].authenticationHolder.id)
-        assertEquals(357L, savedRefreshTokens[1].authenticationHolder.id)
+        assertEquals(356L, savedRefreshTokens[0].authenticationHolder!!.id)
+        assertEquals(357L, savedRefreshTokens[1].authenticationHolder!!.id)
     }
 
     @Test

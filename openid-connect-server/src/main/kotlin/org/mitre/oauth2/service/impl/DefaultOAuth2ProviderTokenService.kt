@@ -273,7 +273,7 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
 
         val client = refreshToken.client
 
-        val authHolder = refreshToken.authenticationHolder
+        val authHolder = refreshToken.authenticationHolder!!
 
         // make sure that the client requesting the token is the one who owns the refresh token
         val requestingClient = clientDetailsService.loadClientByClientId(authRequest.clientId)
@@ -301,7 +301,7 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
 
         // get the stored scopes from the authentication holder's authorization request; these are the scopes associated with the refresh token
         val refreshScopesRequested: Set<String> =
-            HashSet(refreshToken.authenticationHolder.authentication.oAuth2Request.scope)
+            HashSet(refreshToken.authenticationHolder!!.authentication.oAuth2Request.scope)
         val refreshScopes: Set<SystemScope>? = scopeService.fromStrings(refreshScopesRequested)?.let {
             // remove any of the special system scopes
             scopeService.removeReservedScopes(it)
@@ -472,7 +472,7 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
         val additionalInformation = accessToken.additionalInformation
         if (!additionalInformation.isNullOrEmpty()) {
             // known to be not null as it is a copy of the saved token
-            newToken.additionalInformation!!.putAll(additionalInformation)
+            newToken.additionalInformation.putAll(additionalInformation)
         }
 
         return newToken

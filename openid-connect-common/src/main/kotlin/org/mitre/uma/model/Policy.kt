@@ -15,6 +15,7 @@
  */
 package org.mitre.uma.model
 
+import kotlinx.serialization.Serializable
 import javax.persistence.Basic
 import javax.persistence.CascadeType
 import javax.persistence.CollectionTable
@@ -37,6 +38,7 @@ import javax.persistence.Table
  */
 @Entity
 @Table(name = "policy")
+@Serializable
 class Policy {
     @get:Column(name = "id")
     @get:GeneratedValue(strategy = GenerationType.IDENTITY)

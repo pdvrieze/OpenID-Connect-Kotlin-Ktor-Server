@@ -15,6 +15,7 @@
  */
 package org.mitre.uma.model
 
+import kotlinx.serialization.Serializable
 import javax.persistence.CollectionTable
 import javax.persistence.Column
 import javax.persistence.ElementCollection
@@ -32,6 +33,7 @@ import javax.persistence.Table
  */
 @Entity
 @Table(name = "permission")
+@Serializable
 class Permission {
     @get:Column(name = "id")
     @get:GeneratedValue(strategy = GenerationType.IDENTITY)

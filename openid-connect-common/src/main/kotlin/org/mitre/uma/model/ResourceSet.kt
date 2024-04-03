@@ -15,11 +15,13 @@
  */
 package org.mitre.uma.model
 
+import kotlinx.serialization.Serializable
 import javax.persistence.*
 
 @Entity
 @Table(name = "resource_set")
 @NamedQueries(NamedQuery(name = ResourceSet.QUERY_BY_OWNER, query = "select r from ResourceSet r where r.owner = :" + ResourceSet.PARAM_OWNER), NamedQuery(name = ResourceSet.QUERY_BY_OWNER_AND_CLIENT, query = "select r from ResourceSet r where r.owner = :" + ResourceSet.PARAM_OWNER + " and r.clientId = :" + ResourceSet.PARAM_CLIENTID), NamedQuery(name = ResourceSet.QUERY_BY_CLIENT, query = "select r from ResourceSet r where r.clientId = :" + ResourceSet.PARAM_CLIENTID), NamedQuery(name = ResourceSet.QUERY_ALL, query = "select r from ResourceSet r"))
+@Serializable
 class ResourceSet {
     @get:Column(name = "id")
     @get:GeneratedValue(strategy = GenerationType.IDENTITY)

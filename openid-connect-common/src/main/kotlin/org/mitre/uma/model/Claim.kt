@@ -15,6 +15,7 @@
  */
 package org.mitre.uma.model
 
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import org.mitre.oauth2.model.convert.JsonElementStringConverter
 import javax.persistence.Basic
@@ -35,6 +36,7 @@ import javax.persistence.Table
  */
 @Entity
 @Table(name = "claim")
+@Serializable
 class Claim {
     @get:Column(name = "id")
     @get:GeneratedValue(strategy = GenerationType.IDENTITY)

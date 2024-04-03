@@ -18,14 +18,12 @@
 package org.mitre.oauth2.model
 
 import com.nimbusds.jwt.JWT
-import org.codehaus.jackson.map.annotate.JsonDeserialize
-import org.codehaus.jackson.map.annotate.JsonSerialize
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 import org.mitre.oauth2.model.convert.JWTStringConverter
 import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.uma.model.Permission
 import org.springframework.security.oauth2.common.OAuth2AccessToken
-import org.springframework.security.oauth2.common.OAuth2AccessTokenJackson1Deserializer
-import org.springframework.security.oauth2.common.OAuth2AccessTokenJackson1Serializer
 import org.springframework.security.oauth2.common.OAuth2AccessTokenJackson2Deserializer
 import org.springframework.security.oauth2.common.OAuth2AccessTokenJackson2Serializer
 import org.springframework.security.oauth2.common.OAuth2RefreshToken
@@ -42,8 +40,8 @@ import javax.persistence.*
 @NamedQueries(
     NamedQuery(name = OAuth2AccessTokenEntity.QUERY_ALL, query = "select a from OAuth2AccessTokenEntity a"), NamedQuery(name = OAuth2AccessTokenEntity.QUERY_EXPIRED_BY_DATE, query = "select a from OAuth2AccessTokenEntity a where a.expiration <= :" + OAuth2AccessTokenEntity.PARAM_DATE), NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_REFRESH_TOKEN, query = "select a from OAuth2AccessTokenEntity a where a.refreshToken = :" + OAuth2AccessTokenEntity.PARAM_REFERSH_TOKEN), NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_CLIENT, query = "select a from OAuth2AccessTokenEntity a where a.client = :" + OAuth2AccessTokenEntity.PARAM_CLIENT), NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_TOKEN_VALUE, query = "select a from OAuth2AccessTokenEntity a where a.jwt = :" + OAuth2AccessTokenEntity.PARAM_TOKEN_VALUE), NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_APPROVED_SITE, query = "select a from OAuth2AccessTokenEntity a where a.approvedSite = :" + OAuth2AccessTokenEntity.PARAM_APPROVED_SITE), NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_RESOURCE_SET, query = "select a from OAuth2AccessTokenEntity a join a.permissions p where p.resourceSet.id = :" + OAuth2AccessTokenEntity.PARAM_RESOURCE_SET_ID), NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_NAME, query = "select r from OAuth2AccessTokenEntity r where r.authenticationHolder.userAuth.name = :" + OAuth2AccessTokenEntity.PARAM_NAME)
 )
-@JsonSerialize(using = OAuth2AccessTokenJackson1Serializer::class)
-@JsonDeserialize(using = OAuth2AccessTokenJackson1Deserializer::class)
+//@JsonSerialize(using = OAuth2AccessTokenJackson1Serializer::class)
+//@JsonDeserialize(using = OAuth2AccessTokenJackson1Deserializer::class)
 @com.fasterxml.jackson.databind.annotation.JsonSerialize(using = OAuth2AccessTokenJackson2Serializer::class)
 @com.fasterxml.jackson.databind.annotation.JsonDeserialize(using = OAuth2AccessTokenJackson2Deserializer::class)
 class OAuth2AccessTokenEntity : OAuth2AccessToken {
@@ -84,7 +82,7 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
     @get:ManyToOne
     var approvedSite: ApprovedSite? = null
 
-    private val additionalInformation: MutableMap<String, Any> =
+    private val additionalInformation: MutableMap<String, JsonElement> =
         HashMap() // ephemeral map of items to be added to the OAuth token response
 
     /**
@@ -92,7 +90,7 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
      * This map is not persisted to the database.
      */
     @Transient
-    override fun getAdditionalInformation(): MutableMap<String, Any> {
+    override fun getAdditionalInformation(): MutableMap<String, JsonElement> {
         return additionalInformation
     }
 
@@ -177,7 +175,7 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
     @Transient
     fun setIdToken(idToken: JWT?) {
         if (idToken != null) {
-            additionalInformation[ID_TOKEN_FIELD_NAME] = idToken.serialize()
+            additionalInformation[ID_TOKEN_FIELD_NAME] = Json.parseToJsonElement(idToken.serialize())
         }
     }
 

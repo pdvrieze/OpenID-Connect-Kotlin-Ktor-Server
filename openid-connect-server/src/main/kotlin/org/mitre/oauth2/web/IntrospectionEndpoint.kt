@@ -151,7 +151,7 @@ class IntrospectionEndpoint {
                 tokenClient = refreshToken!!.client
 
                 // get the user information of the user that authorized this token in the first place
-                val userName = refreshToken.authenticationHolder.authentication.name
+                val userName = refreshToken.authenticationHolder!!.authentication.name
                 user = userInfoService.getByUsernameAndClientId(userName, tokenClient!!.clientId!!)
             } catch (e2: InvalidTokenException) {
                 logger.error("Invalid refresh token")
