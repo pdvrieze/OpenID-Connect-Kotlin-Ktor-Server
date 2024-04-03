@@ -18,7 +18,7 @@ package org.mitre.uma.web
 import com.google.gson.JsonParseException
 import com.google.gson.JsonParser
 import org.mitre.oauth2.service.SystemScopeService
-import org.mitre.oauth2.util.toJavaId
+import org.mitre.oauth2.util.requireId
 import org.mitre.oauth2.web.AuthenticationUtilities.ensureOAuthScope
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.view.HttpCodeView
@@ -109,7 +109,7 @@ class ResourceSetRegistrationEndpoint {
     }
 
     @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
-    fun readResourceSet(@PathVariable("id") id: java.lang.Long, m: Model, auth: Authentication): String {
+    fun readResourceSet(@PathVariable("id") id: Long, m: Model, auth: Authentication): String {
         ensureOAuthScope(auth, SystemScopeService.UMA_PROTECTION_SCOPE)
 
         var rs = resourceSetService.getById(id)
@@ -156,7 +156,7 @@ class ResourceSetRegistrationEndpoint {
             return JsonErrorView.VIEWNAME
         }
 
-        val rs = resourceSetService.getById(id.toJavaId())
+        val rs = resourceSetService.getById(id.requireId())
 
         if (rs == null) {
             m.addAttribute(HttpCodeView.CODE, HttpStatus.NOT_FOUND)
@@ -183,7 +183,7 @@ class ResourceSetRegistrationEndpoint {
     fun deleteResourceSet(@PathVariable("id") id: Long?, m: Model, auth: Authentication): String {
         ensureOAuthScope(auth, SystemScopeService.UMA_PROTECTION_SCOPE)
 
-        val rs = resourceSetService.getById(id.toJavaId())
+        val rs = resourceSetService.getById(id.requireId())
 
         if (rs == null) {
             m.addAttribute(HttpCodeView.CODE, HttpStatus.NOT_FOUND)

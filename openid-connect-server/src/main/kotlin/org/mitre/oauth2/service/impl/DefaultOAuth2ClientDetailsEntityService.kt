@@ -32,7 +32,7 @@ import org.mitre.oauth2.repository.OAuth2ClientRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.SystemScopeService
-import org.mitre.oauth2.util.toJavaId
+import org.mitre.oauth2.util.requireId
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.service.ApprovedSiteService
 import org.mitre.openid.connect.service.BlacklistedSiteService
@@ -48,7 +48,6 @@ import org.springframework.security.oauth2.common.exceptions.OAuth2Exception
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.util.UriComponentsBuilder
-import java.lang.Long
 import java.math.BigInteger
 import java.security.SecureRandom
 import java.util.*
@@ -302,7 +301,7 @@ class DefaultOAuth2ClientDetailsEntityService : ClientDetailsEntityService {
      */
     @Throws(InvalidClientException::class)
     override fun deleteClient(client: ClientDetailsEntity) {
-        if (clientRepository.getById(client.id.toJavaId()) == null) {
+        if (clientRepository.getById(client.id.requireId()) == null) {
             throw InvalidClientException("Client with id " + client.clientId + " was not found")
         }
 
@@ -372,7 +371,7 @@ class DefaultOAuth2ClientDetailsEntityService : ClientDetailsEntityService {
         // make sure a client doesn't get any special system scopes
         ensureNoReservedScopes(newClient)
 
-        return clientRepository.updateClient(oldClient.id.toJavaId(), newClient)
+        return clientRepository.updateClient(oldClient.id.requireId(), newClient)
 
     }
 

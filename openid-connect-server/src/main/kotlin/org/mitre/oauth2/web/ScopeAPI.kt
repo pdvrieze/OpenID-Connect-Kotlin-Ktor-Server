@@ -20,7 +20,6 @@ package org.mitre.oauth2.web
 import com.google.gson.Gson
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.service.SystemScopeService
-import org.mitre.oauth2.util.toJavaId
 import org.mitre.openid.connect.view.HttpCodeView
 import org.mitre.openid.connect.view.JsonEntityView
 import org.mitre.openid.connect.view.JsonErrorView
@@ -61,7 +60,7 @@ class ScopeAPI {
 
     @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getScope(@PathVariable("id") id: Long, m: ModelMap): String {
-        val scope = scopeService.getById(id.toJavaId())
+        val scope = scopeService.getById(id)
 
         if (scope != null) {
             m[JsonEntityView.ENTITY] = scope
@@ -79,7 +78,7 @@ class ScopeAPI {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @RequestMapping(value = ["/{id}"], method = [RequestMethod.PUT], produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun updateScope(@PathVariable("id") id: Long, @RequestBody json: String?, m: ModelMap): String {
-        val existing = scopeService.getById(id.toJavaId())
+        val existing = scopeService.getById(id)
 
         var scope = gson.fromJson(json, SystemScope::class.java)
 
@@ -144,7 +143,7 @@ class ScopeAPI {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @RequestMapping(value = ["/{id}"], method = [RequestMethod.DELETE])
     fun deleteScope(@PathVariable("id") id: Long, m: ModelMap): String {
-        val existing = scopeService.getById(id.toJavaId())
+        val existing = scopeService.getById(id)
 
         if (existing != null) {
             scopeService.remove(existing)

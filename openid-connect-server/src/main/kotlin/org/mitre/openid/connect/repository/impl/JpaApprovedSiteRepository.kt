@@ -43,7 +43,7 @@ class JpaApprovedSiteRepository : ApprovedSiteRepository {
         }
 
     @Transactional(value = "defaultTransactionManager")
-    override fun getById(id: java.lang.Long): ApprovedSite? {
+    override fun getById(id: Long): ApprovedSite? {
         return manager.find(ApprovedSite::class.java, id)
     }
 

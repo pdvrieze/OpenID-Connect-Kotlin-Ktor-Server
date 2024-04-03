@@ -15,7 +15,7 @@
  */
 package org.mitre.uma.repository.impl
 
-import org.mitre.oauth2.util.toJavaId
+import org.mitre.oauth2.util.requireId
 import org.mitre.uma.model.ResourceSet
 import org.mitre.uma.repository.ResourceSetRepository
 import org.mitre.util.jpa.JpaUtil.saveOrUpdate
@@ -23,7 +23,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
-import java.lang.Long
 import javax.persistence.EntityManager
 import javax.persistence.PersistenceContext
 
@@ -46,7 +45,7 @@ open class JpaResourceSetRepository : ResourceSetRepository {
 
     @Transactional(value = "defaultTransactionManager")
     override fun remove(rs: ResourceSet) {
-        when (val found = getById(rs.id.toJavaId())) {
+        when (val found = getById(rs.id.requireId())) {
             null -> logger.info("Tried to remove unknown resource set: ${rs.id}")
             else -> em.remove(found)
         }

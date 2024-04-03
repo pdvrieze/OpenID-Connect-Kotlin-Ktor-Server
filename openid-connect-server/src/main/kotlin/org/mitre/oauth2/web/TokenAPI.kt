@@ -19,7 +19,6 @@ package org.mitre.oauth2.web
 
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.OAuth2TokenEntityService
-import org.mitre.oauth2.util.toJavaId
 import org.mitre.oauth2.view.TokenApiView
 import org.mitre.openid.connect.service.OIDCTokenService
 import org.mitre.openid.connect.view.HttpCodeView
@@ -65,7 +64,7 @@ class TokenAPI {
 
     @RequestMapping(value = ["/access/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getAccessTokenById(@PathVariable("id") id: Long, m: ModelMap, p: Principal): String {
-        val token = tokenService.getAccessTokenById(id.toJavaId())
+        val token = tokenService.getAccessTokenById(id)
 
         if (token == null) {
             logger.error("getToken failed; token not found: $id")
@@ -85,7 +84,7 @@ class TokenAPI {
 
     @RequestMapping(value = ["/access/{id}"], method = [RequestMethod.DELETE], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun deleteAccessTokenById(@PathVariable("id") id: Long, m: ModelMap, p: Principal): String {
-        val token = tokenService.getAccessTokenById(id.toJavaId())
+        val token = tokenService.getAccessTokenById(id)
 
         if (token == null) {
             logger.error("getToken failed; token not found: $id")
@@ -182,7 +181,7 @@ class TokenAPI {
 
     @RequestMapping(value = ["/refresh/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getRefreshTokenById(@PathVariable("id") id: Long, m: ModelMap, p: Principal): String {
-        val token = tokenService.getRefreshTokenById(id.toJavaId())
+        val token = tokenService.getRefreshTokenById(id)
 
         if (token == null) {
             logger.error("refresh token not found: $id")
@@ -202,7 +201,7 @@ class TokenAPI {
 
     @RequestMapping(value = ["/refresh/{id}"], method = [RequestMethod.DELETE], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun deleteRefreshTokenById(@PathVariable("id") id: Long, m: ModelMap, p: Principal): String {
-        val token = tokenService.getRefreshTokenById(id.toJavaId())
+        val token = tokenService.getRefreshTokenById(id)
 
         if (token == null) {
             logger.error("refresh token not found: $id")

@@ -21,7 +21,7 @@ import org.mitre.oauth2.model.DeviceCode
  * @author jricher
  */
 interface DeviceCodeRepository {
-    fun getById(id: java.lang.Long): DeviceCode?
+    fun getById(id: Long): DeviceCode?
 
     fun getByDeviceCode(deviceCode: String): DeviceCode?
 

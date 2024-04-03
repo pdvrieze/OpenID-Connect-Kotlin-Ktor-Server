@@ -44,7 +44,7 @@ class JpaBlacklistedSiteRepository : BlacklistedSiteRepository {
 	 * @see org.mitre.openid.connect.repository.BlacklistedSiteRepository#getById(java.lang.Long)
 	 */
     @Transactional(value = "defaultTransactionManager")
-    override fun getById(id: java.lang.Long): BlacklistedSite {
+    override fun getById(id: Long): BlacklistedSite {
         return manager.find(BlacklistedSite::class.java, id)
     }
 

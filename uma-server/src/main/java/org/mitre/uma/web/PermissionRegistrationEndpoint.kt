@@ -20,7 +20,6 @@ import com.google.gson.JsonParseException
 import com.google.gson.JsonParser
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.service.SystemScopeService
-import org.mitre.oauth2.util.toJavaId
 import org.mitre.oauth2.web.AuthenticationUtilities.ensureOAuthScope
 import org.mitre.openid.connect.view.JsonEntityView
 import org.mitre.openid.connect.view.JsonErrorView
@@ -86,7 +85,7 @@ class PermissionRegistrationEndpoint {
 
                 scopes = scopeService.toStrings(scopesRequested)
 
-                val resourceSet = resourceSetService.getById(rsid.toJavaId())
+                val resourceSet = resourceSetService.getById(rsid)
 
                 // requested resource set doesn't exist
                 if (resourceSet == null) {

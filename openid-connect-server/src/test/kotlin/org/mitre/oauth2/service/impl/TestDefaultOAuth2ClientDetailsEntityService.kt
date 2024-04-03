@@ -28,7 +28,6 @@ import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.repository.OAuth2ClientRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.oauth2.service.SystemScopeService
-import org.mitre.oauth2.util.toJavaId
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.model.WhitelistedSite
 import org.mitre.openid.connect.service.ApprovedSiteService
@@ -211,7 +210,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         val id = 12345L
         val client = mock<ClientDetailsEntity>()
         whenever(client.id) doReturn (id)
-        whenever(clientRepository.getById(id.toJavaId())) doReturn (null)
+        whenever(clientRepository.getById(id)) doReturn (null)
 
         assertThrows<InvalidClientException> {
             service.deleteClient(client)
@@ -227,7 +226,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         whenever(client.id) doReturn (id)
         whenever(client.clientId) doReturn (clientId)
 
-        whenever(clientRepository.getById(id.toJavaId())) doReturn (client)
+        whenever(clientRepository.getById(id)) doReturn (client)
 
         val site = mock<WhitelistedSite>()
         whenever(whitelistedSiteService.getByClientId(clientId)) doReturn (site)

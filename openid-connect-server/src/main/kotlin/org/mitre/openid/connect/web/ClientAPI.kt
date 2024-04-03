@@ -76,7 +76,7 @@ import org.mitre.oauth2.model.RegisteredClientFields.USERINFO_ENCRYPTED_RESPONSE
 import org.mitre.oauth2.model.RegisteredClientFields.USERINFO_ENCRYPTED_RESPONSE_ENC
 import org.mitre.oauth2.model.RegisteredClientFields.USERINFO_SIGNED_RESPONSE_ALG
 import org.mitre.oauth2.service.ClientDetailsEntityService
-import org.mitre.oauth2.util.toJavaId
+import org.mitre.oauth2.util.requireId
 import org.mitre.oauth2.web.AuthenticationUtilities
 import org.mitre.openid.connect.exception.ValidationException
 import org.mitre.openid.connect.service.ClientLogoLoadingService
@@ -328,7 +328,7 @@ class ClientAPI {
             return JsonErrorView.VIEWNAME
         }
 
-        val oldClient = clientService.getClientById(id.toJavaId())
+        val oldClient = clientService.getClientById(id)
 
         if (oldClient == null) {
             logger.error("apiUpdateClient failed; client with id $id could not be found.")
@@ -394,7 +394,7 @@ class ClientAPI {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @RequestMapping(value = ["/{id}"], method = [RequestMethod.DELETE])
     fun apiDeleteClient(@PathVariable("id") id: Long, modelAndView: ModelAndView): String {
-        val client = clientService.getClientById(id.toJavaId())
+        val client = clientService.getClientById(id)
 
         if (client == null) {
             logger.error("apiDeleteClient failed; client with id $id could not be found.")
@@ -416,7 +416,7 @@ class ClientAPI {
      */
     @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun apiShowClient(@PathVariable("id") id: Long, model: Model, auth: Authentication): String {
-        val client = clientService.getClientById(id.toJavaId())
+        val client = clientService.getClientById(id)
 
         if (client == null) {
             logger.error("apiShowClient failed; client with id $id could not be found.")
@@ -439,7 +439,7 @@ class ClientAPI {
      */
     @RequestMapping(value = ["/{id}/logo"], method = [RequestMethod.GET], produces = [MediaType.IMAGE_GIF_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE])
     fun getClientLogo(@PathVariable("id") id: Long?, model: Model?): ResponseEntity<ByteArray?> {
-        val client = clientService.getClientById(id.toJavaId())
+        val client = clientService.getClientById(id.requireId())
 
         if (client == null) {
             return ResponseEntity(HttpStatus.NOT_FOUND)

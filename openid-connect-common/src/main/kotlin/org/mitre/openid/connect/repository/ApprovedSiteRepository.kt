@@ -31,7 +31,7 @@ interface ApprovedSiteRepository {
      * @param id The id of the ApprovedSite
      * @return a valid ApprovedSite if it exists, null otherwise
      */
-    fun getById(id: java.lang.Long): ApprovedSite?
+    fun getById(id: Long): ApprovedSite?
 
     /**
      * Return a collection of all ApprovedSites managed by this repository

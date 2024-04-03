@@ -25,7 +25,7 @@ import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.repository.OAuth2TokenRepository
-import org.mitre.oauth2.util.toJavaId
+import org.mitre.oauth2.util.requireId
 import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.uma.model.ResourceSet
 import org.mitre.util.jpa.JpaUtil.getResultPage
@@ -71,7 +71,7 @@ class JpaOAuth2TokenRepository : OAuth2TokenRepository {
         }
     }
 
-    override fun getAccessTokenById(id: java.lang.Long): OAuth2AccessTokenEntity? {
+    override fun getAccessTokenById(id: Long): OAuth2AccessTokenEntity? {
         return manager.find(OAuth2AccessTokenEntity::class.java, id)
     }
 
@@ -83,7 +83,7 @@ class JpaOAuth2TokenRepository : OAuth2TokenRepository {
     @Transactional(value = "defaultTransactionManager")
     override fun removeAccessToken(accessToken: OAuth2AccessTokenEntity) {
         val id = requireNotNull(accessToken.id) { "missing id in access token" }
-        val found = getAccessTokenById(accessToken.id.toJavaId())
+        val found = getAccessTokenById(accessToken.id.requireId())
         if (found != null) {
             manager.remove(found)
         } else {
@@ -114,7 +114,7 @@ class JpaOAuth2TokenRepository : OAuth2TokenRepository {
         }
     }
 
-    override fun getRefreshTokenById(id: java.lang.Long): OAuth2RefreshTokenEntity? {
+    override fun getRefreshTokenById(id: Long): OAuth2RefreshTokenEntity? {
         return manager.find(OAuth2RefreshTokenEntity::class.java, id)
     }
 
@@ -126,7 +126,7 @@ class JpaOAuth2TokenRepository : OAuth2TokenRepository {
     @Transactional(value = "defaultTransactionManager")
     override fun removeRefreshToken(refreshToken: OAuth2RefreshTokenEntity) {
         val id = requireNotNull(refreshToken.id) { "Missing id in refresh token" }
-        val found = getRefreshTokenById(java.lang.Long(id))
+        val found = getRefreshTokenById(id)
         if (found != null) {
             manager.remove(found)
         } else {

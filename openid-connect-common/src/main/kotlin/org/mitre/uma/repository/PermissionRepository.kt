@@ -18,7 +18,6 @@ package org.mitre.uma.repository
 import org.mitre.uma.model.Permission
 import org.mitre.uma.model.PermissionTicket
 import org.mitre.uma.model.ResourceSet
-import java.lang.Long
 
 /**
  * @author jricher

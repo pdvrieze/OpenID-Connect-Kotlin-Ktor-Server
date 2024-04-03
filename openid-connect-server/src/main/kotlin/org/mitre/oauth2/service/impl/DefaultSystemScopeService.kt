@@ -58,7 +58,7 @@ class DefaultSystemScopeService : SystemScopeService {
     /* (non-Javadoc)
 	 * @see org.mitre.oauth2.service.SystemScopeService#getById(java.lang.Long)
 	 */
-    override fun getById(id: java.lang.Long): SystemScope? {
+    override fun getById(id: Long): SystemScope? {
         return repository.getById(id)
     }
 

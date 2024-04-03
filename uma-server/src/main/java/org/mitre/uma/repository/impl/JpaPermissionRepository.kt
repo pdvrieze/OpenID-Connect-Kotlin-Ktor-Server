@@ -68,7 +68,7 @@ open class JpaPermissionRepository : PermissionRepository {
     /* (non-Javadoc)
 	 * @see org.mitre.uma.repository.PermissionRepository#getById(java.lang.Long)
 	 */
-    override fun getById(permissionId: java.lang.Long): Permission? {
+    override fun getById(permissionId: Long): Permission? {
         return em.find(Permission::class.java, permissionId)
     }
 

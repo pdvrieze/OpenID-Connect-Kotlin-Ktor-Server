@@ -31,5 +31,5 @@ interface AddressRepository {
      * id the id of the Address
      * @return a valid Address if it exists, null otherwise
      */
-    fun getById(id: java.lang.Long): Address?
+    fun getById(id: Long): Address?
 }

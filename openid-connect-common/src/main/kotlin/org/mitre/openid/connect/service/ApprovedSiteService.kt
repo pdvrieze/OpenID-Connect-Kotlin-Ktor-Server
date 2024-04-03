@@ -62,7 +62,7 @@ interface ApprovedSiteService {
      * id for ApprovedSite
      * @return ApprovedSite for id, or null
      */
-    fun getById(id: java.lang.Long): ApprovedSite?
+    fun getById(id: Long): ApprovedSite?
 
     /**
      * Remove the ApprovedSite

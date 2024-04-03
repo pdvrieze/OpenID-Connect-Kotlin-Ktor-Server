@@ -48,7 +48,7 @@ interface SystemScopeService {
      */
     val unrestricted: Set<SystemScope>
 
-    fun getById(id: java.lang.Long): SystemScope?
+    fun getById(id: Long): SystemScope?
 
     fun getByValue(value: String): SystemScope?
 

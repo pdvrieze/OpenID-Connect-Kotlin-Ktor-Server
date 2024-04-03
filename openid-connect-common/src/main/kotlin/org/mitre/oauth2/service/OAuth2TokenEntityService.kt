@@ -45,9 +45,9 @@ interface OAuth2TokenEntityService : AuthorizationServerTokenServices, ResourceS
 
     override fun getAccessToken(authentication: OAuth2Authentication): OAuth2AccessTokenEntity
 
-    fun getAccessTokenById(id: java.lang.Long): OAuth2AccessTokenEntity?
+    fun getAccessTokenById(id: Long): OAuth2AccessTokenEntity?
 
-    fun getRefreshTokenById(id: java.lang.Long): OAuth2RefreshTokenEntity?
+    fun getRefreshTokenById(id: Long): OAuth2RefreshTokenEntity?
 
     fun getAllAccessTokensForUser(name: String): Set<OAuth2AccessTokenEntity>
 

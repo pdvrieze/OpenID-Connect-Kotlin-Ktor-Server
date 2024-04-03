@@ -33,7 +33,6 @@ import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2ClientRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.oauth2.repository.SystemScopeRepository
-import org.mitre.oauth2.util.toJavaId
 import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.openid.connect.model.BlacklistedSite
 import org.mitre.openid.connect.model.WhitelistedSite
@@ -662,7 +661,7 @@ class TestMITREidDataService_1_0 {
 			}
 		});
 */
-        whenever(tokenRepository.getAccessTokenById(eq((401L).toJavaId())))
+        whenever(tokenRepository.getAccessTokenById(eq((401L))))
             .thenAnswer(object : Answer<OAuth2AccessTokenEntity> {
                 var id: Long = 221L
 

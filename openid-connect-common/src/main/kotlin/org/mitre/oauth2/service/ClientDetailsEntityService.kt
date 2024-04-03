@@ -20,7 +20,6 @@ package org.mitre.oauth2.service
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception
 import org.springframework.security.oauth2.provider.ClientDetailsService
-import java.lang.Long
 
 interface ClientDetailsEntityService : ClientDetailsService {
     fun saveNewClient(client: ClientDetailsEntity): ClientDetailsEntity?

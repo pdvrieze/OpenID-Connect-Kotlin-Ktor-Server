@@ -57,7 +57,7 @@ class DefaultApprovedSiteService : ApprovedSiteService {
         return a
     }
 
-    override fun getById(id: java.lang.Long): ApprovedSite? {
+    override fun getById(id: Long): ApprovedSite? {
         return approvedSiteRepository.getById(id)
     }
 

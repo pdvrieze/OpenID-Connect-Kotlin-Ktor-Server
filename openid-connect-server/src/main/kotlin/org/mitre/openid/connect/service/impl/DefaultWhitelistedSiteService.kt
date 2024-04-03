@@ -35,7 +35,7 @@ class DefaultWhitelistedSiteService : WhitelistedSiteService {
     @Autowired
     private lateinit var repository: WhitelistedSiteRepository
 
-    override fun getById(id: java.lang.Long): WhitelistedSite? {
+    override fun getById(id: Long): WhitelistedSite? {
         return repository.getById(id)
     }
 

@@ -33,7 +33,7 @@ class JpaDeviceCodeRepository : DeviceCodeRepository {
     private lateinit var em: EntityManager
 
     @Transactional(value = "defaultTransactionManager")
-    override fun getById(id: java.lang.Long): DeviceCode? {
+    override fun getById(id: Long): DeviceCode? {
         return em.find(DeviceCode::class.java, id)
     }
 
@@ -57,7 +57,7 @@ class JpaDeviceCodeRepository : DeviceCodeRepository {
 	 */
     @Transactional(value = "defaultTransactionManager")
     override fun remove(scope: DeviceCode) {
-        val found = getById((scope.id as java.lang.Long?) ?: return)
+        val found = getById(scope.id ?: return)
 
         if (found != null) {
             em.remove(found)

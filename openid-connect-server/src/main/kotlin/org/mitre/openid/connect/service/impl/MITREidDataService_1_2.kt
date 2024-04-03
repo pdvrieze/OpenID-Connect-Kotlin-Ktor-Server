@@ -34,7 +34,7 @@ import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2ClientRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.oauth2.repository.SystemScopeRepository
-import org.mitre.oauth2.util.toJavaId
+import org.mitre.oauth2.util.requireId
 import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.openid.connect.model.BlacklistedSite
 import org.mitre.openid.connect.model.WhitelistedSite
@@ -748,7 +748,7 @@ class MITREidDataService_1_2 : MITREidDataServiceSupport(), MITREidDataService {
             val clientRef = maps.refreshTokenToClientRefs[oldRefreshTokenId]
             val client = clientRepository.getClientByClientId(clientRef!!)
             val newRefreshTokenId = maps.refreshTokenOldToNewIdMap[oldRefreshTokenId]!!
-            val refreshToken = tokenRepository.getRefreshTokenById(newRefreshTokenId.toJavaId())!!
+            val refreshToken = tokenRepository.getRefreshTokenById(newRefreshTokenId)!!
             refreshToken.client = client
             tokenRepository.saveRefreshToken(refreshToken)
         }
@@ -757,7 +757,7 @@ class MITREidDataService_1_2 : MITREidDataServiceSupport(), MITREidDataService {
             val newAuthHolderId = maps.authHolderOldToNewIdMap[oldAuthHolderId]
             val authHolder = authHolderRepository.getById(newAuthHolderId)
             val newRefreshTokenId = maps.refreshTokenOldToNewIdMap[oldRefreshTokenId]!!
-            val refreshToken = tokenRepository.getRefreshTokenById(newRefreshTokenId.toJavaId())!!
+            val refreshToken = tokenRepository.getRefreshTokenById(newRefreshTokenId)!!
             refreshToken.authenticationHolder = authHolder!!
             tokenRepository.saveRefreshToken(refreshToken)
         }
@@ -765,7 +765,7 @@ class MITREidDataService_1_2 : MITREidDataServiceSupport(), MITREidDataService {
             val clientRef = maps.accessTokenToClientRefs[oldAccessTokenId]
             val client = clientRepository.getClientByClientId(clientRef!!)
             val newAccessTokenId = maps.accessTokenOldToNewIdMap[oldAccessTokenId]!!
-            val accessToken = tokenRepository.getAccessTokenById(newAccessTokenId.toJavaId())!!
+            val accessToken = tokenRepository.getAccessTokenById(newAccessTokenId)!!
             accessToken.client = client
             tokenRepository.saveAccessToken(accessToken)
         }
@@ -774,15 +774,15 @@ class MITREidDataService_1_2 : MITREidDataServiceSupport(), MITREidDataService {
             val newAuthHolderId = maps.authHolderOldToNewIdMap[oldAuthHolderId] ?: error("Missing authHolder map $oldAuthHolderId")
             val authHolder = authHolderRepository.getById(newAuthHolderId) ?: error("Missing authHolder $newAuthHolderId")
             val newAccessTokenId = maps.accessTokenOldToNewIdMap[oldAccessTokenId]
-            val accessToken = tokenRepository.getAccessTokenById(newAccessTokenId.toJavaId())!!
+            val accessToken = tokenRepository.getAccessTokenById(newAccessTokenId.requireId())!!
             accessToken.authenticationHolder = authHolder
             tokenRepository.saveAccessToken(accessToken)
         }
         for ((oldAccessTokenId, oldRefreshTokenId) in maps.accessTokenToRefreshTokenRefs) {
             val newRefreshTokenId = maps.refreshTokenOldToNewIdMap[oldRefreshTokenId] ?: error("Missing map for old refresh token: $oldRefreshTokenId")
-            val refreshToken = tokenRepository.getRefreshTokenById(newRefreshTokenId.toJavaId())
+            val refreshToken = tokenRepository.getRefreshTokenById(newRefreshTokenId)
             val newAccessTokenId = maps.accessTokenOldToNewIdMap[oldAccessTokenId]!!
-            val accessToken = tokenRepository.getAccessTokenById(newAccessTokenId.toJavaId())!!
+            val accessToken = tokenRepository.getAccessTokenById(newAccessTokenId)!!
             accessToken.refreshToken = refreshToken
             tokenRepository.saveAccessToken(accessToken)
         }
@@ -790,11 +790,11 @@ class MITREidDataService_1_2 : MITREidDataServiceSupport(), MITREidDataService {
             val oldAccessTokenIds = maps.grantToAccessTokensRefs[oldGrantId]!!
 
             val newGrantId = maps.grantOldToNewIdMap[oldGrantId]!!
-            val site = approvedSiteRepository.getById(newGrantId.toJavaId())
+            val site = approvedSiteRepository.getById(newGrantId)
 
             for (oldTokenId in oldAccessTokenIds) {
                 val newTokenId = maps.accessTokenOldToNewIdMap[oldTokenId]?: error("Missing map $oldTokenId")
-                val token = tokenRepository.getAccessTokenById(newTokenId.toJavaId())!!
+                val token = tokenRepository.getAccessTokenById(newTokenId)!!
                 token.approvedSite = site
                 tokenRepository.saveAccessToken(token)
             }

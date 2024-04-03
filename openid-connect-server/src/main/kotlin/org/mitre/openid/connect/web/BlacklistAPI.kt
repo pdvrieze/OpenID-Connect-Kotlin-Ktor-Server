@@ -21,7 +21,6 @@ import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.google.gson.JsonSyntaxException
-import org.mitre.oauth2.util.toJavaId
 import org.mitre.openid.connect.model.BlacklistedSite
 import org.mitre.openid.connect.service.BlacklistedSiteService
 import org.mitre.openid.connect.view.HttpCodeView
@@ -129,7 +128,7 @@ class BlacklistAPI {
         }
 
 
-        val oldBlacklist = blacklistService.getById(id.toJavaId())
+        val oldBlacklist = blacklistService.getById(id)
 
         if (oldBlacklist == null) {
             logger.error("updateBlacklistedSite failed; blacklist with id $id could not be found")
@@ -151,7 +150,7 @@ class BlacklistAPI {
      */
     @RequestMapping(value = ["/{id}"], method = [RequestMethod.DELETE])
     fun deleteBlacklistedSite(@PathVariable("id") id: Long, m: ModelMap): String {
-        val blacklist = blacklistService.getById(id.toJavaId())
+        val blacklist = blacklistService.getById(id)
 
         if (blacklist == null) {
             logger.error("deleteBlacklistedSite failed; blacklist with id $id could not be found")
@@ -171,7 +170,7 @@ class BlacklistAPI {
      */
     @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getBlacklistedSite(@PathVariable("id") id: Long, m: ModelMap): String {
-        val blacklist = blacklistService.getById(id.toJavaId())
+        val blacklist = blacklistService.getById(id)
         if (blacklist == null) {
             logger.error("getBlacklistedSite failed; blacklist with id $id could not be found")
             m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND

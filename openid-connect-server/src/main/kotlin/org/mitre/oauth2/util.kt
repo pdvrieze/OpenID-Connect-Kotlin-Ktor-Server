@@ -4,9 +4,10 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
 @OptIn(ExperimentalContracts::class)
-fun Long?.toJavaId(): java.lang.Long {
+fun Long?.requireId(): Long {
     contract {
-        returns() implies (this@toJavaId != null)
+        returns() implies (this@requireId != null)
     }
-    return java.lang.Long(requireNotNull(this) {"Missing id"})
+    return requireNotNull(this) {"Missing id"}
 }
+

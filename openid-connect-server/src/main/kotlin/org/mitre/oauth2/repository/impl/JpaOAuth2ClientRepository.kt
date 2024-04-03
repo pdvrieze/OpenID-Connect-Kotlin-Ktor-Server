@@ -19,7 +19,7 @@ package org.mitre.oauth2.repository.impl
 
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.repository.OAuth2ClientRepository
-import org.mitre.oauth2.util.toJavaId
+import org.mitre.oauth2.util.requireId
 import org.mitre.util.jpa.JpaUtil.getSingleResult
 import org.mitre.util.jpa.JpaUtil.saveOrUpdate
 import org.springframework.stereotype.Repository
@@ -42,7 +42,7 @@ class JpaOAuth2ClientRepository : OAuth2ClientRepository {
         this.manager = manager
     }
 
-    override fun getById(id: java.lang.Long): ClientDetailsEntity? {
+    override fun getById(id: Long): ClientDetailsEntity? {
         return manager.find(ClientDetailsEntity::class.java, id)
     }
 
@@ -66,7 +66,7 @@ class JpaOAuth2ClientRepository : OAuth2ClientRepository {
 	 * @see org.mitre.oauth2.repository.OAuth2ClientRepository#deleteClient(org.mitre.oauth2.model.ClientDetailsEntity)
 	 */
     override fun deleteClient(client: ClientDetailsEntity) {
-        val found = getById(client.id.toJavaId())
+        val found = getById(client.id.requireId())
         if (found != null) {
             manager.remove(found)
         } else {
@@ -74,7 +74,7 @@ class JpaOAuth2ClientRepository : OAuth2ClientRepository {
         }
     }
 
-    override fun updateClient(id: java.lang.Long, client: ClientDetailsEntity): ClientDetailsEntity {
+    override fun updateClient(id: Long, client: ClientDetailsEntity): ClientDetailsEntity {
         // sanity check
         client.id = id as Long?
 

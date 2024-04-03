@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.web
 
-import org.mitre.oauth2.util.toJavaId
 import org.mitre.openid.connect.service.ApprovedSiteService
 import org.mitre.openid.connect.view.HttpCodeView
 import org.mitre.openid.connect.view.JsonApprovedSiteView
@@ -63,7 +62,7 @@ class ApprovedSiteAPI {
      */
     @RequestMapping(value = ["/{id}"], method = [RequestMethod.DELETE])
     fun deleteApprovedSite(@PathVariable("id") id: Long, m: ModelMap, p: Principal): String {
-        val approvedSite = approvedSiteService.getById(id.toJavaId())
+        val approvedSite = approvedSiteService.getById(id)
 
         if (approvedSite == null) {
             logger.error("deleteApprovedSite failed; no approved site found for id: $id")
@@ -93,7 +92,7 @@ class ApprovedSiteAPI {
      */
     @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getApprovedSite(@PathVariable("id") id: Long, m: ModelMap, p: Principal): String {
-        val approvedSite = approvedSiteService.getById(id.toJavaId())
+        val approvedSite = approvedSiteService.getById(id)
         if (approvedSite == null) {
             logger.error("getApprovedSite failed; no approved site found for id: $id")
             m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND

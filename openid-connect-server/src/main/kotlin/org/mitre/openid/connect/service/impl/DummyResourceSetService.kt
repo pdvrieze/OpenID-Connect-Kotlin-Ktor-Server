@@ -19,7 +19,6 @@ import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.uma.model.ResourceSet
 import org.mitre.uma.service.ResourceSetService
 import org.springframework.stereotype.Service
-import java.lang.Long
 
 /**
  * Dummy resource set service that doesn't do anything; acts as a stub for the

@@ -21,7 +21,6 @@ import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.JsonParseException
 import com.google.gson.JsonParser
-import org.mitre.oauth2.util.toJavaId
 import org.mitre.openid.connect.model.WhitelistedSite
 import org.mitre.openid.connect.service.WhitelistedSiteService
 import org.mitre.openid.connect.view.HttpCodeView
@@ -131,7 +130,7 @@ class WhitelistAPI {
             return JsonErrorView.VIEWNAME
         }
 
-        val oldWhitelist = whitelistService.getById(id.toJavaId())
+        val oldWhitelist = whitelistService.getById(id)
 
         if (oldWhitelist == null) {
             logger.error("updateWhitelistedSite failed; whitelist with id $id could not be found.")
@@ -154,7 +153,7 @@ class WhitelistAPI {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @RequestMapping(value = ["/{id}"], method = [RequestMethod.DELETE])
     fun deleteWhitelistedSite(@PathVariable("id") id: Long, m: ModelMap): String {
-        val whitelist = whitelistService.getById(id.toJavaId())
+        val whitelist = whitelistService.getById(id)
 
         if (whitelist == null) {
             logger.error("deleteWhitelistedSite failed; whitelist with id $id could not be found.")
@@ -175,7 +174,7 @@ class WhitelistAPI {
      */
     @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getWhitelistedSite(@PathVariable("id") id: Long, m: ModelMap): String {
-        val whitelist = whitelistService.getById(id.toJavaId())
+        val whitelist = whitelistService.getById(id)
         if (whitelist == null) {
             logger.error("getWhitelistedSite failed; whitelist with id $id could not be found.")
             m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND

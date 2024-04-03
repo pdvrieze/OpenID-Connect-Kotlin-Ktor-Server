@@ -29,7 +29,7 @@ interface OAuth2TokenRepository {
 
     fun getRefreshTokenByValue(refreshTokenValue: String): OAuth2RefreshTokenEntity?
 
-    fun getRefreshTokenById(Id: java.lang.Long): OAuth2RefreshTokenEntity?
+    fun getRefreshTokenById(Id: Long): OAuth2RefreshTokenEntity?
 
     fun clearAccessTokensForRefreshToken(refreshToken: OAuth2RefreshTokenEntity)
 
@@ -39,7 +39,7 @@ interface OAuth2TokenRepository {
 
     fun getAccessTokenByValue(accessTokenValue: String?): OAuth2AccessTokenEntity?
 
-    fun getAccessTokenById(id: java.lang.Long): OAuth2AccessTokenEntity?
+    fun getAccessTokenById(id: Long): OAuth2AccessTokenEntity?
 
     fun removeAccessToken(accessToken: OAuth2AccessTokenEntity)
 

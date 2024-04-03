@@ -21,7 +21,7 @@ import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.DeviceCode
 import org.mitre.oauth2.repository.impl.DeviceCodeRepository
 import org.mitre.oauth2.service.DeviceCodeService
-import org.mitre.oauth2.util.toJavaId
+import org.mitre.oauth2.util.requireId
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.oauth2.common.util.RandomValueStringGenerator
 import org.springframework.security.oauth2.provider.ClientDetails
@@ -78,7 +78,7 @@ class DefaultDeviceCodeService : DeviceCodeService {
 	 * @see org.mitre.oauth2.service.DeviceCodeService#approveDeviceCode(org.mitre.oauth2.model.DeviceCode)
 	 */
     override fun approveDeviceCode(dc: DeviceCode, auth: OAuth2Authentication): DeviceCode? {
-        val found = requireNotNull(repository.getById(dc.id.toJavaId())) { "No device code found"}
+        val found = requireNotNull(repository.getById(dc.id.requireId())) { "No device code found"}
 
         found.isApproved = true
 

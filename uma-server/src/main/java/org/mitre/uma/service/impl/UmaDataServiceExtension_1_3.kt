@@ -21,7 +21,7 @@ import com.google.gson.stream.JsonToken
 import com.google.gson.stream.JsonWriter
 import kotlinx.serialization.json.Json
 import org.mitre.oauth2.repository.OAuth2TokenRepository
-import org.mitre.oauth2.util.toJavaId
+import org.mitre.oauth2.util.requireId
 import org.mitre.openid.connect.ClientDetailsEntityJsonProcessor.parseRegistered
 import org.mitre.openid.connect.service.MITREidDataService
 import org.mitre.openid.connect.service.MITREidDataServiceExtension
@@ -645,19 +645,19 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceSupport(), MITREidDataServ
         for (permissionId in permissionToResourceRefs.keys) {
             val oldResourceId = permissionToResourceRefs[permissionId]
             val newResourceId = resourceSetOldToNewIdMap[oldResourceId]
-            val p = permissionRepository.getById(permissionId.toJavaId())
-            val rs = resourceSetRepository.getById(newResourceId.toJavaId())
+            val p = permissionRepository.getById(permissionId)
+            val rs = resourceSetRepository.getById(newResourceId.requireId())
             p!!.resourceSet = rs
             permissionRepository.saveRawPermission(p)
             logger.debug("Mapping rsid $oldResourceId to $newResourceId for permission $permissionId")
         }
         for (tokenId in tokenToPermissionRefs.keys) {
             val newTokenId = maps.accessTokenOldToNewIdMap[tokenId]
-            val token = tokenRepository.getAccessTokenById(newTokenId.toJavaId())!!
+            val token = tokenRepository.getAccessTokenById(newTokenId.requireId())!!
 
             val permissions: MutableSet<Permission> = HashSet()
             for (permissionId in tokenToPermissionRefs[tokenId]!!) {
-                val p = permissionRepository.getById(permissionId.toJavaId())!!
+                val p = permissionRepository.getById(permissionId)!!
                 permissions.add(p)
             }
 

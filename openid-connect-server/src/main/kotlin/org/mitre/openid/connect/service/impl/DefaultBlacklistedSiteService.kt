@@ -42,7 +42,7 @@ class DefaultBlacklistedSiteService : BlacklistedSiteService {
     /* (non-Javadoc)
 	 * @see org.mitre.openid.connect.service.BlacklistedSiteService#getById(java.lang.Long)
 	 */
-    override fun getById(id: java.lang.Long): BlacklistedSite? {
+    override fun getById(id: Long): BlacklistedSite? {
         return repository.getById(id)
     }
 

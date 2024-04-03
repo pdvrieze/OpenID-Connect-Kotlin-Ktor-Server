@@ -35,7 +35,7 @@ class JpaAddressRepository : AddressRepository {
     private lateinit var manager: EntityManager
 
     @Transactional(value = "defaultTransactionManager")
-    override fun getById(id: java.lang.Long): Address {
+    override fun getById(id: Long): Address {
         return manager.find(Address::class.java, id)
     }
 }

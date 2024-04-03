@@ -38,7 +38,7 @@ interface WhitelistedSiteRepository {
      * id the id of the WhitelistedSite
      * @return a valid WhitelistedSite if it exists, null otherwise
      */
-    fun getById(id: java.lang.Long): WhitelistedSite?
+    fun getById(id: Long): WhitelistedSite?
 
     /**
      * Find a WhitelistedSite by its associated ClientDetails reference

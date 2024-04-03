@@ -34,7 +34,6 @@ import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.OAuth2TokenEntityService
 import org.mitre.oauth2.service.SystemScopeService
-import org.mitre.oauth2.util.toJavaId
 import org.mitre.openid.connect.request.ConnectRequestParameters
 import org.mitre.openid.connect.service.ApprovedSiteService
 import org.slf4j.Logger
@@ -87,11 +86,11 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
         return tokenRepository.getRefreshTokensByUserName(userName)
     }
 
-    override fun getAccessTokenById(id: java.lang.Long): OAuth2AccessTokenEntity? {
+    override fun getAccessTokenById(id: Long): OAuth2AccessTokenEntity? {
         return clearExpiredAccessToken(tokenRepository.getAccessTokenById(id))
     }
 
-    override fun getRefreshTokenById(id: java.lang.Long): OAuth2RefreshTokenEntity? {
+    override fun getRefreshTokenById(id: Long): OAuth2RefreshTokenEntity? {
         return clearExpiredRefreshToken(tokenRepository.getRefreshTokenById(id))
     }
 
@@ -211,7 +210,7 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
 
         if (originalAuthRequest.extensions != null && originalAuthRequest.extensions.containsKey("approved_site")) {
             val apId = (originalAuthRequest.extensions["approved_site"] as String).toLong()
-            val ap = approvedSiteService.getById(apId.toJavaId())
+            val ap = approvedSiteService.getById(apId)
 
             token.approvedSite = ap
         }

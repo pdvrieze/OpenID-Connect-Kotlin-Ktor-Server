@@ -44,7 +44,7 @@ class JpaWhitelistedSiteRepository : WhitelistedSiteRepository {
         }
 
     @Transactional(value = "defaultTransactionManager")
-    override fun getById(id: java.lang.Long): WhitelistedSite {
+    override fun getById(id: Long): WhitelistedSite {
         return manager.find(WhitelistedSite::class.java, id)
     }
 

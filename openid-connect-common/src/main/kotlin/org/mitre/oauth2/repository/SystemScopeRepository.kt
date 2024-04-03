@@ -25,7 +25,7 @@ import org.mitre.oauth2.model.SystemScope
 interface SystemScopeRepository {
 	val all: Set<SystemScope>
 
-    fun getById(id: java.lang.Long): SystemScope?
+    fun getById(id: Long): SystemScope?
 
     fun getByValue(value: String): SystemScope?
 

@@ -25,7 +25,7 @@ import org.mitre.openid.connect.model.BlacklistedSite
 interface BlacklistedSiteService {
     val all: Collection<BlacklistedSite>?
 
-    fun getById(id: java.lang.Long): BlacklistedSite?
+    fun getById(id: Long): BlacklistedSite?
 
     fun remove(blacklistedSite: BlacklistedSite)
 

@@ -53,7 +53,7 @@ class DefaultResourceSetService : ResourceSetService {
         return saved
     }
 
-    override fun getById(id: java.lang.Long): ResourceSet? {
+    override fun getById(id: Long): ResourceSet? {
         return repository.getById(id)
     }
 

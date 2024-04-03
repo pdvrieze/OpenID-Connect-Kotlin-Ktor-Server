@@ -18,7 +18,6 @@
 package org.mitre.oauth2.repository
 
 import org.mitre.oauth2.model.ClientDetailsEntity
-import java.lang.Long
 
 interface OAuth2ClientRepository {
     fun getById(id: Long): ClientDetailsEntity?
