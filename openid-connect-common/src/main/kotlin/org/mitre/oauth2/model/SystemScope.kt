@@ -17,6 +17,7 @@
  */
 package org.mitre.oauth2.model
 
+import kotlinx.serialization.Serializable
 import javax.persistence.Basic
 import javax.persistence.Column
 import javax.persistence.Entity
@@ -33,43 +34,42 @@ import javax.persistence.Table
 @Entity
 @Table(name = "system_scope")
 @NamedQueries(NamedQuery(name = SystemScope.QUERY_ALL, query = "select s from SystemScope s ORDER BY s.id"), NamedQuery(name = SystemScope.QUERY_BY_VALUE, query = "select s from SystemScope s WHERE s.value = :" + SystemScope.PARAM_VALUE))
-class SystemScope {
+@Serializable
+class SystemScope constructor(
     @get:Column(name = "id")
     @get:GeneratedValue(strategy = GenerationType.IDENTITY)
     @get:Id
-    var id: Long? = null
+    var id: Long? = null,
 
     @get:Column(name = "scope")
     @get:Basic
-    var value: String? = null // scope value
+    var value: String? = null, // scope value
 
     @get:Column(name = "description")
     @get:Basic
-    var description: String? = null // human-readable description
+    var description: String? = null, // human-readable description
 
     @get:Column(name = "icon")
     @get:Basic
-    var icon: String? = null // class of the icon to display on the auth page
+    var icon: String? = null, // class of the icon to display on the auth page
 
     @get:Column(name = "default_scope")
     @get:Basic
-    var isDefaultScope: Boolean = false // is this a default scope for newly-registered clients?
+    var isDefaultScope: Boolean = false, // is this a default scope for newly-registered clients?
 
     @get:Column(name = "restricted")
     @get:Basic
-    var isRestricted: Boolean = false // is this scope restricted to admin-only registration access?
-
+    var isRestricted: Boolean = false, // is this scope restricted to admin-only registration access?
+) {
     /**
      * Make a blank system scope with no value
      */
-    constructor()
+    constructor() : this(id=null)
 
     /**
      * Make a system scope with the given scope value
      */
-    constructor(value: String?) {
-        this.value = value
-    }
+    constructor(value: String) : this(id = null, value = value)
 
     /* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
@@ -142,9 +142,12 @@ class SystemScope {
 	 * @see java.lang.Object#toString()
 	 */
     override fun toString(): String {
-        return ("SystemScope [id=" + id + ", value=" + value + ", description="
-                + description + ", icon=" + icon + ", defaultScope="
-                + isDefaultScope + ", restricted=" + isRestricted + "]")
+        return ("SystemScope [id=$id, " +
+                "value=$value, " +
+                "description=$description, " +
+                "icon=$icon, " +
+                "defaultScope=$isDefaultScope, " +
+                "restricted=$isRestricted]")
     }
 
     companion object {

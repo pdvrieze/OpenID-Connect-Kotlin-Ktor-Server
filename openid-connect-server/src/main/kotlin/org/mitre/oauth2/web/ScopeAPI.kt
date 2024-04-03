@@ -87,7 +87,7 @@ class ScopeAPI {
             if (existing.id == scope.id) {
                 // sanity check
 
-                scope = scopeService.save(scope)!!
+                scope = scopeService.save(scope)!!// ?: error("Unexpected reserved scope")
 
                 m[JsonEntityView.ENTITY] = scope
 

@@ -24,6 +24,9 @@ import com.nimbusds.jose.EncryptionMethod
 import com.nimbusds.jose.JWEAlgorithm
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jwt.JWTParser
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.ClientDetailsEntity.*
@@ -106,9 +109,13 @@ class MITREidDataService_1_0 : MITREidDataServiceSupport(), MITREidDataService {
         throw UnsupportedOperationException("Can not export 1.0 format from this version.")
     }
 
+    override fun importData(configJson: String) {
+        super.importData(configJson)
+    }
+
     /* (non-Javadoc)
-	 * @see org.mitre.openid.connect.service.MITREidDataService#importData(com.google.gson.stream.JsonReader)
-	 */
+         * @see org.mitre.openid.connect.service.MITREidDataService#importData(com.google.gson.stream.JsonReader)
+         */
     @Throws(IOException::class)
     override fun importData(reader: JsonReader) {
         logger.info("Reading configuration for 1.0")
@@ -141,10 +148,8 @@ class MITREidDataService_1_0 : MITREidDataServiceSupport(), MITREidDataService {
                     } else {
                         for (extension in extensions) {
                             if (extension.supportsVersion(THIS_VERSION)) {
-                                if (extension.supportsVersion(THIS_VERSION)) {
-                                    extension.importExtensionData(name, reader)
-                                    break
-                                }
+                                extension.importExtensionData(name, reader)
+                                break
                             }
                         }
                         // unknown token, skip it
@@ -231,9 +236,9 @@ class MITREidDataService_1_0 : MITREidDataServiceSupport(), MITREidDataService {
             requireNotNull(authHolderId)
 
             val newId = tokenRepository.saveRefreshToken(token).id!!
-            maps.refreshTokenToClientRefs.put(currentId, clientId)
-            maps.refreshTokenToAuthHolderRefs.put(currentId, authHolderId)
-            maps.refreshTokenOldToNewIdMap.put(currentId, newId)
+            maps.refreshTokenToClientRefs[currentId] = clientId
+            maps.refreshTokenToAuthHolderRefs[currentId] = authHolderId
+            maps.refreshTokenOldToNewIdMap[currentId] = newId
             logger.debug("Read refresh token {}", currentId)
         }
         reader.endArray()
@@ -304,12 +309,12 @@ class MITREidDataService_1_0 : MITREidDataServiceSupport(), MITREidDataService {
             requireNotNull(clientId)
             requireNotNull(authHolderId)
             val newId = tokenRepository.saveAccessToken(token).id!!
-            maps.accessTokenToClientRefs.put(currentId, clientId)
-            maps.accessTokenToAuthHolderRefs.put(currentId, authHolderId)
+            maps.accessTokenToClientRefs[currentId] = clientId
+            maps.accessTokenToAuthHolderRefs[currentId] = authHolderId
             if (refreshTokenId != null) {
-                maps.accessTokenToRefreshTokenRefs.put(currentId, refreshTokenId)
+                maps.accessTokenToRefreshTokenRefs[currentId] = refreshTokenId
             }
-            maps.accessTokenOldToNewIdMap.put(currentId, newId)
+            maps.accessTokenOldToNewIdMap[currentId] = newId
             logger.debug("Read access token {}", currentId)
         }
         reader.endArray()
@@ -394,7 +399,7 @@ class MITREidDataService_1_0 : MITREidDataServiceSupport(), MITREidDataService {
             reader.endObject()
             requireNotNull(currentId)
             val newId = authHolderRepository.save(ahe).id!!
-            maps.authHolderOldToNewIdMap.put(currentId, newId)
+            maps.authHolderOldToNewIdMap[currentId] = newId
             logger.debug("Read authentication holder {}", currentId)
         }
         reader.endArray()
@@ -567,12 +572,12 @@ class MITREidDataService_1_0 : MITREidDataServiceSupport(), MITREidDataService {
             reader.endObject()
             requireNotNull(currentId)
             val newId = approvedSiteRepository.save(site).id!!
-            maps.grantOldToNewIdMap.put(currentId, newId)
+            maps.grantOldToNewIdMap[currentId] = newId
             if (whitelistedSiteId != null) {
                 logger.debug("Ignoring whitelisted site marker on approved site.")
             }
             if (tokenIds != null) {
-                maps.grantToAccessTokensRefs.put(currentId, tokenIds)
+                maps.grantToAccessTokensRefs[currentId] = tokenIds
             }
             logger.debug("Read grant {}", currentId)
         }
@@ -593,23 +598,21 @@ class MITREidDataService_1_0 : MITREidDataServiceSupport(), MITREidDataService {
             while (reader.hasNext()) {
                 when (reader.peek()) {
                     JsonToken.END_OBJECT -> continue
-                    JsonToken.NAME -> {
-                        when (reader.nextName()) {
-                            "id" -> currentId = reader.nextLong()
+                    JsonToken.NAME -> when (reader.nextName()) {
+                        "id" -> currentId = reader.nextLong()
 
-                            "clientId" -> wlSite.clientId = reader.nextString()
+                        "clientId" -> wlSite.clientId = reader.nextString()
 
-                            "creatorUserId" -> wlSite.creatorUserId = reader.nextString()
+                        "creatorUserId" -> wlSite.creatorUserId = reader.nextString()
 
-                            "allowedScopes" -> {
-                                val allowedScopes = readSet<String>(reader)
-                                wlSite.allowedScopes = allowedScopes
-                            }
+                        "allowedScopes" -> {
+                            val allowedScopes = readSet<String>(reader)
+                            wlSite.allowedScopes = allowedScopes
+                        }
 
-                            else -> {
-                                logger.debug("Found unexpected entry")
-                                reader.skipValue()
-                            }
+                        else -> {
+                            logger.debug("Found unexpected entry")
+                            reader.skipValue()
                         }
                     }
 
@@ -623,7 +626,7 @@ class MITREidDataService_1_0 : MITREidDataServiceSupport(), MITREidDataService {
             reader.endObject()
             requireNotNull(currentId)
             val newId = wlSiteRepository.save(wlSite).id!!
-            maps.whitelistedSiteOldToNewIdMap.put(currentId, newId)
+            maps.whitelistedSiteOldToNewIdMap[currentId] = newId
         }
         reader.endArray()
         logger.info("Done reading whitelisted sites")
@@ -870,8 +873,7 @@ class MITREidDataService_1_0 : MITREidDataServiceSupport(), MITREidDataService {
             accessToken.client = client
             tokenRepository.saveAccessToken(accessToken)
         }
-        for (oldAccessTokenId in maps.accessTokenToAuthHolderRefs.keys) {
-            val oldAuthHolderId = maps.accessTokenToAuthHolderRefs[oldAccessTokenId]
+        for ((oldAccessTokenId, oldAuthHolderId) in maps.accessTokenToAuthHolderRefs) {
             val newAuthHolderId = maps.authHolderOldToNewIdMap[oldAuthHolderId]
             val authHolder = authHolderRepository.getById(newAuthHolderId)!!
             val newAccessTokenId = maps.accessTokenOldToNewIdMap[oldAccessTokenId]!!
@@ -895,7 +897,7 @@ class MITREidDataService_1_0 : MITREidDataServiceSupport(), MITREidDataService {
             val site = approvedSiteRepository.getById(newGrantId.toJavaId())!!
 
             for (oldTokenId in oldAccessTokenIds) {
-                val newTokenId = maps.accessTokenOldToNewIdMap[oldTokenId]
+                val newTokenId = checkNotNull(maps.accessTokenOldToNewIdMap[oldTokenId]) { "missing map for old token $oldTokenId" }
                 val token = tokenRepository.getAccessTokenById(newTokenId.toJavaId())!!
                 token.approvedSite = site
                 tokenRepository.saveAccessToken(token)
@@ -903,6 +905,29 @@ class MITREidDataService_1_0 : MITREidDataServiceSupport(), MITREidDataService {
 
             approvedSiteRepository.save(site)
         }
+    }
+
+    @Serializable
+    class ConfigurationData_1_0(
+        @SerialName(MITREidDataService.CLIENTS)
+        val clients: List<JsonElement>,
+        @SerialName(MITREidDataService.GRANTS)
+        val grants: List<JsonElement>,
+        @SerialName(MITREidDataService.WHITELISTEDSITES)
+        val whitelistedSites: List<WhitelistedSite>,
+        @SerialName(MITREidDataService.BLACKLISTEDSITES)
+        val blacklistedSites: List<BlacklistedSite>,
+        @SerialName(MITREidDataService.AUTHENTICATIONHOLDERS)
+        val authenticationHolders: List<AuthenticationHolderEntity>,
+        @SerialName(MITREidDataService.ACCESSTOKENS)
+        val accessTokens: List<JsonElement>,
+        @SerialName(MITREidDataService.REFRESHTOKENS)
+        val refreshTokens: List<JsonElement>,
+        @SerialName(MITREidDataService.SYSTEMSCOPES)
+        val systemScopes: List<SystemScope>,
+
+    ) : MITREidDataService.ConfigurationData {
+
     }
 
     companion object {

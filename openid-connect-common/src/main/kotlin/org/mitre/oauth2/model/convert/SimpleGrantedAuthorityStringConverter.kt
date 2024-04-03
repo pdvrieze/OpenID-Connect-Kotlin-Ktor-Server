@@ -15,6 +15,12 @@
  */
 package org.mitre.oauth2.model.convert
 
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import javax.persistence.AttributeConverter
 import javax.persistence.Converter
@@ -23,12 +29,22 @@ import javax.persistence.Converter
  * @author jricher
  */
 @Converter
-class SimpleGrantedAuthorityStringConverter : AttributeConverter<SimpleGrantedAuthority?, String?> {
+class SimpleGrantedAuthorityStringConverter : AttributeConverter<SimpleGrantedAuthority?, String?>, KSerializer<SimpleGrantedAuthority> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("org.springframework.security.core.authority.SimpleGrantedAuthority", PrimitiveKind.STRING)
+
     override fun convertToDatabaseColumn(attribute: SimpleGrantedAuthority?): String? {
         return attribute?.authority
     }
 
     override fun convertToEntityAttribute(dbData: String?): SimpleGrantedAuthority? {
         return dbData?.let(::SimpleGrantedAuthority)
+    }
+
+    override fun serialize(encoder: Encoder, value: SimpleGrantedAuthority) {
+        encoder.encodeString(value.authority)
+    }
+
+    override fun deserialize(decoder: Decoder): SimpleGrantedAuthority {
+        return SimpleGrantedAuthority(decoder.decodeString())
     }
 }

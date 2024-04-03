@@ -16,7 +16,6 @@
 package org.mitre.openid.connect.service.impl
 
 import com.google.gson.JsonArray
-import com.google.gson.stream.JsonReader
 import com.nimbusds.jwt.JWTParser
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -39,7 +38,6 @@ import org.mitre.openid.connect.repository.BlacklistedSiteRepository
 import org.mitre.openid.connect.repository.WhitelistedSiteRepository
 import org.mitre.openid.connect.service.MITREidDataService
 import org.mitre.openid.connect.service.MITREidDataServiceMaps
-import org.mitre.openid.connect.service.impl.MITREidDataService_1_2
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
 import org.mockito.Captor
@@ -64,7 +62,6 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication
 import org.springframework.security.oauth2.provider.OAuth2Request
 import org.springframework.util.ReflectionUtils
 import java.io.IOException
-import java.io.StringReader
 import java.text.ParseException
 import java.util.*
 
@@ -196,7 +193,6 @@ class TestMITREidDataService_1_2 {
                 "}")
 
         logger.debug(configJson)
-        val reader = JsonReader(StringReader(configJson))
 
         val fakeDb: MutableMap<Long, OAuth2RefreshTokenEntity> = HashMap()
         whenever<OAuth2RefreshTokenEntity>(tokenRepository.saveRefreshToken(isA<OAuth2RefreshTokenEntity>()))
@@ -234,7 +230,9 @@ class TestMITREidDataService_1_2 {
                     return _auth
                 }
             })
-        dataService.importData(reader)
+
+        dataService.importData(configJson)
+
         //2 times for token, 2 times to update client, 2 times to update authHolder
         verify(tokenRepository, times(6)).saveRefreshToken(capture(capturedRefreshTokens))
 
@@ -327,8 +325,6 @@ class TestMITREidDataService_1_2 {
 
         logger.debug(configJson)
 
-        val reader = JsonReader(StringReader(configJson))
-
         val fakeDb: MutableMap<Long?, OAuth2AccessTokenEntity> = HashMap()
         whenever<OAuth2AccessTokenEntity>(tokenRepository.saveAccessToken(isA<OAuth2AccessTokenEntity>()))
             .thenAnswer(object : Answer<OAuth2AccessTokenEntity> {
@@ -371,7 +367,9 @@ class TestMITREidDataService_1_2 {
         maps.authHolderOldToNewIdMap[2L] = 134L
         maps.refreshTokenOldToNewIdMap[1L] = 135L
         maps.refreshTokenOldToNewIdMap[1234L] = 136L
-        dataService.importData(reader)
+
+        dataService.importData(configJson)
+
         //2 times for token, 2 times to update client, 2 times to update authHolder, 1 times to update refresh token
         verify(tokenRepository, times(7)).saveAccessToken(capture(capturedAccessTokens))
 
@@ -438,9 +436,8 @@ class TestMITREidDataService_1_2 {
 
         logger.debug(configJson)
 
-        val reader = JsonReader(StringReader(configJson))
+        dataService.importData(configJson)
 
-        dataService.importData(reader)
         verify(clientRepository, times(2)).saveClient(capture(capturedClients))
 
         val savedClients = capturedClients.allValues
@@ -497,9 +494,8 @@ class TestMITREidDataService_1_2 {
 
         logger.debug(configJson)
 
-        val reader = JsonReader(StringReader(configJson))
+        dataService.importData(configJson)
 
-        dataService.importData(reader)
         verify(blSiteRepository, times(3)).save(capture(capturedBlacklistedSites))
 
         val savedSites = capturedBlacklistedSites.allValues
@@ -544,8 +540,6 @@ class TestMITREidDataService_1_2 {
 
         logger.debug(configJson)
 
-        val reader = JsonReader(StringReader(configJson))
-
         val fakeDb: MutableMap<Long?, WhitelistedSite> = HashMap()
         whenever<WhitelistedSite>(wlSiteRepository.save(isA<WhitelistedSite>()))
             .thenAnswer(object : Answer<WhitelistedSite> {
@@ -572,7 +566,8 @@ class TestMITREidDataService_1_2 {
 			}
 		});
 */
-        dataService.importData(reader)
+        dataService.importData(configJson)
+
         verify(wlSiteRepository, times(3)).save(capture(capturedWhitelistedSites))
 
         val savedSites = capturedWhitelistedSites.allValues
@@ -637,8 +632,6 @@ class TestMITREidDataService_1_2 {
 
         logger.debug(configJson)
 
-        val reader = JsonReader(StringReader(configJson))
-
         val fakeDb: MutableMap<Long, ApprovedSite> = HashMap()
         whenever<ApprovedSite>(approvedSiteRepository.save(isA<ApprovedSite>()))
             .thenAnswer(object : Answer<ApprovedSite> {
@@ -680,7 +673,9 @@ class TestMITREidDataService_1_2 {
                 }
             })
         maps.accessTokenOldToNewIdMap[1L] = 245L
-        dataService.importData(reader)
+
+        dataService.importData(configJson)
+
         //2 for sites, 1 for updating access token ref on #1
         verify(approvedSiteRepository, times(3)).save(capture(capturedApprovedSites))
 
@@ -746,8 +741,6 @@ class TestMITREidDataService_1_2 {
 
         logger.debug(configJson)
 
-        val reader = JsonReader(StringReader(configJson))
-
         val fakeDb: MutableMap<Long?, AuthenticationHolderEntity> = HashMap()
         whenever<AuthenticationHolderEntity>(authHolderRepository.save(isA<AuthenticationHolderEntity>()))
             .thenAnswer(object : Answer<AuthenticationHolderEntity> {
@@ -764,7 +757,8 @@ class TestMITREidDataService_1_2 {
                 }
             })
 
-        dataService.importData(reader)
+        dataService.importData(configJson)
+
         verify(authHolderRepository, times(2)).save(capture(capturedAuthHolders))
 
         val savedAuthHolders = capturedAuthHolders.allValues
@@ -777,29 +771,32 @@ class TestMITREidDataService_1_2 {
     @Test
     @Throws(IOException::class)
     fun testImportSystemScopes() {
-        val scope1 = SystemScope()
-        scope1.id = 1L
-        scope1.value = "scope1"
-        scope1.description = "Scope 1"
-        scope1.isRestricted = true
-        scope1.isDefaultScope = false
-        scope1.icon = "glass"
+        val scope1 = SystemScope(
+            id = 1L,
+            value = "scope1",
+            description = "Scope 1",
+            isRestricted = true,
+            isDefaultScope = false,
+            icon = "glass",
+        )
 
-        val scope2 = SystemScope()
-        scope2.id = 2L
-        scope2.value = "scope2"
-        scope2.description = "Scope 2"
-        scope2.isRestricted = false
-        scope2.isDefaultScope = false
-        scope2.icon = "ball"
+        val scope2 = SystemScope(
+            id = 2L,
+            value = "scope2",
+            description = "Scope 2",
+            isRestricted = false,
+            isDefaultScope = false,
+            icon = "ball",
+        )
 
-        val scope3 = SystemScope()
-        scope3.id = 3L
-        scope3.value = "scope3"
-        scope3.description = "Scope 3"
-        scope3.isRestricted = false
-        scope3.isDefaultScope = true
-        scope3.icon = "road"
+        val scope3 = SystemScope(
+            id = 3L,
+            value = "scope3",
+            description = "Scope 3",
+            isRestricted = false,
+            isDefaultScope = true,
+            icon = "road",
+        )
 
         val configJson = "{" +
                 "\"" + MITREidDataService.CLIENTS + "\": [], " +
@@ -818,9 +815,8 @@ class TestMITREidDataService_1_2 {
 
         logger.debug(configJson)
 
-        val reader = JsonReader(StringReader(configJson))
+        dataService.importData(configJson)
 
-        dataService.importData(reader)
         verify(sysScopeRepository, times(3)).save(capture(capturedScope))
 
         val savedScopes = capturedScope.allValues
@@ -924,7 +920,6 @@ class TestMITREidDataService_1_2 {
                 "}")
         logger.debug(configJson)
 
-        val reader = JsonReader(StringReader(configJson))
         val fakeRefreshTokenTable: MutableMap<Long, OAuth2RefreshTokenEntity> = HashMap()
         val fakeAuthHolderTable: MutableMap<Long, AuthenticationHolderEntity> = HashMap()
         whenever<OAuth2RefreshTokenEntity>(tokenRepository.saveRefreshToken(isA<OAuth2RefreshTokenEntity>()))
@@ -964,7 +959,8 @@ class TestMITREidDataService_1_2 {
             val _id = invocation.arguments[0] as Long
             fakeAuthHolderTable[_id]
         }
-        dataService.importData(reader)
+
+        dataService.importData(configJson)
 
         val savedRefreshTokens: List<OAuth2RefreshTokenEntity> = fakeRefreshTokenTable.values.sortedWith(refreshTokenIdComparator())
             //capturedRefreshTokens.getAllValues();

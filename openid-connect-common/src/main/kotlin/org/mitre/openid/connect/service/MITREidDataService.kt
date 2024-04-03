@@ -19,7 +19,9 @@ package org.mitre.openid.connect.service
 
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
+import kotlinx.serialization.KSerializer
 import java.io.IOException
+import java.io.StringReader
 
 /**
  * @author jricher
@@ -39,6 +41,14 @@ interface MITREidDataService {
      */
     @Throws(IOException::class)
     fun importData(reader: JsonReader)
+
+    /**
+     * Read in the state from a string
+     */
+    fun importData(configJson: String) {
+        val reader = JsonReader(StringReader(configJson))
+        importData(reader)
+    }
 
     /**
      * Return true if the this data service supports the given version. This is called before
@@ -66,4 +76,43 @@ interface MITREidDataService {
         const val CLIENTS: String = "clients"
         const val SYSTEMSCOPES: String = "systemScopes"
     }
+
+    interface ConfigurationData {
+
+    }
+
+/*
+    abstract class ConfigurationSerializerBase<T: ConfigurationData>(val name: String, val version: String, val extensions: List<MITREidDataServiceExtension>) : KSerializer<T> {
+
+        private val elementSerializers: List<Pair<String, KSerializer<*>>> by lazy {
+            buildList {
+                addBaseElements()
+            }
+        }
+
+
+        override val descriptor: SerialDescriptor by lazy {
+            buildClassSerialDescriptor(name) {
+                for((name, serializer) in elementSerializers) {
+                    element(name, serializer.descriptor)
+                }
+            }
+        }
+
+        open fun MutableList<ElementSerializer>.addBaseElements() {
+            add(ElementSerializer(CLIENTS, ListSerializer(JsonElement.serializer()), false))
+            add(ElementSerializer(GRANTS, ListSerializer(JsonElement.serializer()), false))
+            add(ElementSerializer(WHITELISTEDSITES, ListSerializer(WhitelistedSite.serializer()), false))
+            add(ElementSerializer(BLACKLISTEDSITES, ListSerializer(BlacklistedSite.serializer()), false))
+            add(ElementSerializer(AUTHENTICATIONHOLDERS, ListSerializer(AuthenticationHolderEntity.serializer()), false))
+            add(ElementSerializer(ACCESSTOKENS, ListSerializer(JsonElement.serializer()), false))
+            add(ElementSerializer(REFRESHTOKENS, ListSerializer(JsonElement.serializer()), false))
+            add(ElementSerializer(SYSTEMSCOPES, ListSerializer(SystemScope.serializer()), false))
+        }
+
+    }
+*/
+
 }
+
+internal data class ElementSerializer(val name: String, val serializer: KSerializer<*>, val isOptional: Boolean)

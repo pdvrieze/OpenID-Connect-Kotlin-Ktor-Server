@@ -17,13 +17,20 @@
  */
 package org.mitre.oauth2.model
 
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonElement
+import org.mitre.oauth2.model.convert.KXS_OAuth2Authentication
 import org.mitre.oauth2.model.convert.SerializableStringConverter
 import org.mitre.oauth2.model.convert.SimpleGrantedAuthorityStringConverter
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.oauth2.provider.OAuth2Authentication
 import org.springframework.security.oauth2.provider.OAuth2Request
-import java.io.Serializable
 import javax.persistence.*
+import kotlinx.serialization.Serializable as KXS_Serializable
+import java.io.Serializable as IoSerializable
 
 @Entity
 @Table(name = "authentication_holder")
@@ -35,62 +42,64 @@ import javax.persistence.*
                 "a.id not in (select c.authenticationHolder.id from AuthorizationCodeEntity c)"
     )
 )
-class AuthenticationHolderEntity {
+@KXS_Serializable(AuthenticationHolderEntity.Companion::class)
+class AuthenticationHolderEntity(
     @get:Column(name = "id")
     @get:GeneratedValue(strategy = GenerationType.IDENTITY)
     @get:Id
-    var id: Long? = null
+    var id: Long? = null,
 
     @get:JoinColumn(name = "user_auth_id")
     @get:OneToOne(cascade = [CascadeType.ALL])
-    var userAuth: SavedUserAuthentication? = null
+    var userAuth: SavedUserAuthentication? = null,
 
     @get:Column(name = "authority")
     @get:Convert(converter = SimpleGrantedAuthorityStringConverter::class)
     @get:CollectionTable(name = "authentication_holder_authority", joinColumns = [JoinColumn(name = "owner_id")])
     @get:ElementCollection(fetch = FetchType.EAGER)
-    var authorities: Collection<GrantedAuthority>? = null
+    var authorities: Collection<GrantedAuthority>? = null,
 
     @get:Column(name = "resource_id")
     @get:CollectionTable(name = "authentication_holder_resource_id", joinColumns = [JoinColumn(name = "owner_id")])
     @get:ElementCollection(fetch = FetchType.EAGER)
-    var resourceIds: Set<String>? = null
+    var resourceIds: Set<String>? = null,
 
     @get:Column(name = "approved")
     @get:Basic
-    var isApproved: Boolean = false
+    var isApproved: Boolean = false,
 
     @get:Column(name = "redirect_uri")
     @get:Basic
-    var redirectUri: String? = null
+    var redirectUri: String? = null,
 
     @get:Column(name = "response_type")
     @get:CollectionTable(name = "authentication_holder_response_type", joinColumns = [JoinColumn(name = "owner_id")])
     @get:ElementCollection(fetch = FetchType.EAGER)
-    var responseTypes: Set<String>? = null
+    var responseTypes: Set<String>? = null,
 
     @get:Convert(converter = SerializableStringConverter::class)
     @get:MapKeyColumn(name = "extension")
     @get:Column(name = "val")
     @get:CollectionTable(name = "authentication_holder_extension", joinColumns = [JoinColumn(name = "owner_id")])
     @get:ElementCollection(fetch = FetchType.EAGER)
-    var extensions: Map<String, Serializable>? = null
+    var extensions: Map<String, IoSerializable>? = null,
 
     @get:Column(name = "client_id")
     @get:Basic
-    var clientId: String? = null
+    var clientId: String? = null,
 
     @get:Column(name = "scope")
     @get:CollectionTable(name = "authentication_holder_scope", joinColumns = [JoinColumn(name = "owner_id")])
     @get:ElementCollection(fetch = FetchType.EAGER)
-    var scope: Set<String>? = null
+    var scope: Set<String>? = null,
 
     @get:MapKeyColumn(name = "param")
     @get:Column(name = "val")
     @get:CollectionTable(name = "authentication_holder_request_parameter", joinColumns = [JoinColumn(name = "owner_id")])
     @get:ElementCollection(fetch = FetchType.EAGER)
-    var requestParameters: Map<String, String>? = null
+    var requestParameters: Map<String, String>? = null,
 
+    ) {
     @get:Transient
     var authentication: OAuth2Authentication
         get() =// TODO: memoize this
@@ -120,9 +129,49 @@ class AuthenticationHolderEntity {
         return OAuth2Request(requestParameters, clientId, authorities, isApproved, scope, resourceIds, redirectUri, responseTypes, extensions)
     }
 
+//    @KXS_Serializable
+//    private class AuthenticationEntry(
+//        val clientAuthorization: AuthorizationRequest? = null,
+//        val userAuthentication: JsonElement? = null,
+//        val savedUserAuthentication: SavedUserAuthentication? = null,
+//    )
 
-    companion object {
+    @KXS_Serializable
+    private class SerialDelegate(
+        val id: Long? = null,
+        val ownerId: JsonElement? = null,
+        val authentication: KXS_OAuth2Authentication? = null,
+    ) {
+        constructor(e: AuthenticationHolderEntity) : this(
+            id = e.id,
+            authentication = e.authentication
+        )
+
+        fun toAuthenticationHolder(): AuthenticationHolderEntity {
+            return AuthenticationHolderEntity(
+                id = id,
+            ).also {
+                if (authentication != null) it.authentication = authentication
+            }
+        }
+    }
+
+    companion object : KSerializer<AuthenticationHolderEntity> {
         const val QUERY_GET_UNUSED: String = "AuthenticationHolderEntity.getUnusedAuthenticationHolders"
         const val QUERY_ALL: String = "AuthenticationHolderEntity.getAll"
+
+        private val delegate = SerialDelegate.serializer()
+
+        @Suppress("OPT_IN_USAGE")
+        override val descriptor: SerialDescriptor =
+            SerialDescriptor("org.mitre.oauth2.model.AtuehticationHolderEntity", delegate.descriptor)
+
+        override fun deserialize(decoder: Decoder): AuthenticationHolderEntity {
+            return delegate.deserialize(decoder).toAuthenticationHolder()
+        }
+
+        override fun serialize(encoder: Encoder, value: AuthenticationHolderEntity) {
+            delegate.serialize(encoder, SerialDelegate(value))
+        }
     }
 }

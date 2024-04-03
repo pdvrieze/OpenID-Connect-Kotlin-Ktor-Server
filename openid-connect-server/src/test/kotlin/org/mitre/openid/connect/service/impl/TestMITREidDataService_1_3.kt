@@ -17,7 +17,6 @@ package org.mitre.openid.connect.service.impl
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonParser
-import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
 import com.nimbusds.jwt.JWTParser
 import org.junit.jupiter.api.Assertions.*
@@ -42,6 +41,14 @@ import org.mitre.openid.connect.repository.ApprovedSiteRepository
 import org.mitre.openid.connect.repository.BlacklistedSiteRepository
 import org.mitre.openid.connect.repository.WhitelistedSiteRepository
 import org.mitre.openid.connect.service.MITREidDataService
+import org.mitre.openid.connect.service.MITREidDataService.Companion.ACCESSTOKENS
+import org.mitre.openid.connect.service.MITREidDataService.Companion.AUTHENTICATIONHOLDERS
+import org.mitre.openid.connect.service.MITREidDataService.Companion.BLACKLISTEDSITES
+import org.mitre.openid.connect.service.MITREidDataService.Companion.CLIENTS
+import org.mitre.openid.connect.service.MITREidDataService.Companion.GRANTS
+import org.mitre.openid.connect.service.MITREidDataService.Companion.REFRESHTOKENS
+import org.mitre.openid.connect.service.MITREidDataService.Companion.SYSTEMSCOPES
+import org.mitre.openid.connect.service.MITREidDataService.Companion.WHITELISTEDSITES
 import org.mitre.openid.connect.service.MITREidDataServiceMaps
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
@@ -71,7 +78,6 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication
 import org.springframework.security.oauth2.provider.OAuth2Request
 import org.springframework.util.ReflectionUtils
 import java.io.IOException
-import java.io.StringReader
 import java.io.StringWriter
 import java.text.ParseException
 import java.util.*
@@ -208,28 +214,28 @@ class TestMITREidDataService_1_3 {
         val config = root[MITREidDataService.MITREID_CONNECT_1_3].asJsonObject
 
         // make sure all the root elements are there
-        assertTrue(config.has(MITREidDataService.CLIENTS))
-        assertTrue(config.has(MITREidDataService.GRANTS))
-        assertTrue(config.has(MITREidDataService.WHITELISTEDSITES))
-        assertTrue(config.has(MITREidDataService.BLACKLISTEDSITES))
-        assertTrue(config.has(MITREidDataService.REFRESHTOKENS))
-        assertTrue(config.has(MITREidDataService.ACCESSTOKENS))
-        assertTrue(config.has(MITREidDataService.SYSTEMSCOPES))
-        assertTrue(config.has(MITREidDataService.AUTHENTICATIONHOLDERS))
+        assertTrue(config.has(CLIENTS))
+        assertTrue(config.has(GRANTS))
+        assertTrue(config.has(WHITELISTEDSITES))
+        assertTrue(config.has(BLACKLISTEDSITES))
+        assertTrue(config.has(REFRESHTOKENS))
+        assertTrue(config.has(ACCESSTOKENS))
+        assertTrue(config.has(SYSTEMSCOPES))
+        assertTrue(config.has(AUTHENTICATIONHOLDERS))
 
         // make sure the root elements are all arrays
-        assertTrue(config[MITREidDataService.CLIENTS].isJsonArray)
-        assertTrue(config[MITREidDataService.GRANTS].isJsonArray)
-        assertTrue(config[MITREidDataService.WHITELISTEDSITES].isJsonArray)
-        assertTrue(config[MITREidDataService.BLACKLISTEDSITES].isJsonArray)
-        assertTrue(config[MITREidDataService.REFRESHTOKENS].isJsonArray)
-        assertTrue(config[MITREidDataService.ACCESSTOKENS].isJsonArray)
-        assertTrue(config[MITREidDataService.SYSTEMSCOPES].isJsonArray)
-        assertTrue(config[MITREidDataService.AUTHENTICATIONHOLDERS].isJsonArray)
+        assertTrue(config[CLIENTS].isJsonArray)
+        assertTrue(config[GRANTS].isJsonArray)
+        assertTrue(config[WHITELISTEDSITES].isJsonArray)
+        assertTrue(config[BLACKLISTEDSITES].isJsonArray)
+        assertTrue(config[REFRESHTOKENS].isJsonArray)
+        assertTrue(config[ACCESSTOKENS].isJsonArray)
+        assertTrue(config[SYSTEMSCOPES].isJsonArray)
+        assertTrue(config[AUTHENTICATIONHOLDERS].isJsonArray)
 
 
         // check our refresh token list (this test)
-        val refreshTokens = config[MITREidDataService.REFRESHTOKENS].asJsonArray
+        val refreshTokens = config[REFRESHTOKENS].asJsonArray
 
         assertEquals(2, refreshTokens.size())
         // check for both of our refresh tokens in turn
@@ -305,14 +311,14 @@ class TestMITREidDataService_1_3 {
         token2.authenticationHolder = mockedAuthHolder2
 
         val configJson = ("{" +
-                "\"" + MITREidDataService.SYSTEMSCOPES + "\": [], " +
-                "\"" + MITREidDataService.ACCESSTOKENS + "\": [], " +
-                "\"" + MITREidDataService.CLIENTS + "\": [], " +
-                "\"" + MITREidDataService.GRANTS + "\": [], " +
-                "\"" + MITREidDataService.WHITELISTEDSITES + "\": [], " +
-                "\"" + MITREidDataService.BLACKLISTEDSITES + "\": [], " +
-                "\"" + MITREidDataService.AUTHENTICATIONHOLDERS + "\": [], " +
-                "\"" + MITREidDataService.REFRESHTOKENS + "\": [" +
+                "\"" + SYSTEMSCOPES + "\": [], " +
+                "\"" + ACCESSTOKENS + "\": [], " +
+                "\"" + CLIENTS + "\": [], " +
+                "\"" + GRANTS + "\": [], " +
+                "\"" + WHITELISTEDSITES + "\": [], " +
+                "\"" + BLACKLISTEDSITES + "\": [], " +
+                "\"" + AUTHENTICATIONHOLDERS + "\": [], " +
+                "\"" + REFRESHTOKENS + "\": [" +
                 "{\"id\":1,\"clientId\":\"mocked_client_1\",\"expiration\":\"2014-09-10T22:49:44.090+00:00\","
                 + "\"authenticationHolderId\":1,\"value\":\"eyJhbGciOiJub25lIn0.eyJqdGkiOiJmOTg4OWQyOS0xMTk1LTQ4ODEtODgwZC1lZjVlYzAwY2Y4NDIifQ.\"}," +
                 "{\"id\":2,\"clientId\":\"mocked_client_2\",\"expiration\":\"2015-01-07T18:31:50.079+00:00\","
@@ -321,7 +327,6 @@ class TestMITREidDataService_1_3 {
                 "}")
 
         logger.debug(configJson)
-        val reader = JsonReader(StringReader(configJson))
 
         val fakeDb: MutableMap<Long, OAuth2RefreshTokenEntity> = HashMap()
         whenever(tokenRepository.saveRefreshToken(isA<OAuth2RefreshTokenEntity>()))
@@ -358,7 +363,9 @@ class TestMITREidDataService_1_3 {
                     return _auth
                 }
             })
-        dataService.importData(reader)
+
+        dataService.importData(configJson)
+
         //2 times for token, 2 times to update client, 2 times to update authHolder
         verify(tokenRepository, times(6)).saveRefreshToken(capture(capturedRefreshTokens))
 
@@ -451,28 +458,28 @@ class TestMITREidDataService_1_3 {
         val config = root[MITREidDataService.MITREID_CONNECT_1_3].asJsonObject
 
         // make sure all the root elements are there
-        assertTrue(config.has(MITREidDataService.CLIENTS))
-        assertTrue(config.has(MITREidDataService.GRANTS))
-        assertTrue(config.has(MITREidDataService.WHITELISTEDSITES))
-        assertTrue(config.has(MITREidDataService.BLACKLISTEDSITES))
-        assertTrue(config.has(MITREidDataService.REFRESHTOKENS))
-        assertTrue(config.has(MITREidDataService.ACCESSTOKENS))
-        assertTrue(config.has(MITREidDataService.SYSTEMSCOPES))
-        assertTrue(config.has(MITREidDataService.AUTHENTICATIONHOLDERS))
+        assertTrue(config.has(CLIENTS))
+        assertTrue(config.has(GRANTS))
+        assertTrue(config.has(WHITELISTEDSITES))
+        assertTrue(config.has(BLACKLISTEDSITES))
+        assertTrue(config.has(REFRESHTOKENS))
+        assertTrue(config.has(ACCESSTOKENS))
+        assertTrue(config.has(SYSTEMSCOPES))
+        assertTrue(config.has(AUTHENTICATIONHOLDERS))
 
         // make sure the root elements are all arrays
-        assertTrue(config[MITREidDataService.CLIENTS].isJsonArray)
-        assertTrue(config[MITREidDataService.GRANTS].isJsonArray)
-        assertTrue(config[MITREidDataService.WHITELISTEDSITES].isJsonArray)
-        assertTrue(config[MITREidDataService.BLACKLISTEDSITES].isJsonArray)
-        assertTrue(config[MITREidDataService.REFRESHTOKENS].isJsonArray)
-        assertTrue(config[MITREidDataService.ACCESSTOKENS].isJsonArray)
-        assertTrue(config[MITREidDataService.SYSTEMSCOPES].isJsonArray)
-        assertTrue(config[MITREidDataService.AUTHENTICATIONHOLDERS].isJsonArray)
+        assertTrue(config[CLIENTS].isJsonArray)
+        assertTrue(config[GRANTS].isJsonArray)
+        assertTrue(config[WHITELISTEDSITES].isJsonArray)
+        assertTrue(config[BLACKLISTEDSITES].isJsonArray)
+        assertTrue(config[REFRESHTOKENS].isJsonArray)
+        assertTrue(config[ACCESSTOKENS].isJsonArray)
+        assertTrue(config[SYSTEMSCOPES].isJsonArray)
+        assertTrue(config[AUTHENTICATIONHOLDERS].isJsonArray)
 
 
         // check our access token list (this test)
-        val accessTokens = config[MITREidDataService.ACCESSTOKENS].asJsonArray
+        val accessTokens = config[ACCESSTOKENS].asJsonArray
 
         assertEquals(2, accessTokens.size())
         // check for both of our access tokens in turn
@@ -563,14 +570,14 @@ class TestMITREidDataService_1_3 {
         token2.tokenType = "Bearer"
 
         val configJson = ("{" +
-                "\"" + MITREidDataService.SYSTEMSCOPES + "\": [], " +
-                "\"" + MITREidDataService.REFRESHTOKENS + "\": [], " +
-                "\"" + MITREidDataService.CLIENTS + "\": [], " +
-                "\"" + MITREidDataService.GRANTS + "\": [], " +
-                "\"" + MITREidDataService.WHITELISTEDSITES + "\": [], " +
-                "\"" + MITREidDataService.BLACKLISTEDSITES + "\": [], " +
-                "\"" + MITREidDataService.AUTHENTICATIONHOLDERS + "\": [], " +
-                "\"" + MITREidDataService.ACCESSTOKENS + "\": [" +
+                "\"" + SYSTEMSCOPES + "\": [], " +
+                "\"" + REFRESHTOKENS + "\": [], " +
+                "\"" + CLIENTS + "\": [], " +
+                "\"" + GRANTS + "\": [], " +
+                "\"" + WHITELISTEDSITES + "\": [], " +
+                "\"" + BLACKLISTEDSITES + "\": [], " +
+                "\"" + AUTHENTICATIONHOLDERS + "\": [], " +
+                "\"" + ACCESSTOKENS + "\": [" +
                 "{\"id\":1,\"clientId\":\"mocked_client_1\",\"expiration\":\"2014-09-10T22:49:44.090+00:00\","
                 + "\"refreshTokenId\":null,\"idTokenId\":null,\"scope\":[\"id-token\"],\"type\":\"Bearer\","
                 + "\"authenticationHolderId\":1,\"value\":\"eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0MTI3ODk5NjgsInN1YiI6IjkwMzQyLkFTREZKV0ZBIiwiYXRfaGFzaCI6InptTmt1QmNRSmNYQktNaVpFODZqY0EiLCJhdWQiOlsiY2xpZW50Il0sImlzcyI6Imh0dHA6XC9cL2xvY2FsaG9zdDo4MDgwXC9vcGVuaWQtY29ubmVjdC1zZXJ2ZXItd2ViYXBwXC8iLCJpYXQiOjE0MTI3ODkzNjh9.xkEJ9IMXpH7qybWXomfq9WOOlpGYnrvGPgey9UQ4GLzbQx7JC0XgJK83PmrmBZosvFPCmota7FzI_BtwoZLgAZfFiH6w3WIlxuogoH-TxmYbxEpTHoTsszZppkq9mNgOlArV4jrR9y3TPo4MovsH71dDhS_ck-CvAlJunHlqhs0\"}," +
@@ -582,8 +589,6 @@ class TestMITREidDataService_1_3 {
 
 
         logger.debug(configJson)
-
-        val reader = JsonReader(StringReader(configJson))
 
         val fakeDb: MutableMap<Long, OAuth2AccessTokenEntity> = HashMap()
         whenever<OAuth2AccessTokenEntity>(tokenRepository.saveAccessToken(isA<OAuth2AccessTokenEntity>()))
@@ -623,7 +628,9 @@ class TestMITREidDataService_1_3 {
         maps.refreshTokenOldToNewIdMap[1L] = 133L
         maps.authHolderOldToNewIdMap[1L] = 222L
         maps.authHolderOldToNewIdMap[2L] = 223L
-        dataService.importData(reader)
+
+        dataService.importData(configJson)
+
         //2 times for token, 2 times to update client, 2 times to update authHolder, 1 times to update refresh token
         verify(tokenRepository, times(7)).saveAccessToken(capture(capturedAccessTokens))
 
@@ -695,28 +702,28 @@ class TestMITREidDataService_1_3 {
         val config = root[MITREidDataService.MITREID_CONNECT_1_3].asJsonObject
 
         // make sure all the root elements are there
-        assertTrue(config.has(MITREidDataService.CLIENTS))
-        assertTrue(config.has(MITREidDataService.GRANTS))
-        assertTrue(config.has(MITREidDataService.WHITELISTEDSITES))
-        assertTrue(config.has(MITREidDataService.BLACKLISTEDSITES))
-        assertTrue(config.has(MITREidDataService.REFRESHTOKENS))
-        assertTrue(config.has(MITREidDataService.ACCESSTOKENS))
-        assertTrue(config.has(MITREidDataService.SYSTEMSCOPES))
-        assertTrue(config.has(MITREidDataService.AUTHENTICATIONHOLDERS))
+        assertTrue(config.has(CLIENTS))
+        assertTrue(config.has(GRANTS))
+        assertTrue(config.has(WHITELISTEDSITES))
+        assertTrue(config.has(BLACKLISTEDSITES))
+        assertTrue(config.has(REFRESHTOKENS))
+        assertTrue(config.has(ACCESSTOKENS))
+        assertTrue(config.has(SYSTEMSCOPES))
+        assertTrue(config.has(AUTHENTICATIONHOLDERS))
 
         // make sure the root elements are all arrays
-        assertTrue(config[MITREidDataService.CLIENTS].isJsonArray)
-        assertTrue(config[MITREidDataService.GRANTS].isJsonArray)
-        assertTrue(config[MITREidDataService.WHITELISTEDSITES].isJsonArray)
-        assertTrue(config[MITREidDataService.BLACKLISTEDSITES].isJsonArray)
-        assertTrue(config[MITREidDataService.REFRESHTOKENS].isJsonArray)
-        assertTrue(config[MITREidDataService.ACCESSTOKENS].isJsonArray)
-        assertTrue(config[MITREidDataService.SYSTEMSCOPES].isJsonArray)
-        assertTrue(config[MITREidDataService.AUTHENTICATIONHOLDERS].isJsonArray)
+        assertTrue(config[CLIENTS].isJsonArray)
+        assertTrue(config[GRANTS].isJsonArray)
+        assertTrue(config[WHITELISTEDSITES].isJsonArray)
+        assertTrue(config[BLACKLISTEDSITES].isJsonArray)
+        assertTrue(config[REFRESHTOKENS].isJsonArray)
+        assertTrue(config[ACCESSTOKENS].isJsonArray)
+        assertTrue(config[SYSTEMSCOPES].isJsonArray)
+        assertTrue(config[AUTHENTICATIONHOLDERS].isJsonArray)
 
 
         // check our client list (this test)
-        val clients = config[MITREidDataService.CLIENTS].asJsonArray
+        val clients = config[CLIENTS].asJsonArray
 
         assertEquals(2, clients.size())
         // check for both of our clients in turn
@@ -775,14 +782,14 @@ class TestMITREidDataService_1_3 {
         client2.isAllowIntrospection = false
 
         val configJson = ("{" +
-                "\"" + MITREidDataService.SYSTEMSCOPES + "\": [], " +
-                "\"" + MITREidDataService.ACCESSTOKENS + "\": [], " +
-                "\"" + MITREidDataService.REFRESHTOKENS + "\": [], " +
-                "\"" + MITREidDataService.GRANTS + "\": [], " +
-                "\"" + MITREidDataService.WHITELISTEDSITES + "\": [], " +
-                "\"" + MITREidDataService.BLACKLISTEDSITES + "\": [], " +
-                "\"" + MITREidDataService.AUTHENTICATIONHOLDERS + "\": [], " +
-                "\"" + MITREidDataService.CLIENTS + "\": [" +
+                "\"" + SYSTEMSCOPES + "\": [], " +
+                "\"" + ACCESSTOKENS + "\": [], " +
+                "\"" + REFRESHTOKENS + "\": [], " +
+                "\"" + GRANTS + "\": [], " +
+                "\"" + WHITELISTEDSITES + "\": [], " +
+                "\"" + BLACKLISTEDSITES + "\": [], " +
+                "\"" + AUTHENTICATIONHOLDERS + "\": [], " +
+                "\"" + CLIENTS + "\": [" +
                 "{\"id\":1,\"accessTokenValiditySeconds\":3600,\"clientId\":\"client1\",\"secret\":\"clientsecret1\","
                 + "\"redirectUris\":[\"http://foo.com/\"],"
                 + "\"scope\":[\"foo\",\"bar\",\"baz\",\"dolphin\"],"
@@ -798,9 +805,8 @@ class TestMITREidDataService_1_3 {
 
         logger.debug(configJson)
 
-        val reader = JsonReader(StringReader(configJson))
+        dataService.importData(configJson)
 
-        dataService.importData(reader)
         verify(clientRepository, times(2)).saveClient(capture(capturedClients))
 
         val savedClients = capturedClients.allValues
@@ -868,27 +874,27 @@ class TestMITREidDataService_1_3 {
         val config = root[MITREidDataService.MITREID_CONNECT_1_3].asJsonObject
 
         // make sure all the root elements are there
-        assertTrue(config.has(MITREidDataService.CLIENTS))
-        assertTrue(config.has(MITREidDataService.GRANTS))
-        assertTrue(config.has(MITREidDataService.WHITELISTEDSITES))
-        assertTrue(config.has(MITREidDataService.BLACKLISTEDSITES))
-        assertTrue(config.has(MITREidDataService.REFRESHTOKENS))
-        assertTrue(config.has(MITREidDataService.ACCESSTOKENS))
-        assertTrue(config.has(MITREidDataService.SYSTEMSCOPES))
-        assertTrue(config.has(MITREidDataService.AUTHENTICATIONHOLDERS))
+        assertTrue(config.has(CLIENTS))
+        assertTrue(config.has(GRANTS))
+        assertTrue(config.has(WHITELISTEDSITES))
+        assertTrue(config.has(BLACKLISTEDSITES))
+        assertTrue(config.has(REFRESHTOKENS))
+        assertTrue(config.has(ACCESSTOKENS))
+        assertTrue(config.has(SYSTEMSCOPES))
+        assertTrue(config.has(AUTHENTICATIONHOLDERS))
 
         // make sure the root elements are all arrays
-        assertTrue(config[MITREidDataService.CLIENTS].isJsonArray)
-        assertTrue(config[MITREidDataService.GRANTS].isJsonArray)
-        assertTrue(config[MITREidDataService.WHITELISTEDSITES].isJsonArray)
-        assertTrue(config[MITREidDataService.BLACKLISTEDSITES].isJsonArray)
-        assertTrue(config[MITREidDataService.REFRESHTOKENS].isJsonArray)
-        assertTrue(config[MITREidDataService.ACCESSTOKENS].isJsonArray)
-        assertTrue(config[MITREidDataService.SYSTEMSCOPES].isJsonArray)
-        assertTrue(config[MITREidDataService.AUTHENTICATIONHOLDERS].isJsonArray)
+        assertTrue(config[CLIENTS].isJsonArray)
+        assertTrue(config[GRANTS].isJsonArray)
+        assertTrue(config[WHITELISTEDSITES].isJsonArray)
+        assertTrue(config[BLACKLISTEDSITES].isJsonArray)
+        assertTrue(config[REFRESHTOKENS].isJsonArray)
+        assertTrue(config[ACCESSTOKENS].isJsonArray)
+        assertTrue(config[SYSTEMSCOPES].isJsonArray)
+        assertTrue(config[AUTHENTICATIONHOLDERS].isJsonArray)
 
         // check our scope list (this test)
-        val sites = config[MITREidDataService.BLACKLISTEDSITES].asJsonArray
+        val sites = config[BLACKLISTEDSITES].asJsonArray
 
         assertEquals(3, sites.size())
         // check for both of our sites in turn
@@ -933,14 +939,14 @@ class TestMITREidDataService_1_3 {
         site3.uri = "http://baz.com"
 
         val configJson = "{" +
-                "\"" + MITREidDataService.CLIENTS + "\": [], " +
-                "\"" + MITREidDataService.ACCESSTOKENS + "\": [], " +
-                "\"" + MITREidDataService.REFRESHTOKENS + "\": [], " +
-                "\"" + MITREidDataService.GRANTS + "\": [], " +
-                "\"" + MITREidDataService.WHITELISTEDSITES + "\": [], " +
-                "\"" + MITREidDataService.SYSTEMSCOPES + "\": [], " +
-                "\"" + MITREidDataService.AUTHENTICATIONHOLDERS + "\": [], " +
-                "\"" + MITREidDataService.BLACKLISTEDSITES + "\": [" +
+                "\"" + CLIENTS + "\": [], " +
+                "\"" + ACCESSTOKENS + "\": [], " +
+                "\"" + REFRESHTOKENS + "\": [], " +
+                "\"" + GRANTS + "\": [], " +
+                "\"" + WHITELISTEDSITES + "\": [], " +
+                "\"" + SYSTEMSCOPES + "\": [], " +
+                "\"" + AUTHENTICATIONHOLDERS + "\": [], " +
+                "\"" + BLACKLISTEDSITES + "\": [" +
                 "{\"id\":1,\"uri\":\"http://foo.com\"}," +
                 "{\"id\":2,\"uri\":\"http://bar.com\"}," +
                 "{\"id\":3,\"uri\":\"http://baz.com\"}" +
@@ -950,9 +956,8 @@ class TestMITREidDataService_1_3 {
 
         logger.debug(configJson)
 
-        val reader = JsonReader(StringReader(configJson))
+        dataService.importData(configJson)
 
-        dataService.importData(reader)
         verify(blSiteRepository, times(3)).save(capture(capturedBlacklistedSites))
 
         val savedSites = capturedBlacklistedSites.allValues
@@ -1008,27 +1013,27 @@ class TestMITREidDataService_1_3 {
         val config = root[MITREidDataService.MITREID_CONNECT_1_3].asJsonObject
 
         // make sure all the root elements are there
-        assertTrue(config.has(MITREidDataService.CLIENTS))
-        assertTrue(config.has(MITREidDataService.GRANTS))
-        assertTrue(config.has(MITREidDataService.WHITELISTEDSITES))
-        assertTrue(config.has(MITREidDataService.BLACKLISTEDSITES))
-        assertTrue(config.has(MITREidDataService.REFRESHTOKENS))
-        assertTrue(config.has(MITREidDataService.ACCESSTOKENS))
-        assertTrue(config.has(MITREidDataService.SYSTEMSCOPES))
-        assertTrue(config.has(MITREidDataService.AUTHENTICATIONHOLDERS))
+        assertTrue(config.has(CLIENTS))
+        assertTrue(config.has(GRANTS))
+        assertTrue(config.has(WHITELISTEDSITES))
+        assertTrue(config.has(BLACKLISTEDSITES))
+        assertTrue(config.has(REFRESHTOKENS))
+        assertTrue(config.has(ACCESSTOKENS))
+        assertTrue(config.has(SYSTEMSCOPES))
+        assertTrue(config.has(AUTHENTICATIONHOLDERS))
 
         // make sure the root elements are all arrays
-        assertTrue(config[MITREidDataService.CLIENTS].isJsonArray)
-        assertTrue(config[MITREidDataService.GRANTS].isJsonArray)
-        assertTrue(config[MITREidDataService.WHITELISTEDSITES].isJsonArray)
-        assertTrue(config[MITREidDataService.BLACKLISTEDSITES].isJsonArray)
-        assertTrue(config[MITREidDataService.REFRESHTOKENS].isJsonArray)
-        assertTrue(config[MITREidDataService.ACCESSTOKENS].isJsonArray)
-        assertTrue(config[MITREidDataService.SYSTEMSCOPES].isJsonArray)
-        assertTrue(config[MITREidDataService.AUTHENTICATIONHOLDERS].isJsonArray)
+        assertTrue(config[CLIENTS].isJsonArray)
+        assertTrue(config[GRANTS].isJsonArray)
+        assertTrue(config[WHITELISTEDSITES].isJsonArray)
+        assertTrue(config[BLACKLISTEDSITES].isJsonArray)
+        assertTrue(config[REFRESHTOKENS].isJsonArray)
+        assertTrue(config[ACCESSTOKENS].isJsonArray)
+        assertTrue(config[SYSTEMSCOPES].isJsonArray)
+        assertTrue(config[AUTHENTICATIONHOLDERS].isJsonArray)
 
         // check our scope list (this test)
-        val sites = config[MITREidDataService.WHITELISTEDSITES].asJsonArray
+        val sites = config[WHITELISTEDSITES].asJsonArray
 
         assertEquals(3, sites.size())
         // check for both of our sites in turn
@@ -1074,14 +1079,14 @@ class TestMITREidDataService_1_3 {
 
         //site3.setAllowedScopes(null);
         val configJson = "{" +
-                "\"" + MITREidDataService.CLIENTS + "\": [], " +
-                "\"" + MITREidDataService.ACCESSTOKENS + "\": [], " +
-                "\"" + MITREidDataService.REFRESHTOKENS + "\": [], " +
-                "\"" + MITREidDataService.GRANTS + "\": [], " +
-                "\"" + MITREidDataService.BLACKLISTEDSITES + "\": [], " +
-                "\"" + MITREidDataService.SYSTEMSCOPES + "\": [], " +
-                "\"" + MITREidDataService.AUTHENTICATIONHOLDERS + "\": [], " +
-                "\"" + MITREidDataService.WHITELISTEDSITES + "\": [" +
+                "\"" + CLIENTS + "\": [], " +
+                "\"" + ACCESSTOKENS + "\": [], " +
+                "\"" + REFRESHTOKENS + "\": [], " +
+                "\"" + GRANTS + "\": [], " +
+                "\"" + BLACKLISTEDSITES + "\": [], " +
+                "\"" + SYSTEMSCOPES + "\": [], " +
+                "\"" + AUTHENTICATIONHOLDERS + "\": [], " +
+                "\"" + WHITELISTEDSITES + "\": [" +
                 "{\"id\":1,\"clientId\":\"foo\"}," +
                 "{\"id\":2,\"clientId\":\"bar\"}," +
                 "{\"id\":3,\"clientId\":\"baz\"}" +
@@ -1089,8 +1094,6 @@ class TestMITREidDataService_1_3 {
                 "}"
 
         logger.debug(configJson)
-
-        val reader = JsonReader(StringReader(configJson))
 
         val fakeDb: MutableMap<Long, WhitelistedSite> = HashMap()
         whenever<WhitelistedSite>(wlSiteRepository.save(isA<WhitelistedSite>()))
@@ -1110,7 +1113,8 @@ class TestMITREidDataService_1_3 {
             fakeDb[_id]
         }
 
-        dataService.importData(reader)
+        dataService.importData(configJson)
+
         verify(wlSiteRepository, times(3)).save(capture(capturedWhitelistedSites))
 
         val savedSites = capturedWhitelistedSites.allValues
@@ -1182,27 +1186,27 @@ class TestMITREidDataService_1_3 {
         val config = root[MITREidDataService.MITREID_CONNECT_1_3].asJsonObject
 
         // make sure all the root elements are there
-        assertTrue(config.has(MITREidDataService.CLIENTS))
-        assertTrue(config.has(MITREidDataService.GRANTS))
-        assertTrue(config.has(MITREidDataService.WHITELISTEDSITES))
-        assertTrue(config.has(MITREidDataService.BLACKLISTEDSITES))
-        assertTrue(config.has(MITREidDataService.REFRESHTOKENS))
-        assertTrue(config.has(MITREidDataService.ACCESSTOKENS))
-        assertTrue(config.has(MITREidDataService.SYSTEMSCOPES))
-        assertTrue(config.has(MITREidDataService.AUTHENTICATIONHOLDERS))
+        assertTrue(config.has(CLIENTS))
+        assertTrue(config.has(GRANTS))
+        assertTrue(config.has(WHITELISTEDSITES))
+        assertTrue(config.has(BLACKLISTEDSITES))
+        assertTrue(config.has(REFRESHTOKENS))
+        assertTrue(config.has(ACCESSTOKENS))
+        assertTrue(config.has(SYSTEMSCOPES))
+        assertTrue(config.has(AUTHENTICATIONHOLDERS))
 
         // make sure the root elements are all arrays
-        assertTrue(config[MITREidDataService.CLIENTS].isJsonArray)
-        assertTrue(config[MITREidDataService.GRANTS].isJsonArray)
-        assertTrue(config[MITREidDataService.WHITELISTEDSITES].isJsonArray)
-        assertTrue(config[MITREidDataService.BLACKLISTEDSITES].isJsonArray)
-        assertTrue(config[MITREidDataService.REFRESHTOKENS].isJsonArray)
-        assertTrue(config[MITREidDataService.ACCESSTOKENS].isJsonArray)
-        assertTrue(config[MITREidDataService.SYSTEMSCOPES].isJsonArray)
-        assertTrue(config[MITREidDataService.AUTHENTICATIONHOLDERS].isJsonArray)
+        assertTrue(config[CLIENTS].isJsonArray)
+        assertTrue(config[GRANTS].isJsonArray)
+        assertTrue(config[WHITELISTEDSITES].isJsonArray)
+        assertTrue(config[BLACKLISTEDSITES].isJsonArray)
+        assertTrue(config[REFRESHTOKENS].isJsonArray)
+        assertTrue(config[ACCESSTOKENS].isJsonArray)
+        assertTrue(config[SYSTEMSCOPES].isJsonArray)
+        assertTrue(config[AUTHENTICATIONHOLDERS].isJsonArray)
 
         // check our scope list (this test)
-        val sites = config[MITREidDataService.GRANTS].asJsonArray
+        val sites = config[GRANTS].asJsonArray
 
         assertEquals(2, sites.size())
         // check for both of our sites in turn
@@ -1270,14 +1274,14 @@ class TestMITREidDataService_1_3 {
         site2.timeoutDate = timeoutDate2
 
         val configJson = ("{" +
-                "\"" + MITREidDataService.CLIENTS + "\": [], " +
-                "\"" + MITREidDataService.ACCESSTOKENS + "\": [], " +
-                "\"" + MITREidDataService.REFRESHTOKENS + "\": [], " +
-                "\"" + MITREidDataService.WHITELISTEDSITES + "\": [], " +
-                "\"" + MITREidDataService.BLACKLISTEDSITES + "\": [], " +
-                "\"" + MITREidDataService.SYSTEMSCOPES + "\": [], " +
-                "\"" + MITREidDataService.AUTHENTICATIONHOLDERS + "\": [], " +
-                "\"" + MITREidDataService.GRANTS + "\": [" +
+                "\"" + CLIENTS + "\": [], " +
+                "\"" + ACCESSTOKENS + "\": [], " +
+                "\"" + REFRESHTOKENS + "\": [], " +
+                "\"" + WHITELISTEDSITES + "\": [], " +
+                "\"" + BLACKLISTEDSITES + "\": [], " +
+                "\"" + SYSTEMSCOPES + "\": [], " +
+                "\"" + AUTHENTICATIONHOLDERS + "\": [], " +
+                "\"" + GRANTS + "\": [" +
                 "{\"id\":1,\"clientId\":\"foo\",\"creationDate\":\"2014-09-10T22:49:44.090+00:00\",\"accessDate\":\"2014-09-10T23:49:44.090+00:00\","
                 + "\"userId\":\"user1\",\"whitelistedSiteId\":null,\"allowedScopes\":[\"openid\",\"phone\"], \"whitelistedSiteId\":1,"
                 + "\"approvedAccessTokens\":[1]}," +
@@ -1288,8 +1292,6 @@ class TestMITREidDataService_1_3 {
                 "}")
 
         logger.debug(configJson)
-
-        val reader = JsonReader(StringReader(configJson))
 
         val fakeDb: MutableMap<Long, ApprovedSite> = HashMap()
         whenever<ApprovedSite>(approvedSiteRepository.save(isA<ApprovedSite>()))
@@ -1332,7 +1334,9 @@ class TestMITREidDataService_1_3 {
             })
 
         maps.accessTokenOldToNewIdMap[1L] = 245L
-        dataService.importData(reader)
+
+        dataService.importData(configJson)
+
         //2 for sites, 1 for updating access token ref on #1
         verify(approvedSiteRepository, times(3)).save(capture(capturedApprovedSites))
 
@@ -1409,28 +1413,28 @@ class TestMITREidDataService_1_3 {
         val config = root[MITREidDataService.MITREID_CONNECT_1_3].asJsonObject
 
         // make sure all the root elements are there
-        assertTrue(config.has(MITREidDataService.CLIENTS))
-        assertTrue(config.has(MITREidDataService.GRANTS))
-        assertTrue(config.has(MITREidDataService.WHITELISTEDSITES))
-        assertTrue(config.has(MITREidDataService.BLACKLISTEDSITES))
-        assertTrue(config.has(MITREidDataService.REFRESHTOKENS))
-        assertTrue(config.has(MITREidDataService.ACCESSTOKENS))
-        assertTrue(config.has(MITREidDataService.SYSTEMSCOPES))
-        assertTrue(config.has(MITREidDataService.AUTHENTICATIONHOLDERS))
+        assertTrue(config.has(CLIENTS))
+        assertTrue(config.has(GRANTS))
+        assertTrue(config.has(WHITELISTEDSITES))
+        assertTrue(config.has(BLACKLISTEDSITES))
+        assertTrue(config.has(REFRESHTOKENS))
+        assertTrue(config.has(ACCESSTOKENS))
+        assertTrue(config.has(SYSTEMSCOPES))
+        assertTrue(config.has(AUTHENTICATIONHOLDERS))
 
         // make sure the root elements are all arrays
-        assertTrue(config[MITREidDataService.CLIENTS].isJsonArray)
-        assertTrue(config[MITREidDataService.GRANTS].isJsonArray)
-        assertTrue(config[MITREidDataService.WHITELISTEDSITES].isJsonArray)
-        assertTrue(config[MITREidDataService.BLACKLISTEDSITES].isJsonArray)
-        assertTrue(config[MITREidDataService.REFRESHTOKENS].isJsonArray)
-        assertTrue(config[MITREidDataService.ACCESSTOKENS].isJsonArray)
-        assertTrue(config[MITREidDataService.SYSTEMSCOPES].isJsonArray)
-        assertTrue(config[MITREidDataService.AUTHENTICATIONHOLDERS].isJsonArray)
+        assertTrue(config[CLIENTS].isJsonArray)
+        assertTrue(config[GRANTS].isJsonArray)
+        assertTrue(config[WHITELISTEDSITES].isJsonArray)
+        assertTrue(config[BLACKLISTEDSITES].isJsonArray)
+        assertTrue(config[REFRESHTOKENS].isJsonArray)
+        assertTrue(config[ACCESSTOKENS].isJsonArray)
+        assertTrue(config[SYSTEMSCOPES].isJsonArray)
+        assertTrue(config[AUTHENTICATIONHOLDERS].isJsonArray)
 
 
         // check our holder list (this test)
-        val holders = config[MITREidDataService.AUTHENTICATIONHOLDERS].asJsonArray
+        val holders = config[AUTHENTICATIONHOLDERS].asJsonArray
 
         assertEquals(2, holders.size())
         // check for both of our clients in turn
@@ -1494,14 +1498,14 @@ class TestMITREidDataService_1_3 {
         holder2.authentication = auth2
 
         val configJson = ("{" +
-                "\"" + MITREidDataService.CLIENTS + "\": [], " +
-                "\"" + MITREidDataService.ACCESSTOKENS + "\": [], " +
-                "\"" + MITREidDataService.REFRESHTOKENS + "\": [], " +
-                "\"" + MITREidDataService.GRANTS + "\": [], " +
-                "\"" + MITREidDataService.WHITELISTEDSITES + "\": [], " +
-                "\"" + MITREidDataService.BLACKLISTEDSITES + "\": [], " +
-                "\"" + MITREidDataService.SYSTEMSCOPES + "\": [], " +
-                "\"" + MITREidDataService.AUTHENTICATIONHOLDERS + "\": [" +
+                "\"" + CLIENTS + "\": [], " +
+                "\"" + ACCESSTOKENS + "\": [], " +
+                "\"" + REFRESHTOKENS + "\": [], " +
+                "\"" + GRANTS + "\": [], " +
+                "\"" + WHITELISTEDSITES + "\": [], " +
+                "\"" + BLACKLISTEDSITES + "\": [], " +
+                "\"" + SYSTEMSCOPES + "\": [], " +
+                "\"" + AUTHENTICATIONHOLDERS + "\": [" +
                 "{\"id\":1,\"clientId\":\"client1\",\"redirectUri\":\"http://foo.com\","
                 + "\"savedUserAuthentication\":null}," +
                 "{\"id\":2,\"clientId\":\"client2\",\"redirectUri\":\"http://bar.com\","
@@ -1510,8 +1514,6 @@ class TestMITREidDataService_1_3 {
                 "}")
 
         logger.debug(configJson)
-
-        val reader = JsonReader(StringReader(configJson))
 
         val fakeDb: MutableMap<Long, AuthenticationHolderEntity> = HashMap()
         whenever<AuthenticationHolderEntity>(authHolderRepository.save(isA<AuthenticationHolderEntity>()))
@@ -1527,7 +1529,8 @@ class TestMITREidDataService_1_3 {
                 }
             })
 
-        dataService.importData(reader)
+        dataService.importData(configJson)
+
         verify(authHolderRepository, times(2)).save(capture(capturedAuthHolders))
 
         val savedAuthHolders = capturedAuthHolders.allValues
@@ -1540,29 +1543,32 @@ class TestMITREidDataService_1_3 {
     @Test
     @Throws(IOException::class)
     fun testExportSystemScopes() {
-        val scope1 = SystemScope()
-        scope1.id = 1L
-        scope1.value = "scope1"
-        scope1.description = "Scope 1"
-        scope1.isRestricted = true
-        scope1.isDefaultScope = false
-        scope1.icon = "glass"
+        val scope1 = SystemScope(
+            id = 1L,
+            value = "scope1",
+            description = "Scope 1",
+            isRestricted = true,
+            isDefaultScope = false,
+            icon = "glass",
+        )
 
-        val scope2 = SystemScope()
-        scope2.id = 2L
-        scope2.value = "scope2"
-        scope2.description = "Scope 2"
-        scope2.isRestricted = false
-        scope2.isDefaultScope = false
-        scope2.icon = "ball"
+        val scope2 = SystemScope(
+            id = 2L,
+            value = "scope2",
+            description = "Scope 2",
+            isRestricted = false,
+            isDefaultScope = false,
+            icon = "ball",
+        )
 
-        val scope3 = SystemScope()
-        scope3.id = 3L
-        scope3.value = "scope3"
-        scope3.description = "Scope 3"
-        scope3.isRestricted = false
-        scope3.isDefaultScope = true
-        scope3.icon = "road"
+        val scope3 = SystemScope(
+            id = 3L,
+            value = "scope3",
+            description = "Scope 3",
+            isRestricted = false,
+            isDefaultScope = true,
+            icon = "road",
+        )
 
         val allScopes: Set<SystemScope> = setOf(scope1, scope2, scope3)
 
@@ -1593,28 +1599,28 @@ class TestMITREidDataService_1_3 {
         val config = root[MITREidDataService.MITREID_CONNECT_1_3].asJsonObject
 
         // make sure all the root elements are there
-        assertTrue(config.has(MITREidDataService.CLIENTS))
-        assertTrue(config.has(MITREidDataService.GRANTS))
-        assertTrue(config.has(MITREidDataService.WHITELISTEDSITES))
-        assertTrue(config.has(MITREidDataService.BLACKLISTEDSITES))
-        assertTrue(config.has(MITREidDataService.REFRESHTOKENS))
-        assertTrue(config.has(MITREidDataService.ACCESSTOKENS))
-        assertTrue(config.has(MITREidDataService.SYSTEMSCOPES))
-        assertTrue(config.has(MITREidDataService.AUTHENTICATIONHOLDERS))
+        assertTrue(config.has(CLIENTS))
+        assertTrue(config.has(GRANTS))
+        assertTrue(config.has(WHITELISTEDSITES))
+        assertTrue(config.has(BLACKLISTEDSITES))
+        assertTrue(config.has(REFRESHTOKENS))
+        assertTrue(config.has(ACCESSTOKENS))
+        assertTrue(config.has(SYSTEMSCOPES))
+        assertTrue(config.has(AUTHENTICATIONHOLDERS))
 
         // make sure the root elements are all arrays
-        assertTrue(config[MITREidDataService.CLIENTS].isJsonArray)
-        assertTrue(config[MITREidDataService.GRANTS].isJsonArray)
-        assertTrue(config[MITREidDataService.WHITELISTEDSITES].isJsonArray)
-        assertTrue(config[MITREidDataService.BLACKLISTEDSITES].isJsonArray)
-        assertTrue(config[MITREidDataService.REFRESHTOKENS].isJsonArray)
-        assertTrue(config[MITREidDataService.ACCESSTOKENS].isJsonArray)
-        assertTrue(config[MITREidDataService.SYSTEMSCOPES].isJsonArray)
-        assertTrue(config[MITREidDataService.AUTHENTICATIONHOLDERS].isJsonArray)
+        assertTrue(config[CLIENTS].isJsonArray)
+        assertTrue(config[GRANTS].isJsonArray)
+        assertTrue(config[WHITELISTEDSITES].isJsonArray)
+        assertTrue(config[BLACKLISTEDSITES].isJsonArray)
+        assertTrue(config[REFRESHTOKENS].isJsonArray)
+        assertTrue(config[ACCESSTOKENS].isJsonArray)
+        assertTrue(config[SYSTEMSCOPES].isJsonArray)
+        assertTrue(config[AUTHENTICATIONHOLDERS].isJsonArray)
 
 
         // check our scope list (this test)
-        val scopes = config[MITREidDataService.SYSTEMSCOPES].asJsonArray
+        val scopes = config[SYSTEMSCOPES].asJsonArray
 
         assertEquals(3, scopes.size())
         // check for both of our clients in turn
@@ -1650,39 +1656,42 @@ class TestMITREidDataService_1_3 {
     @Test
     @Throws(IOException::class)
     fun testImportSystemScopes() {
-        val scope1 = SystemScope()
-        scope1.id = 1L
-        scope1.value = "scope1"
-        scope1.description = "Scope 1"
-        scope1.isRestricted = true
-        scope1.isDefaultScope = false
-        scope1.icon = "glass"
+        val scope1 = SystemScope(
+            id = 1L,
+            value = "scope1",
+            description = "Scope 1",
+            isRestricted = true,
+            isDefaultScope = false,
+            icon = "glass",
+        )
 
-        val scope2 = SystemScope()
-        scope2.id = 2L
-        scope2.value = "scope2"
-        scope2.description = "Scope 2"
-        scope2.isRestricted = false
-        scope2.isDefaultScope = false
-        scope2.icon = "ball"
+        val scope2 = SystemScope(
+            id = 2L,
+            value = "scope2",
+            description = "Scope 2",
+            isRestricted = false,
+            isDefaultScope = false,
+            icon = "ball",
+        )
 
-        val scope3 = SystemScope()
-        scope3.id = 3L
-        scope3.value = "scope3"
-        scope3.description = "Scope 3"
-        scope3.isRestricted = false
-        scope3.isDefaultScope = true
-        scope3.icon = "road"
+        val scope3 = SystemScope(
+            id = 3L,
+            value = "scope3",
+            description = "Scope 3",
+            isRestricted = false,
+            isDefaultScope = true,
+            icon = "road",
+        )
 
         val configJson = "{" +
-                "\"" + MITREidDataService.CLIENTS + "\": [], " +
-                "\"" + MITREidDataService.ACCESSTOKENS + "\": [], " +
-                "\"" + MITREidDataService.REFRESHTOKENS + "\": [], " +
-                "\"" + MITREidDataService.GRANTS + "\": [], " +
-                "\"" + MITREidDataService.WHITELISTEDSITES + "\": [], " +
-                "\"" + MITREidDataService.BLACKLISTEDSITES + "\": [], " +
-                "\"" + MITREidDataService.AUTHENTICATIONHOLDERS + "\": [], " +
-                "\"" + MITREidDataService.SYSTEMSCOPES + "\": [" +
+                "\"$CLIENTS\": [], " +
+                "\"$ACCESSTOKENS\": [], " +
+                "\"$REFRESHTOKENS\": [], " +
+                "\"$GRANTS\": [], " +
+                "\"$WHITELISTEDSITES\": [], " +
+                "\"$BLACKLISTEDSITES\": [], " +
+                "\"$AUTHENTICATIONHOLDERS\": [], " +
+                "\"$SYSTEMSCOPES\": [" +
                 "{\"id\":1,\"description\":\"Scope 1\",\"icon\":\"glass\",\"value\":\"scope1\",\"restricted\":true,\"defaultScope\":false}," +
                 "{\"id\":2,\"description\":\"Scope 2\",\"icon\":\"ball\",\"value\":\"scope2\",\"restricted\":false,\"defaultScope\":false}," +
                 "{\"id\":3,\"description\":\"Scope 3\",\"icon\":\"road\",\"value\":\"scope3\",\"restricted\":false,\"defaultScope\":true}" +
@@ -1691,9 +1700,8 @@ class TestMITREidDataService_1_3 {
 
         logger.debug(configJson)
 
-        val reader = JsonReader(StringReader(configJson))
+        dataService.importData(configJson)
 
-        dataService.importData(reader)
         verify(sysScopeRepository, times(3)).save(capture(capturedScope))
 
         val savedScopes = capturedScope.allValues
@@ -1774,19 +1782,19 @@ class TestMITREidDataService_1_3 {
         token2.authenticationHolder = holder2
 
         val configJson = ("{" +
-                "\"" + MITREidDataService.SYSTEMSCOPES + "\": [], " +
-                "\"" + MITREidDataService.ACCESSTOKENS + "\": [], " +
-                "\"" + MITREidDataService.CLIENTS + "\": [], " +
-                "\"" + MITREidDataService.GRANTS + "\": [], " +
-                "\"" + MITREidDataService.WHITELISTEDSITES + "\": [], " +
-                "\"" + MITREidDataService.BLACKLISTEDSITES + "\": [], " +
-                "\"" + MITREidDataService.AUTHENTICATIONHOLDERS + "\": [" +
+                "\"$SYSTEMSCOPES\": [], " +
+                "\"$ACCESSTOKENS\": [], " +
+                "\"$CLIENTS\": [], " +
+                "\"$GRANTS\": [], " +
+                "\"$WHITELISTEDSITES\": [], " +
+                "\"$BLACKLISTEDSITES\": [], " +
+                "\"$AUTHENTICATIONHOLDERS\": [" +
                 "{\"id\":1,\"authentication\":{\"authorizationRequest\":{\"clientId\":\"client1\",\"redirectUri\":\"http://foo.com\"},"
                 + "\"userAuthentication\":null}}," +
                 "{\"id\":2,\"authentication\":{\"authorizationRequest\":{\"clientId\":\"client2\",\"redirectUri\":\"http://bar.com\"},"
                 + "\"userAuthentication\":null}}" +
                 "  ]," +
-                "\"" + MITREidDataService.REFRESHTOKENS + "\": [" +
+                "\"$REFRESHTOKENS\": [" +
                 "{\"id\":1,\"clientId\":\"mocked_client_1\",\"expiration\":\"2014-09-10T22:49:44.090+00:00\","
                 + "\"authenticationHolderId\":1,\"value\":\"eyJhbGciOiJub25lIn0.eyJqdGkiOiJmOTg4OWQyOS0xMTk1LTQ4ODEtODgwZC1lZjVlYzAwY2Y4NDIifQ.\"}," +
                 "{\"id\":2,\"clientId\":\"mocked_client_2\",\"expiration\":\"2015-01-07T18:31:50.079+00:00\","
@@ -1795,7 +1803,6 @@ class TestMITREidDataService_1_3 {
                 "}")
         logger.debug(configJson)
 
-        val reader = JsonReader(StringReader(configJson))
         val fakeRefreshTokenTable: MutableMap<Long, OAuth2RefreshTokenEntity> = HashMap()
         val fakeAuthHolderTable: MutableMap<Long, AuthenticationHolderEntity> = HashMap()
         whenever<OAuth2RefreshTokenEntity>(tokenRepository.saveRefreshToken(isA<OAuth2RefreshTokenEntity>()))
@@ -1836,7 +1843,8 @@ class TestMITREidDataService_1_3 {
             val _id = invocation.arguments[0] as Long
             fakeAuthHolderTable[_id]
         }
-        dataService.importData(reader)
+
+        dataService.importData(configJson)
 
         val savedRefreshTokens: List<OAuth2RefreshTokenEntity> =
             fakeRefreshTokenTable.values.sortedWith(refreshTokenIdComparator())

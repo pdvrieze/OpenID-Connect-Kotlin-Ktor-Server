@@ -15,6 +15,7 @@
  */
 package org.mitre.openid.connect.service.impl
 
+import kotlinx.serialization.json.Json
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.format.annotation.DateTimeFormat
@@ -67,5 +68,9 @@ abstract class MITREidDataServiceSupport {
          * Logger for this class
          */
         private val logger: Logger = LoggerFactory.getLogger(MITREidDataServiceSupport::class.java)
+        internal val json: Json = Json {
+            ignoreUnknownKeys = true
+            prettyPrint = true
+        }
     }
 }

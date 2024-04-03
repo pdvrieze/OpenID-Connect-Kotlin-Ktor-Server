@@ -17,6 +17,7 @@
  */
 package org.mitre.openid.connect.model
 
+import kotlinx.serialization.Serializable
 import javax.persistence.Basic
 import javax.persistence.CollectionTable
 import javax.persistence.Column
@@ -39,23 +40,24 @@ import javax.persistence.Table
 @Entity
 @Table(name = "whitelisted_site")
 @NamedQueries(NamedQuery(name = WhitelistedSite.QUERY_ALL, query = "select w from WhitelistedSite w"), NamedQuery(name = WhitelistedSite.QUERY_BY_CLIENT_ID, query = "select w from WhitelistedSite w where w.clientId = :" + WhitelistedSite.PARAM_CLIENT_ID), NamedQuery(name = WhitelistedSite.QUERY_BY_CREATOR, query = "select w from WhitelistedSite w where w.creatorUserId = :" + WhitelistedSite.PARAM_USER_ID))
-class WhitelistedSite {
+@Serializable
+class WhitelistedSite(
     @get:Column(name = "id")
     @get:GeneratedValue(strategy = GenerationType.IDENTITY)
     @get:Id
-    var id: Long? = null
+    var id: Long? = null,
 
     /** Reference to the admin user who created this entry */
     @get:Column(name = "creator_user_id")
     @get:Basic
-    var creatorUserId: String? = null
+    var creatorUserId: String? = null,
 
     /**
      * which OAuth2 client is this tied to
      */
     @get:Column(name = "client_id")
     @get:Basic
-    var clientId: String? = null
+    var clientId: String? = null,
 
     /**
      * What scopes be allowed by default. this should include all information for what data to access
@@ -63,8 +65,8 @@ class WhitelistedSite {
     @get:Column(name = "scope")
     @get:CollectionTable(name = "whitelisted_site_scope", joinColumns = [JoinColumn(name = "owner_id")])
     @get:ElementCollection(fetch = FetchType.EAGER)
-    var allowedScopes: Set<String>? = null
-
+    var allowedScopes: Set<String>? = null,
+) {
     companion object {
         const val QUERY_BY_CREATOR: String = "WhitelistedSite.getByCreatoruserId"
         const val QUERY_BY_CLIENT_ID: String = "WhitelistedSite.getByClientId"

@@ -17,6 +17,7 @@
  */
 package org.mitre.openid.connect.model
 
+import kotlinx.serialization.Serializable
 import javax.persistence.Basic
 import javax.persistence.Column
 import javax.persistence.Entity
@@ -33,22 +34,23 @@ import javax.persistence.Table
 @Entity
 @Table(name = "blacklisted_site")
 @NamedQueries(NamedQuery(name = BlacklistedSite.QUERY_ALL, query = "select b from BlacklistedSite b"))
-class BlacklistedSite {
+@Serializable
+class BlacklistedSite(
     /**
      * unique id
      */
     @get:Column(name = "id")
     @get:GeneratedValue(strategy = GenerationType.IDENTITY)
     @get:Id
-    var id: Long? = null
+    var id: Long? = null,
 
     /**
      * URI pattern to black list
      */
     @get:Column(name = "uri")
     @get:Basic
-    var uri: String? = null
-
+    var uri: String? = null,
+) {
 
     companion object {
         const val QUERY_ALL: String = "BlacklistedSite.getAll"
