@@ -26,6 +26,7 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonElement
 import org.mitre.oauth2.model.convert.AuthenticationSerializer
 import org.mitre.oauth2.model.convert.KXS_OAuth2Authentication
+import org.mitre.oauth2.model.convert.OAuth2RequestSerializer
 import org.mitre.oauth2.model.convert.SerializableStringConverter
 import org.mitre.oauth2.model.convert.SimpleGrantedAuthorityStringConverter
 import org.springframework.security.core.Authentication
@@ -176,7 +177,8 @@ class AuthenticationHolderEntity(
         val redirectUri: String? = null,
         val responseTypes: Set<String>? = null,
         val extensions: Map<String, String>? = null,
-        val userAuth: @Serializable(AuthenticationSerializer::class) Authentication? = null,
+        @SerialName("authorizationRequest") val authorizationRequest: @Serializable(OAuth2RequestSerializer::class) OAuth2Request? = null,
+        @SerialName("userAuthentication") val userAuth: @Serializable(AuthenticationSerializer::class) Authentication? = null,
     ) : SerialDelegate {
         constructor(e: AuthenticationHolderEntity) : this(
             currentId = e.id,
@@ -210,22 +212,34 @@ class AuthenticationHolderEntity(
         }
     }
 
-    companion object : KSerializer<AuthenticationHolderEntity> {
-        const val QUERY_GET_UNUSED: String = "AuthenticationHolderEntity.getUnusedAuthenticationHolders"
-        const val QUERY_ALL: String = "AuthenticationHolderEntity.getAll"
-
-        private val delegate = SerialDelegate10.serializer()
+    abstract class SerializerBase<T: SerialDelegate>(version: String, private val delegate: KSerializer<T>): KSerializer<AuthenticationHolderEntity> {
 
         @Suppress("OPT_IN_USAGE")
         override val descriptor: SerialDescriptor =
-            SerialDescriptor("org.mitre.oauth2.model.AtuehticationHolderEntity", delegate.descriptor)
+            SerialDescriptor("org.mitre.oauth2.model.AuthenticationHolderEntity.$version", delegate.descriptor)
 
         override fun deserialize(decoder: Decoder): AuthenticationHolderEntity {
             return delegate.deserialize(decoder).toAuthenticationHolder()
         }
 
+        abstract fun AuthenticationHolderEntity.toDelegate(): T
+
         override fun serialize(encoder: Encoder, value: AuthenticationHolderEntity) {
-            delegate.serialize(encoder, SerialDelegate10(value))
+            delegate.serialize(encoder, value.toDelegate())
         }
+
+    }
+
+    companion object {
+        const val QUERY_GET_UNUSED: String = "AuthenticationHolderEntity.getUnusedAuthenticationHolders"
+        const val QUERY_ALL: String = "AuthenticationHolderEntity.getAll"
+    }
+
+    object Serializer10 : SerializerBase<SerialDelegate10>("1.0", SerialDelegate10.serializer()) {
+        override fun AuthenticationHolderEntity.toDelegate(): SerialDelegate10 = SerialDelegate10(this)
+    }
+
+    object Serializer12 : SerializerBase<SerialDelegate12>("1.2", SerialDelegate12.serializer()) {
+        override fun AuthenticationHolderEntity.toDelegate(): SerialDelegate12 = SerialDelegate12(this)
     }
 }

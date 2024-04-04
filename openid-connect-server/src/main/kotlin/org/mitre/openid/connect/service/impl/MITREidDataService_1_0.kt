@@ -841,7 +841,7 @@ class MITREidDataService_1_0 : MITREidDataService {
     }
 
     override fun importData(configJson: String) {
-        val conf = MITREidDataService.json.decodeFromString<ExtendedConfiguration1>(configJson)
+        val conf = MITREidDataService.json.decodeFromString<ExtendedConfiguration10>(configJson)
         val context = Context(clientRepository, approvedSiteRepository, wlSiteRepository, blSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository, extensions, maps)
         context.importData(conf)
     }

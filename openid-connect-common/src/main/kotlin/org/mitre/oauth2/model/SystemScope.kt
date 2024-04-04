@@ -18,6 +18,7 @@
 package org.mitre.oauth2.model
 
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
@@ -158,37 +159,36 @@ class SystemScope constructor(
 
     @Serializable
     class SerialDelegate(
-        val id: Long? = null,
-        val value: String? = null, //value
-        val description: String? = null, //description
-        val allowDynReg: Boolean? = null, //allowDynReg
-        val isRestricted: Boolean? = null, // opposite of allowDynReg
-        val defaultScope: Boolean = false, //defaultScope
-        val icon: String? = null, //icon
-        val structured: JsonElement? = null,
-        val structuredParameter: JsonElement? = null
+        @SerialName("id") val id: Long? = null,
+        @SerialName("value") val value: String? = null, //value
+        @SerialName("description") val description: String? = null, //description
+        @SerialName("allowDynReg") val isAllowDynReg: Boolean? = null, //allowDynReg
+        @SerialName("restricted") val isRestricted: Boolean? = null, // opposite of allowDynReg
+        @SerialName("defaultScope") val isDefaultScope: Boolean = false, //defaultScope
+        @SerialName("icon") val icon: String? = null, //icon
+        @SerialName("structured") val structured: JsonElement? = null,
+        @SerialName("structuredParameter") val structuredParameter: JsonElement? = null
 
     ) {
         constructor(s: SystemScope) : this (
             id = s.id,
             value = s.value,
             description = s.description,
-            allowDynReg = !s.isRestricted,
+            isAllowDynReg = !s.isRestricted,
             isRestricted = s.isRestricted,
-            defaultScope = s.isDefaultScope,
+            isDefaultScope = s.isDefaultScope,
             icon = s.icon,
         )
 
         fun toSystemScope(): SystemScope {
-            logger.warn("Found a structured scope, ignoring structure")
-            logger.warn("Found a structured scope, ignoring structure")
+            if (structured != null || structuredParameter != null) logger.warn("Found a structured scope, ignoring structure")
             return SystemScope(
                 id = id,
                 value = value,
                 description = description,
                 icon = icon,
-                isDefaultScope = defaultScope,
-                isRestricted = isRestricted?: allowDynReg?.not() ?: false
+                isDefaultScope = isDefaultScope,
+                isRestricted = isRestricted?: isAllowDynReg?.not() ?: false
             )
         }
     }

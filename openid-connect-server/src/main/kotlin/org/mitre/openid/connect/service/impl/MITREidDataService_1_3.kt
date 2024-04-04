@@ -1133,6 +1133,12 @@ class MITREidDataService_1_3 : MITREidDataService {
         logger.info("Done reading system scopes")
     }
 
+    override fun importData(configJson: String) {
+        val conf = MITREidDataService.json.decodeFromString<MITREidDataService.ExtendedConfiguration12>(configJson)
+        val context = Context(clientRepository, approvedSiteRepository, wlSiteRepository, blSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository, extensions, maps)
+        context.importData(conf)
+    }
+
     override fun importGrant(context: Context, delegate: ApprovedSite.SerialDelegate) {
         with(delegate) {
             whitelistedSiteId = whitelistedSiteId.warnIgnored("whitelistedSiteId")

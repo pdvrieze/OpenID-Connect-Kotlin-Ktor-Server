@@ -898,26 +898,7 @@ class TestMITREidDataService_1_2 {
             JWTParser.parse("eyJhbGciOiJub25lIn0.eyJqdGkiOiJlYmEyYjc3My0xNjAzLTRmNDAtOWQ3MS1hMGIxZDg1OWE2MDAifQ.")
         token2.authenticationHolder = holder2
 
-        val configJson = ("{" +
-                "\"" + MITREidDataService.SYSTEMSCOPES + "\": [], " +
-                "\"" + MITREidDataService.ACCESSTOKENS + "\": [], " +
-                "\"" + MITREidDataService.CLIENTS + "\": [], " +
-                "\"" + MITREidDataService.GRANTS + "\": [], " +
-                "\"" + MITREidDataService.WHITELISTEDSITES + "\": [], " +
-                "\"" + MITREidDataService.BLACKLISTEDSITES + "\": [], " +
-                "\"" + MITREidDataService.AUTHENTICATIONHOLDERS + "\": [" +
-                "{\"id\":1,\"authentication\":{\"authorizationRequest\":{\"clientId\":\"client1\",\"redirectUri\":\"http://foo.com\"},"
-                + "\"userAuthentication\":null}}," +
-                "{\"id\":2,\"authentication\":{\"authorizationRequest\":{\"clientId\":\"client2\",\"redirectUri\":\"http://bar.com\"},"
-                + "\"userAuthentication\":null}}" +
-                "  ]," +
-                "\"" + MITREidDataService.REFRESHTOKENS + "\": [" +
-                "{\"id\":1,\"clientId\":\"mocked_client_1\",\"expiration\":\"2014-09-10T22:49:44.090+00:00\","
-                + "\"authenticationHolderId\":1,\"value\":\"eyJhbGciOiJub25lIn0.eyJqdGkiOiJmOTg4OWQyOS0xMTk1LTQ4ODEtODgwZC1lZjVlYzAwY2Y4NDIifQ.\"}," +
-                "{\"id\":2,\"clientId\":\"mocked_client_2\",\"expiration\":\"2015-01-07T18:31:50.079+00:00\","
-                + "\"authenticationHolderId\":2,\"value\":\"eyJhbGciOiJub25lIn0.eyJqdGkiOiJlYmEyYjc3My0xNjAzLTRmNDAtOWQ3MS1hMGIxZDg1OWE2MDAifQ.\"}" +
-                "  ]" +
-                "}")
+        val configJson = ("{\"${MITREidDataService.SYSTEMSCOPES}\": [], \"${MITREidDataService.ACCESSTOKENS}\": [], \"${MITREidDataService.CLIENTS}\": [], \"${MITREidDataService.GRANTS}\": [], \"${MITREidDataService.WHITELISTEDSITES}\": [], \"${MITREidDataService.BLACKLISTEDSITES}\": [], \"${MITREidDataService.AUTHENTICATIONHOLDERS}\": [{\"id\":1,\"authentication\":{\"authorizationRequest\":{\"clientId\":\"client1\",\"redirectUri\":\"http://foo.com\"},\"userAuthentication\":null}},{\"id\":2,\"authentication\":{\"authorizationRequest\":{\"clientId\":\"client2\",\"redirectUri\":\"http://bar.com\"},\"userAuthentication\":null}}  ],\"${MITREidDataService.REFRESHTOKENS}\": [{\"id\":1,\"clientId\":\"mocked_client_1\",\"expiration\":\"2014-09-10T22:49:44.090+00:00\",\"authenticationHolderId\":1,\"value\":\"eyJhbGciOiJub25lIn0.eyJqdGkiOiJmOTg4OWQyOS0xMTk1LTQ4ODEtODgwZC1lZjVlYzAwY2Y4NDIifQ.\"},{\"id\":2,\"clientId\":\"mocked_client_2\",\"expiration\":\"2015-01-07T18:31:50.079+00:00\",\"authenticationHolderId\":2,\"value\":\"eyJhbGciOiJub25lIn0.eyJqdGkiOiJlYmEyYjc3My0xNjAzLTRmNDAtOWQ3MS1hMGIxZDg1OWE2MDAifQ.\"}  ]}")
         logger.debug(configJson)
 
         val fakeRefreshTokenTable: MutableMap<Long, OAuth2RefreshTokenEntity> = HashMap()
