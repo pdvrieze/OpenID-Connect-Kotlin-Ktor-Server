@@ -17,7 +17,6 @@ package org.mitre.openid.connect.service.impl
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonParser
-import com.google.gson.stream.JsonWriter
 import com.nimbusds.jwt.JWTParser
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -78,7 +77,6 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication
 import org.springframework.security.oauth2.provider.OAuth2Request
 import org.springframework.util.ReflectionUtils
 import java.io.IOException
-import java.io.StringWriter
 import java.text.ParseException
 import java.util.*
 
@@ -197,15 +195,10 @@ class TestMITREidDataService_1_3 {
         whenever(sysScopeRepository.all).thenReturn(HashSet())
 
         // do the data export
-        val stringWriter = StringWriter()
-        val writer = JsonWriter(stringWriter)
-        writer.beginObject()
-        dataService.exportData(writer)
-        writer.endObject()
-        writer.close()
+        val data = dataService.exportData()
 
         // parse the output as a JSON object for testing
-        val elem = JsonParser().parse(stringWriter.toString())
+        val elem = JsonParser().parse(data)
         val root = elem.asJsonObject
 
         // make sure the root is there
@@ -441,15 +434,10 @@ class TestMITREidDataService_1_3 {
         whenever(sysScopeRepository.all).thenReturn(HashSet())
 
         // do the data export
-        val stringWriter = StringWriter()
-        val writer = JsonWriter(stringWriter)
-        writer.beginObject()
-        dataService.exportData(writer)
-        writer.endObject()
-        writer.close()
+        val data = dataService.exportData()
 
         // parse the output as a JSON object for testing
-        val elem = JsonParser().parse(stringWriter.toString())
+        val elem = JsonParser().parse(data)
         val root = elem.asJsonObject
 
         // make sure the root is there
@@ -685,15 +673,10 @@ class TestMITREidDataService_1_3 {
         whenever(sysScopeRepository.all).thenReturn(HashSet())
 
         // do the data export
-        val stringWriter = StringWriter()
-        val writer = JsonWriter(stringWriter)
-        writer.beginObject()
-        dataService.exportData(writer)
-        writer.endObject()
-        writer.close()
+        val data = dataService.exportData()
 
         // parse the output as a JSON object for testing
-        val elem = JsonParser().parse(stringWriter.toString())
+        val elem = JsonParser().parse(data)
         val root = elem.asJsonObject
 
         // make sure the root is there
@@ -857,15 +840,10 @@ class TestMITREidDataService_1_3 {
         whenever(sysScopeRepository.all).thenReturn(HashSet())
 
         // do the data export
-        val stringWriter = StringWriter()
-        val writer = JsonWriter(stringWriter)
-        writer.beginObject()
-        dataService.exportData(writer)
-        writer.endObject()
-        writer.close()
+        val data = dataService.exportData()
 
         // parse the output as a JSON object for testing
-        val elem = JsonParser().parse(stringWriter.toString())
+        val elem = JsonParser().parse(data)
         val root = elem.asJsonObject
 
         // make sure the root is there
@@ -996,15 +974,10 @@ class TestMITREidDataService_1_3 {
         whenever(sysScopeRepository.all).thenReturn(HashSet())
 
         // do the data export
-        val stringWriter = StringWriter()
-        val writer = JsonWriter(stringWriter)
-        writer.beginObject()
-        dataService.exportData(writer)
-        writer.endObject()
-        writer.close()
+        val data = dataService.exportData()
 
         // parse the output as a JSON object for testing
-        val elem = JsonParser().parse(stringWriter.toString())
+        val elem = JsonParser().parse(data)
         val root = elem.asJsonObject
 
         // make sure the root is there
@@ -1169,15 +1142,10 @@ class TestMITREidDataService_1_3 {
         whenever(sysScopeRepository.all).thenReturn(HashSet())
 
         // do the data export
-        val stringWriter = StringWriter()
-        val writer = JsonWriter(stringWriter)
-        writer.beginObject()
-        dataService.exportData(writer)
-        writer.endObject()
-        writer.close()
+        val data = dataService.exportData()
 
         // parse the output as a JSON object for testing
-        val elem = JsonParser().parse(stringWriter.toString())
+        val elem = JsonParser().parse(data)
         val root = elem.asJsonObject
 
         // make sure the root is there
@@ -1396,15 +1364,10 @@ class TestMITREidDataService_1_3 {
         whenever(sysScopeRepository.all).thenReturn(HashSet())
 
         // do the data export
-        val stringWriter = StringWriter()
-        val writer = JsonWriter(stringWriter)
-        writer.beginObject()
-        dataService.exportData(writer)
-        writer.endObject()
-        writer.close()
+        val data = dataService.exportData()
 
         // parse the output as a JSON object for testing
-        val elem = JsonParser().parse(stringWriter.toString())
+        val elem = JsonParser().parse(data)
         val root = elem.asJsonObject
 
         // make sure the root is there
@@ -1582,15 +1545,10 @@ class TestMITREidDataService_1_3 {
         whenever(sysScopeRepository.all).thenReturn(allScopes)
 
         // do the data export
-        val stringWriter = StringWriter()
-        val writer = JsonWriter(stringWriter)
-        writer.beginObject()
-        dataService.exportData(writer)
-        writer.endObject()
-        writer.close()
+        val data = dataService.exportData()
 
         // parse the output as a JSON object for testing
-        val elem = JsonParser().parse(stringWriter.toString())
+        val elem = JsonParser().parse(data)
         val root = elem.asJsonObject
 
         // make sure the root is there

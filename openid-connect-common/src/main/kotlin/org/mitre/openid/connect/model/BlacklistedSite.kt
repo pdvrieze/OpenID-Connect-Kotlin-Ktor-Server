@@ -17,6 +17,8 @@
  */
 package org.mitre.openid.connect.model
 
+import kotlinx.serialization.EncodeDefault
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import javax.persistence.Basic
 import javax.persistence.Column
@@ -31,6 +33,7 @@ import javax.persistence.Table
 /**
  * @author jricher
  */
+@OptIn(ExperimentalSerializationApi::class)
 @Entity
 @Table(name = "blacklisted_site")
 @NamedQueries(NamedQuery(name = BlacklistedSite.QUERY_ALL, query = "select b from BlacklistedSite b"))
@@ -42,6 +45,7 @@ class BlacklistedSite(
     @get:Column(name = "id")
     @get:GeneratedValue(strategy = GenerationType.IDENTITY)
     @get:Id
+    @EncodeDefault
     var id: Long? = null,
 
     /**
@@ -49,6 +53,7 @@ class BlacklistedSite(
      */
     @get:Column(name = "uri")
     @get:Basic
+    @EncodeDefault
     var uri: String? = null,
 ) {
 

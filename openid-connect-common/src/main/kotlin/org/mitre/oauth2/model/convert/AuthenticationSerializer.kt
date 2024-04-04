@@ -28,7 +28,7 @@ object AuthenticationSerializer : KSerializer<Authentication> {
         val name: String? = null,
         val sourceClass: String? = null,
         val authenticated: Boolean = false,
-        val authorities: Set<GrantedAuthority>? = null,
+        val authorities: Set<@Serializable(SimpleGrantedAuthorityStringConverter::class) GrantedAuthority>? = null,
     ) {
         constructor(e: Authentication) : this(
             name = e.name,

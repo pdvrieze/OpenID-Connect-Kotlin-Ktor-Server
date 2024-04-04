@@ -17,6 +17,8 @@
  */
 package org.mitre.openid.connect.model
 
+import kotlinx.serialization.EncodeDefault
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.mitre.openid.connect.model.convert.ISODate
@@ -89,20 +91,29 @@ class ApprovedSite {
             }
         }
 
+    @OptIn(ExperimentalSerializationApi::class)
     @Serializable
     class SerialDelegate(
-        @SerialName("id") val currentId: Long,
-        @SerialName("accessDate") val accessDate: ISODate? = null,
-        @SerialName("clientId") val clientId: String? = null,
-        @SerialName("creationDate") val creationDate: ISODate? = null,
-        @SerialName("timeoutDate") val timeoutDate: ISODate? = null,
-        @SerialName("userId") val userId: String? = null,
-        @SerialName("allowedScopes") val allowedScopes: Set<String>? = null,
-        @SerialName("whitelistedSiteId") var whitelistedSiteId: Long? = null,
-        @SerialName("approvedAccessTokens") val approvedAccessTokens: Set<Long>? = null,
+        @EncodeDefault @SerialName("id") val currentId: Long,
+        @EncodeDefault @SerialName("accessDate") val accessDate: ISODate? = null,
+        @EncodeDefault @SerialName("clientId") val clientId: String,
+        @EncodeDefault @SerialName("creationDate") val creationDate: ISODate? = null,
+        @EncodeDefault @SerialName("timeoutDate") val timeoutDate: ISODate? = null,
+        @EncodeDefault @SerialName("userId") val userId: String? = null,
+        @EncodeDefault @SerialName("allowedScopes") val allowedScopes: Set<String>? = null,
+        @EncodeDefault @SerialName("whitelistedSiteId") var whitelistedSiteId: Long? = null,
+        @EncodeDefault @SerialName("approvedAccessTokens") val approvedAccessTokens: Set<Long> = emptySet(),
     ) {
-        constructor(s: ApprovedSite): this(
+        constructor(s: ApprovedSite, approvedAccessTokens: Set<Long>): this(
             s.id!!,
+            s.accessDate,
+            s.clientId!!,
+            s.creationDate,
+            s.timeoutDate,
+            s.userId,
+            s.allowedScopes,
+            null,
+            approvedAccessTokens
         )
     }
 

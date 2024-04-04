@@ -20,6 +20,7 @@ package org.mitre.oauth2.model
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.nimbusds.jwt.JWT
+import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -189,13 +190,13 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
     @Serializable
     class SerialDelegate internal constructor(
         @SerialName("id") val currentId: Long,
-        @SerialName("expiration") val expiration: ISODate? = null,
-        @SerialName("value") val value: @Serializable(JWTStringConverter::class) JWT? = null,
+        @SerialName("expiration") @EncodeDefault val expiration: ISODate? = null,
+        @SerialName("value") @EncodeDefault val value: @Serializable(JWTStringConverter::class) JWT? = null,
         @SerialName("clientId") val clientId: String,
-        @SerialName("authenticationHolderId") val authenticationHolderId: Long,
-        @SerialName("refreshTokenId") val refreshTokenId: Long? = null,
-        @SerialName("scope") val scope: Set<String>? = null,
-        @SerialName("type") val tokenType: String = OAuth2AccessToken.BEARER_TYPE
+        @SerialName("authenticationHolderId")  val authenticationHolderId: Long,
+        @SerialName("refreshTokenId") @EncodeDefault val refreshTokenId: Long? = null,
+        @SerialName("scope") @EncodeDefault val scope: Set<String>? = null,
+        @SerialName("type") @EncodeDefault val tokenType: String = OAuth2AccessToken.BEARER_TYPE
     ) {
         constructor(s: OAuth2AccessTokenEntity): this(
             currentId = s.id!!,

@@ -17,10 +17,11 @@
  */
 package org.mitre.openid.connect.web
 
-import com.google.gson.stream.JsonWriter
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.decodeFromStream
+import kotlinx.serialization.json.encodeToStream
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.service.MITREidDataService
 import org.mitre.openid.connect.service.impl.MITREidDataService_1_3
@@ -147,32 +148,23 @@ class DataAPI {
         return "httpCodeView"
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
     @RequestMapping(method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     @Throws(IOException::class)
     fun exportData(resp: HttpServletResponse, prin: Principal) {
         resp.contentType = MediaType.APPLICATION_JSON_VALUE
 
-        // this writer puts things out onto the wire
-        val writer = JsonWriter(resp.writer)
-        writer.setIndent("  ")
+        val out = resp.outputStream
+
+        val conf = mapOf(
+            "exported-at" to dateFormat.format(Date()),
+            "exported-from" to config.issuer,
+            "exported-by" to prin.name,
+            MITREidDataService_1_3.THIS_VERSION to exporter.toSerialConfig()
+        )
 
         try {
-            writer.beginObject()
-
-            writer.name("exported-at")
-            writer.value(dateFormat.format(Date()))
-
-            writer.name("exported-from")
-            writer.value(config.issuer)
-
-            writer.name("exported-by")
-            writer.value(prin.name)
-
-            // delegate to the service to do the actual export
-            exporter.exportData(writer)
-
-            writer.endObject() // end root
-            writer.close()
+            MITREidDataService.json.encodeToStream(conf, out)
         } catch (e: IOException) {
             logger.error("Unable to export data", e)
         }

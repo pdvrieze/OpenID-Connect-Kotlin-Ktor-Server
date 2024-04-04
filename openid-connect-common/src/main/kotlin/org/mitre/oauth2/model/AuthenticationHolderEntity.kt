@@ -17,6 +17,8 @@
  */
 package org.mitre.oauth2.model
 
+import kotlinx.serialization.EncodeDefault
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -165,32 +167,33 @@ class AuthenticationHolderEntity(
         }
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
     @KXS_Serializable
     public class SerialDelegate12(
-        @SerialName("id") val currentId: Long? = null,
-        val requestParameters: Map<String, String>? = null,
-        val clientId: String? = null,
-        val scope: Set<String>? = null,
-        val resourceIds: Set<String>? = null,
-        val authorities: Collection<@Serializable(SimpleGrantedAuthorityStringConverter::class) GrantedAuthority>? = null,
-        val isApproved: Boolean = false,
-        val redirectUri: String? = null,
-        val responseTypes: Set<String>? = null,
-        val extensions: Map<String, String>? = null,
+        @SerialName("id") val currentId: Long,
+        @SerialName("requestParameters") @EncodeDefault val requestParameters: Map<String, String> = emptyMap(),
+        @SerialName("clientId") @EncodeDefault val clientId: String? = null,
+        @SerialName("scope") @EncodeDefault val scope: Set<String>? = null,
+        @SerialName("resourceIds") @EncodeDefault val resourceIds: Set<String>? = null,
+        @SerialName("authorities") @EncodeDefault val authorities: Collection<@Serializable(SimpleGrantedAuthorityStringConverter::class) GrantedAuthority> = emptyList(),
+        @SerialName("approved") @EncodeDefault val isApproved: Boolean = false,
+        @SerialName("redirectUri") @EncodeDefault val redirectUri: String? = null,
+        @SerialName("responseTypes") @EncodeDefault val responseTypes: Set<String> = emptySet(),
+        @SerialName("extensions") @EncodeDefault val extensions: Map<String, String> = emptyMap(),
         @SerialName("authorizationRequest") val authorizationRequest: @Serializable(OAuth2RequestSerializer::class) OAuth2Request? = null,
-        @SerialName("userAuthentication") val userAuth: @Serializable(AuthenticationSerializer::class) Authentication? = null,
+        @SerialName("savedUserAuthentication") val userAuth: @Serializable(AuthenticationSerializer::class) Authentication? = null,
     ) : SerialDelegate {
         constructor(e: AuthenticationHolderEntity) : this(
-            currentId = e.id,
-            requestParameters = e.requestParameters,
+            currentId = e.id!!,
+            requestParameters = e.requestParameters ?: emptyMap(),
             clientId = e.clientId,
             scope = e.scope,
             resourceIds = e.resourceIds,
-            authorities = e.authorities,
+            authorities = e.authorities ?: emptyList(),
             isApproved = e.isApproved,
             redirectUri = e.redirectUri,
-            responseTypes = e.responseTypes,
-            extensions = e.extensions?.asSequence()?.mapNotNull { (k, v) -> (v as? String)?.let { k to it } }?.associate { it },
+            responseTypes = e.responseTypes ?: emptySet(),
+            extensions = e.extensions?.asSequence()?.mapNotNull { (k, v) -> (v as? String)?.let { k to it } }?.associate { it } ?: emptyMap(),
             userAuth = e.userAuth,
         )
 
@@ -212,9 +215,9 @@ class AuthenticationHolderEntity(
         }
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
     abstract class SerializerBase<T: SerialDelegate>(version: String, private val delegate: KSerializer<T>): KSerializer<AuthenticationHolderEntity> {
 
-        @Suppress("OPT_IN_USAGE")
         override val descriptor: SerialDescriptor =
             SerialDescriptor("org.mitre.oauth2.model.AuthenticationHolderEntity.$version", delegate.descriptor)
 

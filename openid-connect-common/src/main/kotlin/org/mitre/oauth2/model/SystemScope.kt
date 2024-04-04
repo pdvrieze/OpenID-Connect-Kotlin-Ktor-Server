@@ -17,6 +17,8 @@
  */
 package org.mitre.oauth2.model
 
+import kotlinx.serialization.EncodeDefault
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -42,7 +44,7 @@ import javax.persistence.Table
 @Table(name = "system_scope")
 @NamedQueries(NamedQuery(name = SystemScope.QUERY_ALL, query = "select s from SystemScope s ORDER BY s.id"), NamedQuery(name = SystemScope.QUERY_BY_VALUE, query = "select s from SystemScope s WHERE s.value = :" + SystemScope.PARAM_VALUE))
 @Serializable(SystemScope.Companion::class)
-class SystemScope constructor(
+class SystemScope(
     @get:Column(name = "id")
     @get:GeneratedValue(strategy = GenerationType.IDENTITY)
     @get:Id
@@ -157,15 +159,16 @@ class SystemScope constructor(
                 "restricted=$isRestricted]")
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
     @Serializable
     class SerialDelegate(
-        @SerialName("id") val id: Long? = null,
-        @SerialName("value") val value: String? = null, //value
-        @SerialName("description") val description: String? = null, //description
+        @EncodeDefault @SerialName("id") val id: Long? = null,
+        @EncodeDefault @SerialName("value") val value: String? = null, //value
+        @EncodeDefault @SerialName("description") val description: String? = null, //description
         @SerialName("allowDynReg") val isAllowDynReg: Boolean? = null, //allowDynReg
         @SerialName("restricted") val isRestricted: Boolean? = null, // opposite of allowDynReg
-        @SerialName("defaultScope") val isDefaultScope: Boolean = false, //defaultScope
-        @SerialName("icon") val icon: String? = null, //icon
+        @EncodeDefault @SerialName("defaultScope") val isDefaultScope: Boolean = false, //defaultScope
+        @EncodeDefault @SerialName("icon") val icon: String? = null, //icon
         @SerialName("structured") val structured: JsonElement? = null,
         @SerialName("structuredParameter") val structuredParameter: JsonElement? = null
 
@@ -194,10 +197,11 @@ class SystemScope constructor(
     }
 
 
+    @OptIn(ExperimentalSerializationApi::class)
     companion object : KSerializer<SystemScope> {
-        val logger = LoggerFactory.getLogger(SystemScope::class.java)
+        @JvmStatic
+        private val logger = LoggerFactory.getLogger(SystemScope::class.java)
         val delegate = SerialDelegate.serializer()
-        @Suppress("OPT_IN_USAGE")
         override val descriptor: SerialDescriptor =
             SerialDescriptor("org.mitre.oauth2.model.SystemScope", delegate.descriptor)
 

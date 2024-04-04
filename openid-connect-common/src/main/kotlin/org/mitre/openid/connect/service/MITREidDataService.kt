@@ -17,13 +17,13 @@
  */
 package org.mitre.openid.connect.service
 
-import com.google.gson.stream.JsonWriter
 import com.nimbusds.jose.EncryptionMethod
 import com.nimbusds.jose.JWEAlgorithm
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jwt.JWT
 import kotlinx.serialization.ContextualSerializer
+import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
@@ -80,12 +80,11 @@ import java.util.*
  */
 interface MITREidDataService {
     /**
-     * Write out the current server state to the given JSON writer as a JSON object
+     * Write out the current server state as String.
      *
      * @throws IOException
      */
-    @Throws(IOException::class)
-    fun exportData(writer: JsonWriter)
+    fun exportData(): String
 
     /**
      * Read in the current server state from the pre-parsed configuration data
@@ -106,49 +105,38 @@ interface MITREidDataService {
 
 
     fun Context.importData(conf: ExtendedConfiguration) {
-        conf.clients?.let {
-            for (client in it) importClient(this, client)
-            logger.info("Done reading clients")
-        }
-        conf.grants?.let {
-            for (delegate in it) importGrant(this, delegate)
-            logger.info("Done reading grants")
-        }
-        conf.whitelistedSites?.let {
-            for (wlSite in it) importWhitelistedSite(this, wlSite)
-            logger.info("Done reading whitelisted sites")
-        }
-        conf.blacklistedSites?.let {
-            for (blSite in it) importBlacklistedSite(this, blSite)
-            logger.info("Done reading blacklisted sites")
-        }
-        conf.authenticationHolders?.let {
-            for (ahe in it) importAuthenticationHolder(this, ahe)
-            logger.info("Done reading authentication holders")
-        }
-        conf.accessTokens?.let {
-            for (delegate in it) importAccessToken(this, delegate)
-            logger.info("Done reading access tokens")
-        }
-        conf.refreshTokens?.let {
-            for (delegate in it) importRefreshToken(this, delegate)
-            logger.info("Done reading refresh tokens")
-        }
-        conf.systemScopes?.let {
-            for (scope in it) importSystemScope(this, scope)
-            logger.info("Done reading system scopes")
-        }
+        for (client in conf.clients) importClient(this, client)
+        logger.info("Done reading clients")
+
+        for (delegate in conf.grants) importGrant(this, delegate)
+        logger.info("Done reading grants")
+
+        for (wlSite in conf.whitelistedSites) importWhitelistedSite(this, wlSite)
+        logger.info("Done reading whitelisted sites")
+
+        for (blSite in conf.blacklistedSites) importBlacklistedSite(this, blSite)
+        logger.info("Done reading blacklisted sites")
+
+        for (ahe in conf.authenticationHolders) importAuthenticationHolder(this, ahe)
+        logger.info("Done reading authentication holders")
+
+        for (delegate in conf.accessTokens) importAccessToken(this, delegate)
+        logger.info("Done reading access tokens")
+
+        for (delegate in conf.refreshTokens) importRefreshToken(this, delegate)
+        logger.info("Done reading refresh tokens")
+
+        for (scope in conf.systemScopes) importSystemScope(this, scope)
+        logger.info("Done reading system scopes")
+
         // TODO readExtensions(conf)
         fixObjectReferences(this)
-        // TODO fixExtensionObjectReferences(maps)
+        fixExtensionObjectReferences(this)
+
+
         maps.clearAll()
+
         /*
-    for (extension in extensions) {
-        if (extension.supportsVersion(THIS_VERSION)) {
-            extension.fixExtensionObjectReferences(maps)
-            break
-        }
-    }
     maps.clearAll()
 */
     }
@@ -165,7 +153,7 @@ interface MITREidDataService {
                 logger.debug("Ignoring whitelisted site marker on approved site.")
             }
 
-            val tokenIds: Set<Long>? = delegate.approvedAccessTokens
+            val tokenIds: Set<Long> = delegate.approvedAccessTokens
 
             val site = ApprovedSite().apply {
                 accessDate = delegate.accessDate
@@ -179,7 +167,7 @@ interface MITREidDataService {
             val newId = approvedSiteRepository.save(site).id!!
             maps.grantOldToNewIdMap[currentId] = newId
 
-            if (tokenIds != null) {
+            if (!tokenIds.isNullOrEmpty()) {
                 maps.grantToAccessTokensRefs[currentId] = tokenIds
             }
             logger.debug("Read grant {}", currentId)
@@ -264,6 +252,16 @@ interface MITREidDataService {
         context.sysScopeRepository.save(scope)
     }
 
+    fun fixExtensionObjectReferences(context: Context) {
+        for (extension in context.extensions) {
+            if (extension.supportsVersion(context.version)) {
+                extension.fixExtensionObjectReferences(context.maps)
+                break
+            }
+        }
+
+    }
+
     fun fixObjectReferences(context: Context) {
         with(context) {
             for ((oldRefreshTokenId, clientRef) in maps.refreshTokenToClientRefs) {
@@ -327,58 +325,111 @@ interface MITREidDataService {
         }
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
     @Serializable
     class ClientDetailsConfiguration(
-        @SerialName("clientId") val clientId: String,
-        @SerialName("resourceIds") val resourceIds: Set<String>? = null,
-        @SerialName("secret") val secret: String? = null,
-        @SerialName("scope") val scope: Set<String>? = null,
-        @SerialName("authorities") val authorities: Set<@Serializable(SimpleGrantedAuthorityStringConverter::class) SimpleGrantedAuthority>? = null,
-        @SerialName("accessTokenValiditySeconds") val accessTokenValiditySeconds: Int? = null,
-        @SerialName("refreshTokenValiditySeconds") val refreshTokenValiditySeconds: Int? = null,
-        @SerialName("idTokenValiditySeconds") val idTokenValiditySeconds: Int? = null,
-        @SerialName("deviceTokenValiditySeconds") val deviceCodeValiditySeconds: Int? = null,
-        @SerialName("redirectUris") val redirectUris: Set<String> = hashSetOf(),
-        @SerialName("claimsRedirectUris") var claimsRedirectUris: Set<String>? = null,
-        @SerialName("name") val clientName: String? = null,
-        @SerialName("uri") val clientUri: String? = null,
-        @SerialName("logoUri") val logoUri: String? = null,
-        @SerialName("contacts") val contacts: Set<String>? = null,
-        @SerialName("tosUri") val tosUri: String? = null,
-        @SerialName("tokenEndpointAuthMethod") val tokenEndpointAuthMethod: ClientDetailsEntity.AuthMethod = ClientDetailsEntity.AuthMethod.SECRET_BASIC,
-        @SerialName("grantTypes") val grantTypes: Set<String> = hashSetOf(),
-        @SerialName("responseTypes") val responseTypes: Set<String> = hashSetOf(),
-        @SerialName("policyUri") val policyUri: String? = null,
-        @SerialName("applicationType") val applicationType: ClientDetailsEntity.AppType = ClientDetailsEntity.AppType.WEB,
-        @SerialName("sectorIdentifierUri") val sectorIdentifierUri: String? = null,
-        @SerialName("subjectType") val subjectType: ClientDetailsEntity.SubjectType? = null,
-        @SerialName("jwks_uri") val jwks_uri: String? = null,
-        @SerialName("jwks") var jwks: @Serializable(JWKSetStringConverter::class) JWKSet? = null,
-        @SerialName("requestObjectSigningAlg") val requestObjectSigningAlg: @Serializable(JWSAlgorithmStringConverter::class) JWSAlgorithm? = null,
-        @SerialName("userInfoEncryptedResponseAlg") val userInfoEncryptedResponseAlg: @Serializable(JWEAlgorithmStringConverter::class) JWEAlgorithm? = null,
-        @SerialName("userInfoEncryptedResponseEnc") val userInfoEncryptedResponseEnc: @Serializable(JWEEncryptionMethodStringConverter::class) EncryptionMethod? = null,
-        @SerialName("userInfoSignedResponseAlg") val userInfoSignedResponseAlg: @Serializable(JWSAlgorithmStringConverter::class) JWSAlgorithm? = null,
-        @SerialName("idTokenSignedResonseAlg") val idTokenSignedResponseAlg: @Serializable(JWSAlgorithmStringConverter::class) JWSAlgorithm? = null,
-        @SerialName("idTokenEncryptedResponseAlg") val idTokenEncryptedResponseAlg: @Serializable(JWEAlgorithmStringConverter::class) JWEAlgorithm? = null,
-        @SerialName("idTokenEncryptedResponseEnc") val idTokenEncryptedResponseEnc: @Serializable(JWEEncryptionMethodStringConverter::class) EncryptionMethod? = null,
-        @SerialName("tokenEndpointAuthSigningAlg") val tokenEndpointAuthSigningAlg: @Serializable(JWSAlgorithmStringConverter::class) JWSAlgorithm? = null,
-        @SerialName("defaultMaxAge") val defaultMaxAge: Int? = null,
+        @EncodeDefault @SerialName("clientId") val clientId: String,
+        @EncodeDefault @SerialName("resourceIds") val resourceIds: Set<String>? = null,
+        @EncodeDefault @SerialName("secret") val secret: String? = null,
+        @EncodeDefault @SerialName("scope") val scope: Set<String>? = null,
+        @EncodeDefault @SerialName("authorities") val authorities: Set<@Serializable(SimpleGrantedAuthorityStringConverter::class) SimpleGrantedAuthority> = emptySet(),
+        @EncodeDefault @SerialName("accessTokenValiditySeconds") val accessTokenValiditySeconds: Int? = null,
+        @EncodeDefault @SerialName("refreshTokenValiditySeconds") val refreshTokenValiditySeconds: Int? = null,
+        @EncodeDefault @SerialName("idTokenValiditySeconds") val idTokenValiditySeconds: Int? = null,
+        @EncodeDefault @SerialName("deviceTokenValiditySeconds") val deviceCodeValiditySeconds: Int? = null,
+        @EncodeDefault @SerialName("redirectUris") val redirectUris: Set<String> = hashSetOf(),
+        @EncodeDefault @SerialName("claimsRedirectUris") var claimsRedirectUris: Set<String>? = null,
+        @EncodeDefault @SerialName("name") val clientName: String? = null,
+        @EncodeDefault @SerialName("uri") val clientUri: String? = null,
+        @EncodeDefault @SerialName("logoUri") val logoUri: String? = null,
+        @EncodeDefault @SerialName("contacts") val contacts: Set<String>? = null,
+        @EncodeDefault @SerialName("tosUri") val tosUri: String? = null,
+        @EncodeDefault @SerialName("tokenEndpointAuthMethod") val tokenEndpointAuthMethod: ClientDetailsEntity.AuthMethod = ClientDetailsEntity.AuthMethod.SECRET_BASIC,
+        @EncodeDefault @SerialName("grantTypes") val grantTypes: Set<String> = hashSetOf(),
+        @EncodeDefault @SerialName("responseTypes") val responseTypes: Set<String> = hashSetOf(),
+        @EncodeDefault @SerialName("policyUri") val policyUri: String? = null,
+        @EncodeDefault @SerialName("applicationType") val applicationType: ClientDetailsEntity.AppType = ClientDetailsEntity.AppType.WEB,
+        @EncodeDefault @SerialName("sectorIdentifierUri") val sectorIdentifierUri: String? = null,
+        @EncodeDefault @SerialName("subjectType") val subjectType: ClientDetailsEntity.SubjectType? = null,
+        @EncodeDefault @SerialName("jwks_uri") val jwks_uri: String? = null,
+        @EncodeDefault @SerialName("jwks") var jwks: @Serializable(JWKSetStringConverter::class) JWKSet? = null,
+        @EncodeDefault @SerialName("requestObjectSigningAlg") val requestObjectSigningAlg: @Serializable(JWSAlgorithmStringConverter::class) JWSAlgorithm? = null,
+        @EncodeDefault @SerialName("userInfoEncryptedResponseAlg") val userInfoEncryptedResponseAlg: @Serializable(JWEAlgorithmStringConverter::class) JWEAlgorithm? = null,
+        @EncodeDefault @SerialName("userInfoEncryptedResponseEnc") val userInfoEncryptedResponseEnc: @Serializable(JWEEncryptionMethodStringConverter::class) EncryptionMethod? = null,
+        @EncodeDefault @SerialName("userInfoSignedResponseAlg") val userInfoSignedResponseAlg: @Serializable(JWSAlgorithmStringConverter::class) JWSAlgorithm? = null,
+        @EncodeDefault @SerialName("idTokenSignedResonseAlg") val idTokenSignedResponseAlg: @Serializable(JWSAlgorithmStringConverter::class) JWSAlgorithm? = null,
+        @EncodeDefault @SerialName("idTokenEncryptedResponseAlg") val idTokenEncryptedResponseAlg: @Serializable(JWEAlgorithmStringConverter::class) JWEAlgorithm? = null,
+        @EncodeDefault @SerialName("idTokenEncryptedResponseEnc") val idTokenEncryptedResponseEnc: @Serializable(JWEEncryptionMethodStringConverter::class) EncryptionMethod? = null,
+        @EncodeDefault @SerialName("tokenEndpointAuthSigningAlg") val tokenEndpointAuthSigningAlg: @Serializable(JWSAlgorithmStringConverter::class) JWSAlgorithm? = null,
+        @EncodeDefault @SerialName("defaultMaxAge") val defaultMaxAge: Int? = null,
         @SerialName("requireAuthTime") val requireAuthTime: Boolean? = null,
-        @SerialName("defaultACRValues") val defaultACRValues: Set<String>? = null,
-        @SerialName("initiateLoginUri") val initiateLoginUri: String? = null,
-        @SerialName("postLogoutRedirectUri") val postLogoutRedirectUris: Set<String>? = null,
-        @SerialName("requestUris") val requestUris: Set<String>? = null,
-        @SerialName("description") val description: String = "",
-        @SerialName("allowIntrospection") val allowIntrospection: Boolean = false,
-        @SerialName("reuseRefreshToken") val isReuseRefreshToken: Boolean = true,
-        @SerialName("clearAccessTokensOnRefresh") var isClearAccessTokensOnRefresh: Boolean = true,
-        @SerialName("dynamicallyRegistered") val isDynamicallyRegistered: Boolean = false,
-        @SerialName("codeChallengeMethod") var codeChallengeMethod: PKCEAlgorithm? = null,
-        @SerialName("softwareId") var softwareId: String? = null,
-        @SerialName("softwareVersion") var softwareVersion: String? = null,
-        @SerialName("softwareStatement") var softwareStatement: @Serializable(JWTStringConverter::class) JWT? = null,
-        @SerialName("creationDate") var createdAt: ISODate? = null,
+        @EncodeDefault @SerialName("defaultACRValues") val defaultACRValues: Set<String>? = null,
+        @EncodeDefault @SerialName("initiateLoginUri") val initiateLoginUri: String? = null,
+        @EncodeDefault @SerialName("postLogoutRedirectUri") val postLogoutRedirectUris: Set<String>? = null,
+        @EncodeDefault @SerialName("requestUris") val requestUris: Set<String>? = null,
+        @EncodeDefault @SerialName("description") val description: String = "",
+        @EncodeDefault @SerialName("allowIntrospection") val allowIntrospection: Boolean = false,
+        @EncodeDefault @SerialName("reuseRefreshToken") val isReuseRefreshToken: Boolean = true,
+        @EncodeDefault @SerialName("clearAccessTokensOnRefresh") var isClearAccessTokensOnRefresh: Boolean = true,
+        @EncodeDefault @SerialName("dynamicallyRegistered") val isDynamicallyRegistered: Boolean = false,
+        @EncodeDefault @SerialName("codeChallengeMethod") var codeChallengeMethod: PKCEAlgorithm? = null,
+        @EncodeDefault @SerialName("softwareId") var softwareId: String? = null,
+        @EncodeDefault @SerialName("softwareVersion") var softwareVersion: String? = null,
+        @EncodeDefault @SerialName("softwareStatement") var softwareStatement: @Serializable(JWTStringConverter::class) JWT? = null,
+        @EncodeDefault @SerialName("creationDate") var createdAt: ISODate? = null,
     ) {
+        constructor(s: ClientDetailsEntity) : this(
+            clientId = requireNotNull(s.clientId) { "Missing client id" },
+            resourceIds = s.resourceIds,
+            secret = s.clientSecret,
+            scope = s.scope,
+            authorities = s.authorities.mapTo(HashSet()) { it as? SimpleGrantedAuthority ?: SimpleGrantedAuthority(it.authority) },
+            accessTokenValiditySeconds = s.accessTokenValiditySeconds,
+            refreshTokenValiditySeconds = s.refreshTokenValiditySeconds,
+            idTokenValiditySeconds = s.idTokenValiditySeconds,
+            deviceCodeValiditySeconds = s.deviceCodeValiditySeconds,
+            redirectUris = s.redirectUris,
+            claimsRedirectUris = s.claimsRedirectUris,
+            clientName = s.clientName,
+            clientUri = s.clientUri,
+            logoUri = s.logoUri,
+            contacts = s.contacts,
+            tosUri = s.tosUri,
+            tokenEndpointAuthMethod = requireNotNull(s.tokenEndpointAuthMethod) { "Missing authentication method" },
+            grantTypes = s.grantTypes,
+            responseTypes = s.responseTypes,
+            policyUri = s.policyUri,
+            applicationType = s.applicationType,
+            sectorIdentifierUri = s.sectorIdentifierUri,
+            subjectType = s.subjectType,
+            jwks_uri = s.jwksUri,
+            jwks = s.jwks,
+            requestObjectSigningAlg = s.requestObjectSigningAlg,
+            userInfoEncryptedResponseAlg = s.userInfoEncryptedResponseAlg,
+            userInfoEncryptedResponseEnc = s.userInfoEncryptedResponseEnc,
+            userInfoSignedResponseAlg = s.userInfoSignedResponseAlg,
+            idTokenSignedResponseAlg = s.idTokenSignedResponseAlg,
+            idTokenEncryptedResponseAlg = s.idTokenEncryptedResponseAlg,
+            idTokenEncryptedResponseEnc = s.idTokenEncryptedResponseEnc,
+            tokenEndpointAuthSigningAlg = s.tokenEndpointAuthSigningAlg,
+            defaultMaxAge = s.defaultMaxAge,
+            requireAuthTime = s.requireAuthTime,
+            defaultACRValues = s.defaultACRvalues,
+            initiateLoginUri = s.initiateLoginUri,
+            postLogoutRedirectUris = s.postLogoutRedirectUris,
+            requestUris = s.requestUris,
+            description = s.clientDescription,
+            allowIntrospection = s.isAllowIntrospection,
+            isReuseRefreshToken = s.isReuseRefreshToken,
+            isClearAccessTokensOnRefresh = s.isClearAccessTokensOnRefresh,
+            isDynamicallyRegistered = s.isDynamicallyRegistered,
+            codeChallengeMethod = s.codeChallengeMethod,
+            softwareId = s.softwareId,
+            softwareVersion = s.softwareVersion,
+            softwareStatement = s.softwareStatement,
+            createdAt = s.createdAt,
+        )
+
         fun toClientDetailsEntity(): ClientDetailsEntity {
             return ClientDetailsEntity(
                 id = null,
@@ -430,112 +481,113 @@ interface MITREidDataService {
             ).also { client ->
                 accessTokenValiditySeconds?.run { client.accessTokenValiditySeconds = this }
                 refreshTokenValiditySeconds?.run { client.refreshTokenValiditySeconds = this }
-                authorities?.run { client.authorities = this }
+                client.authorities = authorities
                 resourceIds?.run { client.resourceIds = this }
             }
         }
     }
 
     interface ConfigurationData {
-        val clients: List<ClientDetailsConfiguration>?
-        val grants: List<ApprovedSite.SerialDelegate>?
-        val whitelistedSites: List<WhitelistedSite>?
-        val blacklistedSites: List<BlacklistedSite>?
-        val authenticationHolders: List<AuthenticationHolderEntity>?
-        val accessTokens: List<OAuth2AccessTokenEntity.SerialDelegate>?
-        val refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate>?
-        val systemScopes: List<SystemScope>?
+        val clients: List<ClientDetailsConfiguration>
+        val grants: List<ApprovedSite.SerialDelegate>
+        val whitelistedSites: List<WhitelistedSite>
+        val blacklistedSites: List<BlacklistedSite>
+        val authenticationHolders: List<AuthenticationHolderEntity>
+        val accessTokens: List<OAuth2AccessTokenEntity.SerialDelegate>
+        val refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate>
+        val systemScopes: List<SystemScope>
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
     @Serializable
     abstract class ConfigurationDataBase(
-        @SerialName("clients")
-        override val clients: List<ClientDetailsConfiguration>? = null,
-        @SerialName("grants")
-        override val grants: List<ApprovedSite.SerialDelegate>? = null,
-        @SerialName("whitelistedSites")
-        override val whitelistedSites: List<WhitelistedSite>? = null,
-        @SerialName("blacklistedSites")
-        override val blacklistedSites: List<BlacklistedSite>? = null,
-        @SerialName("accessTokens")
-        override val accessTokens: List<OAuth2AccessTokenEntity.SerialDelegate>? = null,
-        @SerialName("refreshTokens")
-        override val refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate>? = null,
-        @SerialName("systemScopes")
-        override val systemScopes: List<SystemScope>? = null,
+        @SerialName("clients") @EncodeDefault
+        override val clients: List<ClientDetailsConfiguration> = emptyList(),
+        @SerialName("grants") @EncodeDefault
+        override val grants: List<ApprovedSite.SerialDelegate> = emptyList(),
+        @SerialName("whitelistedSites") @EncodeDefault
+        override val whitelistedSites: List<WhitelistedSite> = emptyList(),
+        @SerialName("blacklistedSites") @EncodeDefault
+        override val blacklistedSites: List<BlacklistedSite> = emptyList(),
+        @SerialName("accessTokens") @EncodeDefault
+        override val accessTokens: List<OAuth2AccessTokenEntity.SerialDelegate> = emptyList(),
+        @SerialName("refreshTokens") @EncodeDefault
+        override val refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate> = emptyList(),
+        @SerialName("systemScopes") @EncodeDefault
+        override val systemScopes: List<SystemScope> = emptyList(),
     ) : ConfigurationData {
     }
 
     @Serializable
     open class ConfigurationData10 : ConfigurationDataBase {
         @SerialName("authenticationHolders")
-        internal val _authenticationHolders: List<AuthenticationHolderEntity.SerialDelegate10>?
+        internal val _authenticationHolders: List<AuthenticationHolderEntity.SerialDelegate10>
 
         constructor(
-            clients: List<ClientDetailsConfiguration>? = null,
-            grants: List<ApprovedSite.SerialDelegate>? = null,
-            whitelistedSites: List<WhitelistedSite>? = null,
-            blacklistedSites: List<BlacklistedSite>? = null,
-            authenticationHolders: List<AuthenticationHolderEntity>? = null,
-            accessTokens: List<OAuth2AccessTokenEntity.SerialDelegate>? = null,
-            refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate>? = null,
-            systemScopes: List<SystemScope>? = null,
+            clients: List<ClientDetailsConfiguration> = emptyList(),
+            grants: List<ApprovedSite.SerialDelegate> = emptyList(),
+            whitelistedSites: List<WhitelistedSite> = emptyList(),
+            blacklistedSites: List<BlacklistedSite> = emptyList(),
+            authenticationHolders: List<AuthenticationHolderEntity> = emptyList(),
+            accessTokens: List<OAuth2AccessTokenEntity.SerialDelegate> = emptyList(),
+            refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate> = emptyList(),
+            systemScopes: List<SystemScope> = emptyList(),
         ) : super(clients, grants,whitelistedSites, blacklistedSites, accessTokens, refreshTokens, systemScopes) {
-            _authenticationHolders = authenticationHolders?.map { AuthenticationHolderEntity.SerialDelegate10(it) }
+            _authenticationHolders = authenticationHolders.map { AuthenticationHolderEntity.SerialDelegate10(it) }
         }
 
         constructor(
-            clients: List<ClientDetailsConfiguration>? = null,
-            grants: List<ApprovedSite.SerialDelegate>? = null,
-            whitelistedSites: List<WhitelistedSite>? = null,
-            blacklistedSites: List<BlacklistedSite>? = null,
-            authenticationHolders: List<AuthenticationHolderEntity.SerialDelegate10>? = null,
-            accessTokens: List<OAuth2AccessTokenEntity.SerialDelegate>? = null,
-            refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate>? = null,
-            systemScopes: List<SystemScope>? = null,
+            clients: List<ClientDetailsConfiguration> = emptyList(),
+            grants: List<ApprovedSite.SerialDelegate> = emptyList(),
+            whitelistedSites: List<WhitelistedSite> = emptyList(),
+            blacklistedSites: List<BlacklistedSite> = emptyList(),
+            authenticationHolders: List<AuthenticationHolderEntity.SerialDelegate10> = emptyList(),
+            accessTokens: List<OAuth2AccessTokenEntity.SerialDelegate> = emptyList(),
+            refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate> = emptyList(),
+            systemScopes: List<SystemScope> = emptyList(),
             dummy: Int = 0
         ) : super(clients, grants,whitelistedSites, blacklistedSites, accessTokens, refreshTokens, systemScopes) {
             _authenticationHolders = authenticationHolders
         }
 
-        override val authenticationHolders: List<AuthenticationHolderEntity>?
-            get() = _authenticationHolders?.map { it.toAuthenticationHolder() }
+        override val authenticationHolders: List<AuthenticationHolderEntity>
+            get() = _authenticationHolders.map { it.toAuthenticationHolder() }
     }
 
     @Serializable
     open class ConfigurationData12 : ConfigurationDataBase {
         @SerialName("authenticationHolders")
-        internal val _authenticationHolders: List<AuthenticationHolderEntity.SerialDelegate12>?
+        internal val _authenticationHolders: List<AuthenticationHolderEntity.SerialDelegate12>
 
         constructor(
-            clients: List<ClientDetailsConfiguration>? = null,
-            grants: List<ApprovedSite.SerialDelegate>? = null,
-            whitelistedSites: List<WhitelistedSite>? = null,
-            blacklistedSites: List<BlacklistedSite>? = null,
-            authenticationHolders: List<AuthenticationHolderEntity>? = null,
-            accessTokens: List<OAuth2AccessTokenEntity.SerialDelegate>? = null,
-            refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate>? = null,
-            systemScopes: List<SystemScope>? = null,
+            clients: List<ClientDetailsConfiguration> = emptyList(),
+            grants: List<ApprovedSite.SerialDelegate> = emptyList(),
+            whitelistedSites: List<WhitelistedSite> = emptyList(),
+            blacklistedSites: List<BlacklistedSite> = emptyList(),
+            authenticationHolders: List<AuthenticationHolderEntity> = emptyList(),
+            accessTokens: List<OAuth2AccessTokenEntity.SerialDelegate> = emptyList(),
+            refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate> = emptyList(),
+            systemScopes: List<SystemScope> = emptyList(),
         ) : super(clients, grants,whitelistedSites, blacklistedSites, accessTokens, refreshTokens, systemScopes) {
-            _authenticationHolders = authenticationHolders?.map { AuthenticationHolderEntity.SerialDelegate12(it) }
+            _authenticationHolders = authenticationHolders.map { AuthenticationHolderEntity.SerialDelegate12(it) }
         }
 
         constructor(
-            clients: List<ClientDetailsConfiguration>? = null,
-            grants: List<ApprovedSite.SerialDelegate>? = null,
-            whitelistedSites: List<WhitelistedSite>? = null,
-            blacklistedSites: List<BlacklistedSite>? = null,
-            authenticationHolders: List<AuthenticationHolderEntity.SerialDelegate12>? = null,
-            accessTokens: List<OAuth2AccessTokenEntity.SerialDelegate>? = null,
-            refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate>? = null,
-            systemScopes: List<SystemScope>? = null,
+            clients: List<ClientDetailsConfiguration> = emptyList(),
+            grants: List<ApprovedSite.SerialDelegate> = emptyList(),
+            whitelistedSites: List<WhitelistedSite> = emptyList(),
+            blacklistedSites: List<BlacklistedSite> = emptyList(),
+            authenticationHolders: List<AuthenticationHolderEntity.SerialDelegate12> = emptyList(),
+            accessTokens: List<OAuth2AccessTokenEntity.SerialDelegate> = emptyList(),
+            refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate> = emptyList(),
+            systemScopes: List<SystemScope> = emptyList(),
             dummy: Int = 0
         ) : super(clients, grants,whitelistedSites, blacklistedSites, accessTokens, refreshTokens, systemScopes) {
             _authenticationHolders = authenticationHolders
         }
 
-        override val authenticationHolders: List<AuthenticationHolderEntity>?
-            get() = _authenticationHolders?.map { it.toAuthenticationHolder() }
+        override val authenticationHolders: List<AuthenticationHolderEntity>
+            get() = _authenticationHolders.map { it.toAuthenticationHolder() }
     }
 
     interface ExtendedConfiguration: ConfigurationData {
@@ -557,14 +609,14 @@ interface MITREidDataService {
         )
 
         constructor(
-            clients: List<ClientDetailsConfiguration>? = null,
-            grants: List<ApprovedSite.SerialDelegate>? = null,
-            whitelistedSites: List<WhitelistedSite>? = null,
-            blacklistedSites: List<BlacklistedSite>? = null,
-            authenticationHolders: List<AuthenticationHolderEntity.SerialDelegate10>? = null,
-            accessTokens: List<OAuth2AccessTokenEntity.SerialDelegate>? = null,
-            refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate>? = null,
-            systemScopes: List<SystemScope>? = null,
+            clients: List<ClientDetailsConfiguration> = emptyList(),
+            grants: List<ApprovedSite.SerialDelegate> = emptyList(),
+            whitelistedSites: List<WhitelistedSite> = emptyList(),
+            blacklistedSites: List<BlacklistedSite> = emptyList(),
+            authenticationHolders: List<AuthenticationHolderEntity.SerialDelegate10> = emptyList(),
+            accessTokens: List<OAuth2AccessTokenEntity.SerialDelegate> = emptyList(),
+            refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate> = emptyList(),
+            systemScopes: List<SystemScope> = emptyList(),
             extensions: Map<String, JsonElement> = emptyMap(),
         ) : super(
             clients, grants, whitelistedSites, blacklistedSites,
@@ -607,14 +659,14 @@ interface MITREidDataService {
                     return ExtendedConfiguration10(delegate.deserialize(decoder))
                 }
 
-                var clients: List<ClientDetailsConfiguration>? = null
-                var grants: List<ApprovedSite.SerialDelegate>? = null
-                var whitelistedSites: List<WhitelistedSite>? = null
-                var blacklistedSites: List<BlacklistedSite>? = null
-                var authenticationHolders: List<AuthenticationHolderEntity.SerialDelegate10>? = null
-                var accessTokens: List<OAuth2AccessTokenEntity.SerialDelegate>? = null
-                var refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate>? = null
-                var systemScopes: List<SystemScope>? = null
+                var clients: List<ClientDetailsConfiguration> = emptyList()
+                var grants: List<ApprovedSite.SerialDelegate> = emptyList()
+                var whitelistedSites: List<WhitelistedSite> = emptyList()
+                var blacklistedSites: List<BlacklistedSite> = emptyList()
+                var authenticationHolders: List<AuthenticationHolderEntity.SerialDelegate10> = emptyList()
+                var accessTokens: List<OAuth2AccessTokenEntity.SerialDelegate> = emptyList()
+                var refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate> = emptyList()
+                var systemScopes: List<SystemScope> = emptyList()
                 val extensions = mutableMapOf<String, JsonElement>()
 
 
@@ -657,14 +709,14 @@ interface MITREidDataService {
         )
 
         constructor(
-            clients: List<ClientDetailsConfiguration>? = null,
-            grants: List<ApprovedSite.SerialDelegate>? = null,
-            whitelistedSites: List<WhitelistedSite>? = null,
-            blacklistedSites: List<BlacklistedSite>? = null,
-            authenticationHolders: List<AuthenticationHolderEntity.SerialDelegate12>? = null,
-            accessTokens: List<OAuth2AccessTokenEntity.SerialDelegate>? = null,
-            refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate>? = null,
-            systemScopes: List<SystemScope>? = null,
+            clients: List<ClientDetailsConfiguration> = emptyList(),
+            grants: List<ApprovedSite.SerialDelegate> = emptyList(),
+            whitelistedSites: List<WhitelistedSite> = emptyList(),
+            blacklistedSites: List<BlacklistedSite> = emptyList(),
+            authenticationHolders: List<AuthenticationHolderEntity.SerialDelegate12> = emptyList(),
+            accessTokens: List<OAuth2AccessTokenEntity.SerialDelegate> = emptyList(),
+            refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate> = emptyList(),
+            systemScopes: List<SystemScope> = emptyList(),
             extensions: Map<String, JsonElement> = emptyMap(),
         ) : super(
             clients, grants, whitelistedSites, blacklistedSites,
@@ -707,14 +759,14 @@ interface MITREidDataService {
                     return ExtendedConfiguration12(delegate.deserialize(decoder))
                 }
 
-                var clients: List<ClientDetailsConfiguration>? = null
-                var grants: List<ApprovedSite.SerialDelegate>? = null
-                var whitelistedSites: List<WhitelistedSite>? = null
-                var blacklistedSites: List<BlacklistedSite>? = null
-                var authenticationHolders: List<AuthenticationHolderEntity.SerialDelegate12>? = null
-                var accessTokens: List<OAuth2AccessTokenEntity.SerialDelegate>? = null
-                var refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate>? = null
-                var systemScopes: List<SystemScope>? = null
+                var clients: List<ClientDetailsConfiguration> = emptyList()
+                var grants: List<ApprovedSite.SerialDelegate> = emptyList()
+                var whitelistedSites: List<WhitelistedSite> = emptyList()
+                var blacklistedSites: List<BlacklistedSite> = emptyList()
+                var authenticationHolders: List<AuthenticationHolderEntity.SerialDelegate12> = emptyList()
+                var accessTokens: List<OAuth2AccessTokenEntity.SerialDelegate> = emptyList()
+                var refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate> = emptyList()
+                var systemScopes: List<SystemScope> = emptyList()
                 val extensions = mutableMapOf<String, JsonElement>()
 
 
@@ -743,6 +795,7 @@ interface MITREidDataService {
     }
 
     class Context(
+        val version: String,
         val clientRepository: OAuth2ClientRepository,
         val approvedSiteRepository: ApprovedSiteRepository,
         val wlSiteRepository: WhitelistedSiteRepository,
@@ -819,6 +872,7 @@ interface MITREidDataService {
         val json: Json = Json {
             ignoreUnknownKeys = true
             prettyPrint = true
+            prettyPrintIndent = "  "
         }
 
 
@@ -840,5 +894,4 @@ interface MITREidDataService {
         const val CLIENTS: String = "clients"
         const val SYSTEMSCOPES: String = "systemScopes"
     }
-
 }

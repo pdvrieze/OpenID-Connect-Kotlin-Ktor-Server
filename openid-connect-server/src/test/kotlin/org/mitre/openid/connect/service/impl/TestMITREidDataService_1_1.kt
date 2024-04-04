@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.service.impl
 
-import com.google.gson.stream.JsonWriter
 import com.nimbusds.jwt.JWTParser
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -70,7 +69,6 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication
 import org.springframework.security.oauth2.provider.OAuth2Request
 import org.springframework.util.ReflectionUtils
 import java.io.IOException
-import java.io.StringWriter
 import java.text.ParseException
 import java.util.*
 
@@ -967,15 +965,14 @@ class TestMITREidDataService_1_1 {
         val savedRefreshTokens: List<OAuth2RefreshTokenEntity> = fakeRefreshTokenTable.values.sortedWith(refreshTokenIdComparator())
              //capturedRefreshTokens.getAllValues();
 
-        assertEquals(356L, savedRefreshTokens[0].authenticationHolder!!.id)
-        assertEquals(357L, savedRefreshTokens[1].authenticationHolder!!.id)
+        assertEquals(356L, savedRefreshTokens[0].authenticationHolder.id)
+        assertEquals(357L, savedRefreshTokens[1].authenticationHolder.id)
     }
 
     @Test
     fun testExportDisabled() {
-        val writer = JsonWriter(StringWriter())
         assertThrows<UnsupportedOperationException> {
-            dataService.exportData(writer)
+            dataService.exportData()
         }
     }
 }

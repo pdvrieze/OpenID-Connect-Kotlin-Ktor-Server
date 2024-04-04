@@ -998,7 +998,7 @@ class TestMITREidDataService_1_0 {
     fun testExportDisabled() {
         val writer = JsonWriter(StringWriter())
         assertThrows<UnsupportedOperationException> {
-            dataService.exportData(writer)
+            dataService.exportData()
         }
     }
 }

@@ -17,9 +17,7 @@
  */
 package org.mitre.openid.connect.service.impl
 
-import com.google.gson.stream.JsonWriter
 import org.mitre.oauth2.model.AuthenticationHolderEntity
-import org.mitre.oauth2.model.ClientDetailsEntity.*
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2ClientRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
@@ -36,7 +34,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import java.io.IOException
 
 /**
  *
@@ -77,16 +74,12 @@ class MITREidDataService_1_0 : MITREidDataService {
         return THIS_VERSION == version
     }
 
-    /* (non-Javadoc)
-	 * @see org.mitre.openid.connect.service.MITREidDataService#export(com.google.gson.stream.JsonWriter)
-	 */
-    @Throws(IOException::class)
-    override fun exportData(writer: JsonWriter) {
+    override fun exportData(): String {
         throw UnsupportedOperationException("Can not export 1.0 format from this version.")
     }
 
     override fun importData(config: ExtendedConfiguration) {
-        val context = Context(clientRepository, approvedSiteRepository, wlSiteRepository, blSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository, extensions, maps)
+        val context = Context(THIS_VERSION, clientRepository, approvedSiteRepository, wlSiteRepository, blSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository, extensions, maps)
         context.importData(config)
     }
 
