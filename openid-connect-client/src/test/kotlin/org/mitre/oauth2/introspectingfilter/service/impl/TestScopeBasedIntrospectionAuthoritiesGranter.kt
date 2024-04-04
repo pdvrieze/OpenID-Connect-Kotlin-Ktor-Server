@@ -1,6 +1,7 @@
 package org.mitre.oauth2.introspectingfilter.service.impl
 
-import com.google.gson.JsonObject
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -21,7 +22,7 @@ class TestScopeBasedIntrospectionAuthoritiesGranter {
     @BeforeEach
     @Throws(Exception::class)
     fun setUp() {
-        introspectionResponse = JsonObject()
+        introspectionResponse = JsonObject(mapOf())
     }
 
     /**
@@ -29,7 +30,7 @@ class TestScopeBasedIntrospectionAuthoritiesGranter {
      */
     @Test
     fun testGetAuthoritiesJsonObject_withScopes() {
-        introspectionResponse.addProperty("scope", "foo bar baz batman")
+        introspectionResponse = JsonObject(mapOf("scope" to JsonPrimitive("foo bar baz batman")))
 
         val expected: MutableList<GrantedAuthority> = ArrayList()
         expected.add(SimpleGrantedAuthority("ROLE_API"))

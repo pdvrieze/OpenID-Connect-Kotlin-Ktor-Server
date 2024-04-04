@@ -17,9 +17,10 @@
  */
 package org.mitre.oauth2.introspectingfilter
 
-import com.google.gson.JsonObject
-import com.google.gson.JsonParser
 import com.nimbusds.jose.util.Base64
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.jsonPrimitive
 import org.apache.http.client.HttpClient
 import org.apache.http.impl.client.HttpClientBuilder
 import org.mitre.oauth2.introspectingfilter.service.IntrospectionAuthorityGranter
@@ -27,6 +28,8 @@ import org.mitre.oauth2.introspectingfilter.service.IntrospectionConfigurationSe
 import org.mitre.oauth2.introspectingfilter.service.impl.SimpleIntrospectionAuthorityGranter
 import org.mitre.oauth2.model.ClientDetailsEntity.AuthMethod
 import org.mitre.oauth2.model.RegisteredClient
+import org.mitre.oauth2.model.convert.OAuth2RequestSerializer
+import org.mitre.openid.connect.service.MITREidDataService.Companion.json
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpMethod
@@ -35,7 +38,6 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.oauth2.common.OAuth2AccessToken
-import org.springframework.security.oauth2.common.util.OAuth2Utils
 import org.springframework.security.oauth2.provider.OAuth2Authentication
 import org.springframework.security.oauth2.provider.OAuth2Request
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices
@@ -126,28 +128,13 @@ class IntrospectingTokenService(
     }
 
     private fun createStoredRequest(token: JsonObject): OAuth2Request {
-        val clientId = token["client_id"].asString
-        val scopes: MutableSet<String> = HashSet()
-        if (token.has("scope")) {
-            scopes.addAll(OAuth2Utils.parseParameterList(token["scope"].asString))
-        }
-        val parameters: MutableMap<String, String> = HashMap()
-        parameters["client_id"] = clientId
-        parameters["scope"] = OAuth2Utils.formatParameterList(scopes)
-        val storedRequest = OAuth2Request(parameters, clientId, null, true, scopes, null, null, null, null)
-        return storedRequest
+        return json.decodeFromJsonElement(OAuth2RequestSerializer, token)
     }
 
     private fun createUserAuthentication(token: JsonObject): Authentication? {
-        var userId = token["user_id"]
-        if (userId == null) {
-            userId = token["sub"]
-            if (userId == null) {
-                return null
-            }
-        }
-
-        return PreAuthenticatedAuthenticationToken(userId.asString, token, introspectionAuthorityGranter.getAuthorities(token))
+        val userId = (token["user_id"]?:token["sub"] ?: return null).jsonPrimitive
+        if (! userId.isString) return null
+        return PreAuthenticatedAuthenticationToken(userId.content, token, introspectionAuthorityGranter.getAuthorities(token))
     }
 
     private fun createAccessToken(token: JsonObject, tokenString: String): OAuth2AccessToken {
@@ -214,12 +201,7 @@ class IntrospectingTokenService(
         }
         if (validatedToken != null) {
             // parse the json
-            val jsonRoot = JsonParser().parse(validatedToken)
-            if (!jsonRoot.isJsonObject) {
-                return null // didn't get a proper JSON object
-            }
-
-            val tokenResponse = jsonRoot.asJsonObject
+            val tokenResponse = (json.parseToJsonElement(validatedToken) as? JsonObject) ?: return null
 
             if (tokenResponse["error"] != null) {
                 // report an error?
@@ -227,7 +209,7 @@ class IntrospectingTokenService(
                 return null
             }
 
-            if (!tokenResponse["active"].asBoolean) {
+            if (!tokenResponse["active"]!!.jsonPrimitive.boolean) {
                 // non-valid token
                 logger.info("Server returned non-active token")
                 return null
