@@ -22,6 +22,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonElement
+import org.slf4j.LoggerFactory
 import javax.persistence.Basic
 import javax.persistence.Column
 import javax.persistence.Entity
@@ -159,31 +161,41 @@ class SystemScope constructor(
         val id: Long? = null,
         val value: String? = null, //value
         val description: String? = null, //description
-        val allowDynReg: Boolean = true, //allowDynReg
+        val allowDynReg: Boolean? = null, //allowDynReg
+        val isRestricted: Boolean? = null, // opposite of allowDynReg
         val defaultScope: Boolean = false, //defaultScope
         val icon: String? = null, //icon
+        val structured: JsonElement? = null,
+        val structuredParameter: JsonElement? = null
+
     ) {
         constructor(s: SystemScope) : this (
             id = s.id,
             value = s.value,
             description = s.description,
-            allowDynReg = ! s.isRestricted,
+            allowDynReg = !s.isRestricted,
+            isRestricted = s.isRestricted,
             defaultScope = s.isDefaultScope,
             icon = s.icon,
         )
 
-        fun toSystemScope(): SystemScope = SystemScope(
-            id = id,
-            value = value,
-            description = description,
-            icon = icon,
-            isDefaultScope = defaultScope,
-            isRestricted = !allowDynReg
-        )
+        fun toSystemScope(): SystemScope {
+            logger.warn("Found a structured scope, ignoring structure")
+            logger.warn("Found a structured scope, ignoring structure")
+            return SystemScope(
+                id = id,
+                value = value,
+                description = description,
+                icon = icon,
+                isDefaultScope = defaultScope,
+                isRestricted = isRestricted?: allowDynReg?.not() ?: false
+            )
+        }
     }
 
 
     companion object : KSerializer<SystemScope> {
+        val logger = LoggerFactory.getLogger(SystemScope::class.java)
         val delegate = SerialDelegate.serializer()
         @Suppress("OPT_IN_USAGE")
         override val descriptor: SerialDescriptor =
