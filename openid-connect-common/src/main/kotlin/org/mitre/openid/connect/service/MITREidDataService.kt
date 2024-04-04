@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.service
 
-import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
 import com.nimbusds.jose.EncryptionMethod
 import com.nimbusds.jose.JWEAlgorithm
@@ -87,12 +86,6 @@ interface MITREidDataService {
      */
     @Throws(IOException::class)
     fun exportData(writer: JsonWriter)
-
-    /**
-     * Read in the current server state from the given JSON reader as a JSON object
-     */
-    @Throws(IOException::class)
-    fun importData(reader: JsonReader)
 
     /**
      * Read in the current server state from the pre-parsed configuration data
