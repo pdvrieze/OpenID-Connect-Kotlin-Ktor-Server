@@ -23,6 +23,7 @@ object OAuth2RequestSerializer: KSerializer<OAuth2Request> {
         val redirectUri: String? = null,
         val clientId: String? = null,
         val approvalParameters: JsonElement? = null,
+        val extensionStrings: Map<String, String>? = null
     ) {
         constructor(b: OAuth2Request): this(
             scope = b.scope,
@@ -33,6 +34,8 @@ object OAuth2RequestSerializer: KSerializer<OAuth2Request> {
             responseTypes= b.responseTypes,
             redirectUri= b.redirectUri,
             clientId= b.clientId,
+            extensionStrings = b.extensions.asSequence().mapNotNull { (k, v) -> (v as? String)?.let { k to v } }
+                .associate { it }
         )
 
         fun toOAuthRequest(): OAuth2Request {
@@ -41,7 +44,7 @@ object OAuth2RequestSerializer: KSerializer<OAuth2Request> {
                 denied == null -> approved
                 else -> !denied
             }
-            return OAuth2Request(authorizationParameters, clientId, authorities, approved, scope, resourceIds, redirectUri, responseTypes, null)
+            return OAuth2Request(authorizationParameters, clientId, authorities, approved, scope, resourceIds, redirectUri, responseTypes, extensionStrings)
         }
     }
 

@@ -32,9 +32,9 @@ object OAuth2AuthenticationSerializer : KSerializer<OAuth2Authentication> {
     }
 
     override fun deserialize(decoder: Decoder): OAuth2Authentication {
-        var storedRequest: OAuth2Request? = null
-        var userAuthentication: Authentication? = null
-        decoder.decodeStructure(descriptor) {
+        return decoder.decodeStructure(descriptor) {
+            var storedRequest: OAuth2Request? = null
+            var userAuthentication: Authentication? = null
             while (true) {
                 when (val i = decodeElementIndex(descriptor)) {
                     0 -> storedRequest = decodeNullableSerializableElement(descriptor, i, oAuth2RequestSerializer, storedRequest)
@@ -43,9 +43,8 @@ object OAuth2AuthenticationSerializer : KSerializer<OAuth2Authentication> {
                     else -> error("Can not deserialize value")
                 }
             }
+            OAuth2Authentication(storedRequest, userAuthentication)
         }
-
-        return OAuth2Authentication(storedRequest, userAuthentication)
     }
 }
 

@@ -18,13 +18,17 @@
 package org.mitre.oauth2.model
 
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonElement
+import org.mitre.oauth2.model.convert.AuthenticationSerializer
 import org.mitre.oauth2.model.convert.KXS_OAuth2Authentication
 import org.mitre.oauth2.model.convert.SerializableStringConverter
 import org.mitre.oauth2.model.convert.SimpleGrantedAuthorityStringConverter
+import org.springframework.security.core.Authentication
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.oauth2.provider.OAuth2Authentication
 import org.springframework.security.oauth2.provider.OAuth2Request
@@ -42,7 +46,7 @@ import java.io.Serializable as IoSerializable
                 "a.id not in (select c.authenticationHolder.id from AuthorizationCodeEntity c)"
     )
 )
-@KXS_Serializable(AuthenticationHolderEntity.Companion::class)
+//@KXS_Serializable(AuthenticationHolderEntity.Companion::class)
 class AuthenticationHolderEntity(
     @get:Column(name = "id")
     @get:GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -136,23 +140,73 @@ class AuthenticationHolderEntity(
 //        val savedUserAuthentication: SavedUserAuthentication? = null,
 //    )
 
+    interface SerialDelegate {
+        fun toAuthenticationHolder(): AuthenticationHolderEntity
+    }
+
     @KXS_Serializable
-    private class SerialDelegate(
-        val id: Long? = null,
-        val ownerId: JsonElement? = null,
-        val authentication: KXS_OAuth2Authentication? = null,
-    ) {
+    public class SerialDelegate10(
+        @SerialName("id") val currentId: Long? = null,
+        @SerialName("ownerId") val ownerId: JsonElement? = null,
+        @SerialName("authentication") val _authentication: KXS_OAuth2Authentication? = null,
+    ) : SerialDelegate {
         constructor(e: AuthenticationHolderEntity) : this(
-            id = e.id,
-            authentication = e.authentication
+            currentId = e.id,
+            _authentication = e.authentication
         )
 
-        fun toAuthenticationHolder(): AuthenticationHolderEntity {
+        override fun toAuthenticationHolder(): AuthenticationHolderEntity {
             return AuthenticationHolderEntity(
-                id = id,
+                id = currentId,
             ).also {
-                if (authentication != null) it.authentication = authentication
+                if (_authentication != null) it.authentication = _authentication
             }
+        }
+    }
+
+    @KXS_Serializable
+    public class SerialDelegate12(
+        @SerialName("id") val currentId: Long? = null,
+        val requestParameters: Map<String, String>? = null,
+        val clientId: String? = null,
+        val scope: Set<String>? = null,
+        val resourceIds: Set<String>? = null,
+        val authorities: Collection<@Serializable(SimpleGrantedAuthorityStringConverter::class) GrantedAuthority>? = null,
+        val isApproved: Boolean = false,
+        val redirectUri: String? = null,
+        val responseTypes: Set<String>? = null,
+        val extensions: Map<String, String>? = null,
+        val userAuth: @Serializable(AuthenticationSerializer::class) Authentication? = null,
+    ) : SerialDelegate {
+        constructor(e: AuthenticationHolderEntity) : this(
+            currentId = e.id,
+            requestParameters = e.requestParameters,
+            clientId = e.clientId,
+            scope = e.scope,
+            resourceIds = e.resourceIds,
+            authorities = e.authorities,
+            isApproved = e.isApproved,
+            redirectUri = e.redirectUri,
+            responseTypes = e.responseTypes,
+            extensions = e.extensions?.asSequence()?.mapNotNull { (k, v) -> (v as? String)?.let { k to it } }?.associate { it },
+            userAuth = e.userAuth,
+        )
+
+        override fun toAuthenticationHolder(): AuthenticationHolderEntity {
+            return AuthenticationHolderEntity(
+                id = currentId,
+                userAuth = userAuth?.let { it as? SavedUserAuthentication ?: SavedUserAuthentication(it) },
+                authorities = authorities,
+                resourceIds = resourceIds,
+                isApproved = isApproved,
+                redirectUri = redirectUri,
+                responseTypes = responseTypes,
+                extensions = extensions,
+                clientId = clientId,
+                scope = scope,
+                requestParameters = requestParameters
+
+            )
         }
     }
 
@@ -160,7 +214,7 @@ class AuthenticationHolderEntity(
         const val QUERY_GET_UNUSED: String = "AuthenticationHolderEntity.getUnusedAuthenticationHolders"
         const val QUERY_ALL: String = "AuthenticationHolderEntity.getAll"
 
-        private val delegate = SerialDelegate.serializer()
+        private val delegate = SerialDelegate10.serializer()
 
         @Suppress("OPT_IN_USAGE")
         override val descriptor: SerialDescriptor =
@@ -171,7 +225,7 @@ class AuthenticationHolderEntity(
         }
 
         override fun serialize(encoder: Encoder, value: AuthenticationHolderEntity) {
-            delegate.serialize(encoder, SerialDelegate(value))
+            delegate.serialize(encoder, SerialDelegate10(value))
         }
     }
 }

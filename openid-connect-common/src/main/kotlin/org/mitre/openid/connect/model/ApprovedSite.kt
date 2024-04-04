@@ -98,7 +98,7 @@ class ApprovedSite {
         @SerialName("timeoutDate") val timeoutDate: ISODate? = null,
         @SerialName("userId") val userId: String? = null,
         @SerialName("allowedScopes") val allowedScopes: Set<String>? = null,
-        @SerialName("whitelistedSiteId") val whitelistedSiteId: Long? = null,
+        @SerialName("whitelistedSiteId") var whitelistedSiteId: Long? = null,
         @SerialName("approvedAccessTokens") val approvedAccessTokens: Set<Long>? = null,
     ) {
         constructor(s: ApprovedSite): this(

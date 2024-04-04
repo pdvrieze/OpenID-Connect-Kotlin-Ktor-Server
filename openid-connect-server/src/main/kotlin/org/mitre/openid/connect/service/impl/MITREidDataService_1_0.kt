@@ -44,6 +44,7 @@ import org.mitre.openid.connect.repository.WhitelistedSiteRepository
 import org.mitre.openid.connect.service.MITREidDataService
 import org.mitre.openid.connect.service.MITREidDataService.*
 import org.mitre.openid.connect.service.MITREidDataService.Companion.utcToDate
+import org.mitre.openid.connect.service.MITREidDataService.Companion.warnIgnored
 import org.mitre.openid.connect.service.MITREidDataServiceExtension
 import org.mitre.openid.connect.service.MITREidDataServiceMaps
 import org.mitre.util.JsonUtils.readMap
@@ -166,7 +167,7 @@ class MITREidDataService_1_0 : MITREidDataService {
         }
 
         val context = Context(clientRepository, approvedSiteRepository, wlSiteRepository, blSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository, extensions, maps)
-        context.fixObjectReferences()
+        fixObjectReferences(context)
         for (extension in extensions) {
             if (extension.supportsVersion(THIS_VERSION)) {
                 extension.fixExtensionObjectReferences(maps)
@@ -840,25 +841,34 @@ class MITREidDataService_1_0 : MITREidDataService {
     }
 
     override fun importData(configJson: String) {
-        val conf = MITREidDataService.json.decodeFromString<ExtendedConfiguration>(configJson)
+        val conf = MITREidDataService.json.decodeFromString<ExtendedConfiguration1>(configJson)
         val context = Context(clientRepository, approvedSiteRepository, wlSiteRepository, blSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository, extensions, maps)
         context.importData(conf)
     }
 
     override fun importClient(context: Context, client: ClientDetailsConfiguration) {
-        // New in 1.2
-        client.claimsRedirectUris = null
-        client.jwks = null
-        client.isClearAccessTokensOnRefresh = true
+        with(client) {
+            // New in 1.2
+            claimsRedirectUris = claimsRedirectUris.warnIgnored("claimsRedirectUris")
+            jwks = jwks.warnIgnored("jwks")
+            isClearAccessTokensOnRefresh = isClearAccessTokensOnRefresh.warnIgnored("isClearAccessTokensOnRefresh", true)
 
-        // New in 1.3
-        client.codeChallengeMethod = null
-        client.softwareId = null
-        client.softwareVersion = null
-        client.softwareStatement = null
-        client.createdAt = null
+            // New in 1.3
+            codeChallengeMethod = codeChallengeMethod.warnIgnored("codeChallengeMethod")
+            softwareId = softwareId.warnIgnored("softwareId")
+            softwareVersion = softwareVersion.warnIgnored("softwareVersion")
+            softwareStatement = softwareStatement.warnIgnored("softwareStatement")
+            createdAt = createdAt.warnIgnored("createdAt")
+        }
 
         super.importClient(context, client)
+    }
+
+    override fun importAuthenticationHolder(context: Context, ahe: AuthenticationHolderEntity) {
+        val r = ahe.authentication.oAuth2Request
+        r.extensions.warnIgnored("authentication/userAuthentication/extensions")
+
+        super.importAuthenticationHolder(context, ahe)
     }
 
     companion object {

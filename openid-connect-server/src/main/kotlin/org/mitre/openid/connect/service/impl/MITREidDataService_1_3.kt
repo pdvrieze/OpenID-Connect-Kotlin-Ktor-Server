@@ -44,6 +44,7 @@ import org.mitre.openid.connect.repository.WhitelistedSiteRepository
 import org.mitre.openid.connect.service.MITREidDataService
 import org.mitre.openid.connect.service.MITREidDataService.Companion.toUTCString
 import org.mitre.openid.connect.service.MITREidDataService.Companion.utcToDate
+import org.mitre.openid.connect.service.MITREidDataService.Companion.warnIgnored
 import org.mitre.openid.connect.service.MITREidDataService.Context
 import org.mitre.openid.connect.service.MITREidDataServiceExtension
 import org.mitre.openid.connect.service.MITREidDataServiceMaps
@@ -529,7 +530,7 @@ class MITREidDataService_1_3 : MITREidDataService {
             }
         }
         val context = Context(clientRepository, approvedSiteRepository, wlSiteRepository, blSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository, extensions, maps)
-        context.fixObjectReferences()
+        fixObjectReferences(context)
         for (extension in extensions) {
             if (extension.supportsVersion(THIS_VERSION)) {
                 extension.fixExtensionObjectReferences(maps)
@@ -1132,58 +1133,65 @@ class MITREidDataService_1_3 : MITREidDataService {
         logger.info("Done reading system scopes")
     }
 
-    override fun Context.fixObjectReferences() {
+    override fun importGrant(context: Context, delegate: ApprovedSite.SerialDelegate) {
+        with(delegate) {
+            whitelistedSiteId = whitelistedSiteId.warnIgnored("whitelistedSiteId")
+        }
+        super.importGrant(context, delegate)
+    }
+
+    override fun fixObjectReferences(context: Context) {
         logger.info("Fixing object references...")
-        for ((oldRefreshTokenId, clientRef) in maps.refreshTokenToClientRefs) {
-            val client = clientRepository.getClientByClientId(clientRef)
-            val newRefreshTokenId = maps.refreshTokenOldToNewIdMap[oldRefreshTokenId]!!
-            val refreshToken = tokenRepository.getRefreshTokenById(newRefreshTokenId)!!
+        for ((oldRefreshTokenId, clientRef) in context.maps.refreshTokenToClientRefs) {
+            val client = context.clientRepository.getClientByClientId(clientRef)
+            val newRefreshTokenId = context.maps.refreshTokenOldToNewIdMap[oldRefreshTokenId]!!
+            val refreshToken = context.tokenRepository.getRefreshTokenById(newRefreshTokenId)!!
             refreshToken.client = client
-            tokenRepository.saveRefreshToken(refreshToken)
+            context.tokenRepository.saveRefreshToken(refreshToken)
         }
-        for ((oldRefreshTokenId, oldAuthHolderId) in maps.refreshTokenToAuthHolderRefs) {
-            val newAuthHolderId = maps.authHolderOldToNewIdMap[oldAuthHolderId]
-            val authHolder = authHolderRepository.getById(newAuthHolderId)
-            val newRefreshTokenId = maps.refreshTokenOldToNewIdMap[oldRefreshTokenId]!!
-            val refreshToken = tokenRepository.getRefreshTokenById(newRefreshTokenId)!!
+        for ((oldRefreshTokenId, oldAuthHolderId) in context.maps.refreshTokenToAuthHolderRefs) {
+            val newAuthHolderId = context.maps.authHolderOldToNewIdMap[oldAuthHolderId]
+            val authHolder = context.authHolderRepository.getById(newAuthHolderId)
+            val newRefreshTokenId = context.maps.refreshTokenOldToNewIdMap[oldRefreshTokenId]!!
+            val refreshToken = context.tokenRepository.getRefreshTokenById(newRefreshTokenId)!!
             refreshToken.authenticationHolder = authHolder!!
-            tokenRepository.saveRefreshToken(refreshToken)
+            context.tokenRepository.saveRefreshToken(refreshToken)
         }
-        for ((oldAccessTokenId, clientRef) in maps.accessTokenToClientRefs) {
-            val client = clientRepository.getClientByClientId(clientRef)
-            val newAccessTokenId = maps.accessTokenOldToNewIdMap[oldAccessTokenId]!!
-            val accessToken = tokenRepository.getAccessTokenById(newAccessTokenId)!!
+        for ((oldAccessTokenId, clientRef) in context.maps.accessTokenToClientRefs) {
+            val client = context.clientRepository.getClientByClientId(clientRef)
+            val newAccessTokenId = context.maps.accessTokenOldToNewIdMap[oldAccessTokenId]!!
+            val accessToken = context.tokenRepository.getAccessTokenById(newAccessTokenId)!!
             accessToken.client = client
-            tokenRepository.saveAccessToken(accessToken)
+            context.tokenRepository.saveAccessToken(accessToken)
         }
-        for ((oldAccessTokenId, oldAuthHolderId) in maps.accessTokenToAuthHolderRefs) {
-            val newAuthHolderId = maps.authHolderOldToNewIdMap[oldAuthHolderId] ?: error("No autholder old->new for $oldAuthHolderId")
-            val authHolder = authHolderRepository.getById(newAuthHolderId) ?: error("No authHolder with id $newAuthHolderId found")
-            val newAccessTokenId = maps.accessTokenOldToNewIdMap[oldAccessTokenId]!!
-            val accessToken = tokenRepository.getAccessTokenById(newAccessTokenId)!!
+        for ((oldAccessTokenId, oldAuthHolderId) in context.maps.accessTokenToAuthHolderRefs) {
+            val newAuthHolderId = context.maps.authHolderOldToNewIdMap[oldAuthHolderId] ?: error("No autholder old->new for $oldAuthHolderId")
+            val authHolder = context.authHolderRepository.getById(newAuthHolderId) ?: error("No authHolder with id $newAuthHolderId found")
+            val newAccessTokenId = context.maps.accessTokenOldToNewIdMap[oldAccessTokenId]!!
+            val accessToken = context.tokenRepository.getAccessTokenById(newAccessTokenId)!!
             accessToken.authenticationHolder = authHolder
-            tokenRepository.saveAccessToken(accessToken)
+            context.tokenRepository.saveAccessToken(accessToken)
         }
-        for ((oldAccessTokenId, oldRefreshTokenId) in maps.accessTokenToRefreshTokenRefs) {
-            val newRefreshTokenId = maps.refreshTokenOldToNewIdMap[oldRefreshTokenId] ?: error("No refresh old->new for $oldRefreshTokenId")
-            val refreshToken = tokenRepository.getRefreshTokenById(newRefreshTokenId)
-            val newAccessTokenId = maps.accessTokenOldToNewIdMap[oldAccessTokenId]!!
-            val accessToken = tokenRepository.getAccessTokenById(newAccessTokenId)!!
+        for ((oldAccessTokenId, oldRefreshTokenId) in context.maps.accessTokenToRefreshTokenRefs) {
+            val newRefreshTokenId = context.maps.refreshTokenOldToNewIdMap[oldRefreshTokenId] ?: error("No refresh old->new for $oldRefreshTokenId")
+            val refreshToken = context.tokenRepository.getRefreshTokenById(newRefreshTokenId)
+            val newAccessTokenId = context.maps.accessTokenOldToNewIdMap[oldAccessTokenId]!!
+            val accessToken = context.tokenRepository.getAccessTokenById(newAccessTokenId)!!
             accessToken.refreshToken = refreshToken
-            tokenRepository.saveAccessToken(accessToken)
+            context.tokenRepository.saveAccessToken(accessToken)
         }
-        for ((oldGrantId, oldAccessTokenIds) in maps.grantToAccessTokensRefs) {
-            val newGrantId = maps.grantOldToNewIdMap[oldGrantId]!!
-            val site = approvedSiteRepository.getById(newGrantId)!!
+        for ((oldGrantId, oldAccessTokenIds) in context.maps.grantToAccessTokensRefs) {
+            val newGrantId = context.maps.grantOldToNewIdMap[oldGrantId]!!
+            val site = context.approvedSiteRepository.getById(newGrantId)!!
 
             for (oldTokenId in oldAccessTokenIds) {
-                val newTokenId = maps.accessTokenOldToNewIdMap[oldTokenId] ?: error("No access old->new map for $oldTokenId")
-                val token = tokenRepository.getAccessTokenById(newTokenId)!!
+                val newTokenId = context.maps.accessTokenOldToNewIdMap[oldTokenId] ?: error("No access old->new map for $oldTokenId")
+                val token = context.tokenRepository.getAccessTokenById(newTokenId)!!
                 token.approvedSite = site
-                tokenRepository.saveAccessToken(token)
+                context.tokenRepository.saveAccessToken(token)
             }
 
-            approvedSiteRepository.save(site)
+            context.approvedSiteRepository.save(site)
         }
         /*
 		refreshTokenToClientRefs.clear();

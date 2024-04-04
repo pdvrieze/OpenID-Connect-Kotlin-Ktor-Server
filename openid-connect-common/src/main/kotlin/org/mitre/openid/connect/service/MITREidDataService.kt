@@ -30,6 +30,7 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
@@ -108,6 +109,229 @@ interface MITREidDataService {
      *
      */
     fun supportsVersion(version: String?): Boolean
+
+
+    fun Context.importData(conf: ExtendedConfiguration1) {
+        conf.clients?.let {
+            for (client in it) importClient(this, client)
+            logger.info("Done reading clients")
+        }
+        conf.grants?.let {
+            for (delegate in it) importGrant(this, delegate)
+            logger.info("Done reading grants")
+        }
+        conf.whitelistedSites?.let {
+            for (wlSite in it) importWhitelistedSite(this, wlSite)
+            logger.info("Done reading whitelisted sites")
+        }
+        conf.blacklistedSites?.let {
+            for (blSite in it) importBlacklistedSite(this, blSite)
+            logger.info("Done reading blacklisted sites")
+        }
+        conf.authenticationHolders?.let {
+            for (ahe in it) importAuthenticationHolder(this, ahe)
+            logger.info("Done reading authentication holders")
+        }
+        conf.accessTokens?.let {
+            for (delegate in it) importAccessToken(this, delegate)
+            logger.info("Done reading access tokens")
+        }
+        conf.refreshTokens?.let {
+            for (delegate in it) importRefreshToken(this, delegate)
+            logger.info("Done reading refresh tokens")
+        }
+        conf.systemScopes?.let {
+            for (scope in it) importSystemScope(this, scope)
+            logger.info("Done reading system scopes")
+        }
+        // TODO readExtensions(conf)
+        fixObjectReferences(this)
+        // TODO fixExtensionObjectReferences(maps)
+        maps.clearAll()
+        /*
+    for (extension in extensions) {
+        if (extension.supportsVersion(THIS_VERSION)) {
+            extension.fixExtensionObjectReferences(maps)
+            break
+        }
+    }
+    maps.clearAll()
+*/
+    }
+
+    fun importClient(context: Context, client: ClientDetailsConfiguration) {
+        context.clientRepository.saveClient(client.toClientDetailsEntity())
+    }
+
+    fun importGrant(context: Context, delegate: ApprovedSite.SerialDelegate) {
+        with(context) {
+            val currentId: Long = delegate.currentId
+
+            if (delegate.whitelistedSiteId != null) {
+                logger.debug("Ignoring whitelisted site marker on approved site.")
+            }
+
+            val tokenIds: Set<Long>? = delegate.approvedAccessTokens
+
+            val site = ApprovedSite().apply {
+                accessDate = delegate.accessDate
+                clientId = delegate.clientId
+                creationDate = delegate.creationDate
+                timeoutDate = delegate.timeoutDate
+                userId = delegate.userId
+                allowedScopes = delegate.allowedScopes
+            }
+
+            val newId = approvedSiteRepository.save(site).id!!
+            maps.grantOldToNewIdMap[currentId] = newId
+
+            if (tokenIds != null) {
+                maps.grantToAccessTokensRefs[currentId] = tokenIds
+            }
+            logger.debug("Read grant {}", currentId)
+        }
+    }
+
+    fun importWhitelistedSite(context: Context, wlSite: WhitelistedSite) {
+        with(context) {
+            val currentId: Long = wlSite.id!!
+            wlSite.id = null // reset to null
+
+            requireNotNull(currentId)
+            val newId = wlSiteRepository.save(wlSite).id!!
+            maps.whitelistedSiteOldToNewIdMap[currentId] = newId
+        }
+    }
+
+    fun importBlacklistedSite(context: Context, blSite: BlacklistedSite) {
+        blSite.id = null // ignore ID
+        context.blSiteRepository.save(blSite)
+    }
+
+    fun importAuthenticationHolder(context: Context, ahe: AuthenticationHolderEntity) {
+        with(context) {
+            val currentId: Long = requireNotNull(ahe.id) { "Missing id for authentication holder" }
+            ahe.id = null
+
+            val newId = authHolderRepository.save(ahe).id!!
+            maps.authHolderOldToNewIdMap[currentId] = newId
+            logger.debug("Read authentication holder {}", currentId)
+        }
+    }
+
+    fun importAccessToken(context: Context, delegate: OAuth2AccessTokenEntity.SerialDelegate) {
+        with(context) {
+            val currentId: Long = delegate.currentId
+            val clientId: String = delegate.clientId
+            val authHolderId: Long = delegate.authenticationHolderId
+            val refreshTokenId: Long? = delegate.refreshTokenId
+
+            val token = OAuth2AccessTokenEntity().apply {
+                expiration = delegate.expiration
+                jwt = delegate.value
+                scope = delegate.scope
+                tokenType = delegate.tokenType
+            }
+
+
+            val newId = tokenRepository.saveAccessToken(token).id!!
+
+            maps.accessTokenToClientRefs[currentId] = clientId
+            maps.accessTokenToAuthHolderRefs[currentId] = authHolderId
+            if (refreshTokenId != null) {
+                maps.accessTokenToRefreshTokenRefs[currentId] = refreshTokenId
+            }
+            maps.accessTokenOldToNewIdMap[currentId] = newId
+            logger.debug("Read access token {}", currentId)
+        }
+    }
+
+    fun importRefreshToken(context: Context, delegate: OAuth2RefreshTokenEntity.SerialDelegate) {
+        with(context) {
+            val currentId: Long = delegate.currentId
+            val clientId: String = delegate.clientId
+            val authHolderId: Long = delegate.authenticationHolderId
+
+            val token = OAuth2RefreshTokenEntity().apply {
+                expiration = delegate.expiration
+                jwt = delegate.value
+            }
+
+            val newId = tokenRepository.saveRefreshToken(token).id!!
+
+            maps.refreshTokenToClientRefs[currentId] = clientId
+            maps.refreshTokenToAuthHolderRefs[currentId] = authHolderId
+            maps.refreshTokenOldToNewIdMap[currentId] = newId
+            logger.debug("Read refresh token {}", currentId)
+        }
+    }
+
+    fun importSystemScope(context: Context, scope: SystemScope) {
+        context.sysScopeRepository.save(scope)
+    }
+
+    fun fixObjectReferences(context: Context) {
+        with(context) {
+            for ((oldRefreshTokenId, clientRef) in maps.refreshTokenToClientRefs) {
+                val client = clientRepository.getClientByClientId(clientRef)
+                val newRefreshTokenId = maps.refreshTokenOldToNewIdMap[oldRefreshTokenId]!!
+                val refreshToken = tokenRepository.getRefreshTokenById(newRefreshTokenId)!!
+                refreshToken.client = client
+                tokenRepository.saveRefreshToken(refreshToken)
+            }
+
+            for ((oldRefreshTokenId, oldAuthHolderId) in maps.refreshTokenToAuthHolderRefs) {
+                val newAuthHolderId = maps.authHolderOldToNewIdMap[oldAuthHolderId]
+                val authHolder = authHolderRepository.getById(newAuthHolderId)!!
+                val newRefreshTokenId = maps.refreshTokenOldToNewIdMap[oldRefreshTokenId]!!
+                val refreshToken = tokenRepository.getRefreshTokenById(newRefreshTokenId)!!
+                refreshToken.authenticationHolder = authHolder
+                tokenRepository.saveRefreshToken(refreshToken)
+            }
+
+            for ((oldAccessTokenId, clientRef) in maps.accessTokenToClientRefs) {
+                val client = clientRepository.getClientByClientId(clientRef)
+                val newAccessTokenId = maps.accessTokenOldToNewIdMap[oldAccessTokenId]!!
+                val accessToken = tokenRepository.getAccessTokenById(newAccessTokenId)!!
+                accessToken.client = client
+                tokenRepository.saveAccessToken(accessToken)
+            }
+            for ((oldAccessTokenId, oldAuthHolderId) in maps.accessTokenToAuthHolderRefs) {
+                val newAuthHolderId = maps.authHolderOldToNewIdMap[oldAuthHolderId]
+                val authHolder = authHolderRepository.getById(newAuthHolderId)!!
+                val newAccessTokenId = maps.accessTokenOldToNewIdMap[oldAccessTokenId]!!
+                val accessToken = tokenRepository.getAccessTokenById(newAccessTokenId)!!
+                accessToken.authenticationHolder = authHolder
+                tokenRepository.saveAccessToken(accessToken)
+            }
+            maps.accessTokenToAuthHolderRefs.clear()
+
+            for ((oldAccessTokenId, oldRefreshTokenId) in maps.accessTokenToRefreshTokenRefs) {
+                val newRefreshTokenId = maps.refreshTokenOldToNewIdMap[oldRefreshTokenId]!!
+                val refreshToken = tokenRepository.getRefreshTokenById(newRefreshTokenId)
+                val newAccessTokenId = maps.accessTokenOldToNewIdMap[oldAccessTokenId]!!
+                val accessToken = tokenRepository.getAccessTokenById(newAccessTokenId)!!
+                accessToken.refreshToken = refreshToken
+                tokenRepository.saveAccessToken(accessToken)
+            }
+
+            for ((oldGrantId, oldAccessTokenIds) in maps.grantToAccessTokensRefs) {
+                val newGrantId = maps.grantOldToNewIdMap[oldGrantId]!!
+                val site = approvedSiteRepository.getById(newGrantId)!!
+
+                for (oldTokenId in oldAccessTokenIds) {
+                    val newTokenId = checkNotNull(maps.accessTokenOldToNewIdMap[oldTokenId]) {
+                        "missing map for old access token $oldTokenId"
+                    }
+                    val token = tokenRepository.getAccessTokenById(newTokenId)!!
+                    token.approvedSite = site
+                    tokenRepository.saveAccessToken(token)
+                }
+
+                approvedSiteRepository.save(site)
+            }
+        }
+    }
 
     @Serializable
     class ClientDetailsConfiguration(
@@ -219,7 +443,7 @@ interface MITREidDataService {
     }
 
     @Serializable
-    open class ConfigurationData(
+    abstract class ConfigurationData(
         @SerialName("clients")
         val clients: List<ClientDetailsConfiguration>? = null,
         @SerialName("grants")
@@ -228,29 +452,20 @@ interface MITREidDataService {
         val whitelistedSites: List<WhitelistedSite>? = null,
         @SerialName("blacklistedSites")
         val blacklistedSites: List<BlacklistedSite>? = null,
-        @SerialName("authenticationHolders")
-        val authenticationHolders: List<AuthenticationHolderEntity>? = null,
         @SerialName("accessTokens")
         val accessTokens: List<OAuth2AccessTokenEntity.SerialDelegate>? = null,
         @SerialName("refreshTokens")
         val refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate>? = null,
         @SerialName("systemScopes")
         val systemScopes: List<SystemScope>? = null,
-    )
+    ) {
+        abstract val authenticationHolders: List<AuthenticationHolderEntity>?
+    }
 
-    @Serializable(ExtendedConfiguration.Companion::class)
-    class ExtendedConfiguration : ConfigurationData {
-        @Transient
-        var extensions: Map<String, JsonElement> = emptyMap()
-            private set
-
-
-        constructor(
-            s: ConfigurationData
-        ) : super(
-            s.clients, s.grants, s.whitelistedSites, s.blacklistedSites,
-            s.authenticationHolders, s.accessTokens, s.refreshTokens, s.systemScopes,
-        )
+    @Serializable
+    open class ConfigurationData1 : ConfigurationData {
+        @SerialName("authenticationHolders")
+        internal val _authenticationHolders: List<AuthenticationHolderEntity.SerialDelegate10>?
 
         constructor(
             clients: List<ClientDetailsConfiguration>? = null,
@@ -261,17 +476,66 @@ interface MITREidDataService {
             accessTokens: List<OAuth2AccessTokenEntity.SerialDelegate>? = null,
             refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate>? = null,
             systemScopes: List<SystemScope>? = null,
+        ) : super(clients, grants,whitelistedSites, blacklistedSites, accessTokens, refreshTokens, systemScopes) {
+            _authenticationHolders = authenticationHolders?.map { AuthenticationHolderEntity.SerialDelegate10(it) }
+        }
+
+        constructor(
+            clients: List<ClientDetailsConfiguration>? = null,
+            grants: List<ApprovedSite.SerialDelegate>? = null,
+            whitelistedSites: List<WhitelistedSite>? = null,
+            blacklistedSites: List<BlacklistedSite>? = null,
+            authenticationHolders: List<AuthenticationHolderEntity.SerialDelegate10>? = null,
+            accessTokens: List<OAuth2AccessTokenEntity.SerialDelegate>? = null,
+            refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate>? = null,
+            systemScopes: List<SystemScope>? = null,
+            dummy: Int = 0
+        ) : super(clients, grants,whitelistedSites, blacklistedSites, accessTokens, refreshTokens, systemScopes) {
+            _authenticationHolders = authenticationHolders
+        }
+
+        override val authenticationHolders: List<AuthenticationHolderEntity>?
+            get() = _authenticationHolders?.map { it.toAuthenticationHolder() }
+    }
+
+    @Serializable(ExtendedConfiguration1.Companion::class)
+    class ExtendedConfiguration1 : ConfigurationData1 {
+        @Transient
+        var extensions: Map<String, JsonElement> = emptyMap()
+            private set
+
+
+        constructor(
+            s: ConfigurationData1
+        ) : super(
+            s.clients, s.grants, s.whitelistedSites, s.blacklistedSites,
+            s._authenticationHolders, s.accessTokens, s.refreshTokens, s.systemScopes,
+        )
+
+        constructor(
+            clients: List<ClientDetailsConfiguration>? = null,
+            grants: List<ApprovedSite.SerialDelegate>? = null,
+            whitelistedSites: List<WhitelistedSite>? = null,
+            blacklistedSites: List<BlacklistedSite>? = null,
+            authenticationHolders: List<AuthenticationHolderEntity.SerialDelegate10>? = null,
+            accessTokens: List<OAuth2AccessTokenEntity.SerialDelegate>? = null,
+            refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate>? = null,
+            systemScopes: List<SystemScope>? = null,
             extensions: Map<String, JsonElement> = emptyMap(),
         ) : super(
             clients, grants, whitelistedSites, blacklistedSites,
-            authenticationHolders, accessTokens, refreshTokens, systemScopes,
+            authenticationHolders,
+            accessTokens, refreshTokens, systemScopes,
         ) {
             this.extensions = extensions
         }
 
         @OptIn(ExperimentalSerializationApi::class)
-        companion object : KSerializer<ExtendedConfiguration> {
-            private val delegate = ConfigurationData.serializer()
+        companion object : KSerializer<ExtendedConfiguration1> {
+            private val delegate = ConfigurationData1.serializer()
+            private val authHoldersSerializer: KSerializer<List<AuthenticationHolderEntity.SerialDelegate10>> =
+                ListSerializer(AuthenticationHolderEntity.SerialDelegate10.serializer())
+
             override val descriptor: SerialDescriptor = buildClassSerialDescriptor(
                 "${delegate.descriptor.serialName}.extended"
             ) {
@@ -282,7 +546,7 @@ interface MITREidDataService {
                 element("extensions", ContextualSerializer(Any::class).descriptor, isOptional = true)
             }
 
-            override fun serialize(encoder: Encoder, value: ExtendedConfiguration) {
+            override fun serialize(encoder: Encoder, value: ExtendedConfiguration1) {
                 if (encoder !is JsonEncoder) { // Ignore extensions when not in json mode (TODO for now)
                     delegate.serialize(encoder, value)
                 } else {
@@ -294,16 +558,16 @@ interface MITREidDataService {
                 }
             }
 
-            override fun deserialize(decoder: Decoder): ExtendedConfiguration {
+            override fun deserialize(decoder: Decoder): ExtendedConfiguration1 {
                 if (decoder !is JsonDecoder) {
-                    return ExtendedConfiguration(delegate.deserialize(decoder))
+                    return ExtendedConfiguration1(delegate.deserialize(decoder))
                 }
 
                 var clients: List<ClientDetailsConfiguration>? = null
                 var grants: List<ApprovedSite.SerialDelegate>? = null
                 var whitelistedSites: List<WhitelistedSite>? = null
                 var blacklistedSites: List<BlacklistedSite>? = null
-                var authenticationHolders: List<AuthenticationHolderEntity>? = null
+                var authenticationHolders: List<AuthenticationHolderEntity.SerialDelegate10>? = null
                 var accessTokens: List<OAuth2AccessTokenEntity.SerialDelegate>? = null
                 var refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate>? = null
                 var systemScopes: List<SystemScope>? = null
@@ -318,7 +582,8 @@ interface MITREidDataService {
                         "grants" -> grants = decoder.json.decodeFromJsonElement(value)
                         "whitelistedSites" -> whitelistedSites = decoder.json.decodeFromJsonElement(value)
                         "blacklistedSites" -> blacklistedSites = decoder.json.decodeFromJsonElement(value)
-                        "authenticationHolders" -> authenticationHolders = decoder.json.decodeFromJsonElement(value)
+                        "authenticationHolders" -> authenticationHolders =
+                            decoder.json.decodeFromJsonElement(authHoldersSerializer, value)
                         "accessTokens" -> accessTokens = decoder.json.decodeFromJsonElement(value)
                         "refreshTokens" -> refreshTokens = decoder.json.decodeFromJsonElement(value)
                         "systemScopes" -> systemScopes = decoder.json.decodeFromJsonElement(value)
@@ -327,11 +592,23 @@ interface MITREidDataService {
                     }
                 }
 
-                return ExtendedConfiguration(clients, grants, whitelistedSites, blacklistedSites,
+                return ExtendedConfiguration1(clients, grants, whitelistedSites, blacklistedSites,
                                              authenticationHolders, accessTokens, refreshTokens, systemScopes, extensions)
             }
         }
     }
+
+    class Context(
+        val clientRepository: OAuth2ClientRepository,
+        val approvedSiteRepository: ApprovedSiteRepository,
+        val wlSiteRepository: WhitelistedSiteRepository,
+        val blSiteRepository: BlacklistedSiteRepository,
+        val authHolderRepository: AuthenticationHolderRepository,
+        val tokenRepository: OAuth2TokenRepository,
+        val sysScopeRepository: SystemScopeRepository,
+        val extensions: List<MITREidDataServiceExtension>,
+        val maps: MITREidDataServiceMaps,
+    )
 
     companion object {
         private val dateFormatter = DateFormatter().apply {
@@ -376,6 +653,21 @@ interface MITREidDataService {
             return dateFormatter.print(value, Locale.ENGLISH)
         }
 
+        public fun Any?.warnIgnored(name: String): Nothing? {
+            if (this!=null) logger.warn("Attribute $name ignored as unsupported on the service version")
+            return null
+        }
+
+        public fun Boolean.warnIgnored(name: String, default: Boolean = false): Boolean {
+            if (this!=default) logger.warn("Attribute $name ignored as unsupported on the service version")
+            return default
+        }
+
+        public fun MutableMap<*,*>.warnIgnored(name: String) {
+            if (this.isNotEmpty()) logger.warn("Attribute $name ignored as unsupported on the service version")
+            clear()
+        }
+
         /**
          * Logger for this class
          */
@@ -405,225 +697,4 @@ interface MITREidDataService {
         const val SYSTEMSCOPES: String = "systemScopes"
     }
 
-    fun Context.importData(conf: ExtendedConfiguration) {
-        conf.clients?.let {
-            for (client in it) importClient(this, client)
-            logger.info("Done reading clients")
-        }
-        conf.grants?.let {
-            for (delegate in it) importGrant(delegate)
-            logger.info("Done reading grants")
-        }
-        conf.whitelistedSites?.let {
-            for (wlSite in it) importWhitelistedSite(wlSite)
-            logger.info("Done reading whitelisted sites")
-        }
-        conf.blacklistedSites?.let {
-            for (blSite in it) importBlacklistedSite(blSite)
-            logger.info("Done reading blacklisted sites")
-        }
-        conf.authenticationHolders?.let {
-            for (ahe in it) importAuthenticationHolder(ahe)
-            logger.info("Done reading authentication holders")
-        }
-        conf.accessTokens?.let {
-            for (delegate in it) importAccessToken(delegate)
-            logger.info("Done reading access tokens")
-        }
-        conf.refreshTokens?.let {
-            for (delegate in it) importRefreshToken(delegate)
-            logger.info("Done reading refresh tokens")
-        }
-        conf.systemScopes?.let {
-            for (scope in it) importSystemScope(scope)
-            logger.info("Done reading system scopes")
-        }
-        // TODO readExtensions(conf)
-        fixObjectReferences()
-        // TODO fixExtensionObjectReferences(maps)
-        maps.clearAll()
-        /*
-    for (extension in extensions) {
-        if (extension.supportsVersion(THIS_VERSION)) {
-            extension.fixExtensionObjectReferences(maps)
-            break
-        }
-    }
-    maps.clearAll()
-*/
-    }
-
-    fun importClient(context: Context, client: ClientDetailsConfiguration) {
-        context.clientRepository.saveClient(client.toClientDetailsEntity())
-    }
-
-    fun Context.importGrant(delegate: ApprovedSite.SerialDelegate) {
-        val currentId: Long = delegate.currentId
-
-        if (delegate.whitelistedSiteId != null) {
-            logger.debug("Ignoring whitelisted site marker on approved site.")
-        }
-
-        val tokenIds: Set<Long>? = delegate.approvedAccessTokens
-
-        val site = ApprovedSite().apply {
-            accessDate = delegate.accessDate
-            clientId = delegate.clientId
-            creationDate = delegate.creationDate
-            timeoutDate = delegate.timeoutDate
-            userId = delegate.userId
-            allowedScopes = delegate.allowedScopes
-        }
-
-        val newId = approvedSiteRepository.save(site).id!!
-        maps.grantOldToNewIdMap[currentId] = newId
-
-        if (tokenIds != null) {
-            maps.grantToAccessTokensRefs[currentId] = tokenIds
-        }
-        logger.debug("Read grant {}", currentId)
-    }
-
-    fun Context.importWhitelistedSite(wlSite: WhitelistedSite) {
-        val currentId: Long = wlSite.id!!
-        wlSite.id = null // reset to null
-
-        requireNotNull(currentId)
-        val newId = wlSiteRepository.save(wlSite).id!!
-        maps.whitelistedSiteOldToNewIdMap[currentId] = newId
-    }
-
-    fun Context.importBlacklistedSite(blSite: BlacklistedSite) {
-        blSite.id = null // ignore ID
-        blSiteRepository.save(blSite)
-    }
-
-    fun Context.importAuthenticationHolder(ahe: AuthenticationHolderEntity) {
-        val currentId: Long = requireNotNull(ahe.id) { "Missing id for authentication holder" }
-        ahe.id = null
-
-        val newId = authHolderRepository.save(ahe).id!!
-        maps.authHolderOldToNewIdMap[currentId] = newId
-        logger.debug("Read authentication holder {}", currentId)
-    }
-
-    fun Context.importAccessToken(delegate: OAuth2AccessTokenEntity.SerialDelegate) {
-        val currentId: Long = delegate.currentId
-        val clientId: String = delegate.clientId
-        val authHolderId: Long = delegate.authenticationHolderId
-        val refreshTokenId: Long? = delegate.refreshTokenId
-
-        val token = OAuth2AccessTokenEntity().apply {
-            expiration = delegate.expiration
-            jwt = delegate.value
-            scope = delegate.scope
-            tokenType = delegate.tokenType
-        }
-
-
-        val newId = tokenRepository.saveAccessToken(token).id!!
-
-        maps.accessTokenToClientRefs[currentId] = clientId
-        maps.accessTokenToAuthHolderRefs[currentId] = authHolderId
-        if (refreshTokenId != null) {
-            maps.accessTokenToRefreshTokenRefs[currentId] = refreshTokenId
-        }
-        maps.accessTokenOldToNewIdMap[currentId] = newId
-        logger.debug("Read access token {}", currentId)
-    }
-
-    fun Context.importRefreshToken(delegate: OAuth2RefreshTokenEntity.SerialDelegate) {
-        val currentId: Long = delegate.currentId
-        val clientId: String = delegate.clientId
-        val authHolderId: Long = delegate.authenticationHolderId
-
-        val token = OAuth2RefreshTokenEntity().apply {
-            expiration = delegate.expiration
-            jwt = delegate.value
-        }
-
-        val newId = tokenRepository.saveRefreshToken(token).id!!
-
-        maps.refreshTokenToClientRefs[currentId] = clientId
-        maps.refreshTokenToAuthHolderRefs[currentId] = authHolderId
-        maps.refreshTokenOldToNewIdMap[currentId] = newId
-        logger.debug("Read refresh token {}", currentId)
-    }
-
-    fun Context.importSystemScope(scope: SystemScope) {
-        sysScopeRepository.save(scope)
-    }
-
-    fun Context.fixObjectReferences() {
-        for ((oldRefreshTokenId, clientRef) in maps.refreshTokenToClientRefs) {
-            val client = clientRepository.getClientByClientId(clientRef)
-            val newRefreshTokenId = maps.refreshTokenOldToNewIdMap[oldRefreshTokenId]!!
-            val refreshToken = tokenRepository.getRefreshTokenById(newRefreshTokenId)!!
-            refreshToken.client = client
-            tokenRepository.saveRefreshToken(refreshToken)
-        }
-
-        for ((oldRefreshTokenId, oldAuthHolderId) in maps.refreshTokenToAuthHolderRefs) {
-            val newAuthHolderId = maps.authHolderOldToNewIdMap[oldAuthHolderId]
-            val authHolder = authHolderRepository.getById(newAuthHolderId)!!
-            val newRefreshTokenId = maps.refreshTokenOldToNewIdMap[oldRefreshTokenId]!!
-            val refreshToken = tokenRepository.getRefreshTokenById(newRefreshTokenId)!!
-            refreshToken.authenticationHolder = authHolder
-            tokenRepository.saveRefreshToken(refreshToken)
-        }
-
-        for ((oldAccessTokenId, clientRef) in maps.accessTokenToClientRefs) {
-            val client = clientRepository.getClientByClientId(clientRef)
-            val newAccessTokenId = maps.accessTokenOldToNewIdMap[oldAccessTokenId]!!
-            val accessToken = tokenRepository.getAccessTokenById(newAccessTokenId)!!
-            accessToken.client = client
-            tokenRepository.saveAccessToken(accessToken)
-        }
-        for ((oldAccessTokenId, oldAuthHolderId) in maps.accessTokenToAuthHolderRefs) {
-            val newAuthHolderId = maps.authHolderOldToNewIdMap[oldAuthHolderId]
-            val authHolder = authHolderRepository.getById(newAuthHolderId)!!
-            val newAccessTokenId = maps.accessTokenOldToNewIdMap[oldAccessTokenId]!!
-            val accessToken = tokenRepository.getAccessTokenById(newAccessTokenId)!!
-            accessToken.authenticationHolder = authHolder
-            tokenRepository.saveAccessToken(accessToken)
-        }
-        maps.accessTokenToAuthHolderRefs.clear()
-
-        for ((oldAccessTokenId, oldRefreshTokenId) in maps.accessTokenToRefreshTokenRefs) {
-            val newRefreshTokenId = maps.refreshTokenOldToNewIdMap[oldRefreshTokenId]!!
-            val refreshToken = tokenRepository.getRefreshTokenById(newRefreshTokenId)
-            val newAccessTokenId = maps.accessTokenOldToNewIdMap[oldAccessTokenId]!!
-            val accessToken = tokenRepository.getAccessTokenById(newAccessTokenId)!!
-            accessToken.refreshToken = refreshToken
-            tokenRepository.saveAccessToken(accessToken)
-        }
-
-        for ((oldGrantId, oldAccessTokenIds) in maps.grantToAccessTokensRefs) {
-            val newGrantId = maps.grantOldToNewIdMap[oldGrantId]!!
-            val site = approvedSiteRepository.getById(newGrantId)!!
-
-            for (oldTokenId in oldAccessTokenIds) {
-                val newTokenId = checkNotNull(maps.accessTokenOldToNewIdMap[oldTokenId]) {
-                    "missing map for old access token $oldTokenId"
-                }
-                val token = tokenRepository.getAccessTokenById(newTokenId)!!
-                token.approvedSite = site
-                tokenRepository.saveAccessToken(token)
-            }
-
-            approvedSiteRepository.save(site)
-        }
-    }
-
-    class Context(
-        val clientRepository: OAuth2ClientRepository,
-        val approvedSiteRepository: ApprovedSiteRepository,
-        val wlSiteRepository: WhitelistedSiteRepository,
-        val blSiteRepository: BlacklistedSiteRepository,
-        val authHolderRepository: AuthenticationHolderRepository,
-        val tokenRepository: OAuth2TokenRepository,
-        val sysScopeRepository: SystemScopeRepository,
-        val extensions: List<MITREidDataServiceExtension>,
-        val maps: MITREidDataServiceMaps,
-    )
 }
