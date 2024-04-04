@@ -746,10 +746,14 @@ class MITREidDataService_1_2 : MITREidDataService {
         logger.info("Done reading system scopes")
     }
 
-    override fun importData(configJson: String) {
-        val conf = MITREidDataService.json.decodeFromString<MITREidDataService.ExtendedConfiguration12>(configJson)
+
+    override fun importData(config: MITREidDataService.ExtendedConfiguration) {
         val context = Context(clientRepository, approvedSiteRepository, wlSiteRepository, blSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository, extensions, maps)
-        context.importData(conf)
+        context.importData(config)
+    }
+
+    override fun importData(configJson: String) {
+        importData(MITREidDataService.json.decodeFromString<MITREidDataService.ExtendedConfiguration12>(configJson))
     }
 
     override fun importClient(context: Context, client: MITREidDataService.ClientDetailsConfiguration) {

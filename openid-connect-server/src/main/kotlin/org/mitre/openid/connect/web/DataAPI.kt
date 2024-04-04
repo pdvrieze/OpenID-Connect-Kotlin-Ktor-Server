@@ -17,9 +17,10 @@
  */
 package org.mitre.openid.connect.web
 
-import com.google.gson.stream.JsonReader
-import com.google.gson.stream.JsonToken
 import com.google.gson.stream.JsonWriter
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.decodeFromStream
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.service.MITREidDataService
 import org.mitre.openid.connect.service.impl.MITREidDataService_1_3
@@ -33,7 +34,7 @@ import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import java.io.IOException
-import java.io.Reader
+import java.io.InputStream
 import java.security.Principal
 import java.text.SimpleDateFormat
 import java.util.*
@@ -69,7 +70,40 @@ class DataAPI {
 
     @RequestMapping(method = [RequestMethod.POST], consumes = [MediaType.APPLICATION_JSON_VALUE])
     @Throws(IOException::class)
-    fun importData(reader: Reader?, m: Model?): String {
+    fun importData(inStream: InputStream, m: Model?): String {
+        val data = MITREidDataService.json.decodeFromStream<RawData>(inStream)
+        val config: MITREidDataService.ExtendedConfiguration
+        val version: String
+        when {
+            data.config10 != null -> {
+                config = data.config10
+                version = MITREidDataService.MITREID_CONNECT_1_0
+            }
+
+            data.config11 != null -> {
+                config = data.config11
+                version = MITREidDataService.MITREID_CONNECT_1_1
+            }
+
+            data.config12 != null -> {
+                config = data.config12
+                version = MITREidDataService.MITREID_CONNECT_1_2
+            }
+
+            data.config13 != null -> {
+                config = data.config13
+                version = MITREidDataService.MITREID_CONNECT_1_3
+            }
+
+            else -> throw IllegalArgumentException("no supported version of configuration found")
+
+        }
+        val dataService = requireNotNull(importers.firstOrNull { it.supportsVersion(version) }) {
+            "No configured service supports version ${version}"
+        }
+
+        dataService.importData(config)
+        /*
         val jsonReader = JsonReader(reader)
 
         jsonReader.beginObject()
@@ -109,7 +143,7 @@ class DataAPI {
         }
 
         jsonReader.endObject()
-
+*/
         return "httpCodeView"
     }
 
@@ -143,6 +177,14 @@ class DataAPI {
             logger.error("Unable to export data", e)
         }
     }
+
+    @Serializable
+    private class RawData(
+        @SerialName("mitreid-connect-1.0") val config10: MITREidDataService.ExtendedConfiguration10? = null,
+        @SerialName("mitreid-connect-1.1") val config11: MITREidDataService.ExtendedConfiguration10? = null,
+        @SerialName("mitreid-connect-1.2") val config12: MITREidDataService.ExtendedConfiguration12? = null,
+        @SerialName("mitreid-connect-1.3") val config13: MITREidDataService.ExtendedConfiguration12? = null,
+    )
 
     companion object {
         const val URL: String = RootController.API_URL + "/data"

@@ -95,6 +95,11 @@ interface MITREidDataService {
     fun importData(reader: JsonReader)
 
     /**
+     * Read in the current server state from the pre-parsed configuration data
+     */
+    fun importData(config: ExtendedConfiguration)
+
+    /**
      * Read in the state from a string
      */
     fun importData(configJson: String)
