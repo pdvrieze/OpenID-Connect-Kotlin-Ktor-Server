@@ -15,11 +15,13 @@
  */
 package org.mitre.openid.connect.config
 
-import com.google.gson.JsonElement
-import com.google.gson.JsonIOException
-import com.google.gson.JsonObject
-import com.google.gson.JsonParser
-import com.google.gson.JsonSyntaxException
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonObject
+import org.mitre.openid.connect.service.MITREidDataService
+import org.mitre.util.asString
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -38,7 +40,7 @@ import java.util.*
  */
 @Component
 class JsonMessageSource : AbstractMessageSource() {
-    var baseDirectory: Resource? = null
+    lateinit var baseDirectory: Resource
 
     private val fallbackLocale = Locale("en") // US English is the fallback language
 
@@ -60,7 +62,8 @@ class JsonMessageSource : AbstractMessageSource() {
      * Get a value from the set of maps, taking the first match in order
      */
     private fun getValue(code: String, langs: List<JsonObject>?): String? {
-        return langs?.run { asSequence().mapNotNull { getValue(code, it) }.firstOrNull() }
+        if (langs == null) return null
+        return langs.asSequence().mapNotNull { getValue(code, it) }.firstOrNull()
     }
 
     /**
@@ -69,9 +72,7 @@ class JsonMessageSource : AbstractMessageSource() {
     private fun getValue(code: String, lang: JsonObject?): String? {
         // if there's no language map, nothing to look up
 
-        if (lang == null) {
-            return null
-        }
+        if (lang == null) return null
 
         var e: JsonElement = lang
 
@@ -82,14 +83,14 @@ class JsonMessageSource : AbstractMessageSource() {
 
         while (it.hasNext()) {
             val p = it.next()
-            if (e.isJsonObject) {
-                val o = e.asJsonObject
-                if (o.has(p)) {
-                    e = o[p] // found the next level
+            if (e is JsonObject) {
+                val o = e[p]
+                if (o != null) {
+                    e = o // found the next level
                     if (!it.hasNext()) {
                         // we've reached a leaf, grab it
-                        if (e.isJsonPrimitive) {
-                            value = e.asString
+                        if (e is JsonPrimitive) {
+                            value = e.asString()
                         }
                     }
                 } else {
@@ -110,36 +111,36 @@ class JsonMessageSource : AbstractMessageSource() {
         if (!languageMaps.containsKey(locale)) {
             try {
                 val set: MutableList<JsonObject> = ArrayList()
-                for (namespace in config.languageNamespaces!!) {
+                for (namespace in config.languageNamespaces) {
                     // full locale string, e.g. "en_US"
                     var filename = "${locale.language}_${locale.country}${File.separator}$namespace.json"
 
-                    var r = baseDirectory!!.createRelative(filename)
+                    var r: Resource = baseDirectory.createRelative(filename)
 
                     if (!r.exists()) {
                         // fallback to language only
                         logger.debug("Fallback locale to language only.")
                         filename = locale.language + File.separator + namespace + ".json"
-                        r = baseDirectory!!.createRelative(filename)
+                        r = baseDirectory.createRelative(filename)
                     }
 
-                    Companion.logger.info("No locale loaded, trying to load from {}", r)
+                    logger.info("No locale loaded, trying to load from $r")
 
-                    val parser = JsonParser()
-                    val obj = parser.parse(InputStreamReader(r.inputStream, "UTF-8")) as JsonObject
+                    val obj = r.inputStream.use {
+                        val reader = InputStreamReader(r.inputStream, "UTF-8")
+                        MITREidDataService.json.parseToJsonElement(reader.readText()).jsonObject
+                    }
 
                     set.add(obj)
                 }
                 languageMaps[locale] = set
             } catch (e: FileNotFoundException) {
-                Companion.logger.info("Unable to load locale because no messages file was found for locale {}", locale.displayName)
+                logger.info("Unable to load locale because no messages file was found for locale ${locale.displayName}")
                 languageMaps[locale] = null
-            } catch (e: JsonIOException) {
-                Companion.logger.error("Unable to load locale", e)
-            } catch (e: JsonSyntaxException) {
-                Companion.logger.error("Unable to load locale", e)
+            } catch (e: SerializationException) {
+                logger.error("Unable to load locale", e)
             } catch (e: IOException) {
-                Companion.logger.error("Unable to load locale", e)
+                logger.error("Unable to load locale", e)
             }
         }
 

@@ -56,7 +56,7 @@ class Policy {
     @get:CollectionTable(name = "policy_scope", joinColumns = [JoinColumn(name = "owner_id")])
     @get:Column(name = "scope")
     @get:ElementCollection(fetch = FetchType.EAGER)
-    var scopes: Set<String>? = null
+    var scopes: Set<String> = emptySet()
 
     override fun toString(): String {
         return "Policy [id=$id, name=$name, claimsRequired=$claimsRequired, scopes=$scopes]"
@@ -80,7 +80,7 @@ class Policy {
         var result = id?.hashCode() ?: 0
         result = 31 * result + (name?.hashCode() ?: 0)
         result = 31 * result + (claimsRequired?.hashCode() ?: 0)
-        result = 31 * result + (scopes?.hashCode() ?: 0)
+        result = 31 * result + scopes.hashCode()
         return result
     }
 

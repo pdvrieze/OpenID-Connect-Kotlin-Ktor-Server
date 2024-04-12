@@ -99,7 +99,7 @@ class DefaultApprovedSiteService : ApprovedSiteService {
         return save(approvedSite)
     }
 
-    override fun getByClientIdAndUserId(clientId: String?, userId: String?): Collection<ApprovedSite>? {
+    override fun getByClientIdAndUserId(clientId: String, userId: String): Collection<ApprovedSite>? {
         return approvedSiteRepository.getByClientIdAndUserId(clientId, userId)
     }
 

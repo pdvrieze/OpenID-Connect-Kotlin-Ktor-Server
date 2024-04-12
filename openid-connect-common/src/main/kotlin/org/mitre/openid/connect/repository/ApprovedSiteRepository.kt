@@ -45,7 +45,7 @@ interface ApprovedSiteRepository {
      * provided client ID and user ID
      *
      */
-    fun getByClientIdAndUserId(clientId: String?, userId: String?): Collection<ApprovedSite>?
+    fun getByClientIdAndUserId(clientId: String, userId: String): Collection<ApprovedSite>?
 
     /**
      * Removes the given ApprovedSite from the repository

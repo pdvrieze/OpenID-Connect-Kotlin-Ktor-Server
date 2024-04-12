@@ -40,27 +40,16 @@ import java.util.concurrent.TimeUnit
  */
 @Service
 class SymmetricKeyJWTValidatorCacheService {
-    private val validators: LoadingCache<String, JWTSigningAndValidationService>
-
-
-    init {
-        validators = CacheBuilder.newBuilder()
-            .expireAfterAccess(24, TimeUnit.HOURS)
-            .maximumSize(100)
-            .build(SymmetricValidatorBuilder())
-    }
-
+    private val validators: LoadingCache<String, JWTSigningAndValidationService> = CacheBuilder.newBuilder()
+        .expireAfterAccess(24, TimeUnit.HOURS)
+        .maximumSize(100)
+        .build(SymmetricValidatorBuilder())
 
     /**
      * Create a symmetric signing and validation service for the given client
      *
      */
-    fun getSymmetricValidtor(client: ClientDetailsEntity?): JWTSigningAndValidationService? {
-        if (client == null) {
-            logger.error("Couldn't create symmetric validator for null client")
-            return null
-        }
-
+    fun getSymmetricValidator(client: ClientDetailsEntity): JWTSigningAndValidationService? {
         if (client.clientSecret.isNullOrEmpty()) {
             logger.error("Couldn't create symmetric validator for client " + client.clientId + " without a client secret")
             return null

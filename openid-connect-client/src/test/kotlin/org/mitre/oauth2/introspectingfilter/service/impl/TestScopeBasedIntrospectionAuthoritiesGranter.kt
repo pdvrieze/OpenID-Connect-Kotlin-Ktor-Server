@@ -22,7 +22,7 @@ class TestScopeBasedIntrospectionAuthoritiesGranter {
     @BeforeEach
     @Throws(Exception::class)
     fun setUp() {
-        introspectionResponse = JsonObject(mapOf())
+        introspectionResponse = JsonObject(emptyMap())
     }
 
     /**

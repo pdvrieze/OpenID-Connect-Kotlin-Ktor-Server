@@ -31,7 +31,7 @@ interface ClientDetailsEntityService : ClientDetailsService {
 
     fun deleteClient(client: ClientDetailsEntity)
 
-    fun updateClient(oldClient: ClientDetailsEntity?, newClient: ClientDetailsEntity?): ClientDetailsEntity
+    fun updateClient(oldClient: ClientDetailsEntity, newClient: ClientDetailsEntity): ClientDetailsEntity
 
     val allClients: Collection<ClientDetailsEntity>
 

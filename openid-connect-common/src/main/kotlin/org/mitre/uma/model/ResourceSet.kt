@@ -16,11 +16,21 @@
 package org.mitre.uma.model
 
 import kotlinx.serialization.Serializable
+import org.mitre.uma.model.ResourceSet.Companion.PARAM_CLIENTID
+import org.mitre.uma.model.ResourceSet.Companion.PARAM_OWNER
+import org.mitre.uma.model.ResourceSet.Companion.QUERY_ALL
+import org.mitre.uma.model.ResourceSet.Companion.QUERY_BY_CLIENT
+import org.mitre.uma.model.ResourceSet.Companion.QUERY_BY_OWNER
+import org.mitre.uma.model.ResourceSet.Companion.QUERY_BY_OWNER_AND_CLIENT
 import javax.persistence.*
 
 @Entity
 @Table(name = "resource_set")
-@NamedQueries(NamedQuery(name = ResourceSet.QUERY_BY_OWNER, query = "select r from ResourceSet r where r.owner = :" + ResourceSet.PARAM_OWNER), NamedQuery(name = ResourceSet.QUERY_BY_OWNER_AND_CLIENT, query = "select r from ResourceSet r where r.owner = :" + ResourceSet.PARAM_OWNER + " and r.clientId = :" + ResourceSet.PARAM_CLIENTID), NamedQuery(name = ResourceSet.QUERY_BY_CLIENT, query = "select r from ResourceSet r where r.clientId = :" + ResourceSet.PARAM_CLIENTID), NamedQuery(name = ResourceSet.QUERY_ALL, query = "select r from ResourceSet r"))
+@NamedQueries(
+    NamedQuery(name = QUERY_BY_OWNER, query = "select r from ResourceSet r where r.owner = :$PARAM_OWNER"),
+    NamedQuery(name = QUERY_BY_OWNER_AND_CLIENT, query = "select r from ResourceSet r where r.owner = :$PARAM_OWNER and r.clientId = :$PARAM_CLIENTID"),
+    NamedQuery(name = QUERY_BY_CLIENT, query = "select r from ResourceSet r where r.clientId = :$PARAM_CLIENTID"),
+    NamedQuery(name = QUERY_ALL, query = "select r from ResourceSet r"))
 @Serializable
 class ResourceSet {
     @get:Column(name = "id")

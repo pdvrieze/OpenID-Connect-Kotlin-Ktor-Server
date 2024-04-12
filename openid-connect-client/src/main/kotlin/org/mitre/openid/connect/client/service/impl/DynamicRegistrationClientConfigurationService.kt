@@ -21,7 +21,6 @@ import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
 import com.google.common.util.concurrent.UncheckedExecutionException
-import com.google.gson.Gson
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.apache.http.client.HttpClient
@@ -110,7 +109,6 @@ class DynamicRegistrationClientConfigurationService(
         httpClient: HttpClient? = HttpClientBuilder.create().useSystemProperties().build()
     ) : CacheLoader<ServerConfiguration, RegisteredClient?>() {
         private val httpFactory = HttpComponentsClientHttpRequestFactory(httpClient)
-        private val gson = Gson() // note that this doesn't serialize nulls by default
 
         @Throws(Exception::class)
         override fun load(serverConfig: ServerConfiguration): RegisteredClient? {

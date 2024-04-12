@@ -37,7 +37,7 @@ interface OAuth2TokenRepository {
 
     fun saveRefreshToken(refreshToken: OAuth2RefreshTokenEntity): OAuth2RefreshTokenEntity
 
-    fun getAccessTokenByValue(accessTokenValue: String?): OAuth2AccessTokenEntity?
+    fun getAccessTokenByValue(accessTokenValue: String): OAuth2AccessTokenEntity?
 
     fun getAccessTokenById(id: Long): OAuth2AccessTokenEntity?
 

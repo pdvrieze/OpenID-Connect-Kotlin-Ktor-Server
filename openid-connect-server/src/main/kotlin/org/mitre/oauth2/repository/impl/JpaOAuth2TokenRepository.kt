@@ -58,7 +58,7 @@ class JpaOAuth2TokenRepository : OAuth2TokenRepository {
         }
 
 
-    override fun getAccessTokenByValue(accessTokenValue: String?): OAuth2AccessTokenEntity? {
+    override fun getAccessTokenByValue(accessTokenValue: String): OAuth2AccessTokenEntity? {
         try {
             val jwt = JWTParser.parse(accessTokenValue)
             val query =

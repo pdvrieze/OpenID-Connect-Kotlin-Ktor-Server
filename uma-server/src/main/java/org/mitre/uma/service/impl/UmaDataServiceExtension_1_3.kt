@@ -36,7 +36,7 @@ import org.mitre.uma.model.ResourceSet
 import org.mitre.uma.repository.PermissionRepository
 import org.mitre.uma.repository.ResourceSetRepository
 import org.mitre.uma.service.SavedRegisteredClientService
-import org.mitre.util.JsonUtils.readSet
+import org.mitre.util.GsonUtils.readSet
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -73,8 +73,8 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
 	 * @see org.mitre.openid.connect.service.MITREidDataServiceExtension#exportExtensionData(com.google.gson.stream.JsonWriter)
 	 */
     @Throws(IOException::class)
-    override fun exportExtensionData(writer: JsonWriter?) {
-        writer!!.name(SAVED_REGISTERED_CLIENTS)
+    override fun exportExtensionData(writer: JsonWriter) {
+        writer.name(SAVED_REGISTERED_CLIENTS)
         writer.beginArray()
         writeSavedRegisteredClients(writer)
         writer.endArray()

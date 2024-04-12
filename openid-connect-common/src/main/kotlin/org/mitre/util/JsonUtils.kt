@@ -23,6 +23,12 @@ import com.google.gson.reflect.TypeToken
 import com.nimbusds.jose.EncryptionMethod
 import com.nimbusds.jose.JWEAlgorithm
 import com.nimbusds.jose.JWSAlgorithm
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.booleanOrNull
 import org.mitre.oauth2.model.PKCEAlgorithm
 import org.mitre.oauth2.model.PKCEAlgorithm.Companion.parse
 import org.slf4j.Logger
@@ -41,11 +47,11 @@ import com.google.gson.stream.JsonWriter as GsonWriter
  *
  * @author jricher
  */
-object JsonUtils {
+object GsonUtils {
     /**
      * Logger for this class
      */
-    private val logger: Logger = LoggerFactory.getLogger(JsonUtils::class.java)
+    private val logger: Logger = LoggerFactory.getLogger(GsonUtils::class.java)
 
     private val gson = Gson()
 
@@ -288,4 +294,86 @@ object JsonUtils {
             writer.nullValue()
         }
     }
+}
+
+fun JsonPrimitive.asString(): String {
+    require(isString) { "The primitive found is not a string" }
+    return content
+}
+
+fun JsonElement.asString(): String {
+    require(this is JsonPrimitive) { "String expected, but found other type: ${javaClass.name}" }
+    return asString()
+}
+
+fun JsonPrimitive.asStringOrNull(): String? {
+    if (!isString) return null
+    return content
+}
+
+fun JsonElement.asStringOrNull(): String? {
+    if (this !is JsonPrimitive) return null
+    return asStringOrNull()
+}
+
+fun JsonPrimitive.asBooleanOrNull(): Boolean? {
+    if (isString) return null
+    return booleanOrNull
+}
+
+fun JsonElement.asBooleanOrNull(): Boolean? {
+    if (this !is JsonPrimitive) return null
+    return asBooleanOrNull()
+}
+
+fun JsonPrimitive.asBoolean(): Boolean {
+    require(!isString) { "Expected boolean, found string"}
+    return boolean
+}
+
+fun JsonElement.asBoolean(): Boolean {
+    require(this is JsonPrimitive) { "Expected Json primitive, found: ${javaClass.name}" }
+    return asBoolean()
+}
+
+@Deprecated("Use containsKey", ReplaceWith("containsKey(key)"))
+fun JsonObject.has(key: String) = containsKey(key)
+
+@Deprecated("Use extension", ReplaceWith("e[key]?.asStringOrNull()", "org.mitre.util.asStringOrNull"))
+fun getAsString(o: JsonObject, key: String): String? {
+    val v = (o[key] as? JsonPrimitive) ?: return null
+    if (! v.isString) return null
+    return v.content
+}
+
+@Deprecated("Use extension", ReplaceWith("o[key]?.asBooleanOrNull()", "org.mitre.util.asStringOrNull"))
+fun getAsBoolean(o: JsonObject, key: String): Boolean? {
+    val v = (o[key] as? JsonPrimitive) ?: return null
+    if (v.isString) return null
+    return v.boolean
+}
+
+fun getAsStringList(o: JsonObject, key: String): List<String>? {
+    return when(val e = o[key]) {
+        is JsonPrimitive -> listOf(e.asString())
+        is JsonArray -> e.map { e.asString() }
+        else -> null
+    }
+}
+
+fun getAsJwsAlgorithmList(o: JsonObject, key: String): List<JWSAlgorithm>? {
+    return getAsStringList(o, key)?.map { JWSAlgorithm.parse(it) }
+}
+/**
+ * Gets the value of the given member as a list of JWS Algorithms, null if it doesn't exist
+ */
+fun getAsJweAlgorithmList(o: JsonObject, key: String): List<JWEAlgorithm>? {
+    return getAsStringList(o, key)?.map { JWEAlgorithm.parse(it) }
+}
+
+/**
+ * Gets the value of the given member as a list of JWS Algorithms, null if it doesn't exist
+ */
+fun getAsEncryptionMethodList(o: JsonObject, member: String): List<EncryptionMethod>? {
+    return getAsStringList(o, member)?.map { EncryptionMethod.parse(it) }
 }

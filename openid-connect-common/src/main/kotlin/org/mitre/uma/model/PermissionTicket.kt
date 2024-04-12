@@ -35,7 +35,7 @@ class PermissionTicket {
 
     @get:JoinColumn(name = "permission_id")
     @get:OneToOne(fetch = FetchType.EAGER, cascade = [CascadeType.ALL])
-    var permission: Permission? = null
+    lateinit var permission: Permission
 
     @get:Column(name = "ticket")
     @get:Basic

@@ -21,7 +21,6 @@ import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
 import com.google.common.util.concurrent.UncheckedExecutionException
-import com.google.gson.JsonParseException
 import com.nimbusds.jose.jwk.JWKSet
 import org.apache.http.client.HttpClient
 import org.apache.http.impl.client.HttpClientBuilder
@@ -35,6 +34,7 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClientException
 import org.springframework.web.client.RestTemplate
+import java.text.ParseException
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 
@@ -133,7 +133,7 @@ class JWKSetCacheService {
                 val service: JWTEncryptionAndDecryptionService = DefaultJWTEncryptionAndDecryptionService(keyStore)
 
                 return service
-            } catch (e: JsonParseException) {
+            } catch (e: ParseException) {
                 throw IllegalArgumentException("Unable to load JWK Set")
             } catch (e: RestClientException) {
                 throw IllegalArgumentException("Unable to load JWK Set")

@@ -434,7 +434,7 @@ open class ClientDetailsEntity(
      */
     @JPATransient
     override fun isScoped(): Boolean {
-        return !getScope().isNullOrEmpty()
+        return getScope().isNotEmpty()
     }
 
     @Basic

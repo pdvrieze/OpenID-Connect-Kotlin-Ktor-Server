@@ -164,7 +164,7 @@ class DefaultOIDCTokenService : OIDCTokenService {
                     )
                     idToken = SignedJWT(header, idClaims.build())
 
-                    val signer = symmetricCacheService.getSymmetricValidtor(client)
+                    val signer = symmetricCacheService.getSymmetricValidator(client)
 
                     // sign it with the client's secret
                     signer!!.signJwt((idToken as SignedJWT?)!!)

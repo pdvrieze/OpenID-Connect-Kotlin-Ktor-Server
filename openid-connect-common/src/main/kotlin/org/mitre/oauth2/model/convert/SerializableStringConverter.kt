@@ -43,7 +43,7 @@ class SerializableStringConverter : AttributeConverter<Serializable?, String?> {
             is Date -> attribute.time.toString()
 
             else -> {
-                logger.warn("Dropping data from request: " + attribute + " :: " + attribute.javaClass)
+                logger.warn("Dropping data from request: $attribute :: ${attribute.javaClass}")
                 null
             }
         }

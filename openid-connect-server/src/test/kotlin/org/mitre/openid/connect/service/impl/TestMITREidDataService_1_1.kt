@@ -54,6 +54,7 @@ import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.junit.jupiter.MockitoExtension
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.capture
 import org.mockito.kotlin.isA
 import org.mockito.kotlin.mock
@@ -225,7 +226,7 @@ class TestMITREidDataService_1_1 {
             whenever(_client.clientId).thenReturn(_clientId)
             _client
         }
-        whenever(authHolderRepository.getById(ArgumentMatchers.isNull(Long::class.java)))
+        whenever(authHolderRepository.getById(anyOrNull()))
             .thenAnswer(object : Answer<AuthenticationHolderEntity> {
                 var id: Long = 131L
 
@@ -239,6 +240,8 @@ class TestMITREidDataService_1_1 {
                 }
             })
 
+        maps.authHolderOldToNewIdMap[1L] = 131L
+        maps.authHolderOldToNewIdMap[2L] = 132L
         dataService.importData(configJson)
 
         //2 times for token, 2 times to update client, 2 times to update authHolder
@@ -356,7 +359,7 @@ class TestMITREidDataService_1_1 {
             whenever(_client.clientId).thenReturn(_clientId)
             _client
         }
-        whenever(authHolderRepository.getById(ArgumentMatchers.isNull(Long::class.java)))
+        whenever(authHolderRepository.getById(anyOrNull()))
             .thenAnswer(object : Answer<AuthenticationHolderEntity> {
                 var id: Long = 133L
 
@@ -370,6 +373,8 @@ class TestMITREidDataService_1_1 {
                 }
             })
         maps.refreshTokenOldToNewIdMap[1L] = 133L
+        maps.authHolderOldToNewIdMap[1L] = 133L
+        maps.authHolderOldToNewIdMap[2L] = 134L
 
         dataService.importData(configJson)
 

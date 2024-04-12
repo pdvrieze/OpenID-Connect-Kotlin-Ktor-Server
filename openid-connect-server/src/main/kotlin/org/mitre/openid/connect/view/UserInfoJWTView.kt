@@ -115,7 +115,7 @@ class UserInfoJWTView : UserInfoView() {
                 if (signingAlg == JWSAlgorithm.HS256 || signingAlg == JWSAlgorithm.HS384 || signingAlg == JWSAlgorithm.HS512) {
                     // sign it with the client's secret
 
-                    val signer = symmetricCacheService.getSymmetricValidtor(client)
+                    val signer = symmetricCacheService.getSymmetricValidator(client)
                     signer!!.signJwt(signed)
                 } else {
                     // sign it with the server's key

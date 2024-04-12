@@ -24,7 +24,7 @@ import com.google.gson.LongSerializationPolicy
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.view.JsonEntityView
 import org.mitre.uma.model.ResourceSet
-import org.mitre.util.JsonUtils.getAsArray
+import org.mitre.util.GsonUtils.getAsArray
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired

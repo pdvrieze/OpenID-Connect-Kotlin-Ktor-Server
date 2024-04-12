@@ -17,18 +17,18 @@
  */
 package org.mitre.openid.connect.request
 
-import com.google.gson.JsonObject
-import com.google.gson.JsonParser
 import com.nimbusds.jose.Algorithm
 import com.nimbusds.jose.JWEObject
 import com.nimbusds.jwt.EncryptedJWT
 import com.nimbusds.jwt.JWTParser
 import com.nimbusds.jwt.PlainJWT
 import com.nimbusds.jwt.SignedJWT
+import kotlinx.serialization.json.JsonObject
 import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
 import org.mitre.jwt.signer.service.impl.ClientKeyCacheService
 import org.mitre.oauth2.model.PKCEAlgorithm
 import org.mitre.oauth2.service.ClientDetailsEntityService
+import org.mitre.openid.connect.service.MITREidDataService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -42,18 +42,15 @@ import java.text.ParseException
 
 
 @Component("connectOAuth2RequestFactory")
-class ConnectOAuth2RequestFactory
-/**
- * Constructor with arguments
- */ @Autowired constructor(private val clientDetailsService: ClientDetailsEntityService) :
-    DefaultOAuth2RequestFactory(clientDetailsService) {
-    @Autowired
-    private val validators: ClientKeyCacheService? = null
+class ConnectOAuth2RequestFactory @Autowired constructor(
+    private val clientDetailsService: ClientDetailsEntityService
+) : DefaultOAuth2RequestFactory(clientDetailsService) {
 
     @Autowired
-    private val encryptionService: JWTEncryptionAndDecryptionService? = null
+    private lateinit var validators: ClientKeyCacheService
 
-    private val parser = JsonParser()
+    @Autowired
+    private lateinit var encryptionService: JWTEncryptionAndDecryptionService
 
     override fun createAuthorizationRequest(inputParams: Map<String, String>): AuthorizationRequest {
         val request = AuthorizationRequest(
@@ -158,7 +155,7 @@ class ConnectOAuth2RequestFactory
                     throw InvalidClientException("Client's registered request object signing algorithm (" + client.requestObjectSigningAlg + ") does not match request object's actual algorithm (" + alg.name + ")")
                 }
 
-                val validator = validators!!.getValidator(client, alg)
+                val validator = validators.getValidator(client, alg)
                     ?: throw InvalidClientException("Unable to create signature validator for client $client and algorithm $alg")
 
                 if (!validator.validateSignature(signedJwt)) {
@@ -291,14 +288,9 @@ class ConnectOAuth2RequestFactory
     private fun parseClaimRequest(claimRequestString: String?): JsonObject? {
         if (claimRequestString.isNullOrEmpty()) {
             return null
-        } else {
-            val el = parser.parse(claimRequestString)
-            return if (el != null && el.isJsonObject) {
-                el.asJsonObject
-            } else {
-                null
-            }
         }
+
+        return MITREidDataService.json.parseToJsonElement(claimRequestString) as? JsonObject
     }
 
     companion object {

@@ -17,17 +17,17 @@
  */
 package org.mitre.openid.connect.web
 
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
-import com.google.gson.JsonPrimitive
-import com.google.gson.JsonSerializer
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.nullable
+import org.mitre.oauth2.model.convert.SimpleGrantedAuthorityStringConverter
 import org.mitre.openid.connect.model.OIDCAuthenticationToken
+import org.mitre.openid.connect.service.MITREidDataService
 import org.mitre.openid.connect.service.UserInfoService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.authentication.AuthenticationTrustResolver
 import org.springframework.security.authentication.AuthenticationTrustResolverImpl
 import org.springframework.security.core.Authentication
-import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 import org.springframework.web.servlet.AsyncHandlerInterceptor
@@ -41,10 +41,6 @@ import javax.servlet.http.HttpServletResponse
  */
 @Component
 class UserInfoInterceptor : AsyncHandlerInterceptor {
-    private val gson: Gson = GsonBuilder()
-        .registerTypeHierarchyAdapter(GrantedAuthority::class.java, JsonSerializer<GrantedAuthority> { src, typeOfSrc, context -> JsonPrimitive(src.authority) })
-        .create()
-
     @Autowired(required = false)
     private val userInfoService: UserInfoService? = null
 
@@ -55,7 +51,8 @@ class UserInfoInterceptor : AsyncHandlerInterceptor {
         val auth = SecurityContextHolder.getContext().authentication
 
         if (auth is Authentication) {
-            request.setAttribute("userAuthorities", gson.toJson(auth.authorities))
+            val a = MITREidDataService.json.encodeToString(ListSerializer(SimpleGrantedAuthorityStringConverter()).nullable, auth.authorities?.map { SimpleGrantedAuthority(it.authority) })
+            request.setAttribute("userAuthorities", a)
         }
 
         if (!trustResolver.isAnonymous(auth)) { // skip lookup on anonymous logins

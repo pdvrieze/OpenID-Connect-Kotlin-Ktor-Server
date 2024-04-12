@@ -32,7 +32,7 @@ interface MITREidDataServiceExtension {
      * the top level object can be written next.
      */
     @Throws(IOException::class)
-    fun exportExtensionData(writer: JsonWriter?)
+    fun exportExtensionData(writer: JsonWriter)
 
     /**
      * Import data that's part of this extension. This is called from the context of

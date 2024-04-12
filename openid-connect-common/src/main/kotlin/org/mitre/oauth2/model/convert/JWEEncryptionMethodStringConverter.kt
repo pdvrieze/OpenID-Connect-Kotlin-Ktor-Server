@@ -34,9 +34,6 @@ class JWEEncryptionMethodStringConverter : AttributeConverter<EncryptionMethod?,
         return attribute?.name
     }
 
-    /* (non-Javadoc)
-	 * @see javax.persistence.AttributeConverter#convertToEntityAttribute(java.lang.Object)
-	 */
     override fun convertToEntityAttribute(dbData: String?): EncryptionMethod? {
         return dbData?.let(EncryptionMethod::parse)
     }

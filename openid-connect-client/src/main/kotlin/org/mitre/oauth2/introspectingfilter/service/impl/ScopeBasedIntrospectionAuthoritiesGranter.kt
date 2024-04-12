@@ -18,6 +18,7 @@ package org.mitre.oauth2.introspectingfilter.service.impl
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import org.mitre.oauth2.introspectingfilter.service.IntrospectionAuthorityGranter
+import org.mitre.util.asString
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.AuthorityUtils
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -30,7 +31,7 @@ class ScopeBasedIntrospectionAuthoritiesGranter : IntrospectionAuthorityGranter 
 
     override fun getAuthorities(introspectionResponse: JsonObject): List<GrantedAuthority> {
         return when (val scope = introspectionResponse["scope"]) {
-            is JsonPrimitive -> scope.content.splitToSequence(' ')
+            is JsonPrimitive -> scope.asString().splitToSequence(' ')
                 .filterNot { it.isEmpty() }
                 .mapTo(authorities.toMutableList()) { SimpleGrantedAuthority("OAUTH_SCOPE_$it") }
 

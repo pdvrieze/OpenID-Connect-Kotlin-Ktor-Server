@@ -15,8 +15,10 @@
  */
 package org.mitre.openid.connect.model.convert
 
-import com.google.gson.JsonObject
-import com.google.gson.JsonParser
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
+import org.mitre.openid.connect.service.MITREidDataService.Companion.json
 import javax.persistence.AttributeConverter
 import javax.persistence.Converter
 
@@ -25,10 +27,8 @@ import javax.persistence.Converter
  */
 @Converter
 class JsonObjectStringConverter : AttributeConverter<JsonObject?, String?> {
-    private val parser = JsonParser()
-
     override fun convertToDatabaseColumn(attribute: JsonObject?): String? {
-        return attribute?.toString()
+        return attribute?.let { json.encodeToString(it) }
     }
 
     /* (non-Javadoc)
@@ -36,7 +36,7 @@ class JsonObjectStringConverter : AttributeConverter<JsonObject?, String?> {
 	 */
     override fun convertToEntityAttribute(dbData: String?): JsonObject? {
         return when {
-            !dbData.isNullOrEmpty() -> parser.parse(dbData).asJsonObject
+            !dbData.isNullOrEmpty() -> json.parseToJsonElement(dbData).jsonObject
             else -> null
         }
     }

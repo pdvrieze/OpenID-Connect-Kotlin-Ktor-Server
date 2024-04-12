@@ -47,7 +47,7 @@ interface ApprovedSiteService {
      * provided client ID and user ID
      *
      */
-    fun getByClientIdAndUserId(clientId: String?, userId: String?): Collection<ApprovedSite>?
+    fun getByClientIdAndUserId(clientId: String, userId: String): Collection<ApprovedSite>?
 
     /**
      * Save an ApprovedSite

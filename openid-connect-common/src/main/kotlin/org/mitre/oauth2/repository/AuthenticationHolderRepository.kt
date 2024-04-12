@@ -23,7 +23,7 @@ import org.mitre.oauth2.model.AuthenticationHolderEntity
 interface AuthenticationHolderRepository {
 	val all: List<AuthenticationHolderEntity>
 
-    fun getById(id: Long?): AuthenticationHolderEntity?
+    fun getById(id: Long): AuthenticationHolderEntity?
 
     fun remove(a: AuthenticationHolderEntity)
 

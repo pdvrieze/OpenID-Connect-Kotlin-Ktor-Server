@@ -123,11 +123,11 @@ class MITREidDataService_1_3 : MITREidDataService {
             context.tokenRepository.saveRefreshToken(refreshToken)
         }
         for ((oldRefreshTokenId, oldAuthHolderId) in context.maps.refreshTokenToAuthHolderRefs) {
-            val newAuthHolderId = context.maps.authHolderOldToNewIdMap[oldAuthHolderId]
-            val authHolder = context.authHolderRepository.getById(newAuthHolderId)
+            val newAuthHolderId = context.maps.authHolderOldToNewIdMap[oldAuthHolderId]!!
+            val authHolder = context.authHolderRepository.getById(newAuthHolderId)!!
             val newRefreshTokenId = context.maps.refreshTokenOldToNewIdMap[oldRefreshTokenId]!!
             val refreshToken = context.tokenRepository.getRefreshTokenById(newRefreshTokenId)!!
-            refreshToken.authenticationHolder = authHolder!!
+            refreshToken.authenticationHolder = authHolder
             context.tokenRepository.saveRefreshToken(refreshToken)
         }
         for ((oldAccessTokenId, clientRef) in context.maps.accessTokenToClientRefs) {

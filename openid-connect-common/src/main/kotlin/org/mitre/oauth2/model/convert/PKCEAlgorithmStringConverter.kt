@@ -29,9 +29,6 @@ class PKCEAlgorithmStringConverter : AttributeConverter<PKCEAlgorithm?, String?>
         return attribute?.name
     }
 
-    /* (non-Javadoc)
-	 * @see javax.persistence.AttributeConverter#convertToEntityAttribute(java.lang.Object)
-	 */
     override fun convertToEntityAttribute(dbData: String?): PKCEAlgorithm? {
         return dbData?.let(PKCEAlgorithm::parse)
     }

@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.client
 
-import com.google.gson.JsonParser
 import com.nimbusds.jose.Algorithm
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.JWSHeader
@@ -27,6 +26,8 @@ import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.JWTParser
 import com.nimbusds.jwt.PlainJWT
 import com.nimbusds.jwt.SignedJWT
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
 import org.apache.http.client.HttpClient
 import org.apache.http.client.config.RequestConfig
 import org.apache.http.impl.client.HttpClientBuilder
@@ -42,6 +43,7 @@ import org.mitre.openid.connect.client.service.IssuerService
 import org.mitre.openid.connect.client.service.ServerConfigurationService
 import org.mitre.openid.connect.client.service.impl.StaticAuthRequestOptionsService
 import org.mitre.openid.connect.model.PendingOIDCAuthenticationToken
+import org.mitre.util.asString
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpMethod
 import org.springframework.http.client.ClientHttpRequest
@@ -86,11 +88,11 @@ class OIDCAuthenticationFilter : AbstractAuthenticationProcessingFilter(FILTER_P
 
     // fetches and caches public keys for servers
     @Autowired(required = false)
-    var validationServices: JWKSetCacheService? = null
+    lateinit var validationServices: JWKSetCacheService
 
     // creates JWT signer/validators for symmetric keys
     @Autowired(required = false)
-    var symmetricCacheService: SymmetricKeyJWTValidatorCacheService? = null
+    lateinit var symmetricCacheService: SymmetricKeyJWTValidatorCacheService
 
     // signer based on keypair for this client (for outgoing auth requests)
     @Autowired(required = false)
@@ -106,10 +108,10 @@ class OIDCAuthenticationFilter : AbstractAuthenticationProcessingFilter(FILTER_P
     lateinit var issuerService: IssuerService
 
     // holds server information (auth URI, token URI, etc.), indexed by issuer
-    var serverConfigurationService: ServerConfigurationService? = null
+    lateinit var serverConfigurationService: ServerConfigurationService
 
     // holds client information (client ID, redirect URI, etc.), indexed by issuer of the server
-    var clientConfigurationService: ClientConfigurationService? = null
+    lateinit var clientConfigurationService: ClientConfigurationService
 
     // provides extra options to inject into the outbound request
     var authRequestOptionsService: AuthRequestOptionsService =
@@ -137,11 +139,11 @@ class OIDCAuthenticationFilter : AbstractAuthenticationProcessingFilter(FILTER_P
         super.afterPropertiesSet()
 
         // if our JOSE validators don't get wired in, drop defaults into place
-        if (validationServices == null) {
+        if (! ::validationServices.isInitialized) {
             validationServices = JWKSetCacheService()
         }
 
-        if (symmetricCacheService == null) {
+        if (! ::symmetricCacheService.isInitialized) {
             symmetricCacheService = SymmetricKeyJWTValidatorCacheService()
         }
     }
@@ -211,7 +213,7 @@ class OIDCAuthenticationFilter : AbstractAuthenticationProcessingFilter(FILTER_P
                 throw AuthenticationServiceException("No issuer found: $issuer")
             }
 
-            val serverConfig = serverConfigurationService!!.getServerConfiguration(issuer)
+            val serverConfig = serverConfigurationService.getServerConfiguration(issuer)
             if (serverConfig == null) {
                 logger.error("No server configuration found for issuer: $issuer")
                 throw AuthenticationServiceException("No server configuration found for issuer: $issuer")
@@ -220,7 +222,7 @@ class OIDCAuthenticationFilter : AbstractAuthenticationProcessingFilter(FILTER_P
 
             session.setAttribute(ISSUER_SESSION_VARIABLE, serverConfig.issuer)
 
-            val clientConfig = clientConfigurationService!!.getClientConfiguration(serverConfig)
+            val clientConfig = clientConfigurationService.getClientConfiguration(serverConfig)
             if (clientConfig == null) {
                 logger.error("No client configuration found for issuer: $issuer")
                 throw AuthenticationServiceException("No client configuration found for issuer: $issuer")
@@ -283,7 +285,7 @@ class OIDCAuthenticationFilter : AbstractAuthenticationProcessingFilter(FILTER_P
      */
     protected fun handleAuthorizationCodeResponse(
         request: HttpServletRequest,
-        response: HttpServletResponse?
+        response: HttpServletResponse
     ): Authentication {
         val authorizationCode = request.getParameter("code")
 
@@ -301,8 +303,8 @@ class OIDCAuthenticationFilter : AbstractAuthenticationProcessingFilter(FILTER_P
             ?: throw AuthenticationServiceException("Issuer unexpectedly not stored in session")
 
         // pull the configurations based on that issuer
-        val serverConfig = serverConfigurationService!!.getServerConfiguration(issuer)!!
-        val clientConfig = clientConfigurationService!!.getClientConfiguration(serverConfig)
+        val serverConfig = serverConfigurationService.getServerConfiguration(issuer)!!
+        val clientConfig = clientConfigurationService.getClientConfiguration(serverConfig)
 
         val form: MultiValueMap<String, String?> = LinkedMultiValueMap()
         form.add("grant_type", "authorization_code")
@@ -373,7 +375,7 @@ class OIDCAuthenticationFilter : AbstractAuthenticationProcessingFilter(FILTER_P
                 ) {
                     // generate one based on client secret
 
-                    signer = symmetricCacheService!!.getSymmetricValidtor(clientConfig.client)
+                    signer = symmetricCacheService.getSymmetricValidator(clientConfig.client)
                 } else if (AuthMethod.PRIVATE_KEY == clientConfig.tokenEndpointAuthMethod) {
                     // needs to be wired in to the bean
 
@@ -438,175 +440,159 @@ class OIDCAuthenticationFilter : AbstractAuthenticationProcessingFilter(FILTER_P
 
         logger.debug("from TokenEndpoint jsonString = $jsonString")
 
-        val jsonRoot = JsonParser().parse(jsonString)
-        if (!jsonRoot.isJsonObject) {
-            throw AuthenticationServiceException("Token Endpoint did not return a JSON object: $jsonRoot")
+        val tokenResponse = Json.parseToJsonElement(jsonString)
+        if (tokenResponse !is JsonObject) {
+            throw AuthenticationServiceException("Token Endpoint did not return a JSON object: $tokenResponse")
         }
 
-        val tokenResponse = jsonRoot.asJsonObject
-
-        if (tokenResponse["error"] != null) {
+        val error = tokenResponse["error"]
+        if (error != null) {
             // Handle error
-
-            val error = tokenResponse["error"].asString
-
             logger.error("Token Endpoint returned: $error")
 
             throw AuthenticationServiceException("Unable to obtain Access Token.  Token Endpoint returned: $error")
-        } else {
-            // Extract the id_token to insert into the
-            // OIDCAuthenticationToken
+        }
 
-            // get out all the token strings
+        // Extract the id_token to insert into the
+        // OIDCAuthenticationToken
 
-            var accessTokenValue: String? = null
-            var idTokenValue: String? = null
-            var refreshTokenValue: String? = null
+        // get out all the token strings
 
-            if (tokenResponse.has("access_token")) {
-                accessTokenValue = tokenResponse["access_token"].asString
-            } else {
-                throw AuthenticationServiceException("Token Endpoint did not return an access_token: $jsonString")
+
+        val accessTokenValue = tokenResponse["access_token"]?.asString()
+            ?: throw AuthenticationServiceException("Token Endpoint did not return an access_token: $jsonString")
+
+        val idTokenValue = tokenResponse["id_token"]?.asString()
+            ?: throw AuthenticationServiceException("Token Endpoint did not return an id_token")
+
+        val refreshTokenValue = tokenResponse["refresh_token"]?.asString()
+
+        try {
+            val idToken = JWTParser.parse(idTokenValue)
+
+            // validate our ID Token over a number of tests
+            val idClaims = idToken.jwtClaimsSet
+
+            // check the signature
+            var jwtValidator: JWTSigningAndValidationService? = null
+
+            val tokenAlg = idToken.header.algorithm
+
+            val clientAlg: Algorithm? = clientConfig.idTokenSignedResponseAlg
+
+            if (clientAlg != null) {
+                if (clientAlg != tokenAlg) {
+                    throw AuthenticationServiceException("Token algorithm $tokenAlg does not match expected algorithm $clientAlg")
+                }
             }
 
-            if (tokenResponse.has("id_token")) {
-                idTokenValue = tokenResponse["id_token"].asString
-            } else {
-                logger.error("Token Endpoint did not return an id_token")
-                throw AuthenticationServiceException("Token Endpoint did not return an id_token")
-            }
-
-            if (tokenResponse.has("refresh_token")) {
-                refreshTokenValue = tokenResponse["refresh_token"].asString
-            }
-
-            try {
-                val idToken = JWTParser.parse(idTokenValue)
-
-                // validate our ID Token over a number of tests
-                val idClaims = idToken.jwtClaimsSet
-
-                // check the signature
-                var jwtValidator: JWTSigningAndValidationService? = null
-
-                val tokenAlg = idToken.header.algorithm
-
-                val clientAlg: Algorithm? = clientConfig.idTokenSignedResponseAlg
-
-                if (clientAlg != null) {
-                    if (clientAlg != tokenAlg) {
-                        throw AuthenticationServiceException("Token algorithm $tokenAlg does not match expected algorithm $clientAlg")
-                    }
+            if (idToken is PlainJWT) {
+                if (clientAlg == null) {
+                    throw AuthenticationServiceException("Unsigned ID tokens can only be used if explicitly configured in client.")
                 }
 
-                if (idToken is PlainJWT) {
-                    if (clientAlg == null) {
-                        throw AuthenticationServiceException("Unsigned ID tokens can only be used if explicitly configured in client.")
-                    }
+                if (tokenAlg != null && tokenAlg != Algorithm.NONE) {
+                    throw AuthenticationServiceException("Unsigned token received, expected signature with $tokenAlg")
+                }
+            } else if (idToken is SignedJWT) {
+                jwtValidator =
+                    if (tokenAlg == JWSAlgorithm.HS256 || tokenAlg == JWSAlgorithm.HS384 || tokenAlg == JWSAlgorithm.HS512) {
+                        // generate one based on client secret
 
-                    if (tokenAlg != null && tokenAlg != Algorithm.NONE) {
-                        throw AuthenticationServiceException("Unsigned token received, expected signature with $tokenAlg")
-                    }
-                } else if (idToken is SignedJWT) {
-                    jwtValidator =
-                        if (tokenAlg == JWSAlgorithm.HS256 || tokenAlg == JWSAlgorithm.HS384 || tokenAlg == JWSAlgorithm.HS512) {
-                            // generate one based on client secret
-
-                            symmetricCacheService!!.getSymmetricValidtor(clientConfig.client)
-                        } else {
-                            // otherwise load from the server's public key
-                            validationServices!!.getValidator(serverConfig.jwksUri)
-                        }
-
-                    if (jwtValidator != null) {
-                        if (!jwtValidator.validateSignature(idToken)) {
-                            throw AuthenticationServiceException("Signature validation failed")
-                        }
+                        symmetricCacheService.getSymmetricValidator(clientConfig.client)
                     } else {
-                        logger.error("No validation service found. Skipping signature validation")
-                        throw AuthenticationServiceException("Unable to find an appropriate signature validator for ID Token.")
+                        // otherwise load from the server's public key
+                        validationServices.getValidator(serverConfig.jwksUri)
                     }
-                } // TODO: encrypted id tokens
 
-
-                // check the issuer
-                if (idClaims.issuer == null) {
-                    throw AuthenticationServiceException("Id Token Issuer is null")
-                } else if (idClaims.issuer != serverConfig.issuer) {
-                    throw AuthenticationServiceException("Issuers do not match, expected " + serverConfig.issuer + " got " + idClaims.issuer)
-                }
-
-                // check expiration
-                if (idClaims.expirationTime == null) {
-                    throw AuthenticationServiceException("Id Token does not have required expiration claim")
+                if (jwtValidator != null) {
+                    if (!jwtValidator.validateSignature(idToken)) {
+                        throw AuthenticationServiceException("Signature validation failed")
+                    }
                 } else {
-                    // it's not null, see if it's expired
-                    val now = Date(System.currentTimeMillis() - (timeSkewAllowance * 1000))
-                    if (now.after(idClaims.expirationTime)) {
-                        throw AuthenticationServiceException("Id Token is expired: " + idClaims.expirationTime)
-                    }
+                    logger.error("No validation service found. Skipping signature validation")
+                    throw AuthenticationServiceException("Unable to find an appropriate signature validator for ID Token.")
                 }
+            } // TODO: encrypted id tokens
 
-                // check not before
-                if (idClaims.notBeforeTime != null) {
-                    val now = Date(System.currentTimeMillis() + (timeSkewAllowance * 1000))
-                    if (now.before(idClaims.notBeforeTime)) {
-                        throw AuthenticationServiceException("Id Token not valid untill: " + idClaims.notBeforeTime)
-                    }
+
+            // check the issuer
+            if (idClaims.issuer == null) {
+                throw AuthenticationServiceException("Id Token Issuer is null")
+            } else if (idClaims.issuer != serverConfig.issuer) {
+                throw AuthenticationServiceException("Issuers do not match, expected " + serverConfig.issuer + " got " + idClaims.issuer)
+            }
+
+            // check expiration
+            if (idClaims.expirationTime == null) {
+                throw AuthenticationServiceException("Id Token does not have required expiration claim")
+            } else {
+                // it's not null, see if it's expired
+                val now = Date(System.currentTimeMillis() - (timeSkewAllowance * 1000))
+                if (now.after(idClaims.expirationTime)) {
+                    throw AuthenticationServiceException("Id Token is expired: " + idClaims.expirationTime)
                 }
+            }
 
-                // check issued at
-                if (idClaims.issueTime == null) {
-                    throw AuthenticationServiceException("Id Token does not have required issued-at claim")
-                } else {
-                    // since it's not null, see if it was issued in the future
-                    val now = Date(System.currentTimeMillis() + (timeSkewAllowance * 1000))
-                    if (now.before(idClaims.issueTime)) {
-                        throw AuthenticationServiceException("Id Token was issued in the future: " + idClaims.issueTime)
-                    }
+            // check not before
+            if (idClaims.notBeforeTime != null) {
+                val now = Date(System.currentTimeMillis() + (timeSkewAllowance * 1000))
+                if (now.before(idClaims.notBeforeTime)) {
+                    throw AuthenticationServiceException("Id Token not valid untill: " + idClaims.notBeforeTime)
                 }
+            }
 
-                // check audience
-                if (idClaims.audience == null) {
-                    throw AuthenticationServiceException("Id token audience is null")
-                } else if (!idClaims.audience.contains(clientConfig.clientId)) {
-                    throw AuthenticationServiceException("Audience does not match, expected " + clientConfig.clientId + " got " + idClaims.audience)
+            // check issued at
+            if (idClaims.issueTime == null) {
+                throw AuthenticationServiceException("Id Token does not have required issued-at claim")
+            } else {
+                // since it's not null, see if it was issued in the future
+                val now = Date(System.currentTimeMillis() + (timeSkewAllowance * 1000))
+                if (now.before(idClaims.issueTime)) {
+                    throw AuthenticationServiceException("Id Token was issued in the future: " + idClaims.issueTime)
                 }
+            }
 
-                // compare the nonce to our stored claim
-                val nonce = idClaims.getStringClaim("nonce")
-                if (nonce.isNullOrEmpty()) {
-                    logger.error("ID token did not contain a nonce claim.")
+            // check audience
+            if (idClaims.audience == null) {
+                throw AuthenticationServiceException("Id token audience is null")
+            } else if (!idClaims.audience.contains(clientConfig.clientId)) {
+                throw AuthenticationServiceException("Audience does not match, expected " + clientConfig.clientId + " got " + idClaims.audience)
+            }
 
-                    throw AuthenticationServiceException("ID token did not contain a nonce claim.")
-                }
+            // compare the nonce to our stored claim
+            val nonce = idClaims.getStringClaim("nonce")
+            if (nonce.isNullOrEmpty()) {
+                logger.error("ID token did not contain a nonce claim.")
 
-                val storedNonce = getStoredNonce(session)
-                if (nonce != storedNonce) {
-                    logger.error(
-                        "Possible replay attack detected! The comparison of the nonce in the returned "
-                                + "ID Token to the session " + NONCE_SESSION_VARIABLE + " failed. Expected " + storedNonce + " got " + nonce + "."
-                    )
+                throw AuthenticationServiceException("ID token did not contain a nonce claim.")
+            }
 
-                    throw AuthenticationServiceException(
-                        "Possible replay attack detected! The comparison of the nonce in the returned "
-                                + "ID Token to the session " + NONCE_SESSION_VARIABLE + " failed. Expected " + storedNonce + " got " + nonce + "."
-                    )
-                }
-
-                // construct an PendingOIDCAuthenticationToken and return a Authentication object w/the userId and the idToken
-                val token = PendingOIDCAuthenticationToken(
-                    idClaims.subject, idClaims.issuer,
-                    serverConfig,
-                    idToken, accessTokenValue, refreshTokenValue!!
+            val storedNonce = getStoredNonce(session)
+            if (nonce != storedNonce) {
+                logger.error(
+                    "Possible replay attack detected! The comparison of the nonce in the returned "
+                            + "ID Token to the session " + NONCE_SESSION_VARIABLE + " failed. Expected " + storedNonce + " got " + nonce + "."
                 )
 
-                val authentication = authenticationManager.authenticate(token)
-
-                return authentication
-            } catch (e: ParseException) {
-                throw AuthenticationServiceException("Couldn't parse idToken: ", e)
+                throw AuthenticationServiceException(
+                    "Possible replay attack detected! The comparison of the nonce in the returned "
+                            + "ID Token to the session " + NONCE_SESSION_VARIABLE + " failed. Expected " + storedNonce + " got " + nonce + "."
+                )
             }
+
+            // construct an PendingOIDCAuthenticationToken and return a Authentication object w/the userId and the idToken
+            val token = PendingOIDCAuthenticationToken(
+                idClaims.subject, idClaims.issuer,
+                serverConfig,
+                idToken, accessTokenValue, refreshTokenValue!!
+            )
+
+            val authentication = authenticationManager.authenticate(token)
+
+            return authentication
+        } catch (e: ParseException) {
+            throw AuthenticationServiceException("Couldn't parse idToken: ", e)
         }
     }
 

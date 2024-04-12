@@ -20,7 +20,6 @@ package org.mitre.openid.connect.web
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonDeserializer
-import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.google.gson.JsonSyntaxException
 import com.nimbusds.jose.Algorithm
@@ -31,6 +30,9 @@ import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jose.util.JSONObjectUtils
 import com.nimbusds.jwt.JWT
 import com.nimbusds.jwt.JWTParser
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.jsonObject
 import org.eclipse.persistence.exceptions.DatabaseException
 import org.mitre.jwt.assertion.AssertionValidator
 import org.mitre.oauth2.model.ClientDetailsEntity
@@ -79,11 +81,13 @@ import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.web.AuthenticationUtilities
 import org.mitre.openid.connect.exception.ValidationException
 import org.mitre.openid.connect.service.ClientLogoLoadingService
+import org.mitre.openid.connect.service.MITREidDataService
 import org.mitre.openid.connect.view.ClientEntityViewForAdmins
 import org.mitre.openid.connect.view.ClientEntityViewForUsers
 import org.mitre.openid.connect.view.HttpCodeView
 import org.mitre.openid.connect.view.JsonEntityView
 import org.mitre.openid.connect.view.JsonErrorView
+import org.mitre.util.asBooleanOrNull
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -105,6 +109,7 @@ import org.springframework.web.servlet.ModelAndView
 import java.sql.SQLIntegrityConstraintViolationException
 import java.text.ParseException
 import javax.persistence.PersistenceException
+import com.google.gson.JsonObject as GsonObject
 
 /**
  * @author Michael Jett <mjett></mjett>@mitre.org>
@@ -200,15 +205,12 @@ class ClientAPI {
      */
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @RequestMapping(method = [RequestMethod.POST], consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun apiAddClient(@RequestBody jsonString: String?, m: Model, auth: Authentication): String {
-        val json: JsonObject?
+    fun apiAddClient(@RequestBody jsonString: String, m: Model, auth: Authentication): String {
+        val json: JsonObject = MITREidDataService.json.parseToJsonElement(jsonString).jsonObject
         var client: ClientDetailsEntity
 
         try {
-            json = parser.parse(jsonString).asJsonObject
-            client = gson.fromJson(json, ClientDetailsEntity::class.java).let {
-                validateSoftwareStatement(it)
-            }
+            client = MITREidDataService.json.decodeFromJsonElement(json)
         } catch (e: JsonSyntaxException) {
             logger.error("apiAddClient failed due to JsonSyntaxException", e)
             m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
@@ -227,9 +229,7 @@ class ClientAPI {
         }
 
         // if they leave the client identifier empty, force it to be generated
-        if (client.clientId.isNullOrEmpty()) {
-            client = clientService.generateClientId(client)
-        }
+        if (client.clientId.isNullOrEmpty()) client = clientService.generateClientId(client)
 
         if (client.tokenEndpointAuthMethod == null || client.tokenEndpointAuthMethod == AuthMethod.NONE) {
             // we shouldn't have a secret for this client
@@ -238,7 +238,7 @@ class ClientAPI {
         } else if (client.tokenEndpointAuthMethod == AuthMethod.SECRET_BASIC || client.tokenEndpointAuthMethod == AuthMethod.SECRET_POST || client.tokenEndpointAuthMethod == AuthMethod.SECRET_JWT) {
             // if they've asked for us to generate a client secret (or they left it blank but require one), do so here
 
-            if (json.has("generateClientSecret") && json["generateClientSecret"].asBoolean
+            if (json["generateClientSecret"]?.asBooleanOrNull() == true
                 || client.clientSecret.isNullOrEmpty()
             ) {
                 client = clientService.generateClientSecret(client)
@@ -302,7 +302,7 @@ class ClientAPI {
         m: Model,
         auth: Authentication
     ): String {
-        val json: JsonObject
+        val json: GsonObject
         var client: ClientDetailsEntity
 
         try {

@@ -57,6 +57,7 @@ import org.mockito.Mock
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
+import org.mockito.kotlin.any
 import org.mockito.kotlin.capture
 import org.mockito.kotlin.isA
 import org.mockito.kotlin.mock
@@ -344,7 +345,7 @@ class TestMITREidDataService_1_3 {
             whenever(_client.clientId).thenReturn(_clientId)
             _client
         }
-        whenever(authHolderRepository.getById(ArgumentMatchers.isNull(Long::class.java)))
+        whenever(authHolderRepository.getById(any()))
             .thenAnswer(object : Answer<AuthenticationHolderEntity> {
                 var id: Long = 131L
 
@@ -357,6 +358,8 @@ class TestMITREidDataService_1_3 {
                 }
             })
 
+        maps.authHolderOldToNewIdMap[1L] = 131L
+        maps.authHolderOldToNewIdMap[2L] = 132L
         dataService.importData(configJson)
 
         //2 times for token, 2 times to update client, 2 times to update authHolder

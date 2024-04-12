@@ -17,7 +17,8 @@
  */
 package org.mitre.openid.connect.config
 
-import com.google.gson.Gson
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.BeanCreationException
@@ -58,7 +59,7 @@ class ConfigurationPropertiesBean {
 
     var locale: Locale = Locale.ENGLISH // we default to the english translation
 
-    var languageNamespaces: List<String>? = listOf("messages")
+    var languageNamespaces: List<String> = listOf("messages")
 
     /**
      * The dual client configuration. `true` if dual client is configured, otherwise `false`
@@ -85,7 +86,7 @@ class ConfigurationPropertiesBean {
             }
         }
 
-        if (languageNamespaces.isNullOrEmpty()) {
+        if (languageNamespaces.isEmpty()) {
             logger.error("No configured language namespaces! Text rendering will fail!")
         }
     }
@@ -94,13 +95,13 @@ class ConfigurationPropertiesBean {
      * The list of namespaces as a JSON string, for injection into the JavaScript UI
      */
     val languageNamespacesString: String
-        get() = Gson().toJson(languageNamespaces)
+        get() = Json.encodeToString(languageNamespaces)
 
     /**
      * Get the default namespace (first in the nonempty list)
      */
     val defaultLanguageNamespace: String
-        get() = languageNamespaces!!.first()
+        get() = languageNamespaces.first()
 
     companion object {
         /**

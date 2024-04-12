@@ -46,7 +46,7 @@ class JWKSetStringConverter : AttributeConverter<JWKSet?, String?>, KSerializer<
                 JWKSet.parse(it)
             } catch (e: ParseException) {
                 logger.error("Unable to parse JWK Set", e)
-                null
+                throw e
             }
         }
     }

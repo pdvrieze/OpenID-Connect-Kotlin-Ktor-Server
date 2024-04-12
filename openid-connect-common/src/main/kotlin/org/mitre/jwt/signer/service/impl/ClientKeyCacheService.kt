@@ -49,27 +49,23 @@ class ClientKeyCacheService {
     private val symmetricCache = SymmetricKeyJWTValidatorCacheService()
 
     // cache of validators for by-value JWKs
-    private val jwksValidators: LoadingCache<JWKSet, JWTSigningAndValidationService>
+    private val jwksValidators: LoadingCache<JWKSet, JWTSigningAndValidationService> = CacheBuilder.newBuilder()
+        .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
+        .maximumSize(100)
+        .build(JWKSetVerifierBuilder())
 
     // cache of encryptors for by-value JWKs
-    private val jwksEncrypters: LoadingCache<JWKSet, JWTEncryptionAndDecryptionService>
-
-    init {
-        this.jwksValidators = CacheBuilder.newBuilder()
-            .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
-            .maximumSize(100)
-            .build(JWKSetVerifierBuilder())
-        this.jwksEncrypters = CacheBuilder.newBuilder()
-            .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
-            .maximumSize(100)
-            .build(JWKSetEncryptorBuilder())
-    }
-
+    private val jwksEncrypters: LoadingCache<JWKSet, JWTEncryptionAndDecryptionService> = CacheBuilder.newBuilder()
+        .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
+        .maximumSize(100)
+        .build(JWKSetEncryptorBuilder())
 
     fun getValidator(client: ClientDetailsEntity, alg: JWSAlgorithm): JWTSigningAndValidationService? {
         try {
             return when (alg) {
-                JWSAlgorithm.RS256, JWSAlgorithm.RS384, JWSAlgorithm.RS512, JWSAlgorithm.ES256, JWSAlgorithm.ES384, JWSAlgorithm.ES512, JWSAlgorithm.PS256, JWSAlgorithm.PS384, JWSAlgorithm.PS512 -> {
+                JWSAlgorithm.RS256, JWSAlgorithm.RS384, JWSAlgorithm.RS512,
+                JWSAlgorithm.ES256, JWSAlgorithm.ES384, JWSAlgorithm.ES512,
+                JWSAlgorithm.PS256, JWSAlgorithm.PS384, JWSAlgorithm.PS512 -> {
                     // asymmetric key
 
                     client.jwks?.let { jwksValidators[it] }
@@ -78,7 +74,7 @@ class ClientKeyCacheService {
                 JWSAlgorithm.HS256, JWSAlgorithm.HS384, JWSAlgorithm.HS512 -> {
                     // symmetric key
 
-                    symmetricCache.getSymmetricValidtor(client)
+                    symmetricCache.getSymmetricValidator(client)
                 }
                 else -> null
             }

@@ -20,6 +20,7 @@ package org.mitre.oauth2.web
 import com.google.gson.Gson
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.service.SystemScopeService
+import org.mitre.openid.connect.service.MITREidDataService
 import org.mitre.openid.connect.view.HttpCodeView
 import org.mitre.openid.connect.view.JsonEntityView
 import org.mitre.openid.connect.view.JsonErrorView
@@ -47,7 +48,7 @@ class ScopeAPI {
     @Autowired
     private lateinit var scopeService: SystemScopeService
 
-    private val gson = Gson()
+    private val gsonXX = Gson()
 
     @RequestMapping(value = [""], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getAll(m: ModelMap): String {
@@ -80,62 +81,57 @@ class ScopeAPI {
     fun updateScope(@PathVariable("id") id: Long, @RequestBody json: String?, m: ModelMap): String {
         val existing = scopeService.getById(id)
 
-        var scope = gson.fromJson(json, SystemScope::class.java)
+        val scope: SystemScope? = json?.let { MITREidDataService.json.decodeFromString(it) }
 
-        if (existing != null && scope != null) {
-            if (existing.id == scope.id) {
-                // sanity check
-
-                scope = scopeService.save(scope)!!// ?: error("Unexpected reserved scope")
-
-                m[JsonEntityView.ENTITY] = scope
-
-                return JsonEntityView.VIEWNAME
-            } else {
-                logger.error(
-                    "updateScope failed; scope ids to not match: got "
-                            + existing.id + " and " + scope.id
-                )
-
-                m[HttpCodeView.CODE] = HttpStatus.BAD_REQUEST
-                m[JsonErrorView.ERROR_MESSAGE] = ("Could not update scope. Scope ids to not match: got "
-                        + existing.id + " and " + scope.id)
+        when {
+            existing == null || scope == null -> {
+                logger.error("updateScope failed; scope with id $id not found.")
+                m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
+                m[JsonErrorView.ERROR_MESSAGE] = "Could not update scope. The scope with id $id could not be found."
                 return JsonErrorView.VIEWNAME
             }
-        } else {
-            logger.error("updateScope failed; scope with id $id not found.")
-            m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
-            m[JsonErrorView.ERROR_MESSAGE] = "Could not update scope. The scope with id $id could not be found."
-            return JsonErrorView.VIEWNAME
+            existing.id == scope.id -> {
+                // sanity check
+                m[JsonEntityView.ENTITY] = scopeService.save(scope) // ?: error("Unexpected reserved scope")
+
+                return JsonEntityView.VIEWNAME
+            }
+            else -> {
+                logger.error("updateScope failed; scope ids to not match: got ${existing.id} and ${scope.id}")
+
+                m[HttpCodeView.CODE] = HttpStatus.BAD_REQUEST
+                m[JsonErrorView.ERROR_MESSAGE] = ("Could not update scope. Scope ids to not match: got ${existing.id} and ${scope.id}")
+
+                return JsonErrorView.VIEWNAME
+            }
         }
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @RequestMapping(value = [""], method = [RequestMethod.POST], produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun createScope(@RequestBody json: String, m: ModelMap): String {
-        var scope = gson.fromJson(json, SystemScope::class.java)
+        val inputScope = json.let { MITREidDataService.json.decodeFromString<SystemScope>(it) }
 
-        val alreadyExists = scopeService.getByValue(scope!!.value!!)
+        val alreadyExists = scopeService.getByValue(inputScope.value!!)
         if (alreadyExists != null) {
             //Error, cannot save a scope with the same value as an existing one
-            logger.error("Error: attempting to save a scope with a value that already exists: " + scope.value)
+            logger.error("Error: attempting to save a scope with a value that already exists: ${inputScope.value}")
             m[HttpCodeView.CODE] = HttpStatus.CONFLICT
-            m[JsonErrorView.ERROR_MESSAGE] =
-                "A scope with value " + scope.value + " already exists, please choose a different value."
+            m[JsonErrorView.ERROR_MESSAGE] = "A scope with value ${inputScope.value} already exists, please choose a different value."
             return JsonErrorView.VIEWNAME
         }
 
-        scope = scopeService.save(scope)
+        val savedScope = scopeService.save(inputScope)
 
-        if (scope?.id != null) {
-            m[JsonEntityView.ENTITY] = scope
+        if (savedScope?.id != null) {
+            m[JsonEntityView.ENTITY] = savedScope
 
             return JsonEntityView.VIEWNAME
         } else {
             logger.error("createScope failed; JSON was invalid: $json")
             m[HttpCodeView.CODE] = HttpStatus.BAD_REQUEST
             m[JsonErrorView.ERROR_MESSAGE] =
-                "Could not save new scope $scope. The scope service failed to return a saved entity."
+                "Could not save new scope $savedScope. The scope service failed to return a saved entity."
             return JsonErrorView.VIEWNAME
         }
     }
@@ -152,8 +148,7 @@ class ScopeAPI {
         } else {
             logger.error("deleteScope failed; scope with id $id not found.")
             m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
-            m[JsonErrorView.ERROR_MESSAGE] =
-                "Could not delete scope. The requested scope with id $id could not be found."
+            m[JsonErrorView.ERROR_MESSAGE] = "Could not delete scope. The requested scope with id $id could not be found."
             return JsonErrorView.VIEWNAME
         }
     }

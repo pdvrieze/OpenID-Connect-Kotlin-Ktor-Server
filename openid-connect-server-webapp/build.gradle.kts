@@ -9,6 +9,7 @@ base {
 }
 
 dependencies {
+    implementation(projects.openidConnectCommon)
     implementation(projects.openidConnectServer)
 /*
     implementation(libs.spring.core) {

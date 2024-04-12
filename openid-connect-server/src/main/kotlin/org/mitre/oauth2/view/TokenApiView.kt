@@ -19,7 +19,6 @@ import com.google.gson.ExclusionStrategy
 import com.google.gson.FieldAttributes
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.google.gson.JsonObject
 import com.google.gson.JsonSerializer
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
@@ -37,6 +36,7 @@ import java.io.IOException
 import java.io.Writer
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
+import com.google.gson.JsonObject as GsonObject
 
 @Component(TokenApiView.VIEWNAME)
 class TokenApiView : AbstractView() {
@@ -52,7 +52,7 @@ class TokenApiView : AbstractView() {
             }
         })
         .registerTypeAdapter(OAuth2AccessTokenEntity::class.java, JsonSerializer<OAuth2AccessTokenEntity> { src, typeOfSrc, context ->
-            val o = JsonObject()
+            val o = GsonObject()
             o.addProperty("value", src.value)
             o.addProperty("id", src.id)
             o.addProperty("refreshTokenId", if (src.refreshToken != null) src.refreshToken!!.id else null)
@@ -66,14 +66,14 @@ class TokenApiView : AbstractView() {
             o
         })
         .registerTypeAdapter(OAuth2RefreshTokenEntity::class.java, JsonSerializer<OAuth2RefreshTokenEntity> { src, typeOfSrc, context ->
-            val o = JsonObject()
+            val o = GsonObject()
             o.addProperty("value", src.value)
             o.addProperty("id", src.id)
 
-            o.add("scopes", context.serialize(src.authenticationHolder!!.authentication.oAuth2Request.scope))
+            o.add("scopes", context.serialize(src.authenticationHolder.authentication.oAuth2Request.scope))
 
             o.addProperty("clientId", src.client!!.clientId)
-            o.addProperty("userId", src.authenticationHolder!!.authentication.name)
+            o.addProperty("userId", src.authenticationHolder.authentication.name)
 
             o.add("expiration", context.serialize(src.expiration))
             o

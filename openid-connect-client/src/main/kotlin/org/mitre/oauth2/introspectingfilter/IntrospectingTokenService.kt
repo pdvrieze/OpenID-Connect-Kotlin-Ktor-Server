@@ -132,7 +132,7 @@ class IntrospectingTokenService(
     }
 
     private fun createUserAuthentication(token: JsonObject): Authentication? {
-        val userId = (token["user_id"]?:token["sub"] ?: return null).jsonPrimitive
+        val userId = (token["user_id"] ?: token["sub"] ?: return null).jsonPrimitive
         if (! userId.isString) return null
         return PreAuthenticatedAuthenticationToken(userId.content, token, introspectionAuthorityGranter.getAuthorities(token))
     }

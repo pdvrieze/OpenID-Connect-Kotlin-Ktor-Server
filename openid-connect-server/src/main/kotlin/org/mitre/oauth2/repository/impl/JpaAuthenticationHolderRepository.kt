@@ -41,18 +41,15 @@ class JpaAuthenticationHolderRepository : AuthenticationHolderRepository {
             return query.resultList
         }
 
-    override fun getById(id: Long?): AuthenticationHolderEntity? {
+    override fun getById(id: Long): AuthenticationHolderEntity? {
         return manager.find(AuthenticationHolderEntity::class.java, id)
     }
 
     @Transactional(value = "defaultTransactionManager")
     override fun remove(a: AuthenticationHolderEntity) {
-        val found = getById(a.id)
-        if (found != null) {
-            manager.remove(found)
-        } else {
-            throw IllegalArgumentException("AuthenticationHolderEntity not found: $a")
-        }
+        val found = getById(checkNotNull(a.id) { "Missing id for authentication holder" } )
+        requireNotNull(found) { "AuthenticationHolderEntity not found: $a" }
+        manager.remove(found)
     }
 
     @Transactional(value = "defaultTransactionManager")

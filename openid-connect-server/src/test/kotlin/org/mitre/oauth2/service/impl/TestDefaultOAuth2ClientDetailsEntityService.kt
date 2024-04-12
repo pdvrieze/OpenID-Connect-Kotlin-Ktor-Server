@@ -242,24 +242,6 @@ class TestDefaultOAuth2ClientDetailsEntityService {
     }
 
     @Test
-    fun updateClient_nullClients() {
-        val oldClient = mock<ClientDetailsEntity>()
-        val newClient = mock<ClientDetailsEntity>()
-
-        assertThrows<IllegalArgumentException> {
-            service.updateClient(oldClient, null)
-        }
-
-        assertThrows<IllegalArgumentException> {
-            service.updateClient(null, newClient)
-        }
-
-        assertThrows<IllegalArgumentException> {
-            service.updateClient(null, null)
-        }
-    }
-
-    @Test
     fun updateClient_blacklistedUri() {
         val oldClient = mock<ClientDetailsEntity>()
         val newClient = mock<ClientDetailsEntity>()

@@ -20,6 +20,7 @@ package org.mitre.oauth2.introspectingfilter
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.long
+import org.mitre.util.asString
 import org.springframework.security.oauth2.common.OAuth2AccessToken
 import org.springframework.security.oauth2.common.OAuth2RefreshToken
 import java.util.*
@@ -36,7 +37,7 @@ class OAuth2AccessTokenImpl(introspectionResponse: JsonObject, tokenString: Stri
         this.introspectionResponse = introspectionResponse
         this.tokenString = tokenString
         if (introspectionResponse["scope"] != null) {
-            scopes = introspectionResponse["scope"]!!.jsonPrimitive.content.splitToSequence(' ').toHashSet()
+            scopes = introspectionResponse["scope"]!!.asString().splitToSequence(' ').toHashSet()
         }
 
         if (introspectionResponse["exp"] != null) {

@@ -39,6 +39,7 @@ import kotlinx.serialization.json.JsonDecoder
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonEncoder
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonObject
 import org.mitre.oauth2.model.AuthenticationHolderEntity
@@ -273,7 +274,7 @@ interface MITREidDataService {
             }
 
             for ((oldRefreshTokenId, oldAuthHolderId) in maps.refreshTokenToAuthHolderRefs) {
-                val newAuthHolderId = maps.authHolderOldToNewIdMap[oldAuthHolderId]
+                val newAuthHolderId = maps.authHolderOldToNewIdMap[oldAuthHolderId]!!
                 val authHolder = authHolderRepository.getById(newAuthHolderId)!!
                 val newRefreshTokenId = maps.refreshTokenOldToNewIdMap[oldRefreshTokenId]!!
                 val refreshToken = tokenRepository.getRefreshTokenById(newRefreshTokenId)!!
@@ -289,7 +290,7 @@ interface MITREidDataService {
                 tokenRepository.saveAccessToken(accessToken)
             }
             for ((oldAccessTokenId, oldAuthHolderId) in maps.accessTokenToAuthHolderRefs) {
-                val newAuthHolderId = maps.authHolderOldToNewIdMap[oldAuthHolderId]
+                val newAuthHolderId = maps.authHolderOldToNewIdMap[oldAuthHolderId]!!
                 val authHolder = authHolderRepository.getById(newAuthHolderId)!!
                 val newAccessTokenId = maps.accessTokenOldToNewIdMap[oldAccessTokenId]!!
                 val accessToken = tokenRepository.getAccessTokenById(newAccessTokenId)!!
@@ -646,11 +647,16 @@ interface MITREidDataService {
                 if (encoder !is JsonEncoder) { // Ignore extensions when not in json mode (TODO for now)
                     delegate.serialize(encoder, value)
                 } else {
-                    val obj = encoder.json.encodeToJsonElement(delegate, value).jsonObject.toMutableMap()
-                    for ((name, ext) in value.extensions) {
-                        obj[name] = ext
+                    val obj = buildJsonObject {
+                        for ((k, v) in encoder.json.encodeToJsonElement(delegate, value).jsonObject) {
+                            put(k, v)
+                        }
+                        for ((name, ext) in value.extensions) {
+                            put(name, ext)
+                        }
+
                     }
-                    encoder.encodeJsonElement(JsonObject(obj))
+                    encoder.encodeJsonElement(obj)
                 }
             }
 

@@ -21,7 +21,7 @@ import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
 import com.google.common.util.concurrent.UncheckedExecutionException
-import com.google.gson.JsonParser
+import kotlinx.serialization.json.JsonArray
 import org.apache.commons.codec.binary.Base64
 import org.apache.http.client.HttpClient
 import org.apache.http.impl.client.HttpClientBuilder
@@ -36,9 +36,11 @@ import org.mitre.oauth2.util.requireId
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.service.ApprovedSiteService
 import org.mitre.openid.connect.service.BlacklistedSiteService
+import org.mitre.openid.connect.service.MITREidDataService
 import org.mitre.openid.connect.service.StatsService
 import org.mitre.openid.connect.service.WhitelistedSiteService
 import org.mitre.uma.service.ResourceSetService
+import org.mitre.util.asString
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -344,7 +346,7 @@ class DefaultOAuth2ClientDetailsEntityService : ClientDetailsEntityService {
      *
      */
     @Throws(IllegalArgumentException::class)
-    override fun updateClient(oldClient: ClientDetailsEntity?, newClient: ClientDetailsEntity?): ClientDetailsEntity {
+    override fun updateClient(oldClient: ClientDetailsEntity, newClient: ClientDetailsEntity): ClientDetailsEntity {
         if (oldClient == null || newClient == null) {
             throw IllegalArgumentException("Neither old client or new client can be null!")
         }
@@ -412,7 +414,6 @@ class DefaultOAuth2ClientDetailsEntityService : ClientDetailsEntityService {
     private inner class SectorIdentifierLoader(httpClient: HttpClient?) : CacheLoader<String, List<String>>() {
         private val httpFactory = HttpComponentsClientHttpRequestFactory(httpClient)
         private val restTemplate = RestTemplate(httpFactory)
-        private val parser = JsonParser()
 
         @Throws(Exception::class)
         override fun load(key: String): List<String> {
@@ -423,20 +424,15 @@ class DefaultOAuth2ClientDetailsEntityService : ClientDetailsEntityService {
 
             // key is the sector URI
             val jsonString = restTemplate.getForObject(key, String::class.java)
-            val json = parser.parse(jsonString)
-
-            if (json.isJsonArray) {
-                val redirectUris: MutableList<String> = ArrayList()
-                for (el in json.asJsonArray) {
-                    redirectUris.add(el.asString)
-                }
-
-                logger.info("Found $redirectUris for sector $key")
-
-                return redirectUris
-            } else {
-                throw IllegalArgumentException("JSON Format Error")
+            val json = requireNotNull(MITREidDataService.json.parseToJsonElement(jsonString) as? JsonArray) {
+                "JSON Format Error"
             }
+
+            val redirectUris: List<String> = json.map { it.asString() }
+
+            logger.info("Found $redirectUris for sector $key")
+
+            return redirectUris
         }
     }
 

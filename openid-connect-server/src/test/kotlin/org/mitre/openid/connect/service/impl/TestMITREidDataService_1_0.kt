@@ -50,6 +50,7 @@ import org.mitre.openid.connect.service.MITREidDataService.Companion.WHITELISTED
 import org.mitre.openid.connect.service.MITREidDataServiceMaps
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
+import org.mockito.ArgumentMatchers.anyLong
 import org.mockito.Captor
 import org.mockito.InjectMocks
 import org.mockito.Mock
@@ -222,20 +223,18 @@ class TestMITREidDataService_1_0 {
             whenever(_client.clientId).thenReturn(_clientId)
             _client
         }
-        whenever(authHolderRepository.getById(ArgumentMatchers.isNull(Long::class.java)))
+        whenever(authHolderRepository.getById(anyLong()))
             .thenAnswer(object : Answer<AuthenticationHolderEntity> {
                 var id: Long = 678L
 
                 @Throws(Throwable::class)
                 override fun answer(invocation: InvocationOnMock): AuthenticationHolderEntity {
-                    val _auth = mock<AuthenticationHolderEntity>()
-                    // unused by mockito (causs unnecessary stubbing exception
-//				when(_auth.getId()).thenReturn(id);
-                    id++
-                    return _auth
+                    return mock<AuthenticationHolderEntity>()
                 }
             })
 
+        maps.authHolderOldToNewIdMap[1L] = 678L
+        maps.authHolderOldToNewIdMap[2L] = 679L
         dataService.importData(configJson)
         //2 times for token, 2 times to update client, 2 times to update authHolder
         verify(tokenRepository, times(6)).saveRefreshToken(capture(capturedRefreshTokens))
@@ -351,7 +350,7 @@ class TestMITREidDataService_1_0 {
             whenever(_client.clientId).thenReturn(_clientId)
             _client
         }
-        whenever(authHolderRepository.getById(ArgumentMatchers.argThat { x: Long? -> true }))
+        whenever(authHolderRepository.getById(anyLong()))
             .thenAnswer(object : Answer<AuthenticationHolderEntity> {
                 var id: Long = 234L
 
@@ -365,7 +364,7 @@ class TestMITREidDataService_1_0 {
                 }
             })
         maps.authHolderOldToNewIdMap[1L] = 401L
-        maps.authHolderOldToNewIdMap[1L] = 403L
+        maps.authHolderOldToNewIdMap[2L] = 403L
         maps.refreshTokenOldToNewIdMap[1L] = 402L
 
         dataService.importData(configJson)
@@ -979,7 +978,7 @@ class TestMITREidDataService_1_0 {
                     return _holder
                 }
             })
-        whenever(authHolderRepository.getById(ArgumentMatchers.anyLong())).thenAnswer { invocation ->
+        whenever(authHolderRepository.getById(anyLong())).thenAnswer { invocation ->
             val _id = invocation.arguments[0] as Long
             fakeAuthHolderTable[_id]
         }

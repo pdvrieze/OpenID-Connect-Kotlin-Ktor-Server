@@ -46,9 +46,11 @@ class JWTStringConverter : AttributeConverter<JWT?, String?>, KSerializer<JWT> {
 	 */
     override fun convertToEntityAttribute(dbData: String?): JWT? {
         return dbData?.let {
-            try { JWTParser.parse(it) } catch (e: ParseException) {
+            try {
+                JWTParser.parse(it)
+            } catch (e: ParseException) {
                 logger.error("Unable to parse JWT", e)
-                null
+                throw e
             }
         }
     }

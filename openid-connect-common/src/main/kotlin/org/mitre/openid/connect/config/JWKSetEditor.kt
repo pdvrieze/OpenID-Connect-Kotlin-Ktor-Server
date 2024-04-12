@@ -17,7 +17,6 @@ package org.mitre.openid.connect.config
 
 import com.nimbusds.jose.jwk.JWKSet
 import java.beans.PropertyEditorSupport
-import java.text.ParseException
 
 /**
  * Allows JWK Set strings to be used in XML configurations.
@@ -27,14 +26,7 @@ import java.text.ParseException
 class JWKSetEditor : PropertyEditorSupport() {
     @Throws(IllegalArgumentException::class)
     override fun setAsText(text: String?) {
-        value = if (!text.isNullOrEmpty()) {
-            try {
-                JWKSet.parse(text)
-            } catch (e: ParseException) {
-                throw IllegalArgumentException(e)
-            }
-        } else {
-            null
-        }
+        value = text?.takeIf { it.isNotEmpty() }
+            ?.let { JWKSet.parse(it) }
     }
 }

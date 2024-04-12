@@ -17,6 +17,8 @@ package org.mitre.oauth2.introspectingfilter
 
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.*
@@ -24,15 +26,13 @@ import java.util.*
 class TestOAuth2AccessTokenImpl {
     @Test
     fun testFullToken() {
-        val tokenObj = JsonObject(
-            mapOf(
-                "active" to JsonPrimitive(true),
-                "scope" to JsonPrimitive(scopeString),
-                "exp" to JsonPrimitive(expVal),
-                "sub" to JsonPrimitive("subject"),
-                "client_id" to JsonPrimitive("123-456-789"),
-            )
-        )
+        val tokenObj = buildJsonObject {
+            put("active", true)
+            put("scope", scopeString)
+            put("exp", expVal)
+            put("sub", "subject")
+            put("client_id", "123-456-789")
+        }
 
 
         val tok = OAuth2AccessTokenImpl(tokenObj, tokenString)
@@ -43,12 +43,12 @@ class TestOAuth2AccessTokenImpl {
 
     @Test
     fun testNullExp() {
-        val tokenObj = JsonObject(mapOf(
-            "active" to JsonPrimitive(true),
-            "scope" to JsonPrimitive(scopeString),
-            "sub" to JsonPrimitive("subject"),
-            "client_id" to JsonPrimitive("123-456-789"),
-        ))
+        val tokenObj = buildJsonObject {
+            put("active", true)
+            put("scope", scopeString)
+            put("sub", "subject")
+            put("client_id", "123-456-789")
+        }
 
         val tok = OAuth2AccessTokenImpl(tokenObj, tokenString)
 
@@ -73,11 +73,11 @@ class TestOAuth2AccessTokenImpl {
 
     @Test
     fun testNullScopesNullExp() {
-        val tokenObj = JsonObject(mapOf(
-            "active" to JsonPrimitive(true),
-            "sub" to JsonPrimitive("subject"),
-            "client_id" to JsonPrimitive("123-456-789"),
-        ))
+        val tokenObj = buildJsonObject {
+            put("active", true)
+            put("sub", "subject")
+            put("client_id", "123-456-789")
+        }
 
         val tok = OAuth2AccessTokenImpl(tokenObj, tokenString)
 

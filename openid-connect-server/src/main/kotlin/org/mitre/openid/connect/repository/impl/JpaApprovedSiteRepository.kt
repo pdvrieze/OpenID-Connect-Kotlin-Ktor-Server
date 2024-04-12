@@ -57,10 +57,10 @@ class JpaApprovedSiteRepository : ApprovedSiteRepository {
 
     @Transactional(value = "defaultTransactionManager")
     override fun save(approvedSite: ApprovedSite): ApprovedSite {
-        return saveOrUpdate<ApprovedSite, Long>(approvedSite.id!!, manager, approvedSite)
+        return saveOrUpdate(approvedSite.id!!, manager, approvedSite)
     }
 
-    override fun getByClientIdAndUserId(clientId: String?, userId: String?): Collection<ApprovedSite>? {
+    override fun getByClientIdAndUserId(clientId: String, userId: String): Collection<ApprovedSite> {
         val query = manager.createNamedQuery(ApprovedSite.QUERY_BY_CLIENT_ID_AND_USER_ID, ApprovedSite::class.java)
         query.setParameter(ApprovedSite.PARAM_USER_ID, userId)
         query.setParameter(ApprovedSite.PARAM_CLIENT_ID, clientId)

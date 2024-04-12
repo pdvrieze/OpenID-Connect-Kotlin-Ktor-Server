@@ -1,5 +1,6 @@
 package org.mitre.oauth2.model.convert
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -12,6 +13,7 @@ import org.springframework.security.core.GrantedAuthority
 object AuthenticationSerializer : KSerializer<Authentication> {
     private val delegate = SerialDelegate.serializer()
 
+    @OptIn(ExperimentalSerializationApi::class)
     override val descriptor: SerialDescriptor =
         SerialDescriptor(" org.springframework.security.core.Authentication", delegate.descriptor)
 

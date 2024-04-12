@@ -116,18 +116,17 @@ class MITREidDataService_1_2 : MITREidDataService {
             refreshToken.client = client
             context.tokenRepository.saveRefreshToken(refreshToken)
         }
-        for (oldRefreshTokenId in context.maps.refreshTokenToAuthHolderRefs.keys) {
-            val oldAuthHolderId = context.maps.refreshTokenToAuthHolderRefs[oldRefreshTokenId]
-            val newAuthHolderId = context.maps.authHolderOldToNewIdMap[oldAuthHolderId]
-            val authHolder = context.authHolderRepository.getById(newAuthHolderId)
+        for ((oldRefreshTokenId, oldAuthHolderId) in context.maps.refreshTokenToAuthHolderRefs) {
+            val newAuthHolderId = context.maps.authHolderOldToNewIdMap[oldAuthHolderId]!!
+            val authHolder = context.authHolderRepository.getById(newAuthHolderId)!!
             val newRefreshTokenId = context.maps.refreshTokenOldToNewIdMap[oldRefreshTokenId]!!
             val refreshToken = context.tokenRepository.getRefreshTokenById(newRefreshTokenId)!!
-            refreshToken.authenticationHolder = authHolder!!
+            refreshToken.authenticationHolder = authHolder
             context.tokenRepository.saveRefreshToken(refreshToken)
         }
         for (oldAccessTokenId in context.maps.accessTokenToClientRefs.keys) {
-            val clientRef = context.maps.accessTokenToClientRefs[oldAccessTokenId]
-            val client = context.clientRepository.getClientByClientId(clientRef!!)
+            val clientRef = context.maps.accessTokenToClientRefs[oldAccessTokenId]!!
+            val client = context.clientRepository.getClientByClientId(clientRef)
             val newAccessTokenId = context.maps.accessTokenOldToNewIdMap[oldAccessTokenId]!!
             val accessToken = context.tokenRepository.getAccessTokenById(newAccessTokenId)!!
             accessToken.client = client

@@ -71,20 +71,21 @@ class DefaultUmaTokenService : UmaTokenService {
         val client = clientService.loadClientByClientId(o2auth.oAuth2Request.clientId)
         token.client = client
 
-        val ticketScopes = ticket.permission!!.scopes!!
-        val policyScopes = policy.scopes!!
+        val ticketScopes = ticket.permission.scopes
+        val policyScopes = policy.scopes
 
         val perm = Permission()
-        perm.resourceSet = ticket.permission!!.resourceSet
+        perm.resourceSet = ticket.permission.resourceSet
         perm.scopes = ticketScopes.intersect(policyScopes)
 
         token.permissions = hashSetOf(perm)
 
-        val claims = JWTClaimsSet.Builder()
+        val claims = JWTClaimsSet.Builder().apply {
+            audience(listOf(ticket.permission.resourceSet!!.id.toString()))
+            issuer(config.issuer)
+            jwtID(UUID.randomUUID().toString())
+        }
 
-        claims.audience(listOf(ticket.permission!!.resourceSet!!.id.toString()))
-        claims.issuer(config.issuer)
-        claims.jwtID(UUID.randomUUID().toString())
 
         if (config.rqpTokenLifeTime != null) {
             val exp = Date(System.currentTimeMillis() + config.rqpTokenLifeTime!! * 1000L)
@@ -95,11 +96,10 @@ class DefaultUmaTokenService : UmaTokenService {
 
 
         val signingAlgorithm = jwtService.defaultSigningAlgorithm
-        val header = JWSHeader(
-            signingAlgorithm, null, null, null, null, null, null, null, null, null,
-            jwtService.defaultSignerKeyId,
-            null, null
-        )
+        val header = JWSHeader.Builder(signingAlgorithm)
+            .keyID(jwtService.defaultSignerKeyId)
+            .build()
+
         val signed = SignedJWT(header, claims.build())
 
         jwtService.signJwt(signed)

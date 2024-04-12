@@ -1,17 +1,16 @@
 package org.mitre.discovery.view
 
-import com.google.gson.ExclusionStrategy
-import com.google.gson.FieldAttributes
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
-import com.google.gson.JsonArray
-import com.google.gson.JsonObject
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.addJsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
+import org.mitre.openid.connect.service.MITREidDataService
 import org.mitre.openid.connect.view.HttpCodeView
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
-import org.springframework.validation.BeanPropertyBindingResult
 import org.springframework.web.servlet.view.AbstractView
 import java.io.IOException
 import javax.servlet.http.HttpServletRequest
@@ -22,20 +21,6 @@ import javax.servlet.http.HttpServletResponse
  */
 @Component("webfingerView")
 class WebfingerView : AbstractView() {
-    private val gson: Gson = GsonBuilder()
-        .setExclusionStrategies(object : ExclusionStrategy {
-            override fun shouldSkipField(f: FieldAttributes): Boolean {
-                return false
-            }
-
-            override fun shouldSkipClass(clazz: Class<*>): Boolean {
-                // skip the JPA binding wrapper
-                return clazz == BeanPropertyBindingResult::class.java
-            }
-        })
-        .serializeNulls()
-        .setDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
-        .create()
 
     override fun renderMergedOutputModel(
         model: Map<String, Any>,
@@ -56,22 +41,17 @@ class WebfingerView : AbstractView() {
             val resource = model["resource"] as String?
             val issuer = model["issuer"] as String?
 
-            val obj = JsonObject().apply {
-                addProperty("subject", resource)
-
-                val links = JsonArray().apply {
-                    val link = JsonObject().apply {
-                        addProperty("rel", "http://openid.net/specs/connect/1.0/issuer")
-                        addProperty("href", issuer)
+            val obj = buildJsonObject {
+                put("subject", resource)
+                putJsonArray("links") {
+                    addJsonObject {
+                        put("rel", "http://openid.net/specs/connect/1.0/issuer")
+                        put("href", issuer)
                     }
-                    add(link)
                 }
-
-                add("links", links)
             }
 
-
-            gson.toJson(obj, response.writer)
+            response.writer.append(MITREidDataService.json.encodeToString(obj))
         } catch (e: IOException) {
             Companion.logger.error("IOException in JsonEntityView.java: ", e)
         }

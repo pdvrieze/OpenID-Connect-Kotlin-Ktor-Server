@@ -79,7 +79,6 @@ import org.mitre.openid.connect.service.OIDCTokenService
 import org.mitre.openid.connect.view.ClientInformationResponseView
 import org.mitre.openid.connect.view.HttpCodeView
 import org.mitre.openid.connect.view.JsonErrorView
-import org.mitre.openid.connect.web.DynamicClientRegistrationEndpoint
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
