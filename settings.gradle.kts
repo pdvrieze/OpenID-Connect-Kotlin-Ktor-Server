@@ -20,6 +20,7 @@ dependencyResolutionManagement {
     repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS
     repositories {
         mavenCentral()
+        maven { url = uri("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-js-wrappers") }
     }
 }
 
@@ -31,3 +32,4 @@ include("openid-connect-client")
 include("openid-connect-server-webapp")
 include("uma-server")
 include("uma-server-webapp")
+include("uma-server-ktor")
