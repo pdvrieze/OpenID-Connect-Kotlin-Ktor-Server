@@ -42,6 +42,19 @@ class DefaultUserInfoService : UserInfoService {
     @Autowired
     private lateinit var pairwiseIdentifierService: PairwiseIdentiferService
 
+    @Deprecated("Use constructor that doesn't rely on autowiring")
+    constructor()
+
+    constructor(
+        userInfoRepository: UserInfoRepository,
+        clientService: ClientDetailsEntityService,
+        pairwiseIdentifierService: PairwiseIdentiferService,
+    ) {
+        this.userInfoRepository = userInfoRepository
+        this.clientService = clientService
+        this.pairwiseIdentifierService = pairwiseIdentifierService
+    }
+
     override fun getByUsername(username: String): UserInfo? {
         return userInfoRepository.getByUsername(username)
     }

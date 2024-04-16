@@ -158,7 +158,7 @@ open class ClientDetailsEntity(
     @get:Column(name = "jwks")
     @get:Basic
     @SerialName(JWKS)
-    open var jwks: @Serializable(JWSAlgorithmStringConverter::class) JWKSet? = null, // public key stored by value
+    open var jwks: @Serializable(JWKSetStringConverter::class) JWKSet? = null, // public key stored by value
 
     @get:Column(name = "software_id")
     @get:Basic
@@ -237,7 +237,7 @@ open class ClientDetailsEntity(
     @get:Column(name = "default_max_age")
     @get:Basic
     @SerialName(DEFAULT_MAX_AGE)
-    open var defaultMaxAge: Int? = null, // default_max_age
+    open var defaultMaxAge: Long? = null, // default_max_age
 
     @get:Column(name = "require_auth_time")
     @get:Basic

@@ -32,6 +32,13 @@ class DefaultSystemScopeService : SystemScopeService {
     @Autowired
     private lateinit var repository: SystemScopeRepository
 
+    @Deprecated("Use version taking a system scope repository")
+    constructor()
+
+    constructor(repository: SystemScopeRepository) {
+        this.repository = repository
+    }
+
     private val isDefault: (SystemScope?) -> Boolean = { input -> input != null && input.isDefaultScope }
 
     private val isRestricted: (SystemScope?) -> Boolean = { input -> input != null && input.isRestricted }

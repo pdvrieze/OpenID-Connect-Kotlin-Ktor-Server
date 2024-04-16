@@ -26,6 +26,9 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonElement
+import org.mitre.oauth2.model.SystemScope.Companion.PARAM_VALUE
+import org.mitre.oauth2.model.SystemScope.Companion.QUERY_ALL
+import org.mitre.oauth2.model.SystemScope.Companion.QUERY_BY_VALUE
 import org.slf4j.LoggerFactory
 import javax.persistence.Basic
 import javax.persistence.Column
@@ -42,7 +45,9 @@ import javax.persistence.Table
  */
 @Entity
 @Table(name = "system_scope")
-@NamedQueries(NamedQuery(name = SystemScope.QUERY_ALL, query = "select s from SystemScope s ORDER BY s.id"), NamedQuery(name = SystemScope.QUERY_BY_VALUE, query = "select s from SystemScope s WHERE s.value = :" + SystemScope.PARAM_VALUE))
+@NamedQueries(
+    NamedQuery(name = QUERY_ALL, query = "select s from SystemScope s ORDER BY s.id"),
+    NamedQuery(name = QUERY_BY_VALUE, query = "select s from SystemScope s WHERE s.value = :$PARAM_VALUE"))
 @Serializable(SystemScope.Companion::class)
 class SystemScope(
     @get:Column(name = "id")

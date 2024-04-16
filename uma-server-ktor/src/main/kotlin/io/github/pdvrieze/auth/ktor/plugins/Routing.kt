@@ -15,17 +15,7 @@ fun Application.configureRouting() {
         get("/") {
             call.respondText("Hello World!")
         }
-        get<Articles> { article ->
-            // Get all articles ...
-            call.respond("List of articles sorted starting from ${article.sort}")
-        }
         // Static plugin. Try to access `/static/index.html`
-        static("/static") {
-            resources("static")
-        }
+        staticResources("/static", "static")
     }
 }
-
-@Serializable
-@Resource("/articles")
-class Articles(val sort: String? = "new")

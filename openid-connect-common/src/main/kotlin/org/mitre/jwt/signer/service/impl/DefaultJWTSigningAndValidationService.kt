@@ -82,22 +82,12 @@ class DefaultJWTSigningAndValidationService : JWTSigningAndValidationService {
      * @throws InvalidKeySpecException If the keys in the JWKs are not valid
      * @throws NoSuchAlgorithmException If there is no appropriate algorithm to tie the keys to.
      */
-    constructor(keyStore: JWKSetKeyStore?) {
-        // convert all keys in the keystore to a map based on key id
-        if (keyStore?.jwkSet != null) {
-            for (key in keyStore.keys) {
-                if (!key.keyID.isNullOrEmpty()) {
-                    // use the key ID that's built into the key itself
-                    keys[key.keyID] = key
-                } else {
-                    // create a random key id
-                    val fakeKid = UUID.randomUUID().toString()
-                    keys[fakeKid] = key
-                }
-            }
+    constructor(keyStore: JWKSetKeyStore?): this(keyStore?.let { s ->
+        // use the key ID that's built into the key itself, otherwise use a random key id
+        s.keys.associateBy {
+            it.keyID?.takeIf { it.isNotEmpty() } ?: UUID.randomUUID().toString()
         }
-        buildSignersAndVerifiers()
-    }
+    } ?: emptyMap())
 
 
     var defaultSigningAlgorithmName: String?

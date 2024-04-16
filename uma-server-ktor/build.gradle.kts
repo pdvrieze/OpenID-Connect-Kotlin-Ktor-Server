@@ -21,6 +21,10 @@ application {
 
 
 dependencies {
+    implementation(projects.openidConnectCommon)
+    implementation(projects.openidConnectServer)
+    implementation(projects.umaServer)
+
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.auth.common)
     implementation(libs.ktor.server.auth.jwt)
@@ -35,8 +39,11 @@ dependencies {
     implementation(libs.kotlin.wrappers.css)
     implementation(libs.exposed.core)
     implementation(libs.exposed.jdbc)
+    implementation(libs.exposed.javatime)
     implementation(libs.h2)
     implementation(libs.logback)
+
+    implementation(libs.jwt)
 
     testImplementation(libs.ktor.server.tests)
     testImplementation(libs.kotlin.test.junit)

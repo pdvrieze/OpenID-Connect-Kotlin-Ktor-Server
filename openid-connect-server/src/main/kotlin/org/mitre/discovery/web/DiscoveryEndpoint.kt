@@ -54,6 +54,21 @@ class DiscoveryEndpoint {
     @Autowired
     private lateinit var userService: UserInfoService
 
+    constructor()
+
+    constructor(
+        config: ConfigurationPropertiesBean,
+        scopeService: SystemScopeService,
+        signService: JWTSigningAndValidationService,
+        encService: JWTEncryptionAndDecryptionService,
+        userService: UserInfoService,
+    ) {
+        this.config = config
+        this.scopeService = scopeService
+        this.signService = signService
+        this.encService = encService
+        this.userService = userService
+    }
 
     // used to map JWA algorithms objects to strings
     private val toAlgorithmName: Function<Algorithm?, String?> =

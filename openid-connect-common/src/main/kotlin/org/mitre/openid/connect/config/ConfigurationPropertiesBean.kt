@@ -38,6 +38,12 @@ class ConfigurationPropertiesBean {
      */
     lateinit var issuer: String
 
+    @Deprecated("Doesn't initialize issuer")
+    constructor()
+    constructor(issuer: String) {
+        this.issuer = issuer
+    }
+
     var topbarTitle: String? = null
 
     /**

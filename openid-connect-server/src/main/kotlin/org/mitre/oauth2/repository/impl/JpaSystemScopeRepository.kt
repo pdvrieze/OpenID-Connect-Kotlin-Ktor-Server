@@ -37,9 +37,7 @@ class JpaSystemScopeRepository : SystemScopeRepository {
 
     @get:Transactional(value = "defaultTransactionManager")
     override val all: Set<SystemScope>
-        /* (non-Javadoc)
-	 * @see org.mitre.oauth2.repository.SystemScopeRepository#getAll()
-	 */ get() {
+        get() {
             val query = em.createNamedQuery(SystemScope.QUERY_ALL, SystemScope::class.java)
 
             return LinkedHashSet(query.resultList)

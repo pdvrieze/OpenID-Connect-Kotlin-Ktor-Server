@@ -85,6 +85,21 @@ class DefaultOAuth2ClientDetailsEntityService : ClientDetailsEntityService {
     @Autowired
     private lateinit var config: ConfigurationPropertiesBean
 
+    @Deprecated("Don't use autowired version")
+    constructor()
+
+    constructor(
+        clientRepository: OAuth2ClientRepository,
+        tokenRepository: OAuth2TokenRepository,
+        approvedSiteService: ApprovedSiteService,
+        whitelistedSiteService: WhitelistedSiteService,
+        blacklistedSiteService: BlacklistedSiteService,
+        scopeService: SystemScopeService,
+        statsService: StatsService,
+        resourceSetService: ResourceSetService,
+        config: ConfigurationPropertiesBean,
+    )
+
     // map of sector URI -> list of redirect URIs
     private val sectorRedirects: LoadingCache<String, List<String>> = CacheBuilder.newBuilder()
         .expireAfterAccess(1, TimeUnit.HOURS)
