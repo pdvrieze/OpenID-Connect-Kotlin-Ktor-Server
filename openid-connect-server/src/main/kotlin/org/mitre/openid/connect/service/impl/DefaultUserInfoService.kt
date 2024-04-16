@@ -17,7 +17,7 @@
  */
 package org.mitre.openid.connect.service.impl
 
-import org.mitre.oauth2.model.ClientDetailsEntity.SubjectType
+import org.mitre.oauth2.model.OAuthClientDetails.SubjectType
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.model.UserInfo
 import org.mitre.openid.connect.repository.UserInfoRepository

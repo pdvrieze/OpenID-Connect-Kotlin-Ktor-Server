@@ -37,6 +37,7 @@ import org.eclipse.persistence.exceptions.DatabaseException
 import org.mitre.jwt.assertion.AssertionValidator
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.ClientDetailsEntity.*
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.PKCEAlgorithm
 import org.mitre.oauth2.model.PKCEAlgorithm.Companion.parse
 import org.mitre.oauth2.model.RegisteredClientFields.APPLICATION_TYPE
@@ -231,11 +232,11 @@ class ClientAPI {
         // if they leave the client identifier empty, force it to be generated
         if (client.clientId.isNullOrEmpty()) client = clientService.generateClientId(client)
 
-        if (client.tokenEndpointAuthMethod == null || client.tokenEndpointAuthMethod == AuthMethod.NONE) {
+        if (client.tokenEndpointAuthMethod == null || client.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.NONE) {
             // we shouldn't have a secret for this client
 
             client.clientSecret = null
-        } else if (client.tokenEndpointAuthMethod == AuthMethod.SECRET_BASIC || client.tokenEndpointAuthMethod == AuthMethod.SECRET_POST || client.tokenEndpointAuthMethod == AuthMethod.SECRET_JWT) {
+        } else if (client.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_BASIC || client.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_POST || client.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_JWT) {
             // if they've asked for us to generate a client secret (or they left it blank but require one), do so here
 
             if (json["generateClientSecret"]?.asBooleanOrNull() == true
@@ -243,7 +244,7 @@ class ClientAPI {
             ) {
                 client = clientService.generateClientSecret(client)
             }
-        } else if (client.tokenEndpointAuthMethod == AuthMethod.PRIVATE_KEY) {
+        } else if (client.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.PRIVATE_KEY) {
             if (client.jwksUri.isNullOrEmpty() && client.jwks == null) {
                 logger.error("tried to create client with private key auth but no private key")
                 m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
@@ -341,11 +342,11 @@ class ClientAPI {
             client = clientService.generateClientId(client)
         }
 
-        if (client.tokenEndpointAuthMethod == null || client.tokenEndpointAuthMethod == AuthMethod.NONE) {
+        if (client.tokenEndpointAuthMethod == null || client.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.NONE) {
             // we shouldn't have a secret for this client
 
             client.clientSecret = null
-        } else if (client.tokenEndpointAuthMethod == AuthMethod.SECRET_BASIC || client.tokenEndpointAuthMethod == AuthMethod.SECRET_POST || client.tokenEndpointAuthMethod == AuthMethod.SECRET_JWT) {
+        } else if (client.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_BASIC || client.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_POST || client.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_JWT) {
             // if they've asked for us to generate a client secret (or they left it blank but require one), do so here
 
             if (json.has("generateClientSecret") && json["generateClientSecret"].asBoolean
@@ -353,7 +354,7 @@ class ClientAPI {
             ) {
                 client = clientService.generateClientSecret(client)
             }
-        } else if (client.tokenEndpointAuthMethod == AuthMethod.PRIVATE_KEY) {
+        } else if (client.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.PRIVATE_KEY) {
             if (client.jwksUri.isNullOrEmpty() && client.jwks == null) {
                 logger.error("tried to create client with private key auth but no private key")
                 m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
@@ -516,11 +517,11 @@ class ClientAPI {
                                 JWSAlgorithm.parse(claimSet.getStringClaim(claim))
 
                             SUBJECT_TYPE -> newClient.subjectType =
-                                SubjectType.getByValue(claimSet.getStringClaim(claim))
+                                OAuthClientDetails.SubjectType.getByValue(claimSet.getStringClaim(claim))
 
                             SECTOR_IDENTIFIER_URI -> newClient.sectorIdentifierUri = claimSet.getStringClaim(claim)
                             APPLICATION_TYPE -> newClient.applicationType =
-                                AppType.valueOf(claimSet.getStringClaim(claim))
+                                OAuthClientDetails.AppType.valueOf(claimSet.getStringClaim(claim))
 
                             JWKS_URI -> newClient.jwksUri = claimSet.getStringClaim(claim)
                             JWKS -> newClient.jwks = JWKSet.parse(JSONObjectUtils.toJSONString(claimSet.getJSONObjectClaim(claim)))
@@ -531,7 +532,7 @@ class ClientAPI {
                             GRANT_TYPES -> newClient.grantTypes = claimSet.getStringListClaim(claim).toHashSet()
                             SCOPE -> newClient.setScope(OAuth2Utils.parseParameterList(claimSet.getStringClaim(claim)))
                             TOKEN_ENDPOINT_AUTH_METHOD -> newClient.tokenEndpointAuthMethod =
-                                AuthMethod.getByValue(claimSet.getStringClaim(claim))
+                                OAuthClientDetails.AuthMethod.getByValue(claimSet.getStringClaim(claim))
 
                             TOS_URI -> newClient.tosUri = claimSet.getStringClaim(claim)
                             CONTACTS -> newClient.contacts = claimSet.getStringListClaim(claim).toHashSet()

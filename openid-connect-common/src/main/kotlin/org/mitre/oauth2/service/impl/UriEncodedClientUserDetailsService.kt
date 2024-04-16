@@ -15,7 +15,7 @@
  */
 package org.mitre.oauth2.service.impl
 
-import org.mitre.oauth2.model.ClientDetailsEntity.AuthMethod
+import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.springframework.beans.factory.annotation.Autowired

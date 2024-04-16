@@ -46,6 +46,7 @@ import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.PKCEAlgorithm
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.convert.JWEAlgorithmStringConverter
@@ -345,13 +346,13 @@ interface MITREidDataService {
         @EncodeDefault @SerialName("logoUri") val logoUri: String? = null,
         @EncodeDefault @SerialName("contacts") val contacts: Set<String>? = null,
         @EncodeDefault @SerialName("tosUri") val tosUri: String? = null,
-        @EncodeDefault @SerialName("tokenEndpointAuthMethod") val tokenEndpointAuthMethod: ClientDetailsEntity.AuthMethod = ClientDetailsEntity.AuthMethod.SECRET_BASIC,
+        @EncodeDefault @SerialName("tokenEndpointAuthMethod") val tokenEndpointAuthMethod: OAuthClientDetails.AuthMethod = OAuthClientDetails.AuthMethod.SECRET_BASIC,
         @EncodeDefault @SerialName("grantTypes") val grantTypes: Set<String> = hashSetOf(),
         @EncodeDefault @SerialName("responseTypes") val responseTypes: Set<String> = hashSetOf(),
         @EncodeDefault @SerialName("policyUri") val policyUri: String? = null,
-        @EncodeDefault @SerialName("applicationType") val applicationType: ClientDetailsEntity.AppType = ClientDetailsEntity.AppType.WEB,
+        @EncodeDefault @SerialName("applicationType") val applicationType: OAuthClientDetails.AppType = OAuthClientDetails.AppType.WEB,
         @EncodeDefault @SerialName("sectorIdentifierUri") val sectorIdentifierUri: String? = null,
-        @EncodeDefault @SerialName("subjectType") val subjectType: ClientDetailsEntity.SubjectType? = null,
+        @EncodeDefault @SerialName("subjectType") val subjectType: OAuthClientDetails.SubjectType? = null,
         @EncodeDefault @SerialName("jwks_uri") val jwks_uri: String? = null,
         @EncodeDefault @SerialName("jwks") var jwks: @Serializable(JWKSetStringConverter::class) JWKSet? = null,
         @EncodeDefault @SerialName("requestObjectSigningAlg") val requestObjectSigningAlg: @Serializable(JWSAlgorithmStringConverter::class) JWSAlgorithm? = null,

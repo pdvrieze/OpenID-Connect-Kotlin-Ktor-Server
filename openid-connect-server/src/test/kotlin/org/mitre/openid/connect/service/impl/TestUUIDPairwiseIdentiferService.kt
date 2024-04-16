@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.oauth2.model.ClientDetailsEntity
-import org.mitre.oauth2.model.ClientDetailsEntity.SubjectType
+import org.mitre.oauth2.model.OAuthClientDetails.SubjectType
 import org.mitre.openid.connect.model.DefaultUserInfo
 import org.mitre.openid.connect.model.PairwiseIdentifier
 import org.mitre.openid.connect.model.UserInfo

@@ -20,9 +20,8 @@ package org.mitre.openid.connect.assertion
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jwt.SignedJWT
 import org.mitre.jwt.signer.service.impl.ClientKeyCacheService
-import org.mitre.oauth2.model.ClientDetailsEntity.AuthMethod
+import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.service.ClientDetailsEntityService
-import org.mitre.openid.connect.assertion.JWTBearerAssertionAuthenticationToken
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

@@ -34,7 +34,7 @@ import org.apache.http.impl.client.HttpClientBuilder
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.jwt.signer.service.impl.JWKSetCacheService
 import org.mitre.jwt.signer.service.impl.SymmetricKeyJWTValidatorCacheService
-import org.mitre.oauth2.model.ClientDetailsEntity.AuthMethod
+import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.model.PKCEAlgorithm
 import org.mitre.openid.connect.client.service.AuthRequestOptionsService
 import org.mitre.openid.connect.client.service.AuthRequestUrlBuilder

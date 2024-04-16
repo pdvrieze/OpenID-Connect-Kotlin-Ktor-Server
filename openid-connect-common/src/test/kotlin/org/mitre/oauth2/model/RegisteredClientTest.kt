@@ -41,13 +41,13 @@ class RegisteredClientTest {
             clientSecretExpiresAt = Date(1577858400L * 1000L)
             registrationAccessToken = "this.is.an.access.token.value.ffx83"
             registrationClientUri = "https://server.example.com/connect/register?client_id=s6BhdRkqt3"
-            applicationType = ClientDetailsEntity.AppType.WEB
+            applicationType = OAuthClientDetails.AppType.WEB
             redirectUris = setOf("https://client.example.org/callback", "https://client.example.org/callback2")
             clientName = "My Example"
             logoUri = "https://client.example.org/logo.png"
-            subjectType = ClientDetailsEntity.SubjectType.PAIRWISE
+            subjectType = OAuthClientDetails.SubjectType.PAIRWISE
             sectorIdentifierUri = "https://other.example.net/file_of_redirect_uris.json"
-            tokenEndpointAuthMethod = ClientDetailsEntity.AuthMethod.SECRET_BASIC
+            tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.SECRET_BASIC
             jwksUri = "https://client.example.org/my_public_keys.jwks"
             userInfoEncryptedResponseAlg = JWEAlgorithm.RSA1_5
             userInfoEncryptedResponseEnc = EncryptionMethod.A128CBC_HS256
@@ -61,13 +61,13 @@ class RegisteredClientTest {
         assertEquals(Date(1577858400L * 1000L), c.clientSecretExpiresAt)
         assertEquals("this.is.an.access.token.value.ffx83", c.registrationAccessToken)
         assertEquals("https://server.example.com/connect/register?client_id=s6BhdRkqt3", c.registrationClientUri)
-        assertEquals(ClientDetailsEntity.AppType.WEB, c.applicationType)
+        assertEquals(OAuthClientDetails.AppType.WEB, c.applicationType)
         assertEquals(setOf("https://client.example.org/callback", "https://client.example.org/callback2"), c.redirectUris)
         assertEquals("My Example", c.clientName)
         assertEquals("https://client.example.org/logo.png", c.logoUri)
-        assertEquals(ClientDetailsEntity.SubjectType.PAIRWISE, c.subjectType)
+        assertEquals(OAuthClientDetails.SubjectType.PAIRWISE, c.subjectType)
         assertEquals("https://other.example.net/file_of_redirect_uris.json", c.sectorIdentifierUri)
-        assertEquals(ClientDetailsEntity.AuthMethod.SECRET_BASIC, c.tokenEndpointAuthMethod)
+        assertEquals(OAuthClientDetails.AuthMethod.SECRET_BASIC, c.tokenEndpointAuthMethod)
         assertEquals("https://client.example.org/my_public_keys.jwks", c.jwksUri)
         assertEquals(JWEAlgorithm.RSA1_5, c.userInfoEncryptedResponseAlg)
         assertEquals(EncryptionMethod.A128CBC_HS256, c.userInfoEncryptedResponseEnc)
@@ -83,13 +83,13 @@ class RegisteredClientTest {
         val c = ClientDetailsEntity().apply {
             clientId = "s6BhdRkqt3"
             clientSecret = "ZJYCqe3GGRvdrudKyZS0XhGv_Z45DuKhCUk0gBR1vZk"
-            applicationType = ClientDetailsEntity.AppType.WEB
+            applicationType = OAuthClientDetails.AppType.WEB
             redirectUris = setOf("https://client.example.org/callback", "https://client.example.org/callback2")
             clientName = "My Example"
             logoUri = "https://client.example.org/logo.png"
-            subjectType = ClientDetailsEntity.SubjectType.PAIRWISE
+            subjectType = OAuthClientDetails.SubjectType.PAIRWISE
             sectorIdentifierUri = "https://other.example.net/file_of_redirect_uris.json"
-            tokenEndpointAuthMethod = ClientDetailsEntity.AuthMethod.SECRET_BASIC
+            tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.SECRET_BASIC
             jwksUri = "https://client.example.org/my_public_keys.jwks"
             userInfoEncryptedResponseAlg = JWEAlgorithm.RSA1_5
             userInfoEncryptedResponseEnc = EncryptionMethod.A128CBC_HS256
@@ -111,13 +111,13 @@ class RegisteredClientTest {
         assertEquals(Date(1577858400L * 1000L), rc.clientSecretExpiresAt)
         assertEquals("this.is.an.access.token.value.ffx83", rc.registrationAccessToken)
         assertEquals("https://server.example.com/connect/register?client_id=s6BhdRkqt3", rc.registrationClientUri)
-        assertEquals(ClientDetailsEntity.AppType.WEB, rc.applicationType)
+        assertEquals(OAuthClientDetails.AppType.WEB, rc.applicationType)
         assertEquals(setOf("https://client.example.org/callback", "https://client.example.org/callback2"), rc.redirectUris)
         assertEquals("My Example", rc.clientName)
         assertEquals("https://client.example.org/logo.png", rc.logoUri)
-        assertEquals(ClientDetailsEntity.SubjectType.PAIRWISE, rc.subjectType)
+        assertEquals(OAuthClientDetails.SubjectType.PAIRWISE, rc.subjectType)
         assertEquals("https://other.example.net/file_of_redirect_uris.json", rc.sectorIdentifierUri)
-        assertEquals(ClientDetailsEntity.AuthMethod.SECRET_BASIC, rc.tokenEndpointAuthMethod)
+        assertEquals(OAuthClientDetails.AuthMethod.SECRET_BASIC, rc.tokenEndpointAuthMethod)
         assertEquals("https://client.example.org/my_public_keys.jwks", rc.jwksUri)
         assertEquals(JWEAlgorithm.RSA1_5, rc.userInfoEncryptedResponseAlg)
         assertEquals(EncryptionMethod.A128CBC_HS256, rc.userInfoEncryptedResponseEnc)
@@ -133,13 +133,13 @@ class RegisteredClientTest {
         val c = ClientDetailsEntity().apply {
             clientId = "s6BhdRkqt3"
             clientSecret = "ZJYCqe3GGRvdrudKyZS0XhGv_Z45DuKhCUk0gBR1vZk"
-            applicationType = ClientDetailsEntity.AppType.WEB
+            applicationType = OAuthClientDetails.AppType.WEB
             redirectUris = setOf("https://client.example.org/callback", "https://client.example.org/callback2")
             clientName = "My Example"
             logoUri = "https://client.example.org/logo.png"
-            subjectType = ClientDetailsEntity.SubjectType.PAIRWISE
+            subjectType = OAuthClientDetails.SubjectType.PAIRWISE
             sectorIdentifierUri = "https://other.example.net/file_of_redirect_uris.json"
-            tokenEndpointAuthMethod = ClientDetailsEntity.AuthMethod.SECRET_BASIC
+            tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.SECRET_BASIC
             jwksUri = "https://client.example.org/my_public_keys.jwks"
             userInfoEncryptedResponseAlg = JWEAlgorithm.RSA1_5
             userInfoEncryptedResponseEnc = EncryptionMethod.A128CBC_HS256
@@ -157,13 +157,13 @@ class RegisteredClientTest {
         assertEquals("ZJYCqe3GGRvdrudKyZS0XhGv_Z45DuKhCUk0gBR1vZk", rc.clientSecret)
         assertEquals("this.is.an.access.token.value.ffx83", rc.registrationAccessToken)
         assertEquals("https://server.example.com/connect/register?client_id=s6BhdRkqt3", rc.registrationClientUri)
-        assertEquals(ClientDetailsEntity.AppType.WEB, rc.applicationType)
+        assertEquals(OAuthClientDetails.AppType.WEB, rc.applicationType)
         assertEquals(setOf("https://client.example.org/callback", "https://client.example.org/callback2"), rc.redirectUris)
         assertEquals("My Example", rc.clientName)
         assertEquals("https://client.example.org/logo.png", rc.logoUri)
-        assertEquals(ClientDetailsEntity.SubjectType.PAIRWISE, rc.subjectType)
+        assertEquals(OAuthClientDetails.SubjectType.PAIRWISE, rc.subjectType)
         assertEquals("https://other.example.net/file_of_redirect_uris.json", rc.sectorIdentifierUri)
-        assertEquals(ClientDetailsEntity.AuthMethod.SECRET_BASIC, rc.tokenEndpointAuthMethod)
+        assertEquals(OAuthClientDetails.AuthMethod.SECRET_BASIC, rc.tokenEndpointAuthMethod)
         assertEquals("https://client.example.org/my_public_keys.jwks", rc.jwksUri)
         assertEquals(JWEAlgorithm.RSA1_5, rc.userInfoEncryptedResponseAlg)
         assertEquals(EncryptionMethod.A128CBC_HS256, rc.userInfoEncryptedResponseEnc)

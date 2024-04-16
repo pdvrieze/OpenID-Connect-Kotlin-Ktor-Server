@@ -26,7 +26,7 @@ import org.apache.http.impl.client.HttpClientBuilder
 import org.mitre.oauth2.introspectingfilter.service.IntrospectionAuthorityGranter
 import org.mitre.oauth2.introspectingfilter.service.IntrospectionConfigurationService
 import org.mitre.oauth2.introspectingfilter.service.impl.SimpleIntrospectionAuthorityGranter
-import org.mitre.oauth2.model.ClientDetailsEntity.AuthMethod
+import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.oauth2.model.convert.OAuth2RequestSerializer
 import org.mitre.openid.connect.service.MITREidDataService.Companion.json

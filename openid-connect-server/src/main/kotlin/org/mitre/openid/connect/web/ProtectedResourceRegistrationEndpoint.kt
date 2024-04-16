@@ -18,7 +18,7 @@ package org.mitre.openid.connect.web
 import com.google.gson.JsonSyntaxException
 import kotlinx.serialization.SerializationException
 import org.mitre.oauth2.model.ClientDetailsEntity
-import org.mitre.oauth2.model.ClientDetailsEntity.AuthMethod
+import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.oauth2.model.SystemScope

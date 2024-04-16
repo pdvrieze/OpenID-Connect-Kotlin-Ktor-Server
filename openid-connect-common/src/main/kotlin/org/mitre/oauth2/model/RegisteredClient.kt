@@ -31,7 +31,6 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonDecoder
 import kotlinx.serialization.json.JsonEncoder
 import kotlinx.serialization.json.JsonObject
-import org.mitre.oauth2.model.ClientDetailsEntity.*
 import org.mitre.oauth2.model.RegisteredClientFields.APPLICATION_TYPE
 import org.mitre.oauth2.model.RegisteredClientFields.CLAIMS_REDIRECT_URIS
 import org.mitre.oauth2.model.RegisteredClientFields.CLIENT_ID
@@ -194,7 +193,7 @@ class RegisteredClient(
     val additionalInformation: Map<String, Any>
         get() = client.additionalInformation
     
-    var applicationType: AppType
+    var applicationType: OAuthClientDetails.AppType
         get() = client.applicationType
         set(applicationType) {
             client.applicationType = applicationType
@@ -206,13 +205,13 @@ class RegisteredClient(
             client.clientName = clientName
         }
 
-    var tokenEndpointAuthMethod: AuthMethod?
+    var tokenEndpointAuthMethod: OAuthClientDetails.AuthMethod?
         get() = client.tokenEndpointAuthMethod
         set(tokenEndpointAuthMethod) {
             client.tokenEndpointAuthMethod = tokenEndpointAuthMethod!!
         }
 
-    var subjectType: SubjectType?
+    var subjectType: OAuthClientDetails.SubjectType?
         get() = client.subjectType
         set(subjectType) {
             client.subjectType = subjectType
@@ -390,16 +389,16 @@ class RegisteredClient(
         @SerialName(LOGO_URI) val logoUri: String? = null,
         @SerialName(CONTACTS) val contacts: Set<String>? = null,
         @SerialName(TOS_URI) val tosUri: String? = null,
-        @SerialName(TOKEN_ENDPOINT_AUTH_METHOD) val tokenEndpointAuthMethod: AuthMethod? = null,
+        @SerialName(TOKEN_ENDPOINT_AUTH_METHOD) val tokenEndpointAuthMethod: OAuthClientDetails.AuthMethod? = null,
         @SerialName(SCOPE) val scope: String? = null,
         @SerialName(GRANT_TYPES) val grantTypes: Set<String> = emptySet(),
         @SerialName(RESPONSE_TYPES) val responseTypes: Set<String> = emptySet(),
         @SerialName(POLICY_URI) val policyUri: String? = null,
         @SerialName(JWKS_URI) val jwksUri: String? = null,
         @SerialName(JWKS) val jwks: @Serializable(with = JWKSetStringConverter::class) JWKSet? = null,
-        @SerialName(APPLICATION_TYPE) val applicationType: AppType? = null,
+        @SerialName(APPLICATION_TYPE) val applicationType: OAuthClientDetails.AppType? = null,
         @SerialName(SECTOR_IDENTIFIER_URI) val sectorIdentifierUri: String? = null,
-        @SerialName(SUBJECT_TYPE) val subjectType: SubjectType? = null,
+        @SerialName(SUBJECT_TYPE) val subjectType: OAuthClientDetails.SubjectType? = null,
         @SerialName(REQUEST_OBJECT_SIGNING_ALG) val requestObjectSigningAlg: @Serializable(with = JWSAlgorithmStringConverter::class) JWSAlgorithm? = null,
         @SerialName(USERINFO_SIGNED_RESPONSE_ALG) val userInfoSignedResponseAlg: @Serializable(with = JWSAlgorithmStringConverter::class) JWSAlgorithm? = null,
         @SerialName(USERINFO_ENCRYPTED_RESPONSE_ALG) val userInfoEncryptedResponseAlg: @Serializable(with = JWEAlgorithmStringConverter::class) JWEAlgorithm? = null,
@@ -488,7 +487,7 @@ class RegisteredClient(
                 policyUri = policyUri,
                 jwksUri = jwksUri,
                 jwks = jwks,
-                applicationType = applicationType ?: AppType.WEB,
+                applicationType = applicationType ?: OAuthClientDetails.AppType.WEB,
                 sectorIdentifierUri = sectorIdentifierUri,
                 subjectType = subjectType,
                 requestObjectSigningAlg = requestObjectSigningAlg,

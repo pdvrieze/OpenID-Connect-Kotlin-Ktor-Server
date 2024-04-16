@@ -18,17 +18,18 @@
 package org.mitre.oauth2.repository
 
 import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.OAuthClientDetails
 
 interface OAuth2ClientRepository {
-    fun getById(id: Long): ClientDetailsEntity?
+    fun getById(id: Long): OAuthClientDetails?
 
-    fun getClientByClientId(clientId: String): ClientDetailsEntity?
+    fun getClientByClientId(clientId: String): OAuthClientDetails?
 
-    fun saveClient(client: ClientDetailsEntity): ClientDetailsEntity
+    fun saveClient(client: OAuthClientDetails): OAuthClientDetails
 
-    fun deleteClient(client: ClientDetailsEntity)
+    fun deleteClient(client: OAuthClientDetails)
 
-    fun updateClient(id: Long, client: ClientDetailsEntity): ClientDetailsEntity
+    fun updateClient(id: Long, client: OAuthClientDetails): OAuthClientDetails
 
-    val allClients: Collection<ClientDetailsEntity>
+    val allClients: Collection<OAuthClientDetails>
 }

@@ -28,6 +28,7 @@ import org.mitre.jwt.assertion.AssertionValidator
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.ClientDetailsEntity.*
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.oauth2.model.RegisteredClientFields.APPLICATION_TYPE
 import org.mitre.oauth2.model.RegisteredClientFields.CLAIMS_REDIRECT_URIS
@@ -177,10 +178,10 @@ class DynamicClientRegistrationEndpoint {
         }
 
         if (newClient!!.tokenEndpointAuthMethod == null) {
-            newClient.tokenEndpointAuthMethod = AuthMethod.SECRET_BASIC
+            newClient.tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.SECRET_BASIC
         }
 
-        if (newClient.tokenEndpointAuthMethod == AuthMethod.SECRET_BASIC || newClient.tokenEndpointAuthMethod == AuthMethod.SECRET_JWT || newClient.tokenEndpointAuthMethod == AuthMethod.SECRET_POST) {
+        if (newClient.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_BASIC || newClient.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_JWT || newClient.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_POST) {
             // we need to generate a secret
 
             newClient = clientService.generateClientSecret(newClient)
@@ -550,21 +551,21 @@ class DynamicClientRegistrationEndpoint {
     private fun validateAuth(newClient: ClientDetailsEntity): ClientDetailsEntity {
         var newClient = newClient
         if (newClient.tokenEndpointAuthMethod == null) {
-            newClient.tokenEndpointAuthMethod = AuthMethod.SECRET_BASIC
+            newClient.tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.SECRET_BASIC
         }
 
-        if (newClient.tokenEndpointAuthMethod == AuthMethod.SECRET_BASIC || newClient.tokenEndpointAuthMethod == AuthMethod.SECRET_JWT || newClient.tokenEndpointAuthMethod == AuthMethod.SECRET_POST) {
+        if (newClient.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_BASIC || newClient.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_JWT || newClient.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_POST) {
             if (newClient.clientSecret.isNullOrEmpty()) {
                 // no secret yet, we need to generate a secret
                 newClient = clientService.generateClientSecret(newClient)
             }
-        } else if (newClient.tokenEndpointAuthMethod == AuthMethod.PRIVATE_KEY) {
+        } else if (newClient.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.PRIVATE_KEY) {
             if (newClient.jwksUri.isNullOrEmpty() && newClient.jwks == null) {
                 throw ValidationException("invalid_client_metadata", "JWK Set URI required when using private key authentication", HttpStatus.BAD_REQUEST)
             }
 
             newClient.clientSecret = null
-        } else if (newClient.tokenEndpointAuthMethod == AuthMethod.NONE) {
+        } else if (newClient.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.NONE) {
             newClient.clientSecret = null
         } else {
             throw ValidationException("invalid_client_metadata", "Unknown authentication method", HttpStatus.BAD_REQUEST)
@@ -631,11 +632,11 @@ class DynamicClientRegistrationEndpoint {
                                 JWSAlgorithm.parse(claimSet.getStringClaim(claim))
 
                             SUBJECT_TYPE -> newClient.subjectType =
-                                SubjectType.getByValue(claimSet.getStringClaim(claim))
+                                OAuthClientDetails.SubjectType.getByValue(claimSet.getStringClaim(claim))
 
                             SECTOR_IDENTIFIER_URI -> newClient.sectorIdentifierUri = claimSet.getStringClaim(claim)
                             APPLICATION_TYPE -> newClient.applicationType =
-                                AppType.valueOf(claimSet.getStringClaim(claim))
+                                OAuthClientDetails.AppType.valueOf(claimSet.getStringClaim(claim))
 
                             JWKS_URI -> newClient.jwksUri = claimSet.getStringClaim(claim)
                             JWKS -> newClient.jwks = JWKSet.parse(JSONObjectUtils.toJSONString(claimSet.getJSONObjectClaim(claim)))
@@ -646,7 +647,7 @@ class DynamicClientRegistrationEndpoint {
                             GRANT_TYPES -> newClient.grantTypes = claimSet.getStringListClaim(claim).toHashSet()
                             SCOPE -> newClient.setScope(OAuth2Utils.parseParameterList(claimSet.getStringClaim(claim)))
                             TOKEN_ENDPOINT_AUTH_METHOD -> newClient.tokenEndpointAuthMethod =
-                                AuthMethod.getByValue(claimSet.getStringClaim(claim))
+                                OAuthClientDetails.AuthMethod.getByValue(claimSet.getStringClaim(claim))
 
                             TOS_URI -> newClient.tosUri = claimSet.getStringClaim(claim)
                             CONTACTS -> newClient.contacts = claimSet.getStringListClaim(claim).toHashSet()

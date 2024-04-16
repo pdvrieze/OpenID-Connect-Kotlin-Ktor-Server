@@ -28,7 +28,7 @@ import kotlinx.serialization.json.jsonArray
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.openid.connect.ClientDetailsEntityJsonProcessor.parse
 import org.mitre.openid.connect.ClientDetailsEntityJsonProcessor.parseRegistered
@@ -67,15 +67,15 @@ class ClientDetailsEntityJsonProcessorTest {
   }"""
         val c = parse(json)
 
-        assertEquals(ClientDetailsEntity.AppType.WEB, c.applicationType)
+        assertEquals(OAuthClientDetails.AppType.WEB, c.applicationType)
         assertEquals(setOf("https://client.example.org/callback", "https://client.example.org/callback2"), c.redirectUris)
         assertEquals("My Example", c.clientName)
         assertEquals(setOf("code", "token"), c.responseTypes)
         assertEquals(setOf("authorization_code", "implicit"), c.grantTypes)
         assertEquals("https://client.example.org/logo.png", c.logoUri)
-        assertEquals(ClientDetailsEntity.SubjectType.PAIRWISE, c.subjectType)
+        assertEquals(OAuthClientDetails.SubjectType.PAIRWISE, c.subjectType)
         assertEquals("https://other.example.net/file_of_redirect_uris.json", c.sectorIdentifierUri)
-        assertEquals(ClientDetailsEntity.AuthMethod.SECRET_BASIC, c.tokenEndpointAuthMethod)
+        assertEquals(OAuthClientDetails.AuthMethod.SECRET_BASIC, c.tokenEndpointAuthMethod)
         assertEquals("https://client.example.org/my_public_keys.jwks", c.jwksUri)
         assertEquals(JWEAlgorithm.RSA1_5, c.userInfoEncryptedResponseAlg)
         assertEquals(EncryptionMethod.A128CBC_HS256, c.userInfoEncryptedResponseEnc)
@@ -127,15 +127,15 @@ class ClientDetailsEntityJsonProcessorTest {
         assertEquals(Date(1577858400L * 1000L), c.clientSecretExpiresAt)
         assertEquals("this.is.an.access.token.value.ffx83", c.registrationAccessToken)
         assertEquals("https://server.example.com/connect/register?client_id=s6BhdRkqt3", c.registrationClientUri)
-        assertEquals(ClientDetailsEntity.AppType.WEB, c.applicationType)
+        assertEquals(OAuthClientDetails.AppType.WEB, c.applicationType)
         assertEquals(setOf("https://client.example.org/callback", "https://client.example.org/callback2"), c.redirectUris)
         assertEquals("My Example", c.clientName)
         assertEquals(setOf("code", "token"), c.responseTypes)
         assertEquals(setOf("authorization_code", "implicit"), c.grantTypes)
         assertEquals("https://client.example.org/logo.png", c.logoUri)
-        assertEquals(ClientDetailsEntity.SubjectType.PAIRWISE, c.subjectType)
+        assertEquals(OAuthClientDetails.SubjectType.PAIRWISE, c.subjectType)
         assertEquals("https://other.example.net/file_of_redirect_uris.json", c.sectorIdentifierUri)
-        assertEquals(ClientDetailsEntity.AuthMethod.SECRET_BASIC, c.tokenEndpointAuthMethod)
+        assertEquals(OAuthClientDetails.AuthMethod.SECRET_BASIC, c.tokenEndpointAuthMethod)
         assertEquals("https://client.example.org/my_public_keys.jwks", c.jwksUri)
         assertEquals(JWEAlgorithm.RSA1_5, c.userInfoEncryptedResponseAlg)
         assertEquals(EncryptionMethod.A128CBC_HS256, c.userInfoEncryptedResponseEnc)
@@ -155,15 +155,15 @@ class ClientDetailsEntityJsonProcessorTest {
         c.clientSecretExpiresAt = Date(1577858400L * 1000L)
         c.registrationAccessToken = "this.is.an.access.token.value.ffx83"
         c.registrationClientUri = "https://server.example.com/connect/register?client_id=s6BhdRkqt3"
-        c.applicationType = ClientDetailsEntity.AppType.WEB
+        c.applicationType = OAuthClientDetails.AppType.WEB
         c.redirectUris = setOf("https://client.example.org/callback", "https://client.example.org/callback2")
         c.clientName = "My Example"
         c.responseTypes = setOf("code", "token")
         c.grantTypes = setOf("authorization_code", "implicit")
         c.logoUri = "https://client.example.org/logo.png"
-        c.subjectType = ClientDetailsEntity.SubjectType.PAIRWISE
+        c.subjectType = OAuthClientDetails.SubjectType.PAIRWISE
         c.sectorIdentifierUri = "https://other.example.net/file_of_redirect_uris.json"
-        c.tokenEndpointAuthMethod = ClientDetailsEntity.AuthMethod.SECRET_BASIC
+        c.tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.SECRET_BASIC
         c.jwksUri = "https://client.example.org/my_public_keys.jwks"
         c.userInfoEncryptedResponseAlg = JWEAlgorithm.RSA1_5
         c.userInfoEncryptedResponseEnc = EncryptionMethod.A128CBC_HS256
@@ -177,7 +177,7 @@ class ClientDetailsEntityJsonProcessorTest {
         assertEquals(1577858400L, j["client_secret_expires_at"].asNumber)
         assertEquals("this.is.an.access.token.value.ffx83", j["registration_access_token"].asString)
         assertEquals("https://server.example.com/connect/register?client_id=s6BhdRkqt3", j["registration_client_uri"].asString)
-        assertEquals(ClientDetailsEntity.AppType.WEB.value, j["application_type"].asString)
+        assertEquals(OAuthClientDetails.AppType.WEB.value, j["application_type"].asString)
         for (e in j["redirect_uris"]?.jsonArray ?: emptySet()) {
             val s = e.asString
             assertTrue(
@@ -192,9 +192,9 @@ class ClientDetailsEntityJsonProcessorTest {
             assertTrue(setOf("authorization_code", "implicit").contains(e.asString))
         }
         assertEquals("https://client.example.org/logo.png", j["logo_uri"].asString)
-        assertEquals(ClientDetailsEntity.SubjectType.PAIRWISE.value, j["subject_type"].asString)
+        assertEquals(OAuthClientDetails.SubjectType.PAIRWISE.value, j["subject_type"].asString)
         assertEquals("https://other.example.net/file_of_redirect_uris.json", j["sector_identifier_uri"].asString)
-        assertEquals(ClientDetailsEntity.AuthMethod.SECRET_BASIC.value, j["token_endpoint_auth_method"].asString)
+        assertEquals(OAuthClientDetails.AuthMethod.SECRET_BASIC.value, j["token_endpoint_auth_method"].asString)
         assertEquals("https://client.example.org/my_public_keys.jwks", j["jwks_uri"].asString)
         assertEquals(JWEAlgorithm.RSA1_5.name, j["userinfo_encrypted_response_alg"].asString)
         assertEquals(EncryptionMethod.A128CBC_HS256.name, j["userinfo_encrypted_response_enc"].asString)
