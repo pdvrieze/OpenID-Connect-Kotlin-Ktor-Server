@@ -1,9 +1,7 @@
 package io.github.pdvrieze.auth.exposed
 
-import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.insertAndGetId
@@ -23,7 +21,7 @@ abstract class RepositoryBase(protected val database: Database, vararg val table
     }
 
 
-    protected inline fun save(id: Long?, crossinline builder: (UpdateBuilder<Int>) -> Unit): Long = transaction {
+    protected inline fun Table.save(id: Long?, crossinline builder: (UpdateBuilder<Int>) -> Unit): Long = transaction {
         when (id) {
             null -> {
                 val newId = SystemScopes.insertAndGetId {

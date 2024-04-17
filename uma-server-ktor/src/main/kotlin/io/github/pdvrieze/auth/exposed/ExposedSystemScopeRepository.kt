@@ -45,7 +45,7 @@ class ExposedSystemScopeRepository(database: Database):
     }
 
     override fun save(scope: SystemScope): SystemScope = transaction {
-        scope.apply { id = save(scope.id) { scope.toUpdate(it) } }
+        scope.apply { id = SystemScopes.save(scope.id) { scope.toUpdate(it) } }
     }
 
     private fun SystemScope.toUpdate(

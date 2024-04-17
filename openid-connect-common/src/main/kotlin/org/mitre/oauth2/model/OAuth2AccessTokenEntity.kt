@@ -45,7 +45,14 @@ import javax.persistence.Transient as JPATransient
 @Entity
 @Table(name = "access_token")
 @NamedQueries(
-    NamedQuery(name = OAuth2AccessTokenEntity.QUERY_ALL, query = "select a from OAuth2AccessTokenEntity a"), NamedQuery(name = OAuth2AccessTokenEntity.QUERY_EXPIRED_BY_DATE, query = "select a from OAuth2AccessTokenEntity a where a.expiration <= :" + OAuth2AccessTokenEntity.PARAM_DATE), NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_REFRESH_TOKEN, query = "select a from OAuth2AccessTokenEntity a where a.refreshToken = :" + OAuth2AccessTokenEntity.PARAM_REFERSH_TOKEN), NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_CLIENT, query = "select a from OAuth2AccessTokenEntity a where a.client = :" + OAuth2AccessTokenEntity.PARAM_CLIENT), NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_TOKEN_VALUE, query = "select a from OAuth2AccessTokenEntity a where a.jwt = :" + OAuth2AccessTokenEntity.PARAM_TOKEN_VALUE), NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_APPROVED_SITE, query = "select a from OAuth2AccessTokenEntity a where a.approvedSite = :" + OAuth2AccessTokenEntity.PARAM_APPROVED_SITE), NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_RESOURCE_SET, query = "select a from OAuth2AccessTokenEntity a join a.permissions p where p.resourceSet.id = :" + OAuth2AccessTokenEntity.PARAM_RESOURCE_SET_ID), NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_NAME, query = "select r from OAuth2AccessTokenEntity r where r.authenticationHolder.userAuth.name = :" + OAuth2AccessTokenEntity.PARAM_NAME)
+    NamedQuery(name = OAuth2AccessTokenEntity.QUERY_ALL, query = "select a from OAuth2AccessTokenEntity a"),
+    NamedQuery(name = OAuth2AccessTokenEntity.QUERY_EXPIRED_BY_DATE, query = "select a from OAuth2AccessTokenEntity a where a.expiration <= :${OAuth2AccessTokenEntity.PARAM_DATE}"),
+    NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_REFRESH_TOKEN, query = "select a from OAuth2AccessTokenEntity a where a.refreshToken = :${OAuth2AccessTokenEntity.PARAM_REFRESH_TOKEN}"),
+    NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_CLIENT, query = "select a from OAuth2AccessTokenEntity a where a.client = :${OAuth2AccessTokenEntity.PARAM_CLIENT}"),
+    NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_TOKEN_VALUE, query = "select a from OAuth2AccessTokenEntity a where a.jwt = :${OAuth2AccessTokenEntity.PARAM_TOKEN_VALUE}"),
+    NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_APPROVED_SITE, query = "select a from OAuth2AccessTokenEntity a where a.approvedSite = :${OAuth2AccessTokenEntity.PARAM_APPROVED_SITE}"),
+    NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_RESOURCE_SET, query = "select a from OAuth2AccessTokenEntity a join a.permissions p where p.resourceSet.id = :${OAuth2AccessTokenEntity.PARAM_RESOURCE_SET_ID}"),
+    NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_NAME, query = "select r from OAuth2AccessTokenEntity r where r.authenticationHolder.userAuth.name = :${OAuth2AccessTokenEntity.PARAM_NAME}")
 )
 @JsonSerialize(using = OAuth2AccessTokenJackson2Serializer::class)
 @JsonDeserialize(using = OAuth2AccessTokenJackson2Deserializer::class)
@@ -69,15 +76,17 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
     @get:Convert(converter = JWTStringConverter::class)
     @get:Column(name = "token_value")
     @get:Basic
-    var jwt: JWT? = null // JWT-encoded access token value
+    lateinit var jwt: JWT // JWT-encoded access token value
 
     private var expiration: Date? = null
 
     private var tokenType = OAuth2AccessToken.BEARER_TYPE
 
-    private var refreshToken: OAuth2RefreshTokenEntity? = null
+    private lateinit var refreshToken: OAuth2RefreshTokenEntity
 
     private var scope: Set<String>? = null
+
+
 
 	@get:JoinTable(name = "access_token_permissions", joinColumns = [JoinColumn(name = "access_token_id")], inverseJoinColumns = [JoinColumn(name = "permission_id")])
     @get:OneToMany(fetch = FetchType.EAGER, cascade = [CascadeType.ALL])
@@ -89,6 +98,29 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
 
     private val additionalInformation: MutableMap<String, JsonElement> =
         HashMap() // ephemeral map of items to be added to the OAuth token response
+
+    @Deprecated("Only for JPA uses")
+    constructor()
+
+    constructor(
+        id: Long?,
+        expiration: Date?,
+        jwt: JWT,
+        client: ClientDetailsEntity?,
+        authenticationHolder: AuthenticationHolderEntity,
+        refreshToken: OAuth2RefreshTokenEntity,
+        scope: Set<String>?,
+        tokenType: String,
+    ) {
+        this.id = id
+        this.expiration = expiration
+        this.jwt = jwt
+        this.client = client
+        this.authenticationHolder = authenticationHolder
+        this.refreshToken = refreshToken
+        this.scope = scope
+        this.tokenType = tokenType
+    }
 
     /**
      * Get all additional information to be sent to the serializer as part of the token response.
@@ -130,11 +162,11 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
 
     @ManyToOne
     @JoinColumn(name = "refresh_token_id")
-    override fun getRefreshToken(): OAuth2RefreshTokenEntity? {
+    override fun getRefreshToken(): OAuth2RefreshTokenEntity {
         return refreshToken
     }
 
-    fun setRefreshToken(refreshToken: OAuth2RefreshTokenEntity?) {
+    fun setRefreshToken(refreshToken: OAuth2RefreshTokenEntity) {
         this.refreshToken = refreshToken
     }
 
@@ -222,7 +254,7 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
 
         const val PARAM_TOKEN_VALUE: String = "tokenValue"
         const val PARAM_CLIENT: String = "client"
-        const val PARAM_REFERSH_TOKEN: String = "refreshToken"
+        const val PARAM_REFRESH_TOKEN: String = "refreshToken"
         const val PARAM_DATE: String = "date"
         const val PARAM_RESOURCE_SET_ID: String = "rsid"
         const val PARAM_APPROVED_SITE: String = "approvedSite"

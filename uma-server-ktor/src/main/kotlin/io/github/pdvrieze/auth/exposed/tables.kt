@@ -1,5 +1,6 @@
 package io.github.pdvrieze.auth.exposed
 
+import io.github.pdvrieze.auth.exposed.AuthenticationHolderExtensions.references
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.timestamp
@@ -9,9 +10,9 @@ object AccessTokens : LongIdTable("access_token") {
     val tokenValue = varchar("token_value", 4096)
     val expiration = timestamp("expiration").nullable().default(null)
     val tokenType = varchar("token_type", 256).nullable()
-    val refreshTokenId = long("refresh_token_id").references(RefreshTokens.id).nullable()
+    val refreshTokenId = long("refresh_token_id").references(RefreshTokens.id)
     val clientId = long("client_id").references(ClientDetails.id).nullable()
-    val authHolderId = long("auth_holder_id").references(AuthenticationHolders.id).nullable()
+    val authHolderId = long("auth_holder_id").references(AuthenticationHolders.id)
     val approvedSiteId = long("approved_site_id").references(ApprovedSites.id).nullable()
 }
 
@@ -51,45 +52,45 @@ object AuthenticationHolders : LongIdTable("authentication_holder") {
 }
 
 object AuthenticationHolderAuthorities : Table("authentication_holder_authority") {
-    val ownerId = long("owner_id").nullable() // TODO add foreign key
+    val ownerId = long("owner_id").references(AuthenticationHolders.id) // TODO add foreign key
     val authority = varchar("authority", 256).nullable()
 }
 
 object AuthenticationHolderResourceIds : Table("authentication_holder_resource_id") {
-    val ownerId = long("owner_id").nullable() // TODO add foreign key
-    val resourceId = varchar("resource_id", 2048).nullable()
+    val ownerId = long("owner_id").references(AuthenticationHolders.id)
+    val resourceId = varchar("resource_id", 2048)
 }
 
 object AuthenticationHolderResponseTypes : Table("authentication_holder_response_type") {
-    val ownerId = long("owner_id").nullable() // TODO add foreign key
-    val responseType = varchar("response_type", 2048).nullable()
+    val ownerId = long("owner_id").references(AuthenticationHolders.id)
+    val responseType = varchar("response_type", 2048)
 }
 
 object AuthenticationHolderExtensions : Table("authentication_holder_extension") {
-    val ownerId = long("owner_id").nullable() // TODO add foreign key
-    val extension = varchar("extension", 2048).nullable()
-    val value = varchar("val", 2048).nullable()
+    val ownerId = long("owner_id").references(AuthenticationHolders.id)
+    val extension = varchar("extension", 2048)
+    val value = varchar("val", 2048)
 }
 
 object AuthenticationHolderScopes : Table("authentication_holder_scope") {
-    val ownerId = long("owner_id").nullable() // TODO add foreign key
-    val scope = varchar("scope", 2048).nullable()
+    val ownerId = long("owner_id").references(AuthenticationHolders.id)
+    val scope = varchar("scope", 2048)
 }
 
 object AuthenticationHolderRequestParameters : Table("authentication_holder_request_parameter") {
-    val ownerId = long("owner_id").nullable() // TODO add foreign key
-    val param = varchar("param", 2048).nullable()
-    val value = varchar("val", 2048).nullable()
+    val ownerId = long("owner_id").references(AuthenticationHolders.id)
+    val param = varchar("param", 2048)
+    val value = varchar("val", 2048)
 }
 
 object SavedUserAuths : LongIdTable("saved_user_auth") {
     val name = varchar("name", 1024).nullable()
-    val authenticated = bool("authenticated").nullable()
+    val authenticated = bool("authenticated").default(false)
     val sourceClass = varchar("source_class", 2048).nullable()
 }
 
 object SavedUserAuthAuthorities : Table("saved_user_auth_authority") {
-    val ownerId = long("owner_id").nullable() // TODO add foreign key
+    val ownerId = long("owner_id").references(SavedUserAuths.id)
     val authority = varchar("authority", 256).nullable()
 }
 
@@ -202,9 +203,9 @@ object ClientClaimsRedirectUris : Table("client_claims_redirect_uri") {
 }
 
 object RefreshTokens : LongIdTable("refresh_token") {
-    val tokenValue = varchar("token_value", 4096).nullable()
+    val tokenValue = varchar("token_value", 4096).uniqueIndex()
     val expiration = timestamp("expiration").nullable().default(null)
-    val authHolderId = long("auth_holder_id").nullable()
+    val authHolderId = long("auth_holder_id").references(AuthenticationHolders.id)
     val clientId = long("client_id").references(ClientDetails.id).nullable()
 }
 

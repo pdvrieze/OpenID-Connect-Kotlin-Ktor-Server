@@ -94,7 +94,7 @@ class JpaOAuth2TokenRepository : OAuth2TokenRepository {
     override fun clearAccessTokensForRefreshToken(refreshToken: OAuth2RefreshTokenEntity) {
         val query =
             manager.createNamedQuery(OAuth2AccessTokenEntity.QUERY_BY_REFRESH_TOKEN, OAuth2AccessTokenEntity::class.java)
-        query.setParameter(OAuth2AccessTokenEntity.PARAM_REFERSH_TOKEN, refreshToken)
+        query.setParameter(OAuth2AccessTokenEntity.PARAM_REFRESH_TOKEN, refreshToken)
         val accessTokens = query.resultList
         for (accessToken in accessTokens) {
             removeAccessToken(accessToken)
@@ -174,7 +174,7 @@ class JpaOAuth2TokenRepository : OAuth2TokenRepository {
         return if (results != null) HashSet(results) else HashSet()
     }
 
-    override fun getRefreshTokensByUserName(name: String?): Set<OAuth2RefreshTokenEntity> {
+    override fun getRefreshTokensByUserName(name: String): Set<OAuth2RefreshTokenEntity> {
         val query =
             manager.createNamedQuery(OAuth2RefreshTokenEntity.QUERY_BY_NAME, OAuth2RefreshTokenEntity::class.java)
         query.setParameter(OAuth2RefreshTokenEntity.PARAM_NAME, name)
@@ -255,7 +255,7 @@ class JpaOAuth2TokenRepository : OAuth2TokenRepository {
         }
     }
 
-    override fun getAccessTokensForApprovedSite(approvedSite: ApprovedSite?): List<OAuth2AccessTokenEntity> {
+    override fun getAccessTokensForApprovedSite(approvedSite: ApprovedSite): List<OAuth2AccessTokenEntity> {
         val queryA =
             manager.createNamedQuery(OAuth2AccessTokenEntity.QUERY_BY_APPROVED_SITE, OAuth2AccessTokenEntity::class.java)
         queryA.setParameter(OAuth2AccessTokenEntity.PARAM_APPROVED_SITE, approvedSite)

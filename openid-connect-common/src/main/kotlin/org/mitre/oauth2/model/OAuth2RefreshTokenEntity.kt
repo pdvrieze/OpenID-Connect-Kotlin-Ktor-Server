@@ -31,7 +31,12 @@ import javax.persistence.Transient as JPATransient
  */
 @Entity
 @Table(name = "refresh_token")
-@NamedQueries(NamedQuery(name = OAuth2RefreshTokenEntity.QUERY_ALL, query = "select r from OAuth2RefreshTokenEntity r"), NamedQuery(name = OAuth2RefreshTokenEntity.QUERY_EXPIRED_BY_DATE, query = "select r from OAuth2RefreshTokenEntity r where r.expiration <= :" + OAuth2RefreshTokenEntity.PARAM_DATE), NamedQuery(name = OAuth2RefreshTokenEntity.QUERY_BY_CLIENT, query = "select r from OAuth2RefreshTokenEntity r where r.client = :" + OAuth2RefreshTokenEntity.PARAM_CLIENT), NamedQuery(name = OAuth2RefreshTokenEntity.QUERY_BY_TOKEN_VALUE, query = "select r from OAuth2RefreshTokenEntity r where r.jwt = :" + OAuth2RefreshTokenEntity.PARAM_TOKEN_VALUE), NamedQuery(name = OAuth2RefreshTokenEntity.QUERY_BY_NAME, query = "select r from OAuth2RefreshTokenEntity r where r.authenticationHolder.userAuth.name = :" + OAuth2RefreshTokenEntity.PARAM_NAME))
+@NamedQueries(
+    NamedQuery(name = OAuth2RefreshTokenEntity.QUERY_ALL, query = "select r from OAuth2RefreshTokenEntity r"),
+    NamedQuery(name = OAuth2RefreshTokenEntity.QUERY_EXPIRED_BY_DATE, query = "select r from OAuth2RefreshTokenEntity r where r.expiration <= :${OAuth2RefreshTokenEntity.PARAM_DATE}"),
+    NamedQuery(name = OAuth2RefreshTokenEntity.QUERY_BY_CLIENT, query = "select r from OAuth2RefreshTokenEntity r where r.client = :${OAuth2RefreshTokenEntity.PARAM_CLIENT}"),
+    NamedQuery(name = OAuth2RefreshTokenEntity.QUERY_BY_TOKEN_VALUE, query = "select r from OAuth2RefreshTokenEntity r where r.jwt = :${OAuth2RefreshTokenEntity.PARAM_TOKEN_VALUE}"),
+    NamedQuery(name = OAuth2RefreshTokenEntity.QUERY_BY_NAME, query = "select r from OAuth2RefreshTokenEntity r where r.authenticationHolder.userAuth.name = :${OAuth2RefreshTokenEntity.PARAM_NAME}"))
 class OAuth2RefreshTokenEntity : OAuth2RefreshToken {
     @get:Column(name = "id")
     @get:GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -56,13 +61,30 @@ class OAuth2RefreshTokenEntity : OAuth2RefreshToken {
     @get:Convert(converter = JWTStringConverter::class)
     @get:Column(name = "token_value")
     @get:Basic
-    var jwt: JWT? = null
+    lateinit var jwt: JWT
 
     // our refresh tokens might expire
     @get:Column(name = "expiration")
     @get:Temporal(TemporalType.TIMESTAMP)
     @get:Basic
     var expiration: ISODate? = null
+
+    @Deprecated("Only present for JPA")
+    constructor()
+
+    constructor(
+        id: Long?,
+        authenticationHolder: AuthenticationHolderEntity,
+        client: ClientDetailsEntity?,
+        jwt: JWT,
+        expiration: ISODate?,
+    ) {
+        this.id = id
+        this.authenticationHolder = authenticationHolder
+        this.client = client
+        this.jwt = jwt
+        this.expiration = expiration
+    }
 
     /**
      * Get the JWT-encoded value of this token

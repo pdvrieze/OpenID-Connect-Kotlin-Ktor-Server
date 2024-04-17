@@ -29,7 +29,7 @@ interface OAuth2TokenRepository {
 
     fun getRefreshTokenByValue(refreshTokenValue: String): OAuth2RefreshTokenEntity?
 
-    fun getRefreshTokenById(Id: Long): OAuth2RefreshTokenEntity?
+    fun getRefreshTokenById(id: Long): OAuth2RefreshTokenEntity?
 
     fun clearAccessTokensForRefreshToken(refreshToken: OAuth2RefreshTokenEntity)
 
@@ -51,7 +51,7 @@ interface OAuth2TokenRepository {
 
     fun getAccessTokensByUserName(name: String): Set<OAuth2AccessTokenEntity>
 
-    fun getRefreshTokensByUserName(name: String?): Set<OAuth2RefreshTokenEntity>
+    fun getRefreshTokensByUserName(name: String): Set<OAuth2RefreshTokenEntity>
 
     val allAccessTokens: Set<OAuth2AccessTokenEntity>
 
@@ -91,5 +91,5 @@ interface OAuth2TokenRepository {
     )
     fun clearDuplicateRefreshTokens()
 
-    fun getAccessTokensForApprovedSite(approvedSite: ApprovedSite?): List<OAuth2AccessTokenEntity>
+    fun getAccessTokensForApprovedSite(approvedSite: ApprovedSite): List<OAuth2AccessTokenEntity>
 }

@@ -76,6 +76,20 @@ class SavedUserAuthentication : Authentication {
      */
     constructor()
 
+    constructor(
+        id: Long?,
+        name: String?,
+        authorities: Collection<GrantedAuthority>,
+        authenticated: Boolean,
+        sourceClass: String?
+    ) {
+        this.id = id
+        this.name = name
+        this.authorities = authorities
+        this.authenticated = authenticated
+        this.sourceClass = sourceClass
+    }
+
     @Basic
     @Column(name = "name")
     override fun getName(): String {

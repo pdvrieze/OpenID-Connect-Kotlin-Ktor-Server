@@ -1,6 +1,9 @@
 package io.github.pdvrieze.auth.ktor.plugins
 
 import com.nimbusds.jose.jwk.JWK
+import io.github.pdvrieze.auth.exposed.ExposedAuthenticationHolderRepository
+import io.github.pdvrieze.auth.exposed.ExposedOauth2ClientRepository
+import io.github.pdvrieze.auth.exposed.ExposedOauth2TokenRepository
 import io.github.pdvrieze.auth.exposed.ExposedSystemScopeRepository
 import io.github.pdvrieze.auth.exposed.ExposedUserInfoRepository
 import org.jetbrains.exposed.sql.Database
@@ -8,7 +11,9 @@ import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
 import org.mitre.jwt.encryption.service.impl.DefaultJWTEncryptionAndDecryptionService
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.jwt.signer.service.impl.DefaultJWTSigningAndValidationService
+import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2ClientRepository
+import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.oauth2.repository.SystemScopeRepository
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.SystemScopeService
@@ -45,6 +50,7 @@ data class OpenIdConfig(
         val pairwiseIdentifierService: PairwiseIdentiferService
         val userService: UserInfoService
         val clientRepository: OAuth2ClientRepository
+        val tokenRepository: OAuth2TokenRepository
     }
 
     private class ResolvedImpl(config: OpenIdConfig) : Resolved {
@@ -67,11 +73,19 @@ data class OpenIdConfig(
         override val userService: UserInfoService =
             DefaultUserInfoService(userInfoRepository, clientService, pairwiseIdentifierService)
 
-        override val clientRepository: OAuth2ClientRepository = TODO()
+        override val clientRepository: OAuth2ClientRepository = ExposedOauth2ClientRepository(config.database)
+
+        val authenticationHolderRepository: AuthenticationHolderRepository = ExposedAuthenticationHolderRepository(config.database)
+
+        override val tokenRepository: OAuth2TokenRepository = ExposedOauth2TokenRepository(
+            database = config.database,
+            authenticationHolderRepository = authenticationHolderRepository,
+            clientRepository = clientRepository
+        )
 
         override val clientService: ClientDetailsEntityService = DefaultOAuth2ClientDetailsEntityService(
             clientRepository = clientRepository,
-            tokenRepository = TODO(),
+            tokenRepository = tokenRepository,
             approvedSiteService = TODO(),
             whitelistedSiteService = TODO(),
             blacklistedSiteService = TODO(),

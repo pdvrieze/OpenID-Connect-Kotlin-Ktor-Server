@@ -34,7 +34,7 @@ class ExposedOauth2ClientRepository(database: Database) :
 
     override fun saveClient(client: OAuthClientDetails): OAuthClientDetails = transaction {
         val oldId = client.id
-        val newId = save(client.id) { client.toUpdate(it) }
+        val newId = ClientDetails.save(client.id) { client.toUpdate(it) }
 
         if (oldId!= null) { // update
             deleteJoinedTables(oldId)

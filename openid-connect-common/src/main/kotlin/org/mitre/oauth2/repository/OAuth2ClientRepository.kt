@@ -17,7 +17,6 @@
  */
 package org.mitre.oauth2.repository
 
-import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuthClientDetails
 
 interface OAuth2ClientRepository {
