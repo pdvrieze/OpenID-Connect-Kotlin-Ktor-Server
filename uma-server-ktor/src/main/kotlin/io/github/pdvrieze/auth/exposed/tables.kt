@@ -116,7 +116,7 @@ object ClientResponseTypes : Table("client_response_type") {
 }
 
 object BlacklistedSites : LongIdTable("blacklisted_site") {
-    val uri = varchar("uri", 2048).nullable()
+    val uri = varchar("uri", 2048)
 }
 
 object ClientDetails : LongIdTable("client_details") {

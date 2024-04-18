@@ -33,6 +33,11 @@ class DefaultBlacklistedSiteService : BlacklistedSiteService {
     @Autowired
     private lateinit var repository: BlacklistedSiteRepository
 
+    @Deprecated("JPA only")
+    constructor()
+
+    constructor(repository: BlacklistedSiteRepository) { this.repository = repository }
+
     override val all: Collection<BlacklistedSite>
         /* (non-Javadoc)
 	 * @see org.mitre.openid.connect.service.BlacklistedSiteService#getAll()

@@ -38,7 +38,7 @@ import javax.persistence.Table
 @Table(name = "blacklisted_site")
 @NamedQueries(NamedQuery(name = BlacklistedSite.QUERY_ALL, query = "select b from BlacklistedSite b"))
 @Serializable
-class BlacklistedSite(
+class BlacklistedSite {
     /**
      * unique id
      */
@@ -46,7 +46,7 @@ class BlacklistedSite(
     @get:GeneratedValue(strategy = GenerationType.IDENTITY)
     @get:Id
     @EncodeDefault
-    var id: Long? = null,
+    var id: Long? = null
 
     /**
      * URI pattern to black list
@@ -54,8 +54,15 @@ class BlacklistedSite(
     @get:Column(name = "uri")
     @get:Basic
     @EncodeDefault
-    var uri: String? = null,
-) {
+    lateinit var uri: String
+
+    @Deprecated("JPA only")
+    constructor()
+
+    constructor(id: Long?, uri: String) {
+        this.id = id
+        this.uri = uri
+    }
 
     companion object {
         const val QUERY_ALL: String = "BlacklistedSite.getAll"

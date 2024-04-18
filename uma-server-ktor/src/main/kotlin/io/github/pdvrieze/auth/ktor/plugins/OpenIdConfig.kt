@@ -23,14 +23,17 @@ import org.mitre.oauth2.service.impl.DefaultOAuth2ClientDetailsEntityService
 import org.mitre.oauth2.service.impl.DefaultSystemScopeService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.repository.ApprovedSiteRepository
+import org.mitre.openid.connect.repository.BlacklistedSiteRepository
 import org.mitre.openid.connect.repository.UserInfoRepository
 import org.mitre.openid.connect.repository.WhitelistedSiteRepository
 import org.mitre.openid.connect.service.ApprovedSiteService
+import org.mitre.openid.connect.service.BlacklistedSiteService
 import org.mitre.openid.connect.service.PairwiseIdentiferService
 import org.mitre.openid.connect.service.StatsService
 import org.mitre.openid.connect.service.UserInfoService
 import org.mitre.openid.connect.service.WhitelistedSiteService
 import org.mitre.openid.connect.service.impl.DefaultApprovedSiteService
+import org.mitre.openid.connect.service.impl.DefaultBlacklistedSiteService
 import org.mitre.openid.connect.service.impl.DefaultStatsService
 import org.mitre.openid.connect.service.impl.DefaultUserInfoService
 import org.mitre.openid.connect.service.impl.DefaultWhitelistedSiteService
@@ -107,12 +110,16 @@ data class OpenIdConfig(
 
         val whitelistedSiteService: WhitelistedSiteService = DefaultWhitelistedSiteService(whitelistedSiteRepository)
 
+        val blacklistedSiteRepository: BlacklistedSiteRepository = TODO()
+
+        val blacklistedSiteService: BlacklistedSiteService = DefaultBlacklistedSiteService(blacklistedSiteRepository)
+
         override val clientService: ClientDetailsEntityService = DefaultOAuth2ClientDetailsEntityService(
             clientRepository = clientRepository,
             tokenRepository = tokenRepository,
             approvedSiteService = approvedSiteService,
-            whitelistedSiteService = TODO(),
-            blacklistedSiteService = TODO(),
+            whitelistedSiteService = whitelistedSiteService,
+            blacklistedSiteService = blacklistedSiteService,
             scopeService = TODO(),
             statsService = TODO(),
             resourceSetService = TODO(),
