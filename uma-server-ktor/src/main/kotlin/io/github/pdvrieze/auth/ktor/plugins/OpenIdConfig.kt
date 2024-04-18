@@ -1,6 +1,7 @@
 package io.github.pdvrieze.auth.ktor.plugins
 
 import com.nimbusds.jose.jwk.JWK
+import io.github.pdvrieze.auth.exposed.ExposedApprovedSiteRepository
 import io.github.pdvrieze.auth.exposed.ExposedAuthenticationHolderRepository
 import io.github.pdvrieze.auth.exposed.ExposedOauth2ClientRepository
 import io.github.pdvrieze.auth.exposed.ExposedOauth2TokenRepository
@@ -20,9 +21,14 @@ import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.oauth2.service.impl.DefaultOAuth2ClientDetailsEntityService
 import org.mitre.oauth2.service.impl.DefaultSystemScopeService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
+import org.mitre.openid.connect.repository.ApprovedSiteRepository
 import org.mitre.openid.connect.repository.UserInfoRepository
+import org.mitre.openid.connect.service.ApprovedSiteService
 import org.mitre.openid.connect.service.PairwiseIdentiferService
+import org.mitre.openid.connect.service.StatsService
 import org.mitre.openid.connect.service.UserInfoService
+import org.mitre.openid.connect.service.impl.DefaultApprovedSiteService
+import org.mitre.openid.connect.service.impl.DefaultStatsService
 import org.mitre.openid.connect.service.impl.DefaultUserInfoService
 
 data class OpenIdConfig(
@@ -51,6 +57,7 @@ data class OpenIdConfig(
         val userService: UserInfoService
         val clientRepository: OAuth2ClientRepository
         val tokenRepository: OAuth2TokenRepository
+        val approvedSiteService: ApprovedSiteService
     }
 
     private class ResolvedImpl(config: OpenIdConfig) : Resolved {
@@ -83,10 +90,19 @@ data class OpenIdConfig(
             clientRepository = clientRepository
         )
 
+        val approvedSiteRepository: ApprovedSiteRepository = ExposedApprovedSiteRepository(config.database)
+
+        override val approvedSiteService : ApprovedSiteService = DefaultApprovedSiteService(
+            approvedSiteRepository = approvedSiteRepository,
+            tokenRepository = tokenRepository,
+        )
+
+        val statsService = (approvedSiteService as DefaultApprovedSiteService).getStatsService()
+
         override val clientService: ClientDetailsEntityService = DefaultOAuth2ClientDetailsEntityService(
             clientRepository = clientRepository,
             tokenRepository = tokenRepository,
-            approvedSiteService = TODO(),
+            approvedSiteService = approvedSiteService,
             whitelistedSiteService = TODO(),
             blacklistedSiteService = TODO(),
             scopeService = TODO(),

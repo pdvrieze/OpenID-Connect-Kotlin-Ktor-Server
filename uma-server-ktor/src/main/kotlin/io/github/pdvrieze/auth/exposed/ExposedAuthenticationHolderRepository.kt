@@ -10,7 +10,16 @@ import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 
 class ExposedAuthenticationHolderRepository(database: Database) :
-    RepositoryBase(database), AuthenticationHolderRepository {
+    RepositoryBase(
+        database,
+        AuthenticationHolders,
+        AuthenticationHolderAuthorities,
+        AuthenticationHolderResourceIds,
+        AuthenticationHolderResponseTypes,
+        AuthenticationHolderExtensions,
+        AuthenticationHolderScopes,
+        AuthenticationHolderRequestParameters,
+    ), AuthenticationHolderRepository {
 
     override val all: List<AuthenticationHolderEntity>
         get() = transaction {

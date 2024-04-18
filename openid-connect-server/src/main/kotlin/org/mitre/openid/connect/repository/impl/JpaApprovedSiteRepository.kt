@@ -77,7 +77,7 @@ class JpaApprovedSiteRepository : ApprovedSiteRepository {
     }
 
     @Transactional(value = "defaultTransactionManager")
-    override fun getByClientId(clientId: String): Collection<ApprovedSite>? {
+    override fun getByClientId(clientId: String): Collection<ApprovedSite> {
         val query = manager.createNamedQuery(ApprovedSite.QUERY_BY_CLIENT_ID, ApprovedSite::class.java)
         query.setParameter(ApprovedSite.PARAM_CLIENT_ID, clientId)
 

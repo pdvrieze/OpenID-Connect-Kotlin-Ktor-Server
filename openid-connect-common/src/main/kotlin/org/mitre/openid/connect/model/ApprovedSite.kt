@@ -21,13 +21,23 @@ import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import org.mitre.openid.connect.model.ApprovedSite.Companion.PARAM_CLIENT_ID
+import org.mitre.openid.connect.model.ApprovedSite.Companion.PARAM_USER_ID
+import org.mitre.openid.connect.model.ApprovedSite.Companion.QUERY_ALL
+import org.mitre.openid.connect.model.ApprovedSite.Companion.QUERY_BY_CLIENT_ID
+import org.mitre.openid.connect.model.ApprovedSite.Companion.QUERY_BY_CLIENT_ID_AND_USER_ID
+import org.mitre.openid.connect.model.ApprovedSite.Companion.QUERY_BY_USER_ID
 import org.mitre.openid.connect.model.convert.ISODate
 import java.util.*
 import javax.persistence.*
 
 @Entity
 @Table(name = "approved_site")
-@NamedQueries(NamedQuery(name = ApprovedSite.QUERY_ALL, query = "select a from ApprovedSite a"), NamedQuery(name = ApprovedSite.QUERY_BY_USER_ID, query = "select a from ApprovedSite a where a.userId = :" + ApprovedSite.PARAM_USER_ID), NamedQuery(name = ApprovedSite.QUERY_BY_CLIENT_ID, query = "select a from ApprovedSite a where a.clientId = :" + ApprovedSite.PARAM_CLIENT_ID), NamedQuery(name = ApprovedSite.QUERY_BY_CLIENT_ID_AND_USER_ID, query = "select a from ApprovedSite a where a.clientId = :" + ApprovedSite.PARAM_CLIENT_ID + " and a.userId = :" + ApprovedSite.PARAM_USER_ID))
+@NamedQueries(
+    NamedQuery(name = QUERY_ALL, query = "select a from ApprovedSite a"),
+    NamedQuery(name = QUERY_BY_USER_ID, query = "select a from ApprovedSite a where a.userId = :$PARAM_USER_ID"),
+    NamedQuery(name = QUERY_BY_CLIENT_ID, query = "select a from ApprovedSite a where a.clientId = :$PARAM_CLIENT_ID"),
+    NamedQuery(name = QUERY_BY_CLIENT_ID_AND_USER_ID, query = "select a from ApprovedSite a where a.clientId = :$PARAM_CLIENT_ID and a.userId = :$PARAM_USER_ID"))
 class ApprovedSite {
 
     @get:Column(name = "id")
@@ -77,7 +87,28 @@ class ApprovedSite {
     @get:Column(name = "scope")
     @get:CollectionTable(name = "approved_site_scope", joinColumns = [JoinColumn(name = "owner_id")])
     @get:ElementCollection(fetch = FetchType.EAGER)
-    var allowedScopes: Set<String>? = null
+    var allowedScopes: Set<String> = emptySet()
+
+    @Deprecated("JPA only")
+    constructor()
+
+    constructor(
+        id: Long?,
+        userId: String?,
+        clientId: String?,
+        creationDate: ISODate?,
+        accessDate: ISODate?,
+        timeoutDate: ISODate?,
+        allowedScopes: Set<String>,
+    ) {
+        this.id = id
+        this.userId = userId
+        this.clientId = clientId
+        this.creationDate = creationDate
+        this.accessDate = accessDate
+        this.timeoutDate = timeoutDate
+        this.allowedScopes = allowedScopes
+    }
 
     /**
      * Has this approval expired?

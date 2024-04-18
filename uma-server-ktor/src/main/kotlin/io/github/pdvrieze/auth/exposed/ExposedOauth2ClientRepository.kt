@@ -21,7 +21,19 @@ import org.mitre.oauth2.repository.OAuth2ClientRepository
 import java.util.*
 
 class ExposedOauth2ClientRepository(database: Database) :
-    RepositoryBase(database, ClientDetails), OAuth2ClientRepository {
+    RepositoryBase(
+        database,
+        ClientDetails,
+        ClientRequestUris,
+        ClientContacts,
+        ClientScopes,
+        ClientGrantTypes,
+        ClientResponseTypes,
+        ClientDefaultAcrValues,
+        ClientPostLogoutRedirectUris,
+        ClientRequestUris,
+        ClientClaimsRedirectUris,
+    ), OAuth2ClientRepository {
 
     override fun getById(id: Long): OAuthClientDetails? = transaction {
         ClientDetails.selectAll().where { ClientDetails.id eq id }.singleOrNull()?.toClient()

@@ -34,6 +34,13 @@ class DefaultStatsService : StatsService {
     @Autowired
     private lateinit var approvedSiteService: ApprovedSiteService
 
+    @Deprecated("Only for JPA")
+    constructor()
+
+    constructor(approvedSiteService: ApprovedSiteService) {
+        this.approvedSiteService = approvedSiteService
+    }
+
     // stats cache
     private var summaryCache = createSummaryCache()
 

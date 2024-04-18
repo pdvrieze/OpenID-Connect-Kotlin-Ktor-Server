@@ -38,14 +38,14 @@ interface ApprovedSiteRepository {
      *
      * @return the ApprovedSite collection, or null
      */
-    val all: Collection<ApprovedSite>?
+    val all: Collection<ApprovedSite>
 
     /**
      * Return a collection of ApprovedSite managed by this repository matching the
      * provided client ID and user ID
      *
      */
-    fun getByClientIdAndUserId(clientId: String, userId: String): Collection<ApprovedSite>?
+    fun getByClientIdAndUserId(clientId: String, userId: String): Collection<ApprovedSite>
 
     /**
      * Removes the given ApprovedSite from the repository
@@ -70,5 +70,5 @@ interface ApprovedSiteRepository {
     /**
      * Get all sites associated with this client
      */
-    fun getByClientId(clientId: String): Collection<ApprovedSite>?
+    fun getByClientId(clientId: String): Collection<ApprovedSite>
 }

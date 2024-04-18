@@ -40,8 +40,8 @@ object ApprovedSites : LongIdTable("approved_site") {
 }
 
 object ApprovedSiteScopes : Table("approved_site_scope") {
-    val ownerId = long("owner_id") // TODO add foreign key
-    val scope = varchar("scope", 256).nullable()
+    val ownerId = long("owner_id").references(ApprovedSites.id)
+    val scope = varchar("scope", 256)
 }
 
 object AuthenticationHolders : LongIdTable("authentication_holder") {

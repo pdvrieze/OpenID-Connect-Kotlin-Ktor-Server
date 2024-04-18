@@ -21,7 +21,7 @@ abstract class RepositoryBase(protected val database: Database, vararg val table
     }
 
 
-    protected inline fun Table.save(id: Long?, crossinline builder: (UpdateBuilder<Int>) -> Unit): Long = transaction {
+    protected inline fun <T: Table> T.save(id: Long?, crossinline builder: T.(UpdateBuilder<Int>) -> Unit): Long = transaction {
         when (id) {
             null -> {
                 val newId = SystemScopes.insertAndGetId {

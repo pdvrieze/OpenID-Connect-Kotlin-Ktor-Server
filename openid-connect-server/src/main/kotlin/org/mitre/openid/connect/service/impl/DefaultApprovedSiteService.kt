@@ -47,6 +47,21 @@ class DefaultApprovedSiteService : ApprovedSiteService {
     @Autowired
     private lateinit var statsService: StatsService
 
+    fun getStatsService(): StatsService = statsService
+
+    @Deprecated("JPA only")
+    constructor()
+
+    constructor(
+        approvedSiteRepository: ApprovedSiteRepository,
+        tokenRepository: OAuth2TokenRepository,
+        statsService: StatsService? = null,
+    ) {
+        this.approvedSiteRepository = approvedSiteRepository
+        this.tokenRepository = tokenRepository
+        this.statsService = statsService ?: DefaultStatsService(this)
+    }
+
     override val all: Collection<ApprovedSite>?
         get() = approvedSiteRepository.all
 
