@@ -262,7 +262,7 @@ object WhitelistedSites : LongIdTable("whitelisted_site") {
 }
 
 object WhitelistedSiteScopes : Table("whitelisted_site_scope") {
-    val ownerId = long("owner_id")
+    val ownerId = long("owner_id").references(WhitelistedSites.id)
     val scope = varchar("scope", 256)
 }
 

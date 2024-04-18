@@ -77,7 +77,7 @@ class JpaWhitelistedSiteRepository : WhitelistedSiteRepository {
     }
 
     @Transactional(value = "defaultTransactionManager")
-    override fun getByCreator(creatorId: String): Collection<WhitelistedSite>? {
+    override fun getByCreator(creatorId: String): Collection<WhitelistedSite> {
         return manager.createNamedQuery(WhitelistedSite.QUERY_BY_CREATOR, WhitelistedSite::class.java).run {
             setParameter(WhitelistedSite.PARAM_USER_ID, creatorId)
             resultList

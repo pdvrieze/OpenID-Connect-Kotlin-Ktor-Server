@@ -35,6 +35,11 @@ class DefaultWhitelistedSiteService : WhitelistedSiteService {
     @Autowired
     private lateinit var repository: WhitelistedSiteRepository
 
+    @Deprecated("Only for spring")
+    constructor()
+
+    constructor(repository: WhitelistedSiteRepository)
+
     override fun getById(id: Long): WhitelistedSite? {
         return repository.getById(id)
     }

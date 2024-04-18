@@ -7,6 +7,7 @@ import io.github.pdvrieze.auth.exposed.ExposedOauth2ClientRepository
 import io.github.pdvrieze.auth.exposed.ExposedOauth2TokenRepository
 import io.github.pdvrieze.auth.exposed.ExposedSystemScopeRepository
 import io.github.pdvrieze.auth.exposed.ExposedUserInfoRepository
+import io.github.pdvrieze.auth.exposed.ExposedWhitelistedSiteRepository
 import org.jetbrains.exposed.sql.Database
 import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
 import org.mitre.jwt.encryption.service.impl.DefaultJWTEncryptionAndDecryptionService
@@ -23,13 +24,16 @@ import org.mitre.oauth2.service.impl.DefaultSystemScopeService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.repository.ApprovedSiteRepository
 import org.mitre.openid.connect.repository.UserInfoRepository
+import org.mitre.openid.connect.repository.WhitelistedSiteRepository
 import org.mitre.openid.connect.service.ApprovedSiteService
 import org.mitre.openid.connect.service.PairwiseIdentiferService
 import org.mitre.openid.connect.service.StatsService
 import org.mitre.openid.connect.service.UserInfoService
+import org.mitre.openid.connect.service.WhitelistedSiteService
 import org.mitre.openid.connect.service.impl.DefaultApprovedSiteService
 import org.mitre.openid.connect.service.impl.DefaultStatsService
 import org.mitre.openid.connect.service.impl.DefaultUserInfoService
+import org.mitre.openid.connect.service.impl.DefaultWhitelistedSiteService
 
 data class OpenIdConfig(
     var issuer: String,
@@ -97,7 +101,11 @@ data class OpenIdConfig(
             tokenRepository = tokenRepository,
         )
 
-        val statsService = (approvedSiteService as DefaultApprovedSiteService).getStatsService()
+        val statsService: StatsService = (approvedSiteService as DefaultApprovedSiteService).getStatsService()
+
+        val whitelistedSiteRepository: WhitelistedSiteRepository = ExposedWhitelistedSiteRepository(config.database)
+
+        val whitelistedSiteService: WhitelistedSiteService = DefaultWhitelistedSiteService(whitelistedSiteRepository)
 
         override val clientService: ClientDetailsEntityService = DefaultOAuth2ClientDetailsEntityService(
             clientRepository = clientRepository,

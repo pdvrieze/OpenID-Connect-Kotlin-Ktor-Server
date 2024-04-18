@@ -30,7 +30,7 @@ interface WhitelistedSiteRepository {
      *
      * @return the WhitelistedSite collection, or null
      */
-    val all: Collection<WhitelistedSite>?
+    val all: Collection<WhitelistedSite>
 
     /**
      * Returns the WhitelistedSite for the given id
@@ -54,7 +54,7 @@ interface WhitelistedSiteRepository {
      * @param creator    the id of the admin who may have created some WhitelistedSites
      * @return            the collection of corresponding WhitelistedSites, if any, or null
      */
-    fun getByCreator(creatorId: String): Collection<WhitelistedSite>?
+    fun getByCreator(creatorId: String): Collection<WhitelistedSite>
 
     /**
      * Removes the given IdToken from the repository

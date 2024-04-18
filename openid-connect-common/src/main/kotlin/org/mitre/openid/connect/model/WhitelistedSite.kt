@@ -72,7 +72,7 @@ class WhitelistedSite(
     @get:CollectionTable(name = "whitelisted_site_scope", joinColumns = [JoinColumn(name = "owner_id")])
     @get:ElementCollection(fetch = FetchType.EAGER)
     @EncodeDefault
-    var allowedScopes: Set<String>? = null,
+    var allowedScopes: Set<String> = emptySet(),
 ) {
 
     @Serializable
