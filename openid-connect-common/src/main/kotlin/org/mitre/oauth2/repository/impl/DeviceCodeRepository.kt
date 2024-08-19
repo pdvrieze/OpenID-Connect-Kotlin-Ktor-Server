@@ -25,9 +25,9 @@ interface DeviceCodeRepository {
 
     fun getByDeviceCode(deviceCode: String): DeviceCode?
 
-    fun remove(scope: DeviceCode)
+    fun remove(code: DeviceCode)
 
-    fun save(scope: DeviceCode): DeviceCode?
+    fun save(code: DeviceCode): DeviceCode?
 
     fun getByUserCode(userCode: String): DeviceCode?
 

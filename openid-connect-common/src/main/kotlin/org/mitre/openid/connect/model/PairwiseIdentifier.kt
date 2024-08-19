@@ -54,6 +54,19 @@ class PairwiseIdentifier {
     @get:Basic
     var sectorIdentifier: String? = null
 
+    @Deprecated("For JPA")
+    constructor()
+
+    constructor(id: Long?, userSub: String, sectorIdentifier: String) {
+        this.id = id
+        this.userSub = userSub
+        this.sectorIdentifier = sectorIdentifier
+    }
+
+    fun copy(id: Long? = this.id, userSub: String = this.userSub!!, sectorIdentifier: String = this.sectorIdentifier!!) : PairwiseIdentifier {
+        return PairwiseIdentifier(id, userSub, sectorIdentifier)
+    }
+
     companion object {
         const val QUERY_BY_SECTOR_IDENTIFIER: String = "PairwiseIdentifier.getBySectorIdentifier"
         const val QUERY_ALL: String = "PairwiseIdentifier.getAll"

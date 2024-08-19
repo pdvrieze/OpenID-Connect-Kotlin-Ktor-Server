@@ -50,7 +50,7 @@ class JpaPairwiseIdentifierRepository : PairwiseIdentifierRepository {
 	 * @see org.mitre.openid.connect.repository.PairwiseIdentifierRepository#save(org.mitre.openid.connect.model.PairwiseIdentifier)
 	 */
     @Transactional(value = "defaultTransactionManager")
-    override fun save(pairwise: PairwiseIdentifier) {
+    override fun save(pairwise: PairwiseIdentifier): PairwiseIdentifier {
         saveOrUpdate(pairwise.id!!, manager, pairwise)
     }
 }

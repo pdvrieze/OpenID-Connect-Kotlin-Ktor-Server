@@ -55,7 +55,13 @@ class DefaultDeviceCodeService : DeviceCodeService {
         // create a user code, should be random but small and typable, and always uppercase (lookup is case insensitive)
         val userCode = randomGenerator.generate().uppercase(Locale.getDefault())
 
-        val dc = DeviceCode(deviceCode, userCode, requestedScopes, client.clientId, parameters)
+        val dc = DeviceCode(
+            deviceCode = deviceCode,
+            userCode = userCode,
+            scope = requestedScopes,
+            clientId = client.clientId,
+            params = parameters
+        )
 
         if (client.deviceCodeValiditySeconds != null) {
             dc.expiration = Date(System.currentTimeMillis() + client.deviceCodeValiditySeconds!! * 1000L)

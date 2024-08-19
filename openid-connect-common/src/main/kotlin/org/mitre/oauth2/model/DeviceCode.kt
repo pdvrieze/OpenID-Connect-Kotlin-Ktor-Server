@@ -60,7 +60,7 @@ class DeviceCode {
 
     @get:Column(name = "approved")
     @get:Basic
-    var isApproved: Boolean = false
+    var isApproved: Boolean? = false
 
     /**
      * The authentication in place when this token was created.
@@ -71,17 +71,38 @@ class DeviceCode {
 
     @JvmOverloads
     constructor(
+        id: Long? = null,
         deviceCode: String? = null,
         userCode: String? = null,
+        expiration: Date? = null,
         scope: Set<String>? = null,
         clientId: String? = null,
-        params: Map<String, String>? = null
+        approved: Boolean? = null,
+        authenticationHolder: AuthenticationHolderEntity? = null,
+        params: Map<String, String>? = null,
     ) {
         this.deviceCode = deviceCode
         this.userCode = userCode
+        this.expiration = expiration
         this.scope = scope
         this.clientId = clientId
+        this.isApproved = approved
         this.requestParameters = params
+        this.authenticationHolder = authenticationHolder
+    }
+
+    fun copy(
+        id: Long? = this.id,
+        deviceCode: String? = this.deviceCode,
+        userCode: String? = this.userCode,
+        expiration: Date? = this.expiration,
+        scope: Set<String>? = this.scope,
+        clientId: String? = this.clientId,
+        approved: Boolean? = this.isApproved,
+        authenticationHolder: AuthenticationHolderEntity? = this.authenticationHolder,
+        params: Map<String, String>? = this.requestParameters,
+    ): DeviceCode {
+        return DeviceCode(id, deviceCode, userCode, expiration, scope, clientId, approved, authenticationHolder, params)
     }
 
 

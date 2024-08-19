@@ -8,22 +8,20 @@ import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.SavedUserAuthentication
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.test.context.ContextConfiguration
-import org.springframework.test.context.junit.jupiter.SpringExtension
-import org.springframework.transaction.annotation.Transactional
+import org.mockito.InjectMocks
+import org.mockito.Mock
+import org.mockito.junit.jupiter.MockitoExtension
 import javax.persistence.EntityManager
 import javax.persistence.PersistenceContext
 
-@ContextConfiguration(classes = [TestDatabaseConfiguration::class])
-@Transactional
-@ExtendWith(SpringExtension::class)
+@ExtendWith(MockitoExtension::class)
 class TestJpaOAuth2TokenRepository {
-    @Autowired
-    private lateinit var repository: JpaOAuth2TokenRepository
 
-    @PersistenceContext
+    @Mock
     private lateinit var entityManager: EntityManager
+
+    @InjectMocks
+    private lateinit var repository: JpaOAuth2TokenRepository
 
     @BeforeEach
     fun setUp() {

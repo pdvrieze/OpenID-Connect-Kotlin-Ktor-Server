@@ -72,6 +72,7 @@ class AuthorizationCodeEntity {
      * @param expiration The expiration date
      */
     constructor(
+        id: Long? = null,
         code: String? = null,
         authenticationHolder: AuthenticationHolderEntity? = null,
         expiration: Date? = null,
@@ -79,6 +80,15 @@ class AuthorizationCodeEntity {
         this.code = code
         this.authenticationHolder = authenticationHolder
         this.expiration = expiration
+    }
+
+    fun copy(
+        id: Long? = this.id,
+        code: String? = this.code,
+        authenticationHolder: AuthenticationHolderEntity? = this.authenticationHolder,
+        expiration: Date? = this.expiration
+    ): AuthorizationCodeEntity {
+        return AuthorizationCodeEntity(id, code, authenticationHolder, expiration)
     }
 
     companion object {

@@ -56,8 +56,8 @@ class JpaDeviceCodeRepository : DeviceCodeRepository {
     /* (non-Javadoc)
 	 */
     @Transactional(value = "defaultTransactionManager")
-    override fun remove(scope: DeviceCode) {
-        val found = getById(scope.id ?: return)
+    override fun remove(code: DeviceCode) {
+        val found = getById(code.id ?: return)
 
         if (found != null) {
             em.remove(found)
@@ -68,9 +68,9 @@ class JpaDeviceCodeRepository : DeviceCodeRepository {
 	 * @see org.mitre.oauth2.repository.SystemScopeRepository#save(org.mitre.oauth2.model.SystemScope)
 	 */
     @Transactional(value = "defaultTransactionManager")
-    override fun save(scope: DeviceCode): DeviceCode? {
-        val id = requireNotNull(scope.id) { "Null id in scope" }
-        return saveOrUpdate(id, em, scope)
+    override fun save(code: DeviceCode): DeviceCode? {
+        val id = requireNotNull(code.id) { "Null id in scope" }
+        return saveOrUpdate(id, em, code)
     }
 
     @get:Transactional(value = "defaultTransactionManager")

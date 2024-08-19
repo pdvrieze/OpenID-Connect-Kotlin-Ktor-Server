@@ -8,6 +8,9 @@ import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.update
 import org.mitre.oauth2.model.SystemScope
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 abstract class RepositoryBase(protected val database: Database, vararg val tables: Table) {
     init {
@@ -16,7 +19,11 @@ abstract class RepositoryBase(protected val database: Database, vararg val table
         }
     }
 
+    @OptIn(ExperimentalContracts::class)
     protected fun <T> transaction(statement: Transaction.() -> T): T {
+        contract {
+            callsInPlace(statement, InvocationKind.EXACTLY_ONCE)
+        }
         return org.jetbrains.exposed.sql.transactions.transaction(database, statement)
     }
 

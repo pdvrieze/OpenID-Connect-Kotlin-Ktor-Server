@@ -33,5 +33,5 @@ interface PairwiseIdentifierRepository {
      * Save a pairwise identifier to the database.
      *
      */
-    fun save(pairwise: PairwiseIdentifier)
+    fun save(pairwise: PairwiseIdentifier): PairwiseIdentifier
 }
