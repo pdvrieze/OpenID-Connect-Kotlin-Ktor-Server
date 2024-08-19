@@ -77,15 +77,15 @@ class ResourceSet {
     constructor()
 
     constructor(
-        id: Long?,
+        id: Long? = null,
         name: String,
-        uri: String?,
-        type: String?,
-        scopes: Set<String>,
-        iconUri: String?,
-        owner: String?,
-        clientId: String?,
-        policies: Collection<Policy>,
+        uri: String? = null,
+        type: String? = null,
+        scopes: Set<String> = emptySet(),
+        iconUri: String? = null,
+        owner: String? = null,
+        clientId: String? = null,
+        policies: Collection<Policy> = emptySet(),
     ) {
         this.id = id
         this.name = name
