@@ -19,7 +19,9 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.uma.model.ResourceSet
+import org.mitre.uma.repository.PermissionRepository
 import org.mitre.uma.repository.ResourceSetRepository
 import org.mockito.InjectMocks
 import org.mockito.Mock
@@ -32,6 +34,12 @@ import org.mockito.junit.jupiter.MockitoExtension
 class TestDefaultResourceSetService {
     @Mock
     private lateinit var repository: ResourceSetRepository
+
+    @Mock
+    private lateinit var tokenRepository: OAuth2TokenRepository
+
+    @Mock
+    private lateinit var ticketRepository: PermissionRepository
 
     @InjectMocks
     private lateinit var resourceSetService: DefaultResourceSetService
@@ -51,7 +59,7 @@ class TestDefaultResourceSetService {
      */
     @Test
     fun testSaveNew_hasId() {
-        val rs = ResourceSet()
+        val rs = ResourceSet(id = 1L, name = "testSet")
         rs.id = 1L
 
         assertThrows<IllegalArgumentException> {
@@ -61,9 +69,9 @@ class TestDefaultResourceSetService {
 
     @Test
     fun testUpdate_nullId() {
-        val rs = ResourceSet().apply { id = 1L }
+        val rs = ResourceSet(id = 1L, name = "testSet")
 
-        val rs2 = ResourceSet()
+        val rs2 = ResourceSet(name = "testSet2")
 
         assertThrows<IllegalArgumentException> {
             resourceSetService.update(rs, rs2)
@@ -72,9 +80,9 @@ class TestDefaultResourceSetService {
 
     @Test
     fun testUpdate_nullId2() {
-        val rs = ResourceSet()
+        val rs = ResourceSet(name = "rs1")
 
-        val rs2 = ResourceSet().apply { id = 1L }
+        val rs2 = ResourceSet(id = 1L, name="rs2")
 
         assertThrows<IllegalArgumentException> {
             resourceSetService.update(rs, rs2)
@@ -83,9 +91,9 @@ class TestDefaultResourceSetService {
 
     @Test
     fun testUpdate_mismatchedIds() {
-        val rs = ResourceSet().apply { id = 1L }
+        val rs = ResourceSet(id = 1L, name = "testSet")
 
-        val rs2 = ResourceSet().apply { id = 2L }
+        val rs2 = ResourceSet(id = 2L, name = "testSet2")
 
         assertThrows<IllegalArgumentException> {
             resourceSetService.update(rs, rs2)

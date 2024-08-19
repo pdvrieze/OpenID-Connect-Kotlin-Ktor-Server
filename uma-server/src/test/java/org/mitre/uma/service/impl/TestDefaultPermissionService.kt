@@ -66,17 +66,19 @@ class TestDefaultPermissionService {
 
     @BeforeEach
     fun prepare() {
-        rs1 = ResourceSet()
-        rs1.name = rs1Name
-        rs1.owner = rs1Owner
-        rs1.id = rs1Id
-        rs1.scopes = scopes1
+        rs1 = ResourceSet(
+            name = rs1Name,
+            owner = rs1Owner,
+            id = rs1Id,
+            scopes = scopes1,
+        )
 
-        rs2 = ResourceSet()
-        rs2.name = rs2Name
-        rs2.owner = rs2Owner
-        rs2.id = rs2Id
-        rs2.scopes = scopes2
+        rs2 = ResourceSet(
+            name = rs2Name,
+            owner = rs2Owner,
+            id = rs2Id,
+            scopes = scopes2,
+        )
     }
 
     private fun mocks() {
