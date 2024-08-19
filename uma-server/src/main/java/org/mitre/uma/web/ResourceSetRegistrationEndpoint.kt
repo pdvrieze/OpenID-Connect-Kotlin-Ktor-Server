@@ -248,7 +248,7 @@ class ResourceSetRegistrationEndpoint {
 
                 val rs = ResourceSet()
                 rs.id = getAsLong(o, "_id")
-                rs.name = getAsString(o, "name")
+                rs.name = requireNotNull(getAsString(o, "name")) { "Missing resource name" }
                 rs.iconUri = getAsString(o, "icon_uri")
                 rs.type = getAsString(o, "type")
                 rs.scopes = getAsStringSet(o, "scopes")!!

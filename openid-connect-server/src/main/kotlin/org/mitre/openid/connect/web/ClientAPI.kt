@@ -491,7 +491,7 @@ class ClientAPI {
                                 claimSet.getStringListClaim(claim).toHashSet()
 
                             REQUIRE_AUTH_TIME -> newClient.requireAuthTime = claimSet.getBooleanClaim(claim)
-                            DEFAULT_MAX_AGE -> newClient.defaultMaxAge = claimSet.getIntegerClaim(claim)
+                            DEFAULT_MAX_AGE -> newClient.defaultMaxAge = claimSet.getIntegerClaim(claim)?.toLong()
                             TOKEN_ENDPOINT_AUTH_SIGNING_ALG -> newClient.tokenEndpointAuthSigningAlg =
                                 JWSAlgorithm.parse(claimSet.getStringClaim(claim))
 

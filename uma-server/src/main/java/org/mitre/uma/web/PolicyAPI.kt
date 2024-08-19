@@ -178,12 +178,12 @@ class PolicyAPI {
             }
         }
 
-        val rsPolicies = rs.policies!!
+        val rsPolicies = rs.policies.toMutableList()
         rsPolicies.add(p)
-        val saved = resourceSetService.update(rs, rs)
+        val saved = resourceSetService.update(rs, rs.copy(policies = rsPolicies))
 
         // find the new policy object
-        val newPolicies = saved.policies!!.toSet() - rsPolicies.toSet()
+        val newPolicies = saved.policies.toSet() - rsPolicies.toSet()
 
         if (newPolicies.size == 1) {
             val newPolicy = newPolicies.iterator().next()
@@ -335,8 +335,8 @@ class PolicyAPI {
         for (policy in rs.policies!!) {
             if (policy.id == pid) {
                 // found it!
-                rs.policies!!.remove(policy)
-                resourceSetService.update(rs, rs)
+                val newPolicies = rs.policies.toMutableList().apply { remove(policy) }
+                resourceSetService.update(rs, rs.copy(policies = newPolicies))
 
                 m.addAttribute(HttpCodeView.CODE, HttpStatus.NO_CONTENT)
                 return HttpCodeView.VIEWNAME

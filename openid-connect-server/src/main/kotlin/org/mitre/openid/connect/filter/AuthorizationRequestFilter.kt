@@ -181,7 +181,7 @@ class AuthorizationRequestFilter : GenericFilterBean() {
                 var max = (client?.defaultMaxAge)
                 val maxAge = authRequest.extensions[ConnectRequestParameters.MAX_AGE] as String?
                 if (maxAge != null) {
-                    max = maxAge.toInt()
+                    max = maxAge.toLong()
                 }
 
                 if (max != null) {

@@ -57,14 +57,14 @@ open class JpaResourceSetRepository : ResourceSetRepository {
         return query.resultList
     }
 
-    override fun getAllForOwnerAndClient(owner: String?, clientId: String?): Collection<ResourceSet> {
+    override fun getAllForOwnerAndClient(owner: String, clientId: String): Collection<ResourceSet> {
         val query = em.createNamedQuery(ResourceSet.QUERY_BY_OWNER_AND_CLIENT, ResourceSet::class.java)
         query.setParameter(ResourceSet.PARAM_OWNER, owner)
         query.setParameter(ResourceSet.PARAM_CLIENTID, clientId)
         return query.resultList
     }
 
-    override val all: Collection<ResourceSet>?
+    override val all: Collection<ResourceSet>
         get() {
             val query = em.createNamedQuery(ResourceSet.QUERY_ALL, ResourceSet::class.java)
             return query.resultList

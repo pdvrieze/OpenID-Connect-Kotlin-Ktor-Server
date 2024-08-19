@@ -43,6 +43,19 @@ class DefaultResourceSetService : ResourceSetService {
     @Autowired
     private lateinit var ticketRepository: PermissionRepository
 
+    @Deprecated("JPA only")
+    constructor()
+
+    constructor(
+        repository: ResourceSetRepository,
+        tokenRepository: OAuth2TokenRepository,
+        ticketRepository: PermissionRepository,
+    ) {
+        this.repository = repository
+        this.tokenRepository = tokenRepository
+        this.ticketRepository = ticketRepository
+    }
+
     override fun saveNew(rs: ResourceSet): ResourceSet {
         require(rs.id == null) { "Can't save a new resource set with an ID already set to it." }
 
@@ -90,7 +103,7 @@ class DefaultResourceSetService : ResourceSetService {
         return repository.getAllForOwner(owner)
     }
 
-    override fun getAllForOwnerAndClient(owner: String?, clientId: String?): Collection<ResourceSet> {
+    override fun getAllForOwnerAndClient(owner: String, clientId: String): Collection<ResourceSet> {
         return repository.getAllForOwnerAndClient(owner, clientId)
     }
 

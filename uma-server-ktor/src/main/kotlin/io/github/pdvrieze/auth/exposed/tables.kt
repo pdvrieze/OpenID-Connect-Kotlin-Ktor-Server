@@ -1,6 +1,5 @@
 package io.github.pdvrieze.auth.exposed
 
-import io.github.pdvrieze.auth.exposed.AuthenticationHolderExtensions.references
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.timestamp
@@ -210,7 +209,7 @@ object RefreshTokens : LongIdTable("refresh_token") {
 }
 
 object ClientResources : Table("client_resource") {
-    val ownerId = long("owner_id") // TODO add foreign key
+    val ownerId = long("owner_id").references(ClientDetails.id) // TODO add foreign key
     val resourceId = varchar("resource_id", 256)
 }
 
@@ -277,12 +276,12 @@ object ResourceSets : LongIdTable("resource_set") {
     val uri = varchar("uri", 1024).nullable()
     val iconUri = varchar("icon_uri", 1024).nullable()
     val rsType = varchar("rs_type", 256).nullable()
-    val owner = varchar("owner", 256)
+    val owner = varchar("owner", 256).index()
     val clientId = varchar("client_id", 256).references(ClientDetails.clientId).nullable()
 }
 
 object ResourceSetScopes : Table("resource_set_scope") {
-    val ownerId = long("owner_id") // TODO add foreign key
+    val ownerId = long("owner_id").references(ResourceSets.id)
     val scope = varchar("scope", 256)
 }
 
@@ -297,7 +296,7 @@ object Permissions : LongIdTable("permission") {
 }
 
 object PermissionScopes : Table("permission_scope") {
-    val ownerId = long("owner_id") // TODO add foreign key
+    val ownerId = long("owner_id").references(Permissions.id)
     val scope = varchar("scope", 256)
 }
 
@@ -308,7 +307,7 @@ object Claims : LongIdTable("claim") {
     val claimValue = varchar("claim_value", 1024).nullable()
 }
 
-object ClaimToPolicys : Table("claim_to_policy") {
+object ClaimToPolicies : Table("claim_to_policy") {
     val policyId = long("policy_id").references(Policies.id)
     val claimId = long("claim_id").references(Claims.id)
 }
@@ -324,23 +323,23 @@ object Policies : LongIdTable("policy") {
 }
 
 object PolicyScopes : Table("policy_scope") {
-    val ownerId = long("owner_id") // TODO add foreign key
+    val ownerId = long("owner_id").references(Policies.id)
     val scope = varchar("scope", 256)
 }
 
 object ClaimTokenFormats : Table("claim_token_format") {
-    val ownerId = long("owner_id") // TODO add foreign key
+    val ownerId = long("owner_id").references(Claims.id)
     val claimTokenFormat = varchar("claim_token_format", 1024)
 }
 
-object ClaimIssuerss : Table("claim_issuer") {
-    val ownerId = long("owner_id") // TODO add foreign key
-    val issuer = varchar("issuer", 1024).nullable()
+object ClaimIssuers : Table("claim_issuer") {
+    val ownerId = long("owner_id").references(Claims.id)
+    val issuer = varchar("issuer", 1024)
 }
 
 object SavedRegisteredClients : LongIdTable("saved_registered_client") {
     val issuer = varchar("issuer", 1024).nullable()
-    val registeredClient = varchar("registered_client", 8192).nullable()
+    val registeredClient = varchar("registered_client", 8192)
 }
 
 object DeviceCodes : LongIdTable("device_code") {

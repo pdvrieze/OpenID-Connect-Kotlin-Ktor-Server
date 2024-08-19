@@ -3,6 +3,7 @@ package io.github.pdvrieze.auth.ktor.plugins
 import com.nimbusds.jose.jwk.JWK
 import io.github.pdvrieze.auth.exposed.ExposedApprovedSiteRepository
 import io.github.pdvrieze.auth.exposed.ExposedAuthenticationHolderRepository
+import io.github.pdvrieze.auth.exposed.ExposedBlacklistedSiteRepository
 import io.github.pdvrieze.auth.exposed.ExposedOauth2ClientRepository
 import io.github.pdvrieze.auth.exposed.ExposedOauth2TokenRepository
 import io.github.pdvrieze.auth.exposed.ExposedSystemScopeRepository
@@ -37,6 +38,10 @@ import org.mitre.openid.connect.service.impl.DefaultBlacklistedSiteService
 import org.mitre.openid.connect.service.impl.DefaultStatsService
 import org.mitre.openid.connect.service.impl.DefaultUserInfoService
 import org.mitre.openid.connect.service.impl.DefaultWhitelistedSiteService
+import org.mitre.uma.repository.PermissionRepository
+import org.mitre.uma.repository.ResourceSetRepository
+import org.mitre.uma.service.ResourceSetService
+import org.mitre.uma.service.impl.DefaultResourceSetService
 
 data class OpenIdConfig(
     var issuer: String,
@@ -110,9 +115,19 @@ data class OpenIdConfig(
 
         val whitelistedSiteService: WhitelistedSiteService = DefaultWhitelistedSiteService(whitelistedSiteRepository)
 
-        val blacklistedSiteRepository: BlacklistedSiteRepository = TODO()
+        val blacklistedSiteRepository: BlacklistedSiteRepository = ExposedBlacklistedSiteRepository(config.database)
 
         val blacklistedSiteService: BlacklistedSiteService = DefaultBlacklistedSiteService(blacklistedSiteRepository)
+
+        val resourceSetRepository: ResourceSetRepository = TODO()
+
+        val ticketRepository: PermissionRepository = TODO()
+
+        val resourceSetService: ResourceSetService = DefaultResourceSetService(
+            repository = resourceSetRepository,
+            tokenRepository = tokenRepository,
+            ticketRepository = ticketRepository,
+        )
 
         override val clientService: ClientDetailsEntityService = DefaultOAuth2ClientDetailsEntityService(
             clientRepository = clientRepository,
@@ -120,9 +135,9 @@ data class OpenIdConfig(
             approvedSiteService = approvedSiteService,
             whitelistedSiteService = whitelistedSiteService,
             blacklistedSiteService = blacklistedSiteService,
-            scopeService = TODO(),
-            statsService = TODO(),
-            resourceSetService = TODO(),
+            scopeService = scopeService,
+            statsService = statsService,
+            resourceSetService = resourceSetService,
             config = this.config,
         )
     }

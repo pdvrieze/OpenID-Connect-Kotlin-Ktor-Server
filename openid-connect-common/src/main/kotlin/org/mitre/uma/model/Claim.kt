@@ -63,12 +63,33 @@ class Claim {
     @get:CollectionTable(name = "claim_token_format", joinColumns = [JoinColumn(name = "owner_id")])
     @get:Column(name = "claim_token_format")
     @get:ElementCollection(fetch = FetchType.EAGER)
-    var claimTokenFormat: Set<String>? = null
+    var claimTokenFormat: Set<String> = emptySet()
 
     @get:CollectionTable(name = "claim_issuer", joinColumns = [JoinColumn(name = "owner_id")])
     @get:Column(name = "issuer")
     @get:ElementCollection(fetch = FetchType.EAGER)
-    var issuer: Set<String>? = null
+    var issuer: Set<String> = emptySet()
+
+    @Deprecated("For JPA")
+    constructor()
+
+    constructor(
+        id: Long?,
+        name: String?,
+        friendlyName: String?,
+        claimType: String?,
+        value: JsonElement?,
+        claimTokenFormat: Set<String>,
+        issuer: Set<String>,
+    ) {
+        this.id = id
+        this.name = name
+        this.friendlyName = friendlyName
+        this.claimType = claimType
+        this.value = value
+        this.claimTokenFormat = claimTokenFormat
+        this.issuer = issuer
+    }
 
     override fun toString(): String {
         return "Claim [id=$id, name=$name, friendlyName=$friendlyName, claimType=$claimType, value=$value, claimTokenFormat=$claimTokenFormat, issuer=$issuer]"

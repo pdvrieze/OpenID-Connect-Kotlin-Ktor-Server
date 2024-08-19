@@ -255,7 +255,7 @@ class RegisteredClient(
         get() = client.sectorIdentifierUri
         set(sectorIdentifierUri) { client.sectorIdentifierUri = sectorIdentifierUri }
 
-    var defaultMaxAge: Int?
+    var defaultMaxAge: Long?
         get() = client.defaultMaxAge
         set(defaultMaxAge) { client.defaultMaxAge = defaultMaxAge }
 
@@ -407,7 +407,7 @@ class RegisteredClient(
         @SerialName(ID_TOKEN_ENCRYPTED_RESPONSE_ALG) val idTokenEncryptedResponseAlg: @Serializable(with = JWEAlgorithmStringConverter::class) JWEAlgorithm? = null,
         @SerialName(ID_TOKEN_ENCRYPTED_RESPONSE_ENC) val idTokenEncryptedResponseEnc: @Serializable(with = JWEEncryptionMethodStringConverter::class) EncryptionMethod? = null,
         @SerialName(TOKEN_ENDPOINT_AUTH_SIGNING_ALG) val tokenEndpointAuthSigningAlg: @Serializable(with = JWSAlgorithmStringConverter::class) JWSAlgorithm? = null,
-        @SerialName(DEFAULT_MAX_AGE) val defaultMaxAge: Int? = null,
+        @SerialName(DEFAULT_MAX_AGE) val defaultMaxAge: Long? = null,
         @SerialName(REQUIRE_AUTH_TIME) val requireAuthTime: Boolean? = null,
         @SerialName(DEFAULT_ACR_VALUES) val defaultACRvalues: Set<String>? = null,
         @SerialName(INITIATE_LOGIN_URI) val initiateLoginUri: String? = null,

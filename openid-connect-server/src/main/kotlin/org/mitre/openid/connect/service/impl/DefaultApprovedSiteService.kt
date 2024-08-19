@@ -109,7 +109,7 @@ class DefaultApprovedSiteService : ApprovedSiteService {
         approvedSite.clientId = clientId
         approvedSite.userId = userId
         approvedSite.timeoutDate = timeoutDate
-        approvedSite.allowedScopes = allowedScopes
+        approvedSite.allowedScopes = allowedScopes ?: emptySet()
 
         return save(approvedSite)
     }

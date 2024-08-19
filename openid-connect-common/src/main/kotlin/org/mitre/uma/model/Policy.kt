@@ -58,6 +58,21 @@ class Policy {
     @get:ElementCollection(fetch = FetchType.EAGER)
     var scopes: Set<String> = emptySet()
 
+    @Deprecated("JPA only")
+    constructor()
+
+    constructor(
+        id: Long?,
+        name: String?,
+        claimsRequired: Collection<Claim>,
+        scopes: Set<String>,
+    ) {
+        this.id = id
+        this.name = name
+        this.claimsRequired = claimsRequired
+        this.scopes = scopes
+    }
+
     override fun toString(): String {
         return "Policy [id=$id, name=$name, claimsRequired=$claimsRequired, scopes=$scopes]"
     }

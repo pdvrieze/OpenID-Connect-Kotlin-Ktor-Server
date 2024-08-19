@@ -17,6 +17,7 @@ package org.mitre.openid.connect.service.impl
 
 import kotlinx.serialization.encodeToString
 import org.mitre.oauth2.model.AuthenticationHolderEntity
+import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
@@ -81,19 +82,23 @@ class MITREidDataService_1_3 : MITREidDataService {
         return json.encodeToString(mapOf(THIS_VERSION to toSerialConfig()))
     }
 
-    fun toSerialConfig() = MITREidDataService.ExtendedConfiguration12(
-        clients = clientRepository.allClients.map { MITREidDataService.ClientDetailsConfiguration(it) },
-        grants = approvedSiteRepository.all?.map {
-            val approvedAccessTokens = tokenRepository.getAccessTokensForApprovedSite(it).mapTo(HashSet()) { it.id!! }
-            ApprovedSite.SerialDelegate(it, approvedAccessTokens)
-        } ?: emptyList(),
-        whitelistedSites = wlSiteRepository.all?.toList() ?: emptyList(),
-        blacklistedSites = blSiteRepository.all.toList(),
-        authenticationHolders = authHolderRepository.all.map { AuthenticationHolderEntity.SerialDelegate12(it) },
-        accessTokens = tokenRepository.allAccessTokens.map { OAuth2AccessTokenEntity.SerialDelegate(it) },
-        refreshTokens = tokenRepository.allRefreshTokens.map { OAuth2RefreshTokenEntity.SerialDelegate(it) },
-        systemScopes = sysScopeRepository.all.toList(),
-    )
+    fun toSerialConfig(): MITREidDataService.ExtendedConfiguration12 {
+        val newClients = clientRepository.allClients.map { MITREidDataService.ClientDetailsConfiguration(ClientDetailsEntity.from(it)) }
+        return MITREidDataService.ExtendedConfiguration12(
+            clients = newClients,
+            grants = approvedSiteRepository.all?.map {
+                val approvedAccessTokens =
+                    tokenRepository.getAccessTokensForApprovedSite(it).mapTo(HashSet()) { it.id!! }
+                ApprovedSite.SerialDelegate(it, approvedAccessTokens)
+            } ?: emptyList(),
+            whitelistedSites = wlSiteRepository.all?.toList() ?: emptyList(),
+            blacklistedSites = blSiteRepository.all.toList(),
+            authenticationHolders = authHolderRepository.all.map { AuthenticationHolderEntity.SerialDelegate12(it) },
+            accessTokens = tokenRepository.allAccessTokens.map { OAuth2AccessTokenEntity.SerialDelegate(it) },
+            refreshTokens = tokenRepository.allRefreshTokens.map { OAuth2RefreshTokenEntity.SerialDelegate(it) },
+            systemScopes = sysScopeRepository.all.toList(),
+        )
+    }
 
 
     override fun importData(config: MITREidDataService.ExtendedConfiguration) {
@@ -119,7 +124,7 @@ class MITREidDataService_1_3 : MITREidDataService {
             val client = context.clientRepository.getClientByClientId(clientRef)
             val newRefreshTokenId = context.maps.refreshTokenOldToNewIdMap[oldRefreshTokenId]!!
             val refreshToken = context.tokenRepository.getRefreshTokenById(newRefreshTokenId)!!
-            refreshToken.client = client
+            refreshToken.client = client?.let(ClientDetailsEntity::from)
             context.tokenRepository.saveRefreshToken(refreshToken)
         }
         for ((oldRefreshTokenId, oldAuthHolderId) in context.maps.refreshTokenToAuthHolderRefs) {
@@ -134,7 +139,7 @@ class MITREidDataService_1_3 : MITREidDataService {
             val client = context.clientRepository.getClientByClientId(clientRef)
             val newAccessTokenId = context.maps.accessTokenOldToNewIdMap[oldAccessTokenId]!!
             val accessToken = context.tokenRepository.getAccessTokenById(newAccessTokenId)!!
-            accessToken.client = client
+            accessToken.client = client?.let(ClientDetailsEntity::from)
             context.tokenRepository.saveAccessToken(accessToken)
         }
         for ((oldAccessTokenId, oldAuthHolderId) in context.maps.accessTokenToAuthHolderRefs) {
@@ -147,7 +152,7 @@ class MITREidDataService_1_3 : MITREidDataService {
         }
         for ((oldAccessTokenId, oldRefreshTokenId) in context.maps.accessTokenToRefreshTokenRefs) {
             val newRefreshTokenId = context.maps.refreshTokenOldToNewIdMap[oldRefreshTokenId] ?: error("No refresh old->new for $oldRefreshTokenId")
-            val refreshToken = context.tokenRepository.getRefreshTokenById(newRefreshTokenId)
+            val refreshToken = context.tokenRepository.getRefreshTokenById(newRefreshTokenId)!!
             val newAccessTokenId = context.maps.accessTokenOldToNewIdMap[oldAccessTokenId]!!
             val accessToken = context.tokenRepository.getAccessTokenById(newAccessTokenId)!!
             accessToken.refreshToken = refreshToken

@@ -148,7 +148,7 @@ class DefaultOAuth2ClientDetailsEntityService : ClientDetailsEntityService {
 
         statsService.resetCache()
 
-        return c
+        return ClientDetailsEntity.from(c)
     }
 
     /**
@@ -299,7 +299,7 @@ class DefaultOAuth2ClientDetailsEntityService : ClientDetailsEntityService {
     override fun getClientById(id: Long): ClientDetailsEntity? {
         val client = clientRepository.getById(id)
 
-        return client
+        return client?.let(ClientDetailsEntity::from)
     }
 
     /**
@@ -310,6 +310,7 @@ class DefaultOAuth2ClientDetailsEntityService : ClientDetailsEntityService {
         require(clientId.isNotEmpty()) { "Client id must not be empty!" }
 
         return clientRepository.getClientByClientId(clientId)
+            ?.let(ClientDetailsEntity::from)
             ?: throw InvalidClientException("Client with id $clientId was not found")
     }
 
@@ -388,7 +389,7 @@ class DefaultOAuth2ClientDetailsEntityService : ClientDetailsEntityService {
         // make sure a client doesn't get any special system scopes
         ensureNoReservedScopes(newClient)
 
-        return clientRepository.updateClient(oldClient.id.requireId(), newClient)
+        return clientRepository.updateClient(oldClient.id.requireId(), newClient).let(ClientDetailsEntity::from)
 
     }
 
@@ -396,7 +397,7 @@ class DefaultOAuth2ClientDetailsEntityService : ClientDetailsEntityService {
         /**
          * Get all clients in the system
          */
-        get() = clientRepository.allClients
+        get() = clientRepository.allClients.map(ClientDetailsEntity::from)
 
     /**
      * Generates a clientId for the given client and sets it to the client's clientId field. Returns the client that was passed in, now with id set.

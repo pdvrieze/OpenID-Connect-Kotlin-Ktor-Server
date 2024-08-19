@@ -163,7 +163,7 @@ interface MITREidDataService {
                 creationDate = delegate.creationDate
                 timeoutDate = delegate.timeoutDate
                 userId = delegate.userId
-                allowedScopes = delegate.allowedScopes
+                allowedScopes = delegate.allowedScopes ?: emptySet()
             }
 
             val newId = approvedSiteRepository.save(site).id!!
@@ -212,7 +212,7 @@ interface MITREidDataService {
 
             val token = OAuth2AccessTokenEntity().apply {
                 expiration = delegate.expiration
-                jwt = delegate.value
+                jwt = delegate.value ?: error("Missing token in auth2 access token entity")
                 scope = delegate.scope
                 tokenType = delegate.tokenType
             }
@@ -238,7 +238,7 @@ interface MITREidDataService {
 
             val token = OAuth2RefreshTokenEntity().apply {
                 expiration = delegate.expiration
-                jwt = delegate.value
+                jwt = delegate.value ?: error("Missing jwt token")
             }
 
             val newId = tokenRepository.saveRefreshToken(token).id!!
@@ -270,7 +270,7 @@ interface MITREidDataService {
                 val client = clientRepository.getClientByClientId(clientRef)
                 val newRefreshTokenId = maps.refreshTokenOldToNewIdMap[oldRefreshTokenId]!!
                 val refreshToken = tokenRepository.getRefreshTokenById(newRefreshTokenId)!!
-                refreshToken.client = client
+                refreshToken.client = client?.let(ClientDetailsEntity::from)
                 tokenRepository.saveRefreshToken(refreshToken)
             }
 
@@ -287,7 +287,7 @@ interface MITREidDataService {
                 val client = clientRepository.getClientByClientId(clientRef)
                 val newAccessTokenId = maps.accessTokenOldToNewIdMap[oldAccessTokenId]!!
                 val accessToken = tokenRepository.getAccessTokenById(newAccessTokenId)!!
-                accessToken.client = client
+                accessToken.client = client?.let(ClientDetailsEntity::from)
                 tokenRepository.saveAccessToken(accessToken)
             }
             for ((oldAccessTokenId, oldAuthHolderId) in maps.accessTokenToAuthHolderRefs) {
@@ -305,7 +305,7 @@ interface MITREidDataService {
                 val refreshToken = tokenRepository.getRefreshTokenById(newRefreshTokenId)
                 val newAccessTokenId = maps.accessTokenOldToNewIdMap[oldAccessTokenId]!!
                 val accessToken = tokenRepository.getAccessTokenById(newAccessTokenId)!!
-                accessToken.refreshToken = refreshToken
+                accessToken.refreshToken = refreshToken ?: error("Missing refresh token")
                 tokenRepository.saveAccessToken(accessToken)
             }
 
@@ -363,7 +363,7 @@ interface MITREidDataService {
         @EncodeDefault @SerialName("idTokenEncryptedResponseAlg") val idTokenEncryptedResponseAlg: @Serializable(JWEAlgorithmStringConverter::class) JWEAlgorithm? = null,
         @EncodeDefault @SerialName("idTokenEncryptedResponseEnc") val idTokenEncryptedResponseEnc: @Serializable(JWEEncryptionMethodStringConverter::class) EncryptionMethod? = null,
         @EncodeDefault @SerialName("tokenEndpointAuthSigningAlg") val tokenEndpointAuthSigningAlg: @Serializable(JWSAlgorithmStringConverter::class) JWSAlgorithm? = null,
-        @EncodeDefault @SerialName("defaultMaxAge") val defaultMaxAge: Int? = null,
+        @EncodeDefault @SerialName("defaultMaxAge") val defaultMaxAge: Long? = null,
         @SerialName("requireAuthTime") val requireAuthTime: Boolean? = null,
         @EncodeDefault @SerialName("defaultACRValues") val defaultACRValues: Set<String>? = null,
         @EncodeDefault @SerialName("initiateLoginUri") val initiateLoginUri: String? = null,

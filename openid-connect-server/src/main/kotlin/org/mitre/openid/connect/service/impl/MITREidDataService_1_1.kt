@@ -17,6 +17,8 @@
  */
 package org.mitre.openid.connect.service.impl
 
+import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2ClientRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
@@ -110,7 +112,7 @@ class MITREidDataService_1_1 : MITREidDataService {
             val client = context.clientRepository.getClientByClientId(clientRef)
             val newRefreshTokenId = context.maps.refreshTokenOldToNewIdMap[oldRefreshTokenId]!!
             val refreshToken = context.tokenRepository.getRefreshTokenById(newRefreshTokenId)!!
-            refreshToken.client = client
+            refreshToken.client = client?.let(ClientDetailsEntity::from)
             context.tokenRepository.saveRefreshToken(refreshToken)
         }
 
@@ -127,7 +129,7 @@ class MITREidDataService_1_1 : MITREidDataService {
             val client = context.clientRepository.getClientByClientId(clientRef)
             val newAccessTokenId = context.maps.accessTokenOldToNewIdMap[oldAccessTokenId]!!
             val accessToken = context.tokenRepository.getAccessTokenById(newAccessTokenId)!!
-            accessToken.client = client
+            accessToken.client = client?.let(ClientDetailsEntity::from)
             context.tokenRepository.saveAccessToken(accessToken)
         }
         context.maps.accessTokenToClientRefs.clear()
@@ -141,7 +143,7 @@ class MITREidDataService_1_1 : MITREidDataService {
         }
         for ((oldAccessTokenId, oldRefreshTokenId) in context.maps.accessTokenToRefreshTokenRefs) {
             val newRefreshTokenId = context.maps.refreshTokenOldToNewIdMap[oldRefreshTokenId]!!
-            val refreshToken = context.tokenRepository.getRefreshTokenById(newRefreshTokenId)
+            val refreshToken = context.tokenRepository.getRefreshTokenById(newRefreshTokenId)!!
             val newAccessTokenId = context.maps.accessTokenOldToNewIdMap[oldAccessTokenId]!!
             val accessToken = context.tokenRepository.getAccessTokenById(newAccessTokenId)!!
             accessToken.refreshToken = refreshToken

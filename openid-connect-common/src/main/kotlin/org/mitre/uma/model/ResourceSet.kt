@@ -40,7 +40,7 @@ class ResourceSet {
 
     @get:Column(name = "name")
     @get:Basic
-    var name: String? = null
+    lateinit var name: String
 
     @get:Column(name = "uri")
     @get:Basic
@@ -71,7 +71,44 @@ class ResourceSet {
 
     @get:JoinColumn(name = "resource_set_id")
     @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
-    var policies: MutableCollection<Policy>? = HashSet()
+    var policies: Collection<Policy> = HashSet()
+
+    @Deprecated("JPA only")
+    constructor()
+
+    constructor(
+        id: Long?,
+        name: String,
+        uri: String?,
+        type: String?,
+        scopes: Set<String>,
+        iconUri: String?,
+        owner: String?,
+        clientId: String?,
+        policies: Collection<Policy>,
+    ) {
+        this.id = id
+        this.name = name
+        this.uri = uri
+        this.type = type
+        this.scopes = scopes
+        this.iconUri = iconUri
+        this.owner = owner
+        this.clientId = clientId
+        this.policies = policies
+    }
+
+    fun copy(
+        id: Long? = this.id,
+        name: String = this.name,
+        uri: String? = this.uri,
+        type: String? = this.type,
+        scopes: Set<String> = this.scopes,
+        iconUri: String? = this.iconUri,
+        owner: String? = this.owner,
+        clientId: String? = this.clientId,
+        policies: Collection<Policy> = this.policies,
+    ) : ResourceSet = ResourceSet(id, name, uri, type, scopes, iconUri, owner, clientId, policies)
 
     /* (non-Javadoc)
     * @see java.lang.Object#toString()
@@ -101,14 +138,14 @@ class ResourceSet {
 
     override fun hashCode(): Int {
         var result = id?.hashCode() ?: 0
-        result = 31 * result + (name?.hashCode() ?: 0)
+        result = 31 * result + name.hashCode()
         result = 31 * result + (uri?.hashCode() ?: 0)
         result = 31 * result + (type?.hashCode() ?: 0)
         result = 31 * result + scopes.hashCode()
         result = 31 * result + (iconUri?.hashCode() ?: 0)
         result = 31 * result + (owner?.hashCode() ?: 0)
         result = 31 * result + (clientId?.hashCode() ?: 0)
-        result = 31 * result + (policies?.hashCode() ?: 0)
+        result = 31 * result + policies.hashCode()
         return result
     }
 

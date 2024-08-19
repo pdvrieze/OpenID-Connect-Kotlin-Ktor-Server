@@ -48,7 +48,7 @@ class DummyResourceSetService : ResourceSetService {
         throw UnsupportedOperationException()
     }
 
-    override fun getAllForOwnerAndClient(owner: String?, authClientId: String?): Collection<ResourceSet> {
+    override fun getAllForOwnerAndClient(owner: String, authClientId: String): Collection<ResourceSet> {
         return emptySet()
     }
 

@@ -469,6 +469,58 @@ open class ClientDetailsEntity(
     }
 
     companion object {
+        fun from(original: OAuthClientDetails): ClientDetailsEntity = when (original) {
+            is ClientDetailsEntity -> original
+            else -> ClientDetailsEntity(
+                id = original.id,
+                clientId = original.getClientId(),
+                clientSecret = original.getClientSecret(),
+                redirectUris = original.redirectUris,
+                clientName = original.clientName,
+                clientUri = original.clientUri,
+                logoUri = original.logoUri,
+                contacts = original.contacts,
+                tosUri = original.tosUri,
+                tokenEndpointAuthMethod = original.tokenEndpointAuthMethod,
+                scope = original.getScope().toHashSet(),
+                grantTypes = original.grantTypes.toHashSet(),
+                responseTypes = original.responseTypes,
+                policyUri = original.policyUri,
+                jwksUri = original.jwksUri,
+                jwks = original.jwks,
+                softwareId = original.softwareId,
+                softwareVersion = original.softwareVersion,
+                applicationType = original.applicationType,
+                sectorIdentifierUri = original.sectorIdentifierUri,
+                subjectType = original.subjectType,
+                requestObjectSigningAlg = original.requestObjectSigningAlg,
+                userInfoSignedResponseAlg = original.userInfoSignedResponseAlg,
+                userInfoEncryptedResponseAlg = original.userInfoEncryptedResponseAlg,
+                userInfoEncryptedResponseEnc = original.userInfoEncryptedResponseEnc,
+                idTokenSignedResponseAlg = original.idTokenSignedResponseAlg,
+                idTokenEncryptedResponseAlg = original.idTokenEncryptedResponseAlg,
+                idTokenEncryptedResponseEnc = original.idTokenEncryptedResponseEnc,
+                tokenEndpointAuthSigningAlg = original.tokenEndpointAuthSigningAlg,
+                defaultMaxAge = original.defaultMaxAge,
+                requireAuthTime = original.requireAuthTime,
+                defaultACRvalues = original.defaultACRvalues,
+                initiateLoginUri = original.initiateLoginUri,
+                postLogoutRedirectUris = original.postLogoutRedirectUris,
+                requestUris = original.requestUris,
+                clientDescription = original.clientDescription,
+                isReuseRefreshToken = original.isReuseRefreshToken,
+                isDynamicallyRegistered = original.isDynamicallyRegistered,
+                isAllowIntrospection = original.isAllowIntrospection,
+                idTokenValiditySeconds = original.idTokenValiditySeconds,
+                createdAt = original.createdAt,
+                isClearAccessTokensOnRefresh = original.isClearAccessTokensOnRefresh,
+                deviceCodeValiditySeconds = original.deviceCodeValiditySeconds,
+                claimsRedirectUris = original.claimsRedirectUris,
+                softwareStatement = original.softwareStatement,
+                codeChallengeMethod = original.codeChallengeMethod,
+            )
+        }
+
         const val QUERY_BY_CLIENT_ID: String = "ClientDetailsEntity.getByClientId"
         const val QUERY_ALL: String = "ClientDetailsEntity.findAll"
 
