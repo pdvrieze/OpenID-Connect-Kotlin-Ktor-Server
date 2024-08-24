@@ -9,7 +9,7 @@ base {
 dependencies {
     api(projects.openidConnectCommon)
     api(libs.spring.oauth)
-    implementation(libs.gson)
+//    implementation(libs.gson)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.guava)
     api(libs.jwt)

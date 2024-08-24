@@ -21,14 +21,17 @@ import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
 import com.google.common.util.concurrent.UncheckedExecutionException
-import com.google.gson.JsonParseException
-import com.google.gson.JsonParser
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonArray
 import org.apache.http.client.HttpClient
 import org.apache.http.client.utils.URIBuilder
 import org.apache.http.impl.client.HttpClientBuilder
 import org.mitre.discovery.util.WebfingerURLNormalizer.normalizeResource
 import org.mitre.openid.connect.client.model.IssuerServiceResponse
 import org.mitre.openid.connect.client.service.IssuerService
+import org.mitre.util.asString
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
@@ -111,7 +114,6 @@ class WebfingerIssuerService(
      */
     private inner class WebfingerIssuerFetcher(httpClient: HttpClient?) : CacheLoader<String, LoadingResult>() {
         private val httpFactory = HttpComponentsClientHttpRequestFactory(httpClient)
-        private val parser = JsonParser()
 
         @Throws(Exception::class)
         override fun load(identifier: String): LoadingResult {
@@ -151,20 +153,19 @@ class WebfingerIssuerService(
                 logger.info("Loading: $builder")
                 val webfingerResponse = restTemplate.getForObject(builder.build(), String::class.java)
 
-                val json = parser.parse(webfingerResponse)
+                val json = Json.parseToJsonElement(webfingerResponse)
 
-                if (json != null && json.isJsonObject) {
+                if (json is JsonObject) {
                     // find the issuer
-                    val links = json.asJsonObject["links"].asJsonArray
+                    val links = json["links"]!!.jsonArray
                     for (link in links) {
-                        if (link.isJsonObject) {
-                            val linkObj = link.asJsonObject
-                            if ((linkObj.has("href")
-                                        && linkObj.has("rel")) && linkObj["rel"].asString == "http://openid.net/specs/connect/1.0/issuer"
+                        if (link is JsonObject) {
+
+                            if (("href" in link && "rel" in link) && link["rel"]!!.asString() == "http://openid.net/specs/connect/1.0/issuer"
                             ) {
                                 // we found the issuer, return it
 
-                                val href = linkObj["href"].asString
+                                val href = link["href"]!!.asString()
 
                                 return if (identifier == href || identifier.startsWith("http")) {
                                     // try to avoid sending a URL as the login hint
@@ -177,7 +178,7 @@ class WebfingerIssuerService(
                         }
                     }
                 }
-            } catch (e: JsonParseException) {
+            } catch (e: SerializationException) {
                 logger.warn("Failure in fetching webfinger input", e.message)
             } catch (e: RestClientException) {
                 logger.warn("Failure in fetching webfinger input", e.message)
