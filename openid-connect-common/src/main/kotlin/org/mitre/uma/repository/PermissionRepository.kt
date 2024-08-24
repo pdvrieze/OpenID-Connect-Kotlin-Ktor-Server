@@ -31,12 +31,12 @@ interface PermissionRepository {
     /**
      * Get the permission indicated by its ticket value.
      */
-    fun getByTicket(ticket: String?): PermissionTicket?
+    fun getByTicket(ticket: String): PermissionTicket?
 
     /**
      * Get all the tickets in the system (used by the import/export API)
      */
-    val all: Collection<PermissionTicket?>?
+    val all: Collection<PermissionTicket>?
 
     /**
      * Save a permission object with no associated ticket (used by the import/export API)

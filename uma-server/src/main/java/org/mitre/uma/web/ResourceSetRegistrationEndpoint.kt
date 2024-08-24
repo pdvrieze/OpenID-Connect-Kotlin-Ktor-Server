@@ -15,8 +15,11 @@
  */
 package org.mitre.uma.web
 
-import com.google.gson.JsonParseException
-import com.google.gson.JsonParser
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.long
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.oauth2.web.AuthenticationUtilities.ensureOAuthScope
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
@@ -27,9 +30,8 @@ import org.mitre.uma.model.ResourceSet
 import org.mitre.uma.service.ResourceSetService
 import org.mitre.uma.view.ResourceSetEntityAbbreviatedView
 import org.mitre.uma.view.ResourceSetEntityView
-import org.mitre.util.GsonUtils.getAsLong
-import org.mitre.util.GsonUtils.getAsString
 import org.mitre.util.GsonUtils.getAsStringSet
+import org.mitre.util.asString
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -58,8 +60,6 @@ class ResourceSetRegistrationEndpoint {
 
     @Autowired
     private lateinit var scopeService: SystemScopeService
-
-    private val parser = JsonParser()
 
     @RequestMapping(method = [RequestMethod.POST], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE], consumes = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     fun createResourceSet(@RequestBody jsonString: String, m: Model, auth: Authentication): String {
@@ -241,24 +241,17 @@ class ResourceSetRegistrationEndpoint {
 
     private fun parseResourceSet(jsonString: String): ResourceSet? {
         try {
-            val el = parser.parse(jsonString)
+            val o = (Json.parseToJsonElement(jsonString) as? JsonObject) ?: return null
 
-            if (el.isJsonObject) {
-                val o = el.asJsonObject
-
-                val rs = ResourceSet()
-                rs.id = getAsLong(o, "_id")
-                rs.name = requireNotNull(getAsString(o, "name")) { "Missing resource name" }
-                rs.iconUri = getAsString(o, "icon_uri")
-                rs.type = getAsString(o, "type")
-                rs.scopes = getAsStringSet(o, "scopes")!!
-                rs.uri = getAsString(o, "uri")
-
-                return rs
-            }
-
-            return null
-        } catch (e: JsonParseException) {
+            return ResourceSet(
+                id = o["id"]?.jsonPrimitive?.long,
+                name = requireNotNull(o["name"], { "Missing resource name" }).asString(),
+                uri = o["uri"]?.asString(),
+                type = o["type"]?.asString(),
+                scopes = requireNotNull(getAsStringSet(o, "scopes")),
+                iconUri = o["icon_uri"]?.asString(),
+            )
+        } catch (e: SerializationException) {
             return null
         }
     }

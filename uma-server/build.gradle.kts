@@ -13,7 +13,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.servlet.api)
     implementation(libs.slf4j.api)
-    implementation(libs.gson)
+//    implementation(libs.gson)
     implementation(libs.spring.webmvc)
     implementation(libs.spring.tx)
     implementation(libs.kotlinx.serialization.json)

@@ -15,7 +15,7 @@
  */
 package org.mitre.uma.web
 
-import com.google.gson.Gson
+import kotlinx.serialization.json.Json
 import org.mitre.openid.connect.view.HttpCodeView
 import org.mitre.openid.connect.view.JsonEntityView
 import org.mitre.openid.connect.view.JsonErrorView
@@ -45,7 +45,6 @@ import org.springframework.web.bind.annotation.RequestMethod
 @RequestMapping("/" + PolicyAPI.URL)
 @PreAuthorize("hasRole('ROLE_USER')")
 class PolicyAPI {
-    private val gson = Gson()
 
     @Autowired
     private lateinit var resourceSetService: ResourceSetService
@@ -143,7 +142,7 @@ class PolicyAPI {
     @RequestMapping(value = ["/{rsid}" + POLICYURL], method = [RequestMethod.POST], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     fun createNewPolicyForResourceSet(
         @PathVariable(value = "rsid") rsid: Long,
-        @RequestBody jsonString: String?,
+        @RequestBody jsonString: String,
         m: Model,
         auth: Authentication
     ): String {
@@ -162,7 +161,7 @@ class PolicyAPI {
             return HttpCodeView.VIEWNAME
         }
 
-        val p = gson.fromJson(jsonString, Policy::class.java)
+        val p = Json.decodeFromString<Policy>(jsonString)
 
         if (p.id != null) {
             logger.warn("Tried to add a policy with a non-null ID: " + p.id)
@@ -241,7 +240,7 @@ class PolicyAPI {
     fun setClaimsForResourceSet(
         @PathVariable(value = "rsid") rsid: Long,
         @PathVariable(value = "pid") pid: Long,
-        @RequestBody jsonString: String?,
+        @RequestBody jsonString: String,
         m: Model,
         auth: Authentication
     ): String {
@@ -260,7 +259,7 @@ class PolicyAPI {
             return HttpCodeView.VIEWNAME
         }
 
-        val p = gson.fromJson(jsonString, Policy::class.java)
+        val p = Json.decodeFromString<Policy>(jsonString)
 
         if (pid != p.id) {
             logger.warn("Policy ID mismatch, expected " + pid + " got " + p.id)
@@ -269,7 +268,7 @@ class PolicyAPI {
             return HttpCodeView.VIEWNAME
         }
 
-        for (policy in rs.policies!!) {
+        for (policy in rs.policies) {
             if (policy.id == pid) {
                 // found it!
 

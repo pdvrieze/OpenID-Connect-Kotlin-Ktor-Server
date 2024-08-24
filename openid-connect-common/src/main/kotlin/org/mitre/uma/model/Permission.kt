@@ -42,10 +42,23 @@ class Permission {
 
     @get:JoinColumn(name = "resource_set_id")
     @get:ManyToOne(fetch = FetchType.EAGER)
-    var resourceSet: ResourceSet? = null
+    lateinit var resourceSet: ResourceSet
 
     @get:CollectionTable(name = "permission_scope", joinColumns = [JoinColumn(name = "owner_id")])
     @get:Column(name = "scope")
     @get:ElementCollection(fetch = FetchType.EAGER)
     var scopes: Set<String> = emptySet()
+
+    @Deprecated("For JPA")
+    constructor()
+
+    constructor(id: Long? = null, resourceSet: ResourceSet? = null, scopes: Set<String>) {
+        this.id = id
+        resourceSet?.let { this.resourceSet = it }
+        this.scopes = scopes.toSet()
+    }
+
+    fun copy(id: Long? = this.id, resourceSet: ResourceSet? = this.resourceSet, scopes:Set<String> = this.scopes): Permission {
+        return Permission(id, resourceSet, scopes)
+    }
 }

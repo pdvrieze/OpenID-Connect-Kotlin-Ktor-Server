@@ -194,7 +194,7 @@ class DeviceEndpoint {
         }
 
         // make sure the device code hasn't already been approved
-        if (dc.isApproved) {
+        if (dc.isApproved == true) {
             model.addAttribute("error", "userCodeAlreadyApproved")
             return "requestUserCode"
         }

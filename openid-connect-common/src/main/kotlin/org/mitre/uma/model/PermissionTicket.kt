@@ -50,6 +50,26 @@ class PermissionTicket {
     @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
     var claimsSupplied: Collection<Claim>? = null
 
+    @Deprecated("For JPA")
+    constructor()
+
+    constructor(id: Long? = null, permission: Permission, ticket: String? = null, expiration: Date? = null, claimsSupplied: Collection<Claim>? = null) {
+        this.id = id
+        this.permission = permission
+        this.ticket = ticket
+        this.expiration = expiration
+        this.claimsSupplied = claimsSupplied?.toHashSet()
+    }
+
+    fun copy(
+        id: Long? = this.id,
+        permission: Permission = this.permission,
+        ticket: String? = this.ticket,
+        expiration: Date? = this.expiration,
+        claimsSupplied: Collection<Claim>? = this.claimsSupplied,
+    ): PermissionTicket {
+        return PermissionTicket(id, permission, ticket, expiration, claimsSupplied)
+    }
 
     companion object {
         const val QUERY_TICKET: String = "PermissionTicket.queryByTicket"

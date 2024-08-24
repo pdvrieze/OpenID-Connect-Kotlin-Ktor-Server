@@ -64,7 +64,7 @@ class DeviceTokenGranter protected constructor(
                 deviceCodeService.clearDeviceCode(deviceCode, client)
 
                 throw DeviceCodeExpiredException("Device code has expired $deviceCode")
-            } else if (!dc.isApproved) {
+            } else if (dc.isApproved != true) {
                 // still waiting for approval
 
                 throw AuthorizationPendingException("Authorization pending for code $deviceCode")

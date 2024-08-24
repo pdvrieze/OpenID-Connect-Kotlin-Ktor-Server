@@ -36,7 +36,7 @@ interface PermissionService {
      * @param ticket the ticket value to search on
      * @return the permission object, or null if none is found
      */
-    fun getByTicket(ticket: String?): PermissionTicket?
+    fun getByTicket(ticket: String): PermissionTicket?
 
     /**
      * Save the updated permission ticket to the database. Does not create a new ticket.

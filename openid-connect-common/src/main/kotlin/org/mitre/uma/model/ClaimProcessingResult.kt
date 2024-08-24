@@ -23,7 +23,7 @@ package org.mitre.uma.model
 class ClaimProcessingResult {
     var isSatisfied: Boolean
 
-    var unmatched: Collection<Claim>?
+    var unmatched: Collection<Claim>
 
     var matched: Policy?
 
@@ -42,6 +42,6 @@ class ClaimProcessingResult {
     constructor(matched: Policy) {
         this.isSatisfied = true
         this.matched = matched
-        this.unmatched = null
+        this.unmatched = emptyList()
     }
 }

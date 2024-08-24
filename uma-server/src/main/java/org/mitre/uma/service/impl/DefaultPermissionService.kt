@@ -65,7 +65,7 @@ class DefaultPermissionService : PermissionService {
     /* (non-Javadoc)
 	 * @see org.mitre.uma.service.PermissionService#getByTicket(java.lang.String)
 	 */
-    override fun getByTicket(ticket: String?): PermissionTicket? {
+    override fun getByTicket(ticket: String): PermissionTicket? {
         return repository.getByTicket(ticket)
     }
 

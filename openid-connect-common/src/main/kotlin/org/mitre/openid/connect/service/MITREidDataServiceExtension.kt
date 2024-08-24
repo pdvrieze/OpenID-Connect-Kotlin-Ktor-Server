@@ -15,8 +15,8 @@
  */
 package org.mitre.openid.connect.service
 
-import com.google.gson.stream.JsonReader
-import com.google.gson.stream.JsonWriter
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 import java.io.IOException
 
 /**
@@ -32,7 +32,7 @@ interface MITREidDataServiceExtension {
      * the top level object can be written next.
      */
     @Throws(IOException::class)
-    fun exportExtensionData(writer: JsonWriter)
+    fun exportExtensionData(): JsonObject
 
     /**
      * Import data that's part of this extension. This is called from the context of
@@ -44,7 +44,7 @@ interface MITREidDataServiceExtension {
      * Returns "true" if the item was processed, "false" otherwise.
      */
     @Throws(IOException::class)
-    fun importExtensionData(name: String?, reader: JsonReader): Boolean
+    fun importExtensionData(name: String?, data: JsonElement): Boolean
 
     /**
      * Signal the extension to wrap up all object processing and finalize its

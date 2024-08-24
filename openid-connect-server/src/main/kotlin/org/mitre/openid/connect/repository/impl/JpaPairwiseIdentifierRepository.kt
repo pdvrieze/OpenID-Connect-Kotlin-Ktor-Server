@@ -51,6 +51,6 @@ class JpaPairwiseIdentifierRepository : PairwiseIdentifierRepository {
 	 */
     @Transactional(value = "defaultTransactionManager")
     override fun save(pairwise: PairwiseIdentifier): PairwiseIdentifier {
-        saveOrUpdate(pairwise.id!!, manager, pairwise)
+        return saveOrUpdate(pairwise.id!!, manager, pairwise)
     }
 }

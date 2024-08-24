@@ -70,7 +70,7 @@ class DefaultOAuth2AuthorizationCodeService : AuthorizationCodeServices {
         // set the auth code to expire
         val expiration = Date(System.currentTimeMillis() + (authCodeExpirationSeconds * 1000L))
 
-        val entity = AuthorizationCodeEntity(code, authHolder, expiration)
+        val entity = AuthorizationCodeEntity(code = code, authenticationHolder = authHolder, expiration = expiration)
         repository.save(entity)
 
         return code

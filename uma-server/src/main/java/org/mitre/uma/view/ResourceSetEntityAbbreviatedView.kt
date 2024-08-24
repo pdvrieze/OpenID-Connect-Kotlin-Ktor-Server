@@ -15,12 +15,12 @@
  */
 package org.mitre.uma.view
 
-import com.google.gson.ExclusionStrategy
-import com.google.gson.FieldAttributes
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
-import com.google.gson.JsonObject
-import com.google.gson.LongSerializationPolicy
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.encodeToStream
+import kotlinx.serialization.json.put
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.view.HttpCodeView
 import org.mitre.openid.connect.view.JsonEntityView
@@ -31,9 +31,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
-import org.springframework.validation.BeanPropertyBindingResult
 import org.springframework.web.servlet.view.AbstractView
 import java.io.IOException
+import java.io.OutputStream
 import java.io.Writer
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -43,6 +43,7 @@ class ResourceSetEntityAbbreviatedView : AbstractView() {
     @Autowired
     private lateinit var config: ConfigurationPropertiesBean
 
+/*
     private val gson: Gson = GsonBuilder()
         .setExclusionStrategies(object : ExclusionStrategy {
             override fun shouldSkipField(f: FieldAttributes): Boolean {
@@ -58,6 +59,7 @@ class ResourceSetEntityAbbreviatedView : AbstractView() {
         .setDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
         .setLongSerializationPolicy(LongSerializationPolicy.STRING)
         .create()
+*/
 
     override fun renderMergedOutputModel(
         model: Map<String, Any>,
@@ -80,16 +82,15 @@ class ResourceSetEntityAbbreviatedView : AbstractView() {
         }
 
         try {
-            val out: Writer = response.writer
+            val out: OutputStream = response.outputStream
             val rs = model[JsonEntityView.ENTITY] as ResourceSet
 
-            val o = JsonObject()
+            val o = buildJsonObject {
+                put("_id", rs.id.toString())
+                put("user_access_policy_uri", "${config.issuer}manage/user/policy/${rs.id}")
+            }
 
-            o.addProperty("_id", rs.id.toString()) // set the ID to a string
-            o.addProperty("user_access_policy_uri", "${config.issuer}manage/user/policy/${rs.id}")
-
-
-            gson.toJson(o, out)
+            Json.encodeToStream<JsonObject>(o, out)
         } catch (e: IOException) {
             Companion.logger.error("IOException in ResourceSetEntityView.java: ", e)
         }

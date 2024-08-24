@@ -15,14 +15,11 @@
  */
 package org.mitre.uma.service.impl
 
-import com.google.gson.JsonParser
-import com.google.gson.stream.JsonReader
-import com.google.gson.stream.JsonToken
-import com.google.gson.stream.JsonWriter
-import kotlinx.serialization.json.Json
+import kotlinx.serialization.builtins.SetSerializer
+import kotlinx.serialization.json.*
+import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.oauth2.util.requireId
-import org.mitre.openid.connect.ClientDetailsEntityJsonProcessor.parseRegistered
 import org.mitre.openid.connect.service.MITREidDataService
 import org.mitre.openid.connect.service.MITREidDataService.Companion.toUTCString
 import org.mitre.openid.connect.service.MITREidDataService.Companion.utcToDate
@@ -31,12 +28,11 @@ import org.mitre.openid.connect.service.MITREidDataServiceMaps
 import org.mitre.uma.model.Claim
 import org.mitre.uma.model.Permission
 import org.mitre.uma.model.PermissionTicket
-import org.mitre.uma.model.Policy
 import org.mitre.uma.model.ResourceSet
 import org.mitre.uma.repository.PermissionRepository
 import org.mitre.uma.repository.ResourceSetRepository
 import org.mitre.uma.service.SavedRegisteredClientService
-import org.mitre.util.GsonUtils.readSet
+import org.mitre.util.asString
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -73,53 +69,46 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
 	 * @see org.mitre.openid.connect.service.MITREidDataServiceExtension#exportExtensionData(com.google.gson.stream.JsonWriter)
 	 */
     @Throws(IOException::class)
-    override fun exportExtensionData(writer: JsonWriter) {
-        writer.name(SAVED_REGISTERED_CLIENTS)
-        writer.beginArray()
-        writeSavedRegisteredClients(writer)
-        writer.endArray()
+    override fun exportExtensionData(): JsonObject {
+        return buildJsonObject {
+            putJsonArray(SAVED_REGISTERED_CLIENTS) {
+                writeSavedRegisteredClients(this)
+            }
 
-        writer.name(RESOURCE_SETS)
-        writer.beginArray()
-        writeResourceSets(writer)
-        writer.endArray()
+            putJsonArray(RESOURCE_SETS) {
+                writeResourceSets(this)
+            }
 
-        writer.name(PERMISSION_TICKETS)
-        writer.beginArray()
-        writePermissionTickets(writer)
-        writer.endArray()
+            putJsonArray(PERMISSION_TICKETS) {
+                writePermissionTickets(this)
+            }
 
-        writer.name(TOKEN_PERMISSIONS)
-        writer.beginArray()
-        writeTokenPermissions(writer)
-        writer.endArray()
+            putJsonArray(TOKEN_PERMISSIONS) {
+                writeTokenPermissions(this)
+            }
+        }
     }
 
     /**
      * @throws IOException
      */
     @Throws(IOException::class)
-    private fun writeTokenPermissions(writer: JsonWriter?) {
+    private fun writeTokenPermissions(builder: JsonArrayBuilder) {
         for (token in tokenRepository.allAccessTokens) {
-            if (!token.permissions!!.isEmpty()) { // skip tokens that don't have the permissions structure attached
-                writer!!.beginObject()
-                writer.name(TOKEN_ID).value(token.id)
-                writer.name(PERMISSIONS)
-                writer.beginArray()
-                for (p in token.permissions!!) {
-                    writer.beginObject()
-                    writer.name(RESOURCE_SET).value(p.resourceSet!!.id)
-                    writer.name(SCOPES)
-                    writer.beginArray()
-                    for (s in p.scopes!!) {
-                        writer.value(s)
+            if (token.permissions!!.isNotEmpty()) { // skip tokens that don't have the permissions structure attached
+                builder.addJsonObject {
+                    put(TOKEN_ID, token.id)
+                    putJsonArray(PERMISSIONS) {
+                        for (perm in token.permissions!!) {
+                            addJsonObject {
+                                put(RESOURCE_SET, perm.resourceSet!!.id)
+                                putJsonArray(SCOPES) {
+                                    addAll(perm.scopes)
+                                }
+                            }
+                        }
                     }
-                    writer.endArray()
-                    writer.endObject()
                 }
-                writer.endArray()
-
-                writer.endObject()
             }
         }
     }
@@ -128,52 +117,36 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
      * @throws IOException
      */
     @Throws(IOException::class)
-    private fun writePermissionTickets(writer: JsonWriter?) {
+    private fun writePermissionTickets(builder: JsonArrayBuilder) {
         for (ticket in permissionRepository.all!!) {
-            writer!!.beginObject()
-
-            writer.name(CLAIMS_SUPPLIED)
-            writer.beginArray()
-            for (claim in ticket!!.claimsSupplied!!) {
-                writer.beginObject()
-
-                writer.name(ISSUER)
-                writer.beginArray()
-                for (issuer in claim.issuer!!) {
-                    writer.value(issuer)
+            builder.addJsonObject {
+                putJsonArray(CLAIMS_SUPPLIED) {
+                    for(claim in ticket.claimsSupplied!!) {
+                        addJsonObject {
+                            putJsonArray(ISSUER) {
+                                addAll(claim.issuer)
+                            }
+                            putJsonArray(CLAIM_TOKEN_FORMAT) {
+                                addAll(claim.claimTokenFormat)
+                            }
+                            put(CLAIM_TYPE, claim.claimType)
+                            put(FRIENDLY_NAME, claim.friendlyName)
+                            put(NAME, claim.name)
+                            claim.value?.let { put(VALUE, it) }
+                        }
+                    }
                 }
-                writer.endArray()
-                writer.name(CLAIM_TOKEN_FORMAT)
-                writer.beginArray()
-                for (format in claim.claimTokenFormat!!) {
-                    writer.value(format)
+
+                put(EXPIRATION, toUTCString(ticket?.expiration))
+                putJsonObject(PERMISSION) {
+                    val perm = ticket.permission
+                    put(RESOURCE_SET, perm.resourceSet!!.id)
+                    putJsonArray(SCOPES) {
+                        addAll(perm.scopes)
+                    }
                 }
-                writer.endArray()
-                writer.name(CLAIM_TYPE).value(claim.claimType)
-                writer.name(FRIENDLY_NAME).value(claim.friendlyName)
-                writer.name(NAME).value(claim.name)
-                writer.name(VALUE).value(claim.value.toString())
-                writer.endObject()
+                put(TICKET, ticket.ticket)
             }
-            writer.endArray()
-
-            writer.name(EXPIRATION).value(toUTCString(ticket.expiration))
-
-            writer.name(PERMISSION)
-            writer.beginObject()
-            val p = ticket.permission
-            writer.name(RESOURCE_SET).value(p!!.resourceSet!!.id)
-            writer.name(SCOPES)
-            writer.beginArray()
-            for (s in p.scopes!!) {
-                writer.value(s)
-            }
-            writer.endArray()
-            writer.endObject()
-
-            writer.name(TICKET).value(ticket.ticket)
-
-            writer.endObject()
         }
     }
 
@@ -181,73 +154,50 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
      * @throws IOException
      */
     @Throws(IOException::class)
-    private fun writeResourceSets(writer: JsonWriter?) {
-        for (rs in resourceSetRepository.all!!) {
-            writer!!.beginObject()
-            writer.name(ID).value(rs.id)
-            writer.name(CLIENT_ID).value(rs.clientId)
-            writer.name(ICON_URI).value(rs.iconUri)
-            writer.name(NAME).value(rs.name)
-            writer.name(TYPE).value(rs.type)
-            writer.name(URI).value(rs.uri)
-            writer.name(OWNER).value(rs.owner)
-            writer.name(POLICIES)
-            writer.beginArray()
-            for (policy in rs.policies!!) {
-                writer.beginObject()
-                writer.name(NAME).value(policy.name)
-                writer.name(SCOPES)
-                writer.beginArray()
-                for (scope in policy.scopes!!) {
-                    writer.value(scope)
-                }
-                writer.endArray()
-                writer.name(CLAIMS_REQUIRED)
-                writer.beginArray()
-                for (claim in policy.claimsRequired!!) {
-                    writer.beginObject()
-
-                    writer.name(ISSUER)
-                    writer.beginArray()
-                    for (issuer in claim.issuer!!) {
-                        writer.value(issuer)
+    private fun writeResourceSets(builder: JsonArrayBuilder) {
+        for (rs in resourceSetRepository.all) {
+            builder.addJsonObject {
+                put(ID, rs.id)
+                put(CLIENT_ID, rs.clientId)
+                put(ICON_URI, rs.iconUri)
+                put(NAME, rs.name)
+                put(TYPE, rs.type)
+                put(URI, rs.uri)
+                put(OWNER, rs.owner)
+                putJsonArray(POLICIES) {
+                    for(policy in rs.policies) {
+                        addJsonObject {
+                            put(NAME, policy.name)
+                            putJsonArray(SCOPES) { addAll(policy.scopes) }
+                            putJsonArray(CLAIMS_REQUIRED) {
+                                for (claim in policy.claimsRequired!!) {
+                                    addJsonObject {
+                                        putJsonArray(ISSUER) { addAll(claim.issuer) }
+                                        putJsonArray(CLAIM_TOKEN_FORMAT) { addAll(claim.claimTokenFormat) }
+                                        put(CLAIM_TYPE, claim.claimType)
+                                        put(FRIENDLY_NAME, claim.friendlyName)
+                                        put(NAME, claim.name)
+                                        claim.value?.let { put(VALUE, it) }
+                                    }
+                                }
+                            }
+                        }
                     }
-                    writer.endArray()
-                    writer.name(CLAIM_TOKEN_FORMAT)
-                    writer.beginArray()
-                    for (format in claim.claimTokenFormat!!) {
-                        writer.value(format)
-                    }
-                    writer.endArray()
-                    writer.name(CLAIM_TYPE).value(claim.claimType)
-                    writer.name(FRIENDLY_NAME).value(claim.friendlyName)
-                    writer.name(NAME).value(claim.name)
-                    writer.name(VALUE).value(claim.value.toString())
-                    writer.endObject()
                 }
-                writer.endArray()
-                writer.endObject()
+                putJsonArray(SCOPES) { addAll(rs.scopes) }
             }
-            writer.endArray()
-            writer.name(SCOPES)
-            writer.beginArray()
-            for (scope in rs.scopes) {
-                writer.value(scope)
-            }
-            writer.endArray()
-            writer.endObject()
             logger.debug("Finished writing resource set {}", rs.id)
         }
     }
 
 
     @Throws(IOException::class)
-    private fun writeSavedRegisteredClients(writer: JsonWriter?) {
+    private fun writeSavedRegisteredClients(builder: JsonArrayBuilder) {
         for (src in registeredClientService.all) {
-            writer!!.beginObject()
-            writer.name(ISSUER).value(src.issuer)
-            writer.name(REGISTERED_CLIENT).value(src.registeredClient!!.source.toString())
-            writer.endObject()
+            builder.addJsonObject {
+                put(ISSUER, src.issuer)
+                src.registeredClient!!.source?.let { put(REGISTERED_CLIENT, it) }
+            }
             logger.debug("Wrote saved registered client {}", src.id)
         }
         logger.info("Done writing saved registered clients")
@@ -257,18 +207,18 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
 	 * @see org.mitre.openid.connect.service.MITREidDataServiceExtension#importExtensionData(com.google.gson.stream.JsonReader)
 	 */
     @Throws(IOException::class)
-    override fun importExtensionData(name: String?, reader: JsonReader): Boolean {
+    override fun importExtensionData(name: String?, data: JsonElement): Boolean {
         if (name == SAVED_REGISTERED_CLIENTS) {
-            readSavedRegisteredClients(reader)
+            readSavedRegisteredClients(data)
             return true
         } else if (name == RESOURCE_SETS) {
-            readResourceSets(reader)
+            readResourceSets(data)
             return true
         } else if (name == PERMISSION_TICKETS) {
-            readPermissionTickets(reader)
+            readPermissionTickets(data)
             return true
         } else if (name == TOKEN_PERMISSIONS) {
-            readTokenPermissions(reader)
+            readTokenPermissions(data)
             return true
         } else {
             return false
@@ -277,189 +227,52 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
 
 
     @Throws(IOException::class)
-    private fun readTokenPermissions(reader: JsonReader) {
-        reader.beginArray()
-        while (reader.hasNext()) {
-            reader.beginObject()
-            var tokenId: Long? = null
-            val permissions: MutableSet<Long> = HashSet()
-            while (reader.hasNext()) {
-                when (reader.peek()) {
-                    JsonToken.END_OBJECT -> continue
-                    JsonToken.NAME -> {
-                        val name = reader.nextName()
-                        if (name == TOKEN_ID) {
-                            tokenId = reader.nextLong()
-                        } else if (name == PERMISSIONS) {
-                            reader.beginArray()
-                            while (reader.hasNext()) {
-                                val p = Permission()
-                                var rsid: Long? = null
-                                var scope: Set<String> = emptySet()
-                                reader.beginObject()
-                                while (reader.hasNext()) {
-                                    when (reader.peek()) {
-                                        JsonToken.END_OBJECT -> continue
-                                        JsonToken.NAME -> {
-                                            val pname = reader.nextName()
-                                            if (reader.peek() == JsonToken.NULL) {
-                                                reader.skipValue()
-                                            } else if (pname == RESOURCE_SET) {
-                                                rsid = reader.nextLong()
-                                            } else if (pname == SCOPES) {
-                                                scope = readSet<String>(reader)
-                                            } else {
-                                                logger.debug("Found unexpected entry")
-                                                reader.skipValue()
-                                            }
-                                        }
-
-                                        else -> {
-                                            logger.debug("Found unexpected entry")
-                                            reader.skipValue()
-                                            continue
-                                        }
-                                    }
-                                }
-                                reader.endObject()
-                                checkNotNull(rsid)
-                                p.scopes = scope
-                                val saved = permissionRepository.saveRawPermission(p)
-                                permissionToResourceRefs[saved.id!!] = rsid
-                                permissions.add(saved.id!!)
-                            }
-                            reader.endArray()
-                        }
-                    }
-
-                    else -> {
-                        logger.debug("Found unexpected entry")
-                        reader.skipValue()
-                        continue
-                    }
-                }
+    private fun readTokenPermissions(data: JsonElement) {
+        check(data is JsonArray)
+        for(o in data) {
+            require(o is JsonObject)
+            val tokenId: Long = requireNotNull(o[TOKEN_ID]).jsonPrimitive.long
+            val permissions: Set<Long> = requireNotNull(o[PERMISSIONS]).jsonArray.mapTo(HashSet()) { permObj ->
+                require(permObj is JsonObject)
+                val rsId = requireNotNull(permObj[RESOURCE_SET]).jsonPrimitive.long
+                val scope = (permObj[SCOPES] as JsonArray).mapTo(HashSet()) { it.jsonPrimitive.asString() }
+                val saved = permissionRepository.saveRawPermission(Permission(scopes = scope))
+                permissionToResourceRefs[saved.id!!] = rsId
+                saved.id!!
             }
-            reader.endObject()
-            checkNotNull(tokenId)
             tokenToPermissionRefs[tokenId] = permissions
         }
-        reader.endArray()
     }
 
     private val permissionToResourceRefs: MutableMap<Long, Long> = HashMap()
 
 
     @Throws(IOException::class)
-    private fun readPermissionTickets(reader: JsonReader?) {
-        val parser = JsonParser()
-        reader!!.beginArray()
-        while (reader.hasNext()) {
-            val ticket = PermissionTicket()
-            reader.beginObject()
-            while (reader.hasNext()) {
-                when (reader.peek()) {
-                    JsonToken.END_OBJECT -> continue
-                    JsonToken.NAME -> {
-                        val name = reader.nextName()
-                        if (reader.peek() == JsonToken.NULL) {
-                            reader.skipValue()
-                        } else if (name == CLAIMS_SUPPLIED) {
-                            val claimsSupplied: MutableSet<Claim> = HashSet()
-                            reader.beginArray()
-                            while (reader.hasNext()) {
-                                val c = Claim()
-                                reader.beginObject()
-                                while (reader.hasNext()) {
-                                    when (reader.peek()) {
-                                        JsonToken.END_OBJECT -> continue
-                                        JsonToken.NAME -> {
-                                            val cname = reader.nextName()
-                                            if (reader.peek() == JsonToken.NULL) {
-                                                reader.skipValue()
-                                            } else if (cname == ISSUER) {
-                                                c.issuer = readSet(reader)
-                                            } else if (cname == CLAIM_TOKEN_FORMAT) {
-                                                c.claimTokenFormat = readSet(reader)
-                                            } else if (cname == CLAIM_TYPE) {
-                                                c.claimType = reader.nextString()
-                                            } else if (cname == FRIENDLY_NAME) {
-                                                c.friendlyName = reader.nextString()
-                                            } else if (cname == NAME) {
-                                                c.name = reader.nextString()
-                                            } else if (cname == VALUE) {
-                                                c.value = Json.parseToJsonElement(reader.nextString())
-                                            } else {
-                                                logger.debug("Found unexpected entry")
-                                                reader.skipValue()
-                                            }
-                                        }
+    private fun readPermissionTickets(reader: JsonElement) {
+        require(reader is JsonArray)
 
-                                        else -> {
-                                            logger.debug("Found unexpected entry")
-                                            reader.skipValue()
-                                            continue
-                                        }
-                                    }
-                                }
-                                reader.endObject()
-                                claimsSupplied.add(c)
-                            }
-                            reader.endArray()
-                            ticket.claimsSupplied = claimsSupplied
-                        } else if (name == EXPIRATION) {
-                            ticket.expiration = utcToDate(reader.nextString())
-                        } else if (name == PERMISSION) {
-                            val p = Permission()
-                            var rsid: Long? = null
-                            reader.beginObject()
-                            while (reader.hasNext()) {
-                                when (reader.peek()) {
-                                    JsonToken.END_OBJECT -> continue
-                                    JsonToken.NAME -> {
-                                        val pname = reader.nextName()
-                                        if (reader.peek() == JsonToken.NULL) {
-                                            reader.skipValue()
-                                        } else if (pname == RESOURCE_SET) {
-                                            rsid = reader.nextLong()
-                                        } else if (pname == SCOPES) {
-                                            p.scopes = readSet(reader)
-                                        } else {
-                                            logger.debug("Found unexpected entry")
-                                            reader.skipValue()
-                                        }
-                                    }
-
-                                    else -> {
-                                        logger.debug("Found unexpected entry")
-                                        reader.skipValue()
-                                        continue
-                                    }
-                                }
-                            }
-                            checkNotNull(rsid)
-                            reader.endObject()
-                            val saved = permissionRepository.saveRawPermission(p)
-                            permissionToResourceRefs[saved.id!!] = rsid
-                            ticket.permission = saved
-                        } else if (name == TICKET) {
-                            ticket.ticket = reader.nextString()
-                        } else {
-                            logger.debug("Found unexpected entry")
-                            reader.skipValue()
-                        }
-                    }
-
-                    else -> {
-                        logger.debug("Found unexpected entry")
-                        reader.skipValue()
-                        continue
-                    }
-                }
+        for(ticketObj in reader) {
+            require(ticketObj is JsonObject)
+            val ticketExpiration = ticketObj[EXPIRATION]?.let { utcToDate(it.jsonPrimitive.asString()) }
+            val ticketString = ticketObj[TICKET]?.let { it.jsonPrimitive.asString() }
+            val permission = requireNotNull(ticketObj[PERMISSIONS]).jsonObject.let { p ->
+                val scopes = requireNotNull(p[SCOPES]).jsonArray.mapTo(HashSet()) { it.asString() }
+                val rsId = requireNotNull(p[RESOURCE_SET]).jsonPrimitive.long
+                val savedPerm = permissionRepository.saveRawPermission(Permission(scopes = scopes))
+                permissionToResourceRefs[savedPerm.id!!] = rsId
+                savedPerm
             }
-            reader.endObject()
+            val claimsSupplied = ticketObj[CLAIMS_SUPPLIED]?.let {
+                Json.decodeFromJsonElement(SetSerializer(Claim.serializer()), it)
+            }
+            val ticket = PermissionTicket(
+                permission = permission,
+                ticket = ticketString,
+                expiration = ticketExpiration,
+                claimsSupplied = claimsSupplied
+            )
             permissionRepository.save(ticket)
         }
-        reader.endArray()
     }
 
 
@@ -467,175 +280,30 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
 
 
     @Throws(IOException::class)
-    private fun readResourceSets(reader: JsonReader) {
-        val parser = JsonParser()
-        reader.beginArray()
-        while (reader.hasNext()) {
-            var oldId: Long? = null
-            val rs = ResourceSet()
-            reader.beginObject()
-            while (reader.hasNext()) {
-                when (reader.peek()) {
-                    JsonToken.END_OBJECT -> continue
-                    JsonToken.NAME -> {
-                        val name = reader.nextName()
-                        if (reader.peek() == JsonToken.NULL) {
-                            reader.skipValue()
-                        } else if (name == ID) {
-                            oldId = reader.nextLong()
-                        } else if (name == CLIENT_ID) {
-                            rs.clientId = reader.nextString()
-                        } else if (name == ICON_URI) {
-                            rs.iconUri = reader.nextString()
-                        } else if (name == NAME) {
-                            rs.name = reader.nextString()
-                        } else if (name == TYPE) {
-                            rs.type = reader.nextString()
-                        } else if (name == URI) {
-                            rs.uri = reader.nextString()
-                        } else if (name == OWNER) {
-                            rs.owner = reader.nextString()
-                        } else if (name == POLICIES) {
-                            val policies: MutableSet<Policy> = HashSet()
-                            reader.beginArray()
-                            while (reader.hasNext()) {
-                                val p = Policy()
-                                reader.beginObject()
-                                while (reader.hasNext()) {
-                                    when (reader.peek()) {
-                                        JsonToken.END_OBJECT -> continue
-                                        JsonToken.NAME -> {
-                                            val pname = reader.nextName()
-                                            if (reader.peek() == JsonToken.NULL) {
-                                                reader.skipValue()
-                                            } else if (pname == NAME) {
-                                                p.name = reader.nextString()
-                                            } else if (pname == SCOPES) {
-                                                p.scopes = readSet(reader)
-                                            } else if (pname == CLAIMS_REQUIRED) {
-                                                val claimsRequired: MutableSet<Claim> = HashSet()
-                                                reader.beginArray()
-                                                while (reader.hasNext()) {
-                                                    val c = Claim()
-                                                    reader.beginObject()
-                                                    while (reader.hasNext()) {
-                                                        when (reader.peek()) {
-                                                            JsonToken.END_OBJECT -> continue
-                                                            JsonToken.NAME -> {
-                                                                val cname = reader.nextName()
-                                                                if (reader.peek() == JsonToken.NULL) {
-                                                                    reader.skipValue()
-                                                                } else if (cname == ISSUER) {
-                                                                    c.issuer = readSet(reader)
-                                                                } else if (cname == CLAIM_TOKEN_FORMAT) {
-                                                                    c.claimTokenFormat = readSet(reader)
-                                                                } else if (cname == CLAIM_TYPE) {
-                                                                    c.claimType = reader.nextString()
-                                                                } else if (cname == FRIENDLY_NAME) {
-                                                                    c.friendlyName = reader.nextString()
-                                                                } else if (cname == NAME) {
-                                                                    c.name = reader.nextString()
-                                                                } else if (cname == VALUE) {
-                                                                    c.value = Json.parseToJsonElement(reader.nextString())
-                                                                } else {
-                                                                    logger.debug("Found unexpected entry")
-                                                                    reader.skipValue()
-                                                                }
-                                                            }
+    private fun readResourceSets(reader: JsonElement) {
+        require(reader is JsonArray)
+        for(e in reader) {
+            val rawRS = json.decodeFromJsonElement<ResourceSet>(e)
+            val oldId = rawRS.id
+            val newId = resourceSetRepository.save(rawRS).id
 
-                                                            else -> {
-                                                                logger.debug("Found unexpected entry")
-                                                                reader.skipValue()
-                                                                continue
-                                                            }
-                                                        }
-                                                    }
-                                                    reader.endObject()
-                                                    claimsRequired.add(c)
-                                                }
-                                                reader.endArray()
-                                                p.claimsRequired = claimsRequired
-                                            } else {
-                                                logger.debug("Found unexpected entry")
-                                                reader.skipValue()
-                                            }
-                                        }
-
-                                        else -> {
-                                            logger.debug("Found unexpected entry")
-                                            reader.skipValue()
-                                            continue
-                                        }
-                                    }
-                                }
-                                reader.endObject()
-                                policies.add(p)
-                            }
-                            reader.endArray()
-                            rs.policies = policies
-                        } else if (name == SCOPES) {
-                            rs.scopes = readSet(reader)
-                        } else {
-                            logger.debug("Found unexpected entry")
-                            reader.skipValue()
-                        }
-                    }
-
-                    else -> {
-                        logger.debug("Found unexpected entry")
-                        reader.skipValue()
-                        continue
-                    }
-                }
+            if (oldId!=null) {
+                resourceSetOldToNewIdMap[oldId] = newId
             }
-            reader.endObject()
-            val newId = resourceSetRepository.save(rs).id
-            resourceSetOldToNewIdMap[oldId] = newId
         }
-        reader.endArray()
-        logger.info("Done reading resource sets")
     }
 
 
     @Throws(IOException::class)
-    private fun readSavedRegisteredClients(reader: JsonReader?) {
-        reader!!.beginArray()
-        while (reader.hasNext()) {
-            var issuer: String? = null
-            var clientString: String? = null
-            reader.beginObject()
-            while (reader.hasNext()) {
-                when (reader.peek()) {
-                    JsonToken.END_OBJECT -> continue
-                    JsonToken.NAME -> {
-                        val name = reader.nextName()
-                        if (reader.peek() == JsonToken.NULL) {
-                            reader.skipValue()
-                        } else if (name == ISSUER) {
-                            issuer = reader.nextString()
-                        } else if (name == REGISTERED_CLIENT) {
-                            clientString = reader.nextString()
-                        } else {
-                            logger.debug("Found unexpected entry")
-                            reader.skipValue()
-                        }
-                    }
-
-                    else -> {
-                        logger.debug("Found unexpected entry")
-                        reader.skipValue()
-                        continue
-                    }
-                }
-            }
-            reader.endObject()
-            requireNotNull(clientString) { "Missing client string" }
-            requireNotNull(issuer) { "Missing issuer" }
-            val client = parseRegistered(clientString)
+    private fun readSavedRegisteredClients(data: JsonElement) {
+        require(data is JsonArray)
+        for (o in data) {
+            require(o is JsonObject)
+            val issuer = requireNotNull(o[ISSUER]).asString()
+            val client = json.decodeFromString<RegisteredClient>(requireNotNull(o[REGISTERED_CLIENT]).asString())
             registeredClientService.save(issuer, client)
             logger.debug("Saved registered client")
         }
-        reader.endArray()
         logger.info("Done reading saved registered clients")
     }
 
@@ -647,7 +315,7 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
             val oldResourceId = permissionToResourceRefs[permissionId]
             val newResourceId = resourceSetOldToNewIdMap[oldResourceId].requireId()
             val p = permissionRepository.getById(permissionId)!!
-            val rs = resourceSetRepository.getById(newResourceId)
+            val rs = resourceSetRepository.getById(newResourceId)!!
             p.resourceSet = rs
             permissionRepository.saveRawPermission(p)
             logger.debug("Mapping rsid $oldResourceId to $newResourceId for permission $permissionId")
@@ -671,6 +339,9 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
     }
 
     companion object {
+
+        internal val json = Json { ignoreUnknownKeys = true }
+
         private const val THIS_VERSION = MITREidDataService.MITREID_CONNECT_1_3
 
         private const val REGISTERED_CLIENT = "registeredClient"

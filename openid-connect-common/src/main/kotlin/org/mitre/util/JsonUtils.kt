@@ -35,6 +35,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.util.*
+import kotlin.collections.HashSet
 import com.google.gson.JsonElement as GsonElement
 import com.google.gson.JsonNull as GsonNull
 import com.google.gson.JsonObject as GsonObject
@@ -185,6 +186,20 @@ object GsonUtils {
             e == null -> null
             e.isJsonArray -> gson.fromJson<Set<String>>(e, object : TypeToken<Set<String>>() {}.type)
             else -> HashSet<String>().apply { add(e.asString) }
+        }
+    }
+
+    /**
+     * Gets the value of the given member as a set of strings, null if it doesn't exist
+     */
+    @Throws(JsonSyntaxException::class)
+    @JvmStatic
+    fun getAsStringSet(o: JsonObject, member: String?): Set<String>? {
+        val e = o[member]
+        return when {
+            e == null -> null
+            e is JsonArray -> e.mapTo(HashSet()) { it.asString() }
+            else -> HashSet<String>().apply { add(e.asString()) }
         }
     }
 

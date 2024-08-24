@@ -42,7 +42,7 @@ open class JpaPermissionRepository : PermissionRepository {
     /* (non-Javadoc)
 	 * @see org.mitre.uma.repository.PermissionRepository#getByTicket(java.lang.String)
 	 */
-    override fun getByTicket(ticket: String?): PermissionTicket? {
+    override fun getByTicket(ticket: String): PermissionTicket? {
         val query = em.createNamedQuery(PermissionTicket.QUERY_TICKET, PermissionTicket::class.java)
         query.setParameter(PermissionTicket.PARAM_TICKET, ticket)
         return getSingleResult(query.resultList)
@@ -51,8 +51,8 @@ open class JpaPermissionRepository : PermissionRepository {
         /* (non-Javadoc)
 	 * @see org.mitre.uma.repository.PermissionRepository#getAll()
 	 */
-    override val all: Collection<PermissionTicket>
-        get() {
+    override val all: Collection<PermissionTicket>?
+            get() {
             val query = em.createNamedQuery(PermissionTicket.QUERY_ALL, PermissionTicket::class.java)
             return query.resultList
         }
@@ -86,7 +86,7 @@ open class JpaPermissionRepository : PermissionRepository {
 	 */
     @Transactional(value = "defaultTransactionManager")
     override fun remove(ticket: PermissionTicket) {
-        val found = getByTicket(ticket.ticket)
+        val found = getByTicket(ticket.ticket?: return)
         if (found != null) {
             em.remove(found)
         }

@@ -33,5 +33,5 @@ interface UmaTokenService {
         o2auth: OAuth2Authentication,
         ticket: PermissionTicket,
         policy: Policy
-    ): OAuth2AccessTokenEntity?
+    ): OAuth2AccessTokenEntity
 }
