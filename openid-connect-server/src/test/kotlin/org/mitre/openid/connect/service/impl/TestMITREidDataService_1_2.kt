@@ -15,8 +15,8 @@
  */
 package org.mitre.openid.connect.service.impl
 
-import com.google.gson.JsonArray
 import com.nimbusds.jwt.JWTParser
+import kotlinx.serialization.json.JsonArray
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -38,6 +38,7 @@ import org.mitre.openid.connect.repository.BlacklistedSiteRepository
 import org.mitre.openid.connect.repository.WhitelistedSiteRepository
 import org.mitre.openid.connect.service.MITREidDataService
 import org.mitre.openid.connect.service.MITREidDataServiceMaps
+import org.mitre.util.asString
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
 import org.mockito.Captor
@@ -949,14 +950,14 @@ class TestMITREidDataService_1_2 {
         val savedRefreshTokens: List<OAuth2RefreshTokenEntity> = fakeRefreshTokenTable.values.sortedWith(refreshTokenIdComparator())
             //capturedRefreshTokens.getAllValues();
 
-        Assertions.assertEquals(356L, savedRefreshTokens[0].authenticationHolder!!.id)
-        Assertions.assertEquals(357L, savedRefreshTokens[1].authenticationHolder!!.id)
+        Assertions.assertEquals(356L, savedRefreshTokens[0].authenticationHolder.id)
+        Assertions.assertEquals(357L, savedRefreshTokens[1].authenticationHolder.id)
     }
 
     private fun jsonArrayToStringSet(a: JsonArray): Set<String> {
         val s: MutableSet<String> = HashSet()
         for (jsonElement in a) {
-            s.add(jsonElement.asString)
+            s.add(jsonElement.asString())
         }
         return s
     }

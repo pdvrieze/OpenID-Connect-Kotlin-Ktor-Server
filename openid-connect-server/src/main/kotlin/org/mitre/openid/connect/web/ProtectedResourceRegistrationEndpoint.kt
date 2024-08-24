@@ -15,7 +15,6 @@
  */
 package org.mitre.openid.connect.web
 
-import com.google.gson.JsonSyntaxException
 import kotlinx.serialization.SerializationException
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
@@ -240,7 +239,7 @@ class ProtectedResourceRegistrationEndpoint {
         var newClient: ClientDetailsEntity?
         try {
             newClient = jsonString?.let { parse(it) }
-        } catch (e: JsonSyntaxException) {
+        } catch (e: SerializationException) {
             // bad parse
             // didn't parse, this is a bad request
             logger.error("updateProtectedResource failed; submitted JSON is malformed")

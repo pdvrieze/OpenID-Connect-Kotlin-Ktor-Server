@@ -25,6 +25,7 @@ import com.nimbusds.jose.JWEAlgorithm
 import com.nimbusds.jose.JWSAlgorithm
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.boolean
@@ -351,8 +352,8 @@ fun JsonElement.asBoolean(): Boolean {
     return asBoolean()
 }
 
-@Deprecated("Use containsKey", ReplaceWith("containsKey(key)"))
-fun JsonObject.has(key: String) = containsKey(key)
+@Deprecated("Use contains", ReplaceWith("contains(key)"))
+fun JsonObject.has(key: String) = contains(key)
 
 @Deprecated("Use extension", ReplaceWith("e[key]?.asStringOrNull()", "org.mitre.util.asStringOrNull"))
 fun getAsString(o: JsonObject, key: String): String? {
@@ -392,3 +393,12 @@ fun getAsJweAlgorithmList(o: JsonObject, key: String): List<JWEAlgorithm>? {
 fun getAsEncryptionMethodList(o: JsonObject, member: String): List<EncryptionMethod>? {
     return getAsStringList(o, member)?.map { EncryptionMethod.parse(it) }
 }
+
+@Deprecated("Check directly", ReplaceWith("this is JsonArray", " kotlinx.serialization.json.JsonArray"))
+val JsonElement?.isJsonArray get() = this is JsonArray
+
+@Deprecated("Check directly", ReplaceWith("this is JsonObject", " kotlinx.serialization.json.JsonObject"))
+val JsonElement?.isJsonObject get() = this is JsonObject
+
+@Deprecated("Check directly", ReplaceWith("this is JsonNull", " kotlinx.serialization.json.JsonNull"))
+val JsonElement?.isJsonNull get() = this is JsonNull

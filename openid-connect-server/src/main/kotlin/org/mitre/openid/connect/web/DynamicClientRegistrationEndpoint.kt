@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.web
 
-import com.google.gson.JsonSyntaxException
 import com.nimbusds.jose.EncryptionMethod
 import com.nimbusds.jose.JWEAlgorithm
 import com.nimbusds.jose.JWSAlgorithm
@@ -289,7 +288,7 @@ class DynamicClientRegistrationEndpoint {
         var newClient: ClientDetailsEntity? = null
         try {
             newClient = jsonString?.let { parse(it) }
-        } catch (e: JsonSyntaxException) {
+        } catch (e: SerializationException) {
             // bad parse
             // didn't parse, this is a bad request
             logger.error("updateClient failed; submitted JSON is malformed")

@@ -17,20 +17,17 @@
  */
 package org.mitre.openid.connect.view
 
-import com.google.gson.ExclusionStrategy
-import com.google.gson.FieldAttributes
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
-import org.mitre.openid.connect.view.JsonEntityView
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.encodeToStream
+import kotlinx.serialization.serializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
-import org.springframework.validation.BeanPropertyBindingResult
 import org.springframework.web.servlet.view.AbstractView
 import java.io.IOException
-import java.io.Writer
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
@@ -39,21 +36,6 @@ import javax.servlet.http.HttpServletResponse
  */
 @Component(JsonEntityView.VIEWNAME)
 class JsonEntityView : AbstractView() {
-    private val gson: Gson = GsonBuilder()
-        .setExclusionStrategies(object : ExclusionStrategy {
-            override fun shouldSkipField(f: FieldAttributes): Boolean {
-                return false
-            }
-
-            override fun shouldSkipClass(clazz: Class<*>): Boolean {
-                // skip the JPA binding wrapper
-                return clazz == BeanPropertyBindingResult::class.java
-            }
-        })
-        .serializeNulls()
-        .setDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
-        .create()
-
     override fun renderMergedOutputModel(
         model: Map<String, Any>,
         request: HttpServletRequest,
@@ -68,9 +50,12 @@ class JsonEntityView : AbstractView() {
         response.setStatus(code.value())
 
         try {
-            val out: Writer = response.writer
-            val obj = model[ENTITY]
-            gson.toJson(obj, out)
+            // TODO this is very bad, but the whole model approach is not good enough.
+            val obj = model[JsonEntityView.ENTITY]
+
+            @OptIn(InternalSerializationApi::class)
+            val ser = obj!!.javaClass.kotlin.serializer()!!
+            Json.encodeToStream(ser, obj, response.outputStream)
         } catch (e: IOException) {
             Companion.logger.error("IOException in JsonEntityView.java: ", e)
         }

@@ -17,7 +17,6 @@
  */
 package org.mitre.oauth2.web
 
-import com.google.gson.Gson
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.openid.connect.service.MITREidDataService
@@ -47,8 +46,6 @@ import org.springframework.web.bind.annotation.RequestMethod
 class ScopeAPI {
     @Autowired
     private lateinit var scopeService: SystemScopeService
-
-    private val gsonXX = Gson()
 
     @RequestMapping(value = [""], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getAll(m: ModelMap): String {

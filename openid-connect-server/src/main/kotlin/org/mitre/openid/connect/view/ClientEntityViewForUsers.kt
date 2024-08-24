@@ -17,8 +17,6 @@
  */
 package org.mitre.openid.connect.view
 
-import com.google.gson.ExclusionStrategy
-import com.google.gson.FieldAttributes
 import org.springframework.stereotype.Component
 import org.springframework.validation.BeanPropertyBindingResult
 
@@ -37,23 +35,6 @@ class ClientEntityViewForUsers : AbstractClientEntityView() {
     private val whitelistedFields: Set<String> =
         hashSetOf("clientName", "clientId", "id", "clientDescription", "scope", "logoUri")
 
-    /* (non-Javadoc)
-	 * @see org.mitre.openid.connect.view.AbstractClientEntityView#getExclusionStrategy()
-	 */
-    override val exclusionStrategy: ExclusionStrategy
-        get() {
-            return object : ExclusionStrategy {
-                override fun shouldSkipField(f: FieldAttributes): Boolean {
-                    // whitelist the handful of fields that are good
-                    return !whitelistedFields.contains(f.name)
-                }
-
-                override fun shouldSkipClass(clazz: Class<*>): Boolean {
-                    // skip the JPA binding wrapper
-                    return clazz == BeanPropertyBindingResult::class.java
-                }
-            }
-        }
 
     companion object {
         const val VIEWNAME: String = "clientEntityViewUsers"

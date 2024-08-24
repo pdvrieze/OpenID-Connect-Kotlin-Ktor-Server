@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.service.impl
 
-import com.google.gson.stream.JsonWriter
 import com.nimbusds.jwt.JWTParser
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -995,7 +994,7 @@ class TestMITREidDataService_1_0 {
 
     @Test
     fun testExportDisabled() {
-        val writer = JsonWriter(StringWriter())
+//        val writer = JsonWriter(StringWriter())
         assertThrows<UnsupportedOperationException> {
             dataService.exportData()
         }

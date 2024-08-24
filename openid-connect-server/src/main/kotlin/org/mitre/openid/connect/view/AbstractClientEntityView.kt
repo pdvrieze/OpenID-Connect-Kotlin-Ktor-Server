@@ -17,17 +17,15 @@
  */
 package org.mitre.openid.connect.view
 
-import com.google.gson.ExclusionStrategy
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
-import com.google.gson.JsonParser
-import com.google.gson.JsonPrimitive
-import com.google.gson.JsonSerializer
 import com.nimbusds.jose.EncryptionMethod
 import com.nimbusds.jose.JWEAlgorithm
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jwt.JWT
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.encodeToStream
+import kotlinx.serialization.serializer
 import org.mitre.oauth2.model.PKCEAlgorithm
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -51,35 +49,6 @@ import javax.servlet.http.HttpServletResponse
  * @author jricher
  */
 abstract class AbstractClientEntityView : AbstractView() {
-    private val parser = JsonParser()
-
-    private val gson: Gson = GsonBuilder()
-        .setExclusionStrategies(exclusionStrategy)
-        .registerTypeAdapter(JWSAlgorithm::class.java, JsonSerializer<JWSAlgorithm?> { src, typeOfSrc, context ->
-            src?.let { JsonPrimitive(it.name) }
-        })
-        .registerTypeAdapter(JWEAlgorithm::class.java, JsonSerializer<JWEAlgorithm?> { src, typeOfSrc, context ->
-            src?.let { JsonPrimitive(it.name) }
-        })
-        .registerTypeAdapter(EncryptionMethod::class.java, JsonSerializer<EncryptionMethod?> { src, typeOfSrc, context ->
-            src?.let { JsonPrimitive(it.name) }
-        })
-        .registerTypeAdapter(JWKSet::class.java, JsonSerializer<JWKSet?> { src, typeOfSrc, context ->
-            src?.let { parser.parse(it.toString()) }
-        })
-        .registerTypeAdapter(JWT::class.java, JsonSerializer<JWT?> { src, typeOfSrc, context ->
-            src?.let { JsonPrimitive(it.serialize()) }
-        })
-        .registerTypeAdapter(PKCEAlgorithm::class.java, JsonSerializer<PKCEAlgorithm?> { src, typeOfSrc, context ->
-            src?.let { JsonPrimitive(it.name) }
-        })
-        .serializeNulls()
-        .setDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
-        .create()
-
-
-    protected abstract val exclusionStrategy: ExclusionStrategy?
-
 
     override fun renderMergedOutputModel(
         model: Map<String, Any>,
@@ -94,9 +63,11 @@ abstract class AbstractClientEntityView : AbstractView() {
         response.setStatus(code.value())
 
         try {
-            val out: Writer = response.writer
+            // TODO this is very bad, but the whole model approach is not good enough.
             val obj = model[JsonEntityView.ENTITY]
-            gson.toJson(obj, out)
+            @OptIn(InternalSerializationApi::class)
+            val ser = obj!!.javaClass.kotlin.serializer()!!
+            Json.encodeToStream(ser, obj, response.outputStream)
         } catch (e: IOException) {
             Companion.logger.error("IOException in JsonEntityView.java: ", e)
         }

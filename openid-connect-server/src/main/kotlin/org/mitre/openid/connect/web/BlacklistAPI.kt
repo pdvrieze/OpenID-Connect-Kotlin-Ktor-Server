@@ -17,10 +17,11 @@
  */
 package org.mitre.openid.connect.web
 
-import com.google.gson.Gson
-import com.google.gson.JsonObject
-import com.google.gson.JsonParser
-import com.google.gson.JsonSyntaxException
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.jsonObject
 import org.mitre.openid.connect.model.BlacklistedSite
 import org.mitre.openid.connect.service.BlacklistedSiteService
 import org.mitre.openid.connect.view.HttpCodeView
@@ -50,9 +51,6 @@ class BlacklistAPI {
     @Autowired
     private lateinit var blacklistService: BlacklistedSiteService
 
-    private val gson = Gson()
-    private val parser = JsonParser()
-
     /**
      * Get a list of all blacklisted sites
      */
@@ -69,18 +67,14 @@ class BlacklistAPI {
      * Create a new blacklisted site
      */
     @RequestMapping(method = [RequestMethod.POST], consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun addNewBlacklistedSite(@RequestBody jsonString: String?, m: ModelMap, p: Principal?): String {
-        val json: JsonObject
-
-        val blacklist: BlacklistedSite
+    fun addNewBlacklistedSite(@RequestBody jsonString: String, m: ModelMap, p: Principal?): String {
 
         try {
-            json = parser.parse(jsonString).asJsonObject
-            blacklist = gson.fromJson(json, BlacklistedSite::class.java)
+            val blacklist = Json.decodeFromString<BlacklistedSite>(jsonString)
             val newBlacklist = blacklistService.saveNew(blacklist)
             m[JsonEntityView.ENTITY] = newBlacklist
-        } catch (e: JsonSyntaxException) {
-            logger.error("addNewBlacklistedSite failed due to JsonSyntaxException: ", e)
+        } catch (e: SerializationException) {
+            logger.error("addNewBlacklistedSite failed due to SerializationException: ", e)
             m[HttpCodeView.CODE] = HttpStatus.BAD_REQUEST
             m[JsonErrorView.ERROR_MESSAGE] =
                 "Could not save new blacklisted site. The server encountered a JSON syntax exception. Contact a system administrator for assistance."
@@ -102,7 +96,7 @@ class BlacklistAPI {
     @RequestMapping(value = ["/{id}"], method = [RequestMethod.PUT], consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun updateBlacklistedSite(
         @PathVariable("id") id: Long,
-        @RequestBody jsonString: String?,
+        @RequestBody jsonString: String,
         m: ModelMap,
         p: Principal?
     ): String {
@@ -111,10 +105,10 @@ class BlacklistAPI {
         val blacklist: BlacklistedSite
 
         try {
-            json = parser.parse(jsonString).asJsonObject
-            blacklist = gson.fromJson(json, BlacklistedSite::class.java)
-        } catch (e: JsonSyntaxException) {
-            logger.error("updateBlacklistedSite failed due to JsonSyntaxException", e)
+            json = Json.parseToJsonElement(jsonString).jsonObject
+            blacklist = Json.decodeFromJsonElement(json)
+        } catch (e: SerializationException) {
+            logger.error("updateBlacklistedSite failed due to SerializationException", e)
             m[HttpCodeView.CODE] = HttpStatus.BAD_REQUEST
             m[JsonErrorView.ERROR_MESSAGE] =
                 "Could not update blacklisted site. The server encountered a JSON syntax exception. Contact a system administrator for assistance."

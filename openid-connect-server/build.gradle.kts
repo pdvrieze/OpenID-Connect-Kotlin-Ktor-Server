@@ -24,7 +24,7 @@ dependencies {
     implementation(libs.eclipse.persistence.jpa)
     implementation(libs.hsqldb)
     implementation(libs.commons.io)
-    implementation(libs.gson)
+//    implementation(libs.gson)
     implementation(libs.guava)
     implementation(libs.jwt)
     implementation(libs.kotlinx.serialization.json)

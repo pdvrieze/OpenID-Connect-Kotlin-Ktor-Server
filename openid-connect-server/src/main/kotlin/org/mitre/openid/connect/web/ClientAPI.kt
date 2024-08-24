@@ -17,11 +17,6 @@
  */
 package org.mitre.openid.connect.web
 
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
-import com.google.gson.JsonDeserializer
-import com.google.gson.JsonParser
-import com.google.gson.JsonSyntaxException
 import com.nimbusds.jose.Algorithm
 import com.nimbusds.jose.EncryptionMethod
 import com.nimbusds.jose.JWEAlgorithm
@@ -30,6 +25,8 @@ import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jose.util.JSONObjectUtils
 import com.nimbusds.jwt.JWT
 import com.nimbusds.jwt.JWTParser
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonObject
@@ -88,6 +85,7 @@ import org.mitre.openid.connect.view.ClientEntityViewForUsers
 import org.mitre.openid.connect.view.HttpCodeView
 import org.mitre.openid.connect.view.JsonEntityView
 import org.mitre.openid.connect.view.JsonErrorView
+import org.mitre.util.asBoolean
 import org.mitre.util.asBooleanOrNull
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -110,7 +108,6 @@ import org.springframework.web.servlet.ModelAndView
 import java.sql.SQLIntegrityConstraintViolationException
 import java.text.ParseException
 import javax.persistence.PersistenceException
-import com.google.gson.JsonObject as GsonObject
 
 /**
  * @author Michael Jett <mjett></mjett>@mitre.org>
@@ -128,63 +125,6 @@ class ClientAPI {
     @Autowired
     @Qualifier("clientAssertionValidator")
     private lateinit var assertionValidator: AssertionValidator
-
-    private val parser = JsonParser()
-
-    private val gson: Gson = GsonBuilder()
-        .serializeNulls()
-        .registerTypeAdapter(JWSAlgorithm::class.java, JsonDeserializer<Algorithm?> { json, typeOfT, context ->
-            if (json.isJsonPrimitive) {
-                JWSAlgorithm.parse(json.asString)
-            } else {
-                null
-            }
-        })
-        .registerTypeAdapter(JWEAlgorithm::class.java, JsonDeserializer<Algorithm?> { json, typeOfT, context ->
-            if (json.isJsonPrimitive) {
-                JWEAlgorithm.parse(json.asString)
-            } else {
-                null
-            }
-        })
-        .registerTypeAdapter(EncryptionMethod::class.java, JsonDeserializer<Algorithm?> { json, typeOfT, context ->
-            if (json.isJsonPrimitive) {
-                EncryptionMethod.parse(json.asString)
-            } else {
-                null
-            }
-        })
-        .registerTypeAdapter(JWKSet::class.java, JsonDeserializer { json, typeOfT, context ->
-            if (json.isJsonObject) {
-                try {
-                    return@JsonDeserializer JWKSet.parse(json.toString())
-                } catch (e: ParseException) {
-                    return@JsonDeserializer null
-                }
-            } else {
-                null
-            }
-        })
-        .registerTypeAdapter(JWT::class.java, JsonDeserializer { json, typeOfT, context ->
-            if (json.isJsonPrimitive) {
-                try {
-                    JWTParser.parse(json.asString)
-                } catch (e: ParseException) {
-                    null
-                }
-            } else {
-                null
-            }
-        })
-        .registerTypeAdapter(PKCEAlgorithm::class.java, JsonDeserializer<Algorithm?> { json, typeOfT, context ->
-            if (json.isJsonPrimitive) {
-                parse(json.asString)
-            } else {
-                null
-            }
-        })
-        .setDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
-        .create()
 
     /**
      * Get a list of all clients
@@ -212,8 +152,8 @@ class ClientAPI {
 
         try {
             client = MITREidDataService.json.decodeFromJsonElement(json)
-        } catch (e: JsonSyntaxException) {
-            logger.error("apiAddClient failed due to JsonSyntaxException", e)
+        } catch (e: SerializationException) {
+            logger.error("apiAddClient failed due to SerializationException", e)
             m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
             m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Could not save new client. The server encountered a JSON syntax exception. Contact a system administrator for assistance.")
             return JsonErrorView.VIEWNAME
@@ -299,20 +239,20 @@ class ClientAPI {
     @RequestMapping(value = ["/{id}"], method = [RequestMethod.PUT], consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun apiUpdateClient(
         @PathVariable("id") id: Long,
-        @RequestBody jsonString: String?,
+        @RequestBody jsonString: String,
         m: Model,
         auth: Authentication
     ): String {
-        val json: GsonObject
+        val json: JsonObject
         var client: ClientDetailsEntity
 
         try {
+            json = Json.parseToJsonElement(jsonString).jsonObject
             // parse the client passed in (from JSON) and fetch the old client from the store
-            json = parser.parse(jsonString).asJsonObject
-            client = gson.fromJson(json, ClientDetailsEntity::class.java)
+            client = Json.decodeFromJsonElement(json)
             client = validateSoftwareStatement(client)
-        } catch (e: JsonSyntaxException) {
-            logger.error("apiUpdateClient failed due to JsonSyntaxException", e)
+        } catch (e: SerializationException) {
+            logger.error("apiUpdateClient failed due to SerializationException", e)
             m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
             m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Could not update client. The server encountered a JSON syntax exception. Contact a system administrator for assistance.")
             return JsonErrorView.VIEWNAME
@@ -349,9 +289,7 @@ class ClientAPI {
         } else if (client.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_BASIC || client.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_POST || client.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_JWT) {
             // if they've asked for us to generate a client secret (or they left it blank but require one), do so here
 
-            if (json.has("generateClientSecret") && json["generateClientSecret"].asBoolean
-                || client.clientSecret.isNullOrEmpty()
-            ) {
+            if (json["generateClientSecret"]?.asBoolean() == true || client.clientSecret.isNullOrEmpty()) {
                 client = clientService.generateClientSecret(client)
             }
         } else if (client.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.PRIVATE_KEY) {

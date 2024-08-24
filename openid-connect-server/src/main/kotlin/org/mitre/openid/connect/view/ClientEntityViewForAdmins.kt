@@ -17,8 +17,6 @@
  */
 package org.mitre.openid.connect.view
 
-import com.google.gson.ExclusionStrategy
-import com.google.gson.FieldAttributes
 import org.springframework.stereotype.Component
 import org.springframework.validation.BeanPropertyBindingResult
 
@@ -33,21 +31,6 @@ import org.springframework.validation.BeanPropertyBindingResult
 @Component(ClientEntityViewForAdmins.VIEWNAME)
 class ClientEntityViewForAdmins : AbstractClientEntityView() {
     private val blacklistedFields: Set<String> = hashSetOf("additionalInformation")
-
-
-    override val exclusionStrategy: ExclusionStrategy
-        get() {
-            return object : ExclusionStrategy {
-                override fun shouldSkipField(f: FieldAttributes): Boolean {
-                    return f.name in blacklistedFields
-                }
-
-                override fun shouldSkipClass(clazz: Class<*>): Boolean {
-                    // skip the JPA binding wrapper
-                    return clazz == BeanPropertyBindingResult::class.java
-                }
-            }
-        }
 
     companion object {
         const val VIEWNAME: String = "clientEntityViewAdmins"

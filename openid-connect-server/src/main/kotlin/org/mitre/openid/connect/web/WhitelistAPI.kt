@@ -17,10 +17,11 @@
  */
 package org.mitre.openid.connect.web
 
-import com.google.gson.Gson
-import com.google.gson.JsonObject
-import com.google.gson.JsonParseException
-import com.google.gson.JsonParser
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.jsonObject
 import org.mitre.openid.connect.model.WhitelistedSite
 import org.mitre.openid.connect.service.WhitelistedSiteService
 import org.mitre.openid.connect.view.HttpCodeView
@@ -50,9 +51,6 @@ class WhitelistAPI {
     @Autowired
     private lateinit var whitelistService: WhitelistedSiteService
 
-    private val gson = Gson()
-    private val parser = JsonParser()
-
     /**
      * Get a list of all whitelisted sites
      */
@@ -70,15 +68,15 @@ class WhitelistAPI {
      */
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @RequestMapping(method = [RequestMethod.POST], consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun addNewWhitelistedSite(@RequestBody jsonString: String?, m: ModelMap, p: Principal): String {
+    fun addNewWhitelistedSite(@RequestBody jsonString: String, m: ModelMap, p: Principal): String {
         val json: JsonObject
 
         val whitelist: WhitelistedSite
         try {
-            json = parser.parse(jsonString).asJsonObject
-            whitelist = gson.fromJson(json, WhitelistedSite::class.java)
-        } catch (e: JsonParseException) {
-            logger.error("addNewWhitelistedSite failed due to JsonParseException", e)
+            json = Json.parseToJsonElement(jsonString).jsonObject
+            whitelist = Json.decodeFromJsonElement(json)
+        } catch (e: SerializationException) {
+            logger.error("addNewWhitelistedSite failed due to SerializationException", e)
             m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
             m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Could not save new whitelisted site. The server encountered a JSON syntax exception. Contact a system administrator for assistance.")
             return JsonErrorView.VIEWNAME
@@ -106,7 +104,7 @@ class WhitelistAPI {
     @RequestMapping(value = ["/{id}"], method = [RequestMethod.PUT], consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun updateWhitelistedSite(
         @PathVariable("id") id: Long,
-        @RequestBody jsonString: String?,
+        @RequestBody jsonString: String,
         m: ModelMap,
         p: Principal?
     ): String {
@@ -114,10 +112,10 @@ class WhitelistAPI {
 
         val whitelist: WhitelistedSite
         try {
-            json = parser.parse(jsonString).asJsonObject
-            whitelist = gson.fromJson(json, WhitelistedSite::class.java)
-        } catch (e: JsonParseException) {
-            logger.error("updateWhitelistedSite failed due to JsonParseException", e)
+            json = Json.parseToJsonElement(jsonString).jsonObject
+            whitelist = Json.decodeFromJsonElement(json)
+        } catch (e: SerializationException) {
+            logger.error("updateWhitelistedSite failed due to SerializationException", e)
             m[HttpCodeView.CODE] = HttpStatus.BAD_REQUEST
             m[JsonErrorView.ERROR_MESSAGE] =
                 "Could not update whitelisted site. The server encountered a JSON syntax exception. Contact a system administrator for assistance."

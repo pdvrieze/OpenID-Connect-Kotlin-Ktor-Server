@@ -17,12 +17,10 @@
  */
 package org.mitre.openid.connect.view
 
-import com.google.gson.ExclusionStrategy
-import com.google.gson.FieldAttributes
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
-import com.google.gson.JsonObject
-import org.mitre.openid.connect.view.JsonErrorView
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.encodeToStream
+import kotlinx.serialization.json.put
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -40,20 +38,6 @@ import javax.servlet.http.HttpServletResponse
  */
 @Component(JsonErrorView.VIEWNAME)
 class JsonErrorView : AbstractView() {
-    private val gson: Gson = GsonBuilder()
-        .setExclusionStrategies(object : ExclusionStrategy {
-            override fun shouldSkipField(f: FieldAttributes): Boolean {
-                return false
-            }
-
-            override fun shouldSkipClass(clazz: Class<*>): Boolean {
-                // skip the JPA binding wrapper
-                return clazz == BeanPropertyBindingResult::class.java
-            }
-        })
-        .serializeNulls()
-        .setDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
-        .create()
 
     override fun renderMergedOutputModel(
         model: Map<String, Any>,
@@ -71,17 +55,17 @@ class JsonErrorView : AbstractView() {
         response.setStatus(code.value())
 
         try {
-            val out: Writer = response.writer
-
             var errorTitle = model[ERROR] as String?
             if (errorTitle.isNullOrEmpty()) {
                 errorTitle = "mitreid_error"
             }
             val errorMessage = model[ERROR_MESSAGE] as String?
-            val obj = JsonObject()
-            obj.addProperty("error", errorTitle)
-            obj.addProperty("error_description", errorMessage)
-            gson.toJson(obj, out)
+            val obj = buildJsonObject {
+                put("error", errorTitle)
+                put("error_description", errorMessage)
+
+            }
+            Json.encodeToStream(obj, response.outputStream)
         } catch (e: IOException) {
             Companion.logger.error("IOException in JsonErrorView.java: ", e)
         }
