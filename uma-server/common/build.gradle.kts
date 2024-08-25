@@ -14,7 +14,6 @@ dependencies {
     implementation(libs.servlet.api)
     implementation(libs.slf4j.api)
     implementation(libs.spring.webmvc)
-    testImplementation(libs.spring.tx)
     implementation(libs.kotlinx.serialization.json)
 /*
     implementation(libs.spring.core) {
