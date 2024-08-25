@@ -85,7 +85,7 @@ class AuthorizationRequestEndpoint {
         }
 
         val incomingRpt = obj[RPT]?.let {
-            tokenService.readAccessToken(it.jsonPrimitive.asString())
+            tokenService.readAccessToken(it.asString())
         }
 
         val ticket = permissionService.getByTicket(rawTicket)

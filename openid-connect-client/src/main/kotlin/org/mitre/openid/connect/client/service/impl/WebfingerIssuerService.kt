@@ -161,11 +161,11 @@ class WebfingerIssuerService(
                     for (link in links) {
                         if (link is JsonObject) {
 
-                            if (("href" in link && "rel" in link) && link["rel"]!!.asString() == "http://openid.net/specs/connect/1.0/issuer"
+                            if (("href" in link && "rel" in link) && link["rel"].asString() == "http://openid.net/specs/connect/1.0/issuer"
                             ) {
                                 // we found the issuer, return it
 
-                                val href = link["href"]!!.asString()
+                                val href = link["href"].asString()
 
                                 return if (identifier == href || identifier.startsWith("http")) {
                                     // try to avoid sending a URL as the login hint

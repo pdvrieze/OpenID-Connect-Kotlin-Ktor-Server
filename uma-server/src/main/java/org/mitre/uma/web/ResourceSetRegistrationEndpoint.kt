@@ -31,7 +31,7 @@ import org.mitre.uma.service.ResourceSetService
 import org.mitre.uma.view.ResourceSetEntityAbbreviatedView
 import org.mitre.uma.view.ResourceSetEntityView
 import org.mitre.util.asString
-import org.mitre.util.getAsStringSet
+import org.mitre.util.asStringSet
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -248,7 +248,7 @@ class ResourceSetRegistrationEndpoint {
                 name = requireNotNull(o["name"], { "Missing resource name" }).asString(),
                 uri = o["uri"]?.asString(),
                 type = o["type"]?.asString(),
-                scopes = requireNotNull(getAsStringSet(o, "scopes")),
+                scopes = requireNotNull(o["scopes"].asStringSet()),
                 iconUri = o["icon_uri"]?.asString(),
             )
         } catch (e: SerializationException) {

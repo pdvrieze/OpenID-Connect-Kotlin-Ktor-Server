@@ -28,12 +28,12 @@ import org.apache.http.impl.client.HttpClientBuilder
 import org.mitre.openid.connect.client.service.ServerConfigurationService
 import org.mitre.openid.connect.config.ServerConfiguration
 import org.mitre.util.asBoolean
+import org.mitre.util.asEncryptionMethodList
+import org.mitre.util.asJweAlgorithmList
+import org.mitre.util.asJwsAlgorithmList
 import org.mitre.util.asString
+import org.mitre.util.asStringList
 import org.mitre.util.asStringOrNull
-import org.mitre.util.getAsEncryptionMethodList
-import org.mitre.util.getAsJweAlgorithmList
-import org.mitre.util.getAsJwsAlgorithmList
-import org.mitre.util.getAsStringList
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
@@ -118,44 +118,44 @@ class DynamicServerConfigurationService(
             conf.userInfoUri = o["userinfo_endpoint"]?.asStringOrNull()
             conf.registrationEndpointUri = o["registration_endpoint"]?.asStringOrNull()
             conf.introspectionEndpointUri = o["introspection_endpoint"]?.asStringOrNull()
-            conf.acrValuesSupported = getAsStringList(o, "acr_values_supported")
+            conf.acrValuesSupported = o["acr_values_supported"].asStringList()
             conf.checkSessionIframe = o["check_session_iframe"]?.asStringOrNull()
-            conf.claimsLocalesSupported = getAsStringList(o, "claims_locales_supported")
+            conf.claimsLocalesSupported = o["claims_locales_supported"].asStringList()
             conf.claimsParameterSupported = requireNotNull(o["claims_parameter_supported"]).asBoolean()
-            conf.claimsSupported = getAsStringList(o, "claims_supported")
-            conf.displayValuesSupported = getAsStringList(o, "display_values_supported")
+            conf.claimsSupported = o["claims_supported"].asStringList()
+            conf.displayValuesSupported = o["display_values_supported"].asStringList()
             conf.endSessionEndpoint = o["end_session_endpoint"]?.asStringOrNull()
-            conf.grantTypesSupported = getAsStringList(o, "grant_types_supported")
+            conf.grantTypesSupported = o["grant_types_supported"].asStringList()
             conf.idTokenSigningAlgValuesSupported =
-                getAsJwsAlgorithmList(o, "id_token_signing_alg_values_supported")!!
+                o["id_token_signing_alg_values_supported"].asJwsAlgorithmList()!!
             conf.idTokenEncryptionAlgValuesSupported =
-                getAsJweAlgorithmList(o, "id_token_encryption_alg_values_supported")
+                o["id_token_encryption_alg_values_supported"].asJweAlgorithmList()
             conf.idTokenEncryptionEncValuesSupported =
-                getAsEncryptionMethodList(o, "id_token_encryption_enc_values_supported")
+                o["id_token_encryption_enc_values_supported"].asEncryptionMethodList()
             conf.opPolicyUri = o["op_policy_uri"]?.asStringOrNull()
             conf.opTosUri = o["op_tos_uri"]?.asStringOrNull()
             conf.requestObjectEncryptionAlgValuesSupported =
-                getAsJweAlgorithmList(o, "request_object_encryption_alg_values_supported")
+                o["request_object_encryption_alg_values_supported"].asJweAlgorithmList()
             conf.requestObjectEncryptionEncValuesSupported =
-                getAsEncryptionMethodList(o, "request_object_encryption_enc_values_supported")
+                o["request_object_encryption_enc_values_supported"].asEncryptionMethodList()
             conf.requestObjectSigningAlgValuesSupported =
-                getAsJwsAlgorithmList(o, "request_object_signing_alg_values_supported")
+                o["request_object_signing_alg_values_supported"].asJwsAlgorithmList()
             conf.requestParameterSupported = o["request_parameter_supported"]?.asBoolean()!!
             conf.requestUriParameterSupported = o["request_uri_parameter_supported"]?.asBoolean()!!
-            conf.responseTypesSupported = getAsStringList(o, "response_types_supported")!!
-            conf.scopesSupported = getAsStringList(o, "scopes_supported")
-            conf.subjectTypesSupported = getAsStringList(o, "subject_types_supported")!!
+            conf.responseTypesSupported = o["response_types_supported"].asStringList()!!
+            conf.scopesSupported = o["scopes_supported"].asStringList()
+            conf.subjectTypesSupported = o["subject_types_supported"].asStringList()!!
             conf.serviceDocumentation = o["service_documentation"]?.asStringOrNull()
-            conf.tokenEndpointAuthMethodsSupported = getAsStringList(o, "token_endpoint_auth_methods")
+            conf.tokenEndpointAuthMethodsSupported = o["token_endpoint_auth_methods"].asStringList()
             conf.tokenEndpointAuthSigningAlgValuesSupported =
-                getAsJwsAlgorithmList(o, "token_endpoint_auth_signing_alg_values_supported")
-            conf.uiLocalesSupported = getAsStringList(o, "ui_locales_supported")
+                o["token_endpoint_auth_signing_alg_values_supported"].asJwsAlgorithmList()
+            conf.uiLocalesSupported = o["ui_locales_supported"].asStringList()
             conf.userinfoEncryptionAlgValuesSupported =
-                getAsJweAlgorithmList(o, "userinfo_encryption_alg_values_supported")
+                o["userinfo_encryption_alg_values_supported"].asJweAlgorithmList()
             conf.userinfoEncryptionEncValuesSupported =
-                getAsEncryptionMethodList(o, "userinfo_encryption_enc_values_supported")
+                o["userinfo_encryption_enc_values_supported"].asEncryptionMethodList()
             conf.userinfoSigningAlgValuesSupported =
-                getAsJwsAlgorithmList(o, "userinfo_signing_alg_values_supported")
+                o["userinfo_signing_alg_values_supported"].asJwsAlgorithmList()
 
             return conf
         }

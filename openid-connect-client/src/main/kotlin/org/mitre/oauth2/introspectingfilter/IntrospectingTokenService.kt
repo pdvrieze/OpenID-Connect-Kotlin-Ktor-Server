@@ -19,7 +19,6 @@ package org.mitre.oauth2.introspectingfilter
 
 import com.nimbusds.jose.util.Base64
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.jsonPrimitive
 import org.apache.http.client.HttpClient
 import org.apache.http.impl.client.HttpClientBuilder
@@ -30,6 +29,7 @@ import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.oauth2.model.convert.OAuth2RequestSerializer
 import org.mitre.openid.connect.service.MITREidDataService.Companion.json
+import org.mitre.util.asBoolean
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpMethod
@@ -209,7 +209,7 @@ class IntrospectingTokenService(
                 return null
             }
 
-            if (!tokenResponse["active"]!!.jsonPrimitive.boolean) {
+            if (!tokenResponse["active"].asBoolean()) {
                 // non-valid token
                 logger.info("Server returned non-active token")
                 return null

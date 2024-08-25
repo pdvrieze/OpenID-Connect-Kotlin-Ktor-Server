@@ -37,7 +37,7 @@ class OAuth2AccessTokenImpl(introspectionResponse: JsonObject, tokenString: Stri
         this.introspectionResponse = introspectionResponse
         this.tokenString = tokenString
         if (introspectionResponse["scope"] != null) {
-            scopes = introspectionResponse["scope"]!!.asString().splitToSequence(' ').toHashSet()
+            scopes = introspectionResponse["scope"].asString().splitToSequence(' ').toHashSet()
         }
 
         if (introspectionResponse["exp"] != null) {

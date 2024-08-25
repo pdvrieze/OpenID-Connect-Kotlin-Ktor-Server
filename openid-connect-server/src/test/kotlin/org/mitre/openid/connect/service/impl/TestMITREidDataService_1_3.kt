@@ -20,7 +20,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -58,10 +57,6 @@ import org.mitre.openid.connect.service.MITREidDataService.Companion.WHITELISTED
 import org.mitre.openid.connect.service.MITREidDataServiceMaps
 import org.mitre.util.asBoolean
 import org.mitre.util.asString
-import org.mitre.util.has
-import org.mitre.util.isJsonArray
-import org.mitre.util.isJsonNull
-import org.mitre.util.isJsonObject
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
 import org.mockito.Captor
@@ -259,12 +254,12 @@ class TestMITREidDataService_1_3 {
             }
 
             if (compare == null) {
-                fail("Could not find matching id: ${token["id"]!!.asString()}")
+                fail("Could not find matching id: ${token["id"].asString()}")
             } else {
-                assertEquals(compare.id, token["id"]!!.jsonPrimitive.asString())
-                assertEquals(compare.client!!.clientId, token["clientId"]!!.asString())
-                assertEquals(formatter.print(compare.expiration!!, Locale.ENGLISH), token["expiration"]!!.asString())
-                assertEquals(compare.value, token["value"]!!.asString())
+                assertEquals(compare.id, token["id"].asString())
+                assertEquals(compare.client!!.clientId, token["clientId"].asString())
+                assertEquals(formatter.print(compare.expiration!!, Locale.ENGLISH), token["expiration"].asString())
+                assertEquals(compare.value, token["value"].asString())
                 assertEquals(compare.authenticationHolder.id, token["authenticationHolderId"]!!.jsonPrimitive.long)
                 checked.add(compare)
             }
@@ -504,10 +499,10 @@ class TestMITREidDataService_1_3 {
                 fail("Could not find matching id: ${tokenId}")
             } else {
                 assertEquals(compare.id, tokenId)
-                assertEquals(compare.client!!.clientId, token["clientId"]!!.asString())
-                assertEquals(formatter.print(compare.expiration, Locale.ENGLISH), token["expiration"]!!.asString())
-                assertEquals(compare.value, token["value"]!!.asString())
-                assertEquals(compare.tokenType, token["type"]!!.asString())
+                assertEquals(compare.client!!.clientId, token["clientId"].asString())
+                assertEquals(formatter.print(compare.expiration, Locale.ENGLISH), token["expiration"].asString())
+                assertEquals(compare.value, token["value"].asString())
+                assertEquals(compare.tokenType, token["type"].asString())
                 assertEquals(compare.authenticationHolder.id, token["authenticationHolderId"]!!.jsonPrimitive.long)
                 assertTrue(token["scope"] is JsonArray)
                 assertEquals(compare.scope, jsonArrayToStringSet(token["scope"]!!.jsonArray))
@@ -696,29 +691,29 @@ class TestMITREidDataService_1_3 {
         val root = Json.parseToJsonElement(data).jsonObject
 
         // make sure the root is there
-        assertTrue(root.has(MITREidDataService.MITREID_CONNECT_1_3))
+        assertTrue(MITREidDataService.MITREID_CONNECT_1_3 in root)
 
         val config = root[MITREidDataService.MITREID_CONNECT_1_3]!!.jsonObject
 
         // make sure all the root elements are there
-        assertTrue(config.has(CLIENTS))
-        assertTrue(config.has(GRANTS))
-        assertTrue(config.has(WHITELISTEDSITES))
-        assertTrue(config.has(BLACKLISTEDSITES))
-        assertTrue(config.has(REFRESHTOKENS))
-        assertTrue(config.has(ACCESSTOKENS))
-        assertTrue(config.has(SYSTEMSCOPES))
-        assertTrue(config.has(AUTHENTICATIONHOLDERS))
+        assertTrue(CLIENTS in config)
+        assertTrue(GRANTS in config)
+        assertTrue(WHITELISTEDSITES in config)
+        assertTrue(BLACKLISTEDSITES in config)
+        assertTrue(REFRESHTOKENS in config)
+        assertTrue(ACCESSTOKENS in config)
+        assertTrue(SYSTEMSCOPES in config)
+        assertTrue(AUTHENTICATIONHOLDERS in config)
 
         // make sure the root elements are all arrays
-        assertTrue(config[CLIENTS].isJsonArray)
-        assertTrue(config[GRANTS].isJsonArray)
-        assertTrue(config[WHITELISTEDSITES].isJsonArray)
-        assertTrue(config[BLACKLISTEDSITES].isJsonArray)
-        assertTrue(config[REFRESHTOKENS].isJsonArray)
-        assertTrue(config[ACCESSTOKENS].isJsonArray)
-        assertTrue(config[SYSTEMSCOPES].isJsonArray)
-        assertTrue(config[AUTHENTICATIONHOLDERS].isJsonArray)
+        assertTrue(config[CLIENTS] is JsonArray)
+        assertTrue(config[GRANTS] is JsonArray)
+        assertTrue(config[WHITELISTEDSITES] is JsonArray)
+        assertTrue(config[BLACKLISTEDSITES] is JsonArray)
+        assertTrue(config[REFRESHTOKENS] is JsonArray)
+        assertTrue(config[ACCESSTOKENS] is JsonArray)
+        assertTrue(config[SYSTEMSCOPES] is JsonArray)
+        assertTrue(config[AUTHENTICATIONHOLDERS] is JsonArray)
 
 
         // check our client list (this test)
@@ -732,23 +727,23 @@ class TestMITREidDataService_1_3 {
             val client = e as JsonObject
 
             var compare: ClientDetailsEntity? = null
-            if (client["clientId"]!!.asString() == client1.clientId) {
+            if (client["clientId"].asString() == client1.clientId) {
                 compare = client1
-            } else if (client["clientId"]!!.asString() == client2.clientId) {
+            } else if (client["clientId"].asString() == client2.clientId) {
                 compare = client2
             }
 
             if (compare == null) {
-                fail("Could not find matching clientId: " + client["clientId"]!!.asString())
+                fail("Could not find matching clientId: ${client["clientId"].asString()}")
             } else {
-                assertEquals(compare.clientId, client["clientId"]!!.asString())
-                assertEquals(compare.clientSecret, client["secret"]!!.asString())
+                assertEquals(compare.clientId, client["clientId"].asString())
+                assertEquals(compare.clientSecret, client["secret"].asString())
                 assertEquals(compare.accessTokenValiditySeconds, client["accessTokenValiditySeconds"]!!.jsonPrimitive.long.toInt())
-                assertEquals(compare.isAllowIntrospection, client["allowIntrospection"]!!.jsonPrimitive.asBoolean())
+                assertEquals(compare.isAllowIntrospection, client["allowIntrospection"].asBoolean())
                 assertEquals(compare.redirectUris, jsonArrayToStringSet(client["redirectUris"]!!.jsonArray))
                 assertEquals(compare.scope, jsonArrayToStringSet(client["scope"]!!.jsonArray))
                 assertEquals(compare.grantTypes, jsonArrayToStringSet(client["grantTypes"]!!.jsonArray))
-                assertEquals(compare.codeChallengeMethod, if ((client.contains("codeChallengeMethod") && client["codeChallengeMethod"] !is JsonNull)) parse(client["codeChallengeMethod"]!!.asString()) else null)
+                assertEquals(compare.codeChallengeMethod, if ((client.contains("codeChallengeMethod") && client["codeChallengeMethod"] !is JsonNull)) parse(client["codeChallengeMethod"].asString()) else null)
                 checked.add(compare)
             }
         }
@@ -862,29 +857,29 @@ class TestMITREidDataService_1_3 {
         val root = Json.parseToJsonElement(data).jsonObject
 
         // make sure the root is there
-        assertTrue(root.has(MITREidDataService.MITREID_CONNECT_1_3))
+        assertTrue(MITREidDataService.MITREID_CONNECT_1_3 in root)
 
         val config = root[MITREidDataService.MITREID_CONNECT_1_3]!!.jsonObject
 
         // make sure all the root elements are there
-        assertTrue(config.has(CLIENTS))
-        assertTrue(config.has(GRANTS))
-        assertTrue(config.has(WHITELISTEDSITES))
-        assertTrue(config.has(BLACKLISTEDSITES))
-        assertTrue(config.has(REFRESHTOKENS))
-        assertTrue(config.has(ACCESSTOKENS))
-        assertTrue(config.has(SYSTEMSCOPES))
-        assertTrue(config.has(AUTHENTICATIONHOLDERS))
+        assertTrue(CLIENTS in config)
+        assertTrue(GRANTS in config)
+        assertTrue(WHITELISTEDSITES in config)
+        assertTrue(BLACKLISTEDSITES in config)
+        assertTrue(REFRESHTOKENS in config)
+        assertTrue(ACCESSTOKENS in config)
+        assertTrue(SYSTEMSCOPES in config)
+        assertTrue(AUTHENTICATIONHOLDERS in config)
 
         // make sure the root elements are all arrays
-        assertTrue(config[CLIENTS].isJsonArray)
-        assertTrue(config[GRANTS].isJsonArray)
-        assertTrue(config[WHITELISTEDSITES].isJsonArray)
-        assertTrue(config[BLACKLISTEDSITES].isJsonArray)
-        assertTrue(config[REFRESHTOKENS].isJsonArray)
-        assertTrue(config[ACCESSTOKENS].isJsonArray)
-        assertTrue(config[SYSTEMSCOPES].isJsonArray)
-        assertTrue(config[AUTHENTICATIONHOLDERS].isJsonArray)
+        assertTrue(config[CLIENTS] is JsonArray)
+        assertTrue(config[GRANTS] is JsonArray)
+        assertTrue(config[WHITELISTEDSITES] is JsonArray)
+        assertTrue(config[BLACKLISTEDSITES] is JsonArray)
+        assertTrue(config[REFRESHTOKENS] is JsonArray)
+        assertTrue(config[ACCESSTOKENS] is JsonArray)
+        assertTrue(config[SYSTEMSCOPES] is JsonArray)
+        assertTrue(config[AUTHENTICATIONHOLDERS] is JsonArray)
 
         // check our scope list (this test)
         val sites = config[BLACKLISTEDSITES]!!.jsonArray
@@ -906,9 +901,9 @@ class TestMITREidDataService_1_3 {
             }
 
             if (compare == null) {
-                fail("Could not find matching blacklisted site id: " + site["id"]!!.asString())
+                fail("Could not find matching blacklisted site id: " + site["id"].asString())
             } else {
-                assertEquals(compare.uri, site["uri"]!!.asString())
+                assertEquals(compare.uri, site["uri"].asString())
                 checked.add(compare)
             }
         }
@@ -995,29 +990,29 @@ class TestMITREidDataService_1_3 {
         val root = Json.parseToJsonElement(data).jsonObject
 
         // make sure the root is there
-        assertTrue(root.has(MITREidDataService.MITREID_CONNECT_1_3))
+        assertTrue(root.contains(MITREidDataService.MITREID_CONNECT_1_3))
 
         val config = root[MITREidDataService.MITREID_CONNECT_1_3]!!.jsonObject
 
         // make sure all the root elements are there
-        assertTrue(config.has(CLIENTS))
-        assertTrue(config.has(GRANTS))
-        assertTrue(config.has(WHITELISTEDSITES))
-        assertTrue(config.has(BLACKLISTEDSITES))
-        assertTrue(config.has(REFRESHTOKENS))
-        assertTrue(config.has(ACCESSTOKENS))
-        assertTrue(config.has(SYSTEMSCOPES))
-        assertTrue(config.has(AUTHENTICATIONHOLDERS))
+        assertTrue(config.contains(CLIENTS))
+        assertTrue(config.contains(GRANTS))
+        assertTrue(config.contains(WHITELISTEDSITES))
+        assertTrue(config.contains(BLACKLISTEDSITES))
+        assertTrue(config.contains(REFRESHTOKENS))
+        assertTrue(config.contains(ACCESSTOKENS))
+        assertTrue(config.contains(SYSTEMSCOPES))
+        assertTrue(config.contains(AUTHENTICATIONHOLDERS))
 
         // make sure the root elements are all arrays
-        assertTrue(config[CLIENTS].isJsonArray)
-        assertTrue(config[GRANTS].isJsonArray)
-        assertTrue(config[WHITELISTEDSITES].isJsonArray)
-        assertTrue(config[BLACKLISTEDSITES].isJsonArray)
-        assertTrue(config[REFRESHTOKENS].isJsonArray)
-        assertTrue(config[ACCESSTOKENS].isJsonArray)
-        assertTrue(config[SYSTEMSCOPES].isJsonArray)
-        assertTrue(config[AUTHENTICATIONHOLDERS].isJsonArray)
+        assertTrue(config[CLIENTS] is JsonArray)
+        assertTrue(config[GRANTS] is JsonArray)
+        assertTrue(config[WHITELISTEDSITES] is JsonArray)
+        assertTrue(config[BLACKLISTEDSITES] is JsonArray)
+        assertTrue(config[REFRESHTOKENS] is JsonArray)
+        assertTrue(config[ACCESSTOKENS] is JsonArray)
+        assertTrue(config[SYSTEMSCOPES] is JsonArray)
+        assertTrue(config[AUTHENTICATIONHOLDERS] is JsonArray)
 
         // check our scope list (this test)
         val sites = config[WHITELISTEDSITES]!!.jsonArray
@@ -1026,7 +1021,7 @@ class TestMITREidDataService_1_3 {
         // check for both of our sites in turn
         val checked: MutableSet<WhitelistedSite> = HashSet()
         for (e in sites) {
-            assertTrue(e.isJsonObject)
+            assertTrue(e is JsonObject)
             val site = e.jsonObject
 
             var compare: WhitelistedSite? = null
@@ -1039,9 +1034,9 @@ class TestMITREidDataService_1_3 {
             }
 
             if (compare == null) {
-                fail("Could not find matching whitelisted site id: " + site["id"]!!.asString())
+                fail("Could not find matching whitelisted site id: " + site["id"].asString())
             } else {
-                assertEquals(compare.clientId, site["clientId"]!!.asString())
+                assertEquals(compare.clientId, site["clientId"].asString())
                 checked.add(compare)
             }
         }
@@ -1162,29 +1157,29 @@ class TestMITREidDataService_1_3 {
         val root = Json.parseToJsonElement(data).jsonObject
 
         // make sure the root is there
-        assertTrue(root.has(MITREidDataService.MITREID_CONNECT_1_3))
+        assertTrue(root.contains(MITREidDataService.MITREID_CONNECT_1_3))
 
         val config = root[MITREidDataService.MITREID_CONNECT_1_3]!!.jsonObject
 
         // make sure all the root elements are there
-        assertTrue(config.has(CLIENTS))
-        assertTrue(config.has(GRANTS))
-        assertTrue(config.has(WHITELISTEDSITES))
-        assertTrue(config.has(BLACKLISTEDSITES))
-        assertTrue(config.has(REFRESHTOKENS))
-        assertTrue(config.has(ACCESSTOKENS))
-        assertTrue(config.has(SYSTEMSCOPES))
-        assertTrue(config.has(AUTHENTICATIONHOLDERS))
+        assertTrue(config.contains(CLIENTS))
+        assertTrue(config.contains(GRANTS))
+        assertTrue(config.contains(WHITELISTEDSITES))
+        assertTrue(config.contains(BLACKLISTEDSITES))
+        assertTrue(config.contains(REFRESHTOKENS))
+        assertTrue(config.contains(ACCESSTOKENS))
+        assertTrue(config.contains(SYSTEMSCOPES))
+        assertTrue(config.contains(AUTHENTICATIONHOLDERS))
 
         // make sure the root elements are all arrays
-        assertTrue(config[CLIENTS].isJsonArray)
-        assertTrue(config[GRANTS].isJsonArray)
-        assertTrue(config[WHITELISTEDSITES].isJsonArray)
-        assertTrue(config[BLACKLISTEDSITES].isJsonArray)
-        assertTrue(config[REFRESHTOKENS].isJsonArray)
-        assertTrue(config[ACCESSTOKENS].isJsonArray)
-        assertTrue(config[SYSTEMSCOPES].isJsonArray)
-        assertTrue(config[AUTHENTICATIONHOLDERS].isJsonArray)
+        assertTrue(config[CLIENTS] is JsonArray)
+        assertTrue(config[GRANTS] is JsonArray)
+        assertTrue(config[WHITELISTEDSITES] is JsonArray)
+        assertTrue(config[BLACKLISTEDSITES] is JsonArray)
+        assertTrue(config[REFRESHTOKENS] is JsonArray)
+        assertTrue(config[ACCESSTOKENS] is JsonArray)
+        assertTrue(config[SYSTEMSCOPES] is JsonArray)
+        assertTrue(config[AUTHENTICATIONHOLDERS] is JsonArray)
 
         // check our scope list (this test)
         val sites = config[GRANTS]!!.jsonArray
@@ -1193,7 +1188,7 @@ class TestMITREidDataService_1_3 {
         // check for both of our sites in turn
         val checked: MutableSet<ApprovedSite> = HashSet()
         for (e in sites) {
-            assertTrue(e.isJsonObject)
+            assertTrue(e is JsonObject)
             val site = e.jsonObject
 
             var compare: ApprovedSite? = null
@@ -1204,17 +1199,17 @@ class TestMITREidDataService_1_3 {
             }
 
             if (compare == null) {
-                fail("Could not find matching whitelisted site id: " + site["id"]!!.asString())
+                fail("Could not find matching whitelisted site id: " + site["id"].asString())
             } else {
-                assertEquals(compare.clientId, site["clientId"]!!.asString())
-                assertEquals(formatter.print(compare.creationDate, Locale.ENGLISH), site["creationDate"]!!.asString())
-                assertEquals(formatter.print(compare.accessDate, Locale.ENGLISH), site["accessDate"]!!.asString())
-                if (site["timeoutDate"].isJsonNull) {
+                assertEquals(compare.clientId, site["clientId"].asString())
+                assertEquals(formatter.print(compare.creationDate, Locale.ENGLISH), site["creationDate"].asString())
+                assertEquals(formatter.print(compare.accessDate, Locale.ENGLISH), site["accessDate"].asString())
+                if (site["timeoutDate"] is JsonNull) {
                     assertNull(compare.timeoutDate)
                 } else {
-                    assertEquals(formatter.print(compare.timeoutDate, Locale.ENGLISH), site["timeoutDate"]!!.asString())
+                    assertEquals(formatter.print(compare.timeoutDate, Locale.ENGLISH), site["timeoutDate"].asString())
                 }
-                assertEquals(compare.userId, site["userId"]!!.asString())
+                assertEquals(compare.userId, site["userId"].asString())
                 assertEquals(compare.allowedScopes, jsonArrayToStringSet(site["allowedScopes"]!!.jsonArray))
                 checked.add(compare)
             }
@@ -1384,29 +1379,29 @@ class TestMITREidDataService_1_3 {
         val root = elem!!.jsonObject
 
         // make sure the root is there
-        assertTrue(root.has(MITREidDataService.MITREID_CONNECT_1_3))
+        assertTrue(root.contains(MITREidDataService.MITREID_CONNECT_1_3))
 
         val config = root[MITREidDataService.MITREID_CONNECT_1_3]!!.jsonObject
 
         // make sure all the root elements are there
-        assertTrue(config.has(CLIENTS))
-        assertTrue(config.has(GRANTS))
-        assertTrue(config.has(WHITELISTEDSITES))
-        assertTrue(config.has(BLACKLISTEDSITES))
-        assertTrue(config.has(REFRESHTOKENS))
-        assertTrue(config.has(ACCESSTOKENS))
-        assertTrue(config.has(SYSTEMSCOPES))
-        assertTrue(config.has(AUTHENTICATIONHOLDERS))
+        assertTrue(config.contains(CLIENTS))
+        assertTrue(config.contains(GRANTS))
+        assertTrue(config.contains(WHITELISTEDSITES))
+        assertTrue(config.contains(BLACKLISTEDSITES))
+        assertTrue(config.contains(REFRESHTOKENS))
+        assertTrue(config.contains(ACCESSTOKENS))
+        assertTrue(config.contains(SYSTEMSCOPES))
+        assertTrue(config.contains(AUTHENTICATIONHOLDERS))
 
         // make sure the root elements are all arrays
-        assertTrue(config[CLIENTS].isJsonArray)
-        assertTrue(config[GRANTS].isJsonArray)
-        assertTrue(config[WHITELISTEDSITES].isJsonArray)
-        assertTrue(config[BLACKLISTEDSITES].isJsonArray)
-        assertTrue(config[REFRESHTOKENS].isJsonArray)
-        assertTrue(config[ACCESSTOKENS].isJsonArray)
-        assertTrue(config[SYSTEMSCOPES].isJsonArray)
-        assertTrue(config[AUTHENTICATIONHOLDERS].isJsonArray)
+        assertTrue(config[CLIENTS] is JsonArray)
+        assertTrue(config[GRANTS] is JsonArray)
+        assertTrue(config[WHITELISTEDSITES] is JsonArray)
+        assertTrue(config[BLACKLISTEDSITES] is JsonArray)
+        assertTrue(config[REFRESHTOKENS] is JsonArray)
+        assertTrue(config[ACCESSTOKENS] is JsonArray)
+        assertTrue(config[SYSTEMSCOPES] is JsonArray)
+        assertTrue(config[AUTHENTICATIONHOLDERS] is JsonArray)
 
 
         // check our holder list (this test)
@@ -1416,7 +1411,7 @@ class TestMITREidDataService_1_3 {
         // check for both of our clients in turn
         val checked: MutableSet<AuthenticationHolderEntity> = HashSet()
         for (e in holders) {
-            assertTrue(e.isJsonObject)
+            assertTrue(e is JsonObject)
             val holder = e!!.jsonObject
 
             var compare: AuthenticationHolderEntity? = null
@@ -1427,17 +1422,17 @@ class TestMITREidDataService_1_3 {
             }
 
             if (compare == null) {
-                fail("Could not find matching authentication holder id: " + holder["id"]!!.asString())
+                fail("Could not find matching authentication holder id: " + holder["id"].asString())
             } else {
-                assertTrue(holder["clientId"]!!.asString() == compare.clientId)
-                assertTrue(holder["approved"]!!.jsonPrimitive.boolean == compare.isApproved)
-                assertTrue(holder["redirectUri"]!!.asString() == compare.redirectUri)
+                assertTrue(holder["clientId"].asString() == compare.clientId)
+                assertTrue(holder["approved"].asBoolean() == compare.isApproved)
+                assertTrue(holder["redirectUri"].asString() == compare.redirectUri)
                 if (compare.userAuth != null) {
-                    assertTrue(holder["savedUserAuthentication"].isJsonObject)
+                    assertTrue(holder["savedUserAuthentication"] is JsonObject)
                     val savedAuth = holder["savedUserAuthentication"]!!.jsonObject
-                    assertTrue(savedAuth["name"]!!.asString() == compare.userAuth!!.name)
-                    assertTrue(savedAuth["authenticated"]!!.jsonPrimitive.boolean == compare.userAuth!!.isAuthenticated)
-                    assertTrue(savedAuth["sourceClass"]!!.asString() == compare.userAuth!!.sourceClass)
+                    assertTrue(savedAuth["name"].asString() == compare.userAuth!!.name)
+                    assertTrue(savedAuth["authenticated"].asBoolean() == compare.userAuth!!.isAuthenticated)
+                    assertTrue(savedAuth["sourceClass"].asString() == compare.userAuth!!.sourceClass)
                 }
                 checked.add(compare)
             }
@@ -1562,32 +1557,32 @@ class TestMITREidDataService_1_3 {
 
         // parse the output as a JSON object for testing
         val elem = Json.parseToJsonElement(data)
-        val root = elem!!.jsonObject
+        val root = elem.jsonObject
 
         // make sure the root is there
-        assertTrue(root.has(MITREidDataService.MITREID_CONNECT_1_3))
+        assertTrue(MITREidDataService.MITREID_CONNECT_1_3 in root)
 
         val config = root[MITREidDataService.MITREID_CONNECT_1_3]!!.jsonObject
 
         // make sure all the root elements are there
-        assertTrue(config.has(CLIENTS))
-        assertTrue(config.has(GRANTS))
-        assertTrue(config.has(WHITELISTEDSITES))
-        assertTrue(config.has(BLACKLISTEDSITES))
-        assertTrue(config.has(REFRESHTOKENS))
-        assertTrue(config.has(ACCESSTOKENS))
-        assertTrue(config.has(SYSTEMSCOPES))
-        assertTrue(config.has(AUTHENTICATIONHOLDERS))
+        assertTrue(CLIENTS in config)
+        assertTrue(GRANTS in config)
+        assertTrue(WHITELISTEDSITES in config)
+        assertTrue(BLACKLISTEDSITES in config)
+        assertTrue(REFRESHTOKENS in config)
+        assertTrue(ACCESSTOKENS in config)
+        assertTrue(SYSTEMSCOPES in config)
+        assertTrue(AUTHENTICATIONHOLDERS in config)
 
         // make sure the root elements are all arrays
-        assertTrue(config[CLIENTS].isJsonArray)
-        assertTrue(config[GRANTS].isJsonArray)
-        assertTrue(config[WHITELISTEDSITES].isJsonArray)
-        assertTrue(config[BLACKLISTEDSITES].isJsonArray)
-        assertTrue(config[REFRESHTOKENS].isJsonArray)
-        assertTrue(config[ACCESSTOKENS].isJsonArray)
-        assertTrue(config[SYSTEMSCOPES].isJsonArray)
-        assertTrue(config[AUTHENTICATIONHOLDERS].isJsonArray)
+        assertTrue(config[CLIENTS] is JsonArray)
+        assertTrue(config[GRANTS] is JsonArray)
+        assertTrue(config[WHITELISTEDSITES] is JsonArray)
+        assertTrue(config[BLACKLISTEDSITES] is JsonArray)
+        assertTrue(config[REFRESHTOKENS] is JsonArray)
+        assertTrue(config[ACCESSTOKENS] is JsonArray)
+        assertTrue(config[SYSTEMSCOPES] is JsonArray)
+        assertTrue(config[AUTHENTICATIONHOLDERS] is JsonArray)
 
 
         // check our scope list (this test)
@@ -1597,26 +1592,26 @@ class TestMITREidDataService_1_3 {
         // check for both of our clients in turn
         val checked: MutableSet<SystemScope> = HashSet()
         for (e in scopes) {
-            assertTrue(e.isJsonObject)
-            val scope = e!!.jsonObject
+            assertTrue(e is JsonObject)
+            val scope = e.jsonObject
 
             var compare: SystemScope? = null
-            if (scope["value"]!!.asString() == scope1.value) {
+            if (scope["value"].asString() == scope1.value) {
                 compare = scope1
-            } else if (scope["value"]!!.asString() == scope2.value) {
+            } else if (scope["value"].asString() == scope2.value) {
                 compare = scope2
-            } else if (scope["value"]!!.asString() == scope3.value) {
+            } else if (scope["value"].asString() == scope3.value) {
                 compare = scope3
             }
 
             if (compare == null) {
-                fail("Could not find matching scope value: " + scope["value"]!!.asString())
+                fail("Could not find matching scope value: " + scope["value"].asString())
             } else {
-                assertEquals(compare.value, scope["value"]!!.asString())
-                assertEquals(compare.description, scope["description"]!!.asString())
-                assertEquals(compare.icon, scope["icon"]!!.asString())
-                assertEquals(compare.isRestricted, scope["restricted"]!!.jsonPrimitive.boolean)
-                assertEquals(compare.isDefaultScope, scope["defaultScope"]!!.jsonPrimitive.boolean)
+                assertEquals(compare.value, scope["value"].asString())
+                assertEquals(compare.description, scope["description"].asString())
+                assertEquals(compare.icon, scope["icon"].asString())
+                assertEquals(compare.isRestricted, scope["restricted"].asBoolean())
+                assertEquals(compare.isDefaultScope, scope["defaultScope"].asBoolean())
                 checked.add(compare)
             }
         }

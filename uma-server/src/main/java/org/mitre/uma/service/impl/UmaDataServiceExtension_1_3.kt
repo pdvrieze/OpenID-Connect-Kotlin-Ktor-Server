@@ -235,7 +235,7 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
             val permissions: Set<Long> = requireNotNull(o[PERMISSIONS]).jsonArray.mapTo(HashSet()) { permObj ->
                 require(permObj is JsonObject)
                 val rsId = requireNotNull(permObj[RESOURCE_SET]).jsonPrimitive.long
-                val scope = (permObj[SCOPES] as JsonArray).mapTo(HashSet()) { it.jsonPrimitive.asString() }
+                val scope = (permObj[SCOPES] as JsonArray).mapTo(HashSet()) { it.asString() }
                 val saved = permissionRepository.saveRawPermission(Permission(scopes = scope))
                 permissionToResourceRefs[saved.id!!] = rsId
                 saved.id!!
@@ -253,8 +253,8 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
 
         for(ticketObj in reader) {
             require(ticketObj is JsonObject)
-            val ticketExpiration = ticketObj[EXPIRATION]?.let { utcToDate(it.jsonPrimitive.asString()) }
-            val ticketString = ticketObj[TICKET]?.let { it.jsonPrimitive.asString() }
+            val ticketExpiration = ticketObj[EXPIRATION]?.let { utcToDate(it.asString()) }
+            val ticketString = ticketObj[TICKET]?.let { it.asString() }
             val permission = requireNotNull(ticketObj[PERMISSIONS]).jsonObject.let { p ->
                 val scopes = requireNotNull(p[SCOPES]).jsonArray.mapTo(HashSet()) { it.asString() }
                 val rsId = requireNotNull(p[RESOURCE_SET]).jsonPrimitive.long

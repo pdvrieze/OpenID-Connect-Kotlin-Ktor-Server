@@ -33,9 +33,9 @@ fun JsonPrimitive.asString(): String {
     return content
 }
 
-fun JsonElement.asString(): String {
-    require(this is JsonPrimitive) { "String expected, but found other type: ${javaClass.name}" }
-    return asString()
+fun JsonElement?.asString(): String {
+    require(this is JsonPrimitive && isString) { "String expected, but found other type: ${this?.javaClass?.name}" }
+    return content
 }
 
 fun JsonPrimitive.asStringOrNull(): String? {
@@ -54,75 +54,63 @@ fun JsonPrimitive.asBooleanOrNull(): Boolean? {
 }
 
 fun JsonElement.asBooleanOrNull(): Boolean? {
-    if (this !is JsonPrimitive) return null
-    return asBooleanOrNull()
+    if (this !is JsonPrimitive || isString) return null
+    return booleanOrNull
 }
 
-fun JsonPrimitive.asBoolean(): Boolean {
-    require(!isString) { "Expected boolean, found string"}
+fun JsonElement?.asBoolean(): Boolean {
+    require(this is JsonPrimitive) { "Expected Json primitive, found: ${this?.javaClass?.name}" }
     return boolean
-}
-
-fun JsonElement.asBoolean(): Boolean {
-    require(this is JsonPrimitive) { "Expected Json primitive, found: ${javaClass.name}" }
-    return asBoolean()
 }
 
 @Deprecated("Use contains", ReplaceWith("contains(key)"))
 fun JsonObject.has(key: String) = contains(key)
 
-@Deprecated("Use extension", ReplaceWith("e[key]?.asStringOrNull()", "org.mitre.util.asStringOrNull"))
-fun getAsString(o: JsonObject, key: String): String? {
-    val v = (o[key] as? JsonPrimitive) ?: return null
-    if (! v.isString) return null
-    return v.content
-}
-
-@Deprecated("Use extension", ReplaceWith("o[key]?.asBooleanOrNull()", "org.mitre.util.asStringOrNull"))
-fun getAsBoolean(o: JsonObject, key: String): Boolean? {
-    val v = (o[key] as? JsonPrimitive) ?: return null
-    if (v.isString) return null
-    return v.boolean
-}
-
-fun getAsStringList(o: JsonObject, key: String): List<String>? {
-    return when(val e = o[key]) {
-        is JsonPrimitive -> listOf(e.asString())
-        is JsonArray -> e.map { e.asString() }
+fun JsonElement?.asStringList(): List<String>? {
+    return when (this) {
+        is JsonPrimitive -> listOf(asString())
+        is JsonArray -> map { asString() }
         else -> null
     }
 }
 
-fun getAsStringSet(o: JsonObject, key: String): Set<String>? {
-    return when(val e = o[key]) {
-        is JsonPrimitive -> setOf(e.asString())
-        is JsonArray -> e.mapTo(HashSet()) { e.asString() }
+fun JsonElement?.asStringSet(): Set<String>? {
+    return when (this) {
+        is JsonPrimitive -> setOf(asString())
+        is JsonArray -> mapTo(HashSet()) { asString() }
         else -> null
     }
-}
-
-fun getAsJwsAlgorithmList(o: JsonObject, key: String): List<JWSAlgorithm>? {
-    return getAsStringList(o, key)?.map { JWSAlgorithm.parse(it) }
-}
-/**
- * Gets the value of the given member as a list of JWS Algorithms, null if it doesn't exist
- */
-fun getAsJweAlgorithmList(o: JsonObject, key: String): List<JWEAlgorithm>? {
-    return getAsStringList(o, key)?.map { JWEAlgorithm.parse(it) }
 }
 
 /**
  * Gets the value of the given member as a list of JWS Algorithms, null if it doesn't exist
  */
-fun getAsEncryptionMethodList(o: JsonObject, member: String): List<EncryptionMethod>? {
-    return getAsStringList(o, member)?.map { EncryptionMethod.parse(it) }
+fun JsonElement?.asJwsAlgorithmList(): List<JWSAlgorithm>? {
+    return when (this) {
+        is JsonPrimitive -> listOf(JWSAlgorithm.parse(asString()))
+        is JsonArray -> map { JWSAlgorithm.parse(asString()) }
+        else -> null
+    }
 }
 
-@Deprecated("Check directly", ReplaceWith("this is JsonArray", " kotlinx.serialization.json.JsonArray"))
-val JsonElement?.isJsonArray get() = this is JsonArray
+/**
+ * Gets the value of the given member as a list of JWE Algorithms, null if it doesn't exist
+ */
+fun JsonElement?.asJweAlgorithmList(): List<JWEAlgorithm>? {
+    return when (this) {
+        is JsonPrimitive -> listOf(JWEAlgorithm.parse(asString()))
+        is JsonArray -> map { JWEAlgorithm.parse(asString()) }
+        else -> null
+    }
+}
 
-@Deprecated("Check directly", ReplaceWith("this is JsonObject", " kotlinx.serialization.json.JsonObject"))
-val JsonElement?.isJsonObject get() = this is JsonObject
-
-@Deprecated("Check directly", ReplaceWith("this is JsonNull", " kotlinx.serialization.json.JsonNull"))
-val JsonElement?.isJsonNull get() = this is JsonNull
+/**
+ * Gets the value of the given member as a list of JWS encryption methods, null if it doesn't exist
+ */
+fun JsonElement?.asEncryptionMethodList(): List<EncryptionMethod>? {
+    return when (this) {
+        is JsonPrimitive -> listOf(EncryptionMethod.parse(asString()))
+        is JsonArray -> map { EncryptionMethod.parse(asString()) }
+        else -> null
+    }
+}

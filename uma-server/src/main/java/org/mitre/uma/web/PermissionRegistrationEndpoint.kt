@@ -29,7 +29,7 @@ import org.mitre.openid.connect.view.JsonEntityView
 import org.mitre.openid.connect.view.JsonErrorView
 import org.mitre.uma.service.PermissionService
 import org.mitre.uma.service.ResourceSetService
-import org.mitre.util.getAsStringSet
+import org.mitre.util.asStringSet
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -76,7 +76,7 @@ class PermissionRegistrationEndpoint {
             }
 
             val rsid = obj["resource_set_id"]?.jsonPrimitive?.long
-            var scopes: Set<String>? = getAsStringSet(obj, "scopes")
+            var scopes: Set<String>? = obj["scopes"].asStringSet()
 
             if (rsid == null || scopes.isNullOrEmpty()) {
                 // missing information
