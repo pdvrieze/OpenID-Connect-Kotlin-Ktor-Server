@@ -5,7 +5,6 @@ import com.nimbusds.jose.JWEAlgorithm
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jwt.JWTParser
-import io.github.pdvrieze.auth.exposed.ClientDetails.clientId
 import io.github.pdvrieze.auth.exposed.ClientDetails.clientSecret
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ResultRow
@@ -150,7 +149,7 @@ private fun OAuthClientDetails.toUpdate(builder: UpdateBuilder<Int>) {
     val t = ClientDetails
     id?.let { builder[t.id] = it }
 
-    builder[t.clientId] = clientId
+    getClientId()?.let{ builder[t.clientId] = it }
     builder[t.clientSecret] = clientSecret
     builder[t.clientName] = clientName
     builder[t.clientUri] = clientUri

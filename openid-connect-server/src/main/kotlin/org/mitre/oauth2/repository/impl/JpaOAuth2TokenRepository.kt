@@ -21,9 +21,9 @@ import com.nimbusds.jwt.JWT
 import com.nimbusds.jwt.JWTParser
 import org.mitre.data.DefaultPageCriteria
 import org.mitre.data.PageCriteria
-import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.uma.model.ResourceSet
@@ -134,7 +134,7 @@ class JpaOAuth2TokenRepository : OAuth2TokenRepository {
     }
 
     @Transactional(value = "defaultTransactionManager")
-    override fun clearTokensForClient(client: ClientDetailsEntity) {
+    override fun clearTokensForClient(client: OAuthClientDetails) {
         val queryA =
             manager.createNamedQuery(OAuth2AccessTokenEntity.QUERY_BY_CLIENT, OAuth2AccessTokenEntity::class.java)
         queryA.setParameter(OAuth2AccessTokenEntity.PARAM_CLIENT, client)
@@ -151,7 +151,7 @@ class JpaOAuth2TokenRepository : OAuth2TokenRepository {
         }
     }
 
-    override fun getAccessTokensForClient(client: ClientDetailsEntity): List<OAuth2AccessTokenEntity> {
+    override fun getAccessTokensForClient(client: OAuthClientDetails): List<OAuth2AccessTokenEntity> {
         val queryA =
             manager.createNamedQuery(OAuth2AccessTokenEntity.QUERY_BY_CLIENT, OAuth2AccessTokenEntity::class.java)
         queryA.setParameter(OAuth2AccessTokenEntity.PARAM_CLIENT, client)
@@ -159,7 +159,7 @@ class JpaOAuth2TokenRepository : OAuth2TokenRepository {
         return accessTokens
     }
 
-    override fun getRefreshTokensForClient(client: ClientDetailsEntity): List<OAuth2RefreshTokenEntity> {
+    override fun getRefreshTokensForClient(client: OAuthClientDetails): List<OAuth2RefreshTokenEntity> {
         val queryR =
             manager.createNamedQuery(OAuth2RefreshTokenEntity.QUERY_BY_CLIENT, OAuth2RefreshTokenEntity::class.java)
         queryR.setParameter(OAuth2RefreshTokenEntity.PARAM_CLIENT, client)

@@ -21,6 +21,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.openid.connect.repository.ApprovedSiteRepository
@@ -43,7 +44,7 @@ class TestDefaultApprovedSiteService {
     private lateinit var site2: ApprovedSite
     private lateinit var site3: ApprovedSite
 
-    private lateinit var client: ClientDetailsEntity
+    private lateinit var client: OAuthClientDetails
 
     @Mock
     private lateinit var repository: ApprovedSiteRepository
@@ -95,7 +96,7 @@ class TestDefaultApprovedSiteService {
      */
     @Test
     fun clearApprovedSitesForClient_success() {
-        whenever(repository.getByClientId(client.clientId!!))
+        whenever(repository.getByClientId(client.getClientId()!!))
             .thenReturn(setOf(site2, site3))
 
         whenever(tokenRepository.getAccessTokensForApprovedSite(isA<ApprovedSite>()))
@@ -114,7 +115,7 @@ class TestDefaultApprovedSiteService {
     @Rollback
     fun clearApprovedSitesForClient_null() {
         val otherId = "a different id"
-        client.clientId = otherId
+        (client as ClientDetailsEntity).clientId = otherId
         service.clearApprovedSitesForClient(client)
         // unused by mockito (causs unnecessary stubbing exception
 //		whenever(repository.getByClientId(otherId)).thenReturn(new HashSet<ApprovedSite>());

@@ -86,294 +86,184 @@ import java.util.*
  */
 @Serializable(RegisteredClient.Companion::class)
 class RegisteredClient(
-    var client: ClientDetailsEntity = ClientDetailsEntity(),// these fields are needed in addition to the ones in ClientDetailsEntity
-    var registrationAccessToken: String? = null,
-    var registrationClientUri: String? = null,
-    var clientSecretExpiresAt: Date? = null,
-    var clientIdIssuedAt: Date? = null,
-    var source: JsonObject? = null,
+    val client: OAuthClientDetails = ClientDetailsEntity(),
+    // these fields are needed in addition to the ones in ClientDetailsEntity
+    val registrationAccessToken: String? = null,
+    val registrationClientUri: String? = null,
+    val clientSecretExpiresAt: Date? = null,
+    val clientIdIssuedAt: Date? = null,
+    val source: JsonObject? = null,
 ) {
 
-    var clientDescription: String
+    fun copy(
+        client: OAuthClientDetails = this.client.copy(),
+        registrationAccessToken: String? = this.registrationAccessToken,
+        registrationClientUri: String? = this.registrationClientUri,
+        clientSecretExpiresAt: Date? = this.clientSecretExpiresAt,
+        clientIdIssuedAt: Date? = this.clientIdIssuedAt,
+        source: JsonObject? = this.source,
+    ): RegisteredClient {
+        return RegisteredClient(client, registrationAccessToken, registrationClientUri, clientSecretExpiresAt, clientIdIssuedAt, source)
+    }
+
+    val clientDescription: String
         get() = client.clientDescription
-        set(clientDescription) {
-            client.clientDescription = clientDescription
-        }
 
     val isAllowRefresh: Boolean get() = client.isAllowRefresh
 
-    var isReuseRefreshToken: Boolean
+    val isReuseRefreshToken: Boolean
         get() = client.isReuseRefreshToken
-        set(reuseRefreshToken) {
-            client.isReuseRefreshToken = reuseRefreshToken
-        }
 
-    var idTokenValiditySeconds: Int?
+    val idTokenValiditySeconds: Int?
         get() = client.idTokenValiditySeconds
-        set(idTokenValiditySeconds) {
-            client.idTokenValiditySeconds = idTokenValiditySeconds
-        }
 
-    var isDynamicallyRegistered: Boolean
+    val isDynamicallyRegistered: Boolean
         get() = client.isDynamicallyRegistered
-        set(dynamicallyRegistered) {
-            client.isDynamicallyRegistered = dynamicallyRegistered
-        }
 
-    var isAllowIntrospection: Boolean
+    val isAllowIntrospection: Boolean
         get() = client.isAllowIntrospection
-        set(allowIntrospection) {
-            client.isAllowIntrospection = allowIntrospection
-        }
 
-    val isSecretRequired: Boolean get() = client.isSecretRequired
+    val isSecretRequired: Boolean get() = client.isSecretRequired()
 
-    val isScoped: Boolean get() = client.isScoped
+    val isScoped: Boolean get() = client.isScoped()
 
-    var clientId: String?
-        get() = client.clientId
-        set(clientId) {
-            client.clientId = clientId
-        }
+    val clientId: String?
+        get() = client.getClientId()
 
-    var clientSecret: String?
-        get() = client.clientSecret
-        set(clientSecret) {
-            client.clientSecret = clientSecret
-        }
+    val clientSecret: String?
+        get() = client.getClientSecret()
 
-    var scope: Set<String>?
-        get() = client.scope
-        set(scope) {
-            client.setScope(scope ?: emptySet())
-        }
+    val scope: Set<String>?
+        get() = client.getScope()
 
-    var grantTypes: Set<String>
+    val grantTypes: Set<String>
         get() = client.grantTypes
-        set(grantTypes) {
-            client.grantTypes = grantTypes.toMutableSet()
-        }
 
     val authorizedGrantTypes: Set<String>
-        get() = client.authorizedGrantTypes
+        get() = client.getAuthorizedGrantTypes()
 
-    var authorities: Set<GrantedAuthority>
-        get() = client.authorities
-        set(authorities) {
-            client.authorities = authorities
-        }
+    val authorities: Set<GrantedAuthority>
+        get() = client.getAuthorities()
 
-    var accessTokenValiditySeconds: Int?
-        get() = client.accessTokenValiditySeconds
-        set(accessTokenValiditySeconds) {
-            client.accessTokenValiditySeconds = accessTokenValiditySeconds
-        }
+    val accessTokenValiditySeconds: Int?
+        get() = client.getAccessTokenValiditySeconds()
 
-    var refreshTokenValiditySeconds: Int?
-        get() = client.refreshTokenValiditySeconds
-        set(refreshTokenValiditySeconds) {
-            client.refreshTokenValiditySeconds = refreshTokenValiditySeconds
-        }
+    val refreshTokenValiditySeconds: Int?
+        get() = client.getRefreshTokenValiditySeconds()
 
-    var redirectUris: Set<String>
+    val redirectUris: Set<String>
         get() = client.redirectUris
-        set(redirectUris) {
-            client.redirectUris = redirectUris
-        }
 
     val registeredRedirectUri: Set<String>?
-        get() = client.registeredRedirectUri
+        get() = client.getRegisteredRedirectUri()
     
-    var resourceIds: Set<String>
-        get() = client.resourceIds
-        set(resourceIds) {
-            client.resourceIds = resourceIds
-        }
-    
+    val resourceIds: Set<String>
+        get() = client.getResourceIds()
+
     val additionalInformation: Map<String, Any>
-        get() = client.additionalInformation
+        get() = client.getAdditionalInformation()
     
-    var applicationType: OAuthClientDetails.AppType
+    val applicationType: OAuthClientDetails.AppType
         get() = client.applicationType
-        set(applicationType) {
-            client.applicationType = applicationType
-        }
 
-    var clientName: String?
+    val clientName: String?
         get() = client.clientName
-        set(clientName) {
-            client.clientName = clientName
-        }
 
-    var tokenEndpointAuthMethod: OAuthClientDetails.AuthMethod?
+    val tokenEndpointAuthMethod: OAuthClientDetails.AuthMethod?
         get() = client.tokenEndpointAuthMethod
-        set(tokenEndpointAuthMethod) {
-            client.tokenEndpointAuthMethod = tokenEndpointAuthMethod!!
-        }
 
-    var subjectType: OAuthClientDetails.SubjectType?
+    val subjectType: OAuthClientDetails.SubjectType?
         get() = client.subjectType
-        set(subjectType) {
-            client.subjectType = subjectType
-        }
 
-    var contacts: Set<String>?
+    val contacts: Set<String>?
         get() = client.contacts
-        set(contacts) {
-            client.contacts = contacts
-        }
 
-    var logoUri: String?
+    val logoUri: String?
         get() = client.logoUri
-        set(logoUri) {
-            client.logoUri = logoUri
-        }
 
-    var policyUri: String?
+    val policyUri: String?
         get() = client.policyUri
-        set(policyUri) { client.policyUri = policyUri }
 
-    var clientUri: String?
+    val clientUri: String?
         get() = client.clientUri
-        set(clientUri) { client.clientUri = clientUri }
 
-    var tosUri: String?
+    val tosUri: String?
         get() = client.tosUri
-        set(tosUri) { client.tosUri = tosUri }
 
-    var jwksUri: String?
+    val jwksUri: String?
         get() = client.jwksUri
-        set(jwksUri) { client.jwksUri = jwksUri }
 
-    var jwks: JWKSet?
+    val jwks: JWKSet?
         get() = client.jwks
-        set(jwks) {
-            client.jwks = jwks
-        }
 
-    var sectorIdentifierUri: String?
+    val sectorIdentifierUri: String?
         get() = client.sectorIdentifierUri
-        set(sectorIdentifierUri) { client.sectorIdentifierUri = sectorIdentifierUri }
 
-    var defaultMaxAge: Long?
+    val defaultMaxAge: Long?
         get() = client.defaultMaxAge
-        set(defaultMaxAge) { client.defaultMaxAge = defaultMaxAge }
 
-    var requireAuthTime: Boolean?
+    val requireAuthTime: Boolean?
         get() = client.requireAuthTime
-        set(requireAuthTime) { client.requireAuthTime = requireAuthTime }
 
-    var responseTypes: Set<String>
+    val responseTypes: Set<String>
         get() = client.responseTypes
-        set(responseTypes) { client.responseTypes = responseTypes.toHashSet() }
 
-    var defaultACRvalues: Set<String>?
+    val defaultACRvalues: Set<String>?
         get() = client.defaultACRvalues
-        set(defaultACRvalues) { client.defaultACRvalues = defaultACRvalues }
 
-    var initiateLoginUri: String?
+    val initiateLoginUri: String?
         get() = client.initiateLoginUri
-        set(initiateLoginUri) { client.initiateLoginUri = initiateLoginUri }
 
-    var postLogoutRedirectUris: Set<String>?
+    val postLogoutRedirectUris: Set<String>?
         get() = client.postLogoutRedirectUris
-        set(postLogoutRedirectUri) { client.postLogoutRedirectUris = postLogoutRedirectUri }
 
-    var requestUris: Set<String>?
+    val requestUris: Set<String>?
         get() = client.requestUris
-        set(requestUris) {
-            client.requestUris = requestUris
-        }
 
-    var requestObjectSigningAlg: JWSAlgorithm?
+    val requestObjectSigningAlg: JWSAlgorithm?
         get() = client.requestObjectSigningAlg
-        set(requestObjectSigningAlg) {
-            client.requestObjectSigningAlg = requestObjectSigningAlg
-        }
 
-    var userInfoSignedResponseAlg: JWSAlgorithm?
+    val userInfoSignedResponseAlg: JWSAlgorithm?
         get() = client.userInfoSignedResponseAlg
-        set(userInfoSignedResponseAlg) {
-            client.userInfoSignedResponseAlg = userInfoSignedResponseAlg
-        }
 
-    var userInfoEncryptedResponseAlg: JWEAlgorithm?
+    val userInfoEncryptedResponseAlg: JWEAlgorithm?
         get() = client.userInfoEncryptedResponseAlg
-        set(userInfoEncryptedResponseAlg) {
-            client.userInfoEncryptedResponseAlg = userInfoEncryptedResponseAlg
-        }
 
-    var userInfoEncryptedResponseEnc: EncryptionMethod?
+    val userInfoEncryptedResponseEnc: EncryptionMethod?
         get() = client.userInfoEncryptedResponseEnc
-        set(userInfoEncryptedResponseEnc) {
-            client.userInfoEncryptedResponseEnc = userInfoEncryptedResponseEnc
-        }
 
-    var idTokenSignedResponseAlg: JWSAlgorithm?
+    val idTokenSignedResponseAlg: JWSAlgorithm?
         get() = client.idTokenSignedResponseAlg
-        set(idTokenSignedResponseAlg) {
-            client.idTokenSignedResponseAlg = idTokenSignedResponseAlg
-        }
 
-    var idTokenEncryptedResponseAlg: JWEAlgorithm?
+    val idTokenEncryptedResponseAlg: JWEAlgorithm?
         get() = client.idTokenEncryptedResponseAlg
-        set(idTokenEncryptedResponseAlg) {
-            client.idTokenEncryptedResponseAlg = idTokenEncryptedResponseAlg
-        }
 
-    var idTokenEncryptedResponseEnc: EncryptionMethod?
+    val idTokenEncryptedResponseEnc: EncryptionMethod?
         get() = client.idTokenEncryptedResponseEnc
-        set(idTokenEncryptedResponseEnc) {
-            client.idTokenEncryptedResponseEnc = idTokenEncryptedResponseEnc
-        }
 
-    var tokenEndpointAuthSigningAlg: JWSAlgorithm?
+    val tokenEndpointAuthSigningAlg: JWSAlgorithm?
         get() = client.tokenEndpointAuthSigningAlg
-        set(tokenEndpointAuthSigningAlg) {
-            client.tokenEndpointAuthSigningAlg = tokenEndpointAuthSigningAlg
-        }
 
-    var createdAt: Date?
-        get() = client.createdAt?.let { it }
-        set(createdAt) {
-            client.createdAt = createdAt
-        }
+    val createdAt: Date?
+        get() = client.createdAt
 
-    var claimsRedirectUris: Set<String>?
+    val claimsRedirectUris: Set<String>?
         get() = client.claimsRedirectUris
-        set(claimsRedirectUris) {
-            client.claimsRedirectUris = claimsRedirectUris
-        }
 
-    var softwareStatement: JWT?
+    val softwareStatement: JWT?
         get() = client.softwareStatement
-        set(softwareStatement) {
-            client.softwareStatement = softwareStatement
-        }
 
-    var codeChallengeMethod: PKCEAlgorithm?
+    val codeChallengeMethod: PKCEAlgorithm?
         get() = client.codeChallengeMethod
-        set(codeChallengeMethod) {
-            client.codeChallengeMethod = codeChallengeMethod
-        }
 
-    var deviceCodeValiditySeconds: Int?
+    val deviceCodeValiditySeconds: Int?
         get() = client.deviceCodeValiditySeconds
-        set(deviceCodeValiditySeconds) {
-            client.deviceCodeValiditySeconds = deviceCodeValiditySeconds
-        }
 
-    var softwareId: String?
+    val softwareId: String?
         get() = client.softwareId
-        set(softwareId) {
-            client.softwareId = softwareId
-        }
 
-    var softwareVersion: String?
+    val softwareVersion: String?
         get() = client.softwareVersion
-        set(softwareVersion) {
-            client.softwareVersion = softwareVersion
-        }
 
     @Serializable
     private class SerialDelegate(

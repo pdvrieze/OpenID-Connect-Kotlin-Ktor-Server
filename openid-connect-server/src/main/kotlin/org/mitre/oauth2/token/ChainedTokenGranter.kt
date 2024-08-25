@@ -24,6 +24,7 @@ import org.springframework.security.core.AuthenticationException
 import org.springframework.security.oauth2.common.exceptions.InvalidScopeException
 import org.springframework.security.oauth2.common.exceptions.InvalidTokenException
 import org.springframework.security.oauth2.provider.ClientDetails
+import org.springframework.security.oauth2.provider.ClientDetailsService
 import org.springframework.security.oauth2.provider.OAuth2Authentication
 import org.springframework.security.oauth2.provider.OAuth2RequestFactory
 import org.springframework.security.oauth2.provider.TokenRequest
@@ -38,7 +39,8 @@ class ChainedTokenGranter @Autowired constructor(// keep down-cast versions so w
     private val tokenServices: OAuth2TokenEntityService,
     clientDetailsService: ClientDetailsEntityService?,
     requestFactory: OAuth2RequestFactory?
-) : AbstractTokenGranter(tokenServices, clientDetailsService, requestFactory, GRANT_TYPE) {
+    // TODO: remove cast to ClientDetails service, but that means inhertence needs to be different
+) : AbstractTokenGranter(tokenServices, clientDetailsService as ClientDetailsService, requestFactory, GRANT_TYPE) {
 
     @Throws(AuthenticationException::class, InvalidTokenException::class)
     override fun getOAuth2Authentication(client: ClientDetails, tokenRequest: TokenRequest): OAuth2Authentication {

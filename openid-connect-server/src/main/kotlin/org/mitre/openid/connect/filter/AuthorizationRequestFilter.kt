@@ -19,6 +19,7 @@ package org.mitre.openid.connect.filter
 
 import org.apache.http.client.utils.URIBuilder
 import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.request.ConnectRequestParameters
 import org.mitre.openid.connect.service.LoginHintExtracter
@@ -30,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException
 import org.springframework.security.oauth2.provider.AuthorizationRequest
+import org.springframework.security.oauth2.provider.ClientDetails
 import org.springframework.security.oauth2.provider.OAuth2RequestFactory
 import org.springframework.security.oauth2.provider.endpoint.RedirectResolver
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher
@@ -82,7 +84,7 @@ class AuthorizationRequestFilter : GenericFilterBean() {
             // we have to create our own auth request in order to get at all the parmeters appropriately
             val authRequest: AuthorizationRequest?
 
-            var client: ClientDetailsEntity? = null
+            var client: OAuthClientDetails? = null
 
             authRequest = authRequestFactory
                 .createAuthorizationRequest(createRequestMap(request.parameterMap as Map<String, Array<String>?>))
@@ -120,7 +122,8 @@ class AuthorizationRequestFilter : GenericFilterBean() {
                         if (client != null && authRequest.redirectUri != null) {
                             // if we've got a redirect URI then we'll send it
 
-                            val url = redirectResolver.resolveRedirect(authRequest.redirectUri, client)
+                            // TODO Stuck to spring/ClientDetails
+                            val url = redirectResolver.resolveRedirect(authRequest.redirectUri, client as ClientDetails)
 
                             try {
                                 val uriBuilder = URIBuilder(url)

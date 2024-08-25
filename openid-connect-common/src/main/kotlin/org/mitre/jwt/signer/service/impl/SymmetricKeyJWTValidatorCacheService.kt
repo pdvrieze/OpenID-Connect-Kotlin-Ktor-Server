@@ -24,7 +24,7 @@ import com.nimbusds.jose.jwk.KeyUse
 import com.nimbusds.jose.jwk.OctetSequenceKey
 import com.nimbusds.jose.util.Base64URL
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
-import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -49,14 +49,14 @@ class SymmetricKeyJWTValidatorCacheService {
      * Create a symmetric signing and validation service for the given client
      *
      */
-    fun getSymmetricValidator(client: ClientDetailsEntity): JWTSigningAndValidationService? {
-        if (client.clientSecret.isNullOrEmpty()) {
-            logger.error("Couldn't create symmetric validator for client " + client.clientId + " without a client secret")
+    fun getSymmetricValidator(client: OAuthClientDetails): JWTSigningAndValidationService? {
+        if (client.getClientSecret().isNullOrEmpty()) {
+            logger.error("Couldn't create symmetric validator for client ${client.getClientId()} without a client secret")
             return null
         }
 
         try {
-            return validators[client.clientSecret]
+            return validators[client.getClientSecret()]
         } catch (ue: UncheckedExecutionException) {
             logger.error("Problem loading client validator", ue)
             return null

@@ -63,14 +63,14 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
     var id: Long? = null
 
 	@get:JoinColumn(name = "client_id")
-    @get:ManyToOne
-    var client: ClientDetailsEntity? = null
+    @ManyToOne
+    var client: OAuthClientDetails? = null
 
     /**
      * The authentication in place when this token was created.
      */
 	@get:JoinColumn(name = "auth_holder_id")
-    @get:ManyToOne
+    @ManyToOne
     lateinit var authenticationHolder: AuthenticationHolderEntity // the authentication that made this access
 
     @get:Convert(converter = JWTStringConverter::class)
@@ -82,6 +82,8 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
 
     private var tokenType = OAuth2AccessToken.BEARER_TYPE
 
+    @ManyToOne
+    @JoinColumn(name = "refresh_token_id")
     private lateinit var refreshToken: OAuth2RefreshTokenEntity
 
     private var scope: Set<String>? = null
@@ -93,7 +95,7 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
     var permissions: Set<Permission>? = null
 
 	@get:JoinColumn(name = "approved_site_id")
-    @get:ManyToOne
+    @ManyToOne
     var approvedSite: ApprovedSite? = null
 
     private val additionalInformation: MutableMap<String, JsonElement> =
@@ -234,7 +236,7 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
             currentId = s.id!!,
             expiration = s.expiration,
             value = s.jwt,
-            clientId = s.client!!.clientId!!,
+            clientId = s.client!!.getClientId()!!,
             authenticationHolderId = s.authenticationHolder.id!!,
             refreshTokenId = s.refreshToken?.id,
             scope = s.scope,

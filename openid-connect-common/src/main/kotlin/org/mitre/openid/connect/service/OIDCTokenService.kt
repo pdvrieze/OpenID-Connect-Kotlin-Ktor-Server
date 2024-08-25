@@ -18,8 +18,8 @@
 package org.mitre.openid.connect.service
 
 import com.nimbusds.jwt.JWT
-import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.springframework.security.oauth2.provider.OAuth2Request
 import java.util.*
 
@@ -33,22 +33,22 @@ interface OIDCTokenService {
      * Create an id token with the information provided.
      */
     fun createIdToken(
-        client: ClientDetailsEntity, request: OAuth2Request, issueTime: Date?,
+        client: OAuthClientDetails, request: OAuth2Request, issueTime: Date?,
         sub: String?, accessToken: OAuth2AccessTokenEntity
     ): JWT?
 
     /**
      * Create a registration access token for the given client.
      */
-    fun createRegistrationAccessToken(client: ClientDetailsEntity): OAuth2AccessTokenEntity?
+    fun createRegistrationAccessToken(client: OAuthClientDetails): OAuth2AccessTokenEntity?
 
     /**
      * Create a resource access token for the given client (protected resource).
      */
-    fun createResourceAccessToken(client: ClientDetailsEntity): OAuth2AccessTokenEntity?
+    fun createResourceAccessToken(client: OAuthClientDetails): OAuth2AccessTokenEntity?
 
     /**
      * Rotate the registration or resource token for a client
      */
-    fun rotateRegistrationAccessTokenForClient(client: ClientDetailsEntity): OAuth2AccessTokenEntity?
+    fun rotateRegistrationAccessTokenForClient(client: OAuthClientDetails): OAuth2AccessTokenEntity?
 }

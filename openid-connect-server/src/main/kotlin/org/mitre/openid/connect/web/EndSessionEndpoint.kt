@@ -19,6 +19,7 @@ import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.JWTParser
 import org.mitre.jwt.assertion.impl.SelfAssertionValidator
 import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.service.UserInfoService
 import org.slf4j.Logger
@@ -68,7 +69,7 @@ class EndSessionEndpoint {
         // conditionally filled variables
 
         var idTokenClaims: JWTClaimsSet? = null // pulled from the parsed and validated ID token
-        var client: ClientDetailsEntity? = null // pulled from ID token's audience field
+        var client: OAuthClientDetails? = null // pulled from ID token's audience field
 
         if (!postLogoutRedirectUri.isNullOrEmpty()) {
             session.setAttribute(REDIRECT_URI_KEY, postLogoutRedirectUri)

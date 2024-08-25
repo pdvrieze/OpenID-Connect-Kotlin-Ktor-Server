@@ -118,8 +118,8 @@ class JWTBearerAuthenticationProvider : AuthenticationProvider {
             // check the issuer
             if (jwtClaims?.issuer == null) {
                 throw AuthenticationServiceException("Assertion Token Issuer is null")
-            } else if (jwtClaims.issuer != client.clientId) {
-                throw AuthenticationServiceException("Issuers do not match, expected ${client.clientId} got ${jwtClaims.issuer}")
+            } else if (jwtClaims.issuer != client.getClientId()) {
+                throw AuthenticationServiceException("Issuers do not match, expected ${client.getClientId()} got ${jwtClaims.issuer}")
             }
 
             // check expiration
@@ -160,7 +160,7 @@ class JWTBearerAuthenticationProvider : AuthenticationProvider {
             // IFF we managed to get all the way down here, the token is valid
 
             // add in the ROLE_CLIENT authority
-            val authorities: MutableSet<GrantedAuthority> = HashSet(client.authorities)
+            val authorities: MutableSet<GrantedAuthority> = HashSet(client.getAuthorities())
             authorities.add(ROLE_CLIENT)
 
             return JWTBearerAssertionAuthenticationToken(jwt, authorities)

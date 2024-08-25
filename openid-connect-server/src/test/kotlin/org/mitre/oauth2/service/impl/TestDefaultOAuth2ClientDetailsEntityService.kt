@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.repository.OAuth2ClientRepository
@@ -174,7 +175,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
             grantTypes = hashSetOf("refresh_token")
         }.let { service.saveNewClient(it) }
 
-        assertTrue(SystemScopeService.OFFLINE_ACCESS in client.scope)
+        assertTrue(SystemScopeService.OFFLINE_ACCESS in client.getScope())
     }
 
     /**
@@ -187,7 +188,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
 
         verify(scopeService, atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
 
-        assertFalse(SystemScopeService.OFFLINE_ACCESS in client.scope)
+        assertFalse(SystemScopeService.OFFLINE_ACCESS in client.getScope())
     }
 
     @Test
@@ -260,17 +261,14 @@ class TestDefaultOAuth2ClientDetailsEntityService {
     fun updateClient_yesOfflineAccess() {
         val oldClient = ClientDetailsEntity()
         oldClient.id = 1L // Needs a hard-coded id as there is no jpa
-        var client = ClientDetailsEntity()
-
-        val grantTypes: MutableSet<String> = HashSet()
-        grantTypes.add("refresh_token")
-        client.grantTypes = grantTypes
+        val grantTypes: MutableSet<String> = hashSetOf("refresh_token")
+        var client: OAuthClientDetails = ClientDetailsEntity(grantTypes = grantTypes)
 
         client = service.updateClient(oldClient, client)
 
         verify(scopeService, atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
 
-        assertTrue(SystemScopeService.OFFLINE_ACCESS in client.scope)
+        assertTrue(SystemScopeService.OFFLINE_ACCESS in client.getScope())
     }
 
     @Test
@@ -284,7 +282,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
 
         verify(scopeService, atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
 
-        assertFalse(SystemScopeService.OFFLINE_ACCESS in client.scope)
+        assertFalse(SystemScopeService.OFFLINE_ACCESS in client.getScope())
     }
 
     @Test

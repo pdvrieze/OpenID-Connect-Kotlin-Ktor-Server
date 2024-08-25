@@ -28,6 +28,7 @@ import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
 import org.mitre.jwt.signer.service.impl.ClientKeyCacheService
 import org.mitre.oauth2.model.PKCEAlgorithm
 import org.mitre.oauth2.service.ClientDetailsEntityService
+import org.mitre.oauth2.service.SpringClientDetailsEntityService
 import org.mitre.openid.connect.service.MITREidDataService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -36,14 +37,16 @@ import org.springframework.security.oauth2.common.exceptions.InvalidClientExcept
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception
 import org.springframework.security.oauth2.common.util.OAuth2Utils
 import org.springframework.security.oauth2.provider.AuthorizationRequest
+import org.springframework.security.oauth2.provider.ClientDetailsService
 import org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory
 import org.springframework.stereotype.Component
 import java.text.ParseException
 
 
+// TODO Spring specific
 @Component("connectOAuth2RequestFactory")
 class ConnectOAuth2RequestFactory @Autowired constructor(
-    private val clientDetailsService: ClientDetailsEntityService
+    private val clientDetailsService: SpringClientDetailsEntityService
 ) : DefaultOAuth2RequestFactory(clientDetailsService) {
 
     @Autowired

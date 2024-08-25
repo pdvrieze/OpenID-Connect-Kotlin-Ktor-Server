@@ -18,6 +18,7 @@
 package org.mitre.openid.connect.service.impl
 
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.openid.connect.repository.ApprovedSiteRepository
@@ -133,8 +134,8 @@ class DefaultApprovedSiteService : ApprovedSiteService {
     }
 
 
-    override fun clearApprovedSitesForClient(client: ClientDetails) {
-        val approvedSites = approvedSiteRepository.getByClientId(client.clientId)
+    override fun clearApprovedSitesForClient(client: OAuthClientDetails) {
+        val approvedSites = approvedSiteRepository.getByClientId(client.getClientId()!!)
         if (approvedSites != null) {
             for (approvedSite in approvedSites) {
                 remove(approvedSite)

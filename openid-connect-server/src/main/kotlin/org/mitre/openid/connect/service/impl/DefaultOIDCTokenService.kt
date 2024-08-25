@@ -31,8 +31,8 @@ import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.jwt.signer.service.impl.ClientKeyCacheService
 import org.mitre.jwt.signer.service.impl.SymmetricKeyJWTValidatorCacheService
 import org.mitre.oauth2.model.AuthenticationHolderEntity
-import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.service.OAuth2TokenEntityService
 import org.mitre.oauth2.service.SystemScopeService
@@ -76,7 +76,7 @@ class DefaultOIDCTokenService : OIDCTokenService {
     private lateinit var tokenService: OAuth2TokenEntityService
 
     override fun createIdToken(
-        client: ClientDetailsEntity,
+        client: OAuthClientDetails,
         request: OAuth2Request,
         issueTime: Date?,
         sub: String?,
@@ -118,7 +118,7 @@ class DefaultOIDCTokenService : OIDCTokenService {
 
         idClaims.issuer(configBean.issuer)
         idClaims.subject(sub)
-        idClaims.audience(listOf(client.clientId))
+        idClaims.audience(listOf(client.getClientId()))
         idClaims.jwtID(UUID.randomUUID().toString()) // set a random NONCE in the middle of it
 
         val nonce = request.extensions[ConnectRequestParameters.NONCE] as String?
@@ -147,7 +147,7 @@ class DefaultOIDCTokenService : OIDCTokenService {
 
                 encrypter.encryptJwt((idToken as JWEObject?)!!)
             } else {
-                logger.error("Couldn't find encrypter for client: " + client.clientId)
+                logger.error("Couldn't find encrypter for client: ${client.getClientId()}")
             }
         } else {
             if (signingAlg == Algorithm.NONE) {
@@ -191,16 +191,16 @@ class DefaultOIDCTokenService : OIDCTokenService {
     /**
      * @throws AuthenticationException
      */
-    override fun createRegistrationAccessToken(client: ClientDetailsEntity): OAuth2AccessTokenEntity? {
+    override fun createRegistrationAccessToken(client: OAuthClientDetails): OAuth2AccessTokenEntity? {
         return createAssociatedToken(client, hashSetOf(SystemScopeService.REGISTRATION_TOKEN_SCOPE))
     }
 
 
-    override fun createResourceAccessToken(client: ClientDetailsEntity): OAuth2AccessTokenEntity? {
+    override fun createResourceAccessToken(client: OAuthClientDetails): OAuth2AccessTokenEntity? {
         return createAssociatedToken(client, hashSetOf(SystemScopeService.RESOURCE_TOKEN_SCOPE))
     }
 
-    override fun rotateRegistrationAccessTokenForClient(client: ClientDetailsEntity): OAuth2AccessTokenEntity? {
+    override fun rotateRegistrationAccessTokenForClient(client: OAuthClientDetails): OAuth2AccessTokenEntity? {
         // revoke any previous tokens
         val oldToken = tokenService.getRegistrationAccessTokenForClient(client)
         if (oldToken != null) {
@@ -212,7 +212,7 @@ class DefaultOIDCTokenService : OIDCTokenService {
         }
     }
 
-    private fun createAssociatedToken(client: ClientDetailsEntity, scope: Set<String>?): OAuth2AccessTokenEntity {
+    private fun createAssociatedToken(client: OAuthClientDetails, scope: Set<String>?): OAuth2AccessTokenEntity {
         // revoke any previous tokens that might exist, just to be sure
 
         val oldToken = tokenService.getRegistrationAccessTokenForClient(client)
@@ -223,7 +223,7 @@ class DefaultOIDCTokenService : OIDCTokenService {
         // create a new token
         val authorizationParameters: Map<String, String> = hashMapOf()
         val clientAuth = OAuth2Request(
-            authorizationParameters, client.clientId,
+            authorizationParameters, client.getClientId(),
             hashSetOf(SimpleGrantedAuthority("ROLE_CLIENT")), true,
             scope, null, null, null, null
         )
@@ -239,7 +239,7 @@ class DefaultOIDCTokenService : OIDCTokenService {
         token.authenticationHolder = authHolder
 
         val claims = JWTClaimsSet.Builder()
-            .audience(listOf(client.clientId))
+            .audience(listOf(client.getClientId()))
             .issuer(configBean.issuer)
             .issueTime(Date())
             .expirationTime(token.expiration)
@@ -271,7 +271,7 @@ class DefaultOIDCTokenService : OIDCTokenService {
      * @param accessToken the access token
      */
     protected fun addCustomIdTokenClaims(
-        idClaims: JWTClaimsSet.Builder, client: ClientDetailsEntity?, request: OAuth2Request?,
+        idClaims: JWTClaimsSet.Builder, client: OAuthClientDetails, request: OAuth2Request?,
         sub: String?, accessToken: OAuth2AccessTokenEntity?
     ) {
     }

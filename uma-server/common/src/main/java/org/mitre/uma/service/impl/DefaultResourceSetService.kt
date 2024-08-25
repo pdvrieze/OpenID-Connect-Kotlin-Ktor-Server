@@ -15,8 +15,8 @@
  */
 package org.mitre.uma.service.impl
 
-import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.uma.model.ResourceSet
 import org.mitre.uma.repository.PermissionRepository
@@ -124,8 +124,8 @@ class DefaultResourceSetService : ResourceSetService {
     /* (non-Javadoc)
 	 * @see org.mitre.uma.service.ResourceSetService#getAllForClient(org.mitre.oauth2.model.ClientDetailsEntity)
 	 */
-    override fun getAllForClient(client: ClientDetailsEntity): Collection<ResourceSet> {
-        val clientId = requireNotNull(client.clientId) { "missing client id in entity" }
+    override fun getAllForClient(client: OAuthClientDetails): Collection<ResourceSet> {
+        val clientId = requireNotNull(client.getClientId()) { "missing client id in entity" }
         return repository.getAllForClient(clientId)
     }
 

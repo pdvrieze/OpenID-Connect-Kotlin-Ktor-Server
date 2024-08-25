@@ -19,6 +19,7 @@ import kotlinx.serialization.SerializationException
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.service.ClientDetailsEntityService
@@ -72,7 +73,7 @@ class ProtectedResourceRegistrationEndpoint {
      */
     @RequestMapping(method = [RequestMethod.POST], consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun registerNewProtectedResource(@RequestBody jsonString: String, m: Model): String {
-        var newClient: ClientDetailsEntity? = null
+        var newClient: ClientDetailsEntity?
         try {
             newClient = parse(jsonString)
         } catch (e: SerializationException) {
@@ -146,12 +147,12 @@ class ProtectedResourceRegistrationEndpoint {
                 val savedClient = clientService.saveNewClient(newClient)
 
                 // generate the registration access token
-                val token = connectTokenService.createResourceAccessToken(savedClient!!)
+                val token = connectTokenService.createResourceAccessToken(savedClient)
                 tokenService.saveAccessToken(token!!)
 
                 // send it all out to the view
                 val registered =
-                    RegisteredClient(savedClient, token.value, config.issuer + "resource/" + UriUtils.encodePathSegment(savedClient.clientId!!, "UTF-8"))
+                    RegisteredClient(savedClient, token.value, config.issuer + "resource/" + UriUtils.encodePathSegment(savedClient.getClientId()!!, "UTF-8"))
                 m.addAttribute("client", registered)
                 m.addAttribute(HttpCodeView.CODE, HttpStatus.CREATED) // http 201
 
@@ -200,13 +201,13 @@ class ProtectedResourceRegistrationEndpoint {
     fun readResourceConfiguration(@PathVariable("id") clientId: String, m: Model, auth: OAuth2Authentication): String {
         val client = clientService.loadClientByClientId(clientId)
 
-        if (client != null && client.clientId == auth.oAuth2Request.clientId) {
+        if (client != null && client.getClientId() == auth.oAuth2Request.clientId) {
             // possibly update the token
 
             val token = fetchValidRegistrationToken(auth, client)
 
             val registered =
-                RegisteredClient(client, token.value, config.issuer + "resource/" + UriUtils.encodePathSegment(client.clientId, "UTF-8"))
+                RegisteredClient(client, token.value, config.issuer + "resource/" + UriUtils.encodePathSegment(client.getClientId(), "UTF-8"))
 
             // send it all out to the view
             m.addAttribute("client", registered)
@@ -250,7 +251,7 @@ class ProtectedResourceRegistrationEndpoint {
         val oldClient = clientService.loadClientByClientId(clientId)
 
         if (newClient == null || oldClient == null ||
-            oldClient.clientId != auth.oAuth2Request.clientId || oldClient.clientId != newClient.clientId) {
+            oldClient.getClientId() != auth.oAuth2Request.clientId || oldClient.getClientId() != newClient.clientId) {
             // client mismatch
             logger.error(
                 "updateProtectedResource failed, client ID mismatch: $clientId and ${auth.oAuth2Request.clientId} do not match."
@@ -263,7 +264,7 @@ class ProtectedResourceRegistrationEndpoint {
         // we have an existing client and the new one parsed
         // a client can't ask to update its own client secret to any particular value
 
-        newClient.clientSecret = oldClient.clientSecret
+        newClient.clientSecret = oldClient.getClientSecret()
 
         newClient.createdAt = oldClient.createdAt
 
@@ -321,7 +322,7 @@ class ProtectedResourceRegistrationEndpoint {
             val token = fetchValidRegistrationToken(auth, savedClient)
 
             val registered =
-                RegisteredClient(savedClient, token.value, config.issuer + "resource/" + UriUtils.encodePathSegment(savedClient.clientId, "UTF-8"))
+                RegisteredClient(savedClient, token.value, config.issuer + "resource/" + UriUtils.encodePathSegment(savedClient.getClientId(), "UTF-8"))
 
             // send it all out to the view
             m.addAttribute("client", registered)
@@ -347,7 +348,7 @@ class ProtectedResourceRegistrationEndpoint {
     fun deleteResource(@PathVariable("id") clientId: String, m: Model, auth: OAuth2Authentication): String {
         val client = clientService.loadClientByClientId(clientId)
 
-        if (client != null && client.clientId == auth.oAuth2Request.clientId) {
+        if (client != null && client.getClientId() == auth.oAuth2Request.clientId) {
             clientService.deleteClient(client)
 
             m.addAttribute(HttpCodeView.CODE, HttpStatus.NO_CONTENT) // http 204
@@ -375,7 +376,7 @@ class ProtectedResourceRegistrationEndpoint {
         if (newClient.tokenEndpointAuthMethod == AuthMethod.SECRET_BASIC || newClient.tokenEndpointAuthMethod == AuthMethod.SECRET_JWT || newClient.tokenEndpointAuthMethod == AuthMethod.SECRET_POST) {
             if (newClient.clientSecret.isNullOrEmpty()) {
                 // no secret yet, we need to generate a secret
-                newClient = clientService.generateClientSecret(newClient)
+                newClient = newClient.copy(clientSecret = clientService.generateClientSecret(newClient))
             }
         } else if (newClient.tokenEndpointAuthMethod == AuthMethod.PRIVATE_KEY) {
             if (newClient.jwksUri.isNullOrEmpty() && newClient.jwks == null) {
@@ -393,7 +394,7 @@ class ProtectedResourceRegistrationEndpoint {
 
     private fun fetchValidRegistrationToken(
         auth: OAuth2Authentication,
-        client: ClientDetailsEntity
+        client: OAuthClientDetails
     ): OAuth2AccessTokenEntity {
         val details = auth.details as OAuth2AuthenticationDetails
         val token = tokenService.readAccessToken(details.tokenValue)
@@ -403,7 +404,7 @@ class ProtectedResourceRegistrationEndpoint {
                 // Re-issue the token if it has been issued before [currentTime - validity]
                 val validToDate = Date(System.currentTimeMillis() - config.regTokenLifeTime!! * 1000)
                 if (token.jwt!!.jwtClaimsSet.issueTime.before(validToDate)) {
-                    logger.info("Rotating the registration access token for " + client.clientId)
+                    logger.info("Rotating the registration access token for " + client.getClientId())
                     tokenService.revokeAccessToken(token)
                     val newToken = connectTokenService.createResourceAccessToken(client)
                     tokenService.saveAccessToken(newToken!!)

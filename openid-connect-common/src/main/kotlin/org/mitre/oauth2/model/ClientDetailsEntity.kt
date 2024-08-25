@@ -76,9 +76,6 @@ import javax.persistence.Transient as JPATransient
 @Entity
 @Table(name = "client_details")
 @NamedQueries(NamedQuery(name = ClientDetailsEntity.QUERY_ALL, query = "SELECT c FROM ClientDetailsEntity c"), NamedQuery(name = ClientDetailsEntity.QUERY_BY_CLIENT_ID, query = "select c from ClientDetailsEntity c where c.clientId = :" + ClientDetailsEntity.PARAM_CLIENT_ID))
-/**
- * Create a blank ClientDetailsEntity
- */
 @Serializable
 open class ClientDetailsEntity(
     @get:Column(name = "id")
@@ -297,7 +294,7 @@ open class ClientDetailsEntity(
     @get:Column(name = "code_challenge_method")
     @get:Basic
     @SerialName(CODE_CHALLENGE_METHOD) override var codeChallengeMethod: PKCEAlgorithm? = null,
-) : SpringClientDetails, OAuthClientDetails {
+) : OAuthClientDetails, SpringClientDetails {
     /** Fields to support the ClientDetails interface  */
     @KXS_Transient
     private var authorities: Set<GrantedAuthority> = HashSet()
@@ -317,6 +314,113 @@ open class ClientDetailsEntity(
     override fun withId(id: Long): OAuthClientDetails {
         this.id = id
         return this
+    }
+
+    override fun copy(
+        id: Long?,
+        clientId: String?,
+        clientSecret: String?,
+        redirectUris: Set<String>,
+        clientName: String?,
+        clientUri: String?,
+        logoUri: String?,
+        contacts: Set<String>?,
+        tosUri: String?,
+        tokenEndpointAuthMethod: AuthMethod?,
+        scope: Set<String>,
+        grantTypes: Set<String>,
+        responseTypes: Set<String>,
+        policyUri: String?,
+        jwksUri: String?,
+        jwks: JWKSet?,
+        softwareId: String?,
+        softwareVersion: String?,
+        applicationType: AppType,
+        sectorIdentifierUri: String?,
+        subjectType: SubjectType?,
+        requestObjectSigningAlg: JWSAlgorithm?,
+        userInfoSignedResponseAlg: JWSAlgorithm?,
+        userInfoEncryptedResponseAlg: JWEAlgorithm?,
+        userInfoEncryptedResponseEnc: EncryptionMethod?,
+        idTokenSignedResponseAlg: JWSAlgorithm?,
+        idTokenEncryptedResponseAlg: JWEAlgorithm?,
+        idTokenEncryptedResponseEnc: EncryptionMethod?,
+        tokenEndpointAuthSigningAlg: JWSAlgorithm?,
+        defaultMaxAge: Long?,
+        requireAuthTime: Boolean?,
+        defaultACRvalues: Set<String>?,
+        initiateLoginUri: String?,
+        postLogoutRedirectUris: Set<String>?,
+        requestUris: Set<String>?,
+        clientDescription: String,
+        isReuseRefreshToken: Boolean,
+        isDynamicallyRegistered: Boolean,
+        isAllowIntrospection: Boolean,
+        idTokenValiditySeconds: Int?,
+        createdAt: Date?,
+        isClearAccessTokensOnRefresh: Boolean,
+        deviceCodeValiditySeconds: Int?,
+        claimsRedirectUris: Set<String>?,
+        softwareStatement: JWT?,
+        codeChallengeMethod: PKCEAlgorithm?,
+        authorizedGrantTypes: Set<String>,
+        accessTokenValiditySeconds: Int?,
+        refreshTokenValiditySeconds: Int?,
+        authorities: Set<GrantedAuthority>,
+    ): ClientDetailsEntity {
+        return ClientDetailsEntity(
+            id = this.id,
+            clientId = this.clientId,
+            clientSecret = this.clientSecret,
+            redirectUris = this.redirectUris,
+            clientName = this.clientName,
+            clientUri = this.clientUri,
+            logoUri = this.logoUri,
+            contacts = this.contacts,
+            tosUri = this.tosUri,
+            tokenEndpointAuthMethod = this.tokenEndpointAuthMethod,
+            scope = this.scope,
+            grantTypes = this.grantTypes,
+            responseTypes = this.responseTypes,
+            policyUri = this.policyUri,
+            jwksUri = this.jwksUri,
+            jwks = this.jwks,
+            softwareId = this.softwareId,
+            softwareVersion = this.softwareVersion,
+            applicationType = this.applicationType,
+            sectorIdentifierUri = this.sectorIdentifierUri,
+            subjectType = this.subjectType,
+            requestObjectSigningAlg = this.requestObjectSigningAlg,
+            userInfoSignedResponseAlg = this.userInfoSignedResponseAlg,
+            userInfoEncryptedResponseAlg = this.userInfoEncryptedResponseAlg,
+            userInfoEncryptedResponseEnc = this.userInfoEncryptedResponseEnc,
+            idTokenSignedResponseAlg = this.idTokenSignedResponseAlg,
+            idTokenEncryptedResponseAlg = this.idTokenEncryptedResponseAlg,
+            idTokenEncryptedResponseEnc = this.idTokenEncryptedResponseEnc,
+            tokenEndpointAuthSigningAlg = this.tokenEndpointAuthSigningAlg,
+            defaultMaxAge = this.defaultMaxAge,
+            requireAuthTime = this.requireAuthTime,
+            defaultACRvalues = this.defaultACRvalues,
+            initiateLoginUri = this.initiateLoginUri,
+            postLogoutRedirectUris = this.postLogoutRedirectUris,
+            requestUris = this.requestUris,
+            clientDescription = this.clientDescription,
+            isReuseRefreshToken = this.isReuseRefreshToken,
+            isDynamicallyRegistered = this.isDynamicallyRegistered,
+            isAllowIntrospection = this.isAllowIntrospection,
+            idTokenValiditySeconds = this.idTokenValiditySeconds,
+            createdAt = this.createdAt,
+            isClearAccessTokensOnRefresh = this.isClearAccessTokensOnRefresh,
+            deviceCodeValiditySeconds = this.deviceCodeValiditySeconds,
+            claimsRedirectUris = this.claimsRedirectUris,
+            softwareStatement = this.softwareStatement,
+            codeChallengeMethod = this.codeChallengeMethod
+        ).also {
+            it.authorizedGrantTypes.apply { clear(); addAll(authorizedGrantTypes.toHashSet()) }
+            it.setAccessTokenValiditySeconds(accessTokenValiditySeconds)
+            it.setRefreshTokenValiditySeconds(refreshTokenValiditySeconds)
+            it.setAuthorities(authorities)
+        }
     }
 
     @PrePersist

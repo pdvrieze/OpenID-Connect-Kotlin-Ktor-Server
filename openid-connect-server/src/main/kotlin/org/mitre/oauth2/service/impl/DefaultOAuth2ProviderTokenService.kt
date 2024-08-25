@@ -23,9 +23,9 @@ import com.nimbusds.jwt.PlainJWT
 import org.mitre.data.AbstractPageOperationTemplate
 import org.mitre.data.DefaultPageCriteria
 import org.mitre.oauth2.model.AuthenticationHolderEntity
-import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.PKCEAlgorithm
 import org.mitre.oauth2.model.PKCEAlgorithm.Companion.parse
 import org.mitre.oauth2.model.SystemScope
@@ -185,9 +185,10 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
 
         token.scope = scopeService.toStrings(scopes)
 
+        val atvsecs = client.getAccessTokenValiditySeconds()
         // make it expire if necessary
-        if (client.accessTokenValiditySeconds != null && client.accessTokenValiditySeconds!! > 0) {
-            val expiration = Date(System.currentTimeMillis() + (client.accessTokenValiditySeconds!! * 1000L))
+        if (atvsecs != null && atvsecs > 0) {
+            val expiration = Date(System.currentTimeMillis() + (atvsecs * 1000L))
             token.expiration = expiration
         }
 
@@ -228,16 +229,17 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
 
 
     private fun createRefreshToken(
-        client: ClientDetailsEntity?,
+        client: OAuthClientDetails,
         authHolder: AuthenticationHolderEntity
     ): OAuth2RefreshTokenEntity {
         val refreshToken = OAuth2RefreshTokenEntity() //refreshTokenFactory.createNewRefreshToken();
         val refreshClaims = JWTClaimsSet.Builder()
 
 
+        val rtvalSecs = client.getRefreshTokenValiditySeconds()
         // make it expire if necessary
-        if (client!!.refreshTokenValiditySeconds != null) {
-            val expiration = Date(System.currentTimeMillis() + (client.refreshTokenValiditySeconds!! * 1000L))
+        if (rtvalSecs != null) {
+            val expiration = Date(System.currentTimeMillis() + (rtvalSecs * 1000L))
             refreshToken.expiration = expiration
             refreshClaims.expirationTime(expiration)
         }
@@ -272,11 +274,11 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
 
         val client = refreshToken.client
 
-        val authHolder = refreshToken.authenticationHolder!!
+        val authHolder = refreshToken.authenticationHolder
 
         // make sure that the client requesting the token is the one who owns the refresh token
-        val requestingClient = clientDetailsService.loadClientByClientId(authRequest.clientId)
-        if (client!!.clientId != requestingClient!!.clientId) {
+        val requestingClient = clientDetailsService.loadClientByClientId(authRequest.clientId)!!
+        if (client!!.getClientId() != requestingClient.getClientId()) {
             tokenRepository.removeRefreshToken(refreshToken)
             throw InvalidClientException("Client does not own the presented refresh token")
         }
@@ -330,7 +332,7 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
 
         token.client = client
 
-        val accessTokenValiditySeconds = client.accessTokenValiditySeconds
+        val accessTokenValiditySeconds = client.getAccessTokenValiditySeconds()
         if (accessTokenValiditySeconds != null) {
             val expiration = Date(System.currentTimeMillis() + (accessTokenValiditySeconds * 1000L))
             token.expiration = expiration
@@ -415,11 +417,11 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
         tokenRepository.removeAccessToken(accessToken)
     }
 
-    override fun getAccessTokensForClient(client: ClientDetailsEntity): List<OAuth2AccessTokenEntity> {
+    override fun getAccessTokensForClient(client: OAuthClientDetails): List<OAuth2AccessTokenEntity> {
         return tokenRepository.getAccessTokensForClient(client)
     }
 
-    override fun getRefreshTokensForClient(client: ClientDetailsEntity): List<OAuth2RefreshTokenEntity> {
+    override fun getRefreshTokensForClient(client: OAuthClientDetails): List<OAuth2RefreshTokenEntity> {
         return tokenRepository.getRefreshTokensForClient(client)
     }
 
@@ -485,7 +487,7 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
         return tokenRepository.saveRefreshToken(refreshToken)
     }
 
-    override fun getRegistrationAccessTokenForClient(client: ClientDetailsEntity): OAuth2AccessTokenEntity? {
+    override fun getRegistrationAccessTokenForClient(client: OAuthClientDetails): OAuth2AccessTokenEntity? {
         val allTokens = getAccessTokensForClient(client)
 
         for (token in allTokens) {

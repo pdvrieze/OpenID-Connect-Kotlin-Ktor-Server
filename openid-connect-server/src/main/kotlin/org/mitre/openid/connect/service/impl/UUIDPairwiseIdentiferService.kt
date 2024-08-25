@@ -17,7 +17,7 @@
  */
 package org.mitre.openid.connect.service.impl
 
-import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.openid.connect.model.PairwiseIdentifier
 import org.mitre.openid.connect.model.UserInfo
 import org.mitre.openid.connect.repository.PairwiseIdentifierRepository
@@ -37,7 +37,7 @@ class UUIDPairwiseIdentiferService : PairwiseIdentiferService {
     @Autowired
     private lateinit var pairwiseIdentifierRepository: PairwiseIdentifierRepository
 
-    override fun getIdentifier(userInfo: UserInfo, client: ClientDetailsEntity): String? {
+    override fun getIdentifier(userInfo: UserInfo, client: OAuthClientDetails): String? {
         val sectorIdentifier: String?
 
         val sectorIdentifierUri = client.sectorIdentifierUri

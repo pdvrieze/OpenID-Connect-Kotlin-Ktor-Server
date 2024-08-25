@@ -18,6 +18,7 @@
 package org.mitre.openid.connect.service
 
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.openid.connect.model.ApprovedSite
 import org.springframework.security.oauth2.provider.ClientDetails
 import java.util.*
@@ -84,7 +85,7 @@ interface ApprovedSiteService {
     /**
      * Clear out any approved sites for a given client.
      */
-    fun clearApprovedSitesForClient(client: ClientDetails)
+    fun clearApprovedSitesForClient(client: OAuthClientDetails)
 
     /**
      * Remove all expired approved sites from the data store.

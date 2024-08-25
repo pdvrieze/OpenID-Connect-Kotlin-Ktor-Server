@@ -280,7 +280,7 @@ class TestDefaultOAuth2ProviderTokenService {
 
         verify(scopeService, atLeastOnce()).removeReservedScopes(anySet())
 
-        assertEquals(clientId, token.client!!.clientId)
+        assertEquals(clientId, token.client!!.getClientId())
     }
 
     @Test

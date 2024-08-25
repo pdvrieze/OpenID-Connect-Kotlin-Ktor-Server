@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mitre.uma.repository.impl
+package org.mitre.uma.repository.impl.jpa
 
 import org.mitre.oauth2.util.requireId
 import org.mitre.uma.model.ResourceSet

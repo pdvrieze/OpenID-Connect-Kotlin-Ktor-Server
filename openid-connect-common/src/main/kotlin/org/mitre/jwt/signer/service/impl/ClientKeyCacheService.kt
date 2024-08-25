@@ -25,7 +25,7 @@ import org.mitre.jose.keystore.JWKSetKeyStore
 import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
 import org.mitre.jwt.encryption.service.impl.DefaultJWTEncryptionAndDecryptionService
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
-import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -60,7 +60,7 @@ class ClientKeyCacheService {
         .maximumSize(100)
         .build(JWKSetEncryptorBuilder())
 
-    fun getValidator(client: ClientDetailsEntity, alg: JWSAlgorithm): JWTSigningAndValidationService? {
+    fun getValidator(client: OAuthClientDetails, alg: JWSAlgorithm): JWTSigningAndValidationService? {
         try {
             return when (alg) {
                 JWSAlgorithm.RS256, JWSAlgorithm.RS384, JWSAlgorithm.RS512,
@@ -87,7 +87,7 @@ class ClientKeyCacheService {
         }
     }
 
-    fun getEncrypter(client: ClientDetailsEntity): JWTEncryptionAndDecryptionService? {
+    fun getEncrypter(client: OAuthClientDetails): JWTEncryptionAndDecryptionService? {
         try {
             return client.jwks?.let { jwksEncrypters[it] }
                 ?: client.jwksUri?.takeIf { it.isNotEmpty() }?.let { jwksUriCache.getEncrypter(it) }

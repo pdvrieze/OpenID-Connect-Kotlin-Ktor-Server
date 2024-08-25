@@ -17,7 +17,7 @@
  */
 package org.mitre.openid.connect.service
 
-import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.openid.connect.model.UserInfo
 
 /**
@@ -30,5 +30,5 @@ interface PairwiseIdentiferService {
      * Returns 'null' if no identifer could be calculated.
      *
      */
-    fun getIdentifier(userInfo: UserInfo, client: ClientDetailsEntity): String?
+    fun getIdentifier(userInfo: UserInfo, client: OAuthClientDetails): String?
 }

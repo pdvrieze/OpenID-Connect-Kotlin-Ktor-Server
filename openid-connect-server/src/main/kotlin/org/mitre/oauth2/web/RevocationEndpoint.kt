@@ -18,6 +18,7 @@
 package org.mitre.oauth2.web
 
 import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.OAuth2TokenEntityService
 import org.mitre.oauth2.service.SystemScopeService
@@ -54,7 +55,7 @@ class RevocationEndpoint {
         // This is the token as passed in from OAuth (in case we need it some day)
         //OAuth2AccessTokenEntity tok = tokenServices.getAccessToken((OAuth2Authentication) principal);
 
-        val authClient: ClientDetailsEntity?
+        val authClient: OAuthClientDetails?
 
         if (auth is OAuth2Authentication) {
             // the client authenticated with OAuth, do our UMA checks
@@ -81,10 +82,10 @@ class RevocationEndpoint {
             val accessToken = tokenServices.readAccessToken(tokenValue)
 
             // client acting on its own, make sure it owns the token
-            if (accessToken.client!!.clientId != authClient!!.clientId) {
+            if (accessToken.client!!.getClientId() != authClient!!.getClientId()) {
                 // trying to revoke a token we don't own, throw a 403
 
-                logger.info("Client ${authClient.clientId} tried to revoke a token owned by ${accessToken.client!!.clientId}")
+                logger.info("Client ${authClient.getClientId()} tried to revoke a token owned by ${accessToken.client!!.getClientId()}")
 
                 model.addAttribute(HttpCodeView.CODE, HttpStatus.FORBIDDEN)
                 return HttpCodeView.VIEWNAME
@@ -93,7 +94,7 @@ class RevocationEndpoint {
             // if we got this far, we're allowed to do this
             tokenServices.revokeAccessToken(accessToken)
 
-            logger.debug("Client ${authClient.clientId} revoked access token $tokenValue")
+            logger.debug("Client ${authClient.getClientId()} revoked access token $tokenValue")
 
             model.addAttribute(HttpCodeView.CODE, HttpStatus.OK)
             return HttpCodeView.VIEWNAME
@@ -103,10 +104,10 @@ class RevocationEndpoint {
             try {
                 val refreshToken = tokenServices.getRefreshToken(tokenValue)
                 // client acting on its own, make sure it owns the token
-                if (refreshToken!!.client!!.clientId != authClient!!.clientId) {
+                if (refreshToken!!.client!!.getClientId() != authClient!!.getClientId()) {
                     // trying to revoke a token we don't own, throw a 403
 
-                    logger.info("Client " + authClient.clientId + " tried to revoke a token owned by " + refreshToken.client!!.clientId)
+                    logger.info("Client ${authClient.getClientId()} tried to revoke a token owned by ${refreshToken.client!!.getClientId()}")
 
                     model.addAttribute(HttpCodeView.CODE, HttpStatus.FORBIDDEN)
                     return HttpCodeView.VIEWNAME
@@ -115,7 +116,7 @@ class RevocationEndpoint {
                 // if we got this far, we're allowed to do this
                 tokenServices.revokeRefreshToken(refreshToken)
 
-                logger.debug("Client " + authClient.clientId + " revoked access token " + tokenValue)
+                logger.debug("Client ${authClient.getClientId()} revoked access token $tokenValue")
 
                 model.addAttribute(HttpCodeView.CODE, HttpStatus.OK)
                 return HttpCodeView.VIEWNAME

@@ -183,7 +183,7 @@ class DynamicClientRegistrationEndpoint {
         if (newClient.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_BASIC || newClient.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_JWT || newClient.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_POST) {
             // we need to generate a secret
 
-            newClient = clientService.generateClientSecret(newClient)
+            newClient = newClient.copy(clientSecret = clientService.generateClientSecret(newClient))
         }
 
         // set some defaults for token timeouts
@@ -228,7 +228,7 @@ class DynamicClientRegistrationEndpoint {
 
             // send it all out to the view
             val registered =
-                RegisteredClient(savedClient, token.value, config.issuer + "register/" + UriUtils.encodePathSegment(savedClient.clientId, "UTF-8"))
+                RegisteredClient(savedClient, token.value, config.issuer + "register/" + UriUtils.encodePathSegment(savedClient.getClientId(), "UTF-8"))
             m.addAttribute("client", registered)
             m.addAttribute(HttpCodeView.CODE, HttpStatus.CREATED) // http 201
 
@@ -252,10 +252,10 @@ class DynamicClientRegistrationEndpoint {
     fun readClientConfiguration(@PathVariable("id") clientId: String, m: Model, auth: OAuth2Authentication): String {
         val client = clientService.loadClientByClientId(clientId)
 
-        if (client != null && client.clientId == auth.oAuth2Request.clientId) {
+        if (client != null && client.getClientId() == auth.oAuth2Request.clientId) {
             val token = rotateRegistrationTokenIfNecessary(auth, client)
             val registered =
-                RegisteredClient(client, token!!.value, config.issuer + "register/" + UriUtils.encodePathSegment(client.clientId, "UTF-8"))
+                RegisteredClient(client, token.value, config.issuer + "register/" + UriUtils.encodePathSegment(client.getClientId(), "UTF-8"))
 
             // send it all out to the view
             m.addAttribute("client", registered)
@@ -298,7 +298,7 @@ class DynamicClientRegistrationEndpoint {
 
         val oldClient = clientService.loadClientByClientId(clientId)
 
-        if (newClient == null || oldClient == null || oldClient.clientId != auth.oAuth2Request.clientId || oldClient.clientId != newClient.clientId
+        if (newClient == null || oldClient == null || oldClient.getClientId() != auth.oAuth2Request.clientId || oldClient.getClientId() != newClient.clientId
         ) {
             // client mismatch
             logger.error(
@@ -313,24 +313,23 @@ class DynamicClientRegistrationEndpoint {
 
         // a client can't ask to update its own client secret to any particular value
 
-        newClient.clientSecret = oldClient.clientSecret
-
         // we need to copy over all of the local and SECOAUTH fields
-        newClient.accessTokenValiditySeconds = oldClient.accessTokenValiditySeconds
-        newClient.idTokenValiditySeconds = oldClient.idTokenValiditySeconds
-        newClient.refreshTokenValiditySeconds = oldClient.refreshTokenValiditySeconds
-        newClient.isDynamicallyRegistered = true // it's still dynamically registered
-        newClient.isAllowIntrospection =
-            false // dynamically registered clients can't do introspection -- use the resource registration instead
-        newClient.authorities = oldClient.authorities
-        newClient.clientDescription = oldClient.clientDescription
-        newClient.createdAt = oldClient.createdAt
-        newClient.isReuseRefreshToken = oldClient.isReuseRefreshToken
+        val updatedClient = newClient.copy(
+            clientSecret = oldClient.getClientSecret(),
+            accessTokenValiditySeconds = oldClient.getAccessTokenValiditySeconds(),
+            idTokenValiditySeconds = oldClient.idTokenValiditySeconds,
+            refreshTokenValiditySeconds = oldClient.getRefreshTokenValiditySeconds(),
+            isDynamicallyRegistered = true, // it's still dynamically registered
+            isAllowIntrospection = false, // dynamically registered clients can't do introspection -- use the resource registration instead
+            authorities = oldClient.getAuthorities(),
+            clientDescription = oldClient.clientDescription,
+            createdAt = oldClient.createdAt,
+            isReuseRefreshToken = oldClient.isReuseRefreshToken,
+        )
 
         // do validation on the fields
         try {
-            newClient =
-                validateSoftwareStatement(newClient) // need to handle the software statement first because it might override requested values
+            newClient = validateSoftwareStatement(newClient) // need to handle the software statement first because it might override requested values
             newClient = validateScopes(newClient)
             newClient = validateResponseTypes(newClient)
             newClient = validateGrantTypes(newClient)
@@ -351,7 +350,7 @@ class DynamicClientRegistrationEndpoint {
             val token = rotateRegistrationTokenIfNecessary(auth, savedClient)
 
             val registered =
-                RegisteredClient(savedClient, token!!.value, config.issuer + "register/" + UriUtils.encodePathSegment(savedClient.clientId, "UTF-8"))
+                RegisteredClient(savedClient, token.value, config.issuer + "register/" + UriUtils.encodePathSegment(savedClient.getClientId(), "UTF-8"))
 
             // send it all out to the view
             m.addAttribute("client", registered)
@@ -377,7 +376,7 @@ class DynamicClientRegistrationEndpoint {
     fun deleteClient(@PathVariable("id") clientId: String, m: Model, auth: OAuth2Authentication): String {
         val client = clientService.loadClientByClientId(clientId)
 
-        if (client != null && client.clientId == auth.oAuth2Request.clientId) {
+        if (client != null && client.getClientId() == auth.oAuth2Request.clientId) {
             clientService.deleteClient(client)
 
             m.addAttribute(HttpCodeView.CODE, HttpStatus.NO_CONTENT) // http 204
@@ -556,7 +555,7 @@ class DynamicClientRegistrationEndpoint {
         if (newClient.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_BASIC || newClient.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_JWT || newClient.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_POST) {
             if (newClient.clientSecret.isNullOrEmpty()) {
                 // no secret yet, we need to generate a secret
-                newClient = clientService.generateClientSecret(newClient)
+                newClient = newClient.copy(clientSecret = clientService.generateClientSecret(newClient))
             }
         } else if (newClient.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.PRIVATE_KEY) {
             if (newClient.jwksUri.isNullOrEmpty() && newClient.jwks == null) {
@@ -682,7 +681,7 @@ class DynamicClientRegistrationEndpoint {
 	 */
     private fun rotateRegistrationTokenIfNecessary(
         auth: OAuth2Authentication,
-        client: ClientDetailsEntity
+        client: OAuthClientDetails
     ): OAuth2AccessTokenEntity {
         val details = auth.details as OAuth2AuthenticationDetails
         val token = tokenService.readAccessToken(details.tokenValue)
@@ -692,7 +691,7 @@ class DynamicClientRegistrationEndpoint {
                 // Re-issue the token if it has been issued before [currentTime - validity]
                 val validToDate = Date(System.currentTimeMillis() - config.regTokenLifeTime!! * 1000)
                 if (token.jwt!!.jwtClaimsSet.issueTime.before(validToDate)) {
-                    logger.info("Rotating the registration access token for " + client.clientId)
+                    logger.info("Rotating the registration access token for " + client.getClientId())
                     tokenService.revokeAccessToken(token)
                     val newToken = connectTokenService.createRegistrationAccessToken(client)
                     tokenService.saveAccessToken(newToken!!)

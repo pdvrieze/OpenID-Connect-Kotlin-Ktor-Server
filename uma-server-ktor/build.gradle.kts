@@ -23,7 +23,7 @@ application {
 dependencies {
     implementation(projects.openidConnectCommon)
     implementation(projects.openidConnectServer)
-    implementation(projects.umaServer)
+    implementation(projects.umaServer.exposed)
 
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.auth.common)

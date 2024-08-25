@@ -257,7 +257,7 @@ class TestMITREidDataService_1_3 {
                 fail("Could not find matching id: ${token["id"].asString()}")
             } else {
                 assertEquals(compare.id, token["id"].asString())
-                assertEquals(compare.client!!.clientId, token["clientId"].asString())
+                assertEquals(compare.client!!.getClientId(), token["clientId"].asString())
                 assertEquals(formatter.print(compare.expiration!!, Locale.ENGLISH), token["expiration"].asString())
                 assertEquals(compare.value, token["value"].asString())
                 assertEquals(compare.authenticationHolder.id, token["authenticationHolderId"]!!.jsonPrimitive.long)
@@ -379,11 +379,11 @@ class TestMITREidDataService_1_3 {
 
         assertEquals(2, savedRefreshTokens.size)
 
-        assertEquals(token1.client!!.clientId, savedRefreshTokens[0].client!!.clientId)
+        assertEquals(token1.client!!.getClientId(), savedRefreshTokens[0].client!!.getClientId())
         assertEquals(token1.expiration, savedRefreshTokens[0].expiration)
         assertEquals(token1.value, savedRefreshTokens[0].value)
 
-        assertEquals(token2.client!!.clientId, savedRefreshTokens[1].client!!.clientId)
+        assertEquals(token2.client!!.getClientId(), savedRefreshTokens[1].client!!.getClientId())
         assertEquals(token2.expiration, savedRefreshTokens[1].expiration)
         assertEquals(token2.value, savedRefreshTokens[1].value)
     }
@@ -499,7 +499,7 @@ class TestMITREidDataService_1_3 {
                 fail("Could not find matching id: ${tokenId}")
             } else {
                 assertEquals(compare.id, tokenId)
-                assertEquals(compare.client!!.clientId, token["clientId"].asString())
+                assertEquals(compare.client!!.getClientId(), token["clientId"].asString())
                 assertEquals(formatter.print(compare.expiration, Locale.ENGLISH), token["expiration"].asString())
                 assertEquals(compare.value, token["value"].asString())
                 assertEquals(compare.tokenType, token["type"].asString())
@@ -639,11 +639,11 @@ class TestMITREidDataService_1_3 {
 
         assertEquals(2, savedAccessTokens.size)
 
-        assertEquals(token1.client!!.clientId, savedAccessTokens[0].client!!.clientId)
+        assertEquals(token1.client!!.getClientId(), savedAccessTokens[0].client!!.getClientId())
         assertEquals(token1.expiration, savedAccessTokens[0].expiration)
         assertEquals(token1.value, savedAccessTokens[0].value)
 
-        assertEquals(token2.client!!.clientId, savedAccessTokens[1].client!!.clientId)
+        assertEquals(token2.client!!.getClientId(), savedAccessTokens[1].client!!.getClientId())
         assertEquals(token2.expiration, savedAccessTokens[1].expiration)
         assertEquals(token2.value, savedAccessTokens[1].value)
     }

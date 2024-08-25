@@ -20,6 +20,7 @@ package org.mitre.oauth2.web
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.IntrospectionResultAssembler
 import org.mitre.oauth2.service.OAuth2TokenEntityService
@@ -70,7 +71,7 @@ class IntrospectionEndpoint {
         @RequestParam(value = "token_type_hint", required = false) tokenType: String?,
         auth: Authentication, model: Model
     ): String {
-        var authClient: ClientDetailsEntity
+        var authClient: OAuthClientDetails
         val authScopes: MutableSet<String> = HashSet()
 
         if (auth is OAuth2Authentication) {
@@ -86,7 +87,7 @@ class IntrospectionEndpoint {
             // the owner is the user who authorized the token in the first place
             val ownerId = o2a.userAuthentication.name
 
-            authScopes.addAll(authClient.scope)
+            authScopes.addAll(authClient.getScope())
 
             // UMA style clients also get a subset of scopes of all the resource sets they've registered
             val resourceSets = resourceSetService.getAllForOwnerAndClient(ownerId, authClientId)
@@ -103,14 +104,14 @@ class IntrospectionEndpoint {
             authClient = checkNotNull(clientService.loadClientByClientId(authClientId))
 
             // directly authenticated clients get a subset of any scopes that they've registered for
-            authScopes.addAll(authClient.scope)
+            authScopes.addAll(authClient.getScope())
 
             if (!AuthenticationUtilities.hasRole(auth, "ROLE_CLIENT")
                 || !authClient.isAllowIntrospection
             ) {
                 // this client isn't allowed to do direct introspection
 
-                logger.error("Client ${authClient.clientId} is not allowed to call introspection endpoint")
+                logger.error("Client ${authClient.getClientId()} is not allowed to call introspection endpoint")
                 model.addAttribute("code", HttpStatus.FORBIDDEN)
                 return HttpCodeView.VIEWNAME
             }
@@ -128,7 +129,7 @@ class IntrospectionEndpoint {
 
         var accessToken: OAuth2AccessTokenEntity? = null
         var refreshToken: OAuth2RefreshTokenEntity? = null
-        var tokenClient: ClientDetailsEntity?
+        var tokenClient: OAuthClientDetails?
         var user: UserInfo?
 
         try {
@@ -140,7 +141,7 @@ class IntrospectionEndpoint {
 
             // get the user information of the user that authorized this token in the first place
             val userName = accessToken.authenticationHolder.authentication.name
-            user = userInfoService.getByUsernameAndClientId(userName, tokenClient!!.clientId!!)
+            user = userInfoService.getByUsernameAndClientId(userName, tokenClient!!.getClientId()!!)
         } catch (e: InvalidTokenException) {
             logger.info("Invalid access token. Checking refresh token.")
             try {
@@ -151,8 +152,8 @@ class IntrospectionEndpoint {
                 tokenClient = refreshToken!!.client
 
                 // get the user information of the user that authorized this token in the first place
-                val userName = refreshToken.authenticationHolder!!.authentication.name
-                user = userInfoService.getByUsernameAndClientId(userName, tokenClient!!.clientId!!)
+                val userName = refreshToken.authenticationHolder.authentication.name
+                user = userInfoService.getByUsernameAndClientId(userName, tokenClient!!.getClientId()!!)
             } catch (e2: InvalidTokenException) {
                 logger.error("Invalid refresh token")
                 val entity: Map<String, Boolean> =

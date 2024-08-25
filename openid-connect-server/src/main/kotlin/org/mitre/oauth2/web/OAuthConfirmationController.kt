@@ -20,6 +20,7 @@ package org.mitre.oauth2.web
 import kotlinx.serialization.json.JsonPrimitive
 import org.apache.http.client.utils.URIBuilder
 import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.SystemScopeService
@@ -82,7 +83,7 @@ class OAuthConfirmationController {
         // Check the "prompt" parameter to see if we need to do special processing
         val prompt = authRequest!!.extensions[ConnectRequestParameters.PROMPT] as String?
         val prompts = prompt?.split(ConnectRequestParameters.PROMPT_SEPARATOR)?: emptyList()
-        var client: ClientDetailsEntity? = null
+        var client: OAuthClientDetails? = null
 
         try {
             client = clientService.loadClientByClientId(authRequest.clientId)
@@ -104,8 +105,8 @@ class OAuthConfirmationController {
 
         if (prompts.contains("none")) {
             // if we've got a redirect URI then we'll send it
-
-            val url = redirectResolver.resolveRedirect(authRequest.redirectUri, client)
+            // TODO no longer use spring, remove cast
+            val url = redirectResolver.resolveRedirect(authRequest.redirectUri, client as ClientDetailsEntity)
 
             try {
                 val uriBuilder = URIBuilder(url)
@@ -174,7 +175,7 @@ class OAuthConfirmationController {
         model["claims"] = claimsForScopes
 
         // client stats
-        val count = statsService.getCountForClientId(client.clientId!!)!!.approvedSiteCount ?: 0
+        val count = statsService.getCountForClientId(client.getClientId()!!)!!.approvedSiteCount ?: 0
         model["count"] = count
 
 

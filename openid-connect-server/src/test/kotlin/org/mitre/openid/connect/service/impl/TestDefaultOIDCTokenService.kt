@@ -24,6 +24,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
@@ -56,7 +57,7 @@ class TestDefaultOIDCTokenService {
     fun invokesCustomClaimsHook() {
         val s: DefaultOIDCTokenService = object : DefaultOIDCTokenService() {
             override fun addCustomIdTokenClaims(
-                idClaims: JWTClaimsSet.Builder, client: ClientDetailsEntity?, request: OAuth2Request?,
+                idClaims: JWTClaimsSet.Builder, client: OAuthClientDetails, request: OAuth2Request?,
                 sub: String?, accessToken: OAuth2AccessTokenEntity?
             ) {
                 idClaims.claim("test", "foo")

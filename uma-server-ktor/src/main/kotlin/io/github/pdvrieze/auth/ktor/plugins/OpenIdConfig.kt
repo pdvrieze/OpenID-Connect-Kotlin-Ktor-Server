@@ -35,7 +35,6 @@ import org.mitre.openid.connect.service.UserInfoService
 import org.mitre.openid.connect.service.WhitelistedSiteService
 import org.mitre.openid.connect.service.impl.DefaultApprovedSiteService
 import org.mitre.openid.connect.service.impl.DefaultBlacklistedSiteService
-import org.mitre.openid.connect.service.impl.DefaultStatsService
 import org.mitre.openid.connect.service.impl.DefaultUserInfoService
 import org.mitre.openid.connect.service.impl.DefaultWhitelistedSiteService
 import org.mitre.uma.repository.PermissionRepository

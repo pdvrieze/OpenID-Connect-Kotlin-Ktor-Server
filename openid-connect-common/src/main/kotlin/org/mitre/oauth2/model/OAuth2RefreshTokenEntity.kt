@@ -52,7 +52,7 @@ class OAuth2RefreshTokenEntity : OAuth2RefreshToken {
 
     @get:JoinColumn(name = "client_id")
     @get:ManyToOne(fetch = FetchType.EAGER)
-    var client: ClientDetailsEntity? = null
+    var client: OAuthClientDetails? = null
 
     /**
      * Get the JWT object directly
@@ -117,7 +117,7 @@ class OAuth2RefreshTokenEntity : OAuth2RefreshToken {
             currentId = s.id!!,
             expiration = s.expiration,
             value = s.jwt,
-            clientId = s.client!!.clientId!!,
+            clientId = s.client!!.getClientId()!!,
             authenticationHolderId = s.authenticationHolder.id!!
         )
     }

@@ -18,24 +18,31 @@
 package org.mitre.oauth2.service
 
 import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception
 import org.springframework.security.oauth2.provider.ClientDetailsService
 
-interface ClientDetailsEntityService : ClientDetailsService {
-    fun saveNewClient(client: ClientDetailsEntity): ClientDetailsEntity?
+interface ClientDetailsEntityService {
+    fun saveNewClient(client: OAuthClientDetails): OAuthClientDetails
 
-    fun getClientById(id: Long): ClientDetailsEntity?
+    fun getClientById(id: Long): OAuthClientDetails?
+
+    fun deleteClient(client: OAuthClientDetails)
+
+    fun loadClientByClientId(clientId: String): OAuthClientDetails?
+
+    fun updateClient(oldClient: OAuthClientDetails, newClient: OAuthClientDetails): OAuthClientDetails
+
+    val allClients: Collection<OAuthClientDetails>
+
+    fun generateClientIdString(client: OAuthClientDetails): String
+
+    fun generateClientSecret(client: OAuthClientDetails): String?
+}
+
+interface SpringClientDetailsEntityService : ClientDetailsEntityService, ClientDetailsService {
 
     @Throws(OAuth2Exception::class)
     override fun loadClientByClientId(clientId: String): ClientDetailsEntity?
 
-    fun deleteClient(client: ClientDetailsEntity)
-
-    fun updateClient(oldClient: ClientDetailsEntity, newClient: ClientDetailsEntity): ClientDetailsEntity
-
-    val allClients: Collection<ClientDetailsEntity>
-
-    fun generateClientId(client: ClientDetailsEntity): ClientDetailsEntity
-
-    fun generateClientSecret(client: ClientDetailsEntity): ClientDetailsEntity
 }

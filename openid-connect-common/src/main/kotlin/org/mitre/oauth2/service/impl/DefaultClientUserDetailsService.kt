@@ -52,7 +52,7 @@ class DefaultClientUserDetailsService : UserDetailsService {
             val client = clientDetailsService.loadClientByClientId(clientId)
 
             if (client != null) {
-                var password = (client.clientSecret ?: "")
+                var password = (client.getClientSecret() ?: "")
 
                 if (config.isHeartMode ||  // if we're running HEART mode turn off all client secrets
                     (client.tokenEndpointAuthMethod != null &&
@@ -68,7 +68,7 @@ class DefaultClientUserDetailsService : UserDetailsService {
                 val accountNonExpired = true
                 val credentialsNonExpired = true
                 val accountNonLocked = true
-                val authorities: MutableCollection<GrantedAuthority> = HashSet(client.authorities)
+                val authorities: MutableCollection<GrantedAuthority> = HashSet(client.getAuthorities())
                 authorities.add(ROLE_CLIENT)
 
                 return User(clientId, password, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, authorities)

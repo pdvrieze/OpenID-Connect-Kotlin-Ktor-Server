@@ -86,14 +86,14 @@ class DynamicRegistrationClientConfigurationService(
 
     fun setTemplate(template: RegisteredClient?) {
         // make sure the template doesn't have unwanted fields set on it
-        template?.apply {
-            clientId = null
-            clientSecret = null
-            registrationClientUri = null
-            registrationAccessToken = null
-        }
-
-        this.template = template
+        this.template = template?.copy(
+            client = template.client.copy(
+                clientId = null,
+                clientSecret = null,
+            ),
+            registrationClientUri = null,
+            registrationAccessToken = null,
+        )
     }
 
 

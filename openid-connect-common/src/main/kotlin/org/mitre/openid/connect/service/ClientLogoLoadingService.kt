@@ -15,12 +15,12 @@
  */
 package org.mitre.openid.connect.service
 
-import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.openid.connect.model.CachedImage
 
 /**
  * @author jricher
  */
 interface ClientLogoLoadingService {
-    fun getLogo(client: ClientDetailsEntity?): CachedImage?
+    fun getLogo(client: OAuthClientDetails?): CachedImage?
 }

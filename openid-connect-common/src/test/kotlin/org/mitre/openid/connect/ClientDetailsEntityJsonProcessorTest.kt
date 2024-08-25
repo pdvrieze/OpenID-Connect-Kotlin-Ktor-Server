@@ -28,6 +28,7 @@ import kotlinx.serialization.json.jsonArray
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.openid.connect.ClientDetailsEntityJsonProcessor.parse
@@ -148,27 +149,31 @@ class ClientDetailsEntityJsonProcessorTest {
      */
     @Test
     fun testSerialize() {
-        val c = RegisteredClient()
+        val c = RegisteredClient(
+            clientSecretExpiresAt = Date(1577858400L * 1000L),
+            registrationAccessToken = "this.is.an.access.token.value.ffx83",
+            registrationClientUri = "https://server.example.com/connect/register?client_id=s6BhdRkqt3",
+            client = ClientDetailsEntity(
+                clientId = "s6BhdRkqt3",
+                clientSecret = "ZJYCqe3GGRvdrudKyZS0XhGv_Z45DuKhCUk0gBR1vZk",
+                applicationType = OAuthClientDetails.AppType.WEB,
+                redirectUris = setOf("https://client.example.org/callback", "https://client.example.org/callback2"),
+                clientName = "My Example",
+                responseTypes = hashSetOf("code", "token"),
+                grantTypes = hashSetOf("authorization_code", "implicit"),
+                logoUri = "https://client.example.org/logo.png",
+                subjectType = OAuthClientDetails.SubjectType.PAIRWISE,
+                sectorIdentifierUri = "https://other.example.net/file_of_redirect_uris.json",
+                tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.SECRET_BASIC,
+                jwksUri = "https://client.example.org/my_public_keys.jwks",
+                userInfoEncryptedResponseAlg = JWEAlgorithm.RSA1_5,
+                userInfoEncryptedResponseEnc = EncryptionMethod.A128CBC_HS256,
+                contacts = setOf("ve7jtb@example.org", "mary@example.org"),
+                requestUris = setOf("https://client.example.org/rf.txt#qpXaRLh_n93TTR9F252ValdatUQvQiJi5BDub2BeznA"),
 
-        c.clientId = "s6BhdRkqt3"
-        c.clientSecret = "ZJYCqe3GGRvdrudKyZS0XhGv_Z45DuKhCUk0gBR1vZk"
-        c.clientSecretExpiresAt = Date(1577858400L * 1000L)
-        c.registrationAccessToken = "this.is.an.access.token.value.ffx83"
-        c.registrationClientUri = "https://server.example.com/connect/register?client_id=s6BhdRkqt3"
-        c.applicationType = OAuthClientDetails.AppType.WEB
-        c.redirectUris = setOf("https://client.example.org/callback", "https://client.example.org/callback2")
-        c.clientName = "My Example"
-        c.responseTypes = setOf("code", "token")
-        c.grantTypes = setOf("authorization_code", "implicit")
-        c.logoUri = "https://client.example.org/logo.png"
-        c.subjectType = OAuthClientDetails.SubjectType.PAIRWISE
-        c.sectorIdentifierUri = "https://other.example.net/file_of_redirect_uris.json"
-        c.tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.SECRET_BASIC
-        c.jwksUri = "https://client.example.org/my_public_keys.jwks"
-        c.userInfoEncryptedResponseAlg = JWEAlgorithm.RSA1_5
-        c.userInfoEncryptedResponseEnc = EncryptionMethod.A128CBC_HS256
-        c.contacts = setOf("ve7jtb@example.org", "mary@example.org")
-        c.requestUris = setOf("https://client.example.org/rf.txt#qpXaRLh_n93TTR9F252ValdatUQvQiJi5BDub2BeznA")
+                ),
+        )
+
 
         val j = Json.encodeToJsonElement(c) as JsonObject
 

@@ -19,6 +19,7 @@ import org.mitre.data.AbstractPageOperationTemplate
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.DeviceCode
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.repository.impl.DeviceCodeRepository
 import org.mitre.oauth2.service.DeviceCodeService
 import org.mitre.oauth2.util.requireId
@@ -45,7 +46,7 @@ class DefaultDeviceCodeService : DeviceCodeService {
 	 */
     override fun createNewDeviceCode(
         requestedScopes: Set<String>,
-        client: ClientDetailsEntity,
+        client: OAuthClientDetails,
         parameters: Map<String, String>?
     ): DeviceCode? {
         // create a device code, should be big and random
@@ -59,7 +60,7 @@ class DefaultDeviceCodeService : DeviceCodeService {
             deviceCode = deviceCode,
             userCode = userCode,
             scope = requestedScopes,
-            clientId = client.clientId,
+            clientId = client.getClientId(),
             params = parameters
         )
 

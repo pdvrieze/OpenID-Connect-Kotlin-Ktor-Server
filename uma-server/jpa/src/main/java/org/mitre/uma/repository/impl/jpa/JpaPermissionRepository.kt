@@ -1,26 +1,10 @@
-/*******************************************************************************
- * Copyright 2018 The MIT Internet Trust Consortium
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-package org.mitre.uma.repository.impl
+package org.mitre.uma.repository.impl.jpa
 
 import org.mitre.uma.model.Permission
 import org.mitre.uma.model.PermissionTicket
 import org.mitre.uma.model.ResourceSet
 import org.mitre.uma.repository.PermissionRepository
-import org.mitre.util.jpa.JpaUtil.getSingleResult
-import org.mitre.util.jpa.JpaUtil.saveOrUpdate
+import org.mitre.util.jpa.JpaUtil
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 import javax.persistence.EntityManager
@@ -36,7 +20,7 @@ open class JpaPermissionRepository : PermissionRepository {
 
     @Transactional(value = "defaultTransactionManager")
     override fun save(p: PermissionTicket): PermissionTicket? {
-        return saveOrUpdate<PermissionTicket?, Long?>(p.id, em, p)
+        return JpaUtil.saveOrUpdate<PermissionTicket?, Long?>(p.id, em, p)
     }
 
     /* (non-Javadoc)
@@ -45,7 +29,7 @@ open class JpaPermissionRepository : PermissionRepository {
     override fun getByTicket(ticket: String): PermissionTicket? {
         val query = em.createNamedQuery(PermissionTicket.QUERY_TICKET, PermissionTicket::class.java)
         query.setParameter(PermissionTicket.PARAM_TICKET, ticket)
-        return getSingleResult(query.resultList)
+        return JpaUtil.getSingleResult(query.resultList)
     }
 
         /* (non-Javadoc)
@@ -62,7 +46,7 @@ open class JpaPermissionRepository : PermissionRepository {
 	 */
     @Transactional(value = "defaultTransactionManager")
     override fun saveRawPermission(p: Permission): Permission {
-        return saveOrUpdate(p.id, em, p)
+        return JpaUtil.saveOrUpdate(p.id, em, p)
     }
 
     /* (non-Javadoc)

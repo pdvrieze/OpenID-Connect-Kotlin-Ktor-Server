@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.oauth2.common.exceptions.InvalidTokenException
 import org.springframework.security.oauth2.provider.ClientDetails
+import org.springframework.security.oauth2.provider.ClientDetailsService
 import org.springframework.security.oauth2.provider.OAuth2Authentication
 import org.springframework.security.oauth2.provider.OAuth2RequestFactory
 import org.springframework.security.oauth2.provider.TokenRequest
@@ -26,7 +27,8 @@ class JWTAssertionTokenGranter @Autowired constructor(
     tokenServices: OAuth2TokenEntityService?,
     clientDetailsService: ClientDetailsEntityService?,
     requestFactory: OAuth2RequestFactory?
-) : AbstractTokenGranter(tokenServices, clientDetailsService, requestFactory, grantType) {
+    // TODO Remove need for casting/spring
+) : AbstractTokenGranter(tokenServices, clientDetailsService as ClientDetailsService, requestFactory, grantType) {
     @Autowired
     @Qualifier("jwtAssertionValidator")
     private lateinit var validator: AssertionValidator

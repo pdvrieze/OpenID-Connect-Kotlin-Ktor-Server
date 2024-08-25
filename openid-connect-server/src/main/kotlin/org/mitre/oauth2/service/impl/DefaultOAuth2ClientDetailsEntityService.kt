@@ -26,11 +26,11 @@ import org.apache.commons.codec.binary.Base64
 import org.apache.http.client.HttpClient
 import org.apache.http.impl.client.HttpClientBuilder
 import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
-import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.repository.OAuth2ClientRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
-import org.mitre.oauth2.service.ClientDetailsEntityService
+import org.mitre.oauth2.service.SpringClientDetailsEntityService
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.oauth2.util.requireId
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
@@ -57,7 +57,7 @@ import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 
 @Service
-class DefaultOAuth2ClientDetailsEntityService : ClientDetailsEntityService {
+class DefaultOAuth2ClientDetailsEntityService : SpringClientDetailsEntityService {
     @Autowired
     private lateinit var clientRepository: OAuth2ClientRepository
 
@@ -106,13 +106,13 @@ class DefaultOAuth2ClientDetailsEntityService : ClientDetailsEntityService {
         .maximumSize(100)
         .build(SectorIdentifierLoader(HttpClientBuilder.create().useSystemProperties().build()))
 
-    override fun saveNewClient(client: ClientDetailsEntity): ClientDetailsEntity {
+    override fun saveNewClient(client: OAuthClientDetails): OAuthClientDetails {
         var client = client
         require(client.id == null) {  // if it's not null, it's already been saved, this is an error
             "Tried to save a new client with an existing ID: " + client.id
         }
 
-        val registeredRedirectUri = client.registeredRedirectUri
+        val registeredRedirectUri = client.getRegisteredRedirectUri()
         if (registeredRedirectUri != null) {
             for (uri in registeredRedirectUri) {
                 require(!blacklistedSiteService.isBlacklisted(uri)) { "Client URI is blacklisted: $uri" }
@@ -121,8 +121,8 @@ class DefaultOAuth2ClientDetailsEntityService : ClientDetailsEntityService {
 
         // assign a random clientid if it's empty
         // NOTE: don't assign a random client secret without asking, since public clients have no secret
-        if (client.clientId.isNullOrEmpty()) {
-            client = generateClientId(client)
+        if (client.getClientId().isNullOrEmpty()) {
+            client = client.copy(clientId = generateClientIdString(client))
         }
 
         // make sure that clients with the "refresh_token" grant type have the "offline_access" scope, and vice versa
@@ -134,17 +134,20 @@ class DefaultOAuth2ClientDetailsEntityService : ClientDetailsEntityService {
         // check consistency when using HEART mode
         checkHeartMode(client)
 
-        // timestamp this to right now
-        client.createdAt = Date()
-
 
         // check the sector URI
         checkSectorIdentifierUri(client)
 
 
-        ensureNoReservedScopes(client)
+        val newRequestedScopes = requireNotNull(ensureNoReservedScopes(client)) { "No valid scope for client" }
 
-        val c = clientRepository.saveClient(client)
+        val cleanedClient = client.copy(
+            // timestamp this to right now
+            scope = newRequestedScopes,
+            createdAt = Date()
+        )
+
+        val c = clientRepository.saveClient(cleanedClient)
 
         statsService.resetCache()
 
@@ -154,7 +157,7 @@ class DefaultOAuth2ClientDetailsEntityService : ClientDetailsEntityService {
     /**
      * Make sure the client has only one type of key registered
      */
-    private fun ensureKeyConsistency(client: ClientDetailsEntity?) {
+    private fun ensureKeyConsistency(client: OAuthClientDetails) {
         require(!(client!!.jwksUri != null && client.jwks != null)) {
             // a client can only have one key type or the other, not both
             "A client cannot have both JWKS URI and JWKS value"
@@ -164,26 +167,22 @@ class DefaultOAuth2ClientDetailsEntityService : ClientDetailsEntityService {
     /**
      * Make sure the client doesn't request any system reserved scopes
      */
-    private fun ensureNoReservedScopes(client: ClientDetailsEntity) {
-        // make sure a client doesn't get any special system scopes
-        var requestedScope: Set<SystemScope>? = scopeService.fromStrings(client.scope)
-
-        if (requestedScope!=null) {
-            requestedScope = scopeService.removeReservedScopes(requestedScope)
+    private fun ensureNoReservedScopes(client: OAuthClientDetails): Set<String>? {
+        return scopeService.fromStrings(client.getScope())?.let {
+            // make sure a client doesn't get any special system scopes
+            scopeService.toStrings(scopeService.removeReservedScopes(it))
         }
-
-        client.setScope(scopeService.toStrings(requestedScope))
     }
 
     /**
      * Load the sector identifier URI if it exists and check the redirect URIs against it
      */
-    private fun checkSectorIdentifierUri(client: ClientDetailsEntity?) {
+    private fun checkSectorIdentifierUri(client: OAuthClientDetails) {
         if (!client!!.sectorIdentifierUri.isNullOrEmpty()) {
             try {
                 val redirects = sectorRedirects[client.sectorIdentifierUri]
 
-                val registeredRedirectUri = client.registeredRedirectUri
+                val registeredRedirectUri = client.getRegisteredRedirectUri()
                 if (registeredRedirectUri != null) {
                     for (uri in registeredRedirectUri) {
                         require(redirects.contains(uri)) { "Requested Redirect URI $uri is not listed at sector identifier $redirects" }
@@ -200,12 +199,16 @@ class DefaultOAuth2ClientDetailsEntityService : ClientDetailsEntityService {
     /**
      * Make sure the client has the appropriate scope and grant type.
      */
-    private fun ensureRefreshTokenConsistency(client: ClientDetailsEntity) {
-        if (client.authorizedGrantTypes.contains("refresh_token")
-            || client.scope.contains(SystemScopeService.OFFLINE_ACCESS)
+    private fun ensureRefreshTokenConsistency(client: OAuthClientDetails): OAuthClientDetails {
+        if (client.getAuthorizedGrantTypes().contains("refresh_token")
+            || client.getScope().contains(SystemScopeService.OFFLINE_ACCESS)
         ) {
-            client.scope.add(SystemScopeService.OFFLINE_ACCESS)
-            client.authorizedGrantTypes.add("refresh_token")
+            return client.copy(
+                scope = client.getScope()+SystemScopeService.OFFLINE_ACCESS,
+                authorizedGrantTypes = client.getAuthorizedGrantTypes() + "refresh_token"
+            )
+        } else {
+            return client
         }
     }
 
@@ -217,7 +220,7 @@ class DefaultOAuth2ClientDetailsEntityService : ClientDetailsEntityService {
      * - A client secret must not be generated
      * - authorization_code and client_credentials must use the private_key authorization method
      */
-    private fun checkHeartMode(client: ClientDetailsEntity?) {
+    private fun checkHeartMode(client: OAuthClientDetails) {
         if (config.isHeartMode) {
             if (client!!.grantTypes.contains("authorization_code")) {
                 // make sure we don't have incompatible grant types
@@ -255,7 +258,7 @@ class DefaultOAuth2ClientDetailsEntityService : ClientDetailsEntityService {
             require(!client.grantTypes.contains("password")) { "[HEART mode] Password grant type is forbidden" }
 
             // make sure we don't have a client secret
-            require(client.clientSecret.isNullOrEmpty()) { "[HEART mode] Client secrets are not allowed" }
+            require(client.getClientSecret().isNullOrEmpty()) { "[HEART mode] Client secrets are not allowed" }
 
             // make sure we've got a key registered
             require(!(client.jwks == null && client.jwksUri.isNullOrEmpty())) { "[HEART mode] All clients must have a key registered" }
@@ -296,7 +299,7 @@ class DefaultOAuth2ClientDetailsEntityService : ClientDetailsEntityService {
     /**
      * Get the client by its internal ID
      */
-    override fun getClientById(id: Long): ClientDetailsEntity? {
+    override fun getClientById(id: Long): OAuthClientDetails? {
         val client = clientRepository.getById(id)
 
         return client?.let(ClientDetailsEntity::from)
@@ -318,9 +321,9 @@ class DefaultOAuth2ClientDetailsEntityService : ClientDetailsEntityService {
      * Delete a client and all its associated tokens
      */
     @Throws(InvalidClientException::class)
-    override fun deleteClient(client: ClientDetailsEntity) {
+    override fun deleteClient(client: OAuthClientDetails) {
         if (clientRepository.getById(client.id.requireId()) == null) {
-            throw InvalidClientException("Client with id " + client.clientId + " was not found")
+            throw InvalidClientException("Client with id ${client.getClientId()} was not found")
         }
 
         // clean out any tokens that this client had issued
@@ -330,7 +333,7 @@ class DefaultOAuth2ClientDetailsEntityService : ClientDetailsEntityService {
         approvedSiteService.clearApprovedSitesForClient(client)
 
         // clear out any whitelisted sites for this client
-        val whitelistedSite = whitelistedSiteService.getByClientId(client.clientId!!)
+        val whitelistedSite = whitelistedSiteService.getByClientId(client.getClientId()!!)
         if (whitelistedSite != null) {
             whitelistedSiteService.remove(whitelistedSite)
         }
@@ -362,12 +365,12 @@ class DefaultOAuth2ClientDetailsEntityService : ClientDetailsEntityService {
      *
      */
     @Throws(IllegalArgumentException::class)
-    override fun updateClient(oldClient: ClientDetailsEntity, newClient: ClientDetailsEntity): ClientDetailsEntity {
+    override fun updateClient(oldClient: OAuthClientDetails, newClient: OAuthClientDetails): OAuthClientDetails {
         if (oldClient == null || newClient == null) {
             throw IllegalArgumentException("Neither old client or new client can be null!")
         }
 
-        val registeredRedirectUri = newClient.registeredRedirectUri
+        val registeredRedirectUri = newClient.getRegisteredRedirectUri()
         if (registeredRedirectUri != null) {
             for (uri in registeredRedirectUri) {
                 require(!blacklistedSiteService.isBlacklisted(uri)) { "Client URI is blacklisted: $uri" }
@@ -387,13 +390,14 @@ class DefaultOAuth2ClientDetailsEntityService : ClientDetailsEntityService {
         checkSectorIdentifierUri(newClient)
 
         // make sure a client doesn't get any special system scopes
-        ensureNoReservedScopes(newClient)
+        val newScopes = ensureNoReservedScopes(newClient)!!
+        val cleanedClient = newClient.copy(scope = newScopes)
 
-        return clientRepository.updateClient(oldClient.id.requireId(), newClient).let(ClientDetailsEntity::from)
+        return clientRepository.updateClient(oldClient.id.requireId(), cleanedClient).let(ClientDetailsEntity::from)
 
     }
 
-    override val allClients: Collection<ClientDetailsEntity>
+    override val allClients: Collection<OAuthClientDetails>
         /**
          * Get all clients in the system
          */
@@ -402,24 +406,22 @@ class DefaultOAuth2ClientDetailsEntityService : ClientDetailsEntityService {
     /**
      * Generates a clientId for the given client and sets it to the client's clientId field. Returns the client that was passed in, now with id set.
      */
-    override fun generateClientId(client: ClientDetailsEntity): ClientDetailsEntity {
-        client.clientId = UUID.randomUUID().toString()
-        return client
+    override fun generateClientIdString(client: OAuthClientDetails): String {
+        return UUID.randomUUID().toString()
     }
 
     /**
      * Generates a new clientSecret for the given client and sets it to the client's clientSecret field. Returns the client that was passed in, now with secret set.
      */
-    override fun generateClientSecret(client: ClientDetailsEntity): ClientDetailsEntity {
+    override fun generateClientSecret(client: OAuthClientDetails): String? {
         if (config.isHeartMode) {
             logger.error("[HEART mode] Can't generate a client secret, skipping step; client won't be saved due to invalid configuration")
-            client.clientSecret = null
+            return null
         } else {
-            client.clientSecret = Base64.encodeBase64URLSafeString(
+            return Base64.encodeBase64URLSafeString(
                 BigInteger(512, SecureRandom()).toByteArray()
             ).replace("=", "")
         }
-        return client
     }
 
     /**

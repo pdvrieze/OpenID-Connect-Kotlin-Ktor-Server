@@ -24,6 +24,7 @@ import org.apache.http.client.HttpClient
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.impl.client.HttpClientBuilder
 import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.openid.connect.model.CachedImage
 import org.mitre.openid.connect.service.ClientLogoLoadingService
 import org.springframework.stereotype.Service
@@ -38,7 +39,7 @@ import java.util.concurrent.TimeUnit
 class InMemoryClientLogoLoadingService(
     httpClient: HttpClient = HttpClientBuilder.create().useSystemProperties().build()
 ) : ClientLogoLoadingService {
-    private val cache: LoadingCache<ClientDetailsEntity, CachedImage> = CacheBuilder.newBuilder()
+    private val cache: LoadingCache<OAuthClientDetails, CachedImage> = CacheBuilder.newBuilder()
         .maximumSize(100)
         .expireAfterAccess(14, TimeUnit.DAYS)
         .build(ClientLogoFetcher(httpClient))
@@ -47,7 +48,7 @@ class InMemoryClientLogoLoadingService(
     /* (non-Javadoc)
 	 * @see org.mitre.openid.connect.service.ClientLogoLoadingService#getLogo(org.mitre.oauth2.model.ClientDetailsEntity)
 	 */
-    override fun getLogo(client: ClientDetailsEntity?): CachedImage? {
+    override fun getLogo(client: OAuthClientDetails?): CachedImage? {
         return try {
             when {
                 client == null -> null
@@ -67,12 +68,12 @@ class InMemoryClientLogoLoadingService(
      */
     inner class ClientLogoFetcher(
         private val httpClient: HttpClient = HttpClientBuilder.create().useSystemProperties().build()
-    ) : CacheLoader<ClientDetailsEntity, CachedImage>() {
+    ) : CacheLoader<OAuthClientDetails, CachedImage>() {
         /* (non-Javadoc)
 		 * @see com.google.common.cache.CacheLoader#load(java.lang.Object)
 		 */
         @Throws(Exception::class)
-        override fun load(key: ClientDetailsEntity): CachedImage {
+        override fun load(key: OAuthClientDetails): CachedImage {
             try {
                 val response = httpClient.execute(HttpGet(key.logoUri))
 

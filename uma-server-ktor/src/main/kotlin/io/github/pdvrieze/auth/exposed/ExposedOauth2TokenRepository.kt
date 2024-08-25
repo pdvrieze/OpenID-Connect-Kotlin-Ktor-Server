@@ -11,6 +11,7 @@ import org.mitre.data.PageCriteria
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2ClientRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
@@ -47,7 +48,7 @@ class ExposedOauth2TokenRepository(
             .mapTo(HashSet()) { it.toOAuthRefeshToken() }
     }
 
-    override fun getRefreshTokensForClient(client: ClientDetailsEntity): List<OAuth2RefreshTokenEntity> {
+    override fun getRefreshTokensForClient(client: OAuthClientDetails): List<OAuth2RefreshTokenEntity> {
         val clientId = client.id ?: return emptyList()
         return transaction {
             RefreshTokens.selectAll()
@@ -115,7 +116,7 @@ class ExposedOauth2TokenRepository(
             ?.toOAuthAccessToken()
     }
 
-    override fun getAccessTokensForClient(client: ClientDetailsEntity): List<OAuth2AccessTokenEntity> {
+    override fun getAccessTokensForClient(client: OAuthClientDetails): List<OAuth2AccessTokenEntity> {
         val clientId = client.id ?: return emptyList()
         return transaction {
             AccessTokens.selectAll()
@@ -224,7 +225,7 @@ class ExposedOauth2TokenRepository(
         logger.warn("Ignored clearing of access refresh tokens as they are not permitted in the schema")
     }
 
-    override fun clearTokensForClient(client: ClientDetailsEntity) {
+    override fun clearTokensForClient(client: OAuthClientDetails) {
         TODO("not implemented")
     }
 

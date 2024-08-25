@@ -20,6 +20,7 @@ import org.apache.http.client.utils.URIBuilder
 import org.mitre.oauth2.exception.DeviceCodeCreationException
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.DeviceCode
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.DeviceCodeService
@@ -82,7 +83,7 @@ class DeviceEndpoint {
         parameters: Map<String, String>?,
         model: ModelMap
     ): String {
-        val client: ClientDetailsEntity?
+        val client: OAuthClientDetails?
         try {
             client = clientService.loadClientByClientId(clientId) ?: run {
                 logger.error("could not find client $clientId")
@@ -91,7 +92,7 @@ class DeviceEndpoint {
             }
 
             // make sure this client can do the device flow
-            val authorizedGrantTypes= client.authorizedGrantTypes
+            val authorizedGrantTypes= client.getAuthorizedGrantTypes()
             if (!authorizedGrantTypes.isNullOrEmpty()
                 && DeviceTokenGranter.GRANT_TYPE !in authorizedGrantTypes
             ) {
@@ -105,7 +106,7 @@ class DeviceEndpoint {
 
         // make sure the client is allowed to ask for those scopes
         val requestedScopes = OAuth2Utils.parseParameterList(scope)
-        val allowedScopes = client.scope
+        val allowedScopes = client.getScope()
 
         if (!scopeService.scopesMatch(allowedScopes, requestedScopes)) {
             // client asked for scopes it can't have

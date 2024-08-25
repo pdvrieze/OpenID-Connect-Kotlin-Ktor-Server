@@ -71,7 +71,6 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication
 import org.springframework.security.oauth2.provider.OAuth2Request
 import org.springframework.util.ReflectionUtils
 import java.io.IOException
-import java.io.StringWriter
 import java.text.ParseException
 import java.util.*
 
@@ -243,11 +242,11 @@ class TestMITREidDataService_1_0 {
 
         assertEquals(2, savedRefreshTokens.size)
 
-        assertEquals(token1.client!!.clientId, savedRefreshTokens[0].client!!.clientId)
+        assertEquals(token1.client!!.getClientId(), savedRefreshTokens[0].client!!.getClientId())
         assertEquals(token1.expiration, savedRefreshTokens[0].expiration)
         assertEquals(token1.value, savedRefreshTokens[0].value)
 
-        assertEquals(token2.client!!.clientId, savedRefreshTokens[1].client!!.clientId)
+        assertEquals(token2.client!!.getClientId(), savedRefreshTokens[1].client!!.getClientId())
         assertEquals(token2.expiration, savedRefreshTokens[1].expiration)
         assertEquals(token2.value, savedRefreshTokens[1].value)
     }
@@ -375,11 +374,11 @@ class TestMITREidDataService_1_0 {
 
         assertEquals(2, savedAccessTokens.size)
 
-        assertEquals(token1.client!!.clientId, savedAccessTokens[0].client!!.clientId)
+        assertEquals(token1.client!!.getClientId(), savedAccessTokens[0].client!!.getClientId())
         assertEquals(token1.expiration, savedAccessTokens[0].expiration)
         assertEquals(token1.value, savedAccessTokens[0].value)
 
-        assertEquals(token2.client!!.clientId, savedAccessTokens[1].client!!.clientId)
+        assertEquals(token2.client!!.getClientId(), savedAccessTokens[1].client!!.getClientId())
         assertEquals(token2.expiration, savedAccessTokens[1].expiration)
         assertEquals(token2.value, savedAccessTokens[1].value)
     }

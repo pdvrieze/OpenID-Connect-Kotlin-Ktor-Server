@@ -15,7 +15,7 @@
  */
 package org.mitre.uma.service
 
-import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.uma.model.ResourceSet
 
 /**
@@ -37,5 +37,5 @@ interface ResourceSetService {
 
     fun getAllForOwnerAndClient(owner: String, authClientId: String): Collection<ResourceSet>
 
-    fun getAllForClient(client: ClientDetailsEntity): Collection<ResourceSet>
+    fun getAllForClient(client: OAuthClientDetails): Collection<ResourceSet>
 }

@@ -55,7 +55,7 @@ class UriEncodedClientUserDetailsService : UserDetailsService {
             val client = clientDetailsService.loadClientByClientId(decodedClientId)
                 ?: throw UsernameNotFoundException("Client not found: $clientId")
 
-            var encodedPassword = UriUtils.encodePathSegment((client.clientSecret ?: ""), "UTF-8")
+            var encodedPassword = UriUtils.encodePathSegment((client.getClientSecret() ?: ""), "UTF-8")
 
             if (config.isHeartMode ||  // if we're running HEART mode turn off all client secrets
                 (client.tokenEndpointAuthMethod != null &&
@@ -71,7 +71,7 @@ class UriEncodedClientUserDetailsService : UserDetailsService {
             val accountNonExpired = true
             val credentialsNonExpired = true
             val accountNonLocked = true
-            val authorities: MutableCollection<GrantedAuthority> = HashSet(client.authorities)
+            val authorities: MutableCollection<GrantedAuthority> = HashSet(client.getAuthorities())
             authorities.add(ROLE_CLIENT)
 
             return User(decodedClientId, encodedPassword, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, authorities)

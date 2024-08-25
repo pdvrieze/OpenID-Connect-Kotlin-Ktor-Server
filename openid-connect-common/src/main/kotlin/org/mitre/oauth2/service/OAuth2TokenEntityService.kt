@@ -17,9 +17,9 @@
  */
 package org.mitre.oauth2.service
 
-import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.springframework.security.oauth2.provider.OAuth2Authentication
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices
@@ -33,9 +33,9 @@ interface OAuth2TokenEntityService : AuthorizationServerTokenServices, ResourceS
 
     fun revokeAccessToken(accessToken: OAuth2AccessTokenEntity)
 
-    fun getAccessTokensForClient(client: ClientDetailsEntity): List<OAuth2AccessTokenEntity>
+    fun getAccessTokensForClient(client: OAuthClientDetails): List<OAuth2AccessTokenEntity>
 
-    fun getRefreshTokensForClient(client: ClientDetailsEntity): List<OAuth2RefreshTokenEntity>
+    fun getRefreshTokensForClient(client: OAuthClientDetails): List<OAuth2RefreshTokenEntity>
 
     fun clearExpiredTokens()
 
@@ -53,5 +53,5 @@ interface OAuth2TokenEntityService : AuthorizationServerTokenServices, ResourceS
 
     fun getAllRefreshTokensForUser(name: String): Set<OAuth2RefreshTokenEntity>
 
-    fun getRegistrationAccessTokenForClient(client: ClientDetailsEntity): OAuth2AccessTokenEntity?
+    fun getRegistrationAccessTokenForClient(client: OAuthClientDetails): OAuth2AccessTokenEntity?
 }

@@ -40,7 +40,9 @@ import org.mitre.oauth2.model.RegisteredClientFields.USERINFO_ENCRYPTED_RESPONSE
 import org.mitre.oauth2.model.RegisteredClientFields.USERINFO_ENCRYPTED_RESPONSE_ENC
 import org.mitre.oauth2.model.RegisteredClientFields.USERINFO_SIGNED_RESPONSE_ALG
 import org.mitre.oauth2.model.convert.JWTStringConverter
+import org.springframework.security.core.GrantedAuthority
 import java.util.*
+import javax.persistence.Transient
 import kotlinx.serialization.Transient as KXS_Transient
 
 
@@ -194,7 +196,76 @@ interface OAuthClientDetails {
 
     fun getAuthorizedGrantTypes(): Set<String>
 
+    fun getAuthorities(): Set<GrantedAuthority>
+
+    fun getAccessTokenValiditySeconds(): Int?
+
+    fun getRefreshTokenValiditySeconds(): Int?
+
     fun withId(id: Long): OAuthClientDetails
+
+    /**
+     * Pass-through method to fulfill the ClientDetails interface with a bad name
+     */
+    @Transient
+    fun getRegisteredRedirectUri(): Set<String>?
+
+    fun getResourceIds(): Set<String>
+
+    fun getAdditionalInformation(): Map<String, Any>
+
+    fun copy(
+        id: Long? = this.id,
+        clientId: String? = this.getClientId(),
+        clientSecret: String? = this.getClientSecret(),
+        redirectUris: Set<String> = this.redirectUris,
+        clientName: String? = this.clientName,
+        clientUri: String? = this.clientUri,
+        logoUri: String? = this.logoUri,
+        contacts: Set<String>? = this.contacts,
+        tosUri: String? = this.tosUri,
+        tokenEndpointAuthMethod: AuthMethod? = this.tokenEndpointAuthMethod,
+        scope: Set<String> = this.getScope(),
+        grantTypes: Set<String> = this.grantTypes,
+        responseTypes: Set<String> = this.responseTypes,
+        policyUri: String? = this.policyUri,
+        jwksUri: String? = this.jwksUri,
+        jwks: JWKSet? = this.jwks,
+        softwareId: String? = this.softwareId,
+        softwareVersion: String? = this.softwareVersion,
+        applicationType: AppType = this.applicationType,
+        sectorIdentifierUri: String? = this.sectorIdentifierUri,
+        subjectType: SubjectType? = this.subjectType,
+        requestObjectSigningAlg: JWSAlgorithm? = this.requestObjectSigningAlg,
+        userInfoSignedResponseAlg: JWSAlgorithm? = this.userInfoSignedResponseAlg,
+        userInfoEncryptedResponseAlg: JWEAlgorithm? = this.userInfoEncryptedResponseAlg,
+        userInfoEncryptedResponseEnc: EncryptionMethod? = this.userInfoEncryptedResponseEnc,
+        idTokenSignedResponseAlg: JWSAlgorithm? = this.idTokenSignedResponseAlg,
+        idTokenEncryptedResponseAlg: JWEAlgorithm? = this.idTokenEncryptedResponseAlg,
+        idTokenEncryptedResponseEnc: EncryptionMethod? = this.idTokenEncryptedResponseEnc,
+        tokenEndpointAuthSigningAlg: JWSAlgorithm? = this.tokenEndpointAuthSigningAlg,
+        defaultMaxAge: Long? = this.defaultMaxAge,
+        requireAuthTime: Boolean? = this.requireAuthTime,
+        defaultACRvalues: Set<String>? = this.defaultACRvalues,
+        initiateLoginUri: String? = this.initiateLoginUri,
+        postLogoutRedirectUris: Set<String>? = this.postLogoutRedirectUris,
+        requestUris: Set<String>? = this.requestUris,
+        clientDescription: String = this.clientDescription,
+        isReuseRefreshToken: Boolean = this.isReuseRefreshToken,
+        isDynamicallyRegistered: Boolean = this.isDynamicallyRegistered,
+        isAllowIntrospection: Boolean = this.isAllowIntrospection,
+        idTokenValiditySeconds: Int? = this.idTokenValiditySeconds,
+        createdAt: Date? = this.createdAt,
+        isClearAccessTokensOnRefresh: Boolean = this.isClearAccessTokensOnRefresh,
+        deviceCodeValiditySeconds: Int? = this.deviceCodeValiditySeconds,
+        claimsRedirectUris: Set<String>? = this.claimsRedirectUris,
+        softwareStatement: JWT? = this.softwareStatement,
+        codeChallengeMethod: PKCEAlgorithm? = this.codeChallengeMethod,
+        authorizedGrantTypes: Set<String> = this.getAuthorizedGrantTypes(),
+        accessTokenValiditySeconds: Int? = this.getAccessTokenValiditySeconds(),
+        refreshTokenValiditySeconds: Int? = getRefreshTokenValiditySeconds(),
+        authorities: Set<GrantedAuthority> = this.getAuthorities()
+    ): ClientDetailsEntity
 
     companion object {
         private val SECRET_REQUIRING_METHODS =
@@ -258,4 +329,5 @@ interface OAuthClientDetails {
             }
         }
     }
+
 }

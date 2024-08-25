@@ -18,9 +18,9 @@
 package org.mitre.oauth2.repository
 
 import org.mitre.data.PageCriteria
-import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.uma.model.ResourceSet
 
@@ -43,11 +43,11 @@ interface OAuth2TokenRepository {
 
     fun removeAccessToken(accessToken: OAuth2AccessTokenEntity)
 
-    fun clearTokensForClient(client: ClientDetailsEntity)
+    fun clearTokensForClient(client: OAuthClientDetails)
 
-    fun getAccessTokensForClient(client: ClientDetailsEntity): List<OAuth2AccessTokenEntity>
+    fun getAccessTokensForClient(client: OAuthClientDetails): List<OAuth2AccessTokenEntity>
 
-    fun getRefreshTokensForClient(client: ClientDetailsEntity): List<OAuth2RefreshTokenEntity>
+    fun getRefreshTokensForClient(client: OAuthClientDetails): List<OAuth2RefreshTokenEntity>
 
     fun getAccessTokensByUserName(name: String): Set<OAuth2AccessTokenEntity>
 

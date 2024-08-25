@@ -15,7 +15,7 @@
  */
 package org.mitre.openid.connect.service.impl
 
-import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.uma.model.ResourceSet
 import org.mitre.uma.service.ResourceSetService
 import org.springframework.stereotype.Service
@@ -52,7 +52,7 @@ class DummyResourceSetService : ResourceSetService {
         return emptySet()
     }
 
-    override fun getAllForClient(client: ClientDetailsEntity): Collection<ResourceSet> {
+    override fun getAllForClient(client: OAuthClientDetails): Collection<ResourceSet> {
         return emptySet()
     }
 }

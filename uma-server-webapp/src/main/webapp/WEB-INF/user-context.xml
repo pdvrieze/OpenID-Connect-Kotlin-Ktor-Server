@@ -98,7 +98,7 @@
 			</bean>
 		</property>
 		<property name="registeredClientService">
-			<bean class="org.mitre.uma.service.impl.JpaRegisteredClientService" />
+			<bean class="org.mitre.uma.service.impl.jpa.JpaRegisteredClientService" />
 		</property>
 	</bean>
 
