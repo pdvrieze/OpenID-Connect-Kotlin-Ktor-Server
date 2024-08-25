@@ -24,8 +24,6 @@ dependencies {
     implementation(libs.jaxb.api)
     implementation(libs.jaxb.bindapi)
     implementation(libs.jaxb.runtime)
-    implementation(libs.jackson.databind)
-    implementation(libs.jackson.annotations)
     implementation(libs.servlet.api)
     implementation(libs.eclipse.persistence.core)
     implementation(libs.javax.persistence)

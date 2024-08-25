@@ -17,8 +17,6 @@
  */
 package org.mitre.oauth2.model
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.nimbusds.jwt.JWT
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.SerialName
@@ -30,8 +28,6 @@ import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.openid.connect.model.convert.ISODate
 import org.mitre.uma.model.Permission
 import org.springframework.security.oauth2.common.OAuth2AccessToken
-import org.springframework.security.oauth2.common.OAuth2AccessTokenJackson2Deserializer
-import org.springframework.security.oauth2.common.OAuth2AccessTokenJackson2Serializer
 import org.springframework.security.oauth2.common.OAuth2RefreshToken
 import java.util.*
 import javax.persistence.*
@@ -54,8 +50,6 @@ import javax.persistence.Transient as JPATransient
     NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_RESOURCE_SET, query = "select a from OAuth2AccessTokenEntity a join a.permissions p where p.resourceSet.id = :${OAuth2AccessTokenEntity.PARAM_RESOURCE_SET_ID}"),
     NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_NAME, query = "select r from OAuth2AccessTokenEntity r where r.authenticationHolder.userAuth.name = :${OAuth2AccessTokenEntity.PARAM_NAME}")
 )
-@JsonSerialize(using = OAuth2AccessTokenJackson2Serializer::class)
-@JsonDeserialize(using = OAuth2AccessTokenJackson2Deserializer::class)
 class OAuth2AccessTokenEntity : OAuth2AccessToken {
 	@get:Column(name = "id")
     @get:GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -232,6 +226,7 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
         @SerialName("scope") @EncodeDefault val scope: Set<String>? = null,
         @SerialName("type") @EncodeDefault val tokenType: String = OAuth2AccessToken.BEARER_TYPE
     ) {
+
         constructor(s: OAuth2AccessTokenEntity): this(
             currentId = s.id!!,
             expiration = s.expiration,
@@ -263,5 +258,6 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
         const val PARAM_NAME: String = "name"
 
         const val ID_TOKEN_FIELD_NAME: String = "id_token"
+
     }
 }
