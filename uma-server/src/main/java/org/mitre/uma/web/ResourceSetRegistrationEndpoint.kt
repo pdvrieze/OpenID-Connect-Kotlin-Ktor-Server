@@ -30,8 +30,8 @@ import org.mitre.uma.model.ResourceSet
 import org.mitre.uma.service.ResourceSetService
 import org.mitre.uma.view.ResourceSetEntityAbbreviatedView
 import org.mitre.uma.view.ResourceSetEntityView
-import org.mitre.util.GsonUtils.getAsStringSet
 import org.mitre.util.asString
+import org.mitre.util.getAsStringSet
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired

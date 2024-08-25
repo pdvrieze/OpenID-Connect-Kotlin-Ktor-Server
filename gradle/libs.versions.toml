@@ -22,7 +22,6 @@ exposed = "0.49.0"
 
 [libraries]
 #commons-math3 = { module = "org.apache.commons:commons-math3", version.ref = "commons-math3" }
-#guava = { module = "com.google.guava:guava", version.ref = "guava" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
 junit-jupiter-vintage = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "junit" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }

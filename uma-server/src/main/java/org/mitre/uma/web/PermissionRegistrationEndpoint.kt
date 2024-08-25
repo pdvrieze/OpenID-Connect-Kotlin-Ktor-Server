@@ -29,8 +29,7 @@ import org.mitre.openid.connect.view.JsonEntityView
 import org.mitre.openid.connect.view.JsonErrorView
 import org.mitre.uma.service.PermissionService
 import org.mitre.uma.service.ResourceSetService
-import org.mitre.util.GsonUtils.getAsLong
-import org.mitre.util.GsonUtils.getAsStringSet
+import org.mitre.util.getAsStringSet
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired

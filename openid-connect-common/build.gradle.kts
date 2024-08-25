@@ -21,7 +21,6 @@ dependencies {
     implementation(libs.jwt)
     implementation(libs.eclipse.persistence.core)
     implementation(libs.slf4j.api)
-    implementation(libs.gson)
     implementation(libs.jaxb.api)
     implementation(libs.jaxb.bindapi)
     implementation(libs.jaxb.runtime)
