@@ -78,7 +78,7 @@ class ResourceSetEntityAbbreviatedView : AbstractView() {
 
         val location = model[LOCATION] as String?
         if (!location.isNullOrEmpty()) {
-            response.setHeader(HttpHeaders.LOCATION, location)
+            response.setHeader("Location", location)
         }
 
         try {
