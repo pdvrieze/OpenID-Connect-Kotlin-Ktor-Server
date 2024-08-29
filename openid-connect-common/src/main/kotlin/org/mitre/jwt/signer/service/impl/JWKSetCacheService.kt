@@ -22,6 +22,7 @@ import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
 import com.google.common.util.concurrent.UncheckedExecutionException
 import com.nimbusds.jose.jwk.JWKSet
+import io.ktor.utils.io.errors.*
 import org.apache.http.client.HttpClient
 import org.apache.http.impl.client.HttpClientBuilder
 import org.mitre.jose.keystore.JWKSetKeyStore
@@ -29,10 +30,6 @@ import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
 import org.mitre.jwt.encryption.service.impl.DefaultJWTEncryptionAndDecryptionService
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.util.getLogger
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
-import org.springframework.stereotype.Service
-import org.springframework.web.client.RestClientException
-import org.springframework.web.client.RestTemplate
 import java.text.ParseException
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
@@ -44,7 +41,6 @@ import java.util.concurrent.TimeUnit
  *
  * @author jricher
  */
-@Service
 class JWKSetCacheService {
     // map of jwk set uri -> signing/validation service built on the keys found in that jwk set
     private val validators: LoadingCache<String, JWTSigningAndValidationService> =
@@ -99,8 +95,8 @@ class JWKSetCacheService {
          * Load the JWK Set and build the appropriate signing service.
          */
         @Throws(Exception::class)
-        override fun load(key: String): JWTSigningAndValidationService {
-            val jsonString = restTemplate.getForObject(key, String::class.java)
+        override fun load(keyUrl: String): JWTSigningAndValidationService {
+            val jsonString: String? = restTemplate.getForObject(keyUrl, String::class.java)
             val jwkSet = JWKSet.parse(jsonString)
 
             val keyStore = JWKSetKeyStore(jwkSet)
@@ -124,7 +120,7 @@ class JWKSetCacheService {
 		 */
         override fun load(key: String): JWTEncryptionAndDecryptionService {
             try {
-                val jsonString = restTemplate.getForObject(key, String::class.java)
+                val jsonString: String = restTemplate.getForObject(key, String::class.java)
                 val jwkSet = JWKSet.parse(jsonString)
 
                 val keyStore = JWKSetKeyStore(jwkSet)
@@ -134,7 +130,7 @@ class JWKSetCacheService {
                 return service
             } catch (e: ParseException) {
                 throw IllegalArgumentException("Unable to load JWK Set")
-            } catch (e: RestClientException) {
+            } catch (e: IOException) {
                 throw IllegalArgumentException("Unable to load JWK Set")
             }
         }

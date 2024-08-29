@@ -6,9 +6,9 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import org.mitre.oauth2.model.Authentication
+import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.SavedUserAuthentication
-import org.springframework.security.core.Authentication
-import org.springframework.security.core.GrantedAuthority
 
 object AuthenticationSerializer : KSerializer<Authentication> {
     private val delegate = SerialDelegate.serializer()

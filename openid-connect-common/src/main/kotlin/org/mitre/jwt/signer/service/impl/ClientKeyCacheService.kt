@@ -27,8 +27,6 @@ import org.mitre.jwt.encryption.service.impl.DefaultJWTEncryptionAndDecryptionSe
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.util.getLogger
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Service
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 
@@ -39,12 +37,11 @@ import java.util.concurrent.TimeUnit
  *
  * @author jricher
  */
-@Service
 class ClientKeyCacheService {
-    @Autowired
+//    @Autowired
     private val jwksUriCache = JWKSetCacheService()
 
-    @Autowired
+//    @Autowired
     private val symmetricCache = SymmetricKeyJWTValidatorCacheService()
 
     // cache of validators for by-value JWKs

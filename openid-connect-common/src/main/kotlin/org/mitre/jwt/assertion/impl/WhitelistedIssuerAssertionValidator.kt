@@ -21,22 +21,19 @@ import com.nimbusds.jwt.SignedJWT
 import org.mitre.jwt.assertion.AssertionValidator
 import org.mitre.jwt.signer.service.impl.JWKSetCacheService
 import org.mitre.util.getLogger
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
 import java.text.ParseException
 
 /**
  * Checks to see if the assertion was signed by a particular authority available from a whitelist
  * @author jricher
  */
-@Component("whitelistedIssuerAssertionValidator")
 class WhitelistedIssuerAssertionValidator : AssertionValidator {
     /**
      * Whitelist map of issuer -> JWKSetUri
      */
     var whitelist: Map<String, String> = HashMap()
 
-    @Autowired
+//    @Autowired
     private lateinit var jwkCache: JWKSetCacheService
 
     override fun isValid(assertion: JWT): Boolean {

@@ -10,10 +10,7 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.decodeStructure
 import kotlinx.serialization.encoding.encodeStructure
-import org.springframework.security.core.Authentication
-import org.springframework.security.oauth2.provider.OAuth2Authentication
-import org.springframework.security.oauth2.provider.OAuth2Request
-
+import org.mitre.oauth2.model.OAuth2Authentication
 
 
 object OAuth2AuthenticationSerializer : KSerializer<OAuth2Authentication> {

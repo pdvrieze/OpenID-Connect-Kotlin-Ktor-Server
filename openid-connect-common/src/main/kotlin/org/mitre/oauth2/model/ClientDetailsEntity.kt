@@ -63,19 +63,14 @@ import org.mitre.oauth2.model.RegisteredClientFields.USERINFO_ENCRYPTED_RESPONSE
 import org.mitre.oauth2.model.RegisteredClientFields.USERINFO_ENCRYPTED_RESPONSE_ENC
 import org.mitre.oauth2.model.RegisteredClientFields.USERINFO_SIGNED_RESPONSE_ALG
 import org.mitre.oauth2.model.convert.*
-import org.springframework.security.core.GrantedAuthority
 import java.util.*
 import javax.persistence.*
 import kotlinx.serialization.Transient as KXS_Transient
-import org.springframework.security.oauth2.provider.ClientDetails as SpringClientDetails
 import javax.persistence.Transient as JPATransient
 
 /**
  * @author jricher
  */
-@Entity
-@Table(name = "client_details")
-@NamedQueries(NamedQuery(name = ClientDetailsEntity.QUERY_ALL, query = "SELECT c FROM ClientDetailsEntity c"), NamedQuery(name = ClientDetailsEntity.QUERY_BY_CLIENT_ID, query = "select c from ClientDetailsEntity c where c.clientId = :" + ClientDetailsEntity.PARAM_CLIENT_ID))
 @Serializable
 open class ClientDetailsEntity(
     @get:Column(name = "id")
@@ -146,7 +141,7 @@ open class ClientDetailsEntity(
     @get:Convert(converter = JWKSetStringConverter::class)
     @get:Column(name = "jwks")
     @get:Basic
-    @SerialName(JWKS) override var jwks: @Serializable(JWKSetStringConverter::class) JWKSet? = null, // public key stored by value
+    @SerialName(JWKS) override var jwks: @Serializable(with = JWKSetStringConverter::class) JWKSet? = null, // public key stored by value
 
     @get:Column(name = "software_id")
     @get:Basic
@@ -172,45 +167,45 @@ open class ClientDetailsEntity(
     @get:Convert(converter = JWSAlgorithmStringConverter::class)
     @get:Column(name = "request_object_signing_alg")
     @get:Basic
-    @SerialName(REQUEST_OBJECT_SIGNING_ALG) override var requestObjectSigningAlg: @Serializable(JWSAlgorithmStringConverter::class) JWSAlgorithm? = null, // request_object_signing_alg
+    @SerialName(REQUEST_OBJECT_SIGNING_ALG) override var requestObjectSigningAlg: @Serializable(with = JWSAlgorithmStringConverter::class) JWSAlgorithm? = null, // request_object_signing_alg
 
     @get:Convert(converter = JWSAlgorithmStringConverter::class)
     @get:Column(name = "user_info_signed_response_alg")
     @get:Basic
     @SerialName(USERINFO_SIGNED_RESPONSE_ALG)
-    override var userInfoSignedResponseAlg: @Serializable(JWSAlgorithmStringConverter::class) JWSAlgorithm? = null, // user_info_signed_response_alg
+    override var userInfoSignedResponseAlg: @Serializable(with = JWSAlgorithmStringConverter::class) JWSAlgorithm? = null, // user_info_signed_response_alg
 
     @get:Convert(converter = JWEAlgorithmStringConverter::class)
     @get:Column(name = "user_info_encrypted_response_alg")
     @get:Basic
     @SerialName(USERINFO_ENCRYPTED_RESPONSE_ALG)
-    override var userInfoEncryptedResponseAlg: @Serializable(JWEAlgorithmStringConverter::class) JWEAlgorithm? = null, // user_info_encrypted_response_alg
+    override var userInfoEncryptedResponseAlg: @Serializable(with = JWEAlgorithmStringConverter::class) JWEAlgorithm? = null, // user_info_encrypted_response_alg
 
     @get:Convert(converter = JWEEncryptionMethodStringConverter::class)
     @get:Column(name = "user_info_encrypted_response_enc")
     @get:Basic
     @SerialName(USERINFO_ENCRYPTED_RESPONSE_ENC)
-    override var userInfoEncryptedResponseEnc: @Serializable(JWEEncryptionMethodStringConverter::class) EncryptionMethod? = null, // user_info_encrypted_response_enc
+    override var userInfoEncryptedResponseEnc: @Serializable(with = JWEEncryptionMethodStringConverter::class) EncryptionMethod? = null, // user_info_encrypted_response_enc
 
     @get:Convert(converter = JWSAlgorithmStringConverter::class)
     @get:Column(name = "id_token_signed_response_alg")
     @get:Basic
-    @SerialName(ID_TOKEN_SIGNED_RESPONSE_ALG) override var idTokenSignedResponseAlg: @Serializable(JWSAlgorithmStringConverter::class) JWSAlgorithm? = null, // id_token_signed_response_alg
+    @SerialName(ID_TOKEN_SIGNED_RESPONSE_ALG) override var idTokenSignedResponseAlg: @Serializable(with = JWSAlgorithmStringConverter::class) JWSAlgorithm? = null, // id_token_signed_response_alg
 
     @get:Convert(converter = JWEAlgorithmStringConverter::class)
     @get:Column(name = "id_token_encrypted_response_alg")
     @get:Basic
-    @SerialName(ID_TOKEN_ENCRYPTED_RESPONSE_ALG) override var idTokenEncryptedResponseAlg: @Serializable(JWEAlgorithmStringConverter::class) JWEAlgorithm? = null, // id_token_encrypted_response_alg
+    @SerialName(ID_TOKEN_ENCRYPTED_RESPONSE_ALG) override var idTokenEncryptedResponseAlg: @Serializable(with = JWEAlgorithmStringConverter::class) JWEAlgorithm? = null, // id_token_encrypted_response_alg
 
     @get:Convert(converter = JWEEncryptionMethodStringConverter::class)
     @get:Column(name = "id_token_encrypted_response_enc")
     @get:Basic
-    @SerialName(ID_TOKEN_ENCRYPTED_RESPONSE_ENC) override var idTokenEncryptedResponseEnc: @Serializable(JWEEncryptionMethodStringConverter::class) EncryptionMethod? = null, // id_token_encrypted_response_enc
+    @SerialName(ID_TOKEN_ENCRYPTED_RESPONSE_ENC) override var idTokenEncryptedResponseEnc: @Serializable(with = JWEEncryptionMethodStringConverter::class) EncryptionMethod? = null, // id_token_encrypted_response_enc
 
     @get:Convert(converter = JWSAlgorithmStringConverter::class)
     @get:Column(name = "token_endpoint_auth_signing_alg")
     @get:Basic
-    @SerialName(TOKEN_ENDPOINT_AUTH_SIGNING_ALG) override var tokenEndpointAuthSigningAlg: @Serializable(JWSAlgorithmStringConverter::class) JWSAlgorithm? = null, // token_endpoint_auth_signing_alg
+    @SerialName(TOKEN_ENDPOINT_AUTH_SIGNING_ALG) override var tokenEndpointAuthSigningAlg: @Serializable(with = JWSAlgorithmStringConverter::class) JWSAlgorithm? = null, // token_endpoint_auth_signing_alg
 
     @get:Column(name = "default_max_age")
     @get:Basic
@@ -287,14 +282,15 @@ open class ClientDetailsEntity(
     @get:Convert(converter = JWTStringConverter::class)
     @get:Column(name = "software_statement")
     @get:Basic
-    @SerialName(SOFTWARE_STATEMENT) override var softwareStatement: @Serializable(JWTStringConverter::class) JWT? = null,
+    @SerialName(SOFTWARE_STATEMENT) override var softwareStatement: @Serializable(with = JWTStringConverter::class) JWT? = null,
 
     /** PKCE  */
     @get:Convert(converter = PKCEAlgorithmStringConverter::class)
     @get:Column(name = "code_challenge_method")
     @get:Basic
     @SerialName(CODE_CHALLENGE_METHOD) override var codeChallengeMethod: PKCEAlgorithm? = null,
-) : OAuthClientDetails, SpringClientDetails {
+    val authorizedGrantTypes: Set<String> = emptySet(),
+) : OAuthClientDetails/*, SpringClientDetails*/ {
     /** Fields to support the ClientDetails interface  */
     @KXS_Transient
     private var authorities: Set<GrantedAuthority> = HashSet()
@@ -414,9 +410,9 @@ open class ClientDetailsEntity(
             deviceCodeValiditySeconds = this.deviceCodeValiditySeconds,
             claimsRedirectUris = this.claimsRedirectUris,
             softwareStatement = this.softwareStatement,
-            codeChallengeMethod = this.codeChallengeMethod
+            codeChallengeMethod = this.codeChallengeMethod,
+            authorizedGrantTypes = authorizedGrantTypes.toHashSet()
         ).also {
-            it.authorizedGrantTypes.apply { clear(); addAll(authorizedGrantTypes.toHashSet()) }
             it.setAccessTokenValiditySeconds(accessTokenValiditySeconds)
             it.setRefreshTokenValiditySeconds(refreshTokenValiditySeconds)
             it.setAuthorities(authorities)
@@ -562,14 +558,6 @@ open class ClientDetailsEntity(
     @JPATransient
     override fun getAdditionalInformation(): Map<String, Any> {
         return this.additionalInformation
-    }
-
-
-    /**
-     * Our framework doesn't use this construct, we use WhitelistedSites and ApprovedSites instead.
-     */
-    override fun isAutoApprove(scope: String): Boolean {
-        return false
     }
 
     companion object {

@@ -78,7 +78,6 @@ import org.mitre.oauth2.model.convert.JWEEncryptionMethodStringConverter
 import org.mitre.oauth2.model.convert.JWKSetStringConverter
 import org.mitre.oauth2.model.convert.JWSAlgorithmStringConverter
 import org.mitre.oauth2.model.convert.JWTStringConverter
-import org.springframework.security.core.GrantedAuthority
 import java.util.*
 
 /**
@@ -361,7 +360,6 @@ class RegisteredClient(
             val details = ClientDetailsEntity(
                 clientId = clientId,
                 clientSecret = clientSecret,
-                createdAt = clientIdIssuedAt?.let(Date::from),
                 redirectUris = redirectUris,
                 clientName = clientName,
                 clientUri = clientUri,
@@ -377,6 +375,8 @@ class RegisteredClient(
                 policyUri = policyUri,
                 jwksUri = jwksUri,
                 jwks = jwks,
+                softwareId = softwareId,
+                softwareVersion = softwareVersion,
                 applicationType = applicationType ?: OAuthClientDetails.AppType.WEB,
                 sectorIdentifierUri = sectorIdentifierUri,
                 subjectType = subjectType,
@@ -394,11 +394,10 @@ class RegisteredClient(
                 initiateLoginUri = initiateLoginUri,
                 postLogoutRedirectUris = postLogoutRedirectUris,
                 requestUris = requestUris,
+                createdAt = clientIdIssuedAt?.let(Date::from),
                 claimsRedirectUris = claimsRedirectUris,
-                codeChallengeMethod = codeChallengeMethod,
-                softwareId = softwareId,
-                softwareVersion = softwareVersion,
                 softwareStatement = softwareStatement,
+                codeChallengeMethod = codeChallengeMethod,
             )
 
             return RegisteredClient(

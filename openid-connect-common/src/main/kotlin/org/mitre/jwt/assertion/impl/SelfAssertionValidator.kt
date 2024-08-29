@@ -22,8 +22,6 @@ import org.mitre.jwt.assertion.AssertionValidator
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.util.getLogger
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
 import java.text.ParseException
 
 /**
@@ -31,12 +29,11 @@ import java.text.ParseException
  *
  * @author jricher
  */
-@Component("selfAssertionValidator")
 class SelfAssertionValidator : AssertionValidator {
-    @Autowired
+//    @Autowired
     private lateinit var config: ConfigurationPropertiesBean
 
-    @Autowired
+//    @Autowired
     private lateinit var jwtService: JWTSigningAndValidationService
 
     override fun isValid(assertion: JWT): Boolean {

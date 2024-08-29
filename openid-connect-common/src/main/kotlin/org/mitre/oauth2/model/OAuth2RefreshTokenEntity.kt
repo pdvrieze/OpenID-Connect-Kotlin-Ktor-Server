@@ -22,7 +22,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.mitre.oauth2.model.convert.JWTStringConverter
 import org.mitre.openid.connect.model.convert.ISODate
-import org.springframework.security.oauth2.common.OAuth2RefreshToken
 import javax.persistence.*
 import javax.persistence.Transient as JPATransient
 
@@ -89,10 +88,8 @@ class OAuth2RefreshTokenEntity : OAuth2RefreshToken {
     /**
      * Get the JWT-encoded value of this token
      */
-    @JPATransient
-    override fun getValue(): String {
-        return jwt!!.serialize()
-    }
+    override val value: String
+        get() = jwt.serialize()
 
     /**
      * Has this token expired?

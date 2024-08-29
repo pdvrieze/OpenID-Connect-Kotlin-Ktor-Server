@@ -18,48 +18,21 @@
 package org.mitre.oauth2.model
 
 import java.util.*
-import javax.persistence.Basic
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.GeneratedValue
-import javax.persistence.GenerationType
-import javax.persistence.Id
-import javax.persistence.JoinColumn
-import javax.persistence.ManyToOne
-import javax.persistence.NamedQueries
-import javax.persistence.NamedQuery
-import javax.persistence.Table
-import javax.persistence.Temporal
-import javax.persistence.TemporalType
 
 /**
  * Entity class for authorization codes
  *
  * @author aanganes
  */
-@Entity
-@Table(name = "authorization_code")
-@NamedQueries(NamedQuery(name = AuthorizationCodeEntity.QUERY_BY_VALUE, query = "select a from AuthorizationCodeEntity a where a.code = :code"), NamedQuery(name = AuthorizationCodeEntity.QUERY_EXPIRATION_BY_DATE, query = "select a from AuthorizationCodeEntity a where a.expiration <= :" + AuthorizationCodeEntity.PARAM_DATE))
 class AuthorizationCodeEntity {
-    @get:Column(name = "id")
-    @get:GeneratedValue(strategy = GenerationType.IDENTITY)
-    @get:Id
     var id: Long? = null
-
-    @get:Column(name = "code")
-    @get:Basic
     var code: String? = null
 
     /**
      * The authentication in place when this token was created.
      */
-    @get:JoinColumn(name = "auth_holder_id")
-    @get:ManyToOne
     var authenticationHolder: AuthenticationHolderEntity? = null
 
-    @get:Column(name = "expiration")
-    @get:Temporal(TemporalType.TIMESTAMP)
-    @get:Basic
     var expiration: Date? = null
 
     constructor()
@@ -77,6 +50,7 @@ class AuthorizationCodeEntity {
         authenticationHolder: AuthenticationHolderEntity? = null,
         expiration: Date? = null,
     ) {
+        this.id = id
         this.code = code
         this.authenticationHolder = authenticationHolder
         this.expiration = expiration

@@ -15,129 +15,42 @@
  */
 package org.mitre.oauth2.model
 
-import org.mitre.oauth2.model.convert.SimpleGrantedAuthorityStringConverter
-import org.springframework.security.core.Authentication
-import org.springframework.security.core.GrantedAuthority
-import javax.persistence.Basic
-import javax.persistence.CollectionTable
-import javax.persistence.Column
-import javax.persistence.Convert
-import javax.persistence.ElementCollection
-import javax.persistence.Entity
-import javax.persistence.FetchType
-import javax.persistence.GeneratedValue
-import javax.persistence.GenerationType
-import javax.persistence.Id
-import javax.persistence.JoinColumn
-import javax.persistence.Table
-import javax.persistence.Transient
-
 /**
  * This class stands in for an original Authentication object.
  *
  * @author jricher
  */
-@Entity
-@Table(name = "saved_user_auth")
-class SavedUserAuthentication : Authentication {
-    @get:Column(name = "id")
-    @get:GeneratedValue(strategy = GenerationType.IDENTITY)
-    @get:Id
-    var id: Long? = null
+class SavedUserAuthentication(
+    id: Long?,
+    name: String,
+    authorities: Collection<GrantedAuthority>,
+    authenticated: Boolean,
+    sourceClass: String?
+) : Authentication {
+    var id: Long? = id
 
-    private var name: String? = null
+    override var name: String = name
+        private set
 
-    private var authorities: Collection<GrantedAuthority>? = null
+    override var authorities: Collection<GrantedAuthority> = authorities.toHashSet()
+        private set
 
-    private var authenticated = false
+    override var isAuthenticated = authenticated
+        private set
 
-    @get:Column(name = "source_class")
-    @get:Basic
-    var sourceClass: String? = null
+    var sourceClass: String? = sourceClass
 
     /**
      * Create a Saved Auth from an existing Auth token
      */
-    constructor(src: Authentication) {
-        setName(src.name)
-        setAuthorities(HashSet(src.authorities))
-        isAuthenticated = src.isAuthenticated
-
-        if (src is SavedUserAuthentication) {
-            // if we're copying in a saved auth, carry over the original class name
-            sourceClass = src.sourceClass
-        } else {
-            sourceClass = src.javaClass.name
-        }
-    }
-
-    /**
-     * Create an empty saved auth
-     */
-    constructor()
-
-    constructor(
-        id: Long?,
-        name: String?,
-        authorities: Collection<GrantedAuthority>,
-        authenticated: Boolean,
-        sourceClass: String?
-    ) {
-        this.id = id
-        this.name = name
-        this.authorities = authorities
-        this.authenticated = authenticated
-        this.sourceClass = sourceClass
-    }
-
-    @Basic
-    @Column(name = "name")
-    override fun getName(): String {
-        return name!!
-    }
-
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "saved_user_auth_authority", joinColumns = [JoinColumn(name = "owner_id")])
-    @Convert(converter = SimpleGrantedAuthorityStringConverter::class)
-    @Column(name = "authority")
-    override fun getAuthorities(): Collection<GrantedAuthority>? {
-        return authorities
-    }
-
-    @Transient
-    override fun getCredentials(): Any {
-        return ""
-    }
-
-    @Transient
-    override fun getDetails(): Any? {
-        return null
-    }
-
-    @Transient
-    override fun getPrincipal(): Any {
-        return getName()
-    }
-
-    @Basic
-    @Column(name = "authenticated")
-    override fun isAuthenticated(): Boolean {
-        return authenticated
-    }
-
-    @Throws(IllegalArgumentException::class)
-    override fun setAuthenticated(isAuthenticated: Boolean) {
-        this.authenticated = isAuthenticated
-    }
-
-    fun setName(name: String?) {
-        this.name = name
-    }
-
-    fun setAuthorities(authorities: Collection<GrantedAuthority>?) {
-        this.authorities = authorities
-    }
-
+    constructor(src: Authentication) : this(
+        id = null,
+        name = src.name,
+        authorities = src.authorities,
+        authenticated = src.isAuthenticated,
+        // if we're copying in a saved auth, carry over the original class name
+        sourceClass = (src as? SavedUserAuthentication)?.sourceClass ?: src.javaClass.name,
+    )
 
     companion object {
         private const val serialVersionUID = -1804249963940323488L
