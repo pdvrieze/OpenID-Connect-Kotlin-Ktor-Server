@@ -24,8 +24,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.encodeToStream
 import org.mitre.openid.connect.model.UserInfo
 import org.mitre.openid.connect.service.ScopeClaimTranslationService
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
@@ -166,6 +165,6 @@ class UserInfoView : AbstractView() {
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(UserInfoView::class.java)
+        private val logger = getLogger<UserInfoView>()
     }
 }

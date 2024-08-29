@@ -22,8 +22,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonObject
 import org.mitre.openid.connect.service.MITREidDataService
 import org.mitre.util.asString
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.support.AbstractMessageSource
 import org.springframework.core.io.Resource
@@ -148,6 +147,6 @@ class JsonMessageSource : AbstractMessageSource() {
     }
 
     companion object {
-        private val logger: Logger = LoggerFactory.getLogger(JsonMessageSource::class.java)
+        private val logger = getLogger<JsonMessageSource>()
     }
 }

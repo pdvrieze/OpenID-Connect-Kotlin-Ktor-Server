@@ -22,8 +22,7 @@ import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.service.UserInfoService
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContextHolder
@@ -188,6 +187,6 @@ class EndSessionEndpoint {
         private const val STATE_KEY = "state"
         private const val REDIRECT_URI_KEY = "redirectUri"
 
-        private val logger: Logger = LoggerFactory.getLogger(EndSessionEndpoint::class.java)
+        private val logger = getLogger<EndSessionEndpoint>()
     }
 }

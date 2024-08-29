@@ -81,8 +81,7 @@ import org.mitre.openid.connect.view.JsonEntityView
 import org.mitre.openid.connect.view.JsonErrorView
 import org.mitre.util.asBoolean
 import org.mitre.util.asBooleanOrNull
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.HttpHeaders
@@ -564,6 +563,6 @@ class ClientAPI {
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(ClientAPI::class.java)
+        private val logger = getLogger<ClientAPI>()
     }
 }

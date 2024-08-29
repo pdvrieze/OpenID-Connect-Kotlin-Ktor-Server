@@ -17,7 +17,7 @@ import org.mitre.oauth2.repository.OAuth2ClientRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.uma.model.ResourceSet
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.security.oauth2.common.OAuth2AccessToken
 import java.time.Instant
 import java.util.*
@@ -285,6 +285,6 @@ class ExposedOauth2TokenRepository(
     }
 
     companion object {
-        val logger = LoggerFactory.getLogger(ExposedOauth2TokenRepository::class.java)
+        val logger = getLogger<ExposedOauth2TokenRepository>()
     }
 }

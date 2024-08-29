@@ -29,7 +29,7 @@ import kotlinx.serialization.json.JsonElement
 import org.mitre.oauth2.model.SystemScope.Companion.PARAM_VALUE
 import org.mitre.oauth2.model.SystemScope.Companion.QUERY_ALL
 import org.mitre.oauth2.model.SystemScope.Companion.QUERY_BY_VALUE
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import javax.persistence.Basic
 import javax.persistence.Column
 import javax.persistence.Entity
@@ -205,7 +205,7 @@ class SystemScope(
     @OptIn(ExperimentalSerializationApi::class)
     companion object : KSerializer<SystemScope> {
         @JvmStatic
-        private val logger = LoggerFactory.getLogger(SystemScope::class.java)
+        private val logger = getLogger<SystemScope>()
         val delegate = SerialDelegate.serializer()
         override val descriptor: SerialDescriptor =
             SerialDescriptor("org.mitre.oauth2.model.SystemScope", delegate.descriptor)

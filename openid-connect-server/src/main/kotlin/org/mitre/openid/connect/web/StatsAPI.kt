@@ -19,9 +19,7 @@ package org.mitre.openid.connect.web
 
 import org.mitre.openid.connect.service.StatsService
 import org.mitre.openid.connect.view.JsonEntityView
-import org.mitre.openid.connect.web.StatsAPI
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
@@ -69,6 +67,6 @@ class StatsAPI {
         const val URL: String = RootController.API_URL + "/stats"
 
         // Logger for this class
-        private val logger: Logger = LoggerFactory.getLogger(StatsAPI::class.java)
+        private val logger = getLogger<StatsAPI>()
     }
 }

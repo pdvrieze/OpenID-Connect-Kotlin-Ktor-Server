@@ -34,8 +34,7 @@ import com.nimbusds.jose.jwk.RSAKey
 import com.nimbusds.jwt.SignedJWT
 import org.mitre.jose.keystore.JWKSetKeyStore
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import java.security.NoSuchAlgorithmException
 import java.security.spec.InvalidKeySpecException
 import java.util.*
@@ -216,6 +215,6 @@ class DefaultJWTSigningAndValidationService : JWTSigningAndValidationService {
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(DefaultJWTSigningAndValidationService::class.java)
+        private val logger = getLogger<DefaultJWTSigningAndValidationService>()
     }
 }

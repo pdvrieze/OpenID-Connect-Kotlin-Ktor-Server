@@ -22,8 +22,7 @@ import org.mitre.openid.connect.model.PairwiseIdentifier
 import org.mitre.openid.connect.model.UserInfo
 import org.mitre.openid.connect.repository.PairwiseIdentifierRepository
 import org.mitre.openid.connect.service.PairwiseIdentiferService
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.web.util.UriComponentsBuilder
@@ -75,6 +74,6 @@ class UUIDPairwiseIdentiferService : PairwiseIdentiferService {
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(UUIDPairwiseIdentiferService::class.java)
+        private val logger = getLogger<UUIDPairwiseIdentiferService>()
     }
 }

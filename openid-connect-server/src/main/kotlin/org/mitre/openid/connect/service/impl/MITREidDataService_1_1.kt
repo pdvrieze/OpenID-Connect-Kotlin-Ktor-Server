@@ -18,7 +18,6 @@
 package org.mitre.openid.connect.service.impl
 
 import org.mitre.oauth2.model.ClientDetailsEntity
-import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2ClientRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
@@ -31,8 +30,7 @@ import org.mitre.openid.connect.service.MITREidDataService.Companion.warnIgnored
 import org.mitre.openid.connect.service.MITREidDataService.Context
 import org.mitre.openid.connect.service.MITREidDataServiceExtension
 import org.mitre.openid.connect.service.MITREidDataServiceMaps
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -169,7 +167,7 @@ class MITREidDataService_1_1 : MITREidDataService {
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(MITREidDataService_1_1::class.java)
+        private val logger = getLogger<MITREidDataService_1_1>()
         private const val THIS_VERSION = MITREidDataService.MITREID_CONNECT_1_1
     }
 }

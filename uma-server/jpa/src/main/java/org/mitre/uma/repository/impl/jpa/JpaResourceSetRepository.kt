@@ -18,9 +18,8 @@ package org.mitre.uma.repository.impl.jpa
 import org.mitre.oauth2.util.requireId
 import org.mitre.uma.model.ResourceSet
 import org.mitre.uma.repository.ResourceSetRepository
+import org.mitre.util.getLogger
 import org.mitre.util.jpa.JpaUtil.saveOrUpdate
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 import javax.persistence.EntityManager
@@ -80,6 +79,6 @@ open class JpaResourceSetRepository : ResourceSetRepository {
     }
 
     companion object {
-        private val logger: Logger = LoggerFactory.getLogger(JpaResourceSetRepository::class.java)
+        private val logger = getLogger<JpaResourceSetRepository>()
     }
 }

@@ -19,8 +19,7 @@ package org.mitre.openid.connect.config
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.BeanCreationException
 import java.util.*
 import javax.annotation.PostConstruct
@@ -114,6 +113,6 @@ class ConfigurationPropertiesBean {
          * Logger for this class
          */
         @JvmStatic
-        private val logger: Logger = LoggerFactory.getLogger(ConfigurationPropertiesBean::class.java)
+        private val logger = getLogger<ConfigurationPropertiesBean>()
     }
 }

@@ -20,8 +20,7 @@ import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
 import org.mitre.jwt.assertion.AssertionValidator
 import org.mitre.jwt.signer.service.impl.JWKSetCacheService
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.text.ParseException
@@ -75,6 +74,6 @@ class WhitelistedIssuerAssertionValidator : AssertionValidator {
     }
 
     companion object {
-        private val logger: Logger = LoggerFactory.getLogger(WhitelistedIssuerAssertionValidator::class.java)
+        private val logger = getLogger<WhitelistedIssuerAssertionValidator>()
     }
 }

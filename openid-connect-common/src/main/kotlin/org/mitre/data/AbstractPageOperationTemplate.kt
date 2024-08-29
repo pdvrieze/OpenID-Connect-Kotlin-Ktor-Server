@@ -15,9 +15,7 @@
  */
 package org.mitre.data
 
-import org.mitre.data.AbstractPageOperationTemplate
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 
 /**
  * Abstract class for performing an operation on a potentially large
@@ -82,7 +80,7 @@ abstract class AbstractPageOperationTemplate<T>(
                         exceptionsSwallowedClasses.add(e.javaClass.name)
                         logger.debug("Swallowing exception " + e.message, e)
                     } else {
-                        logger.debug("Rethrowing exception " + e.message)
+                        logger.debug("Rethrowing exception " + e.message, e)
                         throw e
                     }
                 }
@@ -130,7 +128,7 @@ abstract class AbstractPageOperationTemplate<T>(
 
 
     companion object {
-        private val logger: Logger = LoggerFactory.getLogger(AbstractPageOperationTemplate::class.java)
+        private val logger = getLogger<AbstractPageOperationTemplate<*>>()
 
         private const val DEFAULT_MAX_PAGES = 1000
         private const val DEFAULT_MAX_TIME_MILLIS = 600000L //10 Minutes

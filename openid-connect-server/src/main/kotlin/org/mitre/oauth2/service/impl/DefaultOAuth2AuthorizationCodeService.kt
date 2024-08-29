@@ -22,8 +22,7 @@ import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.AuthorizationCodeEntity
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.AuthorizationCodeRepository
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.oauth2.common.exceptions.InvalidGrantException
 import org.springframework.security.oauth2.common.util.RandomValueStringGenerator
@@ -116,6 +115,6 @@ class DefaultOAuth2AuthorizationCodeService : AuthorizationCodeServices {
 
     companion object {
         // Logger for this class
-        private val logger: Logger = LoggerFactory.getLogger(DefaultOAuth2AuthorizationCodeService::class.java)
+        private val logger = getLogger<DefaultOAuth2AuthorizationCodeService>()
     }
 }

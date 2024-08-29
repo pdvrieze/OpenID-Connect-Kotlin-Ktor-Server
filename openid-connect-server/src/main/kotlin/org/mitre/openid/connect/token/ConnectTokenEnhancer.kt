@@ -27,8 +27,7 @@ import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.service.OIDCTokenService
 import org.mitre.openid.connect.service.UserInfoService
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.oauth2.common.OAuth2AccessToken
 import org.springframework.security.oauth2.provider.OAuth2Authentication
@@ -139,6 +138,6 @@ class ConnectTokenEnhancer : TokenEnhancer {
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(ConnectTokenEnhancer::class.java)
+        private val logger = getLogger<ConnectTokenEnhancer>()
     }
 }

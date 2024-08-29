@@ -23,8 +23,7 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import java.text.ParseException
 import javax.persistence.AttributeConverter
 import javax.persistence.Converter
@@ -64,6 +63,6 @@ class JWTStringConverter : AttributeConverter<JWT?, String?>, KSerializer<JWT> {
     }
 
     companion object {
-        var logger: Logger = LoggerFactory.getLogger(JWTStringConverter::class.java)
+        var logger = getLogger<JWTStringConverter>()
     }
 }

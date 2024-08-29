@@ -30,8 +30,7 @@ import org.mitre.jwt.signer.service.impl.ClientKeyCacheService
 import org.mitre.jwt.signer.service.impl.SymmetricKeyJWTValidatorCacheService
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
@@ -139,7 +138,7 @@ class UserInfoJWTView : UserInfoView() {
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(UserInfoJWTView::class.java)
+        private val logger = getLogger<UserInfoJWTView>()
 
         const val VIEWNAME: String = "userInfoJwtView"
 

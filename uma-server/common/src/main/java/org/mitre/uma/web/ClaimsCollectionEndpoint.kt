@@ -23,8 +23,7 @@ import org.mitre.openid.connect.model.OIDCAuthenticationToken
 import org.mitre.openid.connect.view.HttpCodeView
 import org.mitre.uma.model.Claim
 import org.mitre.uma.service.PermissionService
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
@@ -34,8 +33,6 @@ import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.util.UriComponentsBuilder
-import java.net.URI
 
 /**
  *
@@ -144,7 +141,7 @@ class ClaimsCollectionEndpoint {
 
     companion object {
         // Logger for this class
-        private val logger: Logger = LoggerFactory.getLogger(ClaimsCollectionEndpoint::class.java)
+        private val logger = getLogger<ClaimsCollectionEndpoint>()
 
         const val URL: String = "rqp_claims"
     }

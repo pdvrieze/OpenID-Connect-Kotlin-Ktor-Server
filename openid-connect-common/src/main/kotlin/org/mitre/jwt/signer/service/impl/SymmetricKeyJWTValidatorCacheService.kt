@@ -25,8 +25,7 @@ import com.nimbusds.jose.jwk.OctetSequenceKey
 import com.nimbusds.jose.util.Base64URL
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.oauth2.model.OAuthClientDetails
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.stereotype.Service
 import java.security.NoSuchAlgorithmException
 import java.security.spec.InvalidKeySpecException
@@ -93,6 +92,6 @@ class SymmetricKeyJWTValidatorCacheService {
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(SymmetricKeyJWTValidatorCacheService::class.java)
+        private val logger = getLogger<SymmetricKeyJWTValidatorCacheService>()
     }
 }

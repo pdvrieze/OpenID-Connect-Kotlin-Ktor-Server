@@ -27,11 +27,10 @@ import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.uma.model.ResourceSet
+import org.mitre.util.getLogger
 import org.mitre.util.jpa.JpaUtil.getResultPage
 import org.mitre.util.jpa.JpaUtil.getSingleResult
 import org.mitre.util.jpa.JpaUtil.saveOrUpdate
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 import java.text.ParseException
@@ -266,6 +265,6 @@ class JpaOAuth2TokenRepository : OAuth2TokenRepository {
     companion object {
         private const val MAXEXPIREDRESULTS = 1000
 
-        private val logger: Logger = LoggerFactory.getLogger(JpaOAuth2TokenRepository::class.java)
+        private val logger = getLogger<JpaOAuth2TokenRepository>()
     }
 }

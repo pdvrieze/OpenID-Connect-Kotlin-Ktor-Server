@@ -17,23 +17,15 @@
  */
 package org.mitre.openid.connect.view
 
-import com.nimbusds.jose.EncryptionMethod
-import com.nimbusds.jose.JWEAlgorithm
-import com.nimbusds.jose.JWSAlgorithm
-import com.nimbusds.jose.jwk.JWKSet
-import com.nimbusds.jwt.JWT
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToStream
 import kotlinx.serialization.serializer
-import org.mitre.oauth2.model.PKCEAlgorithm
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.web.servlet.view.AbstractView
 import java.io.IOException
-import java.io.Writer
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
@@ -77,6 +69,6 @@ abstract class AbstractClientEntityView : AbstractView() {
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(AbstractClientEntityView::class.java)
+        private val logger = getLogger<AbstractClientEntityView>()
     }
 }

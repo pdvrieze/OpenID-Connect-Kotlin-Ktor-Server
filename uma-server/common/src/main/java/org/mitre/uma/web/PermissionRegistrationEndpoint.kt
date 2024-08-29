@@ -30,8 +30,7 @@ import org.mitre.openid.connect.view.JsonErrorView
 import org.mitre.uma.service.PermissionService
 import org.mitre.uma.service.ResourceSetService
 import org.mitre.util.asStringSet
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
@@ -138,7 +137,7 @@ class PermissionRegistrationEndpoint {
 
     companion object {
         // Logger for this class
-        private val logger: Logger = LoggerFactory.getLogger(PermissionRegistrationEndpoint::class.java)
+        private val logger = getLogger<PermissionRegistrationEndpoint>()
 
         const val URL: String = "permission"
     }

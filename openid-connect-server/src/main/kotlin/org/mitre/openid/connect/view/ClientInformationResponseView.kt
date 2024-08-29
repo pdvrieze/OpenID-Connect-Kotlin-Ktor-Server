@@ -22,8 +22,7 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToStream
 import org.mitre.oauth2.model.RegisteredClient
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
@@ -76,7 +75,7 @@ class ClientInformationResponseView : AbstractView() {
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(ClientInformationResponseView::class.java)
+        private val logger = getLogger<ClientInformationResponseView>()
 
         const val VIEWNAME: String = "clientInformationResponseView"
     }

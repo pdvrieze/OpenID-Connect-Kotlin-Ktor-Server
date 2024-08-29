@@ -18,7 +18,6 @@ package org.mitre.oauth2.web
 import com.google.common.collect.Sets
 import org.apache.http.client.utils.URIBuilder
 import org.mitre.oauth2.exception.DeviceCodeCreationException
-import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.DeviceCode
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.SystemScope
@@ -30,8 +29,7 @@ import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.view.HttpCodeView
 import org.mitre.openid.connect.view.JsonEntityView
 import org.mitre.openid.connect.view.JsonErrorView
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -298,6 +296,6 @@ class DeviceEndpoint {
         const val URL: String = "devicecode"
         const val USER_URL: String = "device"
 
-        val logger: Logger = LoggerFactory.getLogger(DeviceEndpoint::class.java)
+        val logger = getLogger<DeviceEndpoint>()
     }
 }

@@ -22,8 +22,7 @@ import org.mitre.openid.connect.view.JsonErrorView
 import org.mitre.openid.connect.web.RootController
 import org.mitre.uma.model.Policy
 import org.mitre.uma.service.ResourceSetService
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
@@ -349,7 +348,7 @@ class PolicyAPI {
 
     companion object {
         // Logger for this class
-        private val logger: Logger = LoggerFactory.getLogger(PolicyAPI::class.java)
+        private val logger = getLogger<PolicyAPI>()
 
         const val URL: String = RootController.API_URL + "/resourceset"
         const val POLICYURL: String = "/policy"

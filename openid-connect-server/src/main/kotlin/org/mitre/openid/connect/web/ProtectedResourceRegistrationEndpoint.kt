@@ -17,9 +17,9 @@ package org.mitre.openid.connect.web
 
 import kotlinx.serialization.SerializationException
 import org.mitre.oauth2.model.ClientDetailsEntity
-import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuthClientDetails
+import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.service.ClientDetailsEntityService
@@ -32,8 +32,7 @@ import org.mitre.openid.connect.service.OIDCTokenService
 import org.mitre.openid.connect.view.ClientInformationResponseView
 import org.mitre.openid.connect.view.HttpCodeView
 import org.mitre.openid.connect.view.JsonErrorView
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -429,6 +428,6 @@ class ProtectedResourceRegistrationEndpoint {
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(ProtectedResourceRegistrationEndpoint::class.java)
+        private val logger = getLogger<ProtectedResourceRegistrationEndpoint>()
     }
 }

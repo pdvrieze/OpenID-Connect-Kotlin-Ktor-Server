@@ -30,8 +30,7 @@ import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.oauth2.model.convert.OAuth2RequestSerializer
 import org.mitre.openid.connect.service.MITREidDataService.Companion.json
 import org.mitre.util.asBoolean
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.http.HttpMethod
 import org.springframework.http.client.ClientHttpRequest
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
@@ -264,6 +263,6 @@ class IntrospectingTokenService(
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(IntrospectingTokenService::class.java)
+        private val logger = getLogger<IntrospectingTokenService>()
     }
 }

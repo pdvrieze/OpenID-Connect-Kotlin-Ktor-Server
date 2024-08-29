@@ -22,8 +22,7 @@ import org.mitre.uma.model.ResourceSet
 import org.mitre.uma.repository.PermissionRepository
 import org.mitre.uma.repository.ResourceSetRepository
 import org.mitre.uma.service.ResourceSetService
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Primary
 import org.springframework.stereotype.Service
@@ -130,6 +129,6 @@ class DefaultResourceSetService : ResourceSetService {
     }
 
     companion object {
-        private val logger: Logger = LoggerFactory.getLogger(DefaultResourceSetService::class.java)
+        private val logger = getLogger<DefaultResourceSetService>()
     }
 }

@@ -24,10 +24,8 @@ import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.openid.connect.repository.ApprovedSiteRepository
 import org.mitre.openid.connect.service.ApprovedSiteService
 import org.mitre.openid.connect.service.StatsService
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.security.oauth2.provider.ClientDetails
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
@@ -171,6 +169,6 @@ class DefaultApprovedSiteService : ApprovedSiteService {
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(DefaultApprovedSiteService::class.java)
+        private val logger = getLogger<DefaultApprovedSiteService>()
     }
 }

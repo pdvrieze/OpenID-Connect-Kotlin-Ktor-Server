@@ -19,9 +19,7 @@ package org.mitre.openid.connect.view
 
 import com.nimbusds.jose.jwk.JWK
 import com.nimbusds.jose.jwk.JWKSet
-import org.mitre.openid.connect.view.JWKSetView
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.servlet.view.AbstractView
@@ -63,6 +61,6 @@ class JWKSetView : AbstractView() {
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(JWKSetView::class.java)
+        private val logger = getLogger<JWKSetView>()
     }
 }

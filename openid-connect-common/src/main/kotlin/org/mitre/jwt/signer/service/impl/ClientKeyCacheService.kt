@@ -26,8 +26,7 @@ import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
 import org.mitre.jwt.encryption.service.impl.DefaultJWTEncryptionAndDecryptionService
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.oauth2.model.OAuthClientDetails
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.concurrent.ExecutionException
@@ -117,6 +116,6 @@ class ClientKeyCacheService {
 
 
     companion object {
-        private val logger: Logger = LoggerFactory.getLogger(ClientKeyCacheService::class.java)
+        private val logger = getLogger<ClientKeyCacheService>()
     }
 }

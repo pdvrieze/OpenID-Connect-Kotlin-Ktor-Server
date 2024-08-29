@@ -19,8 +19,7 @@ import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.service.IntrospectionResultAssembler
 import org.mitre.openid.connect.model.UserInfo
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.stereotype.Service
 import java.text.ParseException
 
@@ -131,6 +130,6 @@ class DefaultIntrospectionResultAssembler : IntrospectionResultAssembler {
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(DefaultIntrospectionResultAssembler::class.java)
+        private val logger = getLogger<DefaultIntrospectionResultAssembler>()
     }
 }

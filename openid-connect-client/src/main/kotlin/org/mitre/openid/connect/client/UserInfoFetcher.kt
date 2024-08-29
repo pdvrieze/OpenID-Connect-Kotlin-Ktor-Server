@@ -30,8 +30,7 @@ import org.mitre.openid.connect.config.ServerConfiguration.UserInfoTokenMethod
 import org.mitre.openid.connect.model.DefaultUserInfo
 import org.mitre.openid.connect.model.PendingOIDCAuthenticationToken
 import org.mitre.openid.connect.model.UserInfo
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.http.HttpMethod
 import org.springframework.http.client.ClientHttpRequest
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
@@ -136,6 +135,6 @@ class UserInfoFetcher(
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(UserInfoFetcher::class.java)
+        private val logger = getLogger<UserInfoFetcher>()
     }
 }

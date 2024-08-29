@@ -20,8 +20,7 @@ package org.mitre.openid.connect
 import kotlinx.serialization.json.Json
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.RegisteredClient
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 
 
 /**
@@ -30,7 +29,7 @@ import org.slf4j.LoggerFactory
  * @author jricher
  */
 object ClientDetailsEntityJsonProcessor {
-    private val logger: Logger = LoggerFactory.getLogger(ClientDetailsEntityJsonProcessor::class.java)
+    private val logger = getLogger()
 
     private val json = Json { ignoreUnknownKeys = true }
 

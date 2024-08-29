@@ -57,6 +57,7 @@ import org.mitre.openid.connect.service.MITREidDataService.Companion.WHITELISTED
 import org.mitre.openid.connect.service.MITREidDataServiceMaps
 import org.mitre.util.asBoolean
 import org.mitre.util.asString
+import org.mitre.util.getLogger
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
 import org.mockito.Captor
@@ -75,8 +76,6 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
 import org.mockito.stubbing.Answer
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.format.datetime.DateFormatter
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -1829,6 +1828,6 @@ class TestMITREidDataService_1_3 {
     }
 
     companion object {
-        private val logger: Logger = LoggerFactory.getLogger(TestMITREidDataService_1_3::class.java)
+        private val logger = getLogger<TestMITREidDataService_1_3>()
     }
 }

@@ -23,8 +23,7 @@ import org.mitre.jwt.signer.service.impl.ClientKeyCacheService
 import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.authentication.AuthenticationProvider
 import org.springframework.security.authentication.AuthenticationServiceException
@@ -184,7 +183,7 @@ class JWTBearerAuthenticationProvider : AuthenticationProvider {
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(JWTBearerAuthenticationProvider::class.java)
+        private val logger = getLogger<JWTBearerAuthenticationProvider>()
 
         private val ROLE_CLIENT: GrantedAuthority = SimpleGrantedAuthority("ROLE_CLIENT")
     }

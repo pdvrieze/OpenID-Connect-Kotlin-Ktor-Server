@@ -20,8 +20,7 @@ package org.mitre.openid.connect.util
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.util.Base64URL
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 
@@ -35,7 +34,7 @@ object IdTokenHashUtils {
     /**
      * Logger for this class
      */
-    private val logger: Logger = LoggerFactory.getLogger(IdTokenHashUtils::class.java)
+    private val logger = getLogger<IdTokenHashUtils>()
 
     /**
      * Compute the SHA hash of an authorization code

@@ -20,8 +20,7 @@ package org.mitre.openid.connect.client
 import org.mitre.openid.connect.model.OIDCAuthenticationToken
 import org.mitre.openid.connect.model.PendingOIDCAuthenticationToken
 import org.mitre.openid.connect.model.UserInfo
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.security.authentication.AuthenticationProvider
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.AuthenticationException
@@ -113,6 +112,6 @@ class OIDCAuthenticationProvider : AuthenticationProvider {
     }
 
     companion object {
-        private val logger: Logger = LoggerFactory.getLogger(OIDCAuthenticationProvider::class.java)
+        private val logger = getLogger<OIDCAuthenticationProvider>()
     }
 }

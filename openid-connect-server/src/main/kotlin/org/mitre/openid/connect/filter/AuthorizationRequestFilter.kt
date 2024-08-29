@@ -18,15 +18,13 @@
 package org.mitre.openid.connect.filter
 
 import org.apache.http.client.utils.URIBuilder
-import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.request.ConnectRequestParameters
 import org.mitre.openid.connect.service.LoginHintExtracter
 import org.mitre.openid.connect.service.impl.RemoveLoginHintsWithHTTP
 import org.mitre.openid.connect.web.AuthenticationTimeStamper
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException
@@ -226,7 +224,7 @@ class AuthorizationRequestFilter : GenericFilterBean() {
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(AuthorizationRequestFilter::class.java)
+        private val logger = getLogger<AuthorizationRequestFilter>()
 
         const val PROMPTED: String = "PROMPT_FILTER_PROMPTED"
         const val PROMPT_REQUESTED: String = "PROMPT_FILTER_REQUESTED"

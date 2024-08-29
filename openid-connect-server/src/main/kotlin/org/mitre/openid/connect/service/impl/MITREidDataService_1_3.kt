@@ -34,8 +34,7 @@ import org.mitre.openid.connect.service.MITREidDataService.Companion.warnIgnored
 import org.mitre.openid.connect.service.MITREidDataService.Context
 import org.mitre.openid.connect.service.MITREidDataServiceExtension
 import org.mitre.openid.connect.service.MITREidDataServiceMaps
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -185,7 +184,7 @@ class MITREidDataService_1_3 : MITREidDataService {
     }
 
     companion object {
-        private val logger: Logger = LoggerFactory.getLogger(MITREidDataService_1_3::class.java)
+        private val logger = getLogger<MITREidDataService_1_3>()
         internal const val THIS_VERSION = MITREidDataService.MITREID_CONNECT_1_3
     }
 }

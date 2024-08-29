@@ -19,8 +19,7 @@ package org.mitre.openid.connect.client
 
 import com.nimbusds.jwt.JWT
 import org.mitre.openid.connect.model.UserInfo
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import java.text.ParseException
@@ -57,7 +56,7 @@ class NamedAdminAuthoritiesMapper : OIDCAuthoritiesMapper {
     }
 
     companion object {
-        private val logger: Logger = LoggerFactory.getLogger(NamedAdminAuthoritiesMapper::class.java)
+        private val logger = getLogger<NamedAdminAuthoritiesMapper>()
 
         private val ROLE_ADMIN = SimpleGrantedAuthority("ROLE_ADMIN")
         private val ROLE_USER = SimpleGrantedAuthority("ROLE_USER")

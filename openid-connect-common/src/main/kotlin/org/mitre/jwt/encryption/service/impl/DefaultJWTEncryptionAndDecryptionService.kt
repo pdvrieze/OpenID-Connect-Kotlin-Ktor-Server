@@ -36,9 +36,7 @@ import com.nimbusds.jose.jwk.OctetSequenceKey
 import com.nimbusds.jose.jwk.RSAKey
 import org.mitre.jose.keystore.JWKSetKeyStore
 import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
-import org.mitre.jwt.encryption.service.impl.DefaultJWTEncryptionAndDecryptionService
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import java.security.NoSuchAlgorithmException
 import java.security.spec.InvalidKeySpecException
 import javax.annotation.PostConstruct
@@ -228,6 +226,6 @@ class DefaultJWTEncryptionAndDecryptionService : JWTEncryptionAndDecryptionServi
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(DefaultJWTEncryptionAndDecryptionService::class.java)
+        private val logger = getLogger<DefaultJWTEncryptionAndDecryptionService>()
     }
 }

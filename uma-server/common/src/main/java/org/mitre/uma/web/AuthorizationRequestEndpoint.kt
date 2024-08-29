@@ -20,11 +20,9 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.addAll
 import kotlinx.serialization.json.addJsonObject
 import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
-import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.service.OAuth2TokenEntityService
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.oauth2.web.AuthenticationUtilities.ensureOAuthScope
@@ -35,8 +33,7 @@ import org.mitre.uma.service.ClaimsProcessingService
 import org.mitre.uma.service.PermissionService
 import org.mitre.uma.service.UmaTokenService
 import org.mitre.util.asString
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication
@@ -163,7 +160,7 @@ class AuthorizationRequestEndpoint {
 
     companion object {
         // Logger for this class
-        private val logger: Logger = LoggerFactory.getLogger(AuthorizationRequestEndpoint::class.java)
+        private val logger = getLogger<AuthorizationRequestEndpoint>()
 
         const val RPT: String = "rpt"
         const val TICKET: String = "ticket"

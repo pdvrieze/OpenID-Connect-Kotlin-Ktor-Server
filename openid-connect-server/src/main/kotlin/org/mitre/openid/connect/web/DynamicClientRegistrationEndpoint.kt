@@ -79,8 +79,7 @@ import org.mitre.openid.connect.service.OIDCTokenService
 import org.mitre.openid.connect.view.ClientInformationResponseView
 import org.mitre.openid.connect.view.HttpCodeView
 import org.mitre.openid.connect.view.JsonErrorView
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.HttpStatus
@@ -716,6 +715,6 @@ class DynamicClientRegistrationEndpoint {
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(DynamicClientRegistrationEndpoint::class.java)
+        private val logger = getLogger<DynamicClientRegistrationEndpoint>()
     }
 }

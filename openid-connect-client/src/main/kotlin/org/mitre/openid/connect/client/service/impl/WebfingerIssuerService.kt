@@ -32,8 +32,7 @@ import org.mitre.discovery.util.WebfingerURLNormalizer.normalizeResource
 import org.mitre.openid.connect.client.model.IssuerServiceResponse
 import org.mitre.openid.connect.client.service.IssuerService
 import org.mitre.util.asString
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.security.authentication.AuthenticationServiceException
 import org.springframework.web.client.RestClientException
@@ -201,6 +200,6 @@ class WebfingerIssuerService(
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(WebfingerIssuerService::class.java)
+        private val logger = getLogger<WebfingerIssuerService>()
     }
 }

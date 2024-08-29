@@ -25,8 +25,7 @@ import kotlinx.serialization.json.encodeToStream
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.service.MITREidDataService
 import org.mitre.openid.connect.service.impl.MITREidDataService_1_3
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
@@ -184,6 +183,6 @@ class DataAPI {
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(DataAPI::class.java)
+        private val logger = getLogger<DataAPI>()
     }
 }

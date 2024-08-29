@@ -15,8 +15,7 @@
  */
 package org.mitre.oauth2.model.convert
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import java.io.Serializable
 import java.util.*
 import javax.persistence.AttributeConverter
@@ -54,6 +53,6 @@ class SerializableStringConverter : AttributeConverter<Serializable?, String?> {
     }
 
     companion object {
-        private val logger: Logger = LoggerFactory.getLogger(SerializableStringConverter::class.java)
+        private val logger = getLogger<SerializableStringConverter>()
     }
 }

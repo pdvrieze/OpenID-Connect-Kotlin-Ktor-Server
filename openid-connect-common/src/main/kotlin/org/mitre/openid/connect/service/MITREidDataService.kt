@@ -66,8 +66,7 @@ import org.mitre.openid.connect.model.convert.ISODate
 import org.mitre.openid.connect.repository.ApprovedSiteRepository
 import org.mitre.openid.connect.repository.BlacklistedSiteRepository
 import org.mitre.openid.connect.repository.WhitelistedSiteRepository
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.format.datetime.DateFormatter
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -875,7 +874,7 @@ interface MITREidDataService {
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(MITREidDataService::class.java)
+        private val logger = getLogger<MITREidDataService>()
         val json: Json = Json {
             ignoreUnknownKeys = true
             prettyPrint = true

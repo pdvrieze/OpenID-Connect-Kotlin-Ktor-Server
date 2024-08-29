@@ -33,8 +33,7 @@ import org.mitre.uma.repository.PermissionRepository
 import org.mitre.uma.repository.ResourceSetRepository
 import org.mitre.uma.service.SavedRegisteredClientService
 import org.mitre.util.asString
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.io.IOException
@@ -372,6 +371,6 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
         private const val TOKEN_PERMISSIONS = "tokenPermissions"
         private const val TOKEN_ID = "tokenId"
 
-        private val logger: Logger = LoggerFactory.getLogger(UmaDataServiceExtension_1_3::class.java)
+        private val logger = getLogger<UmaDataServiceExtension_1_3>()
     }
 }

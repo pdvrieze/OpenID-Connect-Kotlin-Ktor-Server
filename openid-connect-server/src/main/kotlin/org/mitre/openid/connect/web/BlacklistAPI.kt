@@ -27,8 +27,7 @@ import org.mitre.openid.connect.service.BlacklistedSiteService
 import org.mitre.openid.connect.view.HttpCodeView
 import org.mitre.openid.connect.view.JsonEntityView
 import org.mitre.openid.connect.view.JsonErrorView
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -184,6 +183,6 @@ class BlacklistAPI {
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(BlacklistAPI::class.java)
+        private val logger = getLogger<BlacklistAPI>()
     }
 }

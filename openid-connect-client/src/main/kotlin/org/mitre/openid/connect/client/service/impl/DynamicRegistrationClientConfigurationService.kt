@@ -30,8 +30,7 @@ import org.mitre.openid.connect.ClientDetailsEntityJsonProcessor.parseRegistered
 import org.mitre.openid.connect.client.service.ClientConfigurationService
 import org.mitre.openid.connect.client.service.RegisteredClientService
 import org.mitre.openid.connect.config.ServerConfiguration
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
@@ -174,6 +173,6 @@ class DynamicRegistrationClientConfigurationService(
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(DynamicRegistrationClientConfigurationService::class.java)
+        private val logger = getLogger<DynamicRegistrationClientConfigurationService>()
     }
 }

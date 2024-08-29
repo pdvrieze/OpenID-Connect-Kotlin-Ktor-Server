@@ -34,8 +34,7 @@ import org.mitre.util.asJwsAlgorithmList
 import org.mitre.util.asString
 import org.mitre.util.asStringList
 import org.mitre.util.asStringOrNull
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.security.authentication.AuthenticationServiceException
 import org.springframework.web.client.RestTemplate
@@ -165,6 +164,6 @@ class DynamicServerConfigurationService(
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(DynamicServerConfigurationService::class.java)
+        private val logger = getLogger<DynamicServerConfigurationService>()
     }
 }

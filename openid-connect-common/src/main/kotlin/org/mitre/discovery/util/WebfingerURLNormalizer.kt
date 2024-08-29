@@ -17,8 +17,7 @@
  */
 package org.mitre.discovery.util
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.util.StringUtils
 import org.springframework.web.util.UriComponents
 import org.springframework.web.util.UriComponentsBuilder
@@ -33,7 +32,7 @@ object WebfingerURLNormalizer {
     /**
      * Logger for this class
      */
-    private val logger: Logger = LoggerFactory.getLogger(WebfingerURLNormalizer::class.java)
+    private val logger = getLogger()
 
     // pattern used to parse user input; we can't use the built-in java URI parser
     private val pattern: Pattern = Pattern.compile(

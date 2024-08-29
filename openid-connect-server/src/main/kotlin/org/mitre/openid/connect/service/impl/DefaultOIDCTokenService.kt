@@ -41,8 +41,7 @@ import org.mitre.openid.connect.request.ConnectRequestParameters
 import org.mitre.openid.connect.service.OIDCTokenService
 import org.mitre.openid.connect.util.IdTokenHashUtils
 import org.mitre.openid.connect.web.AuthenticationTimeStamper
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.oauth2.provider.OAuth2Authentication
@@ -280,6 +279,6 @@ class DefaultOIDCTokenService : OIDCTokenService {
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(DefaultOIDCTokenService::class.java)
+        private val logger = getLogger<DefaultOIDCTokenService>()
     }
 }

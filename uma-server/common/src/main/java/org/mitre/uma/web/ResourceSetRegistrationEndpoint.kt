@@ -32,8 +32,7 @@ import org.mitre.uma.view.ResourceSetEntityAbbreviatedView
 import org.mitre.uma.view.ResourceSetEntityView
 import org.mitre.util.asString
 import org.mitre.util.asStringSet
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
@@ -273,7 +272,7 @@ class ResourceSetRegistrationEndpoint {
     }
 
     companion object {
-        private val logger: Logger = LoggerFactory.getLogger(ResourceSetRegistrationEndpoint::class.java)
+        private val logger = getLogger<ResourceSetRegistrationEndpoint>()
 
         const val DISCOVERY_URL: String = "resource_set"
         const val URL: String = DISCOVERY_URL + "/resource_set"

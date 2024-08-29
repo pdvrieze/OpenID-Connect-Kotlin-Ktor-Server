@@ -28,8 +28,7 @@ import org.mitre.jose.keystore.JWKSetKeyStore
 import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
 import org.mitre.jwt.encryption.service.impl.DefaultJWTEncryptionAndDecryptionService
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClientException
@@ -145,6 +144,6 @@ class JWKSetCacheService {
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(JWKSetCacheService::class.java)
+        private val logger = getLogger<JWKSetCacheService>()
     }
 }

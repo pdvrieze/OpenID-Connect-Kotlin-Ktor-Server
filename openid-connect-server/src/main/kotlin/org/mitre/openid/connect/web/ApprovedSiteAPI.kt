@@ -22,8 +22,7 @@ import org.mitre.openid.connect.view.HttpCodeView
 import org.mitre.openid.connect.view.JsonApprovedSiteView
 import org.mitre.openid.connect.view.JsonEntityView
 import org.mitre.openid.connect.view.JsonErrorView
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -118,6 +117,6 @@ class ApprovedSiteAPI {
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(ApprovedSiteAPI::class.java)
+        private val logger = getLogger<ApprovedSiteAPI>()
     }
 }

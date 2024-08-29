@@ -27,17 +27,14 @@ import kotlinx.serialization.json.JsonObject
 import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
 import org.mitre.jwt.signer.service.impl.ClientKeyCacheService
 import org.mitre.oauth2.model.PKCEAlgorithm
-import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.SpringClientDetailsEntityService
 import org.mitre.openid.connect.service.MITREidDataService
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception
 import org.springframework.security.oauth2.common.util.OAuth2Utils
 import org.springframework.security.oauth2.provider.AuthorizationRequest
-import org.springframework.security.oauth2.provider.ClientDetailsService
 import org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory
 import org.springframework.stereotype.Component
 import java.text.ParseException
@@ -300,6 +297,6 @@ class ConnectOAuth2RequestFactory @Autowired constructor(
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(ConnectOAuth2RequestFactory::class.java)
+        private val logger = getLogger<ConnectOAuth2RequestFactory>()
     }
 }

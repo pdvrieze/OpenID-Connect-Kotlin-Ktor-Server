@@ -29,8 +29,7 @@ import org.mitre.openid.connect.service.ScopeClaimTranslationService
 import org.mitre.openid.connect.service.StatsService
 import org.mitre.openid.connect.service.UserInfoService
 import org.mitre.openid.connect.view.HttpCodeView
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
@@ -199,6 +198,6 @@ class OAuthConfirmationController {
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(OAuthConfirmationController::class.java)
+        private val logger = getLogger<OAuthConfirmationController>()
     }
 }

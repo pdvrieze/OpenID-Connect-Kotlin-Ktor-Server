@@ -20,8 +20,7 @@ import org.mitre.openid.connect.web.DynamicClientRegistrationEndpoint
 import org.mitre.openid.connect.web.EndSessionEndpoint
 import org.mitre.openid.connect.web.JWKSetPublishingEndpoint
 import org.mitre.openid.connect.web.UserInfoEndpoint
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -371,6 +370,6 @@ class DiscoveryEndpoint {
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(DiscoveryEndpoint::class.java)
+        private val logger = getLogger<DiscoveryEndpoint>()
     }
 }

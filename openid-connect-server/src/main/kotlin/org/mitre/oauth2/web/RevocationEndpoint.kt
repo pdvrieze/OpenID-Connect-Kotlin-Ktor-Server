@@ -17,14 +17,12 @@
  */
 package org.mitre.oauth2.web
 
-import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.OAuth2TokenEntityService
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.openid.connect.view.HttpCodeView
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
@@ -135,7 +133,7 @@ class RevocationEndpoint {
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(RevocationEndpoint::class.java)
+        private val logger = getLogger<RevocationEndpoint>()
 
         const val URL: String = "revoke"
     }

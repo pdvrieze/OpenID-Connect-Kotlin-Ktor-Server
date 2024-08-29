@@ -15,8 +15,7 @@
  */
 package org.mitre.oauth2.web
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception
@@ -42,6 +41,6 @@ class OAuth2ExceptionHandler {
     }
 
     companion object {
-        private val logger: Logger = LoggerFactory.getLogger(OAuth2ExceptionHandler::class.java)
+        private val logger = getLogger<OAuth2ExceptionHandler>()
     }
 }

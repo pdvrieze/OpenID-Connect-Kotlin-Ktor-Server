@@ -41,8 +41,7 @@ import org.mitre.openid.connect.service.StatsService
 import org.mitre.openid.connect.service.WhitelistedSiteService
 import org.mitre.uma.service.ResourceSetService
 import org.mitre.util.asString
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException
@@ -458,6 +457,6 @@ class DefaultOAuth2ClientDetailsEntityService : SpringClientDetailsEntityService
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(DefaultOAuth2ClientDetailsEntityService::class.java)
+        private val logger = getLogger<DefaultOAuth2ClientDetailsEntityService>()
     }
 }

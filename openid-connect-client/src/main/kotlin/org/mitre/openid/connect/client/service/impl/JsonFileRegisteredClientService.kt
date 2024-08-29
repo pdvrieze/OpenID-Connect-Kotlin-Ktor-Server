@@ -22,8 +22,7 @@ import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.encodeToStream
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.openid.connect.client.service.RegisteredClientService
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -96,6 +95,6 @@ class JsonFileRegisteredClientService(filename: String) : RegisteredClientServic
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(JsonFileRegisteredClientService::class.java)
+        private val logger = getLogger<JsonFileRegisteredClientService>()
     }
 }

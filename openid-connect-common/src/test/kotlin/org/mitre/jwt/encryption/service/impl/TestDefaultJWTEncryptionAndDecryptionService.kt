@@ -38,8 +38,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mitre.jose.keystore.JWKSetKeyStore
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import java.security.NoSuchAlgorithmException
 import java.security.spec.InvalidKeySpecException
 import java.text.ParseException
@@ -384,6 +383,6 @@ class TestDefaultJWTEncryptionAndDecryptionService {
     }
 
     companion object {
-        private val logger: Logger = LoggerFactory.getLogger(TestDefaultJWTEncryptionAndDecryptionService::class.java)
+        private val logger = getLogger<TestDefaultJWTEncryptionAndDecryptionService>()
     }
 }

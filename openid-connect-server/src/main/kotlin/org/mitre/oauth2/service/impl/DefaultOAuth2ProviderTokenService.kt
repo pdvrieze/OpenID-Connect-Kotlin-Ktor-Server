@@ -36,8 +36,7 @@ import org.mitre.oauth2.service.OAuth2TokenEntityService
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.openid.connect.request.ConnectRequestParameters
 import org.mitre.openid.connect.service.ApprovedSiteService
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException
 import org.springframework.security.core.AuthenticationException
@@ -104,7 +103,7 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
             return null
         } else if (token.isExpired) {
             // immediately revoke expired token
-            logger.debug("Clearing expired access token: " + token.value)
+            logger.debug("Clearing expired access token: ${token.value}")
             revokeAccessToken(token)
             return null
         } else {
@@ -122,7 +121,7 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
             return null
         } else if (token.isExpired) {
             // immediately revoke expired token
-            logger.debug("Clearing expired refresh token: " + token.value)
+            logger.debug("Clearing expired refresh token: ${token.value}")
             revokeRefreshToken(token)
             return null
         } else {
@@ -506,6 +505,6 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(DefaultOAuth2ProviderTokenService::class.java)
+        private val logger = getLogger<DefaultOAuth2ProviderTokenService>()
     }
 }

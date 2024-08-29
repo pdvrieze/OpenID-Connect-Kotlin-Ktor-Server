@@ -7,8 +7,7 @@ import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import org.mitre.openid.connect.service.MITREidDataService
 import org.mitre.openid.connect.view.HttpCodeView
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.mitre.util.getLogger
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.servlet.view.AbstractView
@@ -61,6 +60,6 @@ class WebfingerView : AbstractView() {
         /**
          * Logger for this class
          */
-        private val logger: Logger = LoggerFactory.getLogger(WebfingerView::class.java)
+        private val logger = getLogger<WebfingerView>()
     }
 }
