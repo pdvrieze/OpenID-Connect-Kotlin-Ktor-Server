@@ -16,9 +16,9 @@
 package org.mitre.uma.service
 
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
+import org.mitre.oauth2.model.OAuth2Authentication
 import org.mitre.uma.model.PermissionTicket
 import org.mitre.uma.model.Policy
-import org.springframework.security.oauth2.provider.OAuth2Authentication
 
 /**
  * Service to create special tokens for UMA.

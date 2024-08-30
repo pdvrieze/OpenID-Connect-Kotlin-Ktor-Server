@@ -88,15 +88,15 @@ class JWKSetCacheService {
      * @author jricher
      */
     private inner class JWKSetVerifierFetcher(httpClient: HttpClient) : CacheLoader<String, JWTSigningAndValidationService>() {
-        private val httpFactory = HttpComponentsClientHttpRequestFactory(httpClient)
-        private val restTemplate = RestTemplate(httpFactory)
+//        private val httpFactory = HttpComponentsClientHttpRequestFactory(httpClient)
+//        private val restTemplate = RestTemplate(httpFactory)
 
         /**
          * Load the JWK Set and build the appropriate signing service.
          */
         @Throws(Exception::class)
         override fun load(keyUrl: String): JWTSigningAndValidationService {
-            val jsonString: String? = restTemplate.getForObject(keyUrl, String::class.java)
+            val jsonString: String? = TODO() //restTemplate.getForObject(keyUrl, String::class.java)
             val jwkSet = JWKSet.parse(jsonString)
 
             val keyStore = JWKSetKeyStore(jwkSet)
@@ -112,15 +112,15 @@ class JWKSetCacheService {
      */
     private inner class JWKSetEncryptorFetcher(httpClient: HttpClient) :
         CacheLoader<String, JWTEncryptionAndDecryptionService>() {
-        private val httpFactory = HttpComponentsClientHttpRequestFactory(httpClient)
-        private val restTemplate = RestTemplate(httpFactory)
+//        private val httpFactory = HttpComponentsClientHttpRequestFactory(httpClient)
+//        private val restTemplate = RestTemplate(httpFactory)
 
         /* (non-Javadoc)
 		 * @see com.google.common.cache.CacheLoader#load(java.lang.Object)
 		 */
         override fun load(key: String): JWTEncryptionAndDecryptionService {
             try {
-                val jsonString: String = restTemplate.getForObject(key, String::class.java)
+                val jsonString: String = TODO() //restTemplate.getForObject(key, String::class.java)
                 val jwkSet = JWKSet.parse(jsonString)
 
                 val keyStore = JWKSetKeyStore(jwkSet)

@@ -44,6 +44,7 @@ import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonObject
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.OAuthClientDetails
@@ -67,12 +68,11 @@ import org.mitre.openid.connect.repository.ApprovedSiteRepository
 import org.mitre.openid.connect.repository.BlacklistedSiteRepository
 import org.mitre.openid.connect.repository.WhitelistedSiteRepository
 import org.mitre.util.getLogger
-import org.springframework.format.annotation.DateTimeFormat
-import org.springframework.format.datetime.DateFormatter
-import org.springframework.security.core.authority.SimpleGrantedAuthority
 import java.io.IOException
 import java.text.ParseException
 import java.time.Instant
+import java.time.format.DateTimeFormatter
+import java.time.temporal.TemporalQueries
 import java.util.*
 
 /**
@@ -209,13 +209,19 @@ interface MITREidDataService {
             val authHolderId: Long = delegate.authenticationHolderId
             val refreshTokenId: Long? = delegate.refreshTokenId
 
-            val token = OAuth2AccessTokenEntity().apply {
-                expiration = delegate.expiration
-                jwt = delegate.value ?: error("Missing token in auth2 access token entity")
-                scope = delegate.scope
-                tokenType = delegate.tokenType
-            }
+            val authHolder = authHolderRepository.getById(authHolderId) ?: error("Missing authHolder with id $authHolderId")
+            val refreshToken = refreshTokenId?.let { tokenRepository.getRefreshTokenById(it) }
 
+            val token = OAuth2AccessTokenEntity(
+                id = null,
+                expiration = delegate.expiration!!,
+                jwt = delegate.value ?: error("Missing token in auth2 access token entity"),
+                client = null,
+                authenticationHolder = authHolder,
+                refreshToken = refreshToken,
+                scope = delegate.scope,
+                tokenType = delegate.tokenType
+            )
 
             val newId = tokenRepository.saveAccessToken(token).id!!
 
@@ -304,6 +310,7 @@ interface MITREidDataService {
                 val refreshToken = tokenRepository.getRefreshTokenById(newRefreshTokenId)
                 val newAccessTokenId = maps.accessTokenOldToNewIdMap[oldAccessTokenId]!!
                 val accessToken = tokenRepository.getAccessTokenById(newAccessTokenId)!!
+//                refreshToken?.let { accessToken.refreshToken = it }
                 accessToken.refreshToken = refreshToken ?: error("Missing refresh token")
                 tokenRepository.saveAccessToken(accessToken)
             }
@@ -333,7 +340,7 @@ interface MITREidDataService {
         @EncodeDefault @SerialName("resourceIds") val resourceIds: Set<String>? = null,
         @EncodeDefault @SerialName("secret") val secret: String? = null,
         @EncodeDefault @SerialName("scope") val scope: Set<String>? = null,
-        @EncodeDefault @SerialName("authorities") val authorities: Set<@Serializable(SimpleGrantedAuthorityStringConverter::class) SimpleGrantedAuthority> = emptySet(),
+        @EncodeDefault @SerialName("authorities") val authorities: Set<@Serializable(SimpleGrantedAuthorityStringConverter::class) GrantedAuthority> = emptySet(),
         @EncodeDefault @SerialName("accessTokenValiditySeconds") val accessTokenValiditySeconds: Int? = null,
         @EncodeDefault @SerialName("refreshTokenValiditySeconds") val refreshTokenValiditySeconds: Int? = null,
         @EncodeDefault @SerialName("idTokenValiditySeconds") val idTokenValiditySeconds: Int? = null,
@@ -380,13 +387,15 @@ interface MITREidDataService {
         @EncodeDefault @SerialName("creationDate") var createdAt: ISODate? = null,
     ) {
         constructor(s: ClientDetailsEntity) : this(
-            clientId = requireNotNull(s.clientId) { "Missing client id" },
-            resourceIds = s.resourceIds,
-            secret = s.clientSecret,
-            scope = s.scope,
-            authorities = s.authorities.mapTo(HashSet()) { it as? SimpleGrantedAuthority ?: SimpleGrantedAuthority(it.authority) },
-            accessTokenValiditySeconds = s.accessTokenValiditySeconds,
-            refreshTokenValiditySeconds = s.refreshTokenValiditySeconds,
+            clientId = requireNotNull(s.getClientId()) { "Missing client id" },
+            resourceIds = s.getResourceIds(),
+            secret = s.getClientSecret(),
+            scope = s.getScope(),
+            authorities = s.getAuthorities().mapTo(HashSet()) {
+                it as? GrantedAuthority ?: GrantedAuthority(it.authority)
+            },
+            accessTokenValiditySeconds = s.getAccessTokenValiditySeconds(),
+            refreshTokenValiditySeconds = s.getRefreshTokenValiditySeconds(),
             idTokenValiditySeconds = s.idTokenValiditySeconds,
             deviceCodeValiditySeconds = s.deviceCodeValiditySeconds,
             redirectUris = s.redirectUris,
@@ -480,10 +489,10 @@ interface MITREidDataService {
                 softwareStatement = softwareStatement,
                 codeChallengeMethod = codeChallengeMethod,
             ).also { client ->
-                accessTokenValiditySeconds?.run { client.accessTokenValiditySeconds = this }
-                refreshTokenValiditySeconds?.run { client.refreshTokenValiditySeconds = this }
-                client.authorities = authorities
-                resourceIds?.run { client.resourceIds = this }
+                accessTokenValiditySeconds?.let { client.setAccessTokenValiditySeconds(it) }
+                refreshTokenValiditySeconds?.let { client.setRefreshTokenValiditySeconds(it) }
+                client.setAuthorities(authorities)
+                resourceIds?.let { client.setResourceIds(it) }
             }
         }
     }
@@ -814,16 +823,14 @@ interface MITREidDataService {
     )
 
     companion object {
-        private val dateFormatter = DateFormatter().apply {
-            setIso(DateTimeFormat.ISO.DATE_TIME)
-        }
+        private val dateFormatter = DateTimeFormatter.ISO_DATE_TIME.withLocale(Locale.ENGLISH)
 
         @JvmStatic
         public fun utcToInstant(value: String?): Instant? {
             if (value == null) return null
 
             try {
-                return dateFormatter.parse(value, Locale.ENGLISH).toInstant()
+                return Instant.from(dateFormatter.parse(value))
             } catch (ex: ParseException) {
                 logger.error("Unable to parse datetime {}", value, ex)
             }
@@ -835,7 +842,7 @@ interface MITREidDataService {
             if (value == null) return null
 
             try {
-                return dateFormatter.parse(value, Locale.ENGLISH)
+                return Date.from(Instant.from(dateFormatter.parse(value)))
             } catch (ex: ParseException) {
                 logger.error("Unable to parse datetime {}", value, ex)
             }
@@ -846,14 +853,14 @@ interface MITREidDataService {
         public fun toUTCString(value: Instant?): String? {
             if (value == null) return null
 
-            return dateFormatter.print(Date.from(value), Locale.ENGLISH)
+            return dateFormatter.format(value)
         }
 
         @JvmStatic
         public fun toUTCString(value: Date?): String? {
             if (value == null) return null
 
-            return dateFormatter.print(value, Locale.ENGLISH)
+            return dateFormatter.format(value.toInstant())
         }
 
         public fun Any?.warnIgnored(name: String): Nothing? {

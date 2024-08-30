@@ -40,7 +40,6 @@ import org.mitre.oauth2.model.RegisteredClientFields.USERINFO_ENCRYPTED_RESPONSE
 import org.mitre.oauth2.model.RegisteredClientFields.USERINFO_ENCRYPTED_RESPONSE_ENC
 import org.mitre.oauth2.model.RegisteredClientFields.USERINFO_SIGNED_RESPONSE_ALG
 import org.mitre.oauth2.model.convert.JWTStringConverter
-import org.springframework.security.core.GrantedAuthority
 import java.util.*
 import javax.persistence.Transient
 import kotlinx.serialization.Transient as KXS_Transient

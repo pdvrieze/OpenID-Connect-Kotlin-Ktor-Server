@@ -20,63 +20,25 @@ package org.mitre.oauth2.introspectingfilter
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.long
+import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.util.asString
-import org.springframework.security.oauth2.common.OAuth2AccessToken
-import org.springframework.security.oauth2.common.OAuth2RefreshToken
+import java.time.Instant
 import java.util.*
 import java.util.concurrent.TimeUnit
 
 class OAuth2AccessTokenImpl(introspectionResponse: JsonObject, tokenString: String) : OAuth2AccessToken {
-    var introspectionResponse: JsonObject? = null
-    private val tokenString: String
-    private var scopes: Set<String> = HashSet()
-    private var expireDate: Date? = null
+    override val value: String = tokenString
+    override val scope: Set<String> = introspectionResponse["scope"]
+        ?.run { asString().splitToSequence(' ').toHashSet() }
+        ?: emptySet()
 
+    override val expirationInstant: Instant =
+        introspectionResponse["exp"]?.run { Instant.ofEpochSecond(jsonPrimitive.long) } ?: Instant.MIN
 
-    init {
-        this.introspectionResponse = introspectionResponse
-        this.tokenString = tokenString
-        if (introspectionResponse["scope"] != null) {
-            scopes = introspectionResponse["scope"].asString().splitToSequence(' ').toHashSet()
-        }
+    override val refreshToken: Nothing? get() = null
 
-        if (introspectionResponse["exp"] != null) {
-            expireDate = Date(introspectionResponse["exp"]!!.jsonPrimitive.long * 1000L)
-        }
-    }
+    override val tokenType: String get() = OAuth2AccessToken.BEARER_TYPE
 
-
-    override fun getAdditionalInformation(): Map<String, Any>? {
-        return null
-    }
-
-    override fun getScope(): Set<String> {
-        return scopes
-    }
-
-    override fun getRefreshToken(): OAuth2RefreshToken? {
-        return null
-    }
-
-    override fun getTokenType(): String {
-        return OAuth2AccessToken.BEARER_TYPE
-    }
-
-    override fun isExpired(): Boolean {
-        return expireDate?.before(Date()) == true
-    }
-
-    override fun getExpiration(): Date? {
-        return expireDate
-    }
-
-    override fun getExpiresIn(): Int {
-        return expireDate?.let {
-            TimeUnit.MILLISECONDS.toSeconds(it.time - Date().time).toInt()
-        } ?: 0
-    }
-
-    override fun getValue(): String {
-        return tokenString
-    }
+    override val isExpired: Boolean
+        get() = expirationInstant.isBefore(Instant.now())
 }

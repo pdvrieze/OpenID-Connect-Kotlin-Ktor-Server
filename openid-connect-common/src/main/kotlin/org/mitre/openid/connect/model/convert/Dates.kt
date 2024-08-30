@@ -7,8 +7,8 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import org.springframework.format.annotation.DateTimeFormat
-import org.springframework.format.datetime.DateFormatter
+import java.time.Instant
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 typealias ISODate = @Serializable(IsoDateSerializer::class) Date
@@ -17,15 +17,13 @@ object IsoDateSerializer : KSerializer<Date> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("java.util.Date.ISO", PrimitiveKind.STRING)
 
     override fun serialize(encoder: Encoder, value: Date) {
-        encoder.encodeString(dateFormatter.print(value, Locale.ENGLISH))
+        encoder.encodeString(dateFormatter.format(value.toInstant()))
     }
 
     override fun deserialize(decoder: Decoder): Date {
-        return dateFormatter.parse(decoder.decodeString(), Locale.ENGLISH)
+        return Date.from(Instant.from(dateFormatter.parse(decoder.decodeString())))
     }
 
-    private val dateFormatter = DateFormatter().apply {
-        setIso(DateTimeFormat.ISO.DATE_TIME)
-    }
+    private val dateFormatter: DateTimeFormatter = DateTimeFormatter.ISO_DATE_TIME.withLocale(Locale.ENGLISH)
 
 }

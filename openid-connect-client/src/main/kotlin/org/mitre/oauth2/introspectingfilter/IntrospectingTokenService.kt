@@ -25,26 +25,18 @@ import org.apache.http.impl.client.HttpClientBuilder
 import org.mitre.oauth2.introspectingfilter.service.IntrospectionAuthorityGranter
 import org.mitre.oauth2.introspectingfilter.service.IntrospectionConfigurationService
 import org.mitre.oauth2.introspectingfilter.service.impl.SimpleIntrospectionAuthorityGranter
+import org.mitre.oauth2.model.Authentication
+import org.mitre.oauth2.model.OAuth2AccessToken
+import org.mitre.oauth2.model.OAuth2Authentication
 import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.model.RegisteredClient
-import org.mitre.oauth2.model.convert.OAuth2RequestSerializer
+import org.mitre.oauth2.model.convert.OAuth2Request
 import org.mitre.openid.connect.service.MITREidDataService.Companion.json
 import org.mitre.util.asBoolean
 import org.mitre.util.getLogger
-import org.springframework.http.HttpMethod
-import org.springframework.http.client.ClientHttpRequest
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
-import org.springframework.security.core.Authentication
-import org.springframework.security.core.AuthenticationException
-import org.springframework.security.oauth2.common.OAuth2AccessToken
-import org.springframework.security.oauth2.provider.OAuth2Authentication
-import org.springframework.security.oauth2.provider.OAuth2Request
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken
-import org.springframework.util.LinkedMultiValueMap
-import org.springframework.util.MultiValueMap
-import org.springframework.web.client.RestClientException
-import org.springframework.web.client.RestTemplate
 import java.io.IOException
 import java.net.URI
 import java.util.*
@@ -127,7 +119,7 @@ class IntrospectingTokenService(
     }
 
     private fun createStoredRequest(token: JsonObject): OAuth2Request {
-        return json.decodeFromJsonElement(OAuth2RequestSerializer, token)
+        return json.decodeFromJsonElement(org.mitre.oauth2.model.convert.OAuth2Request.serializer(), token)
     }
 
     private fun createUserAuthentication(token: JsonObject): Authentication? {

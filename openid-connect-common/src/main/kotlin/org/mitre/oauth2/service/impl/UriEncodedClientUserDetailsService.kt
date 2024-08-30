@@ -15,19 +15,10 @@
  */
 package org.mitre.oauth2.service.impl
 
+import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.security.core.GrantedAuthority
-import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.core.userdetails.User
-import org.springframework.security.core.userdetails.UserDetails
-import org.springframework.security.core.userdetails.UserDetailsService
-import org.springframework.security.core.userdetails.UsernameNotFoundException
-import org.springframework.security.oauth2.common.exceptions.InvalidClientException
-import org.springframework.stereotype.Service
-import org.springframework.web.util.UriUtils
 import java.math.BigInteger
 import java.security.SecureRandom
 
@@ -38,17 +29,15 @@ import java.security.SecureRandom
  *
  * @author AANGANES
  */
-@Service("uriEncodedClientUserDetailsService")
-class UriEncodedClientUserDetailsService : UserDetailsService {
-    @Autowired
+class UriEncodedClientUserDetailsService {
     lateinit var clientDetailsService: ClientDetailsEntityService
         protected set
 
-    @Autowired
     private lateinit var config: ConfigurationPropertiesBean
 
-    @Throws(UsernameNotFoundException::class)
-    override fun loadUserByUsername(clientId: String): UserDetails {
+    fun loadUserByUsername(clientId: String): Nothing /*UserDetails*/ {
+        TODO("Not implemented, seems unneeded in this form")
+/*
         try {
             val decodedClientId = UriUtils.decode(clientId, "UTF-8")
 
@@ -78,9 +67,10 @@ class UriEncodedClientUserDetailsService : UserDetailsService {
         } catch (e: InvalidClientException) {
             throw UsernameNotFoundException("Client not found: $clientId")
         }
+*/
     }
 
     companion object {
-        private val ROLE_CLIENT: GrantedAuthority = SimpleGrantedAuthority("ROLE_CLIENT")
+        private val ROLE_CLIENT: GrantedAuthority = GrantedAuthority("ROLE_CLIENT")
     }
 }

@@ -23,14 +23,6 @@ import org.mitre.oauth2.model.convert.SimpleGrantedAuthorityStringConverter
 import org.mitre.openid.connect.model.OIDCAuthenticationToken
 import org.mitre.openid.connect.service.MITREidDataService
 import org.mitre.openid.connect.service.UserInfoService
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.security.authentication.AuthenticationTrustResolver
-import org.springframework.security.authentication.AuthenticationTrustResolverImpl
-import org.springframework.security.core.Authentication
-import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.stereotype.Component
-import org.springframework.web.servlet.AsyncHandlerInterceptor
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
@@ -39,15 +31,16 @@ import javax.servlet.http.HttpServletResponse
  *
  * @author jricher
  */
-@Component
-class UserInfoInterceptor : AsyncHandlerInterceptor {
-    @Autowired(required = false)
+class UserInfoInterceptor /*: AsyncHandlerInterceptor*/ {
+//    @Autowired(required = false)
     private val userInfoService: UserInfoService? = null
 
-    private val trustResolver: AuthenticationTrustResolver = AuthenticationTrustResolverImpl()
+//    private val trustResolver: AuthenticationTrustResolver = AuthenticationTrustResolverImpl()
 
     @Throws(Exception::class)
-    override fun preHandle(request: HttpServletRequest, response: HttpServletResponse, handler: Any): Boolean {
+    fun preHandle(request: HttpServletRequest, response: HttpServletResponse, handler: Any): Boolean {
+        TODO()
+/*
         val auth = SecurityContextHolder.getContext().authentication
 
         if (auth is Authentication) {
@@ -83,5 +76,6 @@ class UserInfoInterceptor : AsyncHandlerInterceptor {
         }
 
         return true
+*/
     }
 }

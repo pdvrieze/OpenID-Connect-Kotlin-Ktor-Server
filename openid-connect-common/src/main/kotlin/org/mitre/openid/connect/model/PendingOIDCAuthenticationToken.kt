@@ -17,8 +17,9 @@ package org.mitre.openid.connect.model
 
 import com.nimbusds.jwt.JWT
 import com.nimbusds.jwt.JWTParser
+import org.mitre.oauth2.model.Authentication
+import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.openid.connect.config.ServerConfiguration
-import org.springframework.security.authentication.AbstractAuthenticationToken
 import java.io.IOException
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
@@ -50,22 +51,27 @@ class PendingOIDCAuthenticationToken(//
 
     val accessTokenValue: String,
     val refreshTokenValue: String,
-) : AbstractAuthenticationToken(ArrayList(0)) {
+) : Authentication {
     private val principal: Map<String, String> =
         mapOf("sub" to sub, "iss" to issuer)
 
-    init {
-        isAuthenticated = false
-    }
+    override val authorities: Collection<GrantedAuthority>
+        get() = emptySet()
 
-    override fun getCredentials(): Any {
+    override val isAuthenticated: Boolean
+        get() = false
+
+    fun getCredentials(): Any {
         return accessTokenValue
     }
+
+    override val name: String
+        get() = principal.toString()
 
     /**
      * Get the principal of this object, an immutable map of the subject and issuer.
      */
-    override fun getPrincipal(): Any {
+    fun getPrincipal(): Any {
         return principal
     }
 

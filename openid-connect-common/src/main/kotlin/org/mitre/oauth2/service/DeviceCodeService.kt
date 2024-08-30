@@ -16,11 +16,9 @@
 package org.mitre.oauth2.service
 
 import org.mitre.oauth2.exception.DeviceCodeCreationException
-import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.DeviceCode
+import org.mitre.oauth2.model.OAuth2Authentication
 import org.mitre.oauth2.model.OAuthClientDetails
-import org.springframework.security.oauth2.provider.ClientDetails
-import org.springframework.security.oauth2.provider.OAuth2Authentication
 
 /**
  * @author jricher
@@ -30,10 +28,10 @@ interface DeviceCodeService {
 
     fun approveDeviceCode(dc: DeviceCode, o2Auth: OAuth2Authentication): DeviceCode?
 
-    fun findDeviceCode(deviceCode: String, client: ClientDetails): DeviceCode?
+    fun findDeviceCode(deviceCode: String, client: OAuthClientDetails): DeviceCode?
 
 
-    fun clearDeviceCode(deviceCode: String, client: ClientDetails)
+    fun clearDeviceCode(deviceCode: String, client: OAuthClientDetails)
 
     @Throws(DeviceCodeCreationException::class)
     fun createNewDeviceCode(

@@ -15,11 +15,6 @@
  */
 package org.mitre.openid.connect.config
 
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.i18n.LocaleContext
-import org.springframework.context.i18n.TimeZoneAwareLocaleContext
-import org.springframework.stereotype.Component
-import org.springframework.web.servlet.i18n.AbstractLocaleContextResolver
 import java.util.*
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -30,32 +25,30 @@ import javax.servlet.http.HttpServletResponse
  *
  * @author jricher
  */
-@Component
-class ConfigurationBeanLocaleResolver : AbstractLocaleContextResolver() {
-    @Autowired
+class ConfigurationBeanLocaleResolver {
     private lateinit var config: ConfigurationPropertiesBean
 
-    override fun getDefaultLocale(): Locale? {
-        return config.locale
-    }
+    val defaultLocale: Locale?
+        get() {
+            return config.locale
+        }
 
-    override fun resolveLocaleContext(request: HttpServletRequest): LocaleContext {
+    var defaultTimeZone: TimeZone? = null
+
+    fun resolveLocaleContext(request: HttpServletRequest): LocaleContext {
         return object : TimeZoneAwareLocaleContext {
-            override fun getLocale(): Locale? {
-                return defaultLocale
-            }
+            override val locale: Locale? get() = defaultLocale
 
-            override fun getTimeZone(): TimeZone? {
-                return defaultTimeZone
-            }
+            override val timeZone: TimeZone? get() = defaultTimeZone
         }
     }
 
-    override fun setLocaleContext(
-        request: HttpServletRequest,
-        response: HttpServletResponse?,
-        localeContext: LocaleContext?
-    ) {
-        throw UnsupportedOperationException("Cannot change fixed locale - use a different locale resolution strategy")
+    interface LocaleContext {
+        val locale: Locale?
+    }
+
+    interface TimeZoneAwareLocaleContext : LocaleContext {
+
+        val timeZone: TimeZone?
     }
 }

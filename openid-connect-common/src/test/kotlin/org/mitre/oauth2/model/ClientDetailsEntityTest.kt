@@ -34,28 +34,29 @@ class ClientDetailsEntityTest {
     fun testClientDetailsEntity() {
         val now = Date()
 
-        val c = ClientDetailsEntity().apply {
-            clientId = "s6BhdRkqt3"
-            clientSecret = "ZJYCqe3GGRvdrudKyZS0XhGv_Z45DuKhCUk0gBR1vZk"
-            applicationType = OAuthClientDetails.AppType.WEB
-            redirectUris = setOf("https://client.example.org/callback", "https://client.example.org/callback2")
-            clientName = "My Example"
-            logoUri = "https://client.example.org/logo.png"
-            subjectType = OAuthClientDetails.SubjectType.PAIRWISE
-            sectorIdentifierUri = "https://other.example.net/file_of_redirect_uris.json"
-            tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.SECRET_BASIC
-            jwksUri = "https://client.example.org/my_public_keys.jwks"
-            userInfoEncryptedResponseAlg = JWEAlgorithm.RSA1_5
-            userInfoEncryptedResponseEnc = EncryptionMethod.A128CBC_HS256
-            contacts = setOf("ve7jtb@example.org", "mary@example.org")
-            requestUris = setOf("https://client.example.org/rf.txt#qpXaRLh_n93TTR9F252ValdatUQvQiJi5BDub2BeznA")
-            createdAt = now
+        val c = ClientDetailsEntity(
+            clientId = "s6BhdRkqt3",
+            clientSecret = "ZJYCqe3GGRvdrudKyZS0XhGv_Z45DuKhCUk0gBR1vZk",
+            applicationType = OAuthClientDetails.AppType.WEB,
+            redirectUris = setOf("https://client.example.org/callback", "https://client.example.org/callback2"),
+            clientName = "My Example",
+            logoUri = "https://client.example.org/logo.png",
+            subjectType = OAuthClientDetails.SubjectType.PAIRWISE,
+            sectorIdentifierUri = "https://other.example.net/file_of_redirect_uris.json",
+            tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.SECRET_BASIC,
+            jwksUri = "https://client.example.org/my_public_keys.jwks",
+            userInfoEncryptedResponseAlg = JWEAlgorithm.RSA1_5,
+            userInfoEncryptedResponseEnc = EncryptionMethod.A128CBC_HS256,
+            contacts = setOf("ve7jtb@example.org", "mary@example.org"),
+            requestUris = setOf("https://client.example.org/rf.txt#qpXaRLh_n93TTR9F252ValdatUQvQiJi5BDub2BeznA"),
+            createdAt = now,
             accessTokenValiditySeconds = 600
+        ).apply {
         }
 
 
-        assertEquals("s6BhdRkqt3", c.clientId)
-        assertEquals("ZJYCqe3GGRvdrudKyZS0XhGv_Z45DuKhCUk0gBR1vZk", c.clientSecret)
+        assertEquals("s6BhdRkqt3", c.getClientId())
+        assertEquals("ZJYCqe3GGRvdrudKyZS0XhGv_Z45DuKhCUk0gBR1vZk", c.getClientSecret())
         assertEquals(OAuthClientDetails.AppType.WEB, c.applicationType)
         assertEquals(setOf("https://client.example.org/callback", "https://client.example.org/callback2"), c.redirectUris)
         assertEquals("My Example", c.clientName)
@@ -69,6 +70,6 @@ class ClientDetailsEntityTest {
         assertEquals(setOf("ve7jtb@example.org", "mary@example.org"), c.contacts)
         assertEquals(setOf("https://client.example.org/rf.txt#qpXaRLh_n93TTR9F252ValdatUQvQiJi5BDub2BeznA"), c.requestUris)
         assertEquals(now, c.createdAt)
-        assertEquals(600, c.accessTokenValiditySeconds!!.toLong())
+        assertEquals(600, c.getAccessTokenValiditySeconds()?.toLong())
     }
 }

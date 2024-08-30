@@ -17,18 +17,10 @@
  */
 package org.mitre.oauth2.service.impl
 
+import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.security.core.GrantedAuthority
-import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.core.userdetails.User
-import org.springframework.security.core.userdetails.UserDetails
-import org.springframework.security.core.userdetails.UserDetailsService
-import org.springframework.security.core.userdetails.UsernameNotFoundException
-import org.springframework.security.oauth2.common.exceptions.InvalidClientException
-import org.springframework.stereotype.Service
 import java.math.BigInteger
 import java.security.SecureRandom
 
@@ -36,18 +28,18 @@ import java.security.SecureRandom
  * Shim layer to convert a ClientDetails service into a UserDetails service
  *
  * @author AANGANES
+ *
+ * TODO probably not needed anymore
  */
-@Service("clientUserDetailsService")
-class DefaultClientUserDetailsService : UserDetailsService {
-    @Autowired
+class DefaultClientUserDetailsService {
     lateinit var clientDetailsService: ClientDetailsEntityService
         protected set
 
-    @Autowired
     private lateinit var config: ConfigurationPropertiesBean
 
-    @Throws(UsernameNotFoundException::class)
-    override fun loadUserByUsername(clientId: String): UserDetails {
+    fun loadUserByUsername(clientId: String): Nothing /*UserDetails*/ {
+        TODO("This doesn't seem needed and uses custom types")
+/*
         try {
             val client = clientDetailsService.loadClientByClientId(clientId)
 
@@ -78,9 +70,10 @@ class DefaultClientUserDetailsService : UserDetailsService {
         } catch (e: InvalidClientException) {
             throw UsernameNotFoundException("Client not found: $clientId")
         }
+*/
     }
 
     companion object {
-        private val ROLE_CLIENT: GrantedAuthority = SimpleGrantedAuthority("ROLE_CLIENT")
+        private val ROLE_CLIENT: GrantedAuthority = GrantedAuthority("ROLE_CLIENT")
     }
 }

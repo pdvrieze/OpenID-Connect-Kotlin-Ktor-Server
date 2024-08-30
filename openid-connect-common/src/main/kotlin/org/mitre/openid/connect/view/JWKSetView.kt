@@ -20,9 +20,6 @@ package org.mitre.openid.connect.view
 import com.nimbusds.jose.jwk.JWK
 import com.nimbusds.jose.jwk.JWKSet
 import org.mitre.util.getLogger
-import org.springframework.http.MediaType
-import org.springframework.stereotype.Component
-import org.springframework.web.servlet.view.AbstractView
 import java.io.IOException
 import java.io.Writer
 import javax.servlet.http.HttpServletRequest
@@ -31,9 +28,8 @@ import javax.servlet.http.HttpServletResponse
 /**
  * @author jricher
  */
-@Component(JWKSetView.VIEWNAME)
-class JWKSetView : AbstractView() {
-    override fun renderMergedOutputModel(
+class JWKSetView /*: AbstractView()*/ {
+    fun renderMergedOutputModel(
         model: Map<String, Any>,
         request: HttpServletRequest,
         response: HttpServletResponse
@@ -41,7 +37,7 @@ class JWKSetView : AbstractView() {
         //BiMap<String, PublicKey> keyMap = (BiMap<String, PublicKey>) model.get("keys");
         val keys = model["keys"] as Map<String, JWK>
 
-        response.contentType = MediaType.APPLICATION_JSON_VALUE
+        response.contentType = "application/json"
 
 
 

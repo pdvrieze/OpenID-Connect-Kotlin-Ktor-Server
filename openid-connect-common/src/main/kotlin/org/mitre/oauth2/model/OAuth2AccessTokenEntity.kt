@@ -27,8 +27,7 @@ import org.mitre.oauth2.model.convert.JWTStringConverter
 import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.openid.connect.model.convert.ISODate
 import org.mitre.uma.model.Permission
-import org.springframework.security.oauth2.common.OAuth2AccessToken
-import org.springframework.security.oauth2.common.OAuth2RefreshToken
+import java.time.Instant
 import java.util.*
 import javax.persistence.*
 import javax.persistence.Transient as JPATransient
@@ -72,15 +71,25 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
     @get:Basic
     lateinit var jwt: JWT // JWT-encoded access token value
 
-    private var expiration: Date? = null
+    override lateinit var expirationInstant: Instant
+        private set
 
-    private var tokenType = OAuth2AccessToken.BEARER_TYPE
+    override var expiration: Date
+        get() = Date.from(expirationInstant)
+        private set(value) {
+            expirationInstant = value.toInstant()
+        }
+
+    override var tokenType = OAuth2AccessToken.BEARER_TYPE
+        private set
 
     @ManyToOne
     @JoinColumn(name = "refresh_token_id")
-    private lateinit var refreshToken: OAuth2RefreshTokenEntity
+    override var refreshToken: OAuth2RefreshTokenEntity? = null
+        internal set
 
-    private var scope: Set<String>? = null
+    override lateinit var scope: Set<String>
+        private set
 
 
 
@@ -100,7 +109,27 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
 
     constructor(
         id: Long?,
-        expiration: Date?,
+        expiration: Date,
+        jwt: JWT,
+        client: ClientDetailsEntity?,
+        authenticationHolder: AuthenticationHolderEntity,
+        refreshToken: OAuth2RefreshTokenEntity?,
+        scope: Set<String>?,
+        tokenType: String,
+    ) {
+        this.id = id
+        this.expirationInstant = expiration.toInstant()
+        this.jwt = jwt
+        this.client = client
+        this.authenticationHolder = authenticationHolder
+        this.refreshToken = refreshToken
+        this.scope = scope ?: emptySet()
+        this.tokenType = tokenType
+    }
+
+    constructor(
+        id: Long?,
+        expiration: Instant,
         jwt: JWT,
         client: ClientDetailsEntity?,
         authenticationHolder: AuthenticationHolderEntity,
@@ -109,12 +138,12 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
         tokenType: String,
     ) {
         this.id = id
-        this.expiration = expiration
+        this.expirationInstant = expiration
         this.jwt = jwt
         this.client = client
         this.authenticationHolder = authenticationHolder
         this.refreshToken = refreshToken
-        this.scope = scope
+        this.scope = scope ?: emptySet()
         this.tokenType = tokenType
     }
 
@@ -122,85 +151,22 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
      * Get all additional information to be sent to the serializer as part of the token response.
      * This map is not persisted to the database.
      */
-    @JPATransient
-    override fun getAdditionalInformation(): MutableMap<String, JsonElement> {
+    fun getAdditionalInformation(): MutableMap<String, JsonElement> {
         return additionalInformation
     }
 
-    /**
-     * Get the string-encoded value of this access token.
-     */
-    @JPATransient
-    override fun getValue(): String {
-        return jwt!!.serialize()
-    }
-
-    @Basic
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "expiration")
-    override fun getExpiration(): Date? {
-        return expiration
-    }
-
-    fun setExpiration(expiration: Date?) {
-        this.expiration = expiration
-    }
-
-    @Basic
-    @Column(name = "token_type")
-    override fun getTokenType(): String {
-        return tokenType
-    }
-
-    fun setTokenType(tokenType: String) {
-        this.tokenType = tokenType
-    }
-
-    @ManyToOne
-    @JoinColumn(name = "refresh_token_id")
-    override fun getRefreshToken(): OAuth2RefreshTokenEntity {
-        return refreshToken
-    }
-
-    fun setRefreshToken(refreshToken: OAuth2RefreshTokenEntity) {
-        this.refreshToken = refreshToken
-    }
+    override val value: String
+        get() = jwt.serialize()
 
     fun setRefreshToken(refreshToken: OAuth2RefreshToken?) {
         require(refreshToken is OAuth2RefreshTokenEntity) { "Not a storable refresh token entity!" }
         // force a pass through to the entity version
-        setRefreshToken(refreshToken as OAuth2RefreshTokenEntity?)
+        this.refreshToken = refreshToken as OAuth2RefreshTokenEntity
     }
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(joinColumns = [JoinColumn(name = "owner_id")], name = "token_scope")
-    override fun getScope(): Set<String>? {
-        return scope
-    }
 
-    fun setScope(scope: Set<String>?) {
-        this.scope = scope
-    }
-
-    @JPATransient
-    override fun isExpired(): Boolean {
-        return getExpiration()?.let { System.currentTimeMillis() > it.time } ?: false
-    }
-
-    @JPATransient
-    override fun getExpiresIn(): Int {
-        return when (val e = getExpiration()) {
-            null -> -1 // no expiration time
-
-            else -> {
-                val millisRemaining = e.time - System.currentTimeMillis()
-                when {
-                    millisRemaining <= 0 -> 0 // has an expiration time and expired
-                    else -> (millisRemaining / 1000).toInt() // has an expiration time and not expired
-                }
-            }
-        }
-    }
+    override val isExpired: Boolean
+        get() = expirationInstant > Instant.now()
 
     /**
      * Add the ID Token to the additionalInformation map for a token response.

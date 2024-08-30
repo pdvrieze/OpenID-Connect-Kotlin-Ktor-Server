@@ -13,9 +13,6 @@ dependencies {
     implementation(libs.spring.core) {
         exclude("commons-logging:commons-logging")
     }
-    implementation(libs.spring.webmvc)
-//    implementation(libs.spring.security)
-    implementation(libs.spring.oauth)
     implementation(libs.guava)
     implementation(libs.commons.httpclient)
     implementation(libs.jwt)
@@ -26,6 +23,7 @@ dependencies {
     implementation(libs.javax.persistence)
     implementation(libs.javax.ann)
     implementation(libs.bcprov)
+    implementation(libs.ktor.http)
 
     api(libs.kotlinx.serialization.json)
 

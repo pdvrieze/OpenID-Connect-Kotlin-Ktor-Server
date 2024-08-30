@@ -19,8 +19,8 @@ package org.mitre.openid.connect.model
 
 import com.nimbusds.jwt.JWT
 import com.nimbusds.jwt.JWTParser
-import org.springframework.security.authentication.AbstractAuthenticationToken
-import org.springframework.security.core.GrantedAuthority
+import org.mitre.oauth2.model.Authentication
+import org.mitre.oauth2.model.GrantedAuthority
 import java.io.IOException
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
@@ -41,26 +41,29 @@ class OIDCAuthenticationToken(
     val sub: String,
     val issuer: String,
     val userInfo: UserInfo?,
-    authorities: Collection<GrantedAuthority?>?,
+    authorities: Collection<GrantedAuthority>?,
     @field:Transient var idToken: JWT?,
     val accessTokenValue: String,
     val refreshTokenValue: String,
-) : AbstractAuthenticationToken(authorities) {
+) : Authentication {
+
+    override val authorities: Collection<GrantedAuthority> = authorities?.requireNoNulls()?.toHashSet() ?: emptySet()
     /**
      * Constructs a Principal out of the subject and issuer.
      */
     private val principal: Map<String, String> = mapOf("sub" to sub, "iss" to issuer)
 
-    init {
-        isAuthenticated = true
-    }
+    override var isAuthenticated: Boolean = true
+        private set
 
+    override val name: String
+        get() = principal.toString()
 
-    override fun getCredentials(): Any {
+    fun getCredentials(): Any {
         return accessTokenValue
     }
 
-    override fun getPrincipal(): Any {
+    fun getPrincipal(): Any {
         return principal
     }
 

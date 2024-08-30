@@ -289,14 +289,13 @@ open class ClientDetailsEntity(
     @get:Column(name = "code_challenge_method")
     @get:Basic
     @SerialName(CODE_CHALLENGE_METHOD) override var codeChallengeMethod: PKCEAlgorithm? = null,
-    val authorizedGrantTypes: Set<String> = emptySet(),
+
+    @KXS_Transient
+    private var accessTokenValiditySeconds: Int? = 0,
 ) : OAuthClientDetails/*, SpringClientDetails*/ {
     /** Fields to support the ClientDetails interface  */
     @KXS_Transient
     private var authorities: Set<GrantedAuthority> = HashSet()
-
-    @KXS_Transient
-    private var accessTokenValiditySeconds: Int? = 0 // in seconds
 
     @KXS_Transient
     private var refreshTokenValiditySeconds: Int? = 0 // in seconds
@@ -411,7 +410,6 @@ open class ClientDetailsEntity(
             claimsRedirectUris = this.claimsRedirectUris,
             softwareStatement = this.softwareStatement,
             codeChallengeMethod = this.codeChallengeMethod,
-            authorizedGrantTypes = authorizedGrantTypes.toHashSet()
         ).also {
             it.setAccessTokenValiditySeconds(accessTokenValiditySeconds)
             it.setRefreshTokenValiditySeconds(refreshTokenValiditySeconds)

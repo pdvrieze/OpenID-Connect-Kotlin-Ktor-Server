@@ -21,7 +21,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.springframework.beans.factory.BeanCreationException
 
 /**
  * @author jricher
@@ -60,8 +59,8 @@ class ConfigurationPropertiesBeanTest {
         try {
             bean.issuer = "http://localhost:8080/openid-connect-server/"
             bean.checkConfigConsistency()
-        } catch (e: BeanCreationException) {
-            fail("Unexpected BeanCreationException for http issuer with default forceHttps, message:" + e.message)
+        } catch (e: Exception) {
+            fail("Unexpected BeanCreationException for http issuer with default forceHttps, message:" + e.message, e)
         }
     }
 
@@ -74,14 +73,14 @@ class ConfigurationPropertiesBeanTest {
             bean.issuer = "http://localhost:8080/openid-connect-server/"
             bean.isForceHttps = false
             bean.checkConfigConsistency()
-        } catch (e: BeanCreationException) {
-            fail("Unexpected BeanCreationException for http issuer with forceHttps=false, message:" + e.message)
+        } catch (e: Exception) {
+            fail("Unexpected BeanCreationException for http issuer with forceHttps=false, message:" + e.message, e)
         }
     }
 
     @Test
     fun testCheckForHttpsIssuerHttpTrueFlag() {
-        assertThrows<BeanCreationException> {
+        assertThrows<IllegalStateException> {
             val bean = ConfigurationPropertiesBean()
             // issuer is http
             // set to true
@@ -99,8 +98,8 @@ class ConfigurationPropertiesBeanTest {
         try {
             bean.issuer = "https://localhost:8080/openid-connect-server/"
             bean.checkConfigConsistency()
-        } catch (e: BeanCreationException) {
-            fail("Unexpected BeanCreationException for https issuer with default forceHttps, message:" + e.message)
+        } catch (e: Exception) {
+            fail("Unexpected BeanCreationException for https issuer with default forceHttps, message:" + e.message, e)
         }
     }
 
@@ -113,8 +112,8 @@ class ConfigurationPropertiesBeanTest {
             bean.issuer = "https://localhost:8080/openid-connect-server/"
             bean.isForceHttps = false
             bean.checkConfigConsistency()
-        } catch (e: BeanCreationException) {
-            fail("Unexpected BeanCreationException for https issuer with forceHttps=false, message:" + e.message)
+        } catch (e: Exception) {
+            fail("Unexpected BeanCreationException for https issuer with forceHttps=false, message:" + e.message, e)
         }
     }
 
@@ -127,8 +126,8 @@ class ConfigurationPropertiesBeanTest {
             bean.issuer = "https://localhost:8080/openid-connect-server/"
             bean.isForceHttps = true
             bean.checkConfigConsistency()
-        } catch (e: BeanCreationException) {
-            fail("Unexpected BeanCreationException for https issuer with forceHttps=true, message:" + e.message)
+        } catch (e: Exception) {
+            fail("Unexpected BeanCreationException for https issuer with forceHttps=true, message:" + e.message, e)
         }
     }
 

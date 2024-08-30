@@ -27,25 +27,26 @@ object AuthenticationSerializer : KSerializer<Authentication> {
 
     @Serializable
     private class SerialDelegate(
-        val name: String? = null,
+        val name: String,
         val sourceClass: String? = null,
         val authenticated: Boolean = false,
-        val authorities: Set<@Serializable(SimpleGrantedAuthorityStringConverter::class) GrantedAuthority>? = null,
+        val authorities: Set<@Serializable(SimpleGrantedAuthorityStringConverter::class) GrantedAuthority> = emptySet(),
     ) {
         constructor(e: Authentication) : this(
             name = e.name,
             sourceClass = (e as? SavedUserAuthentication)?.sourceClass ?: e.javaClass.name,
             authenticated = e.isAuthenticated,
-            authorities = e.authorities?.toSet(),
+            authorities = e.authorities.toSet(),
         )
 
         fun toAuthentication(): SavedUserAuthentication {
-            return SavedUserAuthentication().also { r ->
-                name?.let { r.setName(it) }
-                sourceClass?.let { r.setName(it) }
-                r.isAuthenticated = authenticated
-                authorities?.let { r.authorities = it }
-            }
+            return SavedUserAuthentication(
+                id = null,
+                name = name,
+                authorities = authorities,
+                authenticated = authenticated,
+                sourceClass = sourceClass
+            )
         }
     }
 }

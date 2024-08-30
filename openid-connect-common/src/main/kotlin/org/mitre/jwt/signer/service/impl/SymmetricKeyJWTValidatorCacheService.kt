@@ -26,7 +26,6 @@ import com.nimbusds.jose.util.Base64URL
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.util.getLogger
-import org.springframework.stereotype.Service
 import java.security.NoSuchAlgorithmException
 import java.security.spec.InvalidKeySpecException
 import java.util.concurrent.ExecutionException
@@ -37,7 +36,6 @@ import java.util.concurrent.TimeUnit
  *
  * @author jricher
  */
-@Service
 class SymmetricKeyJWTValidatorCacheService {
     private val validators: LoadingCache<String, JWTSigningAndValidationService> = CacheBuilder.newBuilder()
         .expireAfterAccess(24, TimeUnit.HOURS)

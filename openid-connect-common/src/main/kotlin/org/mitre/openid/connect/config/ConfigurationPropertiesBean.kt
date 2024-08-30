@@ -20,7 +20,6 @@ package org.mitre.openid.connect.config
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.mitre.util.getLogger
-import org.springframework.beans.factory.BeanCreationException
 import java.util.*
 import javax.annotation.PostConstruct
 
@@ -85,7 +84,7 @@ class ConfigurationPropertiesBean {
         if (!issuer.startsWith("https", ignoreCase = true)) {
             if (this.isForceHttps) {
                 logger.error("Configured issuer url is not using https scheme. Server will be shut down!")
-                throw BeanCreationException("Issuer is not using https scheme as required: $issuer")
+                throw IllegalStateException("Issuer is not using https scheme as required: $issuer")
             } else {
                 logger.warn("\n\n**\n** WARNING: Configured issuer url is not using https scheme.\n**\n\n")
             }

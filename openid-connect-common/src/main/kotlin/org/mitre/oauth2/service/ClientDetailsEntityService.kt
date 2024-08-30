@@ -19,8 +19,6 @@ package org.mitre.oauth2.service
 
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuthClientDetails
-import org.springframework.security.oauth2.common.exceptions.OAuth2Exception
-import org.springframework.security.oauth2.provider.ClientDetailsService
 
 interface ClientDetailsEntityService {
     fun saveNewClient(client: OAuthClientDetails): OAuthClientDetails
@@ -40,9 +38,8 @@ interface ClientDetailsEntityService {
     fun generateClientSecret(client: OAuthClientDetails): String?
 }
 
-interface SpringClientDetailsEntityService : ClientDetailsEntityService, ClientDetailsService {
+interface SpringClientDetailsEntityService : ClientDetailsEntityService {
 
-    @Throws(OAuth2Exception::class)
     override fun loadClientByClientId(clientId: String): ClientDetailsEntity?
 
 }

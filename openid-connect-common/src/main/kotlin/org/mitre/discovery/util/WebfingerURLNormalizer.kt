@@ -17,8 +17,8 @@
  */
 package org.mitre.discovery.util
 
-import io.ktor.http.*
 import org.mitre.util.getLogger
+import java.net.URI
 
 /**
  * Provides utility methods for normalizing and parsing URIs for use with Webfinger Discovery.
@@ -52,7 +52,7 @@ object WebfingerURLNormalizer {
      * @return the normalized string, or null if the string can't be normalized
      */
 	@JvmStatic
-	fun normalizeResource(identifier: String?): Url? {
+	fun normalizeResource(identifier: String?): URI? {
         // try to parse the URI
         // NOTE: we can't use the Java built-in URI class because it doesn't split the parts appropriately
 
@@ -70,7 +70,7 @@ object WebfingerURLNormalizer {
                 return null
             }
 
-            var matchedScheme = m.groups[2]?.let { URLProtocol.createOrDefault(it.value) }
+            var matchedScheme = m.groups[2]?.value
             val matchedUserInfo = m.groups[6]?.value
             val matchedHost = m.groups[8]?.value
             val matchedPort = when(val p = m.groups[10]?.value) {
@@ -93,33 +93,26 @@ object WebfingerURLNormalizer {
                 } else {
                     // scheme is empty, but rule 2 doesn't apply
                     // set scheme to "https" (rule 3)
-                    matchedScheme = URLProtocol.HTTPS
+                    matchedScheme = "https"
                 }
             }
 
-            val parameters: Parameters = matchedQuery?.let { parseQueryString(it) } ?: Parameters.Empty
-
-
-            return URLBuilder(
-                protocol = matchedScheme,
-                host = matchedHost ?: "",
-                port = matchedPort ?: DEFAULT_PORT,
-                user = matchedUserInfo?.substringBefore(':'),
-                password = matchedUserInfo?.substringAfter(':'),
-                parameters = parameters,
-                fragment = "",// fragment must be stripped (rule 4)
-            ).apply {
-                set(path = matchedPath)
-            }.build()
+            return when(matchedScheme) {
+                in SPECIAL_SCHEMES -> {
+                    val ssp = (m.groups[4]?.value ?: "")+(matchedPath?:"") + (m.groups[12]?.value?:"")
+                    URI(matchedScheme, ssp, null) // no fragment
+                }
+                else -> URI(matchedScheme, matchedUserInfo, matchedHost, matchedPort ?: -1 , matchedPath, matchedQuery, null)
+            }
         }
     }
 
 
     @JvmStatic
-	fun serializeURL(uri: Url): String {
+	fun serializeURL(uri: URI): String {
         return uri.toString()
     }
 
     private val SPECIAL_SCHEMES = hashSetOf("acct", "mailto", "tel", "device")
-    private val ACCT_SCHEME = URLProtocol.createOrDefault("acct")
+    private val ACCT_SCHEME = "acct"
 }
