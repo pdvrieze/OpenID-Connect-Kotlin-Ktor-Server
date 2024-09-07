@@ -22,13 +22,17 @@ import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.PlainJWT
 import org.mitre.data.AbstractPageOperationTemplate
 import org.mitre.data.DefaultPageCriteria
+import org.mitre.oauth2.TokenEnhancer
 import org.mitre.oauth2.model.AuthenticationHolderEntity
+import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
+import org.mitre.oauth2.model.OAuth2Authentication
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.PKCEAlgorithm
 import org.mitre.oauth2.model.PKCEAlgorithm.Companion.parse
 import org.mitre.oauth2.model.SystemScope
+import org.mitre.oauth2.model.convert.OAuth2Request
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.oauth2.service.ClientDetailsEntityService
@@ -44,9 +48,6 @@ import org.springframework.security.oauth2.common.exceptions.InvalidClientExcept
 import org.springframework.security.oauth2.common.exceptions.InvalidRequestException
 import org.springframework.security.oauth2.common.exceptions.InvalidScopeException
 import org.springframework.security.oauth2.common.exceptions.InvalidTokenException
-import org.springframework.security.oauth2.provider.OAuth2Authentication
-import org.springframework.security.oauth2.provider.TokenRequest
-import org.springframework.security.oauth2.provider.token.TokenEnhancer
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.nio.charset.StandardCharsets
@@ -129,9 +130,10 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
         }
     }
 
+
     @Transactional(value = "defaultTransactionManager")
     @Throws(AuthenticationException::class, InvalidClientException::class)
-    override fun createAccessToken(authentication: OAuth2Authentication?): OAuth2AccessTokenEntity {
+    override fun createAccessToken(authentication: OAuth2Authentication): OAuth2AccessToken {
         if (authentication?.oAuth2Request == null) {
             throw AuthenticationCredentialsNotFoundException("No authentication credentials found")
         }
@@ -139,13 +141,13 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
         // look up our client
         val request = authentication.oAuth2Request
 
-        val client = clientDetailsService.loadClientByClientId(request.clientId)
+        val client: OAuthClientDetails = clientDetailsService.loadClientByClientId(request.clientId)
             ?: throw InvalidClientException("Client not found: " + request.clientId)
 
         // handle the PKCE code challenge if present
-        if (request.extensions.containsKey(ConnectRequestParameters.CODE_CHALLENGE)) {
-            val challenge = request.extensions[ConnectRequestParameters.CODE_CHALLENGE] as String?
-            val alg = parse((request.extensions[ConnectRequestParameters.CODE_CHALLENGE_METHOD] as String?)!!)
+        if (request.extensionStrings?.containsKey(ConnectRequestParameters.CODE_CHALLENGE) == true) {
+            val challenge = request.extensionStrings!![ConnectRequestParameters.CODE_CHALLENGE]
+            val alg = parse(request.extensionStrings!![ConnectRequestParameters.CODE_CHALLENGE_METHOD]!!)
 
             val verifier = request.requestParameters[ConnectRequestParameters.CODE_VERIFIER]
 
@@ -169,10 +171,10 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
             }
         }
 
-        val token = OAuth2AccessTokenEntity() //accessTokenFactory.createNewAccessToken();
+        val tokenBuilder = OAuth2AccessTokenEntity.Builder() //accessTokenFactory.createNewAccessToken();
 
         // attach the client
-        token.client = client
+        tokenBuilder.setClient(client)
 
         // inherit the scope from the auth, but make a new set so it is
         //not unmodifiable. Unmodifiables don't play nicely with Eclipselink, which
@@ -182,13 +184,13 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
             scopeService.removeReservedScopes(it)
         }
 
-        token.scope = scopeService.toStrings(scopes)
+        val scope = scopeService.toStrings(scopes) ?: emptySet()
 
         val atvsecs = client.getAccessTokenValiditySeconds()
         // make it expire if necessary
         if (atvsecs != null && atvsecs > 0) {
             val expiration = Date(System.currentTimeMillis() + (atvsecs * 1000L))
-            token.expiration = expiration
+            tokenBuilder.expiration = expiration
         }
 
         // attach the authorization so that we can look it up later
@@ -196,28 +198,32 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
         authHolder.authentication = authentication
         authHolder = authenticationHolderRepository.save(authHolder)
 
-        token.authenticationHolder = authHolder
+        tokenBuilder.setAuthenticationHolder(authHolder)
 
         // attach a refresh token, if this client is allowed to request them and the user gets the offline scope
-        if (client.isAllowRefresh && token.scope!!.contains(SystemScopeService.OFFLINE_ACCESS)) {
+        if (client.isAllowRefresh && SystemScopeService.OFFLINE_ACCESS in scope) {
             val savedRefreshToken = createRefreshToken(client, authHolder)
 
-            token.refreshToken = savedRefreshToken
+            tokenBuilder.setRefreshToken(savedRefreshToken)
         }
 
         //Add approved site reference, if any
         val originalAuthRequest = authHolder.authentication.oAuth2Request
 
-        if (originalAuthRequest.extensions != null && originalAuthRequest.extensions.containsKey("approved_site")) {
-            val apId = (originalAuthRequest.extensions["approved_site"] as String).toLong()
+        if (originalAuthRequest.extensionStrings?.containsKey("approved_site") == true) {
+            val apId = (originalAuthRequest.extensionStrings!!["approved_site"] as String).toLong()
             val ap = approvedSiteService.getById(apId)
 
-            token.approvedSite = ap
+            tokenBuilder.approvedSite = ap
         }
 
-        val enhancedToken = tokenEnhancer.enhance(token, authentication) as OAuth2AccessTokenEntity
+        tokenEnhancer.enhance(tokenBuilder, authentication)
 
-        val savedToken = saveAccessToken(enhancedToken)
+        val token = tokenBuilder.build(clientDetailsService, authenticationHolderRepository, tokenRepository)
+
+//        val enhancedToken = TODO()/*tokenEnhancer.enhance(token, authentication)*/ as OAuth2AccessTokenEntity
+
+        val savedToken = saveAccessToken(token)
 
         if (savedToken.refreshToken != null) {
             tokenRepository.saveRefreshToken(savedToken.refreshToken!!) // make sure we save any changes that might have been enhanced
@@ -261,7 +267,7 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
 
     @Transactional(value = "defaultTransactionManager")
     @Throws(AuthenticationException::class)
-    override fun refreshAccessToken(refreshTokenValue: String, authRequest: TokenRequest): OAuth2AccessTokenEntity {
+    override fun refreshAccessToken(refreshTokenValue: String, authRequest: OAuth2Request): OAuth2AccessToken {
         if (refreshTokenValue.isNullOrEmpty()) {
             // throw an invalid token exception if there's no refresh token value at all
             throw InvalidTokenException("Invalid refresh token: $refreshTokenValue")
@@ -297,11 +303,11 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
             throw InvalidTokenException("Expired refresh token: $refreshTokenValue")
         }
 
-        val token = OAuth2AccessTokenEntity()
+        val tokenBuilder = OAuth2AccessTokenEntity.Builder()
 
         // get the stored scopes from the authentication holder's authorization request; these are the scopes associated with the refresh token
         val refreshScopesRequested: Set<String> =
-            HashSet(refreshToken.authenticationHolder!!.authentication.oAuth2Request.scope)
+            HashSet(refreshToken.authenticationHolder.authentication.oAuth2Request.scope)
         val refreshScopes: Set<SystemScope>? = scopeService.fromStrings(refreshScopesRequested)?.let {
             // remove any of the special system scopes
             scopeService.removeReservedScopes(it)
@@ -315,12 +321,12 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
 
         when {
             // otherwise inherit the scope of the refresh token (if it's there -- this can return a null scope set)
-            scope.isNullOrEmpty() -> token.scope = scopeService.toStrings(refreshScopes)
+            scope.isNullOrEmpty() -> tokenBuilder.scope = scopeService.toStrings(refreshScopes)
 
             // ensure a proper subset of scopes
             // set the scope of the new access token if requested
             refreshScopes != null && refreshScopes.containsAll(scope) ->
-                token.scope = scopeService.toStrings(scope)
+                tokenBuilder.scope = scopeService.toStrings(scope)
 
             else -> {
                 val errorMsg = "Up-scoping is not allowed."
@@ -329,29 +335,31 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
             }
         }
 
-        token.client = client
+        tokenBuilder.setClient(client)
 
         val accessTokenValiditySeconds = client.getAccessTokenValiditySeconds()
         if (accessTokenValiditySeconds != null) {
             val expiration = Date(System.currentTimeMillis() + (accessTokenValiditySeconds * 1000L))
-            token.expiration = expiration
+            tokenBuilder.expiration = expiration
         }
 
         if (client.isReuseRefreshToken) {
             // if the client re-uses refresh tokens, do that
-            token.refreshToken = refreshToken
+            tokenBuilder.setRefreshToken(refreshToken)
         } else {
             // otherwise, make a new refresh token
             val newRefresh = createRefreshToken(client, authHolder)
-            token.refreshToken = newRefresh
+            tokenBuilder.setRefreshToken(newRefresh)
 
             // clean up the old refresh token
             tokenRepository.removeRefreshToken(refreshToken)
         }
 
-        token.authenticationHolder = authHolder
+        tokenBuilder.setAuthenticationHolder(authHolder)
 
-        tokenEnhancer.enhance(token, authHolder.authentication)
+        tokenEnhancer.enhance(tokenBuilder, authHolder.authentication)
+
+        val token = tokenBuilder.build(clientDetailsService, authenticationHolderRepository, tokenRepository)
 
         tokenRepository.saveAccessToken(token)
 
@@ -384,7 +392,7 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
     /**
      * Get an access token by its authentication object.
      */
-    override fun getAccessToken(authentication: OAuth2Authentication): OAuth2AccessTokenEntity {
+    override fun getAccessToken(authentication: OAuth2Authentication): OAuth2AccessToken {
         // TODO: implement this against the new service (#825)
         throw UnsupportedOperationException("Unable to look up access token from authentication object.")
     }
@@ -469,10 +477,10 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
         val newToken = tokenRepository.saveAccessToken(accessToken)
 
         // if the old token has any additional information for the return from the token endpoint, carry it through here after save
-        val additionalInformation = accessToken.additionalInformation
+        val additionalInformation = accessToken.getAdditionalInformation()
         if (!additionalInformation.isNullOrEmpty()) {
             // known to be not null as it is a copy of the saved token
-            newToken.additionalInformation.putAll(additionalInformation)
+            newToken.getAdditionalInformation().putAll(additionalInformation)
         }
 
         return newToken

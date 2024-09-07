@@ -16,9 +16,11 @@
 package org.mitre.oauth2.web
 
 import com.google.common.collect.Sets
+import io.github.pdvrieze.openid.spring.fromSpring
 import org.apache.http.client.utils.URIBuilder
 import org.mitre.oauth2.exception.DeviceCodeCreationException
 import org.mitre.oauth2.model.DeviceCode
+import org.mitre.oauth2.model.OAuth2Authentication
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.service.ClientDetailsEntityService
@@ -38,7 +40,6 @@ import org.springframework.security.core.Authentication
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException
 import org.springframework.security.oauth2.common.util.OAuth2Utils
 import org.springframework.security.oauth2.provider.AuthorizationRequest
-import org.springframework.security.oauth2.provider.OAuth2Authentication
 import org.springframework.security.oauth2.provider.OAuth2RequestFactory
 import org.springframework.stereotype.Controller
 import org.springframework.ui.ModelMap
@@ -48,6 +49,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import java.net.URISyntaxException
 import java.util.*
 import javax.servlet.http.HttpSession
+import org.springframework.security.oauth2.provider.OAuth2Authentication as SpringOAuth2Authentication
 
 /**
  * Implements https://tools.ietf.org/html/draft-ietf-oauth-device-flow
@@ -264,8 +266,8 @@ class DeviceEndpoint {
         }
 
         // create an OAuth request for storage
-        val o2req = oAuth2RequestFactory.createOAuth2Request(authorizationRequest)
-        val o2Auth = OAuth2Authentication(o2req, auth)
+        val o2req = oAuth2RequestFactory.createOAuth2Request(authorizationRequest).fromSpring()
+        val o2Auth = OAuth2Authentication(o2req, auth?.fromSpring())
 
         val approvedCode = deviceCodeService.approveDeviceCode(dc, o2Auth)
 

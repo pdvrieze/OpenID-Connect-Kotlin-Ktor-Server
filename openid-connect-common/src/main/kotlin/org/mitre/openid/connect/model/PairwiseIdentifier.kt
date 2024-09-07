@@ -57,7 +57,7 @@ class PairwiseIdentifier {
     @Deprecated("For JPA")
     constructor()
 
-    constructor(id: Long?, userSub: String, sectorIdentifier: String) {
+    constructor(id: Long? = null, userSub: String, sectorIdentifier: String) {
         this.id = id
         this.userSub = userSub
         this.sectorIdentifier = sectorIdentifier

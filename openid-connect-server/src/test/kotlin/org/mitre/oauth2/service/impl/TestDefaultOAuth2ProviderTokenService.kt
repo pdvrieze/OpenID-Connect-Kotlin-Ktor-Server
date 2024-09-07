@@ -24,13 +24,17 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
+import org.mitre.oauth2.model.OAuth2Authentication
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.SystemScope
+import org.mitre.oauth2.model.convert.OAuth2Request
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.SystemScopeService
+import org.mitre.openid.connect.token.ConnectTokenEnhancer
 import org.mockito.AdditionalAnswers
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.anySet
@@ -48,14 +52,9 @@ import org.mockito.kotlin.reset
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
-import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException
 import org.springframework.security.oauth2.common.exceptions.InvalidScopeException
 import org.springframework.security.oauth2.common.exceptions.InvalidTokenException
-import org.springframework.security.oauth2.provider.OAuth2Authentication
-import org.springframework.security.oauth2.provider.OAuth2Request
-import org.springframework.security.oauth2.provider.TokenRequest
-import org.springframework.security.oauth2.provider.token.TokenEnhancer
 import java.util.*
 
 /**
@@ -70,7 +69,7 @@ class TestDefaultOAuth2ProviderTokenService {
     private lateinit var badClient: ClientDetailsEntity
     private lateinit var refreshToken: OAuth2RefreshTokenEntity
     private lateinit var accessToken: OAuth2AccessTokenEntity
-    private lateinit var tokenRequest: TokenRequest
+    private lateinit var tokenRequest: OAuth2Request
 
     // for use when refreshing access tokens
     private lateinit var storedAuthRequest: OAuth2Request
@@ -88,7 +87,7 @@ class TestDefaultOAuth2ProviderTokenService {
     private lateinit var clientDetailsService: ClientDetailsEntityService
 
     @Mock
-    private lateinit var tokenEnhancer: TokenEnhancer
+    private lateinit var tokenEnhancer: ConnectTokenEnhancer
 
     @Mock
     private lateinit var scopeService: SystemScopeService
@@ -104,11 +103,15 @@ class TestDefaultOAuth2ProviderTokenService {
         reset(tokenRepository, authenticationHolderRepository, clientDetailsService, tokenEnhancer)
 
         authentication = mock<OAuth2Authentication>()
-        val clientAuth = OAuth2Request(null, clientId, null, true, scope, null, null, null, null)
+        val clientAuth = OAuth2Request(
+            clientId = clientId,
+            isApproved = true,
+            scope = scope,
+        )
         whenever(authentication.oAuth2Request) doReturn (clientAuth)
 
         client = mock<ClientDetailsEntity>()
-        whenever(client.clientId) doReturn (clientId)
+        whenever(client.getClientId()) doReturn (clientId)
         whenever(clientDetailsService.loadClientByClientId(clientId)) doReturn (client)
         whenever(client.isReuseRefreshToken) doReturn (true)
 
@@ -119,7 +122,7 @@ class TestDefaultOAuth2ProviderTokenService {
         whenever(client.isClearAccessTokensOnRefresh) doReturn (true)
 
         badClient = mock<ClientDetailsEntity>()
-        whenever(badClient.clientId) doReturn (badClientId)
+        whenever(badClient.getClientId()) doReturn (badClientId)
         whenever(clientDetailsService.loadClientByClientId(badClientId)) doReturn (badClient)
 
         refreshToken = mock<OAuth2RefreshTokenEntity>()
@@ -129,7 +132,7 @@ class TestDefaultOAuth2ProviderTokenService {
 
         accessToken = mock<OAuth2AccessTokenEntity>()
 
-        tokenRequest = TokenRequest(null, clientId, null, null)
+        tokenRequest = OAuth2Request(clientId = clientId)
 
         storedAuthentication = authentication
         storedAuthRequest = clientAuth
@@ -158,10 +161,11 @@ class TestDefaultOAuth2ProviderTokenService {
 
         // unused by mockito (causs unnecessary stubbing exception
 //		when(scopeService.removeRestrictedAndReservedScopes(anySet())).then(returnsFirstArg());
-        whenever(tokenEnhancer.enhance(isA<OAuth2AccessTokenEntity>(), isA<OAuth2Authentication>()))
+        whenever(tokenEnhancer.enhance(isA<OAuth2AccessTokenEntity.Builder>(), isA<OAuth2Authentication>()))
             .thenAnswer { invocation ->
-                val args = invocation.arguments
-                args[0] as OAuth2AccessTokenEntity
+                Unit
+//                val args = invocation.arguments
+//                args[0] as OAuth2AccessTokenEntity
             }
 
         whenever(tokenRepository.saveAccessToken(isA<OAuth2AccessTokenEntity>())).thenAnswer {
@@ -182,7 +186,9 @@ class TestDefaultOAuth2ProviderTokenService {
      */
     @Test
     fun createAccessToken_nullAuth() {
-        whenever(authentication.oAuth2Request) doReturn (null)
+        TODO("Probably invalid")
+/*
+        whenever(authentication.oAuth2Request) doReturn (OAuth2Request(clientId = "dummy"))
 
         assertThrows<AuthenticationCredentialsNotFoundException> {
             service.createAccessToken(null)
@@ -191,6 +197,7 @@ class TestDefaultOAuth2ProviderTokenService {
         assertThrows<AuthenticationCredentialsNotFoundException> {
             service.createAccessToken(authentication)
         }
+*/
     }
 
     /**
@@ -216,7 +223,7 @@ class TestDefaultOAuth2ProviderTokenService {
 
         verify(clientDetailsService).loadClientByClientId(ArgumentMatchers.anyString())
         verify(authenticationHolderRepository).save(isA<AuthenticationHolderEntity>())
-        verify(tokenEnhancer).enhance(isA<OAuth2AccessTokenEntity>(), eq(authentication))
+        verify(tokenEnhancer).enhance(isA<OAuth2AccessTokenEntity.Builder>(), eq(authentication))
         verify(tokenRepository).saveAccessToken(isA<OAuth2AccessTokenEntity>())
         verify(scopeService, atLeastOnce()).removeReservedScopes(anySet())
 
@@ -230,8 +237,11 @@ class TestDefaultOAuth2ProviderTokenService {
      */
     @Test
     fun createAccessToken_yesRefresh() {
-        val clientAuth =
-            OAuth2Request(null, clientId, null, true, hashSetOf(SystemScopeService.OFFLINE_ACCESS), null, null, null, null)
+        val clientAuth = OAuth2Request(
+            clientId = clientId,
+            isApproved = true,
+            scope = hashSetOf(SystemScopeService.OFFLINE_ACCESS),
+        )
         whenever(authentication.oAuth2Request) doReturn (clientAuth)
         whenever(client.isAllowRefresh) doReturn (true)
 
@@ -252,31 +262,34 @@ class TestDefaultOAuth2ProviderTokenService {
         val accessTokenValiditySeconds = 3600
         val refreshTokenValiditySeconds = 600
 
-        whenever(client.accessTokenValiditySeconds) doReturn (accessTokenValiditySeconds)
-        whenever(client.refreshTokenValiditySeconds) doReturn (refreshTokenValiditySeconds)
+        whenever(client.getAccessTokenValiditySeconds()) doReturn (accessTokenValiditySeconds)
+        whenever(client.getRefreshTokenValiditySeconds()) doReturn (refreshTokenValiditySeconds)
 
         val start = System.currentTimeMillis()
         val token = service.createAccessToken(authentication)
         val end = System.currentTimeMillis()
 
         // Accounting for some delta for time skew on either side.
-        val lowerBoundAccessTokens = Date(start + (accessTokenValiditySeconds * 1000L) - DELTA)
-        val upperBoundAccessTokens = Date(end + (accessTokenValiditySeconds * 1000L) + DELTA)
-        val lowerBoundRefreshTokens = Date(start + (refreshTokenValiditySeconds * 1000L) - DELTA)
-        val upperBoundRefreshTokens = Date(end + (refreshTokenValiditySeconds * 1000L) + DELTA)
+        val lowerBoundAccessTokens = Date(start + (accessTokenValiditySeconds * 1000L) - DELTA).toInstant()
+        val upperBoundAccessTokens = Date(end + (accessTokenValiditySeconds * 1000L) + DELTA).toInstant()
+        val lowerBoundRefreshTokens = Date(start + (refreshTokenValiditySeconds * 1000L) - DELTA).toInstant()
+        val upperBoundRefreshTokens = Date(end + (refreshTokenValiditySeconds * 1000L) + DELTA).toInstant()
 
         verify(scopeService, atLeastOnce()).removeReservedScopes(anySet())
 
-        assertTrue(token.expiration!!.after(lowerBoundAccessTokens))
-        assertTrue(token.expiration!!.before(upperBoundAccessTokens))
+        assertTrue(token.expirationInstant.isAfter(lowerBoundAccessTokens))
+        assertTrue(token.expirationInstant.isBefore(upperBoundAccessTokens))
 
-        assertTrue(token.refreshToken!!.expiration!!.after(lowerBoundRefreshTokens))
-        assertTrue(token.refreshToken!!.expiration!!.before(upperBoundRefreshTokens))
+        val rt = token.refreshToken
+        assertNotNull(rt)
+        val exp = rt!!.expirationInstant
+        assertTrue(exp.isAfter(lowerBoundRefreshTokens))
+        assertTrue(exp.isBefore(upperBoundRefreshTokens))
     }
 
     @Test
     fun createAccessToken_checkClient() {
-        val token = service.createAccessToken(authentication)
+        val token: OAuth2AccessToken = service.createAccessToken(authentication)
 
         verify(scopeService, atLeastOnce()).removeReservedScopes(anySet())
 
@@ -326,7 +339,7 @@ class TestDefaultOAuth2ProviderTokenService {
 
     @Test
     fun refreshAccessToken_clientMismatch() {
-        tokenRequest = TokenRequest(null, badClientId, null, null)
+        tokenRequest = OAuth2Request(clientId= badClientId)
 
         assertThrows<InvalidClientException> {
             service.refreshAccessToken(refreshTokenValue, tokenRequest)
@@ -352,8 +365,8 @@ class TestDefaultOAuth2ProviderTokenService {
         assertEquals(refreshToken, token.refreshToken)
         assertEquals(storedAuthHolder, token.authenticationHolder)
 
-        verify(tokenEnhancer).enhance(token, storedAuthentication)
-        verify(tokenRepository).saveAccessToken(token)
+        verify(tokenEnhancer).enhance(token.builder(), storedAuthentication)
+        verify(tokenRepository).saveAccessToken(token as OAuth2AccessTokenEntity)
         verify(scopeService, atLeastOnce()).removeReservedScopes(anySet())
     }
 
@@ -369,8 +382,8 @@ class TestDefaultOAuth2ProviderTokenService {
         assertNotEquals(refreshToken, token.refreshToken)
         assertEquals(storedAuthHolder, token.authenticationHolder)
 
-        verify(tokenEnhancer).enhance(token, storedAuthentication)
-        verify(tokenRepository).saveAccessToken(token)
+        verify(tokenEnhancer).enhance(token.builder(), storedAuthentication)
+        verify(tokenRepository).saveAccessToken(token as OAuth2AccessTokenEntity)
         verify(tokenRepository).removeRefreshToken(refreshToken)
         verify(scopeService, atLeastOnce()).removeReservedScopes(anySet())
     }
@@ -387,8 +400,8 @@ class TestDefaultOAuth2ProviderTokenService {
         assertEquals(refreshToken, token.refreshToken)
         assertEquals(storedAuthHolder, token.authenticationHolder)
 
-        verify(tokenEnhancer).enhance(token, storedAuthentication)
-        verify(tokenRepository).saveAccessToken(token)
+        verify(tokenEnhancer).enhance(token.builder(), storedAuthentication)
+        verify(tokenRepository).saveAccessToken(token as OAuth2AccessTokenEntity)
         verify(scopeService, atLeastOnce()).removeReservedScopes(anySet())
     }
 
@@ -405,7 +418,7 @@ class TestDefaultOAuth2ProviderTokenService {
     fun refreshAccessToken_requestingLessScope() {
         val lessScope: Set<String> = hashSetOf("openid", "profile")
 
-        tokenRequest.setScope(lessScope)
+        tokenRequest = tokenRequest.copy(scope = lessScope)
 
         val token = service.refreshAccessToken(refreshTokenValue, tokenRequest)
 
@@ -418,7 +431,7 @@ class TestDefaultOAuth2ProviderTokenService {
     fun refreshAccessToken_requestingMoreScope() {
         val moreScope = storedScope + setOf("address", "phone")
 
-        tokenRequest.setScope(moreScope)
+        tokenRequest = tokenRequest.copy(scope=moreScope)
 
         assertThrows<InvalidScopeException> {
             service.refreshAccessToken(refreshTokenValue, tokenRequest)
@@ -434,7 +447,7 @@ class TestDefaultOAuth2ProviderTokenService {
         val mixedScope: Set<String> =
             setOf("openid", "profile", "address", "phone") // no email or offline_access
 
-        tokenRequest.setScope(mixedScope)
+        tokenRequest = tokenRequest.copy(scope = mixedScope)
 
         assertThrows<InvalidScopeException> {
             service.refreshAccessToken(refreshTokenValue, tokenRequest)
@@ -445,7 +458,7 @@ class TestDefaultOAuth2ProviderTokenService {
     fun refreshAccessToken_requestingEmptyScope() {
         val emptyScope: Set<String> = hashSetOf()
 
-        tokenRequest.setScope(emptyScope)
+        tokenRequest = tokenRequest.copy(scope = emptyScope)
 
         val token = service.refreshAccessToken(refreshTokenValue, tokenRequest)
 
@@ -454,9 +467,10 @@ class TestDefaultOAuth2ProviderTokenService {
         assertEquals(storedScope, token.scope)
     }
 
+/*
     @Test
     fun refreshAccessToken_requestingNullScope() {
-        tokenRequest.setScope(null)
+        tokenRequest = tokenRequest.copy(scope = emptySet())
 
         val token = service.refreshAccessToken(refreshTokenValue, tokenRequest)
 
@@ -464,6 +478,7 @@ class TestDefaultOAuth2ProviderTokenService {
 
         assertEquals(storedScope, token.scope)
     }
+*/
 
     /**
      * Checks to see that the expiration date of refreshed tokens is being set accurately to within some delta for time skew.
@@ -472,21 +487,21 @@ class TestDefaultOAuth2ProviderTokenService {
     fun refreshAccessToken_expiration() {
         val accessTokenValiditySeconds = 3600
 
-        whenever(client.accessTokenValiditySeconds) doReturn (accessTokenValiditySeconds)
+        whenever(client.getAccessTokenValiditySeconds()) doReturn (accessTokenValiditySeconds)
 
         val start = System.currentTimeMillis()
         val token = service.refreshAccessToken(refreshTokenValue, tokenRequest)
         val end = System.currentTimeMillis()
 
         // Accounting for some delta for time skew on either side.
-        val lowerBoundAccessTokens = Date(start + (accessTokenValiditySeconds * 1000L) - DELTA)
-        val upperBoundAccessTokens = Date(end + (accessTokenValiditySeconds * 1000L) + DELTA)
+        val lowerBoundAccessTokens = Date(start + (accessTokenValiditySeconds * 1000L) - DELTA).toInstant()
+        val upperBoundAccessTokens = Date(end + (accessTokenValiditySeconds * 1000L) + DELTA).toInstant()
 
         verify(scopeService, atLeastOnce()).removeReservedScopes(anySet())
 
-        assertTrue(token.expiration!!.after(lowerBoundAccessTokens))
+        assertTrue(token.expirationInstant.isAfter(lowerBoundAccessTokens))
 
-        assertTrue(token.expiration!!.before(upperBoundAccessTokens))
+        assertTrue(token.expirationInstant.isBefore(upperBoundAccessTokens))
     }
 
     @Test

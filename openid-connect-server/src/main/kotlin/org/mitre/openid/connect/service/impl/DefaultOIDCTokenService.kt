@@ -31,8 +31,13 @@ import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.jwt.signer.service.impl.ClientKeyCacheService
 import org.mitre.jwt.signer.service.impl.SymmetricKeyJWTValidatorCacheService
 import org.mitre.oauth2.model.AuthenticationHolderEntity
+import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.GrantedAuthority
+import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
+import org.mitre.oauth2.model.OAuth2Authentication
 import org.mitre.oauth2.model.OAuthClientDetails
+import org.mitre.oauth2.model.convert.OAuth2Request
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.service.OAuth2TokenEntityService
 import org.mitre.oauth2.service.SystemScopeService
@@ -43,9 +48,6 @@ import org.mitre.openid.connect.util.IdTokenHashUtils
 import org.mitre.openid.connect.web.AuthenticationTimeStamper
 import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.oauth2.provider.OAuth2Authentication
-import org.springframework.security.oauth2.provider.OAuth2Request
 import org.springframework.stereotype.Service
 import java.util.*
 
@@ -79,7 +81,7 @@ class DefaultOIDCTokenService : OIDCTokenService {
         request: OAuth2Request,
         issueTime: Date?,
         sub: String?,
-        accessToken: OAuth2AccessTokenEntity
+        accessToken: OAuth2AccessToken.Builder
     ): JWT? {
         var signingAlg = jwtService.defaultSigningAlgorithm
 
@@ -127,7 +129,7 @@ class DefaultOIDCTokenService : OIDCTokenService {
 
         val responseTypes = request.responseTypes
 
-        if (responseTypes.contains("token")) {
+        if (responseTypes!=null && responseTypes.contains("token")) {
             // calculate the token hash
             val at_hash = IdTokenHashUtils.getAccessTokenHash(signingAlg!!, accessToken)
             idClaims.claim("at_hash", at_hash)
@@ -222,42 +224,42 @@ class DefaultOIDCTokenService : OIDCTokenService {
         // create a new token
         val authorizationParameters: Map<String, String> = hashMapOf()
         val clientAuth = OAuth2Request(
-            authorizationParameters, client.getClientId(),
-            hashSetOf(SimpleGrantedAuthority("ROLE_CLIENT")), true,
-            scope, null, null, null, null
+            authorizationParameters, client.getClientId()!!,
+            hashSetOf(GrantedAuthority("ROLE_CLIENT")), true,
+            scope ?: emptySet(), null, null, null, null
         )
         val authentication = OAuth2Authentication(clientAuth, null)
 
-        val token = OAuth2AccessTokenEntity()
-        token.client = client
-        token.scope = scope
+        val tokenBuilder = OAuth2AccessTokenEntity.Builder()
+        tokenBuilder.setClient(client)
+        tokenBuilder.scope = scope ?: emptySet()
 
         var authHolder = AuthenticationHolderEntity()
         authHolder.authentication = authentication
         authHolder = authenticationHolderRepository.save(authHolder)
-        token.authenticationHolder = authHolder
+        tokenBuilder.setAuthenticationHolder(authHolder)
 
         val claims = JWTClaimsSet.Builder()
             .audience(listOf(client.getClientId()))
             .issuer(configBean.issuer)
             .issueTime(Date())
-            .expirationTime(token.expiration)
+            .expirationTime(tokenBuilder.expiration)
             .jwtID(UUID.randomUUID().toString()) // set a random NONCE in the middle of it
             .build()
 
         val signingAlg = jwtService.defaultSigningAlgorithm
         val header = JWSHeader(
             signingAlg, null, null, null, null, null, null, null, null, null,
-            jwtService.defaultSignerKeyId,
+            jwtService.defaultSignerKeyId, true,
             null, null
         )
         val signed = SignedJWT(header, claims)
 
         jwtService.signJwt(signed)
 
-        token.jwt = signed
+        tokenBuilder.jwt = signed
 
-        return token
+        return tokenBuilder.build(ClientDetailsEntity.from(client), authenticationHolderRepository, tokenService)
     }
 
     /**
@@ -271,7 +273,7 @@ class DefaultOIDCTokenService : OIDCTokenService {
      */
     protected fun addCustomIdTokenClaims(
         idClaims: JWTClaimsSet.Builder, client: OAuthClientDetails, request: OAuth2Request?,
-        sub: String?, accessToken: OAuth2AccessTokenEntity?
+        sub: String?, accessToken: OAuth2AccessToken.Builder?
     ) {
     }
 

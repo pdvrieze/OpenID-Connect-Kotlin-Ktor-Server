@@ -43,6 +43,7 @@ import java.net.URISyntaxException
 import java.security.Principal
 import java.time.Instant
 import java.time.temporal.ChronoUnit
+import org.springframework.security.oauth2.provider.ClientDetails as SpringClientDetails
 
 /**
  * @author jricher
@@ -105,7 +106,7 @@ class OAuthConfirmationController {
         if (prompts.contains("none")) {
             // if we've got a redirect URI then we'll send it
             // TODO no longer use spring, remove cast
-            val url = redirectResolver.resolveRedirect(authRequest.redirectUri, client as ClientDetailsEntity)
+            val url = redirectResolver.resolveRedirect(authRequest.redirectUri, client as SpringClientDetails)
 
             try {
                 val uriBuilder = URIBuilder(url)

@@ -5,6 +5,7 @@ import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.selectAll
 import org.mitre.data.PageCriteria
 import org.mitre.oauth2.model.AuthenticationHolderEntity
+import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -63,7 +64,7 @@ private fun ResultRow.toAuthenticationHolder(): AuthenticationHolderEntity {
     val authorities = with(AuthenticationHolderAuthorities) {
         AuthenticationHolderAuthorities.select(authority)
             .where { ownerId eq authHolderId }
-            .map { SimpleGrantedAuthority(it[authority]) }
+            .map { GrantedAuthority(it[authority]!!) }
     }
 
     val resourceIds = with(AuthenticationHolderResourceIds) {
@@ -120,12 +121,12 @@ private fun ResultRow.toUserAuth(): SavedUserAuthentication {
 
     val authorities = with(SavedUserAuthAuthorities) {
         selectAll().where { ownerId eq savedUserId }
-        .map { SimpleGrantedAuthority(it[authority]) } }
+        .map { GrantedAuthority(it[authority]!!) } }
 
     return with(SavedUserAuths) {
         SavedUserAuthentication(
             id = savedUserId,
-            name = r[name],
+            name = r[name]!!,
             authorities = authorities,
             authenticated = r[authenticated],
             sourceClass = r[sourceClass]

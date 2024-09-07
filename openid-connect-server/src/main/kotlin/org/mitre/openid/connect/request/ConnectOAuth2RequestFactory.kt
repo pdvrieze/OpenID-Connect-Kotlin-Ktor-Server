@@ -34,17 +34,17 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception
 import org.springframework.security.oauth2.common.util.OAuth2Utils
-import org.springframework.security.oauth2.provider.AuthorizationRequest
 import org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory
 import org.springframework.stereotype.Component
 import java.text.ParseException
+import org.springframework.security.oauth2.provider.AuthorizationRequest as SpringAuthorizationRequest
 
 
 // TODO Spring specific
 @Component("connectOAuth2RequestFactory")
 class ConnectOAuth2RequestFactory @Autowired constructor(
     private val clientDetailsService: SpringClientDetailsEntityService
-) : DefaultOAuth2RequestFactory(clientDetailsService) {
+) /*: DefaultOAuth2RequestFactory(clientDetailsService)*/ {
 
     @Autowired
     private lateinit var validators: ClientKeyCacheService
@@ -52,8 +52,8 @@ class ConnectOAuth2RequestFactory @Autowired constructor(
     @Autowired
     private lateinit var encryptionService: JWTEncryptionAndDecryptionService
 
-    override fun createAuthorizationRequest(inputParams: Map<String, String>): AuthorizationRequest {
-        val request = AuthorizationRequest(
+    fun createAuthorizationRequest(inputParams: Map<String, String>): SpringAuthorizationRequest {
+        val request = SpringAuthorizationRequest(
             inputParams, emptyMap(),
             inputParams[OAuth2Utils.CLIENT_ID],
             OAuth2Utils.parseParameterList(inputParams[OAuth2Utils.SCOPE]), null,
@@ -111,7 +111,7 @@ class ConnectOAuth2RequestFactory @Autowired constructor(
                 val client = clientDetailsService.loadClientByClientId(request.clientId)
 
                 if ((request.scope == null || request.scope.isEmpty())) {
-                    val clientScopes: Set<String> = client!!.scope
+                    val clientScopes: Set<String> = client!!.getScope()
                     request.setScope(clientScopes)
                 }
 
@@ -127,7 +127,7 @@ class ConnectOAuth2RequestFactory @Autowired constructor(
     }
 
 
-    private fun processRequestObject(jwtString: String?, request: AuthorizationRequest) {
+    private fun processRequestObject(jwtString: String?, request: SpringAuthorizationRequest) {
         // parse the request object
 
         try {

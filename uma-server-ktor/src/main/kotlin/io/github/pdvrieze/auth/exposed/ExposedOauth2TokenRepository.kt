@@ -196,11 +196,11 @@ class ExposedOauth2TokenRepository(
         return transaction {
             val newId = with(AccessTokens) {
                 AccessTokens.save(tokenId) { b ->
-                    b[expiration] = token.expiration?.toInstant()
+                    b[expiration] = token.expiration.toInstant()
                     b[tokenValue] = token.jwt.serialize()
                     b[clientId] = token.client?.id
                     b[authHolderId] = token.authenticationHolder.id!!
-                    b[refreshTokenId] = token.refreshToken.id!!
+                    b[refreshTokenId] = token.refreshToken!!.id!!
                     b[tokenType] = token.tokenType
 
                 }
@@ -272,7 +272,7 @@ class ExposedOauth2TokenRepository(
 
             return OAuth2AccessTokenEntity(
                 id = tokenId,
-                expiration = r[expiration]?.let { Date.from(it) },
+                expiration = (r[expiration] ?: Instant.MIN).let { Date.from(it) },
                 jwt = JWTParser.parse(r[tokenValue]),
                 client = client,
                 authenticationHolder = authenticationHolder,

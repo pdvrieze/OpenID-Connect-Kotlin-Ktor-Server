@@ -64,8 +64,9 @@ class TestJpaOAuth2TokenRepository {
     }
 
     private fun createAccessToken(name: String): OAuth2AccessTokenEntity {
-        val userAuth = SavedUserAuthentication().let {
-            it.setName(name)
+        val userAuth = SavedUserAuthentication(
+            name = name,
+        ).let {
             entityManager.merge(it)
         }
 
@@ -83,8 +84,7 @@ class TestJpaOAuth2TokenRepository {
     }
 
     private fun createRefreshToken(name: String): OAuth2RefreshTokenEntity {
-        val userAuth = SavedUserAuthentication().let {
-            it.setName(name)
+        val userAuth = SavedUserAuthentication(name = name).let {
             entityManager.merge(it)
         }
 

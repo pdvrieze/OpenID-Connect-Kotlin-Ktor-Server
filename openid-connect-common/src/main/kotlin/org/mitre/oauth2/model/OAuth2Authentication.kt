@@ -14,4 +14,7 @@ class OAuth2Authentication(
 
     override val name: String
         get() = userAuthentication?.name ?: oAuth2Request.clientId
+
+    val isClientOnly: Boolean
+        get() = userAuthentication == null
 }

@@ -17,6 +17,9 @@
  */
 package org.mitre.openid.connect.client
 
+import io.github.pdvrieze.openid.spring.SpringFacade
+import io.github.pdvrieze.openid.spring.toSpring
+import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.openid.connect.model.OIDCAuthenticationToken
 import org.mitre.openid.connect.model.PendingOIDCAuthenticationToken
 import org.mitre.openid.connect.model.UserInfo
@@ -24,8 +27,8 @@ import org.mitre.util.getLogger
 import org.springframework.security.authentication.AuthenticationProvider
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.AuthenticationException
-import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.UsernameNotFoundException
+import org.springframework.security.core.GrantedAuthority as SpringGrantedAuthority
 
 /**
  * @author nemonik, Justin Richer
@@ -43,31 +46,32 @@ class OIDCAuthenticationProvider : AuthenticationProvider {
 	 */
     @Throws(AuthenticationException::class)
     override fun authenticate(authentication: Authentication): Authentication? {
-        if (!supports(authentication.javaClass)) {
+
+        val token = (authentication as? SpringFacade<*> ?: return null).original
+
+        if (!supports(token.javaClass)) {
             return null
         }
 
-        if (authentication is PendingOIDCAuthenticationToken) {
-            val token = authentication
+        if (token !is PendingOIDCAuthenticationToken) return null
 
-            // get the ID Token value out
-            val idToken = token.idToken
+        // get the ID Token value out
+        val idToken = token.idToken
 
-            // load the user info if we can
-            val userInfo = userInfoFetcher.loadUserInfo(token)
+        // load the user info if we can
+        val userInfo = userInfoFetcher.loadUserInfo(token)
 
-            if (userInfo == null) {
-                // user info not found -- could be an error, could be fine
-            } else {
-                // if we found userinfo, double check it
-                if (!userInfo.sub.isNullOrEmpty() && userInfo.sub != token.sub) {
-                    // the userinfo came back and the user_id fields don't match what was in the id_token
-                    throw UsernameNotFoundException("user_id mismatch between id_token and user_info call: " + token.sub + " / " + userInfo.sub)
-                }
+        if (userInfo == null) {
+            // user info not found -- could be an error, could be fine
+        } else {
+            // if we found userinfo, double check it
+            if (!userInfo.sub.isNullOrEmpty() && userInfo.sub != token.sub) {
+                // the userinfo came back and the user_id fields don't match what was in the id_token
+                throw UsernameNotFoundException("user_id mismatch between id_token and user_info call: " + token.sub + " / " + userInfo.sub)
             }
-
-            return createAuthenticationToken(token, authoritiesMapper.mapAuthorities(idToken!!, userInfo), userInfo)
         }
+
+        return createAuthenticationToken(token, authoritiesMapper.mapAuthorities(idToken!!, userInfo), userInfo)
 
         return null
     }
@@ -79,15 +83,15 @@ class OIDCAuthenticationProvider : AuthenticationProvider {
      */
     protected fun createAuthenticationToken(
         token: PendingOIDCAuthenticationToken,
-        authorities: Collection<GrantedAuthority>?,
+        authorities: Collection<SpringGrantedAuthority>?,
         userInfo: UserInfo?
     ): Authentication {
         return OIDCAuthenticationToken(
             token.sub,
             token.issuer,
-            userInfo, authorities,
+            userInfo, authorities?.map { GrantedAuthority(it.authority) },
             token.idToken, token.accessTokenValue, token.refreshTokenValue
-        )
+        ).toSpring()
     }
 
 
@@ -108,7 +112,7 @@ class OIDCAuthenticationProvider : AuthenticationProvider {
 	 * (java.lang.Class)
 	 */
     override fun supports(authentication: Class<*>?): Boolean {
-        return PendingOIDCAuthenticationToken::class.java.isAssignableFrom(authentication)
+        return SpringFacade::class.java.isAssignableFrom(authentication)
     }
 
     companion object {

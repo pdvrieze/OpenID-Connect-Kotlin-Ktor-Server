@@ -1,5 +1,8 @@
 package org.mitre.oauth2.model
 
+import com.nimbusds.jwt.JWT
+import com.nimbusds.jwt.JWTParser
+import com.nimbusds.jwt.SignedJWT
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.*
@@ -19,9 +22,23 @@ interface OAuth2AccessToken {
         }
     val value: String
 
+    val jwt: JWT get() = JWTParser.parse(value)
+
+    val authenticationHolder: AuthenticationHolderEntity
+    val client: OAuthClientDetails?
+
     companion object {
         val BEARER_TYPE = "Bearer"
         val OAUTH2_TYPE = "OAuth2"
+    }
+
+    fun builder(): Builder
+
+    interface Builder {
+        var jwt: JWT?
+        var expiration: Date?
+
+        fun setIdToken(idToken: JWT?)
     }
 }
 

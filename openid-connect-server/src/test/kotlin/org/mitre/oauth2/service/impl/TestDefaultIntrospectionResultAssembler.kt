@@ -17,8 +17,13 @@ package org.mitre.oauth2.service.impl
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.mitre.oauth2.model.Authentication
+import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
+import org.mitre.oauth2.model.OAuth2Authentication
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
+import org.mitre.oauth2.model.SavedUserAuthentication
+import org.mitre.oauth2.model.convert.OAuth2Request
 import org.mitre.oauth2.service.IntrospectionResultAssembler
 import org.mitre.openid.connect.model.UserInfo
 import org.mitre.uma.model.Permission
@@ -26,13 +31,13 @@ import org.mockito.Mockito
 import org.mockito.kotlin.given
 import org.mockito.kotlin.mock
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.Authentication
-import org.springframework.security.oauth2.provider.OAuth2Authentication
-import org.springframework.security.oauth2.provider.OAuth2Request
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.swing.text.DateFormatter
+import org.springframework.security.core.Authentication as SpringAuthentication
+import org.springframework.security.oauth2.provider.OAuth2Authentication as SpringOAuth2Authentication
+import org.springframework.security.oauth2.provider.OAuth2Request as SpringOAuth2Request
 
 class TestDefaultIntrospectionResultAssembler {
     private val assembler: IntrospectionResultAssembler = DefaultIntrospectionResultAssembler()
@@ -342,12 +347,16 @@ class TestDefaultIntrospectionResultAssembler {
         mock<OAuth2AccessTokenEntity>(defaultAnswer = Mockito.RETURNS_DEEP_STUBS)
         return mock<OAuth2RefreshTokenEntity>(defaultAnswer = Mockito.RETURNS_DEEP_STUBS).apply {
             given(expiration).willReturn(exp)
-            given(authenticationHolder!!.authentication).willReturn(authentication)
+            given(authenticationHolder.authentication).willReturn(authentication)
         }
     }
 
     private fun oauth2AuthenticationWithUser(request: OAuth2Request, username: String): OAuth2Authentication {
-        val userAuthentication = UsernamePasswordAuthenticationToken(username, "somepassword")
+        val userAuthentication = object : Authentication {
+            override val name: String get() = username
+            override val authorities: Collection<GrantedAuthority> get() = emptySet()
+            override val isAuthenticated: Boolean get() = true
+        }
         return oauth2Authentication(request, userAuthentication)
     }
 
@@ -355,11 +364,21 @@ class TestDefaultIntrospectionResultAssembler {
         request: OAuth2Request,
         userAuthentication: Authentication?
     ): OAuth2Authentication {
-        return OAuth2Authentication(request, userAuthentication)
+        return OAuth2Authentication(request, userAuthentication?.let { SavedUserAuthentication.from(it) })
     }
 
     private fun oauth2Request(clientId: String, scopes: Set<String>? = null): OAuth2Request {
-        return OAuth2Request(null, clientId, null, true, scopes, null, null, null, null)
+        return OAuth2Request(
+            requestParameters = emptyMap(),
+            clientId = clientId,
+            authorities = emptySet(),
+            isApproved = true,
+            scope = emptySet(),
+            resourceIds = null,
+            redirectUri = null,
+            responseTypes = null,
+            extensionStrings = null
+        )
     }
 
     private fun scopes(vararg scopes: String): Set<String> {

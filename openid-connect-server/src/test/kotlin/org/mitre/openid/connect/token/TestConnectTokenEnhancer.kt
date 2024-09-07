@@ -26,6 +26,8 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
+import org.mitre.oauth2.model.OAuth2Authentication
+import org.mitre.oauth2.model.convert.OAuth2Request
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.service.OIDCTokenService
@@ -35,9 +37,9 @@ import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.whenever
-import org.springframework.security.oauth2.provider.OAuth2Authentication
-import org.springframework.security.oauth2.provider.OAuth2Request
 import java.text.ParseException
+import org.springframework.security.oauth2.provider.OAuth2Authentication as SpringOAuth2Authentication
+import org.springframework.security.oauth2.provider.OAuth2Request as SpringOAuth2Request
 
 @ExtendWith(MockitoExtension::class)
 class TestConnectTokenEnhancer {
@@ -58,7 +60,7 @@ class TestConnectTokenEnhancer {
     @Mock
     private lateinit var authentication: OAuth2Authentication
 
-    private val request: OAuth2Request = object : OAuth2Request(CLIENT_ID) {}
+    private val request: OAuth2Request = OAuth2Request(clientId = CLIENT_ID)
 
     @InjectMocks
     private var enhancer = ConnectTokenEnhancer()
@@ -68,8 +70,9 @@ class TestConnectTokenEnhancer {
         configBean.issuer = "https://auth.example.org/"
         enhancer.configBean = configBean
 
-        val client = ClientDetailsEntity()
-        client.clientId = CLIENT_ID
+        val client = ClientDetailsEntity(
+            clientId = CLIENT_ID
+        )
         whenever(clientService.loadClientByClientId(anyString())).thenReturn(client)
         whenever(authentication.oAuth2Request).thenReturn(request)
         whenever(jwtService.defaultSigningAlgorithm).thenReturn(JWSAlgorithm.RS256)
@@ -82,16 +85,16 @@ class TestConnectTokenEnhancer {
         configure(object : ConnectTokenEnhancer() {
             override fun addCustomAccessTokenClaims(
                 builder: JWTClaimsSet.Builder, token: OAuth2AccessTokenEntity?,
-                authentication: OAuth2Authentication?
+                authentication: SpringOAuth2Authentication?
             ) {
                 builder.claim("test", "foo")
             }
         }.also { enhancer = it })
 
-        val token = OAuth2AccessTokenEntity()
+        val tokenBuilder = OAuth2AccessTokenEntity.Builder()
 
-        val enhanced = enhancer.enhance(token, authentication) as OAuth2AccessTokenEntity
-        assertEquals("foo", enhanced.jwt!!.jwtClaimsSet.getClaim("test"))
+        val enhanced = enhancer.enhance(tokenBuilder, authentication) as OAuth2AccessTokenEntity
+        assertEquals("foo", enhanced.jwt.jwtClaimsSet.getClaim("test"))
     }
 
     private fun configure(e: ConnectTokenEnhancer) {

@@ -67,9 +67,9 @@ class OIDCAuthenticationToken(
         return principal
     }
 
-    /*
-	 * Custom serialization to handle the JSON object
-	 */
+    /**
+     * Custom serialization to handle the JSON object
+     */
     @Throws(IOException::class)
     private fun writeObject(out: ObjectOutputStream) {
         out.defaultWriteObject()

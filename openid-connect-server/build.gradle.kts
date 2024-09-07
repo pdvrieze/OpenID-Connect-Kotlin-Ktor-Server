@@ -10,7 +10,7 @@ base {
 }
 
 dependencies {
-    api(projects.openidConnectCommon)
+    api(projects.openidConnectSpring)
     implementation(libs.servlet.api)
     implementation(libs.spring.tx)
     implementation(libs.spring.orm) {

@@ -17,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.jwt.signer.service.impl.ClientKeyCacheService
 import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
@@ -29,12 +30,12 @@ import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
 import org.springframework.security.authentication.AuthenticationServiceException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException
 import java.util.*
 import java.util.concurrent.TimeUnit
+import org.springframework.security.core.GrantedAuthority as SpringGrantedAuthority
 
 @ExtendWith(MockitoExtension::class)
 @MockitoSettings(strictness = Strictness.WARN)
@@ -66,9 +67,9 @@ class TestJWTBearerAuthenticationProvider {
 
         whenever(token.name).thenReturn(CLIENT_ID)
 
-        whenever(client.clientId).thenReturn(CLIENT_ID)
+        whenever(client.getClientId()).thenReturn(CLIENT_ID)
         whenever(client.tokenEndpointAuthMethod).thenReturn(AuthMethod.NONE)
-        whenever(client.authorities).thenReturn(setOf(authority1, authority2, authority3))
+        whenever(client.getAuthorities()).thenReturn(setOf(authority1, authority2, authority3))
 
         whenever(validators.getValidator(client, JWSAlgorithm.RS256)).thenReturn(validator)
         whenever(validator.validateSignature(isA<SignedJWT>())).thenReturn(true)
@@ -320,7 +321,7 @@ class TestJWTBearerAuthenticationProvider {
         val token = authentication as JWTBearerAssertionAuthenticationToken
         assertEquals(SUBJECT, token.name)
         assertEquals(jwt, token.jwt)
-        assertTrue(token.authorities.containsAll(listOf(authority1, authority2, authority3)))
+        assertTrue(token.authorities.map { GrantedAuthority(it.authority) }.containsAll(listOf(authority1, authority2, authority3)))
         assertEquals(4, token.authorities.size)
     }
 
@@ -342,7 +343,7 @@ class TestJWTBearerAuthenticationProvider {
         val token = authentication as JWTBearerAssertionAuthenticationToken
         assertEquals(SUBJECT, token.name)
         assertEquals(jwt, token.jwt)
-        assertTrue(token.authorities.containsAll(listOf(authority1, authority2, authority3)))
+        assertTrue(token.authorities.map { GrantedAuthority(it.authority) }.containsAll(listOf(authority1, authority2, authority3)))
         assertEquals(4, token.authorities.size)
     }
 
@@ -398,8 +399,8 @@ class TestJWTBearerAuthenticationProvider {
     companion object {
         private const val CLIENT_ID = "client"
         private const val SUBJECT = "subject"
-        private val authority1: GrantedAuthority = SimpleGrantedAuthority("1")
-        private val authority2: GrantedAuthority = SimpleGrantedAuthority("2")
-        private val authority3: GrantedAuthority = SimpleGrantedAuthority("3")
+        private val authority1: GrantedAuthority = GrantedAuthority("1")
+        private val authority2: GrantedAuthority = GrantedAuthority("2")
+        private val authority3: GrantedAuthority = GrantedAuthority("3")
     }
 }

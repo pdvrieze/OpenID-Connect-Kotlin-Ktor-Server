@@ -17,6 +17,9 @@
  */
 package org.mitre.oauth2.token
 
+import io.github.pdvrieze.openid.spring.fromSpring
+import io.github.pdvrieze.openid.spring.toSpring
+import org.mitre.oauth2.model.OAuth2Authentication
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.OAuth2TokenEntityService
 import org.springframework.beans.factory.annotation.Autowired
@@ -25,11 +28,12 @@ import org.springframework.security.oauth2.common.exceptions.InvalidScopeExcepti
 import org.springframework.security.oauth2.common.exceptions.InvalidTokenException
 import org.springframework.security.oauth2.provider.ClientDetails
 import org.springframework.security.oauth2.provider.ClientDetailsService
-import org.springframework.security.oauth2.provider.OAuth2Authentication
 import org.springframework.security.oauth2.provider.OAuth2RequestFactory
 import org.springframework.security.oauth2.provider.TokenRequest
 import org.springframework.security.oauth2.provider.token.AbstractTokenGranter
 import org.springframework.stereotype.Component
+import org.springframework.security.oauth2.common.OAuth2AccessToken as SpringOAuth2AccessToken
+import org.springframework.security.oauth2.provider.OAuth2Authentication as SpringOAuth2Authentication
 
 /**
  * @author jricher
@@ -40,10 +44,10 @@ class ChainedTokenGranter @Autowired constructor(// keep down-cast versions so w
     clientDetailsService: ClientDetailsEntityService?,
     requestFactory: OAuth2RequestFactory?
     // TODO: remove cast to ClientDetails service, but that means inhertence needs to be different
-) : AbstractTokenGranter(tokenServices, clientDetailsService as ClientDetailsService, requestFactory, GRANT_TYPE) {
+) : AbstractTokenGranter(null, clientDetailsService as ClientDetailsService, requestFactory, GRANT_TYPE) {
 
     @Throws(AuthenticationException::class, InvalidTokenException::class)
-    override fun getOAuth2Authentication(client: ClientDetails, tokenRequest: TokenRequest): OAuth2Authentication {
+    override fun getOAuth2Authentication(client: ClientDetails, tokenRequest: TokenRequest): SpringOAuth2Authentication {
         // read and load up the existing token
         val incomingTokenValue = tokenRequest.requestParameters["token"]
         val incomingToken = incomingTokenValue?.let { tokenServices.readAccessToken(it) }
@@ -72,12 +76,16 @@ class ChainedTokenGranter @Autowired constructor(// keep down-cast versions so w
 
             // create a new access token
             val authentication =
-                OAuth2Authentication(requestFactory.createOAuth2Request(client, tokenRequest), incomingToken.authenticationHolder.authentication.userAuthentication)
+                OAuth2Authentication(requestFactory.createOAuth2Request(client, tokenRequest).fromSpring(), incomingToken.authenticationHolder.authentication.userAuthentication)
 
-            return authentication
+            return authentication.toSpring()
         } else {
             throw InvalidScopeException("Invalid scope requested in chained request", approvedScopes)
         }
+    }
+
+    override fun getAccessToken(client: ClientDetails, tokenRequest: TokenRequest): SpringOAuth2AccessToken {
+        return tokenServices.createAccessToken(getOAuth2Authentication(client, tokenRequest).fromSpring()).toSpring()
     }
 
     companion object {

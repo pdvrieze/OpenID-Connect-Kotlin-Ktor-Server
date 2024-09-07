@@ -92,8 +92,8 @@ class ProtectedResourceRegistrationEndpoint {
 
             // clear out any spurious id/secret (clients don't get to pick)
 
-            newClient.clientId = null
-            newClient.clientSecret = null
+            newClient.setClientId(null)
+            newClient.setClientSecret(null)
 
             // do validation on the fields
             try {
@@ -114,9 +114,9 @@ class ProtectedResourceRegistrationEndpoint {
             newClient.redirectUris = HashSet()
 
             // don't issue tokens to this client
-            newClient.accessTokenValiditySeconds = 0
+            newClient.setAccessTokenValiditySeconds(0)
             newClient.idTokenValiditySeconds = 0
-            newClient.refreshTokenValiditySeconds = 0
+            newClient.setRefreshTokenValiditySeconds(0)
 
             // clear out unused fields
             newClient.defaultACRvalues = HashSet()
@@ -177,7 +177,7 @@ class ProtectedResourceRegistrationEndpoint {
     @Throws(ValidationException::class)
     private fun validateScopes(newClient: ClientDetailsEntity): ClientDetailsEntity {
         // scopes that the client is asking for
-        val requestedScopes = scopeService.fromStrings(newClient.scope)!!
+        val requestedScopes = scopeService.fromStrings(newClient.getScope())!!
 
         // the scopes that the client can have must be a subset of the dynamically allowed scopes
         var allowedScopes: Set<SystemScope>? = scopeService.removeRestrictedAndReservedScopes(requestedScopes)
@@ -250,7 +250,7 @@ class ProtectedResourceRegistrationEndpoint {
         val oldClient = clientService.loadClientByClientId(clientId)
 
         if (newClient == null || oldClient == null ||
-            oldClient.getClientId() != auth.oAuth2Request.clientId || oldClient.getClientId() != newClient.clientId) {
+            oldClient.getClientId() != auth.oAuth2Request.clientId || oldClient.getClientId() != newClient.getClientId()) {
             // client mismatch
             logger.error(
                 "updateProtectedResource failed, client ID mismatch: $clientId and ${auth.oAuth2Request.clientId} do not match."
@@ -263,7 +263,7 @@ class ProtectedResourceRegistrationEndpoint {
         // we have an existing client and the new one parsed
         // a client can't ask to update its own client secret to any particular value
 
-        newClient.clientSecret = oldClient.getClientSecret()
+        newClient.setClientSecret(oldClient.getClientSecret())
 
         newClient.createdAt = oldClient.createdAt
 
@@ -273,9 +273,9 @@ class ProtectedResourceRegistrationEndpoint {
         newClient.redirectUris = HashSet()
 
         // don't issue tokens to this client
-        newClient.accessTokenValiditySeconds = 0
+        newClient.setAccessTokenValiditySeconds(0)
         newClient.idTokenValiditySeconds = 0
-        newClient.refreshTokenValiditySeconds = 0
+        newClient.setRefreshTokenValiditySeconds(0)
 
         // clear out unused fields
         newClient.defaultACRvalues = HashSet()
@@ -373,7 +373,7 @@ class ProtectedResourceRegistrationEndpoint {
         }
 
         if (newClient.tokenEndpointAuthMethod == AuthMethod.SECRET_BASIC || newClient.tokenEndpointAuthMethod == AuthMethod.SECRET_JWT || newClient.tokenEndpointAuthMethod == AuthMethod.SECRET_POST) {
-            if (newClient.clientSecret.isNullOrEmpty()) {
+            if (newClient.getClientSecret().isNullOrEmpty()) {
                 // no secret yet, we need to generate a secret
                 newClient = newClient.copy(clientSecret = clientService.generateClientSecret(newClient))
             }
@@ -382,9 +382,9 @@ class ProtectedResourceRegistrationEndpoint {
                 throw ValidationException("invalid_client_metadata", "JWK Set URI required when using private key authentication", HttpStatus.BAD_REQUEST)
             }
 
-            newClient.clientSecret = null
+            newClient.setClientSecret(null)
         } else if (newClient.tokenEndpointAuthMethod == AuthMethod.NONE) {
-            newClient.clientSecret = null
+            newClient.setClientSecret(null)
         } else {
             throw ValidationException("invalid_client_metadata", "Unknown authentication method", HttpStatus.BAD_REQUEST)
         }

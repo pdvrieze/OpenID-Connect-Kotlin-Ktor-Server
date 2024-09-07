@@ -13,7 +13,7 @@ class OAuth2Request(
     val authorities: Set<GrantedAuthority> = emptySet(),
     @SerialName("approved")
     val isApproved: Boolean = false,
-    val scope: Set<String>? = null,
+    val scope: Set<String> = emptySet(),
     val resourceIds: Set<String>? = null,
     val redirectUri: String? = null,
     val responseTypes: Set<String>? = null,
@@ -22,6 +22,33 @@ class OAuth2Request(
     val approvalParameters: JsonElement? = null,
 ) {
     val denied: Boolean get() = ! isApproved
+    val extensions: Map<String, String> get() = extensionStrings ?: emptyMap()
+
+    fun copy(
+        requestParameters: Map<String, String> = this.requestParameters,
+        clientId: String = this.clientId,
+        authorities: Set<GrantedAuthority> = this.authorities,
+        isApproved: Boolean = this.isApproved,
+        scope: Set<String> = emptySet(),
+        resourceIds: Set<String>? = null,
+        redirectUri: String? = null,
+        responseTypes: Set<String>? = null,
+        extensionStrings: Map<String, String>? = null,
+        approvalParameters: JsonElement? = null,
+    ) : OAuth2Request {
+        return OAuth2Request(
+            requestParameters = requestParameters,
+            clientId = clientId,
+            authorities = authorities,
+            isApproved = isApproved,
+            scope = scope,
+            resourceIds = resourceIds,
+            redirectUri = redirectUri,
+            responseTypes = responseTypes,
+            extensionStrings = extensionStrings,
+            approvalParameters = approvalParameters,
+        )
+    }
 }
 
 

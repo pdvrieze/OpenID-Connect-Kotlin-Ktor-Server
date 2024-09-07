@@ -31,10 +31,13 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
+import org.mitre.oauth2.model.OAuth2Authentication
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.PKCEAlgorithm
 import org.mitre.oauth2.model.PKCEAlgorithm.Companion.parse
+import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.SystemScope
+import org.mitre.oauth2.model.convert.OAuth2Request
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2ClientRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
@@ -78,11 +81,6 @@ import org.mockito.quality.Strictness
 import org.mockito.stubbing.Answer
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.format.datetime.DateFormatter
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.Authentication
-import org.springframework.security.core.authority.AuthorityUtils
-import org.springframework.security.oauth2.provider.OAuth2Authentication
-import org.springframework.security.oauth2.provider.OAuth2Request
 import org.springframework.util.ReflectionUtils
 import java.io.IOException
 import java.text.ParseException
@@ -161,7 +159,7 @@ class TestMITREidDataService_1_3 {
         val expirationDate1 = formatter.parse(expiration1, Locale.ENGLISH)
 
         val mockedClient1 = mock<ClientDetailsEntity>()
-        whenever(mockedClient1.clientId).thenReturn("mocked_client_1")
+        whenever(mockedClient1.getClientId()).thenReturn("mocked_client_1")
 
         val mockedAuthHolder1 = mock<AuthenticationHolderEntity>()
         whenever(mockedAuthHolder1.id).thenReturn(1L)
@@ -178,7 +176,7 @@ class TestMITREidDataService_1_3 {
         val expirationDate2 = formatter.parse(expiration2, Locale.ENGLISH)
 
         val mockedClient2 = mock<ClientDetailsEntity>()
-        whenever(mockedClient2.clientId).thenReturn("mocked_client_2")
+        whenever(mockedClient2.getClientId()).thenReturn("mocked_client_2")
 
         val mockedAuthHolder2 = mock<AuthenticationHolderEntity>()
         whenever(mockedAuthHolder2.id).thenReturn(2L)
@@ -281,7 +279,7 @@ class TestMITREidDataService_1_3 {
         val expirationDate1 = formatter.parse(expiration1, Locale.ENGLISH)
 
         val mockedClient1 = mock<ClientDetailsEntity>()
-        whenever(mockedClient1.clientId).thenReturn("mocked_client_1")
+        whenever(mockedClient1.getClientId()).thenReturn("mocked_client_1")
 
         val mockedAuthHolder1 = mock<AuthenticationHolderEntity>()
         whenever(mockedAuthHolder1.id).thenReturn(1L)
@@ -298,7 +296,7 @@ class TestMITREidDataService_1_3 {
         val expirationDate2 = formatter.parse(expiration2, Locale.ENGLISH)
 
         val mockedClient2 = mock<ClientDetailsEntity>()
-        whenever(mockedClient2.clientId).thenReturn("mocked_client_2")
+        whenever(mockedClient2.getClientId()).thenReturn("mocked_client_2")
 
         val mockedAuthHolder2 = mock<AuthenticationHolderEntity>()
         whenever(mockedAuthHolder2.id).thenReturn(2L)
@@ -349,7 +347,7 @@ class TestMITREidDataService_1_3 {
         whenever(clientRepository.getClientByClientId(ArgumentMatchers.anyString())).thenAnswer { invocation ->
             val _clientId = invocation.arguments[0] as String
             val _client = mock<ClientDetailsEntity>()
-            whenever(_client.clientId).thenReturn(_clientId)
+            whenever(_client.getClientId()).thenReturn(_clientId)
             _client
         }
         whenever(authHolderRepository.getById(any()))
@@ -394,26 +392,26 @@ class TestMITREidDataService_1_3 {
         val expirationDate1 = formatter.parse(expiration1, Locale.ENGLISH)
 
         val mockedClient1 = mock<ClientDetailsEntity>()
-        whenever(mockedClient1.clientId).thenReturn("mocked_client_1")
+        whenever(mockedClient1.getClientId()).thenReturn("mocked_client_1")
 
         val mockedAuthHolder1 = mock<AuthenticationHolderEntity>()
         whenever(mockedAuthHolder1.id).thenReturn(1L)
 
-        val token1 = OAuth2AccessTokenEntity()
-        token1.id = 1L
-        token1.client = mockedClient1
-        token1.expiration = expirationDate1
-        token1.jwt =
-            JWTParser.parse("eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0MTI3ODk5NjgsInN1YiI6IjkwMzQyLkFTREZKV0ZBIiwiYXRfaGFzaCI6InptTmt1QmNRSmNYQktNaVpFODZqY0EiLCJhdWQiOlsiY2xpZW50Il0sImlzcyI6Imh0dHA6XC9cL2xvY2FsaG9zdDo4MDgwXC9vcGVuaWQtY29ubmVjdC1zZXJ2ZXItd2ViYXBwXC8iLCJpYXQiOjE0MTI3ODkzNjh9.xkEJ9IMXpH7qybWXomfq9WOOlpGYnrvGPgey9UQ4GLzbQx7JC0XgJK83PmrmBZosvFPCmota7FzI_BtwoZLgAZfFiH6w3WIlxuogoH-TxmYbxEpTHoTsszZppkq9mNgOlArV4jrR9y3TPo4MovsH71dDhS_ck-CvAlJunHlqhs0")
-        token1.authenticationHolder = mockedAuthHolder1
-        token1.scope = setOf("id-token")
-        token1.tokenType = "Bearer"
+        val token1 = OAuth2AccessTokenEntity(
+            id = 1L,
+            client = mockedClient1,
+            expiration = expirationDate1,
+            jwt = JWTParser.parse("eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0MTI3ODk5NjgsInN1YiI6IjkwMzQyLkFTREZKV0ZBIiwiYXRfaGFzaCI6InptTmt1QmNRSmNYQktNaVpFODZqY0EiLCJhdWQiOlsiY2xpZW50Il0sImlzcyI6Imh0dHA6XC9cL2xvY2FsaG9zdDo4MDgwXC9vcGVuaWQtY29ubmVjdC1zZXJ2ZXItd2ViYXBwXC8iLCJpYXQiOjE0MTI3ODkzNjh9.xkEJ9IMXpH7qybWXomfq9WOOlpGYnrvGPgey9UQ4GLzbQx7JC0XgJK83PmrmBZosvFPCmota7FzI_BtwoZLgAZfFiH6w3WIlxuogoH-TxmYbxEpTHoTsszZppkq9mNgOlArV4jrR9y3TPo4MovsH71dDhS_ck-CvAlJunHlqhs0"),
+            authenticationHolder = mockedAuthHolder1,
+            scope = setOf("id-token"),
+            tokenType = "Bearer",
+        )
 
         val expiration2 = "2015-01-07T18:31:50.079+00:00"
         val expirationDate2 = formatter.parse(expiration2, Locale.ENGLISH)
 
         val mockedClient2 = mock<ClientDetailsEntity>()
-        whenever(mockedClient2.clientId).thenReturn("mocked_client_2")
+        whenever(mockedClient2.getClientId()).thenReturn("mocked_client_2")
 
         val mockedAuthHolder2 = mock<AuthenticationHolderEntity>()
         whenever(mockedAuthHolder2.id).thenReturn(2L)
@@ -421,16 +419,16 @@ class TestMITREidDataService_1_3 {
         val mockRefreshToken2 = mock<OAuth2RefreshTokenEntity>()
         whenever(mockRefreshToken2.id).thenReturn(1L)
 
-        val token2 = OAuth2AccessTokenEntity()
-        token2.id = 2L
-        token2.client = mockedClient2
-        token2.expiration = expirationDate2
-        token2.jwt =
-            JWTParser.parse("eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0MTI3OTI5NjgsImF1ZCI6WyJjbGllbnQiXSwiaXNzIjoiaHR0cDpcL1wvbG9jYWxob3N0OjgwODBcL29wZW5pZC1jb25uZWN0LXNlcnZlci13ZWJhcHBcLyIsImp0aSI6IjBmZGE5ZmRiLTYyYzItNGIzZS05OTdiLWU0M2VhMDUwMzNiOSIsImlhdCI6MTQxMjc4OTM2OH0.xgaVpRLYE5MzbgXfE0tZt823tjAm6Oh3_kdR1P2I9jRLR6gnTlBQFlYi3Y_0pWNnZSerbAE8Tn6SJHZ9k-curVG0-ByKichV7CNvgsE5X_2wpEaUzejvKf8eZ-BammRY-ie6yxSkAarcUGMvGGOLbkFcz5CtrBpZhfd75J49BIQ")
-        token2.authenticationHolder = mockedAuthHolder2
-        token2.refreshToken = mockRefreshToken2
-        token2.scope = setOf("openid", "offline_access", "email", "profile")
-        token2.tokenType = "Bearer"
+        val token2 = OAuth2AccessTokenEntity(
+            id = 2L,
+            client = mockedClient2,
+            expiration = expirationDate2,
+            jwt = JWTParser.parse("eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0MTI3OTI5NjgsImF1ZCI6WyJjbGllbnQiXSwiaXNzIjoiaHR0cDpcL1wvbG9jYWxob3N0OjgwODBcL29wZW5pZC1jb25uZWN0LXNlcnZlci13ZWJhcHBcLyIsImp0aSI6IjBmZGE5ZmRiLTYyYzItNGIzZS05OTdiLWU0M2VhMDUwMzNiOSIsImlhdCI6MTQxMjc4OTM2OH0.xgaVpRLYE5MzbgXfE0tZt823tjAm6Oh3_kdR1P2I9jRLR6gnTlBQFlYi3Y_0pWNnZSerbAE8Tn6SJHZ9k-curVG0-ByKichV7CNvgsE5X_2wpEaUzejvKf8eZ-BammRY-ie6yxSkAarcUGMvGGOLbkFcz5CtrBpZhfd75J49BIQ"),
+            authenticationHolder = mockedAuthHolder2,
+            refreshToken = mockRefreshToken2,
+            scope = setOf("openid", "offline_access", "email", "profile"),
+            tokenType = "Bearer",
+        )
 
         val allAccessTokens: Set<OAuth2AccessTokenEntity> = setOf(token1, token2)
 
@@ -508,7 +506,7 @@ class TestMITREidDataService_1_3 {
                 if (token["refreshTokenId"] is JsonNull) {
                     assertNull(compare.refreshToken)
                 } else {
-                    assertEquals(compare.refreshToken.id, token["refreshTokenId"]!!.jsonPrimitive.long)
+                    assertEquals(compare.refreshToken!!.id, token["refreshTokenId"]!!.jsonPrimitive.long)
                 }
                 checked.add(compare)
             }
@@ -530,26 +528,26 @@ class TestMITREidDataService_1_3 {
         val expirationDate1 = formatter.parse(expiration1, Locale.ENGLISH)
 
         val mockedClient1 = mock<ClientDetailsEntity>()
-        whenever(mockedClient1.clientId).thenReturn("mocked_client_1")
+        whenever(mockedClient1.getClientId()).thenReturn("mocked_client_1")
 
         val mockedAuthHolder1 = mock<AuthenticationHolderEntity>()
         whenever(mockedAuthHolder1.id).thenReturn(1L)
 
-        val token1 = OAuth2AccessTokenEntity()
-        token1.id = 1L
-        token1.client = mockedClient1
-        token1.expiration = expirationDate1
-        token1.jwt =
-            JWTParser.parse("eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0MTI3ODk5NjgsInN1YiI6IjkwMzQyLkFTREZKV0ZBIiwiYXRfaGFzaCI6InptTmt1QmNRSmNYQktNaVpFODZqY0EiLCJhdWQiOlsiY2xpZW50Il0sImlzcyI6Imh0dHA6XC9cL2xvY2FsaG9zdDo4MDgwXC9vcGVuaWQtY29ubmVjdC1zZXJ2ZXItd2ViYXBwXC8iLCJpYXQiOjE0MTI3ODkzNjh9.xkEJ9IMXpH7qybWXomfq9WOOlpGYnrvGPgey9UQ4GLzbQx7JC0XgJK83PmrmBZosvFPCmota7FzI_BtwoZLgAZfFiH6w3WIlxuogoH-TxmYbxEpTHoTsszZppkq9mNgOlArV4jrR9y3TPo4MovsH71dDhS_ck-CvAlJunHlqhs0")
-        token1.authenticationHolder = mockedAuthHolder1
-        token1.scope = setOf("id-token")
-        token1.tokenType = "Bearer"
+        val token1 = OAuth2AccessTokenEntity(
+            id = 1L,
+            client = mockedClient1,
+            expiration = expirationDate1,
+            jwt = JWTParser.parse("eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0MTI3ODk5NjgsInN1YiI6IjkwMzQyLkFTREZKV0ZBIiwiYXRfaGFzaCI6InptTmt1QmNRSmNYQktNaVpFODZqY0EiLCJhdWQiOlsiY2xpZW50Il0sImlzcyI6Imh0dHA6XC9cL2xvY2FsaG9zdDo4MDgwXC9vcGVuaWQtY29ubmVjdC1zZXJ2ZXItd2ViYXBwXC8iLCJpYXQiOjE0MTI3ODkzNjh9.xkEJ9IMXpH7qybWXomfq9WOOlpGYnrvGPgey9UQ4GLzbQx7JC0XgJK83PmrmBZosvFPCmota7FzI_BtwoZLgAZfFiH6w3WIlxuogoH-TxmYbxEpTHoTsszZppkq9mNgOlArV4jrR9y3TPo4MovsH71dDhS_ck-CvAlJunHlqhs0"),
+            authenticationHolder = mockedAuthHolder1,
+            scope = setOf("id-token"),
+            tokenType = "Bearer",
+        )
 
         val expiration2 = "2015-01-07T18:31:50.079+00:00"
         val expirationDate2 = formatter.parse(expiration2, Locale.ENGLISH)
 
         val mockedClient2 = mock<ClientDetailsEntity>()
-        whenever(mockedClient2.clientId).thenReturn("mocked_client_2")
+        whenever(mockedClient2.getClientId()).thenReturn("mocked_client_2")
 
         val mockedAuthHolder2 = mock<AuthenticationHolderEntity>()
         whenever(mockedAuthHolder2.id).thenReturn(2L)
@@ -557,16 +555,16 @@ class TestMITREidDataService_1_3 {
         val mockRefreshToken2 = mock<OAuth2RefreshTokenEntity>()
         whenever(mockRefreshToken2.id).thenReturn(1L)
 
-        val token2 = OAuth2AccessTokenEntity()
-        token2.id = 2L
-        token2.client = mockedClient2
-        token2.expiration = expirationDate2
-        token2.jwt =
-            JWTParser.parse("eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0MTI3OTI5NjgsImF1ZCI6WyJjbGllbnQiXSwiaXNzIjoiaHR0cDpcL1wvbG9jYWxob3N0OjgwODBcL29wZW5pZC1jb25uZWN0LXNlcnZlci13ZWJhcHBcLyIsImp0aSI6IjBmZGE5ZmRiLTYyYzItNGIzZS05OTdiLWU0M2VhMDUwMzNiOSIsImlhdCI6MTQxMjc4OTM2OH0.xgaVpRLYE5MzbgXfE0tZt823tjAm6Oh3_kdR1P2I9jRLR6gnTlBQFlYi3Y_0pWNnZSerbAE8Tn6SJHZ9k-curVG0-ByKichV7CNvgsE5X_2wpEaUzejvKf8eZ-BammRY-ie6yxSkAarcUGMvGGOLbkFcz5CtrBpZhfd75J49BIQ")
-        token2.authenticationHolder = mockedAuthHolder2
-        token2.refreshToken = mockRefreshToken2
-        token2.scope = setOf("openid", "offline_access", "email", "profile")
-        token2.tokenType = "Bearer"
+        val token2 = OAuth2AccessTokenEntity(
+            id = 2L,
+            client = mockedClient2,
+            expiration = expirationDate2,
+            jwt = JWTParser.parse("eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0MTI3OTI5NjgsImF1ZCI6WyJjbGllbnQiXSwiaXNzIjoiaHR0cDpcL1wvbG9jYWxob3N0OjgwODBcL29wZW5pZC1jb25uZWN0LXNlcnZlci13ZWJhcHBcLyIsImp0aSI6IjBmZGE5ZmRiLTYyYzItNGIzZS05OTdiLWU0M2VhMDUwMzNiOSIsImlhdCI6MTQxMjc4OTM2OH0.xgaVpRLYE5MzbgXfE0tZt823tjAm6Oh3_kdR1P2I9jRLR6gnTlBQFlYi3Y_0pWNnZSerbAE8Tn6SJHZ9k-curVG0-ByKichV7CNvgsE5X_2wpEaUzejvKf8eZ-BammRY-ie6yxSkAarcUGMvGGOLbkFcz5CtrBpZhfd75J49BIQ"),
+            authenticationHolder = mockedAuthHolder2,
+            refreshToken = mockRefreshToken2,
+            scope = setOf("openid", "offline_access", "email", "profile"),
+            tokenType = "Bearer",
+        )
 
         val configJson = ("{" +
                 "\"" + SYSTEMSCOPES + "\": [], " +
@@ -609,7 +607,7 @@ class TestMITREidDataService_1_3 {
         whenever(clientRepository.getClientByClientId(ArgumentMatchers.anyString())).thenAnswer { invocation ->
             val _clientId = invocation.arguments[0] as String
             val _client = mock<ClientDetailsEntity>()
-            whenever(_client.clientId).thenReturn(_clientId)
+            whenever(_client.getClientId()).thenReturn(_clientId)
             _client
         }
         whenever(authHolderRepository.getById(isA()))
@@ -650,27 +648,28 @@ class TestMITREidDataService_1_3 {
     @Test
     @Throws(IOException::class)
     fun testExportClients() {
-        val client1 = ClientDetailsEntity()
-        client1.id = 1L
-        client1.accessTokenValiditySeconds = 3600
-        client1.clientId = "client1"
-        client1.clientSecret = "clientsecret1"
-        client1.redirectUris = setOf("http://foo.com/")
-        client1.setScope(setOf("foo", "bar", "baz", "dolphin"))
-        client1.grantTypes =
-            hashSetOf("implicit", "authorization_code", "urn:ietf:params:oauth:grant_type:redelegate", "refresh_token")
-        client1.isAllowIntrospection = true
+        val client1 = ClientDetailsEntity(
+            id = 1L,
+            accessTokenValiditySeconds = 3600,
+            clientId = "client1",
+            clientSecret = "clientsecret1",
+            redirectUris = setOf("http://foo.com/"),
+            scope= hashSetOf("foo", "bar", "baz", "dolphin"),
+            grantTypes = hashSetOf("implicit", "authorization_code", "urn:ietf:params:oauth:grant_type:redelegate", "refresh_token"),
+            isAllowIntrospection = true,
+        )
 
-        val client2 = ClientDetailsEntity()
-        client2.id = 2L
-        client2.accessTokenValiditySeconds = 3600
-        client2.clientId = "client2"
-        client2.clientSecret = "clientsecret2"
-        client2.redirectUris = setOf("http://bar.baz.com/")
-        client2.setScope(setOf("foo", "dolphin", "electric-wombat"))
-        client2.grantTypes = hashSetOf("client_credentials", "urn:ietf:params:oauth:grant_type:redelegate")
-        client2.isAllowIntrospection = false
-        client2.codeChallengeMethod = PKCEAlgorithm.S256
+        val client2 = ClientDetailsEntity(
+            id = 2L,
+            accessTokenValiditySeconds = 3600,
+            clientId = "client2",
+            clientSecret = "clientsecret2",
+            redirectUris = setOf("http://bar.baz.com/"),
+            scope = hashSetOf("foo", "dolphin", "electric-wombat"),
+            grantTypes = hashSetOf("client_credentials", "urn:ietf:params:oauth:grant_type:redelegate"),
+            isAllowIntrospection = false,
+            codeChallengeMethod = PKCEAlgorithm.S256,
+        )
 
         val allClients: Set<ClientDetailsEntity> = setOf(client1, client2)
 
@@ -726,21 +725,21 @@ class TestMITREidDataService_1_3 {
             val client = e as JsonObject
 
             var compare: ClientDetailsEntity? = null
-            if (client["clientId"].asString() == client1.clientId) {
+            if (client["clientId"].asString() == client1.getClientId()) {
                 compare = client1
-            } else if (client["clientId"].asString() == client2.clientId) {
+            } else if (client["clientId"].asString() == client2.getClientId()) {
                 compare = client2
             }
 
             if (compare == null) {
                 fail("Could not find matching clientId: ${client["clientId"].asString()}")
             } else {
-                assertEquals(compare.clientId, client["clientId"].asString())
-                assertEquals(compare.clientSecret, client["secret"].asString())
-                assertEquals(compare.accessTokenValiditySeconds, client["accessTokenValiditySeconds"]!!.jsonPrimitive.long.toInt())
+                assertEquals(compare.getClientId(), client["clientId"].asString())
+                assertEquals(compare.getClientSecret(), client["secret"].asString())
+                assertEquals(compare.getAccessTokenValiditySeconds(), client["accessTokenValiditySeconds"]!!.jsonPrimitive.long.toInt())
                 assertEquals(compare.isAllowIntrospection, client["allowIntrospection"].asBoolean())
                 assertEquals(compare.redirectUris, jsonArrayToStringSet(client["redirectUris"]!!.jsonArray))
-                assertEquals(compare.scope, jsonArrayToStringSet(client["scope"]!!.jsonArray))
+                assertEquals(compare.getScope(), jsonArrayToStringSet(client["scope"]!!.jsonArray))
                 assertEquals(compare.grantTypes, jsonArrayToStringSet(client["grantTypes"]!!.jsonArray))
                 assertEquals(compare.codeChallengeMethod, if ((client.contains("codeChallengeMethod") && client["codeChallengeMethod"] !is JsonNull)) parse(client["codeChallengeMethod"].asString()) else null)
                 checked.add(compare)
@@ -753,26 +752,27 @@ class TestMITREidDataService_1_3 {
     @Test
     @Throws(IOException::class)
     fun testImportClients() {
-        val client1 = ClientDetailsEntity()
-        client1.id = 1L
-        client1.accessTokenValiditySeconds = 3600
-        client1.clientId = "client1"
-        client1.clientSecret = "clientsecret1"
-        client1.redirectUris = setOf("http://foo.com/")
-        client1.setScope(setOf("foo", "bar", "baz", "dolphin"))
-        client1.grantTypes =
-            hashSetOf("implicit", "authorization_code", "urn:ietf:params:oauth:grant_type:redelegate", "refresh_token")
-        client1.isAllowIntrospection = true
+        val client1 = ClientDetailsEntity(
+            id = 1L,
+            accessTokenValiditySeconds = 3600,
+            clientId = "client1",
+            clientSecret = "clientsecret1",
+            redirectUris = setOf("http://foo.com/"),
+            scope = hashSetOf("foo", "bar", "baz", "dolphin"),
+            grantTypes = hashSetOf("implicit", "authorization_code", "urn:ietf:params:oauth:grant_type:redelegate", "refresh_token"),
+            isAllowIntrospection = true,
+        )
 
-        val client2 = ClientDetailsEntity()
-        client2.id = 2L
-        client2.accessTokenValiditySeconds = 3600
-        client2.clientId = "client2"
-        client2.clientSecret = "clientsecret2"
-        client2.redirectUris = setOf("http://bar.baz.com/")
-        client2.setScope(setOf("foo", "dolphin", "electric-wombat"))
-        client2.grantTypes = hashSetOf("client_credentials", "urn:ietf:params:oauth:grant_type:redelegate")
-        client2.isAllowIntrospection = false
+        val client2 = ClientDetailsEntity(
+            id = 2L,
+            accessTokenValiditySeconds = 3600,
+            clientId = "client2",
+            clientSecret = "clientsecret2",
+            redirectUris = setOf("http://bar.baz.com/"),
+            scope= hashSetOf("foo", "dolphin", "electric-wombat"),
+            grantTypes = hashSetOf("client_credentials", "urn:ietf:params:oauth:grant_type:redelegate"),
+            isAllowIntrospection = false,
+        )
 
         val configJson = ("{" +
                 "\"" + SYSTEMSCOPES + "\": [], " +
@@ -806,19 +806,19 @@ class TestMITREidDataService_1_3 {
 
         assertEquals(2, savedClients.size)
 
-        assertEquals(client1.accessTokenValiditySeconds, savedClients[0].accessTokenValiditySeconds)
-        assertEquals(client1.clientId, savedClients[0].clientId)
-        assertEquals(client1.clientSecret, savedClients[0].clientSecret)
+        assertEquals(client1.getAccessTokenValiditySeconds(), savedClients[0].getAccessTokenValiditySeconds())
+        assertEquals(client1.getClientId(), savedClients[0].getClientId())
+        assertEquals(client1.getClientSecret(), savedClients[0].getClientSecret())
         assertEquals(client1.redirectUris, savedClients[0].redirectUris)
-        assertEquals(client1.scope, savedClients[0].scope)
+        assertEquals(client1.getScope(), savedClients[0].getScope())
         assertEquals(client1.grantTypes, savedClients[0].grantTypes)
         assertEquals(client1.isAllowIntrospection, savedClients[0].isAllowIntrospection)
 
-        assertEquals(client2.accessTokenValiditySeconds, savedClients[1].accessTokenValiditySeconds)
-        assertEquals(client2.clientId, savedClients[1].clientId)
-        assertEquals(client2.clientSecret, savedClients[1].clientSecret)
+        assertEquals(client2.getAccessTokenValiditySeconds(), savedClients[1].getAccessTokenValiditySeconds())
+        assertEquals(client2.getClientId(), savedClients[1].getClientId())
+        assertEquals(client2.getClientSecret(), savedClients[1].getClientSecret())
         assertEquals(client2.redirectUris, savedClients[1].redirectUris)
-        assertEquals(client2.scope, savedClients[1].scope)
+        assertEquals(client2.getScope(), savedClients[1].getScope())
         assertEquals(client2.grantTypes, savedClients[1].grantTypes)
         assertEquals(client2.isAllowIntrospection, savedClients[1].isAllowIntrospection)
     }
@@ -1336,12 +1336,12 @@ class TestMITREidDataService_1_3 {
     @Throws(IOException::class)
     fun testExportAuthenticationHolders() {
         val req1 = OAuth2Request(
-            HashMap(), "client1", ArrayList(),
-            true, HashSet(), HashSet(), "http://foo.com",
-            HashSet(), null
+            clientId = "client1",
+            isApproved = true,
+            redirectUri = "http://foo.com",
         )
-        val mockAuth1: Authentication =
-            UsernamePasswordAuthenticationToken("user1", "pass1", AuthorityUtils.commaSeparatedStringToAuthorityList("ROLE_USER"))
+        val mockAuth1: SavedUserAuthentication =  TODO("No mock object")
+//            UsernamePasswordAuthenticationToken("user1", "pass1", AuthorityUtils.commaSeparatedStringToAuthorityList("ROLE_USER"))
         val auth1 = OAuth2Authentication(req1, mockAuth1)
 
         val holder1 = AuthenticationHolderEntity()
@@ -1349,9 +1349,9 @@ class TestMITREidDataService_1_3 {
         holder1.authentication = auth1
 
         val req2 = OAuth2Request(
-            HashMap(), "client2", ArrayList(),
-            true, HashSet(), HashSet(), "http://bar.com",
-            HashSet(), null
+            clientId = "client2",
+            isApproved = true,
+            redirectUri = "http://bar.com",
         )
         val auth2 = OAuth2Authentication(req2, null)
 
@@ -1444,11 +1444,11 @@ class TestMITREidDataService_1_3 {
     @Throws(IOException::class)
     fun testImportAuthenticationHolders() {
         val req1 = OAuth2Request(
-            HashMap(), "client1", ArrayList(),
-            true, HashSet(), HashSet(), "http://foo.com",
-            HashSet(), null
+            clientId = "client1",
+            isApproved = true,
+            redirectUri = "http://foo.com",
         )
-        val mockAuth1 = mock<Authentication>(serializable = true)
+        val mockAuth1 = mock<SavedUserAuthentication>(serializable = true)
         val auth1 = OAuth2Authentication(req1, mockAuth1)
 
         val holder1 = AuthenticationHolderEntity()
@@ -1456,11 +1456,11 @@ class TestMITREidDataService_1_3 {
         holder1.authentication = auth1
 
         val req2 = OAuth2Request(
-            HashMap(), "client2", ArrayList(),
-            true, HashSet(), HashSet(), "http://bar.com",
-            HashSet(), null
+            clientId = "client2",
+            isApproved = true,
+            redirectUri = "http://bar.com",
         )
-        val mockAuth2 = mock<Authentication>(serializable = true)
+        val mockAuth2 = mock<SavedUserAuthentication>(serializable = true)
         val auth2 = OAuth2Authentication(req2, mockAuth2)
 
         val holder2 = AuthenticationHolderEntity()
@@ -1698,14 +1698,14 @@ class TestMITREidDataService_1_3 {
         val expirationDate1 = formatter.parse(expiration1, Locale.ENGLISH)
 
         val mockedClient1 = mock<ClientDetailsEntity>()
-        whenever(mockedClient1.clientId).thenReturn("mocked_client_1")
+        whenever(mockedClient1.getClientId()).thenReturn("mocked_client_1")
 
         val req1 = OAuth2Request(
-            HashMap(), "client1", ArrayList(),
-            true, HashSet(), HashSet(), "http://foo.com",
-            HashSet(), null
+            clientId = "client1",
+            isApproved = true,
+            redirectUri = "http://foo.com",
         )
-        val mockAuth1 = mock<Authentication>(serializable = true)
+        val mockAuth1 = mock<SavedUserAuthentication>(serializable = true)
         val auth1 = OAuth2Authentication(req1, mockAuth1)
 
         val holder1 = AuthenticationHolderEntity()
@@ -1724,14 +1724,14 @@ class TestMITREidDataService_1_3 {
         val expirationDate2 = formatter.parse(expiration2, Locale.ENGLISH)
 
         val mockedClient2 = mock<ClientDetailsEntity>()
-        whenever(mockedClient2.clientId).thenReturn("mocked_client_2")
+        whenever(mockedClient2.getClientId()).thenReturn("mocked_client_2")
 
         val req2 = OAuth2Request(
-            HashMap(), "client2", ArrayList(),
-            true, HashSet(), HashSet(), "http://bar.com",
-            HashSet(), null
+            clientId = "client2",
+            isApproved = true,
+            redirectUri = "http://bar.com",
         )
-        val mockAuth2 = mock<Authentication>(serializable = true)
+        val mockAuth2 = mock<SavedUserAuthentication>(serializable = true)
         val auth2 = OAuth2Authentication(req2, mockAuth2)
 
         val holder2 = AuthenticationHolderEntity()
@@ -1789,7 +1789,7 @@ class TestMITREidDataService_1_3 {
         whenever(clientRepository.getClientByClientId(ArgumentMatchers.anyString())).thenAnswer { invocation ->
             val _clientId = invocation.arguments[0] as String
             val _client = mock<ClientDetailsEntity>()
-            whenever(_client.clientId).thenReturn(_clientId)
+            whenever(_client.getClientId()).thenReturn(_clientId)
             _client
         }
         whenever<AuthenticationHolderEntity>(authHolderRepository.save(isA<AuthenticationHolderEntity>()))

@@ -155,8 +155,8 @@ class DynamicClientRegistrationEndpoint {
 
         // clear out any spurious id/secret (clients don't get to pick)
 
-        newClient.clientId = null
-        newClient.clientSecret = null
+        newClient.setClientId(null)
+        newClient.setClientSecret(null)
 
         // do validation on the fields
         try {
@@ -189,26 +189,26 @@ class DynamicClientRegistrationEndpoint {
         if (config.isHeartMode) {
             // heart mode has different defaults depending on primary grant type
             if (newClient.grantTypes.contains("authorization_code")) {
-                newClient.accessTokenValiditySeconds =
-                    TimeUnit.HOURS.toSeconds(1).toInt() // access tokens good for 1hr
+                newClient.setAccessTokenValiditySeconds(
+                    TimeUnit.HOURS.toSeconds(1).toInt()) // access tokens good for 1hr
                 newClient.idTokenValiditySeconds = TimeUnit.MINUTES.toSeconds(5).toInt() // id tokens good for 5min
-                newClient.refreshTokenValiditySeconds =
-                    TimeUnit.HOURS.toSeconds(24).toInt() // refresh tokens good for 24hr
+                newClient.setRefreshTokenValiditySeconds(
+                    TimeUnit.HOURS.toSeconds(24).toInt()) // refresh tokens good for 24hr
             } else if (newClient.grantTypes.contains("implicit")) {
-                newClient.accessTokenValiditySeconds =
-                    TimeUnit.MINUTES.toSeconds(15).toInt() // access tokens good for 15min
+                newClient.setAccessTokenValiditySeconds(
+                    TimeUnit.MINUTES.toSeconds(15).toInt()) // access tokens good for 15min
                 newClient.idTokenValiditySeconds = TimeUnit.MINUTES.toSeconds(5).toInt() // id tokens good for 5min
-                newClient.refreshTokenValiditySeconds = 0 // no refresh tokens
+                newClient.setRefreshTokenValiditySeconds(0) // no refresh tokens
             } else if (newClient.grantTypes.contains("client_credentials")) {
-                newClient.accessTokenValiditySeconds =
-                    TimeUnit.HOURS.toSeconds(6).toInt() // access tokens good for 6hr
+                newClient.setAccessTokenValiditySeconds(
+                    TimeUnit.HOURS.toSeconds(6).toInt()) // access tokens good for 6hr
                 newClient.idTokenValiditySeconds = 0 // no id tokens
-                newClient.refreshTokenValiditySeconds = 0 // no refresh tokens
+                newClient.setRefreshTokenValiditySeconds(0) // no refresh tokens
             }
         } else {
-            newClient.accessTokenValiditySeconds = TimeUnit.HOURS.toSeconds(1).toInt() // access tokens good for 1hr
+            newClient.setAccessTokenValiditySeconds(TimeUnit.HOURS.toSeconds(1).toInt()) // access tokens good for 1hr
             newClient.idTokenValiditySeconds = TimeUnit.MINUTES.toSeconds(10).toInt() // id tokens good for 10min
-            newClient.refreshTokenValiditySeconds = null // refresh tokens good until revoked
+            newClient.setRefreshTokenValiditySeconds(null) // refresh tokens good until revoked
         }
 
         // this client has been dynamically registered (obviously)
@@ -297,7 +297,7 @@ class DynamicClientRegistrationEndpoint {
 
         val oldClient = clientService.loadClientByClientId(clientId)
 
-        if (newClient == null || oldClient == null || oldClient.getClientId() != auth.oAuth2Request.clientId || oldClient.getClientId() != newClient.clientId
+        if (newClient == null || oldClient == null || oldClient.getClientId() != auth.oAuth2Request.clientId || oldClient.getClientId() != newClient.getClientId()
         ) {
             // client mismatch
             logger.error(
@@ -396,7 +396,7 @@ class DynamicClientRegistrationEndpoint {
     @Throws(ValidationException::class)
     private fun validateScopes(newClient: ClientDetailsEntity): ClientDetailsEntity {
         // scopes that the client is asking for
-        val requestedScopes = scopeService.fromStrings(newClient.scope)!!
+        val requestedScopes = scopeService.fromStrings(newClient.getScope())!!
 
         // the scopes that the client can have must be a subset of the dynamically allowed scopes
         var allowedScopes: Set<SystemScope>? = scopeService.removeRestrictedAndReservedScopes(requestedScopes)
@@ -423,7 +423,7 @@ class DynamicClientRegistrationEndpoint {
     private fun validateGrantTypes(newClient: ClientDetailsEntity?): ClientDetailsEntity {
         // set default grant types if needed
         if (newClient!!.grantTypes == null || newClient.grantTypes.isEmpty()) {
-            if (newClient.scope.contains("offline_access")) { // client asked for offline access
+            if (newClient.getScope().contains("offline_access")) { // client asked for offline access
                 newClient.grantTypes =
                     hashSetOf("authorization_code", "refresh_token") // allow authorization code and refresh token grant types by default
             } else {
@@ -488,7 +488,7 @@ class DynamicClientRegistrationEndpoint {
 
             // don't allow refresh tokens in implicit clients
             newClient.grantTypes.remove("refresh_token")
-            newClient.scope.remove(SystemScopeService.OFFLINE_ACCESS)
+            newClient.getScope().remove(SystemScopeService.OFFLINE_ACCESS)
         }
 
         if (newClient.grantTypes.contains("client_credentials")) {
@@ -508,8 +508,8 @@ class DynamicClientRegistrationEndpoint {
 
             // don't allow refresh tokens or id tokens in client_credentials clients
             newClient.grantTypes.remove("refresh_token")
-            newClient.scope.remove(SystemScopeService.OFFLINE_ACCESS)
-            newClient.scope.remove(SystemScopeService.OPENID_SCOPE)
+            newClient.getScope().remove(SystemScopeService.OFFLINE_ACCESS)
+            newClient.getScope().remove(SystemScopeService.OPENID_SCOPE)
         }
 
         if (newClient.grantTypes.isEmpty()) {
@@ -552,7 +552,7 @@ class DynamicClientRegistrationEndpoint {
         }
 
         if (newClient.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_BASIC || newClient.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_JWT || newClient.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_POST) {
-            if (newClient.clientSecret.isNullOrEmpty()) {
+            if (newClient.getClientSecret().isNullOrEmpty()) {
                 // no secret yet, we need to generate a secret
                 newClient = newClient.copy(clientSecret = clientService.generateClientSecret(newClient))
             }
@@ -561,9 +561,9 @@ class DynamicClientRegistrationEndpoint {
                 throw ValidationException("invalid_client_metadata", "JWK Set URI required when using private key authentication", HttpStatus.BAD_REQUEST)
             }
 
-            newClient.clientSecret = null
+            newClient.setClientSecret(null)
         } else if (newClient.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.NONE) {
-            newClient.clientSecret = null
+            newClient.setClientSecret(null)
         } else {
             throw ValidationException("invalid_client_metadata", "Unknown authentication method", HttpStatus.BAD_REQUEST)
         }

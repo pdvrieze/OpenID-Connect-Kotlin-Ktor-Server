@@ -19,6 +19,8 @@ package org.mitre.openid.connect.util
 
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.util.Base64URL
+import com.nimbusds.jwt.JWT
+import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.util.getLogger
 import java.security.MessageDigest
@@ -48,8 +50,23 @@ object IdTokenHashUtils {
      * Compute the SHA hash of a token
      */
     @JvmStatic
-    fun getAccessTokenHash(signingAlg: JWSAlgorithm, token: OAuth2AccessTokenEntity): Base64URL? {
-        val tokenBytes = token.jwt!!.serialize().toByteArray()
+    fun getAccessTokenHash(signingAlg: JWSAlgorithm, token: OAuth2AccessToken): Base64URL? {
+        return getAccessTokenHash(signingAlg, token.jwt)
+    }
+
+    /**
+     * Compute the SHA hash of a token
+     */
+    @JvmStatic
+    fun getAccessTokenHash(signingAlg: JWSAlgorithm, token: OAuth2AccessToken.Builder): Base64URL? {
+        return getAccessTokenHash(signingAlg, token.jwt!!)
+    }
+
+    private fun getAccessTokenHash(
+        signingAlg: JWSAlgorithm,
+        jwt: JWT
+    ): Base64URL? {
+        val tokenBytes = jwt.serialize().toByteArray()
 
         return getHash(signingAlg, tokenBytes)
     }

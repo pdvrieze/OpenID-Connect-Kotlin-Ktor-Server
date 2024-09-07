@@ -21,6 +21,7 @@ import com.nimbusds.jwt.SignedJWT
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
+import org.mitre.oauth2.model.OAuth2Authentication
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.OAuth2TokenEntityService
@@ -30,7 +31,6 @@ import org.mitre.uma.model.PermissionTicket
 import org.mitre.uma.model.Policy
 import org.mitre.uma.service.UmaTokenService
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.security.oauth2.provider.OAuth2Authentication
 import org.springframework.stereotype.Service
 import java.util.*
 
@@ -54,31 +54,31 @@ class DefaultUmaTokenService : UmaTokenService {
     @Autowired
     private lateinit var jwtService: JWTSigningAndValidationService
 
-
     override fun createRequestingPartyToken(
         o2auth: OAuth2Authentication,
         ticket: PermissionTicket,
         policy: Policy
     ): OAuth2AccessTokenEntity {
-        val token = OAuth2AccessTokenEntity()
+        val tokenBuilder = OAuth2AccessTokenEntity.Builder()
         val authHolder = AuthenticationHolderEntity().run {
             authentication = o2auth
             authenticationHolderRepository.save(this)
         }
 
-        token.authenticationHolder = authHolder
+        tokenBuilder.setAuthenticationHolder(authHolder)
 
-        val client = clientService.loadClientByClientId(o2auth.oAuth2Request.clientId)
-        token.client = client
+        val client = clientService.loadClientByClientId(o2auth.oAuth2Request.clientId)!!
+        tokenBuilder.setClient(client)
 
         val ticketScopes = ticket.permission.scopes
         val policyScopes = policy.scopes
 
-        val perm = Permission()
-        perm.resourceSet = ticket.permission.resourceSet
-        perm.scopes = ticketScopes.intersect(policyScopes)
+        val perm = Permission(
+            resourceSet = ticket.permission.resourceSet,
+            scopes = ticketScopes.intersect(policyScopes),
+        )
 
-        token.permissions = hashSetOf(perm)
+        tokenBuilder.permissions = hashSetOf(perm)
 
         val claims = JWTClaimsSet.Builder().apply {
             audience(listOf(ticket.permission.resourceSet!!.id.toString()))
@@ -91,7 +91,7 @@ class DefaultUmaTokenService : UmaTokenService {
             val exp = Date(System.currentTimeMillis() + config.rqpTokenLifeTime!! * 1000L)
 
             claims.expirationTime(exp)
-            token.expiration = exp
+            tokenBuilder.expiration = exp
         }
 
 
@@ -104,7 +104,9 @@ class DefaultUmaTokenService : UmaTokenService {
 
         jwtService.signJwt(signed)
 
-        token.jwt = signed
+        tokenBuilder.jwt = signed
+
+        val token = tokenBuilder.build(clientService, authenticationHolderRepository, tokenService)
 
         tokenService.saveAccessToken(token)
 

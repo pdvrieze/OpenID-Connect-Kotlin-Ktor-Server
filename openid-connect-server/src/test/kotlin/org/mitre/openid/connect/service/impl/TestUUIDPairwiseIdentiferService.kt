@@ -68,40 +68,47 @@ class TestUUIDPairwiseIdentiferService {
         userInfoRegular.sub = regularSub
 
         // pairwise set 1
-        pairwiseClient1 = ClientDetailsEntity()
-        pairwiseClient1.clientId = pairwiseClientId1
-        pairwiseClient1.subjectType = SubjectType.PAIRWISE
-        pairwiseClient1.sectorIdentifierUri = sectorIdentifier1
+        pairwiseClient1 = ClientDetailsEntity(
+            clientId = pairwiseClientId1,
+            subjectType = SubjectType.PAIRWISE,
+            sectorIdentifierUri = sectorIdentifier1,
+        )
 
-        pairwiseClient2 = ClientDetailsEntity()
-        pairwiseClient2.clientId = pairwiseClientId2
-        pairwiseClient2.subjectType = SubjectType.PAIRWISE
-        pairwiseClient2.sectorIdentifierUri = sectorIdentifier2
+        pairwiseClient2 = ClientDetailsEntity(
+            clientId = pairwiseClientId2,
+            subjectType = SubjectType.PAIRWISE,
+            sectorIdentifierUri = sectorIdentifier2,
+        )
 
         // pairwise set 2
-        pairwiseClient3 = ClientDetailsEntity()
-        pairwiseClient3.clientId = pairwiseClientId3
-        pairwiseClient3.subjectType = SubjectType.PAIRWISE
-        pairwiseClient3.sectorIdentifierUri = sectorIdentifier3
-        pairwiseClient3.redirectUris = pairwiseClient3RedirectUris
+        pairwiseClient3 = ClientDetailsEntity(
+            clientId = pairwiseClientId3,
+            subjectType = SubjectType.PAIRWISE,
+            sectorIdentifierUri = sectorIdentifier3,
+            redirectUris = pairwiseClient3RedirectUris,
+        )
 
         // pairwise with null sector
-        pairwiseClient4 = ClientDetailsEntity()
-        pairwiseClient4.clientId = pairwiseClientId4
-        pairwiseClient4.subjectType = SubjectType.PAIRWISE
-        pairwiseClient4.redirectUris = pairwiseClient4RedirectUris
+        pairwiseClient4 = ClientDetailsEntity(
+            clientId = pairwiseClientId4,
+            subjectType = SubjectType.PAIRWISE,
+            redirectUris = pairwiseClient4RedirectUris,
+        )
 
         // pairwise with multiple redirects and no sector (error)
-        pairwiseClient5 = ClientDetailsEntity()
-        pairwiseClient5.clientId = pairwiseClientId5
-        pairwiseClient5.subjectType = SubjectType.PAIRWISE
-        pairwiseClient5.redirectUris = pairwiseClient5RedirectUris
+        pairwiseClient5 = ClientDetailsEntity(
+            clientId = pairwiseClientId5,
+            subjectType = SubjectType.PAIRWISE,
+            redirectUris = pairwiseClient5RedirectUris,
+        )
 
         // saved pairwise identifier from repository
-        savedPairwiseIdentifier = PairwiseIdentifier()
-        savedPairwiseIdentifier.userSub = regularSub
-        savedPairwiseIdentifier.identifier = pairwiseSub
-        savedPairwiseIdentifier.sectorIdentifier = sectorHost12
+        savedPairwiseIdentifier = PairwiseIdentifier(
+            userSub = regularSub,
+            sectorIdentifier = sectorHost12,
+        ).also {
+            it.identifier = pairwiseSub
+        }
     }
 
     /**

@@ -81,32 +81,32 @@ class TestDefaultUserInfoService {
         userInfoRegular.sub = regularSub
 
         publicClient1 = ClientDetailsEntity()
-        publicClient1.clientId = publicClientId1
+        publicClient1.setClientId(publicClientId1)
 
         publicClient2 = ClientDetailsEntity()
-        publicClient2.clientId = publicClientId2
+        publicClient2.setClientId(publicClientId2)
         publicClient2.subjectType = SubjectType.PUBLIC
 
         // pairwise set 1
         pairwiseClient1 = ClientDetailsEntity()
-        pairwiseClient1.clientId = pairwiseClientId1
+        pairwiseClient1.setClientId(pairwiseClientId1)
         pairwiseClient1.subjectType = SubjectType.PAIRWISE
         pairwiseClient1.sectorIdentifierUri = sectorIdentifier1
 
         pairwiseClient2 = ClientDetailsEntity()
-        pairwiseClient2.clientId = pairwiseClientId2
+        pairwiseClient2.setClientId(pairwiseClientId2)
         pairwiseClient2.subjectType = SubjectType.PAIRWISE
         pairwiseClient2.sectorIdentifierUri = sectorIdentifier2
 
         // pairwise set 2
         pairwiseClient3 = ClientDetailsEntity()
-        pairwiseClient3.clientId = pairwiseClientId3
+        pairwiseClient3.setClientId(pairwiseClientId3)
         pairwiseClient3.subjectType = SubjectType.PAIRWISE
         pairwiseClient3.sectorIdentifierUri = sectorIdentifier3
 
         // pairwise with null sector
         pairwiseClient4 = ClientDetailsEntity()
-        pairwiseClient4.clientId = pairwiseClientId4
+        pairwiseClient4.setClientId(pairwiseClientId4)
         pairwiseClient4.subjectType = SubjectType.PAIRWISE
     }
 

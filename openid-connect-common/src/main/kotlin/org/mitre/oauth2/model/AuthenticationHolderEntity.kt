@@ -90,7 +90,7 @@ class AuthenticationHolderEntity(
             clientId = clientId!!,
             authorities = authorities?.toSet() ?: emptySet(),
             isApproved = isApproved,
-            scope = scope,
+            scope = scope ?: emptySet(),
             resourceIds = resourceIds,
             redirectUri = redirectUri,
             responseTypes = responseTypes,

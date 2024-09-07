@@ -146,7 +146,7 @@ class MITREidDataService_1_2 : MITREidDataService {
             val refreshToken = context.tokenRepository.getRefreshTokenById(newRefreshTokenId)!!
             val newAccessTokenId = context.maps.accessTokenOldToNewIdMap[oldAccessTokenId]!!
             val accessToken = context.tokenRepository.getAccessTokenById(newAccessTokenId)!!
-            accessToken.refreshToken = refreshToken
+            accessToken.setRefreshToken(refreshToken)
             context.tokenRepository.saveAccessToken(accessToken)
         }
         for (oldGrantId in context.maps.grantToAccessTokensRefs.keys) {

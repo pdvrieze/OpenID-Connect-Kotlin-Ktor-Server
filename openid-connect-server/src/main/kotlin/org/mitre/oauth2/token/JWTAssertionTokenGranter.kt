@@ -1,8 +1,12 @@
 package org.mitre.oauth2.token
 
 import com.nimbusds.jwt.JWTParser
+import io.github.pdvrieze.openid.spring.fromSpring
+import io.github.pdvrieze.openid.spring.toSpring
 import org.mitre.jwt.assertion.AssertionValidator
 import org.mitre.oauth2.assertion.AssertionOAuth2RequestFactory
+import org.mitre.oauth2.model.GrantedAuthority
+import org.mitre.oauth2.model.OAuth2Authentication
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.OAuth2TokenEntityService
 import org.mitre.openid.connect.assertion.JWTBearerAssertionAuthenticationToken
@@ -12,23 +16,24 @@ import org.springframework.security.core.AuthenticationException
 import org.springframework.security.oauth2.common.exceptions.InvalidTokenException
 import org.springframework.security.oauth2.provider.ClientDetails
 import org.springframework.security.oauth2.provider.ClientDetailsService
-import org.springframework.security.oauth2.provider.OAuth2Authentication
 import org.springframework.security.oauth2.provider.OAuth2RequestFactory
 import org.springframework.security.oauth2.provider.TokenRequest
 import org.springframework.security.oauth2.provider.token.AbstractTokenGranter
 import org.springframework.stereotype.Component
 import java.text.ParseException
+import org.springframework.security.oauth2.common.OAuth2AccessToken as SpringOAuth2AccessToken
+import org.springframework.security.oauth2.provider.OAuth2Authentication as SpringOAuth2Authentication
 
 /**
  * @author jricher
  */
 @Component("jwtAssertionTokenGranter")
 class JWTAssertionTokenGranter @Autowired constructor(
-    tokenServices: OAuth2TokenEntityService?,
+    private val tokenServices: OAuth2TokenEntityService,
     clientDetailsService: ClientDetailsEntityService?,
     requestFactory: OAuth2RequestFactory?
     // TODO Remove need for casting/spring
-) : AbstractTokenGranter(tokenServices, clientDetailsService as ClientDetailsService, requestFactory, grantType) {
+) : AbstractTokenGranter(null, clientDetailsService as ClientDetailsService, requestFactory, grantType) {
     @Autowired
     @Qualifier("jwtAssertionValidator")
     private lateinit var validator: AssertionValidator
@@ -40,7 +45,7 @@ class JWTAssertionTokenGranter @Autowired constructor(
 	 * @see org.springframework.security.oauth2.provider.token.AbstractTokenGranter#getOAuth2Authentication(org.springframework.security.oauth2.provider.AuthorizationRequest)
 	 */
     @Throws(AuthenticationException::class, InvalidTokenException::class)
-    override fun getOAuth2Authentication(client: ClientDetails, tokenRequest: TokenRequest): OAuth2Authentication? {
+    override fun getOAuth2Authentication(client: ClientDetails, tokenRequest: TokenRequest): SpringOAuth2Authentication? {
         // read and load up the existing token
         try {
             val incomingAssertionValue = tokenRequest.requestParameters["assertion"]
@@ -50,9 +55,9 @@ class JWTAssertionTokenGranter @Autowired constructor(
                 // our validator says it's OK, time to make a token from it
                 // the real work happens in the assertion factory and the token services
 
-                return OAuth2Authentication(
+                return SpringOAuth2Authentication(
                     assertionFactory.createOAuth2Request(client, tokenRequest, assertion),
-                    JWTBearerAssertionAuthenticationToken(assertion, client.authorities)
+                    JWTBearerAssertionAuthenticationToken(assertion, client.authorities?.map { GrantedAuthority(it.authority) })
                 )
             } else {
                 logger.warn("Incoming assertion did not pass validator, rejecting")
@@ -64,6 +69,11 @@ class JWTAssertionTokenGranter @Autowired constructor(
 
         // if we had made a token, we'd have returned it by now, so return null here to close out with no created token
         return null
+    }
+
+    override fun getAccessToken(client: ClientDetails, tokenRequest: TokenRequest): SpringOAuth2AccessToken {
+        val auth: OAuth2Authentication = getOAuth2Authentication(client, tokenRequest)!!.fromSpring()
+        return tokenServices.createAccessToken(auth).toSpring()
     }
 
 

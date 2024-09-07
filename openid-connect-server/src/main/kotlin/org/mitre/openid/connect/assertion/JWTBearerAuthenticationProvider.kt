@@ -20,6 +20,7 @@ package org.mitre.openid.connect.assertion
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jwt.SignedJWT
 import org.mitre.jwt.signer.service.impl.ClientKeyCacheService
+import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
@@ -29,13 +30,13 @@ import org.springframework.security.authentication.AuthenticationProvider
 import org.springframework.security.authentication.AuthenticationServiceException
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.AuthenticationException
-import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException
 import org.springframework.stereotype.Component
 import java.text.ParseException
 import java.util.*
+import org.springframework.security.core.GrantedAuthority as SpringGrantedAuthority
 
 /**
  * @author jricher
@@ -185,6 +186,6 @@ class JWTBearerAuthenticationProvider : AuthenticationProvider {
          */
         private val logger = getLogger<JWTBearerAuthenticationProvider>()
 
-        private val ROLE_CLIENT: GrantedAuthority = SimpleGrantedAuthority("ROLE_CLIENT")
+        private val ROLE_CLIENT: GrantedAuthority = GrantedAuthority("ROLE_CLIENT")
     }
 }

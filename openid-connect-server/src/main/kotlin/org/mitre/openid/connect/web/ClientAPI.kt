@@ -216,9 +216,9 @@ class ClientAPI {
             if (cause is DatabaseException) {
                 val databaseExceptionCause = cause.cause
                 if (databaseExceptionCause is SQLIntegrityConstraintViolationException) {
-                    logger.error("apiAddClient failed; duplicate client id entry found: {}", client.clientId)
+                    logger.error("apiAddClient failed; duplicate client id entry found: {}", client.getClientId())
                     m.addAttribute(HttpCodeView.CODE, HttpStatus.CONFLICT)
-                    m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Unable to save client. Duplicate client id entry found: " + client.clientId)
+                    m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Unable to save client. Duplicate client id entry found: " + client.getClientId())
                     return JsonErrorView.VIEWNAME
                 }
             }

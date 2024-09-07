@@ -19,17 +19,18 @@ import org.mitre.data.AbstractPageOperationTemplate
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.DeviceCode
+import org.mitre.oauth2.model.OAuth2Authentication
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.repository.impl.DeviceCodeRepository
 import org.mitre.oauth2.service.DeviceCodeService
 import org.mitre.oauth2.util.requireId
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.oauth2.common.util.RandomValueStringGenerator
-import org.springframework.security.oauth2.provider.ClientDetails
-import org.springframework.security.oauth2.provider.OAuth2Authentication
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
+import org.springframework.security.oauth2.provider.ClientDetails as SpringClientDetails
+import org.springframework.security.oauth2.provider.OAuth2Authentication as SpringOAuth2Authentication
 
 /**
  * @author jricher
@@ -100,7 +101,7 @@ class DefaultDeviceCodeService : DeviceCodeService {
     /* (non-Javadoc)
 	 * @see org.mitre.oauth2.service.DeviceCodeService#consumeDeviceCode(java.lang.String, org.springframework.security.oauth2.provider.ClientDetails)
 	 */
-    override fun findDeviceCode(deviceCode: String, client: ClientDetails): DeviceCode? {
+    override fun findDeviceCode(deviceCode: String, client: OAuthClientDetails): DeviceCode? {
         val found = repository.getByDeviceCode(deviceCode)
 
         return when {
@@ -108,7 +109,7 @@ class DefaultDeviceCodeService : DeviceCodeService {
             found == null -> null
 
             // make sure the client matches, if so, we're good
-            found.clientId == client.clientId -> found
+            found.clientId == client.getClientId() -> found
 
             // if the clients don't match, pretend the code wasn't found
             else -> null
@@ -135,7 +136,7 @@ class DefaultDeviceCodeService : DeviceCodeService {
     /* (non-Javadoc)
 	 * @see org.mitre.oauth2.service.DeviceCodeService#clearDeviceCode(java.lang.String, org.springframework.security.oauth2.provider.ClientDetails)
 	 */
-    override fun clearDeviceCode(deviceCode: String, client: ClientDetails) {
+    override fun clearDeviceCode(deviceCode: String, client: OAuthClientDetails) {
         findDeviceCode(deviceCode, client)?.let {
             // make sure it's not used twice
             repository.remove(it)

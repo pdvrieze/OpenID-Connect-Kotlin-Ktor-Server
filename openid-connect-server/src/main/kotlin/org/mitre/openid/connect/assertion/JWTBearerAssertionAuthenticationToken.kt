@@ -18,14 +18,19 @@
 package org.mitre.openid.connect.assertion
 
 import com.nimbusds.jwt.JWT
+import org.mitre.oauth2.model.GrantedAuthority
 import org.springframework.security.authentication.AbstractAuthenticationToken
-import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import java.text.ParseException
+import org.springframework.security.core.GrantedAuthority as SpringGrantedAuthority
 
 /**
  * @author jricher
  */
-class JWTBearerAssertionAuthenticationToken(var jwt: JWT?, authorities: Collection<GrantedAuthority>?) : AbstractAuthenticationToken(authorities) {
+class JWTBearerAssertionAuthenticationToken(
+    var jwt: JWT?,
+    authorities: Collection<GrantedAuthority>?
+) : AbstractAuthenticationToken(authorities?.map { SimpleGrantedAuthority(it.authority) }) {
     private var subject: String? = jwt?.jwtClaimsSet?.subject
     init {
         isAuthenticated = authorities!=null

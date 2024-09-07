@@ -26,6 +26,7 @@ import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.JWTParser
 import com.nimbusds.jwt.PlainJWT
 import com.nimbusds.jwt.SignedJWT
+import io.github.pdvrieze.openid.spring.toSpring
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import org.apache.http.client.HttpClient
@@ -588,7 +589,7 @@ class OIDCAuthenticationFilter : AbstractAuthenticationProcessingFilter(FILTER_P
                 idToken, accessTokenValue, refreshTokenValue!!
             )
 
-            val authentication = authenticationManager.authenticate(token)
+            val authentication = authenticationManager.authenticate(token.toSpring())
 
             return authentication
         } catch (e: ParseException) {

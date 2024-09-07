@@ -7,7 +7,7 @@ base {
 }
 
 dependencies {
-    api(projects.openidConnectCommon)
+    api(projects.openidConnectSpring)
     api(libs.spring.oauth)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.guava)

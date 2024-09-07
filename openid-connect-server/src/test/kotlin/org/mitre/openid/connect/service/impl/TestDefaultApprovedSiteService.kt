@@ -66,7 +66,7 @@ class TestDefaultApprovedSiteService {
     @BeforeEach
     fun prepare() {
         client = ClientDetailsEntity().also {
-            it.clientId = clientId
+            it.setClientId(clientId)
         }
 
         site1 = ApprovedSite().apply {
@@ -115,7 +115,7 @@ class TestDefaultApprovedSiteService {
     @Rollback
     fun clearApprovedSitesForClient_null() {
         val otherId = "a different id"
-        (client as ClientDetailsEntity).clientId = otherId
+        (client as ClientDetailsEntity).setClientId(otherId)
         service.clearApprovedSitesForClient(client)
         // unused by mockito (causs unnecessary stubbing exception
 //		whenever(repository.getByClientId(otherId)).thenReturn(new HashSet<ApprovedSite>());

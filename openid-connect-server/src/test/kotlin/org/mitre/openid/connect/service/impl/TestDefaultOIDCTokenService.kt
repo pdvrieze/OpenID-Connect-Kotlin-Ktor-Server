@@ -23,13 +23,14 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuthClientDetails
+import org.mitre.oauth2.model.convert.OAuth2Request
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.whenever
-import org.springframework.security.oauth2.provider.OAuth2Request
 import java.text.ParseException
 import java.util.*
 
@@ -38,7 +39,7 @@ class TestDefaultOIDCTokenService {
     private val configBean = ConfigurationPropertiesBean()
     private val client = ClientDetailsEntity()
     private val accessToken = OAuth2AccessTokenEntity()
-    private val request: OAuth2Request = object : OAuth2Request(CLIENT_ID) {}
+    private val request: OAuth2Request = OAuth2Request(clientId = CLIENT_ID)
 
     @Mock
     private lateinit var jwtService: JWTSigningAndValidationService
@@ -47,7 +48,7 @@ class TestDefaultOIDCTokenService {
     fun prepare() {
         configBean.issuer = "https://auth.example.org/"
 
-        client.clientId = CLIENT_ID
+        client.setClientId(CLIENT_ID)
         whenever(jwtService.defaultSigningAlgorithm).thenReturn(JWSAlgorithm.RS256)
         whenever(jwtService.defaultSignerKeyId).thenReturn(KEY_ID)
     }
@@ -57,15 +58,18 @@ class TestDefaultOIDCTokenService {
     fun invokesCustomClaimsHook() {
         val s: DefaultOIDCTokenService = object : DefaultOIDCTokenService() {
             override fun addCustomIdTokenClaims(
-                idClaims: JWTClaimsSet.Builder, client: OAuthClientDetails, request: OAuth2Request?,
-                sub: String?, accessToken: OAuth2AccessTokenEntity?
+                idClaims: JWTClaimsSet.Builder,
+                client: OAuthClientDetails,
+                request: org.mitre.oauth2.model.convert.OAuth2Request?,
+                sub: String?,
+                accessToken: OAuth2AccessToken.Builder?
             ) {
                 idClaims.claim("test", "foo")
             }
         }
         configure(s)
 
-        val token = s.createIdToken(client, request, Date(), "sub", accessToken)!!
+        val token = s.createIdToken(client, request, Date(), "sub", accessToken.builder())!!
         assertEquals("foo", token.jwtClaimsSet.getClaim("test"))
     }
 

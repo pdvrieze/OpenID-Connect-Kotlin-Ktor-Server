@@ -18,6 +18,7 @@
 package org.mitre.openid.connect.service
 
 import com.nimbusds.jwt.JWT
+import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.convert.OAuth2Request
@@ -34,7 +35,7 @@ interface OIDCTokenService {
      */
     fun createIdToken(
         client: OAuthClientDetails, request: OAuth2Request, issueTime: Date?,
-        sub: String?, accessToken: OAuth2AccessTokenEntity
+        sub: String?, accessToken: OAuth2AccessToken.Builder
     ): JWT?
 
     /**

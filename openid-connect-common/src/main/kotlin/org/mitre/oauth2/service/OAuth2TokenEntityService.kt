@@ -22,8 +22,14 @@ import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2Authentication
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.OAuthClientDetails
+import org.mitre.oauth2.model.convert.OAuth2Request
 
-interface OAuth2TokenEntityService {
+interface OAuth2TokenResolver {
+    fun getAccessTokenById(id: Long): OAuth2AccessTokenEntity?
+    fun getRefreshTokenById(id: Long): OAuth2RefreshTokenEntity?
+}
+
+interface OAuth2TokenEntityService : OAuth2TokenResolver {
 
     //region Custom functions
     fun getRefreshToken(refreshTokenValue: String): OAuth2RefreshTokenEntity?
@@ -42,10 +48,6 @@ interface OAuth2TokenEntityService {
 
     fun saveRefreshToken(refreshToken: OAuth2RefreshTokenEntity): OAuth2RefreshTokenEntity
 
-    fun getAccessTokenById(id: Long): OAuth2AccessTokenEntity?
-
-    fun getRefreshTokenById(id: Long): OAuth2RefreshTokenEntity?
-
     fun getAllAccessTokensForUser(name: String): Set<OAuth2AccessTokenEntity>
 
     fun getAllRefreshTokensForUser(name: String): Set<OAuth2RefreshTokenEntity>
@@ -56,7 +58,7 @@ interface OAuth2TokenEntityService {
     //region Authorization Server
     fun createAccessToken(authentication: OAuth2Authentication): OAuth2AccessToken
 
-    fun refreshAccessToken(refreshToken: String, tokenRequest: Any /*TokenRequest*/): OAuth2AccessToken
+    fun refreshAccessToken(refreshToken: String, tokenRequest: OAuth2Request /*TokenRequest*/): OAuth2AccessToken
 
     fun getAccessToken(authentication: OAuth2Authentication): OAuth2AccessToken
     //endregion

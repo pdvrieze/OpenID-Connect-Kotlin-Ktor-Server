@@ -21,11 +21,11 @@ package org.mitre.oauth2.model
  * @author jricher
  */
 class SavedUserAuthentication(
-    id: Long?,
+    id: Long? = null,
     name: String,
-    authorities: Collection<GrantedAuthority>,
-    authenticated: Boolean,
-    sourceClass: String?
+    authorities: Collection<GrantedAuthority> = emptyList(),
+    authenticated: Boolean = false,
+    sourceClass: String? = null,
 ) : Authentication {
     var id: Long? = id
 
@@ -54,5 +54,9 @@ class SavedUserAuthentication(
 
     companion object {
         private const val serialVersionUID = -1804249963940323488L
+
+        fun from(src: Authentication): SavedUserAuthentication {
+            return src as? SavedUserAuthentication ?: SavedUserAuthentication(src)
+        }
     }
 }

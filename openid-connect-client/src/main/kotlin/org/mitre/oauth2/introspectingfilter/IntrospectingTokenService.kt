@@ -18,6 +18,7 @@
 package org.mitre.oauth2.introspectingfilter
 
 import com.nimbusds.jose.util.Base64
+import io.github.pdvrieze.openid.spring.toSpring
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.apache.http.client.HttpClient
@@ -26,20 +27,36 @@ import org.mitre.oauth2.introspectingfilter.service.IntrospectionAuthorityGrante
 import org.mitre.oauth2.introspectingfilter.service.IntrospectionConfigurationService
 import org.mitre.oauth2.introspectingfilter.service.impl.SimpleIntrospectionAuthorityGranter
 import org.mitre.oauth2.model.Authentication
+import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2Authentication
+import org.mitre.oauth2.model.OAuth2RefreshToken
 import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.model.RegisteredClient
+import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.convert.OAuth2Request
 import org.mitre.openid.connect.service.MITREidDataService.Companion.json
 import org.mitre.util.asBoolean
 import org.mitre.util.getLogger
+import org.springframework.http.HttpMethod
+import org.springframework.http.client.ClientHttpRequest
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken
+import org.springframework.util.LinkedMultiValueMap
+import org.springframework.util.MultiValueMap
+import org.springframework.web.client.RestClientException
+import org.springframework.web.client.RestTemplate
 import java.io.IOException
 import java.net.URI
+import java.time.Instant
 import java.util.*
+import org.springframework.security.core.Authentication as SpringAuthentication
+import org.springframework.security.core.GrantedAuthority as SpringGrantedAuthority
+import org.springframework.security.oauth2.common.OAuth2AccessToken as SpringOAuth2AccessToken
+import org.springframework.security.oauth2.common.OAuth2RefreshToken as SpringOAuth2RefreshToken
+import org.springframework.security.oauth2.provider.OAuth2Authentication as SpringOAuth2Authentication
+import org.springframework.security.oauth2.provider.OAuth2Request as SpringOAuth2Request
 
 /**
  * This ResourceServerTokenServices implementation introspects incoming tokens at a
@@ -73,7 +90,7 @@ class IntrospectingTokenService(
      */
     var isCacheTokens: Boolean = true
 
-    private val factory = HttpComponentsClientHttpRequestFactory(httpClient)
+    private val requestFactory = HttpComponentsClientHttpRequestFactory(httpClient)
 
     // Inner class to store in the hash map
     private inner class TokenCacheObject(var token: OAuth2AccessToken, var auth: OAuth2Authentication) {
@@ -125,7 +142,8 @@ class IntrospectingTokenService(
     private fun createUserAuthentication(token: JsonObject): Authentication? {
         val userId = (token["user_id"] ?: token["sub"] ?: return null).jsonPrimitive
         if (! userId.isString) return null
-        return PreAuthenticatedAuthenticationToken(userId.content, token, introspectionAuthorityGranter.getAuthorities(token))
+        val authorities = introspectionAuthorityGranter.getAuthorities(token).map { GrantedAuthority(it.authority) }
+        return PreAuthenticatedAuthenticationToken(userId.content, token, authorities)
     }
 
     private fun createAccessToken(token: JsonObject, tokenString: String): OAuth2AccessToken {
@@ -164,7 +182,7 @@ class IntrospectingTokenService(
 
         if (AuthMethod.SECRET_BASIC == client.tokenEndpointAuthMethod) {
             // use BASIC auth if configured to do so
-            restTemplate = object : RestTemplate(factory) {
+            restTemplate = object : RestTemplate(requestFactory) {
                 @Throws(IOException::class)
                 override fun createRequest(url: URI, method: HttpMethod): ClientHttpRequest {
                     val httpRequest = super.createRequest(url, method)
@@ -176,7 +194,7 @@ class IntrospectingTokenService(
                 }
             }
         } else {  //Alternatively use form based auth
-            restTemplate = RestTemplate(factory)
+            restTemplate = RestTemplate(requestFactory)
 
             form.add("client_id", clientId)
             form.add("client_secret", clientSecret)
@@ -206,14 +224,15 @@ class IntrospectingTokenService(
                 return null
             }
             // create an OAuth2Authentication
-            val auth = OAuth2Authentication(createStoredRequest(tokenResponse), createUserAuthentication(tokenResponse))
+            val userAuth = createUserAuthentication(tokenResponse)?.let { it as? SavedUserAuthentication ?: SavedUserAuthentication(it) }
+            val auth = OAuth2Authentication(createStoredRequest(tokenResponse), userAuth)
             // create an OAuth2AccessToken
             val token = createAccessToken(tokenResponse, accessToken)
 
-            if (token.expiration == null || token.expiration.after(Date())) {
+            if (token.expirationInstant.isAfter(Instant.now())) {
                 // Store them in the cache
                 val tco = TokenCacheObject(token, auth)
-                if (isCacheTokens && (isCacheNonExpiringTokens || token.expiration != null)) {
+                if (isCacheTokens && (isCacheNonExpiringTokens || token.expirationInstant.isAfter(Instant.MIN))) {
                     authCache[accessToken] = tco
                 }
                 return tco
@@ -224,8 +243,7 @@ class IntrospectingTokenService(
         return null
     }
 
-    @Throws(AuthenticationException::class)
-    override fun loadAuthentication(accessToken: String): OAuth2Authentication? {
+    private fun nonSpringLoadAuthentication(accessToken: String): OAuth2Authentication? {
         // First check if the in memory cache has an Authentication object, and
         // that it is still valid
         // If Valid, return it
@@ -238,17 +256,29 @@ class IntrospectingTokenService(
         }
     }
 
-    override fun readAccessToken(accessToken: String): OAuth2AccessToken? {
+    override fun loadAuthentication(accessToken: String): SpringOAuth2Authentication? {
+        return (nonSpringLoadAuthentication(accessToken) ?: return null).toSpring()
+    }
+
+    override fun readAccessToken(accessToken: String): SpringOAuth2AccessToken? {
         // First check if the in memory cache has a Token object, and that it is
         // still valid
         // If Valid, return it
         var cacheAuth = checkCache(accessToken)
         if (cacheAuth != null) {
-            return cacheAuth.token
+            return cacheAuth.token.toSpring()
         } else {
             cacheAuth = parseToken(accessToken)
-            return cacheAuth?.token
+            return cacheAuth?.token?.toSpring()
         }
+    }
+
+    class PreAuthenticatedAuthenticationToken(
+        override val name: String,
+        val credentials: Any,
+        override val authorities: Collection<GrantedAuthority>,
+    ): Authentication {
+        override val isAuthenticated: Boolean get() = true
     }
 
     companion object {
@@ -258,3 +288,4 @@ class IntrospectingTokenService(
         private val logger = getLogger<IntrospectingTokenService>()
     }
 }
+

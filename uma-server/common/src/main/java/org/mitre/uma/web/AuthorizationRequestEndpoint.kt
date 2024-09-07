@@ -15,6 +15,7 @@
  */
 package org.mitre.uma.web
 
+import io.github.pdvrieze.openid.spring.fromSpring
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.addAll
@@ -37,13 +38,13 @@ import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication
-import org.springframework.security.oauth2.provider.OAuth2Authentication
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.util.MimeTypeUtils
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.security.oauth2.provider.OAuth2Authentication as SpringOAuth2Authentication
 
 /**
  * @author jricher
@@ -113,7 +114,7 @@ class AuthorizationRequestEndpoint {
 
             // we need to downscope this based on the required set that was matched if it was matched
 
-            val o2auth = auth as OAuth2Authentication
+            val o2auth = (auth as SpringOAuth2Authentication).fromSpring()
 
             val token = umaTokenService.createRequestingPartyToken(o2auth, ticket, result.matched!!)
 

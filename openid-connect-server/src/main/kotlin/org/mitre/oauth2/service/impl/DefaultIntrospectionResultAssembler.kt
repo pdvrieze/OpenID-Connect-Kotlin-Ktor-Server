@@ -71,8 +71,8 @@ class DefaultIntrospectionResultAssembler : IntrospectionResultAssembler {
             result[IntrospectionResultAssembler.SUB] = authentication.name
         }
 
-        if (authentication.userAuthentication != null) {
-            result[IntrospectionResultAssembler.USER_ID] = authentication.userAuthentication.name
+        authentication.userAuthentication?.let {
+            result[IntrospectionResultAssembler.USER_ID] = it.name
         }
 
         result[IntrospectionResultAssembler.CLIENT_ID] = authentication.oAuth2Request.clientId
@@ -117,8 +117,8 @@ class DefaultIntrospectionResultAssembler : IntrospectionResultAssembler {
             result[IntrospectionResultAssembler.SUB] = authentication.name
         }
 
-        if (authentication.userAuthentication != null) {
-            result[IntrospectionResultAssembler.USER_ID] = authentication.userAuthentication.name
+        authentication.userAuthentication?.let {
+            result[IntrospectionResultAssembler.USER_ID] = it.name
         }
 
         result[IntrospectionResultAssembler.CLIENT_ID] = authentication.oAuth2Request.clientId

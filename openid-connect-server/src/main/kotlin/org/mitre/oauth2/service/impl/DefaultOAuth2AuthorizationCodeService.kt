@@ -17,6 +17,8 @@
  */
 package org.mitre.oauth2.service.impl
 
+import io.github.pdvrieze.openid.spring.fromSpring
+import io.github.pdvrieze.openid.spring.toSpring
 import org.mitre.data.AbstractPageOperationTemplate
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.AuthorizationCodeEntity
@@ -26,11 +28,11 @@ import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.oauth2.common.exceptions.InvalidGrantException
 import org.springframework.security.oauth2.common.util.RandomValueStringGenerator
-import org.springframework.security.oauth2.provider.OAuth2Authentication
 import org.springframework.security.oauth2.provider.code.AuthorizationCodeServices
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
+import org.springframework.security.oauth2.provider.OAuth2Authentication as SpringOAuth2Authentication
 
 /**
  * Database-backed, random-value authorization code service implementation.
@@ -58,12 +60,12 @@ class DefaultOAuth2AuthorizationCodeService : AuthorizationCodeServices {
      * @return                    the authorization code
      */
     @Transactional(value = "defaultTransactionManager")
-    override fun createAuthorizationCode(authentication: OAuth2Authentication): String {
+    override fun createAuthorizationCode(authentication: SpringOAuth2Authentication): String {
         val code = generator.generate()
 
         // attach the authorization so that we can look it up later
         var authHolder = AuthenticationHolderEntity()
-        authHolder.authentication = authentication
+        authHolder.authentication = authentication.fromSpring()
         authHolder = authenticationHolderRepository.save(authHolder)
 
         // set the auth code to expire
@@ -86,7 +88,7 @@ class DefaultOAuth2AuthorizationCodeService : AuthorizationCodeServices {
      * @throws            InvalidGrantException, if an AuthorizationCodeEntity is not found with the given value
      */
     @Throws(InvalidGrantException::class)
-    override fun consumeAuthorizationCode(code: String): OAuth2Authentication {
+    override fun consumeAuthorizationCode(code: String): SpringOAuth2Authentication {
         val result = repository.getByCode(code)
             ?: throw InvalidGrantException("JpaAuthorizationCodeRepository: no authorization code found for value $code")
 
@@ -94,7 +96,7 @@ class DefaultOAuth2AuthorizationCodeService : AuthorizationCodeServices {
 
         repository.remove(result)
 
-        return auth
+        return auth.toSpring()
     }
 
     /**

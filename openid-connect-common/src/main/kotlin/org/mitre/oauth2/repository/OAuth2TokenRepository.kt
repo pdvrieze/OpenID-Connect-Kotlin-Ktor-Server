@@ -21,15 +21,16 @@ import org.mitre.data.PageCriteria
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.OAuthClientDetails
+import org.mitre.oauth2.service.OAuth2TokenResolver
 import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.uma.model.ResourceSet
 
-interface OAuth2TokenRepository {
+interface OAuth2TokenRepository : OAuth2TokenResolver {
     fun saveAccessToken(token: OAuth2AccessTokenEntity): OAuth2AccessTokenEntity
 
     fun getRefreshTokenByValue(refreshTokenValue: String): OAuth2RefreshTokenEntity?
 
-    fun getRefreshTokenById(id: Long): OAuth2RefreshTokenEntity?
+    override fun getRefreshTokenById(id: Long): OAuth2RefreshTokenEntity?
 
     fun clearAccessTokensForRefreshToken(refreshToken: OAuth2RefreshTokenEntity)
 
@@ -39,7 +40,7 @@ interface OAuth2TokenRepository {
 
     fun getAccessTokenByValue(accessTokenValue: String): OAuth2AccessTokenEntity?
 
-    fun getAccessTokenById(id: Long): OAuth2AccessTokenEntity?
+    override fun getAccessTokenById(id: Long): OAuth2AccessTokenEntity?
 
     fun removeAccessToken(accessToken: OAuth2AccessTokenEntity)
 

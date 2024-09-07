@@ -147,7 +147,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         val badUri = "badplace.xxx"
 
         whenever(blacklistedSiteService.isBlacklisted(badUri)) doReturn (true)
-        whenever(client.registeredRedirectUri) doReturn (hashSetOf(badUri))
+        whenever(client.getRegisteredRedirectUri()) doReturn (hashSetOf(badUri))
 
         assertThrows<IllegalArgumentException> {
             service.saveNewClient(client)
@@ -163,7 +163,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
 
         service.saveNewClient(client)
 
-        verify(client).clientId = ArgumentMatchers.anyString()
+        verify(client).setClientId(ArgumentMatchers.anyString())
     }
 
     /**
@@ -225,7 +225,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
 
         val client = mock<ClientDetailsEntity>()
         whenever(client.id) doReturn (id)
-        whenever(client.clientId) doReturn (clientId)
+        whenever(client.getClientId()) doReturn (clientId)
 
         whenever(clientRepository.getById(id)) doReturn (client)
 
@@ -249,7 +249,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
 
         val badSite = "badsite.xxx"
 
-        whenever(newClient.registeredRedirectUri) doReturn (hashSetOf(badSite))
+        whenever(newClient.getRegisteredRedirectUri()) doReturn (hashSetOf(badSite))
         whenever(blacklistedSiteService.isBlacklisted(badSite)) doReturn (true)
 
         assertThrows<IllegalArgumentException> {
@@ -276,7 +276,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         val oldClient = ClientDetailsEntity()
         oldClient.id = 1L // Needs a hard-coded id as there is no jpa
 
-        oldClient.scope.add(SystemScopeService.OFFLINE_ACCESS)
+        oldClient.getScope().add(SystemScopeService.OFFLINE_ACCESS)
 
         val client = service.updateClient(oldClient, ClientDetailsEntity())
 
@@ -468,7 +468,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
 
         client.redirectUris = hashSetOf("http://foo.bar/")
 
-        client.clientSecret = "secret!"
+        client.setClientSecret("secret!")
 
         assertThrows<IllegalArgumentException> {
             service.saveNewClient(client)
@@ -514,8 +514,8 @@ class TestDefaultOAuth2ClientDetailsEntityService {
 
         service.saveNewClient(client)
 
-        assertNotNull(client.clientId)
-        assertNull(client.clientSecret)
+        assertNotNull(client.getClientId())
+        assertNull(client.getClientSecret())
     }
 
     @Test

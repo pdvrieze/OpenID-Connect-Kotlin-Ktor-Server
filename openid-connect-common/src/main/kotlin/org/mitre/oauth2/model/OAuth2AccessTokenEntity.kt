@@ -24,6 +24,9 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import org.mitre.oauth2.model.convert.JWTStringConverter
+import org.mitre.oauth2.repository.AuthenticationHolderRepository
+import org.mitre.oauth2.service.ClientDetailsEntityService
+import org.mitre.oauth2.service.OAuth2TokenResolver
 import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.openid.connect.model.convert.ISODate
 import org.mitre.uma.model.Permission
@@ -38,17 +41,17 @@ import javax.persistence.Transient as JPATransient
  * @author jricher
  */
 @Entity
-@Table(name = "access_token")
-@NamedQueries(
-    NamedQuery(name = OAuth2AccessTokenEntity.QUERY_ALL, query = "select a from OAuth2AccessTokenEntity a"),
-    NamedQuery(name = OAuth2AccessTokenEntity.QUERY_EXPIRED_BY_DATE, query = "select a from OAuth2AccessTokenEntity a where a.expiration <= :${OAuth2AccessTokenEntity.PARAM_DATE}"),
-    NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_REFRESH_TOKEN, query = "select a from OAuth2AccessTokenEntity a where a.refreshToken = :${OAuth2AccessTokenEntity.PARAM_REFRESH_TOKEN}"),
-    NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_CLIENT, query = "select a from OAuth2AccessTokenEntity a where a.client = :${OAuth2AccessTokenEntity.PARAM_CLIENT}"),
-    NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_TOKEN_VALUE, query = "select a from OAuth2AccessTokenEntity a where a.jwt = :${OAuth2AccessTokenEntity.PARAM_TOKEN_VALUE}"),
-    NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_APPROVED_SITE, query = "select a from OAuth2AccessTokenEntity a where a.approvedSite = :${OAuth2AccessTokenEntity.PARAM_APPROVED_SITE}"),
-    NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_RESOURCE_SET, query = "select a from OAuth2AccessTokenEntity a join a.permissions p where p.resourceSet.id = :${OAuth2AccessTokenEntity.PARAM_RESOURCE_SET_ID}"),
-    NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_NAME, query = "select r from OAuth2AccessTokenEntity r where r.authenticationHolder.userAuth.name = :${OAuth2AccessTokenEntity.PARAM_NAME}")
-)
+//@Table(name = "access_token")
+//@NamedQueries(
+//    NamedQuery(name = OAuth2AccessTokenEntity.QUERY_ALL, query = "select a from OAuth2AccessTokenEntity a"),
+//    NamedQuery(name = OAuth2AccessTokenEntity.QUERY_EXPIRED_BY_DATE, query = "select a from OAuth2AccessTokenEntity a where a.expiration <= :${OAuth2AccessTokenEntity.PARAM_DATE}"),
+//    NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_REFRESH_TOKEN, query = "select a from OAuth2AccessTokenEntity a where a.refreshToken = :${OAuth2AccessTokenEntity.PARAM_REFRESH_TOKEN}"),
+//    NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_CLIENT, query = "select a from OAuth2AccessTokenEntity a where a.client = :${OAuth2AccessTokenEntity.PARAM_CLIENT}"),
+//    NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_TOKEN_VALUE, query = "select a from OAuth2AccessTokenEntity a where a.jwt = :${OAuth2AccessTokenEntity.PARAM_TOKEN_VALUE}"),
+//    NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_APPROVED_SITE, query = "select a from OAuth2AccessTokenEntity a where a.approvedSite = :${OAuth2AccessTokenEntity.PARAM_APPROVED_SITE}"),
+//    NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_RESOURCE_SET, query = "select a from OAuth2AccessTokenEntity a join a.permissions p where p.resourceSet.id = :${OAuth2AccessTokenEntity.PARAM_RESOURCE_SET_ID}"),
+//    NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_NAME, query = "select r from OAuth2AccessTokenEntity r where r.authenticationHolder.userAuth.name = :${OAuth2AccessTokenEntity.PARAM_NAME}")
+//)
 class OAuth2AccessTokenEntity : OAuth2AccessToken {
 	@get:Column(name = "id")
     @get:GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -57,19 +60,19 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
 
 	@get:JoinColumn(name = "client_id")
     @ManyToOne
-    var client: OAuthClientDetails? = null
+    override var client: OAuthClientDetails? = null
 
     /**
      * The authentication in place when this token was created.
      */
 	@get:JoinColumn(name = "auth_holder_id")
     @ManyToOne
-    lateinit var authenticationHolder: AuthenticationHolderEntity // the authentication that made this access
+    override lateinit var authenticationHolder: AuthenticationHolderEntity // the authentication that made this access
 
     @get:Convert(converter = JWTStringConverter::class)
     @get:Column(name = "token_value")
     @get:Basic
-    lateinit var jwt: JWT // JWT-encoded access token value
+    override lateinit var jwt: JWT // JWT-encoded access token value
 
     override lateinit var expirationInstant: Instant
         private set
@@ -108,14 +111,14 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
     constructor()
 
     constructor(
-        id: Long?,
+        id: Long? = null,
         expiration: Date,
         jwt: JWT,
-        client: ClientDetailsEntity?,
+        client: OAuthClientDetails? = null,
         authenticationHolder: AuthenticationHolderEntity,
-        refreshToken: OAuth2RefreshTokenEntity?,
-        scope: Set<String>?,
-        tokenType: String,
+        refreshToken: OAuth2RefreshTokenEntity? = null,
+        scope: Set<String>? = null,
+        tokenType: String = OAuth2AccessToken.BEARER_TYPE,
     ) {
         this.id = id
         this.expirationInstant = expiration.toInstant()
@@ -128,17 +131,17 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
     }
 
     constructor(
-        id: Long?,
-        expiration: Instant,
+        id: Long? = null,
+        expirationInstant: Instant = Instant.MIN,
         jwt: JWT,
-        client: ClientDetailsEntity?,
+        client: ClientDetailsEntity? = null,
         authenticationHolder: AuthenticationHolderEntity,
-        refreshToken: OAuth2RefreshTokenEntity,
-        scope: Set<String>?,
-        tokenType: String,
+        refreshToken: OAuth2RefreshTokenEntity? = null,
+        scope: Set<String>? = null,
+        tokenType: String = OAuth2AccessToken.BEARER_TYPE,
     ) {
         this.id = id
-        this.expirationInstant = expiration
+        this.expirationInstant = expirationInstant
         this.jwt = jwt
         this.client = client
         this.authenticationHolder = authenticationHolder
@@ -155,6 +158,7 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
         return additionalInformation
     }
 
+    @Deprecated("Secondary value")
     override val value: String
         get() = jwt.serialize()
 
@@ -180,6 +184,152 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
 
     @JPATransient
     fun serialDelegate(): SerialDelegate = SerialDelegate(this)
+    override fun builder(): Builder {
+        return Builder(this)
+
+    }
+
+    class Builder(
+        var currentId: Long? = null,
+        var expirationInstant: Instant? = null,
+        override var jwt: JWT? = null,
+        clientId: String? = null,
+        authenticationHolderId: Long? = null,
+        refreshTokenId: Long? = null,
+        var scope: Set<String>? = null,
+        var tokenType: String = OAuth2AccessToken.BEARER_TYPE,
+        var approvedSite: ApprovedSite? = null,
+        var permissions: Set<Permission>? = null,
+    ) : OAuth2AccessToken.Builder {
+
+        var refreshTokenId = refreshTokenId
+            set(value) {
+                field = value
+                if (refreshToken?.id != value) refreshToken = null
+            }
+
+        private var refreshToken: OAuth2RefreshTokenEntity? = null
+
+        override var expiration: Date?
+            get() = expirationInstant?.let { Date.from(it) }
+            set(value) { expirationInstant = value?.toInstant() }
+
+        var clientId = clientId
+            private set(value) {
+                field = value
+                if (client?.getClientId() != value) {
+                    client = null
+                }
+            }
+
+        private var client: OAuthClientDetails? = null
+
+        var authenticationHolderId = authenticationHolderId
+            set(value) {
+                if (authenticationHolder?.id != value) {
+                    authenticationHolder = null
+                }
+            }
+
+        private var authenticationHolder: AuthenticationHolderEntity? = null
+
+        private val additionalInformation: MutableMap<String, JsonElement> =
+            HashMap() // ephemeral map of items to be added to the OAuth token response
+
+        constructor(
+            currentId: Long? = null,
+            expirationInstant: Instant? = null,
+            jwt: JWT? = null,
+            client: OAuthClientDetails,
+            authenticationHolderId: Long? = null,
+            refreshTokenId: Long? = null,
+            scope: Set<String>? = null,
+            tokenType: String = OAuth2AccessToken.BEARER_TYPE,
+            approvedSite: ApprovedSite? = null,
+            permissions: Set<Permission>? = null,
+        ) : this(
+            currentId = currentId,
+            expirationInstant = expirationInstant,
+            jwt = jwt,
+            clientId = client.getClientId(),
+            authenticationHolderId = authenticationHolderId,
+            refreshTokenId = refreshTokenId,
+            scope = scope,
+            tokenType = tokenType,
+            approvedSite = approvedSite,
+            permissions = permissions
+        ) {
+            this.client = client
+        }
+
+        constructor(token : OAuth2AccessTokenEntity) : this(
+            currentId = token.id,
+            expirationInstant = token.expirationInstant,
+            jwt = token.jwt,
+            clientId = token.client?.getClientId(),
+            authenticationHolderId = token.authenticationHolder.id,
+            refreshTokenId = token.refreshToken?.id,
+            scope = token.scope,
+            tokenType = token.tokenType,
+            approvedSite = token.approvedSite,
+            permissions = token.permissions
+        )
+
+        fun setClient(client: OAuthClientDetails) {
+            this.client = client
+            clientId = client.getClientId()
+        }
+
+        fun setAuthenticationHolder(authenticationHolder: AuthenticationHolderEntity?) {
+            this.authenticationHolder = authenticationHolder
+            this.authenticationHolderId = authenticationHolder?.id
+        }
+
+        fun setRefreshToken(t: OAuth2RefreshTokenEntity?) {
+            this.refreshToken= t
+        }
+
+        override fun setIdToken(idToken: JWT?) {
+            if (idToken != null) {
+                additionalInformation[ID_TOKEN_FIELD_NAME] = Json.parseToJsonElement(idToken.serialize())
+            }
+        }
+
+        fun build(
+            clientService: ClientDetailsEntityService,
+            authenticationHolderRepository: AuthenticationHolderRepository,
+            tokenResolver: OAuth2TokenResolver
+        ): OAuth2AccessTokenEntity {
+            val client: ClientDetailsEntity? = (client ?: clientId?.let {
+                clientService.loadClientByClientId(it)
+            })?.let { c -> ClientDetailsEntity.from(c) }
+
+            return build(client, authenticationHolderRepository, tokenResolver)
+        }
+
+        fun build(
+            client: ClientDetailsEntity?,
+            authenticationHolderRepository: AuthenticationHolderRepository,
+            tokenRepository: OAuth2TokenResolver
+        ): OAuth2AccessTokenEntity {
+            val authenticationHolder = authenticationHolderId?.let { authenticationHolderRepository.getById(it) }
+            val refreshToken = tokenRepository.getRefreshTokenById(refreshTokenId!!)
+            return OAuth2AccessTokenEntity(
+                id = currentId,
+                expirationInstant = (expiration?.toInstant() ?: Instant.MIN),
+                jwt = jwt!!,
+                client = client!!,
+                authenticationHolder = authenticationHolder as AuthenticationHolderEntity,
+                refreshToken = refreshToken as OAuth2RefreshTokenEntity?,
+                scope = scope as Set<String>?,
+                tokenType = tokenType as String,
+            ).also { t ->
+                approvedSite?.let { t.approvedSite = it }
+                t.additionalInformation.putAll(additionalInformation)
+                t.permissions = permissions
+            }
+        }
+    }
 
     @Serializable
     class SerialDelegate internal constructor(

@@ -15,20 +15,25 @@
  */
 package org.mitre.oauth2.token
 
+import io.github.pdvrieze.openid.spring.fromSpring
+import io.github.pdvrieze.openid.spring.toSpring
 import org.mitre.oauth2.exception.AuthorizationPendingException
 import org.mitre.oauth2.exception.DeviceCodeExpiredException
+import org.mitre.oauth2.model.OAuth2Authentication
+import org.mitre.oauth2.model.OAuthClientDetails
+import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.service.DeviceCodeService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.oauth2.common.exceptions.InvalidGrantException
 import org.springframework.security.oauth2.provider.ClientDetails
 import org.springframework.security.oauth2.provider.ClientDetailsService
-import org.springframework.security.oauth2.provider.OAuth2Authentication
 import org.springframework.security.oauth2.provider.OAuth2RequestFactory
 import org.springframework.security.oauth2.provider.TokenRequest
 import org.springframework.security.oauth2.provider.token.AbstractTokenGranter
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices
 import org.springframework.stereotype.Component
 import java.util.*
+import org.springframework.security.oauth2.provider.OAuth2Authentication as SpringOAuth2Authentication
 
 /**
  * Implements https://tools.ietf.org/html/draft-ietf-oauth-device-flow
@@ -51,7 +56,8 @@ class DeviceTokenGranter protected constructor(
     /* (non-Javadoc)
 	 * @see org.springframework.security.oauth2.provider.token.AbstractTokenGranter#getOAuth2Authentication(org.springframework.security.oauth2.provider.ClientDetails, org.springframework.security.oauth2.provider.TokenRequest)
 	 */
-    override fun getOAuth2Authentication(client: ClientDetails, tokenRequest: TokenRequest): OAuth2Authentication {
+    override fun getOAuth2Authentication(client: ClientDetails, tokenRequest: TokenRequest): SpringOAuth2Authentication {
+        require(client is OAuthClientDetails)
         val deviceCode = tokenRequest.requestParameters["device_code"]
 
         // look up the device code and consume it
@@ -72,12 +78,13 @@ class DeviceTokenGranter protected constructor(
                 // inherit the (approved) scopes from the original request
                 tokenRequest.setScope(dc.scope)
 
+                val userAuth = dc.authenticationHolder?.userAuth?.let { a -> SavedUserAuthentication.from(a) }
                 val auth =
-                    OAuth2Authentication(requestFactory.createOAuth2Request(client, tokenRequest), dc.authenticationHolder!!.userAuth)
+                    OAuth2Authentication(requestFactory.createOAuth2Request(client, tokenRequest).fromSpring(), userAuth)
 
                 deviceCodeService.clearDeviceCode(deviceCode, client)
 
-                return auth
+                return auth.toSpring()
             }
         } else {
             throw InvalidGrantException("Invalid device code: $deviceCode")
