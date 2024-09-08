@@ -1,5 +1,6 @@
-package io.github.pdvrieze.auth.exposed
+package io.github.pdvrieze.auth.repository.exposed
 
+import io.github.pdvrieze.auth.exposed.RepositoryBase
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -11,20 +12,20 @@ import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.AuthorizationCodeRepository
 import org.mitre.oauth2.util.requireId
 import java.time.Instant
-import java.util.*
 
-class ExposedAuthorizationCodeRepository(database: Database, private val authHolders: AuthenticationHolderRepository) : RepositoryBase(database, AuthorizationCodes), AuthorizationCodeRepository {
+class ExposedAuthorizationCodeRepository(database: Database, private val authHolders: AuthenticationHolderRepository) :
+    RepositoryBase(database, AuthorizationCodes), AuthorizationCodeRepository {
 
     override fun save(authorizationCode: AuthorizationCodeEntity): AuthorizationCodeEntity {
         val oldId = authorizationCode.id
 
         return transaction {
             val newId = AuthorizationCodes.save(oldId) { b ->
-                b[code] = authorizationCode.code
+                b[AuthorizationCodes.code] = authorizationCode.code
                 authorizationCode.authenticationHolder?.let { ah ->
-                    b[authHolderId] = ah.id
+                    b[AuthorizationCodes.authHolderId] = ah.id
                 }
-                b[expiration] = authorizationCode.expiration?.toInstant()
+                b[AuthorizationCodes.expiration] = authorizationCode.expiration?.toInstant()
             }
             authorizationCode.copy(id = newId)
         }
@@ -77,7 +78,7 @@ class ExposedAuthorizationCodeRepository(database: Database, private val authHol
             id = get(AuthorizationCodes.id).value,
             code = get(AuthorizationCodes.code),
             authenticationHolder = authHolder,
-            expiration = get(AuthorizationCodes.expiration)?.let { Date.from(it) },
+            expiration = get(AuthorizationCodes.expiration)?.let { java.util.Date.from(it) },
         )
     }
 }

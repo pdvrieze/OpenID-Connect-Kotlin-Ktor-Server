@@ -15,7 +15,7 @@ dependencies {
     }
     implementation(libs.guava)
     implementation(libs.commons.httpclient)
-    implementation(libs.jwt)
+    api(libs.jwt) // needed for base class of PKCEAlgorithm
     implementation(libs.eclipse.persistence.core)
     implementation(libs.slf4j.api)
     implementation(libs.servlet.api)

@@ -1,6 +1,8 @@
-package io.github.pdvrieze.auth.exposed
+package io.github.pdvrieze.auth.uma.repository.exposed
 
-import kotlinx.css.ol
+import io.github.pdvrieze.auth.exposed.RepositoryBase
+import io.github.pdvrieze.auth.repository.exposed.WhitelistedSiteScopes
+import io.github.pdvrieze.auth.repository.exposed.WhitelistedSites
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq

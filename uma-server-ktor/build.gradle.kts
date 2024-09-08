@@ -23,6 +23,8 @@ application {
 dependencies {
     implementation(projects.openidConnectCommon)
     implementation(projects.openidConnectServer)
+    implementation(projects.openidConnectServerExposed)
+    implementation(projects.openidConnectServerKtor)
     implementation(projects.umaServer.exposed)
 
     implementation(libs.ktor.server.core)

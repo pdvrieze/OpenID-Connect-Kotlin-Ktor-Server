@@ -1,21 +1,16 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
+//    id("ro.isdc.wro4j.gradle") version "1.8.0.Beta5"
 }
 
 base {
-    archivesName = "uma-server"
+    archivesName = "openid-connect-server-webapp"
 }
 
 dependencies {
-    implementation(projects.openidConnectServerKtor)
-    implementation(projects.openidConnectClient)
-//    implementation(projects.openidConnectServerWebapp)
-    implementation(libs.guava)
-    implementation(libs.servlet.api)
-    implementation(libs.slf4j.api)
-    implementation(libs.ktor.http)
-//    implementation(libs.spring.webmvc)
-    implementation(libs.kotlinx.serialization.json)
+    implementation(projects.openidConnectCommon)
+    api(projects.openidConnectServer)
+    implementation(projects.openidConnectServerExposed)
 /*
     implementation(libs.spring.core) {
         exclude("commons-logging:commons-logging")
@@ -24,9 +19,11 @@ dependencies {
 //    implementation(libs.spring.security)
     implementation(libs.spring.oauth)
 
+    implementation(libs.guava)
     implementation(libs.commons.httpclient)
     implementation(libs.jwt)
     implementation(libs.persistence)
+    implementation(libs.slf4j.api)
     implementation(libs.jaxb.api)
     implementation(libs.jaxb.bindapi)
     implementation(libs.jaxb.runtime)
@@ -38,11 +35,7 @@ dependencies {
     implementation(libs.javax.ann)
     implementation(libs.bcprov)
 */
-    implementation(libs.javax.persistence)
-//    implementation(libs.javax.ann)
 
-    testImplementation(libs.mockito.kotlin)
-    testImplementation(libs.mockito.jupiter)
     testImplementation(libs.junit.jupiter.api)
 
     testRuntimeOnly(libs.junit.jupiter.engine)

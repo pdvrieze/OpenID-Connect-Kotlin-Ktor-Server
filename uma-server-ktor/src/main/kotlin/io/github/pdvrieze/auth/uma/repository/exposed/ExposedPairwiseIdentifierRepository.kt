@@ -1,5 +1,6 @@
-package io.github.pdvrieze.auth.exposed
+package io.github.pdvrieze.auth.uma.repository.exposed
 
+import io.github.pdvrieze.auth.exposed.RepositoryBase
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.selectAll
@@ -12,9 +13,9 @@ class ExposedPairwiseIdentifierRepository(database: Database) : RepositoryBase(d
         val t = PairwiseIdentifiers
         return t.selectAll()
             .where {
-                (t.sub eq sub) and
-                    (t.sectorIdentifier eq sectorIdentifierUri)
-            }.map { PairwiseIdentifier(it[t.identifier]!!.toLong(), it[t.sub]!!, it[t.sectorIdentifier]!!) }
+                (PairwiseIdentifiers.sub eq sub) and
+                    (PairwiseIdentifiers.sectorIdentifier eq sectorIdentifierUri)
+            }.map { PairwiseIdentifier(it[PairwiseIdentifiers.identifier]!!.toLong(), it[PairwiseIdentifiers.sub]!!, it[PairwiseIdentifiers.sectorIdentifier]!!) }
             .singleOrNull()
     }
 

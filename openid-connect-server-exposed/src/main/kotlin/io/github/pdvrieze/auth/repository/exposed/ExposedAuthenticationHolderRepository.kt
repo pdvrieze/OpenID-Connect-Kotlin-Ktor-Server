@@ -1,5 +1,6 @@
-package io.github.pdvrieze.auth.exposed
+package io.github.pdvrieze.auth.repository.exposed
 
+import io.github.pdvrieze.auth.exposed.RepositoryBase
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.selectAll
@@ -8,7 +9,6 @@ import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
-import org.springframework.security.core.authority.SimpleGrantedAuthority
 
 class ExposedAuthenticationHolderRepository(database: Database) :
     RepositoryBase(

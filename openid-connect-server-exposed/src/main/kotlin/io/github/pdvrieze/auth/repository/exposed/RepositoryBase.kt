@@ -1,11 +1,13 @@
 package io.github.pdvrieze.auth.exposed
 
+import io.github.pdvrieze.auth.repository.exposed.SystemScopes
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
+import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import org.mitre.oauth2.model.SystemScope
 import kotlin.contracts.ExperimentalContracts
@@ -14,7 +16,7 @@ import kotlin.contracts.contract
 
 abstract class RepositoryBase(protected val database: Database, vararg val tables: Table) {
     init {
-        org.jetbrains.exposed.sql.transactions.transaction(database) {
+        transaction(database) {
             SchemaUtils.create(*tables)
         }
     }
@@ -24,7 +26,7 @@ abstract class RepositoryBase(protected val database: Database, vararg val table
         contract {
             callsInPlace(statement, InvocationKind.EXACTLY_ONCE)
         }
-        return org.jetbrains.exposed.sql.transactions.transaction(database, statement)
+        return transaction(database, statement)
     }
 
 

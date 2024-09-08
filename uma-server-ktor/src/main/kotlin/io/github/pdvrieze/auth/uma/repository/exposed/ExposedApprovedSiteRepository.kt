@@ -1,5 +1,8 @@
-package io.github.pdvrieze.auth.exposed
+package io.github.pdvrieze.auth.uma.repository.exposed
 
+import io.github.pdvrieze.auth.exposed.RepositoryBase
+import io.github.pdvrieze.auth.repository.exposed.ApprovedSiteScopes
+import io.github.pdvrieze.auth.repository.exposed.ApprovedSites
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -9,7 +12,7 @@ import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.selectAll
 import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.openid.connect.repository.ApprovedSiteRepository
-import java.util.Date
+import java.util.*
 
 class ExposedApprovedSiteRepository(database: Database): RepositoryBase(database, ApprovedSites, ApprovedSiteScopes), ApprovedSiteRepository {
 

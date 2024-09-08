@@ -1,5 +1,8 @@
-package io.github.pdvrieze.auth.exposed
+package io.github.pdvrieze.auth.uma.repository.exposed
 
+import io.github.pdvrieze.auth.exposed.RepositoryBase
+import io.github.pdvrieze.auth.repository.exposed.ResourceSetScopes
+import io.github.pdvrieze.auth.repository.exposed.ResourceSets
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ResultRow

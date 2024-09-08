@@ -1,14 +1,14 @@
 package io.github.pdvrieze.auth.ktor.plugins
 
 import com.nimbusds.jose.jwk.JWK
-import io.github.pdvrieze.auth.exposed.ExposedApprovedSiteRepository
-import io.github.pdvrieze.auth.exposed.ExposedAuthenticationHolderRepository
-import io.github.pdvrieze.auth.exposed.ExposedBlacklistedSiteRepository
-import io.github.pdvrieze.auth.exposed.ExposedOauth2ClientRepository
-import io.github.pdvrieze.auth.exposed.ExposedOauth2TokenRepository
-import io.github.pdvrieze.auth.exposed.ExposedSystemScopeRepository
-import io.github.pdvrieze.auth.exposed.ExposedUserInfoRepository
-import io.github.pdvrieze.auth.exposed.ExposedWhitelistedSiteRepository
+import io.github.pdvrieze.auth.uma.repository.exposed.ExposedApprovedSiteRepository
+import io.github.pdvrieze.auth.repository.exposed.ExposedAuthenticationHolderRepository
+import io.github.pdvrieze.auth.uma.repository.exposed.ExposedBlacklistedSiteRepository
+import io.github.pdvrieze.auth.repository.exposed.ExposedOauth2ClientRepository
+import io.github.pdvrieze.auth.repository.exposed.ExposedOauth2TokenRepository
+import io.github.pdvrieze.auth.repository.exposed.ExposedSystemScopeRepository
+import io.github.pdvrieze.auth.uma.repository.exposed.ExposedUserInfoRepository
+import io.github.pdvrieze.auth.uma.repository.exposed.ExposedWhitelistedSiteRepository
 import org.jetbrains.exposed.sql.Database
 import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
 import org.mitre.jwt.encryption.service.impl.DefaultJWTEncryptionAndDecryptionService

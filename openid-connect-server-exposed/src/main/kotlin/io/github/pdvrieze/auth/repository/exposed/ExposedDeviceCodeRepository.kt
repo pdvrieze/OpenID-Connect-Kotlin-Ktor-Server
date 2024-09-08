@@ -1,5 +1,6 @@
-package io.github.pdvrieze.auth.exposed
+package io.github.pdvrieze.auth.repository.exposed
 
+import io.github.pdvrieze.auth.exposed.RepositoryBase
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -12,7 +13,6 @@ import org.mitre.oauth2.model.DeviceCode
 import org.mitre.oauth2.repository.impl.DeviceCodeRepository
 import java.time.Instant
 import java.util.*
-import kotlin.collections.HashSet
 
 class ExposedDeviceCodeRepository(
     dataSource: Database,
@@ -48,8 +48,8 @@ class ExposedDeviceCodeRepository(
     override fun remove(code: DeviceCode) {
         val scopeId = code.id ?: return
         transaction {
-            DeviceCodeRequestParameters.deleteWhere { ownerId eq scopeId }
-            DeviceCodeScopes.deleteWhere { ownerId eq scopeId }
+            DeviceCodeRequestParameters.deleteWhere { DeviceCodeRequestParameters.ownerId eq scopeId }
+            DeviceCodeScopes.deleteWhere { DeviceCodeScopes.ownerId eq scopeId }
             DeviceCodes.deleteWhere { id eq scopeId }
         }
     }
@@ -62,12 +62,12 @@ class ExposedDeviceCodeRepository(
         var newId: Long
         transaction {
             newId = DeviceCodes.save(oldId) { b ->
-                b[deviceCode] = code.deviceCode
-                b[userCode] = code.userCode
-                b[expiration] = code.expiration?.toInstant()
-                b[clientId] = code.clientId
-                b[approved] = code.isApproved
-                b[authHolderId] = code.authenticationHolder?.id
+                b[DeviceCodes.deviceCode] = code.deviceCode
+                b[DeviceCodes.userCode] = code.userCode
+                b[DeviceCodes.expiration] = code.expiration?.toInstant()
+                b[DeviceCodes.clientId] = code.clientId
+                b[DeviceCodes.approved] = code.isApproved
+                b[DeviceCodes.authHolderId] = code.authenticationHolder?.id
             }
 
             val scopesToAdd: Set<String>
@@ -78,19 +78,19 @@ class ExposedDeviceCodeRepository(
                     code.scope?.let { removeAll(it)}
                 }
                 scopesToAdd = code.scope?.run { toMutableSet().apply { removeAll(oldScopes) } } ?: emptySet()
-                DeviceCodeScopes.deleteWhere { (ownerId eq oldId) and (scope inList scopesToRemove) }
-                DeviceCodeRequestParameters.deleteWhere { ownerId eq oldId }
+                DeviceCodeScopes.deleteWhere { (DeviceCodeScopes.ownerId eq oldId) and (DeviceCodeScopes.scope inList scopesToRemove) }
+                DeviceCodeRequestParameters.deleteWhere { DeviceCodeRequestParameters.ownerId eq oldId }
             } else {
                 if (oldId != null) {
-                    DeviceCodeScopes.deleteWhere { ownerId eq oldId }
-                    DeviceCodeRequestParameters.deleteWhere { ownerId eq oldId }
+                    DeviceCodeScopes.deleteWhere { DeviceCodeScopes.ownerId eq oldId }
+                    DeviceCodeRequestParameters.deleteWhere { DeviceCodeRequestParameters.ownerId eq oldId }
                 }
                 scopesToAdd = code.scope ?: emptySet()
             }
 
             if (oldId != null) {
-                DeviceCodeScopes.deleteWhere { ownerId eq oldId }
-                DeviceCodeRequestParameters.deleteWhere { ownerId eq oldId }
+                DeviceCodeScopes.deleteWhere { DeviceCodeScopes.ownerId eq oldId }
+                DeviceCodeRequestParameters.deleteWhere { DeviceCodeRequestParameters.ownerId eq oldId }
             }
             if (scopesToAdd.isNotEmpty()) {
                 DeviceCodeScopes.batchInsert(scopesToAdd) { elem ->

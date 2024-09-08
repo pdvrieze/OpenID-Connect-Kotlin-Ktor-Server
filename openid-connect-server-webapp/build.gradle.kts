@@ -10,7 +10,7 @@ base {
 
 dependencies {
     implementation(projects.openidConnectCommon)
-    implementation(projects.openidConnectServer)
+    implementation(projects.openidConnectServerJpaSpring)
 /*
     implementation(libs.spring.core) {
         exclude("commons-logging:commons-logging")

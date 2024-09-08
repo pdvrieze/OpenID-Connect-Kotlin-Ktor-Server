@@ -1,5 +1,7 @@
-package io.github.pdvrieze.auth.exposed
+package io.github.pdvrieze.auth.uma.repository.exposed
 
+import io.github.pdvrieze.auth.exposed.RepositoryBase
+import io.github.pdvrieze.auth.repository.exposed.Permissions
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.ResultRow
