@@ -38,15 +38,19 @@ import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.oauth2.service.impl.DefaultOAuth2ProviderTokenService
+import org.mitre.openid.connect.service.ApprovedSiteService
 import org.mitre.openid.connect.token.ConnectTokenEnhancer
 import org.mockito.AdditionalAnswers
 import org.mockito.ArgumentMatchers
+import org.mockito.ArgumentMatchers.anyLong
 import org.mockito.ArgumentMatchers.anySet
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
+import org.mockito.kotlin.any
 import org.mockito.kotlin.atLeastOnce
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.isA
@@ -94,7 +98,9 @@ class TestDefaultOAuth2ProviderTokenService {
     @Mock
     private lateinit var scopeService: SystemScopeService
 
-    @InjectMocks
+    @Mock
+    private lateinit var approvedSiteService: ApprovedSiteService
+
     private lateinit var service: DefaultOAuth2ProviderTokenService
 
     /**
@@ -103,6 +109,15 @@ class TestDefaultOAuth2ProviderTokenService {
     @BeforeEach
     fun prepare() {
         reset(tokenRepository, authenticationHolderRepository, clientDetailsService, tokenEnhancer)
+
+        service = DefaultOAuth2ProviderTokenService(
+            tokenRepository = tokenRepository,
+            authenticationHolderRepository = authenticationHolderRepository,
+            clientDetailsService = clientDetailsService,
+            tokenEnhancer = tokenEnhancer,
+            scopeService = scopeService,
+            approvedSiteService = approvedSiteService,
+        )
 
         authentication = mock<OAuth2Authentication>()
         val clientAuth = OAuth2Request(
@@ -246,14 +261,28 @@ class TestDefaultOAuth2ProviderTokenService {
         )
         whenever(authentication.oAuth2Request) doReturn (clientAuth)
         whenever(client.isAllowRefresh) doReturn (true)
+        lateinit var refreshToken: OAuth2RefreshTokenEntity
+        whenever(tokenRepository.saveRefreshToken(isA<OAuth2RefreshTokenEntity>())) doAnswer { mock ->
+            (mock.arguments[0] as OAuth2RefreshTokenEntity).also {
+                it.id = it.id ?: 42L
+                refreshToken = it
+            }
+        }
+
+        whenever(tokenRepository.getRefreshTokenById(anyLong())).doAnswer {
+            refreshToken
+        }
 
         val token = service.createAccessToken(authentication)
+
+        verify(tokenRepository, atLeastOnce()).getRefreshTokenById(anyLong())
 
         // Note: a refactor may be appropriate to only save refresh tokens once to the repository during creation.
         verify(tokenRepository, atLeastOnce()).saveRefreshToken(isA<OAuth2RefreshTokenEntity>())
         verify(scopeService, atLeastOnce()).removeReservedScopes(anySet())
 
         assertNotNull(token.refreshToken)
+        assertEquals(refreshToken, token.refreshToken)
     }
 
     /**

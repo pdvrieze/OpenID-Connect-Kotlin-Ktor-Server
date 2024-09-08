@@ -18,6 +18,8 @@
 package org.mitre.oauth2.model
 
 import com.nimbusds.jwt.JWT
+import com.nimbusds.jwt.JWTClaimsSet
+import com.nimbusds.jwt.PlainJWT
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -209,6 +211,10 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
             }
 
         private var refreshToken: OAuth2RefreshTokenEntity? = null
+            set(value) {
+                field = value
+                if (refreshTokenId != value?.id) refreshTokenId = value?.id
+            }
 
         override var expiration: Date?
             get() = expirationInstant?.let { Date.from(it) }
@@ -285,7 +291,7 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
             this.authenticationHolderId = authenticationHolder?.id
         }
 
-        fun setRefreshToken(t: OAuth2RefreshTokenEntity?) {
+        fun setRefreshToken(t: OAuth2RefreshTokenEntity?, dummy: Boolean = false) {
             this.refreshToken= t
         }
 
@@ -313,16 +319,16 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
             tokenRepository: OAuth2TokenResolver
         ): OAuth2AccessTokenEntity {
             val authenticationHolder = authenticationHolderId?.let { authenticationHolderRepository.getById(it) }
-            val refreshToken = tokenRepository.getRefreshTokenById(refreshTokenId!!)
+            val refreshToken = refreshTokenId?.let{ tokenRepository.getRefreshTokenById(it) }
             return OAuth2AccessTokenEntity(
                 id = currentId,
                 expirationInstant = (expiration?.toInstant() ?: Instant.MIN),
-                jwt = jwt!!,
-                client = client!!,
-                authenticationHolder = authenticationHolder as AuthenticationHolderEntity,
-                refreshToken = refreshToken as OAuth2RefreshTokenEntity?,
-                scope = scope as Set<String>?,
-                tokenType = tokenType as String,
+                jwt = jwt ?: PlainJWT(JWTClaimsSet.Builder().build()),
+                client = client,
+                authenticationHolder = authenticationHolder as AuthenticationHolderEntity? ?: AuthenticationHolderEntity(),
+                refreshToken = refreshToken,
+                scope = scope,
+                tokenType = tokenType,
             ).also { t ->
                 approvedSite?.let { t.approvedSite = it }
                 t.additionalInformation.putAll(additionalInformation)
