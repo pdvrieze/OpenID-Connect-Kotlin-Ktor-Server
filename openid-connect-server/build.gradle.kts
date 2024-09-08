@@ -1,8 +1,8 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.plugins.spring)
-    alias(libs.plugins.kotlin.plugins.jpa)
-    alias(libs.plugins.kotlin.plugins.serialization)
+//    alias(libs.plugins.kotlin.plugins.jpa)
+//    alias(libs.plugins.kotlin.plugins.serialization)
 }
 
 base {

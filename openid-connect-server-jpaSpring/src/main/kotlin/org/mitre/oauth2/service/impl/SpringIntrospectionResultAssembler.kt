@@ -27,7 +27,7 @@ import java.text.ParseException
  * Default implementation of the [IntrospectionResultAssembler] interface.
  */
 @Service
-class DefaultIntrospectionResultAssembler : IntrospectionResultAssembler {
+class SpringIntrospectionResultAssembler : IntrospectionResultAssembler {
     override fun assembleFrom(
         accessToken: OAuth2AccessTokenEntity,
         userInfo: UserInfo?,
@@ -130,6 +130,6 @@ class DefaultIntrospectionResultAssembler : IntrospectionResultAssembler {
         /**
          * Logger for this class
          */
-        private val logger = getLogger<DefaultIntrospectionResultAssembler>()
+        private val logger = getLogger<SpringIntrospectionResultAssembler>()
     }
 }

@@ -17,7 +17,6 @@ package org.mitre.oauth2.service.impl
 
 import org.mitre.data.AbstractPageOperationTemplate
 import org.mitre.oauth2.model.AuthenticationHolderEntity
-import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.DeviceCode
 import org.mitre.oauth2.model.OAuth2Authentication
 import org.mitre.oauth2.model.OAuthClientDetails
@@ -29,14 +28,12 @@ import org.springframework.security.oauth2.common.util.RandomValueStringGenerato
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
-import org.springframework.security.oauth2.provider.ClientDetails as SpringClientDetails
-import org.springframework.security.oauth2.provider.OAuth2Authentication as SpringOAuth2Authentication
 
 /**
  * @author jricher
  */
 @Service("defaultDeviceCodeService")
-class DefaultDeviceCodeService : DeviceCodeService {
+class SpringDeviceCodeService : DeviceCodeService {
     @Autowired
     private lateinit var repository: DeviceCodeRepository
 

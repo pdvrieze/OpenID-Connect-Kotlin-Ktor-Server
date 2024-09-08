@@ -59,7 +59,7 @@ import java.util.*
  * @author jricher
  */
 @Service("defaultOAuth2ProviderTokenService")
-class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
+class SpringOAuth2ProviderTokenService : OAuth2TokenEntityService {
     @Autowired
     private lateinit var tokenRepository: OAuth2TokenRepository
 
@@ -513,6 +513,6 @@ class DefaultOAuth2ProviderTokenService : OAuth2TokenEntityService {
         /**
          * Logger for this class
          */
-        private val logger = getLogger<DefaultOAuth2ProviderTokenService>()
+        private val logger = getLogger<SpringOAuth2ProviderTokenService>()
     }
 }

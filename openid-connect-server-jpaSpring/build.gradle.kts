@@ -1,6 +1,8 @@
 plugins {
     `java-library`
     alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.plugins.spring)
+    alias(libs.plugins.kotlin.plugins.jpa)
 //    id("ro.isdc.wro4j.gradle") version "1.8.0.Beta5"
 }
 

@@ -28,7 +28,7 @@ import org.springframework.stereotype.Service
  * @author jricher
  */
 @Service("defaultSystemScopeService")
-class DefaultSystemScopeService : SystemScopeService {
+class SpringSystemScopeService : SystemScopeService {
     @Autowired
     private lateinit var repository: SystemScopeRepository
 

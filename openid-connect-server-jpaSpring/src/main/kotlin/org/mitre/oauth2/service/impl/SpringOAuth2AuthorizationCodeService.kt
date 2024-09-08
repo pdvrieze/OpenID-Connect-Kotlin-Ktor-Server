@@ -40,7 +40,7 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication as Spri
  * @author aanganes
  */
 @Service("defaultOAuth2AuthorizationCodeService")
-class DefaultOAuth2AuthorizationCodeService : AuthorizationCodeServices {
+class SpringOAuth2AuthorizationCodeService : AuthorizationCodeServices {
     @Autowired
     lateinit var repository: AuthorizationCodeRepository
 
@@ -117,6 +117,6 @@ class DefaultOAuth2AuthorizationCodeService : AuthorizationCodeServices {
 
     companion object {
         // Logger for this class
-        private val logger = getLogger<DefaultOAuth2AuthorizationCodeService>()
+        private val logger = getLogger<SpringOAuth2AuthorizationCodeService>()
     }
 }

@@ -56,7 +56,7 @@ import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 
 @Service
-class DefaultOAuth2ClientDetailsEntityService : SpringClientDetailsEntityService {
+class SpringOAuth2ClientDetailsEntityService : SpringClientDetailsEntityService {
     @Autowired
     private lateinit var clientRepository: OAuth2ClientRepository
 
@@ -457,6 +457,6 @@ class DefaultOAuth2ClientDetailsEntityService : SpringClientDetailsEntityService
         /**
          * Logger for this class
          */
-        private val logger = getLogger<DefaultOAuth2ClientDetailsEntityService>()
+        private val logger = getLogger<SpringOAuth2ClientDetailsEntityService>()
     }
 }

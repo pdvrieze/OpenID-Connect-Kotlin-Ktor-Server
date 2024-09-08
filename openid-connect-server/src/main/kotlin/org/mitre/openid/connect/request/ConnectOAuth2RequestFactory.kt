@@ -27,7 +27,7 @@ import kotlinx.serialization.json.JsonObject
 import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
 import org.mitre.jwt.signer.service.impl.ClientKeyCacheService
 import org.mitre.oauth2.model.PKCEAlgorithm
-import org.mitre.oauth2.service.SpringClientDetailsEntityService
+import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.service.MITREidDataService
 import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
@@ -43,7 +43,7 @@ import org.springframework.security.oauth2.provider.AuthorizationRequest as Spri
 // TODO Spring specific
 @Component("connectOAuth2RequestFactory")
 class ConnectOAuth2RequestFactory @Autowired constructor(
-    private val clientDetailsService: SpringClientDetailsEntityService
+    private val clientDetailsService: ClientDetailsEntityService
 ) /*: DefaultOAuth2RequestFactory(clientDetailsService)*/ {
 
     @Autowired

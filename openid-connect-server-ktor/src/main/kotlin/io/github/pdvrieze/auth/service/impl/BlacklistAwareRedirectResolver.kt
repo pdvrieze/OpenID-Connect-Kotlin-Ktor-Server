@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mitre.oauth2.service.impl
+package io.github.pdvrieze.auth.service.impl
 
-import io.github.pdvrieze.auth.service.impl.AbstractRedirectResolver
 import org.mitre.oauth2.exception.InvalidRequestException
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean

@@ -10,7 +10,6 @@ import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.convert.OAuth2Request
 import org.mitre.oauth2.service.IntrospectionResultAssembler
-import org.mitre.oauth2.service.impl.DefaultIntrospectionResultAssembler
 import org.mitre.openid.connect.model.UserInfo
 import org.mitre.uma.model.Permission
 import java.text.ParseException
