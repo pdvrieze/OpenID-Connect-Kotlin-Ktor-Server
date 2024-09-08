@@ -73,7 +73,7 @@ class UserInfoJWTView : UserInfoView() {
             response.contentType = JOSE_MEDIA_TYPE_VALUE
 
             val claims = JWTClaimsSet.Builder(JWTClaimsSet.parse(encodedJson))
-                .audience(listOf(client.getClientId()))
+                .audience(listOf(client.clientId))
                 .issuer(config.issuer)
                 .issueTime(Date())
                 .jwtID(UUID.randomUUID().toString()) // set a random NONCE in the middle of it
@@ -97,7 +97,7 @@ class UserInfoJWTView : UserInfoView() {
                     val out: Writer = response.writer
                     out.write(encrypted.serialize())
                 } else {
-                    Companion.logger.error("Couldn't find encrypter for client: " + client.getClientId())
+                    Companion.logger.error("Couldn't find encrypter for client: " + client.clientId)
                 }
             } else {
                 var signingAlg = jwtService.defaultSigningAlgorithm // default to the server's preference

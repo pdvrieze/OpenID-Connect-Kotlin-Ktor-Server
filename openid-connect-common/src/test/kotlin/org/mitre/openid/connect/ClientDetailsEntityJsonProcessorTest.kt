@@ -72,7 +72,7 @@ class ClientDetailsEntityJsonProcessorTest {
         assertEquals(setOf("https://client.example.org/callback", "https://client.example.org/callback2"), c.redirectUris)
         assertEquals("My Example", c.clientName)
         assertEquals(setOf("code", "token"), c.responseTypes)
-        assertEquals(setOf("authorization_code", "implicit"), c.grantTypes)
+        assertEquals(setOf("authorization_code", "implicit"), c.authorizedGrantTypes)
         assertEquals("https://client.example.org/logo.png", c.logoUri)
         assertEquals(OAuthClientDetails.SubjectType.PAIRWISE, c.subjectType)
         assertEquals("https://other.example.net/file_of_redirect_uris.json", c.sectorIdentifierUri)
@@ -160,7 +160,7 @@ class ClientDetailsEntityJsonProcessorTest {
                 redirectUris = setOf("https://client.example.org/callback", "https://client.example.org/callback2"),
                 clientName = "My Example",
                 responseTypes = hashSetOf("code", "token"),
-                grantTypes = hashSetOf("authorization_code", "implicit"),
+                authorizedGrantTypes = hashSetOf("authorization_code", "implicit"),
                 logoUri = "https://client.example.org/logo.png",
                 subjectType = OAuthClientDetails.SubjectType.PAIRWISE,
                 sectorIdentifierUri = "https://other.example.net/file_of_redirect_uris.json",

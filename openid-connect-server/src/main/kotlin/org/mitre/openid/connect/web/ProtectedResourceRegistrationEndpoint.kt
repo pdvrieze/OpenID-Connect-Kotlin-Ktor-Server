@@ -72,9 +72,9 @@ class ProtectedResourceRegistrationEndpoint {
      */
     @RequestMapping(method = [RequestMethod.POST], consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun registerNewProtectedResource(@RequestBody jsonString: String, m: Model): String {
-        var newClient: ClientDetailsEntity?
+        var newClientBuilder: ClientDetailsEntity.Builder?
         try {
-            newClient = parse(jsonString)
+            newClientBuilder = parse(jsonString).builder()
         } catch (e: SerializationException) {
             // bad parse
             // didn't parse, this is a bad request
@@ -83,101 +83,93 @@ class ProtectedResourceRegistrationEndpoint {
             return HttpCodeView.VIEWNAME
         }
 
-        if (newClient != null) {
-            // it parsed!
+        // it parsed!
 
-            //
-            // Now do some post-processing consistency checks on it
-            //
+        //
+        // Now do some post-processing consistency checks on it
+        //
 
-            // clear out any spurious id/secret (clients don't get to pick)
+        // clear out any spurious id/secret (clients don't get to pick)
 
-            newClient.setClientId(null)
-            newClient.setClientSecret(null)
+        newClientBuilder.clientId = null
+        newClientBuilder.clientSecret = null
 
-            // do validation on the fields
-            try {
-                newClient = validateScopes(newClient)
-                newClient = validateAuth(newClient)
-            } catch (ve: ValidationException) {
-                // validation failed, return an error
-                m.addAttribute(JsonErrorView.ERROR, ve.error)
-                m.addAttribute(JsonErrorView.ERROR_MESSAGE, ve.errorDescription)
-                m.addAttribute(HttpCodeView.CODE, ve.status)
-                return JsonErrorView.VIEWNAME
-            }
+        // do validation on the fields
+        try {
+            validateScopes(newClientBuilder)
+            validateAuth(newClientBuilder)
+        } catch (ve: ValidationException) {
+            // validation failed, return an error
+            m.addAttribute(JsonErrorView.ERROR, ve.error)
+            m.addAttribute(JsonErrorView.ERROR_MESSAGE, ve.errorDescription)
+            m.addAttribute(HttpCodeView.CODE, ve.status)
+            return JsonErrorView.VIEWNAME
+        }
 
 
-            // no grant types are allowed
-            newClient.grantTypes = HashSet()
-            newClient.responseTypes = HashSet()
-            newClient.redirectUris = HashSet()
+        // no grant types are allowed
+        newClientBuilder.authorizedGrantTypes = HashSet()
+        newClientBuilder.responseTypes = HashSet()
+        newClientBuilder.redirectUris = HashSet()
 
-            // don't issue tokens to this client
-            newClient.setAccessTokenValiditySeconds(0)
-            newClient.idTokenValiditySeconds = 0
-            newClient.setRefreshTokenValiditySeconds(0)
+        // don't issue tokens to this client
+        newClientBuilder.accessTokenValiditySeconds = 0
+        newClientBuilder.idTokenValiditySeconds = 0
+        newClientBuilder.refreshTokenValiditySeconds = 0
 
-            // clear out unused fields
-            newClient.defaultACRvalues = HashSet()
-            newClient.defaultMaxAge = null
-            newClient.idTokenEncryptedResponseAlg = null
-            newClient.idTokenEncryptedResponseEnc = null
-            newClient.idTokenSignedResponseAlg = null
-            newClient.initiateLoginUri = null
-            newClient.postLogoutRedirectUris = null
-            newClient.requestObjectSigningAlg = null
-            newClient.requireAuthTime = null
-            newClient.isReuseRefreshToken = false
-            newClient.sectorIdentifierUri = null
-            newClient.subjectType = null
-            newClient.userInfoEncryptedResponseAlg = null
-            newClient.userInfoEncryptedResponseEnc = null
-            newClient.userInfoSignedResponseAlg = null
+        // clear out unused fields
+        newClientBuilder.defaultACRvalues = HashSet()
+        newClientBuilder.defaultMaxAge = null
+        newClientBuilder.idTokenEncryptedResponseAlg = null
+        newClientBuilder.idTokenEncryptedResponseEnc = null
+        newClientBuilder.idTokenSignedResponseAlg = null
+        newClientBuilder.initiateLoginUri = null
+        newClientBuilder.postLogoutRedirectUris = null
+        newClientBuilder.requestObjectSigningAlg = null
+        newClientBuilder.requireAuthTime = null
+        newClientBuilder.isReuseRefreshToken = false
+        newClientBuilder.sectorIdentifierUri = null
+        newClientBuilder.subjectType = null
+        newClientBuilder.userInfoEncryptedResponseAlg = null
+        newClientBuilder.userInfoEncryptedResponseEnc = null
+        newClientBuilder.userInfoSignedResponseAlg = null
 
-            // this client has been dynamically registered (obviously)
-            newClient.isDynamicallyRegistered = true
+        // this client has been dynamically registered (obviously)
+        newClientBuilder.isDynamicallyRegistered = true
 
-            // this client has access to the introspection endpoint
-            newClient.isAllowIntrospection = true
+        // this client has access to the introspection endpoint
+        newClientBuilder.isAllowIntrospection = true
 
-            // now save it
-            try {
-                val savedClient = clientService.saveNewClient(newClient)
+        // now save it
+        try {
+            val savedClient = clientService.saveNewClient(newClientBuilder.build())
 
-                // generate the registration access token
-                val token = connectTokenService.createResourceAccessToken(savedClient)
-                tokenService.saveAccessToken(token!!)
+            // generate the registration access token
+            val token = connectTokenService.createResourceAccessToken(savedClient)
+            tokenService.saveAccessToken(token!!)
 
-                // send it all out to the view
-                val registered =
-                    RegisteredClient(savedClient, token.value, config.issuer + "resource/" + UriUtils.encodePathSegment(savedClient.getClientId()!!, "UTF-8"))
-                m.addAttribute("client", registered)
-                m.addAttribute(HttpCodeView.CODE, HttpStatus.CREATED) // http 201
+            // send it all out to the view
+            val registered =
+                RegisteredClient(savedClient, token.value, "${config.issuer}resource/${UriUtils.encodePathSegment(savedClient.clientId!!, "UTF-8")}")
+            m.addAttribute("client", registered)
+            m.addAttribute(HttpCodeView.CODE, HttpStatus.CREATED) // http 201
 
-                return ClientInformationResponseView.VIEWNAME
-            } catch (e: IllegalArgumentException) {
-                logger.error("Couldn't save client", e)
+            return ClientInformationResponseView.VIEWNAME
+        } catch (e: IllegalArgumentException) {
+            logger.error("Couldn't save client", e)
 
-                m.addAttribute(JsonErrorView.ERROR, "invalid_client_metadata")
-                m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Unable to save client due to invalid or inconsistent metadata.")
-                m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST) // http 400
-
-                return JsonErrorView.VIEWNAME
-            }
-        } else {
-            // didn't parse, this is a bad request
-            logger.error("registerNewClient failed; submitted JSON is malformed")
+            m.addAttribute(JsonErrorView.ERROR, "invalid_client_metadata")
+            m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Unable to save client due to invalid or inconsistent metadata.")
             m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST) // http 400
 
-            return HttpCodeView.VIEWNAME
+            return JsonErrorView.VIEWNAME
         }
     }
 
     @Throws(ValidationException::class)
-    private fun validateScopes(newClient: ClientDetailsEntity): ClientDetailsEntity {
+    private fun validateScopes(newClient: ClientDetailsEntity.Builder) {
         // scopes that the client is asking for
-        val requestedScopes = scopeService.fromStrings(newClient.getScope())!!
+        val requestedScopes = scopeService.fromStrings(newClient.scope)!!
 
         // the scopes that the client can have must be a subset of the dynamically allowed scopes
         var allowedScopes: Set<SystemScope>? = scopeService.removeRestrictedAndReservedScopes(requestedScopes)
@@ -187,9 +179,7 @@ class ProtectedResourceRegistrationEndpoint {
             allowedScopes = scopeService.defaults
         }
 
-        newClient.setScope(scopeService.toStrings(allowedScopes))
-
-        return newClient
+        newClient.scope = scopeService.toStrings(allowedScopes)?.toHashSet() ?: hashSetOf()
     }
 
     /**
@@ -200,13 +190,13 @@ class ProtectedResourceRegistrationEndpoint {
     fun readResourceConfiguration(@PathVariable("id") clientId: String, m: Model, auth: OAuth2Authentication): String {
         val client = clientService.loadClientByClientId(clientId)
 
-        if (client != null && client.getClientId() == auth.oAuth2Request.clientId) {
+        if (client != null && client.clientId == auth.oAuth2Request.clientId) {
             // possibly update the token
 
             val token = fetchValidRegistrationToken(auth, client)
 
             val registered =
-                RegisteredClient(client, token.value, config.issuer + "resource/" + UriUtils.encodePathSegment(client.getClientId(), "UTF-8"))
+                RegisteredClient(client, token.value, config.issuer + "resource/" + UriUtils.encodePathSegment(client.clientId, "UTF-8"))
 
             // send it all out to the view
             m.addAttribute("client", registered)
@@ -236,9 +226,9 @@ class ProtectedResourceRegistrationEndpoint {
         m: Model,
         auth: OAuth2Authentication
     ): String {
-        var newClient: ClientDetailsEntity?
+        var newClient: ClientDetailsEntity.Builder?
         try {
-            newClient = jsonString?.let { parse(it) }
+            newClient = jsonString?.let { parse(it).builder() }
         } catch (e: SerializationException) {
             // bad parse
             // didn't parse, this is a bad request
@@ -250,7 +240,8 @@ class ProtectedResourceRegistrationEndpoint {
         val oldClient = clientService.loadClientByClientId(clientId)
 
         if (newClient == null || oldClient == null ||
-            oldClient.getClientId() != auth.oAuth2Request.clientId || oldClient.getClientId() != newClient.getClientId()) {
+            oldClient.clientId != auth.oAuth2Request.clientId || oldClient.clientId != newClient.clientId
+        ) {
             // client mismatch
             logger.error(
                 "updateProtectedResource failed, client ID mismatch: $clientId and ${auth.oAuth2Request.clientId} do not match."
@@ -263,19 +254,19 @@ class ProtectedResourceRegistrationEndpoint {
         // we have an existing client and the new one parsed
         // a client can't ask to update its own client secret to any particular value
 
-        newClient.setClientSecret(oldClient.getClientSecret())
+        newClient.clientSecret = oldClient.clientSecret
 
         newClient.createdAt = oldClient.createdAt
 
         // no grant types are allowed
-        newClient.grantTypes = HashSet()
+        newClient.authorizedGrantTypes = HashSet()
         newClient.responseTypes = HashSet()
         newClient.redirectUris = HashSet()
 
         // don't issue tokens to this client
-        newClient.setAccessTokenValiditySeconds(0)
+        newClient.accessTokenValiditySeconds = 0
         newClient.idTokenValiditySeconds = 0
-        newClient.setRefreshTokenValiditySeconds(0)
+        newClient.refreshTokenValiditySeconds = 0
 
         // clear out unused fields
         newClient.defaultACRvalues = HashSet()
@@ -302,8 +293,8 @@ class ProtectedResourceRegistrationEndpoint {
 
         // do validation on the fields
         try {
-            newClient = validateScopes(newClient)
-            newClient = validateAuth(newClient)
+            validateScopes(newClient)
+            validateAuth(newClient)
         } catch (ve: ValidationException) {
             // validation failed, return an error
             m.addAttribute(JsonErrorView.ERROR, ve.error)
@@ -315,13 +306,13 @@ class ProtectedResourceRegistrationEndpoint {
 
         try {
             // save the client
-            val savedClient = clientService.updateClient(oldClient, newClient)
+            val savedClient = clientService.updateClient(oldClient, newClient.build())
 
             // possibly update the token
             val token = fetchValidRegistrationToken(auth, savedClient)
 
             val registered =
-                RegisteredClient(savedClient, token.value, config.issuer + "resource/" + UriUtils.encodePathSegment(savedClient.getClientId(), "UTF-8"))
+                RegisteredClient(savedClient, token.value, config.issuer + "resource/" + UriUtils.encodePathSegment(savedClient.clientId, "UTF-8"))
 
             // send it all out to the view
             m.addAttribute("client", registered)
@@ -347,7 +338,7 @@ class ProtectedResourceRegistrationEndpoint {
     fun deleteResource(@PathVariable("id") clientId: String, m: Model, auth: OAuth2Authentication): String {
         val client = clientService.loadClientByClientId(clientId)
 
-        if (client != null && client.getClientId() == auth.oAuth2Request.clientId) {
+        if (client != null && client.clientId == auth.oAuth2Request.clientId) {
             clientService.deleteClient(client)
 
             m.addAttribute(HttpCodeView.CODE, HttpStatus.NO_CONTENT) // http 204
@@ -366,29 +357,32 @@ class ProtectedResourceRegistrationEndpoint {
     }
 
     @Throws(ValidationException::class)
-    private fun validateAuth(newClient: ClientDetailsEntity?): ClientDetailsEntity {
-        var newClient = newClient
-        if (newClient!!.tokenEndpointAuthMethod == null) {
+    private fun validateAuth(newClient: ClientDetailsEntity.Builder) {
+        if (newClient.tokenEndpointAuthMethod == null) {
             newClient.tokenEndpointAuthMethod = AuthMethod.SECRET_BASIC
         }
 
-        if (newClient.tokenEndpointAuthMethod == AuthMethod.SECRET_BASIC || newClient.tokenEndpointAuthMethod == AuthMethod.SECRET_JWT || newClient.tokenEndpointAuthMethod == AuthMethod.SECRET_POST) {
-            if (newClient.getClientSecret().isNullOrEmpty()) {
-                // no secret yet, we need to generate a secret
-                newClient = newClient.copy(clientSecret = clientService.generateClientSecret(newClient))
-            }
-        } else if (newClient.tokenEndpointAuthMethod == AuthMethod.PRIVATE_KEY) {
-            if (newClient.jwksUri.isNullOrEmpty() && newClient.jwks == null) {
-                throw ValidationException("invalid_client_metadata", "JWK Set URI required when using private key authentication", HttpStatus.BAD_REQUEST)
+        when (newClient.tokenEndpointAuthMethod) {
+            AuthMethod.SECRET_BASIC, AuthMethod.SECRET_JWT, AuthMethod.SECRET_POST -> {
+                if (newClient.clientSecret.isNullOrEmpty()) {
+                    // no secret yet, we need to generate a secret
+                    newClient.clientSecret = clientService.generateClientSecret(newClient)
+                }
             }
 
-            newClient.setClientSecret(null)
-        } else if (newClient.tokenEndpointAuthMethod == AuthMethod.NONE) {
-            newClient.setClientSecret(null)
-        } else {
-            throw ValidationException("invalid_client_metadata", "Unknown authentication method", HttpStatus.BAD_REQUEST)
+            AuthMethod.PRIVATE_KEY -> {
+                if (newClient.jwksUri.isNullOrEmpty() && newClient.jwks == null) {
+                    throw ValidationException("invalid_client_metadata", "JWK Set URI required when using private key authentication", HttpStatus.BAD_REQUEST)
+                }
+
+                newClient.clientSecret = null
+            }
+
+            AuthMethod.NONE -> newClient.clientSecret = null
+
+            else ->
+                throw ValidationException("invalid_client_metadata", "Unknown authentication method", HttpStatus.BAD_REQUEST)
         }
-        return newClient
     }
 
     private fun fetchValidRegistrationToken(
@@ -403,7 +397,7 @@ class ProtectedResourceRegistrationEndpoint {
                 // Re-issue the token if it has been issued before [currentTime - validity]
                 val validToDate = Date(System.currentTimeMillis() - config.regTokenLifeTime!! * 1000)
                 if (token.jwt!!.jwtClaimsSet.issueTime.before(validToDate)) {
-                    logger.info("Rotating the registration access token for " + client.getClientId())
+                    logger.info("Rotating the registration access token for " + client.clientId)
                     tokenService.revokeAccessToken(token)
                     val newToken = connectTokenService.createResourceAccessToken(client)
                     tokenService.saveAccessToken(newToken!!)

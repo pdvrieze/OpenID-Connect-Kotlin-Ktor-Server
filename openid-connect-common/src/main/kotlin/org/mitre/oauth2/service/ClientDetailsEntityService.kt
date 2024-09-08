@@ -21,7 +21,10 @@ import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuthClientDetails
 
 interface ClientDetailsEntityService {
-    fun saveNewClient(client: OAuthClientDetails): OAuthClientDetails
+    fun saveNewClient(client: OAuthClientDetails): OAuthClientDetails =
+        saveNewClient(client.builder())
+
+    fun saveNewClient(client: OAuthClientDetails.Builder): OAuthClientDetails
 
     fun getClientById(id: Long): OAuthClientDetails?
 
@@ -35,7 +38,7 @@ interface ClientDetailsEntityService {
 
     fun generateClientIdString(client: OAuthClientDetails): String
 
-    fun generateClientSecret(client: OAuthClientDetails): String?
+    fun generateClientSecret(client: OAuthClientDetails.Builder): String?
 }
 
 interface SpringClientDetailsEntityService : ClientDetailsEntityService {

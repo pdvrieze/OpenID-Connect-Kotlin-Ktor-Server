@@ -186,7 +186,7 @@ class SpringOAuth2ProviderTokenService : OAuth2TokenEntityService {
 
         val scope = scopeService.toStrings(scopes) ?: emptySet()
 
-        val atvsecs = client.getAccessTokenValiditySeconds()
+        val atvsecs = client.accessTokenValiditySeconds
         // make it expire if necessary
         if (atvsecs != null && atvsecs > 0) {
             val expiration = Date(System.currentTimeMillis() + (atvsecs * 1000L))
@@ -241,7 +241,7 @@ class SpringOAuth2ProviderTokenService : OAuth2TokenEntityService {
         val refreshClaims = JWTClaimsSet.Builder()
 
 
-        val rtvalSecs = client.getRefreshTokenValiditySeconds()
+        val rtvalSecs = client.refreshTokenValiditySeconds
         // make it expire if necessary
         if (rtvalSecs != null) {
             val expiration = Date(System.currentTimeMillis() + (rtvalSecs * 1000L))
@@ -283,7 +283,7 @@ class SpringOAuth2ProviderTokenService : OAuth2TokenEntityService {
 
         // make sure that the client requesting the token is the one who owns the refresh token
         val requestingClient = clientDetailsService.loadClientByClientId(authRequest.clientId)!!
-        if (client!!.getClientId() != requestingClient.getClientId()) {
+        if (client!!.clientId != requestingClient.clientId) {
             tokenRepository.removeRefreshToken(refreshToken)
             throw InvalidClientException("Client does not own the presented refresh token")
         }
@@ -337,7 +337,7 @@ class SpringOAuth2ProviderTokenService : OAuth2TokenEntityService {
 
         tokenBuilder.setClient(client)
 
-        val accessTokenValiditySeconds = client.getAccessTokenValiditySeconds()
+        val accessTokenValiditySeconds = client.accessTokenValiditySeconds
         if (accessTokenValiditySeconds != null) {
             val expiration = Date(System.currentTimeMillis() + (accessTokenValiditySeconds * 1000L))
             tokenBuilder.expiration = expiration

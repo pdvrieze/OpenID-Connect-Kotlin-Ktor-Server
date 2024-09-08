@@ -19,7 +19,6 @@ package org.mitre.oauth2.web
 
 import kotlinx.serialization.json.JsonPrimitive
 import org.apache.http.client.utils.URIBuilder
-import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.service.ClientDetailsEntityService
@@ -175,7 +174,7 @@ class OAuthConfirmationController {
         model["claims"] = claimsForScopes
 
         // client stats
-        val count = statsService.getCountForClientId(client.getClientId()!!)!!.approvedSiteCount ?: 0
+        val count = statsService.getCountForClientId(client.clientId!!)!!.approvedSiteCount ?: 0
         model["count"] = count
 
 

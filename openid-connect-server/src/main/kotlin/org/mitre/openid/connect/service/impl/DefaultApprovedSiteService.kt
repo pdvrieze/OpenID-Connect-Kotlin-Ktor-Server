@@ -133,7 +133,7 @@ class DefaultApprovedSiteService : ApprovedSiteService {
 
 
     override fun clearApprovedSitesForClient(client: OAuthClientDetails) {
-        val approvedSites = approvedSiteRepository.getByClientId(client.getClientId()!!)
+        val approvedSites = approvedSiteRepository.getByClientId(client.clientId!!)
         if (approvedSites != null) {
             for (approvedSite in approvedSites) {
                 remove(approvedSite)

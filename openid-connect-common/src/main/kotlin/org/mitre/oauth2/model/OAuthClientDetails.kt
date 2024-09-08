@@ -41,17 +41,27 @@ import org.mitre.oauth2.model.RegisteredClientFields.USERINFO_ENCRYPTED_RESPONSE
 import org.mitre.oauth2.model.RegisteredClientFields.USERINFO_SIGNED_RESPONSE_ALG
 import org.mitre.oauth2.model.convert.JWTStringConverter
 import java.util.*
-import javax.persistence.Transient
 import kotlinx.serialization.Transient as KXS_Transient
 
 
 interface OAuthClientDetails {
     val id: Long?
-    val grantTypes: Set<String>
+
+    val clientId: String?
+
+    val clientSecret: String?
+
+    val scope: Set<String>
+
+    @Deprecated("Use authorizedGrantTypes", ReplaceWith("authorizedGrantTypes"))
+    val grantTypes: Set<String> get() = authorizedGrantTypes
+
+    val authorizedGrantTypes: Set<String>
+
     val tokenEndpointAuthMethod: AuthMethod?
 
     val isAllowRefresh: Boolean
-        get() = "refresh_token" in grantTypes
+        get() = "refresh_token" in authorizedGrantTypes
 
     @SerialName(REDIRECT_URIS)
     val redirectUris: Set<String>
@@ -72,7 +82,7 @@ interface OAuthClientDetails {
     val tosUri: String?
 
     @SerialName(RESPONSE_TYPES)
-    val responseTypes: MutableSet<String>
+    val responseTypes: Set<String>
 
     @SerialName(POLICY_URI)
     val policyUri: String?
@@ -181,42 +191,35 @@ interface OAuthClientDetails {
     val codeChallengeMethod: PKCEAlgorithm?
     // if there are no grants, we can't be refreshing them, can we?
 
-    fun isSecretRequired(): Boolean {
-        return tokenEndpointAuthMethod in SECRET_REQUIRING_METHODS
-    }
+    val isSecretRequired: Boolean
+        get() = tokenEndpointAuthMethod in SECRET_REQUIRING_METHODS
 
-    fun isScoped(): Boolean = getScope().isNotEmpty()
+    val isScoped: Boolean get() = scope.isNotEmpty()
 
-    fun getClientId(): String?
+    val authorities: Set<GrantedAuthority>
 
-    fun getClientSecret(): String?
+    val accessTokenValiditySeconds: Int?
 
-    fun getScope(): Set<String>
+    val refreshTokenValiditySeconds: Int?
 
-    fun getAuthorizedGrantTypes(): Set<String>
-
-    fun getAuthorities(): Set<GrantedAuthority>
-
-    fun getAccessTokenValiditySeconds(): Int?
-
-    fun getRefreshTokenValiditySeconds(): Int?
-
-    fun withId(id: Long): OAuthClientDetails
+    fun withId(id: Long): OAuthClientDetails = copy(id = id)
 
     /**
      * Pass-through method to fulfill the ClientDetails interface with a bad name
      */
-    @Transient
-    fun getRegisteredRedirectUri(): Set<String>?
+    @Deprecated("Not needed", ReplaceWith("redirectUris"))
+    val registeredRedirectUri: Set<String>? get() = redirectUris
 
-    fun getResourceIds(): Set<String>
+    val resourceIds: Set<String>
 
-    fun getAdditionalInformation(): Map<String, Any>
+    val additionalInformation: Map<String, Any>
+
+    fun builder(): Builder
 
     fun copy(
         id: Long? = this.id,
-        clientId: String? = this.getClientId(),
-        clientSecret: String? = this.getClientSecret(),
+        clientId: String? = this.clientId,
+        clientSecret: String? = this.clientSecret,
         redirectUris: Set<String> = this.redirectUris,
         clientName: String? = this.clientName,
         clientUri: String? = this.clientUri,
@@ -224,8 +227,8 @@ interface OAuthClientDetails {
         contacts: Set<String>? = this.contacts,
         tosUri: String? = this.tosUri,
         tokenEndpointAuthMethod: AuthMethod? = this.tokenEndpointAuthMethod,
-        scope: Set<String> = this.getScope(),
-        grantTypes: Set<String> = this.grantTypes,
+        scope: Set<String> = this.scope,
+        authorizedGrantTypes: Set<String> = this.authorizedGrantTypes,
         responseTypes: Set<String> = this.responseTypes,
         policyUri: String? = this.policyUri,
         jwksUri: String? = this.jwksUri,
@@ -260,15 +263,65 @@ interface OAuthClientDetails {
         claimsRedirectUris: Set<String>? = this.claimsRedirectUris,
         softwareStatement: JWT? = this.softwareStatement,
         codeChallengeMethod: PKCEAlgorithm? = this.codeChallengeMethod,
-        authorizedGrantTypes: Set<String> = this.getAuthorizedGrantTypes(),
-        accessTokenValiditySeconds: Int? = this.getAccessTokenValiditySeconds(),
-        refreshTokenValiditySeconds: Int? = getRefreshTokenValiditySeconds(),
-        authorities: Set<GrantedAuthority> = this.getAuthorities()
+        accessTokenValiditySeconds: Int? = this.accessTokenValiditySeconds,
+        refreshTokenValiditySeconds: Int? = this.refreshTokenValiditySeconds,
+        authorities: Set<GrantedAuthority> = this.authorities
     ): ClientDetailsEntity
 
     companion object {
         private val SECRET_REQUIRING_METHODS =
             arrayOf(AuthMethod.SECRET_BASIC, AuthMethod.SECRET_POST, AuthMethod.SECRET_JWT)
+    }
+
+    interface Builder {
+        var id: Long?
+        var clientId: String?
+        var clientSecret: String?
+        var scope: MutableSet<String>
+        var authorizedGrantTypes: MutableSet<String>
+        var tokenEndpointAuthMethod: AuthMethod?
+        var redirectUris: MutableSet<String>
+        var clientName: String?
+        var clientUri: String?
+        var logoUri: String?
+        var contacts: Set<String>?
+        var tosUri: String?
+        var responseTypes: MutableSet<String>
+        var policyUri: String?
+        var jwksUri: String?
+        var jwks: JWKSet?
+        var softwareId: String?
+        var softwareVersion: String?
+        var applicationType: AppType
+        var sectorIdentifierUri: String?
+        var subjectType: SubjectType?
+        var requestObjectSigningAlg: JWSAlgorithm?
+        var userInfoSignedResponseAlg: JWSAlgorithm?
+        var userInfoEncryptedResponseAlg: JWEAlgorithm?
+        var userInfoEncryptedResponseEnc: EncryptionMethod?
+        var idTokenSignedResponseAlg: JWSAlgorithm?
+        var idTokenEncryptedResponseAlg: JWEAlgorithm?
+        var idTokenEncryptedResponseEnc: EncryptionMethod?
+        var tokenEndpointAuthSigningAlg: JWSAlgorithm?
+        var defaultMaxAge: Long?
+        var requireAuthTime: Boolean?
+        var defaultACRvalues: MutableSet<String>?
+        var initiateLoginUri: String?
+        var postLogoutRedirectUris: MutableSet<String>?
+        var requestUris: MutableSet<String>?
+        var clientDescription: String
+        var isReuseRefreshToken: Boolean
+        var isDynamicallyRegistered: Boolean
+        var isAllowIntrospection: Boolean
+        var idTokenValiditySeconds: Int?
+        var createdAt: Date?
+        var isClearAccessTokensOnRefresh: Boolean
+        var deviceCodeValiditySeconds: Int?
+        var claimsRedirectUris: MutableSet<String>?
+        var softwareStatement: JWT?
+        var codeChallengeMethod: PKCEAlgorithm?
+
+        fun build(): OAuthClientDetails
     }
 
 
@@ -330,3 +383,25 @@ interface OAuthClientDetails {
     }
 
 }
+
+
+@Deprecated("Use property directly")
+fun ClientDetailsEntity.Builder.setRefreshTokenValiditySeconds(secs: Int) {
+    refreshTokenValiditySeconds = secs
+}
+
+@Deprecated("Use property directly")
+fun ClientDetailsEntity.Builder.setAccessTokenValiditySeconds(secs: Int) {
+    accessTokenValiditySeconds = secs
+}
+
+@Deprecated("Use property directly", ReplaceWith("this.scope = newScope?.toHashSet() ?: hashSetOf()"))
+fun OAuthClientDetails.Builder.setScope(newScope: Set<String>?) {
+    this.scope  = newScope?.toHashSet() ?: hashSetOf()
+}
+
+@Deprecated("Use property directly")
+fun OAuthClientDetails.Builder.setClientSecret(clientSecret: String?) {
+    this.clientSecret = clientSecret
+}
+

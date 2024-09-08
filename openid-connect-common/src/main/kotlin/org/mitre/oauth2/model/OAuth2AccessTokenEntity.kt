@@ -217,7 +217,7 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
         var clientId = clientId
             private set(value) {
                 field = value
-                if (client?.getClientId() != value) {
+                if (client?.clientId != value) {
                     client = null
                 }
             }
@@ -251,7 +251,7 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
             currentId = currentId,
             expirationInstant = expirationInstant,
             jwt = jwt,
-            clientId = client.getClientId(),
+            clientId = client.clientId,
             authenticationHolderId = authenticationHolderId,
             refreshTokenId = refreshTokenId,
             scope = scope,
@@ -266,7 +266,7 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
             currentId = token.id,
             expirationInstant = token.expirationInstant,
             jwt = token.jwt,
-            clientId = token.client?.getClientId(),
+            clientId = token.client?.clientId,
             authenticationHolderId = token.authenticationHolder.id,
             refreshTokenId = token.refreshToken?.id,
             scope = token.scope,
@@ -277,7 +277,7 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
 
         fun setClient(client: OAuthClientDetails) {
             this.client = client
-            clientId = client.getClientId()
+            clientId = client.clientId
         }
 
         fun setAuthenticationHolder(authenticationHolder: AuthenticationHolderEntity?) {
@@ -347,7 +347,7 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
             currentId = s.id!!,
             expiration = s.expiration,
             value = s.jwt,
-            clientId = s.client!!.getClientId()!!,
+            clientId = s.client!!.clientId!!,
             authenticationHolderId = s.authenticationHolder.id!!,
             refreshTokenId = s.refreshToken?.id,
             scope = s.scope,

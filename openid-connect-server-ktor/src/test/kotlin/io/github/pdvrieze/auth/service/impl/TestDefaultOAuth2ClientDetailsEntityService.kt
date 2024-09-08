@@ -162,7 +162,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         val badUri = "badplace.xxx"
 
         whenever(blacklistedSiteService.isBlacklisted(badUri)) doReturn (true)
-        whenever(client.getRegisteredRedirectUri()) doReturn (hashSetOf(badUri))
+        whenever(client.registeredRedirectUri) doReturn (hashSetOf(badUri))
 
         assertThrows<IllegalArgumentException> {
             service.saveNewClient(client)
@@ -187,10 +187,10 @@ class TestDefaultOAuth2ClientDetailsEntityService {
     @Test
     fun saveNewClient_yesOfflineAccess() {
         val client = ClientDetailsEntity().apply {
-            grantTypes = hashSetOf("refresh_token")
+            authorizedGrantTypes = hashSetOf("refresh_token")
         }.let { service.saveNewClient(it) }
 
-        assertTrue(SystemScopeService.OFFLINE_ACCESS in client.getScope())
+        assertTrue(SystemScopeService.OFFLINE_ACCESS in client.scope)
     }
 
     /**
@@ -203,7 +203,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
 
         verify(scopeService, atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
 
-        assertFalse(SystemScopeService.OFFLINE_ACCESS in client.getScope())
+        assertFalse(SystemScopeService.OFFLINE_ACCESS in client.scope)
     }
 
     @Test
@@ -240,7 +240,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
 
         val client = mock<ClientDetailsEntity>()
         whenever(client.id) doReturn (id)
-        whenever(client.getClientId()) doReturn (clientId)
+        whenever(client.clientId) doReturn (clientId)
 
         whenever(clientRepository.getById(id)) doReturn (client)
 
@@ -264,7 +264,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
 
         val badSite = "badsite.xxx"
 
-        whenever(newClient.getRegisteredRedirectUri()) doReturn (hashSetOf(badSite))
+        whenever(newClient.registeredRedirectUri) doReturn (hashSetOf(badSite))
         whenever(blacklistedSiteService.isBlacklisted(badSite)) doReturn (true)
 
         assertThrows<IllegalArgumentException> {
@@ -277,13 +277,13 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         val oldClient = ClientDetailsEntity()
         oldClient.id = 1L // Needs a hard-coded id as there is no jpa
         val grantTypes: MutableSet<String> = hashSetOf("refresh_token")
-        var client: OAuthClientDetails = ClientDetailsEntity(grantTypes = grantTypes)
+        var client: OAuthClientDetails = ClientDetailsEntity(authorizedGrantTypes = grantTypes)
 
         client = service.updateClient(oldClient, client)
 
         verify(scopeService, atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
 
-        assertTrue(SystemScopeService.OFFLINE_ACCESS in client.getScope())
+        assertTrue(SystemScopeService.OFFLINE_ACCESS in client.scope)
     }
 
     @Test
@@ -291,13 +291,13 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         val oldClient = ClientDetailsEntity()
         oldClient.id = 1L // Needs a hard-coded id as there is no jpa
 
-        oldClient.getScope().add(SystemScopeService.OFFLINE_ACCESS)
+        oldClient.scope.add(SystemScopeService.OFFLINE_ACCESS)
 
         val client = service.updateClient(oldClient, ClientDetailsEntity())
 
         verify(scopeService, atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
 
-        assertFalse(SystemScopeService.OFFLINE_ACCESS in client.getScope())
+        assertFalse(SystemScopeService.OFFLINE_ACCESS in client.scope)
     }
 
     @Test
@@ -305,7 +305,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         whenever(config.isHeartMode) doReturn true
 
         val client = ClientDetailsEntity().apply {
-            grantTypes = hashSetOf(
+            authorizedGrantTypes = hashSetOf(
                 "authorization_code",
                 "implicit",
                 "client_credentials",
@@ -329,7 +329,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         whenever(config.isHeartMode) doReturn (true)
 
         val client = ClientDetailsEntity().apply {
-            grantTypes = hashSetOf(
+            authorizedGrantTypes = hashSetOf(
                 "implicit",
                 "authorization_code",
                 "client_credentials",
@@ -352,7 +352,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         whenever(config.isHeartMode) doReturn (true)
 
         val client = ClientDetailsEntity().apply {
-            grantTypes = hashSetOf(
+            authorizedGrantTypes = hashSetOf(
                 "client_credentials",
                 "authorization_code",
                 "implicit",
@@ -373,7 +373,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         whenever(config.isHeartMode) doReturn (true)
 
         val client = ClientDetailsEntity().apply {
-            grantTypes = hashSetOf("authorization_code")
+            authorizedGrantTypes = hashSetOf("authorization_code")
 
             tokenEndpointAuthMethod = AuthMethod.SECRET_POST
 
@@ -392,7 +392,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         whenever(config.isHeartMode) doReturn (true)
 
         val client = ClientDetailsEntity().apply {
-            grantTypes = mutableSetOf("implicit")
+            authorizedGrantTypes = mutableSetOf("implicit")
 
             tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
 
@@ -411,7 +411,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         whenever(config.isHeartMode) doReturn (true)
 
         val client = ClientDetailsEntity().apply {
-            grantTypes = hashSetOf("client_credentials")
+            authorizedGrantTypes = hashSetOf("client_credentials")
 
             tokenEndpointAuthMethod = AuthMethod.SECRET_BASIC
 
@@ -430,7 +430,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         whenever(config.isHeartMode) doReturn (true)
 
         val client = ClientDetailsEntity().apply {
-            grantTypes = hashSetOf("authorization_code")
+            authorizedGrantTypes = hashSetOf("authorization_code")
 
             tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
         }
@@ -445,7 +445,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         whenever(config.isHeartMode) doReturn (true)
 
         val client = ClientDetailsEntity().apply {
-            grantTypes = mutableSetOf("implicit")
+            authorizedGrantTypes = mutableSetOf("implicit")
 
             tokenEndpointAuthMethod = AuthMethod.NONE
         }
@@ -460,7 +460,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         whenever(config.isHeartMode) doReturn true
 
         val client = ClientDetailsEntity().apply {
-            grantTypes = hashSetOf("client_credentials")
+            authorizedGrantTypes = hashSetOf("client_credentials")
 
             tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
 
@@ -477,7 +477,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         whenever(config.isHeartMode) doReturn (true)
 
         val client = ClientDetailsEntity()
-        client.grantTypes = hashSetOf("authorization_code")
+        client.authorizedGrantTypes = hashSetOf("authorization_code")
 
         client.tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
 
@@ -496,7 +496,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
 
         val client = ClientDetailsEntity()
         val grantTypes: MutableSet<String> = hashSetOf("authorization_code")
-        client.grantTypes = grantTypes
+        client.authorizedGrantTypes = grantTypes
 
         client.tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
 
@@ -515,7 +515,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         whenever(config.isHeartMode) doReturn (true)
 
         val client = ClientDetailsEntity().apply {
-            grantTypes = hashSetOf(
+            authorizedGrantTypes = hashSetOf(
                 "authorization_code",
                 "refresh_token",
             )
@@ -529,8 +529,8 @@ class TestDefaultOAuth2ClientDetailsEntityService {
 
         val savedClient = service.saveNewClient(client)
 
-        assertNotNull(savedClient.getClientId())
-        assertNull(savedClient.getClientSecret())
+        assertNotNull(savedClient.clientId)
+        assertNull(savedClient.clientSecret)
     }
 
     @Test
@@ -541,7 +541,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         val grantTypes: MutableSet<String> = LinkedHashSet()
         grantTypes.add("authorization_code")
         grantTypes.add("refresh_token")
-        client.grantTypes = grantTypes
+        client.authorizedGrantTypes = grantTypes
 
         client.tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
 
@@ -562,7 +562,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         val grantTypes: MutableSet<String> = LinkedHashSet()
         grantTypes.add("authorization_code")
         grantTypes.add("refresh_token")
-        client.grantTypes = grantTypes
+        client.authorizedGrantTypes = grantTypes
 
         client.tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
 

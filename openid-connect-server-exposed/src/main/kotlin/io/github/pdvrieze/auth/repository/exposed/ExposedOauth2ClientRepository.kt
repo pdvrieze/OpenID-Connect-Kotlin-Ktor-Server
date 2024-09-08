@@ -69,12 +69,12 @@ class ExposedOauth2ClientRepository(database: Database) :
             }
         }
 
-        ClientScopes.batchInsert(client.getScope()) { scope ->
+        ClientScopes.batchInsert(client.scope) { scope ->
             this[ClientScopes.ownerId] = newId
             this[ClientScopes.scope] = scope
         }
 
-        ClientGrantTypes.batchInsert(client.grantTypes) { grantType ->
+        ClientGrantTypes.batchInsert(client.authorizedGrantTypes) { grantType ->
             this[ClientGrantTypes.ownerId] = newId
             this[ClientGrantTypes.grantType] = grantType
         }
@@ -148,7 +148,7 @@ private fun OAuthClientDetails.toUpdate(builder: UpdateBuilder<Int>) {
     val t = ClientDetails
     id?.let { builder[t.id] = it }
 
-    getClientId()?.let{ builder[ClientDetails.clientId] = it }
+    clientId?.let{ builder[ClientDetails.clientId] = it }
     builder[ClientDetails.clientSecret] =
         ClientDetails.clientSecret
     builder[ClientDetails.clientName] = clientName
@@ -234,7 +234,7 @@ private fun org.jetbrains.exposed.sql.ResultRow.toClient(): OAuthClientDetails {
             tokenEndpointAuthMethod = r[tokenEndpointAuthMethod]?.let { OAuthClientDetails.AuthMethod.getByValue(it) }
                 ?: OAuthClientDetails.AuthMethod.SECRET_BASIC,
             scope = scope,
-            grantTypes = grantTypes,
+            authorizedGrantTypes = grantTypes,
             responseTypes = responseTypes,
             policyUri = r[policyUri],
             jwksUri = r[jwksUri],

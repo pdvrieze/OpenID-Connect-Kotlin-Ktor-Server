@@ -67,9 +67,9 @@ class TestJWTBearerAuthenticationProvider {
 
         whenever(token.name).thenReturn(CLIENT_ID)
 
-        whenever(client.getClientId()).thenReturn(CLIENT_ID)
+        whenever(client.clientId).thenReturn(CLIENT_ID)
         whenever(client.tokenEndpointAuthMethod).thenReturn(AuthMethod.NONE)
-        whenever(client.getAuthorities()).thenReturn(setOf(authority1, authority2, authority3))
+        whenever(client.authorities).thenReturn(setOf(authority1, authority2, authority3))
 
         whenever(validators.getValidator(client, JWSAlgorithm.RS256)).thenReturn(validator)
         whenever(validator.validateSignature(isA<SignedJWT>())).thenReturn(true)

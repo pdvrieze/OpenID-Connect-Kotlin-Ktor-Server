@@ -55,8 +55,8 @@ class ClientDetailsEntityTest {
         }
 
 
-        assertEquals("s6BhdRkqt3", c.getClientId())
-        assertEquals("ZJYCqe3GGRvdrudKyZS0XhGv_Z45DuKhCUk0gBR1vZk", c.getClientSecret())
+        assertEquals("s6BhdRkqt3", c.clientId)
+        assertEquals("ZJYCqe3GGRvdrudKyZS0XhGv_Z45DuKhCUk0gBR1vZk", c.clientSecret)
         assertEquals(OAuthClientDetails.AppType.WEB, c.applicationType)
         assertEquals(setOf("https://client.example.org/callback", "https://client.example.org/callback2"), c.redirectUris)
         assertEquals("My Example", c.clientName)
@@ -70,6 +70,6 @@ class ClientDetailsEntityTest {
         assertEquals(setOf("ve7jtb@example.org", "mary@example.org"), c.contacts)
         assertEquals(setOf("https://client.example.org/rf.txt#qpXaRLh_n93TTR9F252ValdatUQvQiJi5BDub2BeznA"), c.requestUris)
         assertEquals(now, c.createdAt)
-        assertEquals(600, c.getAccessTokenValiditySeconds()?.toLong())
+        assertEquals(600, c.accessTokenValiditySeconds?.toLong())
     }
 }

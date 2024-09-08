@@ -117,7 +117,7 @@ class OAuth2RefreshTokenEntity : OAuth2RefreshToken {
             currentId = s.id!!,
             expiration = s.expiration,
             value = s.jwt,
-            clientId = s.client!!.getClientId()!!,
+            clientId = s.client!!.clientId!!,
             authenticationHolderId = s.authenticationHolder.id!!
         )
     }

@@ -96,7 +96,7 @@ class TestDefaultApprovedSiteService {
      */
     @Test
     fun clearApprovedSitesForClient_success() {
-        whenever(repository.getByClientId(client.getClientId()!!))
+        whenever(repository.getByClientId(client.clientId!!))
             .thenReturn(setOf(site2, site3))
 
         whenever(tokenRepository.getAccessTokensForApprovedSite(isA<ApprovedSite>()))

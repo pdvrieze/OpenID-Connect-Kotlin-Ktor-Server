@@ -85,7 +85,7 @@ class IntrospectionEndpoint {
             // the owner is the user who authorized the token in the first place
             val ownerId = o2a.userAuthentication.name
 
-            authScopes.addAll(authClient.getScope())
+            authScopes.addAll(authClient.scope)
 
             // UMA style clients also get a subset of scopes of all the resource sets they've registered
             val resourceSets = resourceSetService.getAllForOwnerAndClient(ownerId, authClientId)
@@ -102,14 +102,14 @@ class IntrospectionEndpoint {
             authClient = checkNotNull(clientService.loadClientByClientId(authClientId))
 
             // directly authenticated clients get a subset of any scopes that they've registered for
-            authScopes.addAll(authClient.getScope())
+            authScopes.addAll(authClient.scope)
 
             if (!AuthenticationUtilities.hasRole(auth, "ROLE_CLIENT")
                 || !authClient.isAllowIntrospection
             ) {
                 // this client isn't allowed to do direct introspection
 
-                logger.error("Client ${authClient.getClientId()} is not allowed to call introspection endpoint")
+                logger.error("Client ${authClient.clientId} is not allowed to call introspection endpoint")
                 model.addAttribute("code", HttpStatus.FORBIDDEN)
                 return HttpCodeView.VIEWNAME
             }
@@ -139,7 +139,7 @@ class IntrospectionEndpoint {
 
             // get the user information of the user that authorized this token in the first place
             val userName = accessToken.authenticationHolder.authentication.name
-            user = userInfoService.getByUsernameAndClientId(userName, tokenClient!!.getClientId()!!)
+            user = userInfoService.getByUsernameAndClientId(userName, tokenClient!!.clientId!!)
         } catch (e: InvalidTokenException) {
             logger.info("Invalid access token. Checking refresh token.")
             try {
@@ -151,7 +151,7 @@ class IntrospectionEndpoint {
 
                 // get the user information of the user that authorized this token in the first place
                 val userName = refreshToken.authenticationHolder.authentication.name
-                user = userInfoService.getByUsernameAndClientId(userName, tokenClient!!.getClientId()!!)
+                user = userInfoService.getByUsernameAndClientId(userName, tokenClient!!.clientId!!)
             } catch (e2: InvalidTokenException) {
                 logger.error("Invalid refresh token")
                 val entity: Map<String, Boolean> =

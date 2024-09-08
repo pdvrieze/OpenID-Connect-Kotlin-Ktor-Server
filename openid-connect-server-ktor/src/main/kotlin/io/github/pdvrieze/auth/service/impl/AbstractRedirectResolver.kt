@@ -15,7 +15,7 @@ abstract class AbstractRedirectResolver(
     val redirectGrantTypes: List<String> = redirectGrantTypes.toList()
 
     override fun resolveRedirect(requestedRedirect: String, client: OAuthClientDetails): String {
-        val authorizedGrantTypes = client.getAuthorizedGrantTypes()
+        val authorizedGrantTypes = client.authorizedGrantTypes
         if (authorizedGrantTypes.isEmpty()) {
             throw InvalidGrantException("A client must have at least one authorized grant type.")
         }
@@ -23,7 +23,7 @@ abstract class AbstractRedirectResolver(
             throw InvalidGrantException("A redirect_uri can only be used by implicit or authorization_code grant types.")
         }
 
-        val redirectUris = client.getRegisteredRedirectUri()
+        val redirectUris = client.registeredRedirectUri
 
         return if (!redirectUris.isNullOrEmpty()) {
             obtainMatchingRedirect(redirectUris, requestedRedirect)

@@ -111,7 +111,7 @@ class ConnectOAuth2RequestFactory @Autowired constructor(
                 val client = clientDetailsService.loadClientByClientId(request.clientId)
 
                 if ((request.scope == null || request.scope.isEmpty())) {
-                    val clientScopes: Set<String> = client!!.getScope()
+                    val clientScopes: Set<String> = client!!.scope
                     request.setScope(clientScopes)
                 }
 

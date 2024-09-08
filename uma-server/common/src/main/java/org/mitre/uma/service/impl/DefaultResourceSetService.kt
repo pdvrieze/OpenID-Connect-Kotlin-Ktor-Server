@@ -124,7 +124,7 @@ class DefaultResourceSetService : ResourceSetService {
 	 * @see org.mitre.uma.service.ResourceSetService#getAllForClient(org.mitre.oauth2.model.ClientDetailsEntity)
 	 */
     override fun getAllForClient(client: OAuthClientDetails): Collection<ResourceSet> {
-        val clientId = requireNotNull(client.getClientId()) { "missing client id in entity" }
+        val clientId = requireNotNull(client.clientId) { "missing client id in entity" }
         return repository.getAllForClient(clientId)
     }
 

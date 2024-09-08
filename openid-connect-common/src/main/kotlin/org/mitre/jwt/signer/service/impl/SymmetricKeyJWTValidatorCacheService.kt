@@ -47,13 +47,13 @@ class SymmetricKeyJWTValidatorCacheService {
      *
      */
     fun getSymmetricValidator(client: OAuthClientDetails): JWTSigningAndValidationService? {
-        if (client.getClientSecret().isNullOrEmpty()) {
-            logger.error("Couldn't create symmetric validator for client ${client.getClientId()} without a client secret")
+        if (client.clientSecret.isNullOrEmpty()) {
+            logger.error("Couldn't create symmetric validator for client ${client.clientId} without a client secret")
             return null
         }
 
         try {
-            return validators[client.getClientSecret()]
+            return validators[client.clientSecret]
         } catch (ue: UncheckedExecutionException) {
             logger.error("Problem loading client validator", ue)
             return null

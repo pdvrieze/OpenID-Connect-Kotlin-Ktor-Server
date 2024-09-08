@@ -122,46 +122,46 @@ class RegisteredClient(
     val isAllowIntrospection: Boolean
         get() = client.isAllowIntrospection
 
-    val isSecretRequired: Boolean get() = client.isSecretRequired()
+    val isSecretRequired: Boolean get() = client.isSecretRequired
 
-    val isScoped: Boolean get() = client.isScoped()
+    val isScoped: Boolean get() = client.isScoped
 
     val clientId: String?
-        get() = client.getClientId()
+        get() = client.clientId
 
     val clientSecret: String?
-        get() = client.getClientSecret()
+        get() = client.clientSecret
 
     val scope: Set<String>?
-        get() = client.getScope()
+        get() = client.scope
 
     val grantTypes: Set<String>
-        get() = client.grantTypes
+        get() = client.authorizedGrantTypes
 
     val authorizedGrantTypes: Set<String>
-        get() = client.getAuthorizedGrantTypes()
+        get() = client.authorizedGrantTypes
 
     val authorities: Set<GrantedAuthority>
-        get() = client.getAuthorities()
+        get() = client.authorities
 
     val accessTokenValiditySeconds: Int?
-        get() = client.getAccessTokenValiditySeconds()
+        get() = client.accessTokenValiditySeconds
 
     val refreshTokenValiditySeconds: Int?
-        get() = client.getRefreshTokenValiditySeconds()
+        get() = client.refreshTokenValiditySeconds
 
     val redirectUris: Set<String>
         get() = client.redirectUris
 
     val registeredRedirectUri: Set<String>?
-        get() = client.getRegisteredRedirectUri()
-    
+        get() = client.registeredRedirectUri
+
     val resourceIds: Set<String>
-        get() = client.getResourceIds()
+        get() = client.resourceIds
 
     val additionalInformation: Map<String, Any>
-        get() = client.getAdditionalInformation()
-    
+        get() = client.additionalInformation
+
     val applicationType: OAuthClientDetails.AppType
         get() = client.applicationType
 
@@ -368,9 +368,9 @@ class RegisteredClient(
                 tosUri = tosUri,
                 tokenEndpointAuthMethod = tokenEndpointAuthMethod,
                 scope = scope
-                    ?.run { splitToSequence(' ').filterNotTo(HashSet()) { it.isEmpty() }}
+                    ?.run { splitToSequence(' ').filterNotTo(HashSet()) { it.isEmpty() } }
                     ?: hashSetOf(),
-                grantTypes = grantTypes.toHashSet(),
+                authorizedGrantTypes = grantTypes.toHashSet(),
                 responseTypes = responseTypes.toHashSet(),
                 policyUri = policyUri,
                 jwksUri = jwksUri,
@@ -414,7 +414,8 @@ class RegisteredClient(
 
     companion object Serializer : KSerializer<RegisteredClient> {
         private val delegate = SerialDelegate.serializer()
-        override val descriptor: SerialDescriptor = SerialDescriptor("org.mitre.oauth2.model.RegisteredClient", delegate.descriptor)
+        override val descriptor: SerialDescriptor =
+            SerialDescriptor("org.mitre.oauth2.model.RegisteredClient", delegate.descriptor)
 
         override fun serialize(encoder: Encoder, value: RegisteredClient) {
             val source = value.source
@@ -427,7 +428,7 @@ class RegisteredClient(
 
         override fun deserialize(decoder: Decoder): RegisteredClient {
             if (decoder is JsonDecoder) {
-                val source  = decoder.decodeJsonElement()
+                val source = decoder.decodeJsonElement()
                 return decoder.json.decodeFromJsonElement(delegate, source).toClient(source as? JsonObject)
             } else {
                 return delegate.deserialize(decoder).toClient()

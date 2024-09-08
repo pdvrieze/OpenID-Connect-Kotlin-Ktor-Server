@@ -91,9 +91,9 @@ class DefaultSystemScopeService : SystemScopeService {
     /* (non-Javadoc)
 	 * @see org.mitre.oauth2.service.SystemScopeService#fromStrings(java.util.Set)
 	 */
-    override fun fromStrings(scope: Set<String>?): Set<SystemScope>? {
+    override fun fromStrings(scope: Set<String>?): Set<SystemScope> {
         return when (scope) {
-            null -> null
+            null -> emptySet()
             else -> scope.mapNotNullTo(mutableSetOf(), stringToSystemScope)
         }
     }
@@ -101,9 +101,9 @@ class DefaultSystemScopeService : SystemScopeService {
     /* (non-Javadoc)
 	 * @see org.mitre.oauth2.service.SystemScopeService#toStrings(java.util.Set)
 	 */
-    override fun toStrings(scope: Set<SystemScope>?): Set<String>? {
+    override fun toStrings(scope: Set<SystemScope>?): Set<String> {
         return when (scope) {
-            null -> null
+            null -> emptySet()
             else -> scope.mapNotNullTo(mutableSetOf(), systemScopeToString)
         }
     }

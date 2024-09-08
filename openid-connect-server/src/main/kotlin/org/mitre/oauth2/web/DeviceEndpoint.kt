@@ -49,7 +49,6 @@ import org.springframework.web.bind.annotation.RequestParam
 import java.net.URISyntaxException
 import java.util.*
 import javax.servlet.http.HttpSession
-import org.springframework.security.oauth2.provider.OAuth2Authentication as SpringOAuth2Authentication
 
 /**
  * Implements https://tools.ietf.org/html/draft-ietf-oauth-device-flow
@@ -92,7 +91,7 @@ class DeviceEndpoint {
             }
 
             // make sure this client can do the device flow
-            val authorizedGrantTypes= client.getAuthorizedGrantTypes()
+            val authorizedGrantTypes= client.authorizedGrantTypes
             if (!authorizedGrantTypes.isNullOrEmpty()
                 && DeviceTokenGranter.GRANT_TYPE !in authorizedGrantTypes
             ) {
@@ -106,7 +105,7 @@ class DeviceEndpoint {
 
         // make sure the client is allowed to ask for those scopes
         val requestedScopes = OAuth2Utils.parseParameterList(scope)
-        val allowedScopes = client.getScope()
+        val allowedScopes = client.scope
 
         if (!scopeService.scopesMatch(allowedScopes, requestedScopes)) {
             // client asked for scopes it can't have

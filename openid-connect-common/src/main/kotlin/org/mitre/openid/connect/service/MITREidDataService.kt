@@ -386,15 +386,15 @@ interface MITREidDataService {
         @EncodeDefault @SerialName("creationDate") var createdAt: ISODate? = null,
     ) {
         constructor(s: ClientDetailsEntity) : this(
-            clientId = requireNotNull(s.getClientId()) { "Missing client id" },
-            resourceIds = s.getResourceIds(),
-            secret = s.getClientSecret(),
-            scope = s.getScope(),
-            authorities = s.getAuthorities().mapTo(HashSet()) {
+            clientId = requireNotNull(s.clientId) { "Missing client id" },
+            resourceIds = s.resourceIds,
+            secret = s.clientSecret,
+            scope = s.scope,
+            authorities = s.authorities.mapTo(HashSet()) {
                 it as? GrantedAuthority ?: GrantedAuthority(it.authority)
             },
-            accessTokenValiditySeconds = s.getAccessTokenValiditySeconds(),
-            refreshTokenValiditySeconds = s.getRefreshTokenValiditySeconds(),
+            accessTokenValiditySeconds = s.accessTokenValiditySeconds,
+            refreshTokenValiditySeconds = s.refreshTokenValiditySeconds,
             idTokenValiditySeconds = s.idTokenValiditySeconds,
             deviceCodeValiditySeconds = s.deviceCodeValiditySeconds,
             redirectUris = s.redirectUris,
@@ -405,7 +405,7 @@ interface MITREidDataService {
             contacts = s.contacts,
             tosUri = s.tosUri,
             tokenEndpointAuthMethod = requireNotNull(s.tokenEndpointAuthMethod) { "Missing authentication method" },
-            grantTypes = s.grantTypes,
+            grantTypes = s.authorizedGrantTypes,
             responseTypes = s.responseTypes,
             policyUri = s.policyUri,
             applicationType = s.applicationType,
@@ -452,7 +452,7 @@ interface MITREidDataService {
                 tosUri = tosUri,
                 tokenEndpointAuthMethod = tokenEndpointAuthMethod,
                 scope = scope?.toHashSet() ?: hashSetOf(),
-                grantTypes = grantTypes.toHashSet(),
+                authorizedGrantTypes = grantTypes.toHashSet(),
                 responseTypes = responseTypes.toHashSet(),
                 policyUri = policyUri,
                 jwksUri = jwks_uri,

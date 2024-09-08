@@ -81,10 +81,14 @@ open class ClientDetailsEntity(
 
     /** Fields from the OAuth2 Dynamic Registration Specification  */
     @SerialName(CLIENT_ID)
-    private var clientId: String? = null, // client_id
+    @Basic
+    @Column(name = "client_id")
+    override var clientId: String? = null, // client_id
 
+    @Basic
+    @Column(name = "client_secret")
     @SerialName(CLIENT_SECRET)
-    private var clientSecret: String? = null, // client_secret
+    override var clientSecret: String? = null, // client_secret
 
     @get:Column(name = "redirect_uri")
     @get:CollectionTable(name = "client_redirect_uri", joinColumns = [JoinColumn(name = "owner_id")])
@@ -118,13 +122,16 @@ open class ClientDetailsEntity(
     override var tokenEndpointAuthMethod: AuthMethod? = AuthMethod.SECRET_BASIC, // token_endpoint_auth_method
 
     @SerialName(SCOPE)
-    private var scope: HashSet<String> = HashSet(), // scope
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "client_scope", joinColumns = [JoinColumn(name = "owner_id")])
+    @Column(name = "scope")
+    override var scope: HashSet<String> = HashSet(), // scope
 
     @get:Column(name = "grant_type")
     @get:CollectionTable(name = "client_grant_type", joinColumns = [JoinColumn(name = "owner_id")])
     @get:ElementCollection(fetch = FetchType.EAGER)
     @SerialName(GRANT_TYPES)
-    override var grantTypes: MutableSet<String> = HashSet(), // grant_types
+    override var authorizedGrantTypes: Set<String> = HashSet(), // grant_types
 
     @get:Column(name = "response_type")
     @get:CollectionTable(name = "client_response_type", joinColumns = [JoinColumn(name = "owner_id")])
@@ -292,21 +299,33 @@ open class ClientDetailsEntity(
     @SerialName(CODE_CHALLENGE_METHOD) override var codeChallengeMethod: PKCEAlgorithm? = null,
 
     @KXS_Transient
-    private var accessTokenValiditySeconds: Int? = 0,
+    @Basic
+    @Column(name = "access_token_validity_seconds")
+    override var accessTokenValiditySeconds: Int? = 0,
 ) : OAuthClientDetails/*, SpringClientDetails*/ {
 
     /** Fields to support the ClientDetails interface  */
     @KXS_Transient
-    private var authorities: Set<GrantedAuthority> = HashSet()
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "client_authority", joinColumns = [JoinColumn(name = "owner_id")])
+    @Convert(converter = SimpleGrantedAuthorityStringConverter::class)
+    @Column(name = "authority")
+    override var authorities: Set<GrantedAuthority> = HashSet()
 
     @KXS_Transient
-    private var refreshTokenValiditySeconds: Int? = 0 // in seconds
+    @Basic
+    @Column(name = "refresh_token_validity_seconds")
+    override var refreshTokenValiditySeconds: Int? = 0 // in seconds
 
     @KXS_Transient
-    private var resourceIds: Set<String> = HashSet()
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "client_resource", joinColumns = [JoinColumn(name = "owner_id")])
+    @Column(name = "resource_id")
+    override var resourceIds: Set<String> = HashSet()
 
     @KXS_Transient
-    private val additionalInformation: Map<String, Any> = HashMap()
+    @JPATransient
+    override val additionalInformation: Map<String, Any> = HashMap()
 
     override fun withId(id: Long): OAuthClientDetails {
         this.id = id
@@ -325,7 +344,7 @@ open class ClientDetailsEntity(
         tosUri: String?,
         tokenEndpointAuthMethod: AuthMethod?,
         scope: Set<String>,
-        grantTypes: Set<String>,
+        authorizedGrantTypes: Set<String>,
         responseTypes: Set<String>,
         policyUri: String?,
         jwksUri: String?,
@@ -360,7 +379,6 @@ open class ClientDetailsEntity(
         claimsRedirectUris: Set<String>?,
         softwareStatement: JWT?,
         codeChallengeMethod: PKCEAlgorithm?,
-        authorizedGrantTypes: Set<String>,
         accessTokenValiditySeconds: Int?,
         refreshTokenValiditySeconds: Int?,
         authorities: Set<GrantedAuthority>,
@@ -377,7 +395,7 @@ open class ClientDetailsEntity(
             tosUri = tosUri,
             tokenEndpointAuthMethod = tokenEndpointAuthMethod,
             scope = scope.toHashSet(),
-            grantTypes = grantTypes.toHashSet(),
+            authorizedGrantTypes = authorizedGrantTypes.toHashSet(),
             responseTypes = responseTypes.toHashSet(),
             policyUri = policyUri,
             jwksUri = jwksUri,
@@ -416,6 +434,7 @@ open class ClientDetailsEntity(
             it.setAccessTokenValiditySeconds(accessTokenValiditySeconds)
             it.setRefreshTokenValiditySeconds(refreshTokenValiditySeconds)
             it.setAuthorities(authorities)
+
         }
     }
 
@@ -432,132 +451,221 @@ open class ClientDetailsEntity(
     override val isAllowRefresh: Boolean get() = super.isAllowRefresh
 
 
-    @JPATransient
-    override fun isSecretRequired(): Boolean = super.isSecretRequired()
+    @get:JPATransient
+    override val isSecretRequired: Boolean
+        get() = super.isSecretRequired
 
     /**
      * If the scope list is not null or empty, then this client has been scoped.
      */
-    @JPATransient
-    override fun isScoped(): Boolean = super.isScoped()
-
-    @Basic
-    @Column(name = "client_id")
-    override fun getClientId(): String? {
-        return clientId
-    }
+    @get:JPATransient
+    override val isScoped: Boolean
+        get() = super.isScoped
 
     /**
      * @param clientId The OAuth2 client_id, must be unique to this client
      */
-    fun setClientId(clientId: String?) {
+    fun setClientId(clientId: String?, dummy: Unit = Unit) {
         this.clientId = clientId
-    }
-
-    @Basic
-    @Column(name = "client_secret")
-    override fun getClientSecret(): String? {
-        return clientSecret
     }
 
     /**
      * @param clientSecret the OAuth2 client_secret (optional)
      */
-    fun setClientSecret(clientSecret: String?) {
+    fun setClientSecret(clientSecret: String?, dummy: Unit = Unit) {
         this.clientSecret = clientSecret
     }
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "client_scope", joinColumns = [JoinColumn(name = "owner_id")])
-    @Column(name = "scope")
-    override fun getScope(): MutableSet<String> {
-        return scope
-    }
 
     /**
      * @param scope the set of scopes allowed to be issued to this client
      */
-    fun setScope(scope: Set<String>?) {
+    fun setScope(scope: Set<String>?, dummy: Unit = Unit) {
         this.scope = scope?.toHashSet() ?: hashSetOf()
     }
 
-    /**
-     * passthrough for SECOAUTH api
-     */
-    @JPATransient
-    override fun getAuthorizedGrantTypes(): Set<String> {
-        return grantTypes
-    }
-
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "client_authority", joinColumns = [JoinColumn(name = "owner_id")])
-    @Convert(converter = SimpleGrantedAuthorityStringConverter::class)
-    @Column(name = "authority")
-    override fun getAuthorities(): Set<GrantedAuthority> {
-        return authorities
-    }
 
     /**
      * @param authorities the Spring Security authorities this client is given
      */
-    fun setAuthorities(authorities: Set<GrantedAuthority>) {
+    fun setAuthorities(authorities: Set<GrantedAuthority>, dummy: Unit = Unit) {
         this.authorities = authorities
     }
 
-    @Basic
-    @Column(name = "access_token_validity_seconds")
-    override fun getAccessTokenValiditySeconds(): Int? {
-        return accessTokenValiditySeconds
-    }
-
-    fun setAccessTokenValiditySeconds(accessTokenValiditySeconds: Int?) {
+    fun setAccessTokenValiditySeconds(accessTokenValiditySeconds: Int?, dummy: Unit = Unit) {
         this.accessTokenValiditySeconds = accessTokenValiditySeconds
-    }
-
-    @Basic
-    @Column(name = "refresh_token_validity_seconds")
-    override fun getRefreshTokenValiditySeconds(): Int? {
-        return refreshTokenValiditySeconds
     }
 
     /**
      * @param refreshTokenTimeout Lifetime of refresh tokens, in seconds (optional - leave null for no timeout)
      */
-    fun setRefreshTokenValiditySeconds(refreshTokenValiditySeconds: Int?) {
+    fun setRefreshTokenValiditySeconds(refreshTokenValiditySeconds: Int?, dummy: Unit = Unit) {
         this.refreshTokenValiditySeconds = refreshTokenValiditySeconds
     }
 
-    /**
-     * Pass-through method to fulfill the ClientDetails interface with a bad name
-     */
-    @JPATransient
-    override fun getRegisteredRedirectUri(): Set<String>? {
-        return redirectUris
-    }
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "client_resource", joinColumns = [JoinColumn(name = "owner_id")])
-    @Column(name = "resource_id")
-    override fun getResourceIds(): Set<String> {
-        return resourceIds
-    }
 
-    fun setResourceIds(resourceIds: Set<String>) {
+    fun setResourceIds(resourceIds: Set<String>, dummy: Unit = Unit) {
         this.resourceIds = resourceIds
     }
 
 
-    /**
-     * This library does not make use of this field, so it is not
-     * stored using our persistence layer.
-     *
-     * However, it's somehow required by SECOUATH.
-     *
-     * @return an empty map
-     */
-    @JPATransient
-    override fun getAdditionalInformation(): Map<String, Any> {
-        return this.additionalInformation
+    override fun builder(): Builder = Builder(this)
+
+    class Builder(
+        override var id: Long? = null,
+        override var clientId: String?,
+        override var clientSecret: String?,
+        override var scope: MutableSet<String>,
+        override var authorizedGrantTypes: MutableSet<String>,
+        override var tokenEndpointAuthMethod: AuthMethod?,
+        override var redirectUris: MutableSet<String>,
+        override var clientName: String? = null,
+        override var clientUri: String? = null,
+        override var logoUri: String? = null,
+        override var contacts: Set<String>? = null,
+        override var tosUri: String? = null,
+        override var responseTypes: MutableSet<String>,
+        override var policyUri: String? = null,
+        override var jwksUri: String? = null,
+        override var jwks: JWKSet? = null,
+        override var softwareId: String? = null,
+        override var softwareVersion: String? = null,
+        override var applicationType: AppType,
+        override var sectorIdentifierUri: String? = null,
+        override var subjectType: SubjectType? = null,
+        override var requestObjectSigningAlg: JWSAlgorithm? = null,
+        override var userInfoSignedResponseAlg: JWSAlgorithm? = null,
+        override var userInfoEncryptedResponseAlg: JWEAlgorithm? = null,
+        override var userInfoEncryptedResponseEnc: EncryptionMethod? = null,
+        override var idTokenSignedResponseAlg: JWSAlgorithm? = null,
+        override var idTokenEncryptedResponseAlg: JWEAlgorithm? = null,
+        override var idTokenEncryptedResponseEnc: EncryptionMethod? = null,
+        override var tokenEndpointAuthSigningAlg: JWSAlgorithm? = null,
+        override var defaultMaxAge: Long? = null,
+        override var requireAuthTime: Boolean? = null,
+        override var defaultACRvalues: MutableSet<String>? = null,
+        override var initiateLoginUri: String? = null,
+        override var postLogoutRedirectUris: MutableSet<String>? = null,
+        override var requestUris: MutableSet<String>? = null,
+        override var clientDescription: String,
+        override var isReuseRefreshToken: Boolean,
+        override var isDynamicallyRegistered: Boolean,
+        override var isAllowIntrospection: Boolean,
+        override var idTokenValiditySeconds: Int? = null,
+        override var createdAt: Date? = null,
+        override var isClearAccessTokensOnRefresh: Boolean,
+        override var deviceCodeValiditySeconds: Int? = null,
+        override var claimsRedirectUris: MutableSet<String>? = null,
+        override var softwareStatement: JWT? = null,
+        override var codeChallengeMethod: PKCEAlgorithm? = null,
+        var accessTokenValiditySeconds: Int? = null,
+        var refreshTokenValiditySeconds: Int? = null,
+        var authorities: MutableSet<GrantedAuthority> = hashSetOf()
+    ): OAuthClientDetails.Builder {
+
+        constructor(entity: OAuthClientDetails) :this(
+            id = entity.id,
+            clientId = entity.clientId,
+            clientSecret = entity.clientSecret,
+            scope = entity.scope.toHashSet(),
+            authorizedGrantTypes = entity.authorizedGrantTypes.toHashSet(),
+            tokenEndpointAuthMethod = entity.tokenEndpointAuthMethod,
+            redirectUris = entity.redirectUris.toHashSet(),
+            clientName = entity.clientName,
+            clientUri = entity.clientUri,
+            logoUri = entity.logoUri,
+            contacts = entity.contacts,
+            tosUri = entity.tosUri,
+            responseTypes = entity.responseTypes.toHashSet(),
+            policyUri = entity.policyUri,
+            jwksUri = entity.jwksUri,
+            jwks = entity.jwks,
+            softwareId = entity.softwareId,
+            softwareVersion = entity.softwareVersion,
+            applicationType = entity.applicationType,
+            sectorIdentifierUri = entity.sectorIdentifierUri,
+            subjectType = entity.subjectType,
+            requestObjectSigningAlg = entity.requestObjectSigningAlg,
+            userInfoSignedResponseAlg = entity.userInfoSignedResponseAlg,
+            userInfoEncryptedResponseAlg = entity.userInfoEncryptedResponseAlg,
+            userInfoEncryptedResponseEnc = entity.userInfoEncryptedResponseEnc,
+            idTokenSignedResponseAlg = entity.idTokenSignedResponseAlg,
+            idTokenEncryptedResponseAlg = entity.idTokenEncryptedResponseAlg,
+            idTokenEncryptedResponseEnc = entity.idTokenEncryptedResponseEnc,
+            tokenEndpointAuthSigningAlg = entity.tokenEndpointAuthSigningAlg,
+            defaultMaxAge = entity.defaultMaxAge,
+            requireAuthTime = entity.requireAuthTime,
+            defaultACRvalues = entity.defaultACRvalues?.toHashSet(),
+            initiateLoginUri = entity.initiateLoginUri,
+            postLogoutRedirectUris = entity.postLogoutRedirectUris?.toHashSet(),
+            requestUris = entity.requestUris?.toHashSet(),
+            clientDescription = entity.clientDescription,
+            isReuseRefreshToken = entity.isReuseRefreshToken,
+            isDynamicallyRegistered = entity.isDynamicallyRegistered,
+            isAllowIntrospection = entity.isAllowIntrospection,
+            idTokenValiditySeconds = entity.idTokenValiditySeconds,
+            createdAt = entity.createdAt,
+            isClearAccessTokensOnRefresh = entity.isClearAccessTokensOnRefresh,
+            accessTokenValiditySeconds = entity.accessTokenValiditySeconds,
+            refreshTokenValiditySeconds = entity.refreshTokenValiditySeconds,
+            authorities = entity.authorities.toHashSet()
+        )
+
+        override fun build(): ClientDetailsEntity {
+            return ClientDetailsEntity(
+                id = id,
+                clientId = clientId,
+                clientSecret = clientSecret,
+                redirectUris = redirectUris,
+                clientName = clientName,
+                clientUri = clientUri,
+                logoUri = logoUri,
+                contacts = contacts,
+                tosUri = tosUri,
+                tokenEndpointAuthMethod = tokenEndpointAuthMethod,
+                scope = scope.toHashSet(),
+                authorizedGrantTypes = authorizedGrantTypes,
+                responseTypes = responseTypes,
+                policyUri = policyUri,
+                jwksUri = jwksUri,
+                jwks = jwks,
+                softwareId = softwareId,
+                softwareVersion = softwareVersion,
+                applicationType = applicationType,
+                sectorIdentifierUri = sectorIdentifierUri,
+                subjectType = subjectType,
+                requestObjectSigningAlg = requestObjectSigningAlg,
+                userInfoSignedResponseAlg = userInfoSignedResponseAlg,
+                userInfoEncryptedResponseAlg = userInfoEncryptedResponseAlg,
+                userInfoEncryptedResponseEnc = userInfoEncryptedResponseEnc,
+                idTokenSignedResponseAlg = idTokenSignedResponseAlg,
+                idTokenEncryptedResponseAlg = idTokenEncryptedResponseAlg,
+                idTokenEncryptedResponseEnc = idTokenEncryptedResponseEnc,
+                tokenEndpointAuthSigningAlg = tokenEndpointAuthSigningAlg,
+                defaultMaxAge = defaultMaxAge,
+                requireAuthTime = requireAuthTime,
+                defaultACRvalues = defaultACRvalues,
+                initiateLoginUri = initiateLoginUri,
+                postLogoutRedirectUris = postLogoutRedirectUris,
+                requestUris = requestUris,
+                clientDescription = clientDescription,
+                isReuseRefreshToken = isReuseRefreshToken,
+                isDynamicallyRegistered = isDynamicallyRegistered,
+                isAllowIntrospection = isAllowIntrospection,
+                idTokenValiditySeconds = idTokenValiditySeconds,
+                createdAt = createdAt,
+                isClearAccessTokensOnRefresh = isClearAccessTokensOnRefresh,
+                deviceCodeValiditySeconds = deviceCodeValiditySeconds,
+                claimsRedirectUris = claimsRedirectUris,
+                softwareStatement = softwareStatement,
+                codeChallengeMethod = codeChallengeMethod,
+                accessTokenValiditySeconds = accessTokenValiditySeconds,
+            ).also {
+                it.refreshTokenValiditySeconds = refreshTokenValiditySeconds
+                it.authorities = authorities
+            }
+        }
     }
 
     companion object {
@@ -565,8 +673,8 @@ open class ClientDetailsEntity(
             is ClientDetailsEntity -> original
             else -> ClientDetailsEntity(
                 id = original.id,
-                clientId = original.getClientId(),
-                clientSecret = original.getClientSecret(),
+                clientId = original.clientId,
+                clientSecret = original.clientSecret,
                 redirectUris = original.redirectUris,
                 clientName = original.clientName,
                 clientUri = original.clientUri,
@@ -574,9 +682,9 @@ open class ClientDetailsEntity(
                 contacts = original.contacts,
                 tosUri = original.tosUri,
                 tokenEndpointAuthMethod = original.tokenEndpointAuthMethod,
-                scope = original.getScope().toHashSet(),
-                grantTypes = original.grantTypes.toHashSet(),
-                responseTypes = original.responseTypes,
+                scope = original.scope.toHashSet(),
+                authorizedGrantTypes = original.authorizedGrantTypes.toHashSet(),
+                responseTypes = original.responseTypes.toHashSet(),
                 policyUri = original.policyUri,
                 jwksUri = original.jwksUri,
                 jwks = original.jwks,
@@ -610,7 +718,9 @@ open class ClientDetailsEntity(
                 claimsRedirectUris = original.claimsRedirectUris,
                 softwareStatement = original.softwareStatement,
                 codeChallengeMethod = original.codeChallengeMethod,
-            )
+            ).also {
+                it.setAuthorities(original.authorities)
+            }
         }
 
         const val QUERY_BY_CLIENT_ID: String = "ClientDetailsEntity.getByClientId"

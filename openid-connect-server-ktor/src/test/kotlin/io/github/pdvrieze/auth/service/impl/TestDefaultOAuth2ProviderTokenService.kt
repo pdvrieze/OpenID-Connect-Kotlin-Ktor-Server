@@ -113,7 +113,7 @@ class TestDefaultOAuth2ProviderTokenService {
         whenever(authentication.oAuth2Request) doReturn (clientAuth)
 
         client = mock<ClientDetailsEntity>()
-        whenever(client.getClientId()) doReturn (clientId)
+        whenever(client.clientId) doReturn (clientId)
         whenever(clientDetailsService.loadClientByClientId(clientId)) doReturn (client)
         whenever(client.isReuseRefreshToken) doReturn (true)
 
@@ -124,7 +124,7 @@ class TestDefaultOAuth2ProviderTokenService {
         whenever(client.isClearAccessTokensOnRefresh) doReturn (true)
 
         badClient = mock<ClientDetailsEntity>()
-        whenever(badClient.getClientId()) doReturn (badClientId)
+        whenever(badClient.clientId) doReturn (badClientId)
         whenever(clientDetailsService.loadClientByClientId(badClientId)) doReturn (badClient)
 
         refreshToken = mock<OAuth2RefreshTokenEntity>()
@@ -264,8 +264,8 @@ class TestDefaultOAuth2ProviderTokenService {
         val accessTokenValiditySeconds = 3600
         val refreshTokenValiditySeconds = 600
 
-        whenever(client.getAccessTokenValiditySeconds()) doReturn (accessTokenValiditySeconds)
-        whenever(client.getRefreshTokenValiditySeconds()) doReturn (refreshTokenValiditySeconds)
+        whenever(client.accessTokenValiditySeconds) doReturn (accessTokenValiditySeconds)
+        whenever(client.refreshTokenValiditySeconds) doReturn (refreshTokenValiditySeconds)
 
         val start = System.currentTimeMillis()
         val token = service.createAccessToken(authentication)
@@ -295,7 +295,7 @@ class TestDefaultOAuth2ProviderTokenService {
 
         verify(scopeService, atLeastOnce()).removeReservedScopes(anySet())
 
-        assertEquals(clientId, token.client!!.getClientId())
+        assertEquals(clientId, token.client!!.clientId)
     }
 
     @Test
@@ -489,7 +489,7 @@ class TestDefaultOAuth2ProviderTokenService {
     fun refreshAccessToken_expiration() {
         val accessTokenValiditySeconds = 3600
 
-        whenever(client.getAccessTokenValiditySeconds()) doReturn (accessTokenValiditySeconds)
+        whenever(client.accessTokenValiditySeconds) doReturn (accessTokenValiditySeconds)
 
         val start = System.currentTimeMillis()
         val token = service.refreshAccessToken(refreshTokenValue, tokenRequest)

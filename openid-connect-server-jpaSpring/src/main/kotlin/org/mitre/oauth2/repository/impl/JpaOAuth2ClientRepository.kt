@@ -57,7 +57,7 @@ class JpaOAuth2ClientRepository : OAuth2ClientRepository {
     }
 
     override fun saveClient(client: OAuthClientDetails): OAuthClientDetails {
-        return saveOrUpdate(client.getClientId(), manager, client)
+        return saveOrUpdate(client.clientId, manager, client)
     }
 
     /* (non-Javadoc)

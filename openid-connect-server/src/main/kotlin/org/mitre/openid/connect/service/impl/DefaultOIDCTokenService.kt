@@ -119,7 +119,7 @@ class DefaultOIDCTokenService : OIDCTokenService {
 
         idClaims.issuer(configBean.issuer)
         idClaims.subject(sub)
-        idClaims.audience(listOf(client.getClientId()))
+        idClaims.audience(listOf(client.clientId))
         idClaims.jwtID(UUID.randomUUID().toString()) // set a random NONCE in the middle of it
 
         val nonce = request.extensions[ConnectRequestParameters.NONCE] as String?
@@ -148,7 +148,7 @@ class DefaultOIDCTokenService : OIDCTokenService {
 
                 encrypter.encryptJwt((idToken as JWEObject?)!!)
             } else {
-                logger.error("Couldn't find encrypter for client: ${client.getClientId()}")
+                logger.error("Couldn't find encrypter for client: ${client.clientId}")
             }
         } else {
             if (signingAlg == Algorithm.NONE) {
@@ -224,7 +224,7 @@ class DefaultOIDCTokenService : OIDCTokenService {
         // create a new token
         val authorizationParameters: Map<String, String> = hashMapOf()
         val clientAuth = OAuth2Request(
-            authorizationParameters, client.getClientId()!!,
+            authorizationParameters, client.clientId!!,
             hashSetOf(GrantedAuthority("ROLE_CLIENT")), true,
             scope ?: emptySet(), null, null, null, null
         )
@@ -240,7 +240,7 @@ class DefaultOIDCTokenService : OIDCTokenService {
         tokenBuilder.setAuthenticationHolder(authHolder)
 
         val claims = JWTClaimsSet.Builder()
-            .audience(listOf(client.getClientId()))
+            .audience(listOf(client.clientId))
             .issuer(configBean.issuer)
             .issueTime(Date())
             .expirationTime(tokenBuilder.expiration)

@@ -25,9 +25,9 @@ import com.nimbusds.jose.util.JSONObjectUtils
 import kotlinx.serialization.SerializationException
 import org.mitre.jwt.assertion.AssertionValidator
 import org.mitre.oauth2.model.ClientDetailsEntity
-import org.mitre.oauth2.model.ClientDetailsEntity.*
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuthClientDetails
+import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.oauth2.model.RegisteredClientFields.APPLICATION_TYPE
 import org.mitre.oauth2.model.RegisteredClientFields.CLAIMS_REDIRECT_URIS
@@ -129,9 +129,9 @@ class DynamicClientRegistrationEndpoint {
      */
     @RequestMapping(method = [RequestMethod.POST], consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun registerNewClient(@RequestBody jsonString: String?, m: Model): String {
-        var newClient: ClientDetailsEntity? = null
+        val newClientBuilder: ClientDetailsEntity.Builder?
         try {
-            newClient = jsonString?.let { parse(it) }
+            newClientBuilder = jsonString?.let { parse(it).builder() }
         } catch (e: SerializationException) {
             // bad parse
             // didn't parse, this is a bad request
@@ -140,7 +140,7 @@ class DynamicClientRegistrationEndpoint {
             return HttpCodeView.VIEWNAME
         }
 
-        if (newClient == null) {
+        if (newClientBuilder == null) {
             // didn't parse, this is a bad request
             logger.error("registerNewClient failed; submitted JSON is malformed")
             m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST) // http 400
@@ -155,18 +155,17 @@ class DynamicClientRegistrationEndpoint {
 
         // clear out any spurious id/secret (clients don't get to pick)
 
-        newClient.setClientId(null)
-        newClient.setClientSecret(null)
+        newClientBuilder.clientId = null
+        newClientBuilder.clientSecret = null
 
         // do validation on the fields
         try {
-            newClient =
-                validateSoftwareStatement(newClient) // need to handle the software statement first because it might override requested values
-            newClient = validateScopes(newClient)
-            newClient = validateResponseTypes(newClient)
-            newClient = validateGrantTypes(newClient)
-            newClient = validateRedirectUris(newClient)
-            newClient = validateAuth(newClient)
+            validateSoftwareStatement(newClientBuilder) // need to handle the software statement first because it might override requested values
+            validateScopes(newClientBuilder)
+            validateResponseTypes(newClientBuilder)
+            validateGrantTypes(newClientBuilder)
+            validateRedirectUris(newClientBuilder)
+            validateAuth(newClientBuilder)
         } catch (ve: ValidationException) {
             // validation failed, return an error
             m.addAttribute(JsonErrorView.ERROR, ve.error)
@@ -175,59 +174,64 @@ class DynamicClientRegistrationEndpoint {
             return JsonErrorView.VIEWNAME
         }
 
-        if (newClient!!.tokenEndpointAuthMethod == null) {
-            newClient.tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.SECRET_BASIC
+        if (newClientBuilder!!.tokenEndpointAuthMethod == null) {
+            newClientBuilder.tokenEndpointAuthMethod = AuthMethod.SECRET_BASIC
         }
 
-        if (newClient.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_BASIC || newClient.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_JWT || newClient.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_POST) {
+        if (newClientBuilder.tokenEndpointAuthMethod == AuthMethod.SECRET_BASIC || newClientBuilder.tokenEndpointAuthMethod == AuthMethod.SECRET_JWT || newClientBuilder.tokenEndpointAuthMethod == AuthMethod.SECRET_POST) {
             // we need to generate a secret
 
-            newClient = newClient.copy(clientSecret = clientService.generateClientSecret(newClient))
+            newClientBuilder.clientSecret = clientService.generateClientSecret(newClientBuilder)
         }
 
         // set some defaults for token timeouts
         if (config.isHeartMode) {
             // heart mode has different defaults depending on primary grant type
-            if (newClient.grantTypes.contains("authorization_code")) {
-                newClient.setAccessTokenValiditySeconds(
-                    TimeUnit.HOURS.toSeconds(1).toInt()) // access tokens good for 1hr
-                newClient.idTokenValiditySeconds = TimeUnit.MINUTES.toSeconds(5).toInt() // id tokens good for 5min
-                newClient.setRefreshTokenValiditySeconds(
-                    TimeUnit.HOURS.toSeconds(24).toInt()) // refresh tokens good for 24hr
-            } else if (newClient.grantTypes.contains("implicit")) {
-                newClient.setAccessTokenValiditySeconds(
-                    TimeUnit.MINUTES.toSeconds(15).toInt()) // access tokens good for 15min
-                newClient.idTokenValiditySeconds = TimeUnit.MINUTES.toSeconds(5).toInt() // id tokens good for 5min
-                newClient.setRefreshTokenValiditySeconds(0) // no refresh tokens
-            } else if (newClient.grantTypes.contains("client_credentials")) {
-                newClient.setAccessTokenValiditySeconds(
-                    TimeUnit.HOURS.toSeconds(6).toInt()) // access tokens good for 6hr
-                newClient.idTokenValiditySeconds = 0 // no id tokens
-                newClient.setRefreshTokenValiditySeconds(0) // no refresh tokens
+            if (newClientBuilder.authorizedGrantTypes.contains("authorization_code")) {
+                newClientBuilder.accessTokenValiditySeconds = TimeUnit.HOURS.toSeconds(1).toInt()
+                // access tokens good for 1hr
+                newClientBuilder.idTokenValiditySeconds =
+                    TimeUnit.MINUTES.toSeconds(5).toInt() // id tokens good for 5min
+                newClientBuilder.refreshTokenValiditySeconds = TimeUnit.HOURS.toSeconds(24).toInt()
+                // refresh tokens good for 24hr
+            } else if (newClientBuilder.authorizedGrantTypes.contains("implicit")) {
+                newClientBuilder.accessTokenValiditySeconds = TimeUnit.MINUTES.toSeconds(15).toInt()
+                // access tokens good for 15min
+                newClientBuilder.idTokenValiditySeconds =
+                    TimeUnit.MINUTES.toSeconds(5).toInt() // id tokens good for 5min
+                newClientBuilder.refreshTokenValiditySeconds = 0
+                // no refresh tokens
+            } else if (newClientBuilder.authorizedGrantTypes.contains("client_credentials")) {
+                newClientBuilder.accessTokenValiditySeconds = TimeUnit.HOURS.toSeconds(6).toInt()
+                // access tokens good for 6hr
+                newClientBuilder.idTokenValiditySeconds = 0 // no id tokens
+                newClientBuilder.refreshTokenValiditySeconds = 0
+                // no refresh tokens
             }
         } else {
-            newClient.setAccessTokenValiditySeconds(TimeUnit.HOURS.toSeconds(1).toInt()) // access tokens good for 1hr
-            newClient.idTokenValiditySeconds = TimeUnit.MINUTES.toSeconds(10).toInt() // id tokens good for 10min
-            newClient.setRefreshTokenValiditySeconds(null) // refresh tokens good until revoked
+            newClientBuilder.accessTokenValiditySeconds = TimeUnit.HOURS.toSeconds(1).toInt()
+            // access tokens good for 1hr
+            newClientBuilder.idTokenValiditySeconds = TimeUnit.MINUTES.toSeconds(10).toInt() // id tokens good for 10min
+            newClientBuilder.refreshTokenValiditySeconds = null // refresh tokens good until revoked
         }
 
         // this client has been dynamically registered (obviously)
-        newClient.isDynamicallyRegistered = true
+        newClientBuilder.isDynamicallyRegistered = true
 
         // this client can't do token introspection
-        newClient.isAllowIntrospection = false
+        newClientBuilder.isAllowIntrospection = false
 
         // now save it
         try {
-            val savedClient = clientService.saveNewClient(newClient)
+            val savedClient = clientService.saveNewClient(newClientBuilder.build())
 
             // generate the registration access token
-            var token = connectTokenService.createRegistrationAccessToken(savedClient!!)
-            token = tokenService.saveAccessToken(token!!)
+            var token = connectTokenService.createRegistrationAccessToken(savedClient)!!
+            token = tokenService.saveAccessToken(token)
 
             // send it all out to the view
             val registered =
-                RegisteredClient(savedClient, token.value, config.issuer + "register/" + UriUtils.encodePathSegment(savedClient.getClientId(), "UTF-8"))
+                RegisteredClient(savedClient, token.value, config.issuer + "register/" + UriUtils.encodePathSegment(savedClient.clientId, "UTF-8"))
             m.addAttribute("client", registered)
             m.addAttribute(HttpCodeView.CODE, HttpStatus.CREATED) // http 201
 
@@ -251,10 +255,10 @@ class DynamicClientRegistrationEndpoint {
     fun readClientConfiguration(@PathVariable("id") clientId: String, m: Model, auth: OAuth2Authentication): String {
         val client = clientService.loadClientByClientId(clientId)
 
-        if (client != null && client.getClientId() == auth.oAuth2Request.clientId) {
+        if (client != null && client.clientId == auth.oAuth2Request.clientId) {
             val token = rotateRegistrationTokenIfNecessary(auth, client)
             val registered =
-                RegisteredClient(client, token.value, config.issuer + "register/" + UriUtils.encodePathSegment(client.getClientId(), "UTF-8"))
+                RegisteredClient(client, token.value, config.issuer + "register/" + UriUtils.encodePathSegment(client.clientId, "UTF-8"))
 
             // send it all out to the view
             m.addAttribute("client", registered)
@@ -284,9 +288,9 @@ class DynamicClientRegistrationEndpoint {
         m: Model,
         auth: OAuth2Authentication
     ): String {
-        var newClient: ClientDetailsEntity? = null
+        val newClient: ClientDetailsEntity.Builder?
         try {
-            newClient = jsonString?.let { parse(it) }
+            newClient = jsonString?.let { parse(it).builder() }
         } catch (e: SerializationException) {
             // bad parse
             // didn't parse, this is a bad request
@@ -297,7 +301,7 @@ class DynamicClientRegistrationEndpoint {
 
         val oldClient = clientService.loadClientByClientId(clientId)
 
-        if (newClient == null || oldClient == null || oldClient.getClientId() != auth.oAuth2Request.clientId || oldClient.getClientId() != newClient.getClientId()
+        if (newClient == null || oldClient == null || oldClient.clientId != auth.oAuth2Request.clientId || oldClient.clientId != newClient.clientId
         ) {
             // client mismatch
             logger.error(
@@ -313,27 +317,25 @@ class DynamicClientRegistrationEndpoint {
         // a client can't ask to update its own client secret to any particular value
 
         // we need to copy over all of the local and SECOAUTH fields
-        val updatedClient = newClient.copy(
-            clientSecret = oldClient.getClientSecret(),
-            accessTokenValiditySeconds = oldClient.getAccessTokenValiditySeconds(),
-            idTokenValiditySeconds = oldClient.idTokenValiditySeconds,
-            refreshTokenValiditySeconds = oldClient.getRefreshTokenValiditySeconds(),
-            isDynamicallyRegistered = true, // it's still dynamically registered
-            isAllowIntrospection = false, // dynamically registered clients can't do introspection -- use the resource registration instead
-            authorities = oldClient.getAuthorities(),
-            clientDescription = oldClient.clientDescription,
-            createdAt = oldClient.createdAt,
-            isReuseRefreshToken = oldClient.isReuseRefreshToken,
-        )
+        newClient.clientSecret = oldClient.clientSecret
+        newClient.accessTokenValiditySeconds = oldClient.accessTokenValiditySeconds
+        newClient.idTokenValiditySeconds = oldClient.idTokenValiditySeconds
+        newClient.refreshTokenValiditySeconds = oldClient.refreshTokenValiditySeconds
+        newClient.isDynamicallyRegistered = true  // it's still dynamically registered
+        newClient.isAllowIntrospection = false  // dynamically registered clients can't do introspection -- use the resource registration instead
+        newClient.authorities = oldClient.authorities.toHashSet()
+        newClient.clientDescription = oldClient.clientDescription
+        newClient.createdAt = oldClient.createdAt
+        newClient.isReuseRefreshToken = oldClient.isReuseRefreshToken
 
         // do validation on the fields
         try {
-            newClient = validateSoftwareStatement(newClient) // need to handle the software statement first because it might override requested values
-            newClient = validateScopes(newClient)
-            newClient = validateResponseTypes(newClient)
-            newClient = validateGrantTypes(newClient)
-            newClient = validateRedirectUris(newClient)
-            newClient = validateAuth(newClient)
+            validateSoftwareStatement(newClient) // need to handle the software statement first because it might override requested values
+            validateScopes(newClient)
+            validateResponseTypes(newClient)
+            validateGrantTypes(newClient)
+            validateRedirectUris(newClient)
+            validateAuth(newClient)
         } catch (ve: ValidationException) {
             // validation failed, return an error
             m.addAttribute(JsonErrorView.ERROR, ve.error)
@@ -344,12 +346,12 @@ class DynamicClientRegistrationEndpoint {
 
         try {
             // save the client
-            val savedClient = clientService.updateClient(oldClient, newClient)
+            val savedClient = clientService.updateClient(oldClient, newClient.build())
 
             val token = rotateRegistrationTokenIfNecessary(auth, savedClient)
 
             val registered =
-                RegisteredClient(savedClient, token.value, config.issuer + "register/" + UriUtils.encodePathSegment(savedClient.getClientId(), "UTF-8"))
+                RegisteredClient(savedClient, token.value, config.issuer + "register/" + UriUtils.encodePathSegment(savedClient.clientId, "UTF-8"))
 
             // send it all out to the view
             m.addAttribute("client", registered)
@@ -375,7 +377,7 @@ class DynamicClientRegistrationEndpoint {
     fun deleteClient(@PathVariable("id") clientId: String, m: Model, auth: OAuth2Authentication): String {
         val client = clientService.loadClientByClientId(clientId)
 
-        if (client != null && client.getClientId() == auth.oAuth2Request.clientId) {
+        if (client != null && client.clientId == auth.oAuth2Request.clientId) {
             clientService.deleteClient(client)
 
             m.addAttribute(HttpCodeView.CODE, HttpStatus.NO_CONTENT) // http 204
@@ -394,9 +396,9 @@ class DynamicClientRegistrationEndpoint {
     }
 
     @Throws(ValidationException::class)
-    private fun validateScopes(newClient: ClientDetailsEntity): ClientDetailsEntity {
+    private fun validateScopes(newClient: ClientDetailsEntity.Builder) {
         // scopes that the client is asking for
-        val requestedScopes = scopeService.fromStrings(newClient.getScope())!!
+        val requestedScopes = scopeService.fromStrings(newClient.scope)
 
         // the scopes that the client can have must be a subset of the dynamically allowed scopes
         var allowedScopes: Set<SystemScope>? = scopeService.removeRestrictedAndReservedScopes(requestedScopes)
@@ -406,123 +408,119 @@ class DynamicClientRegistrationEndpoint {
             allowedScopes = scopeService.defaults
         }
 
-        newClient.setScope(scopeService.toStrings(allowedScopes))
-
-        return newClient
+        newClient.scope = scopeService.toStrings(allowedScopes).toHashSet()
     }
 
     @Throws(ValidationException::class)
-    private fun validateResponseTypes(newClient: ClientDetailsEntity?): ClientDetailsEntity {
-        if (newClient!!.responseTypes == null) {
-            newClient.responseTypes = HashSet()
-        }
-        return newClient
+    private fun validateResponseTypes(newClient: ClientDetailsEntity.Builder) {
+        // does not do anything
     }
 
     @Throws(ValidationException::class)
-    private fun validateGrantTypes(newClient: ClientDetailsEntity?): ClientDetailsEntity {
-        // set default grant types if needed
-        if (newClient!!.grantTypes == null || newClient.grantTypes.isEmpty()) {
-            if (newClient.getScope().contains("offline_access")) { // client asked for offline access
-                newClient.grantTypes =
+    private fun validateGrantTypes(builder: ClientDetailsEntity.Builder) {
+        if (builder.authorizedGrantTypes.isEmpty()) {
+            if (builder.scope.contains("offline_access")) { // client asked for offline access
+                builder.authorizedGrantTypes =
                     hashSetOf("authorization_code", "refresh_token") // allow authorization code and refresh token grant types by default
             } else {
-                newClient.grantTypes =
+                builder.authorizedGrantTypes =
                     hashSetOf("authorization_code") // allow authorization code grant type by default
             }
             if (config.isDualClient) {
-                val extendedGrandTypes = newClient.grantTypes
+                val extendedGrandTypes = builder.authorizedGrantTypes
                 extendedGrandTypes.add("client_credentials")
-                newClient.grantTypes = extendedGrandTypes
+                builder.authorizedGrantTypes = extendedGrandTypes
             }
         }
 
+        // set default grant types if needed
+
         // filter out unknown grant types
         // TODO: make this a pluggable service
-        val requestedGrantTypes: MutableSet<String> = HashSet(newClient.grantTypes)
+        val requestedGrantTypes: MutableSet<String> = HashSet(builder.authorizedGrantTypes)
         requestedGrantTypes.retainAll(
             setOf("authorization_code", "implicit", "password", "client_credentials", "refresh_token", "urn:ietf:params:oauth:grant_type:redelegate")
         )
 
         // don't allow "password" grant type for dynamic registration
-        if (newClient.grantTypes.contains("password")) {
+        if (builder.authorizedGrantTypes.contains("password")) {
             // return an error, you can't dynamically register for the password grant
             throw ValidationException("invalid_client_metadata", "The password grant type is not allowed in dynamic registration on this server.", HttpStatus.BAD_REQUEST)
         }
 
         // don't allow clients to have multiple incompatible grant types and scopes
-        if (newClient.grantTypes.contains("authorization_code")) {
+        if (builder.authorizedGrantTypes.contains("authorization_code")) {
             // check for incompatible grants
 
-            if (newClient.grantTypes.contains("implicit") ||
-                (!config.isDualClient && newClient.grantTypes.contains("client_credentials"))
+            if (builder.authorizedGrantTypes.contains("implicit") ||
+                (!config.isDualClient && builder.authorizedGrantTypes.contains("client_credentials"))
             ) {
                 // return an error, you can't have these grant types together
-                throw ValidationException("invalid_client_metadata", "Incompatible grant types requested: " + newClient.grantTypes, HttpStatus.BAD_REQUEST)
+                throw ValidationException("invalid_client_metadata", "Incompatible grant types requested: " + builder.authorizedGrantTypes, HttpStatus.BAD_REQUEST)
             }
 
-            if (newClient.responseTypes.contains("token")) {
+            if (builder.responseTypes.contains("token")) {
                 // return an error, you can't have this grant type and response type together
-                throw ValidationException("invalid_client_metadata", "Incompatible response types requested: " + newClient.grantTypes + " / " + newClient.responseTypes, HttpStatus.BAD_REQUEST)
+                throw ValidationException("invalid_client_metadata", "Incompatible response types requested: " + builder.authorizedGrantTypes + " / " + builder.responseTypes, HttpStatus.BAD_REQUEST)
             }
 
-            newClient.responseTypes.add("code")
+            builder.responseTypes.add("code")
         }
 
-        if (newClient.grantTypes.contains("implicit")) {
+        if (builder.authorizedGrantTypes.contains("implicit")) {
             // check for incompatible grants
 
-            if (newClient.grantTypes.contains("authorization_code") ||
-                (!config.isDualClient && newClient.grantTypes.contains("client_credentials"))
+            if (builder.authorizedGrantTypes.contains("authorization_code") ||
+                (!config.isDualClient && builder.authorizedGrantTypes.contains("client_credentials"))
             ) {
                 // return an error, you can't have these grant types together
-                throw ValidationException("invalid_client_metadata", "Incompatible grant types requested: " + newClient.grantTypes, HttpStatus.BAD_REQUEST)
+                throw ValidationException("invalid_client_metadata", "Incompatible grant types requested: " + builder.authorizedGrantTypes, HttpStatus.BAD_REQUEST)
             }
 
-            if (newClient.responseTypes.contains("code")) {
+            if (builder.responseTypes.contains("code")) {
                 // return an error, you can't have this grant type and response type together
-                throw ValidationException("invalid_client_metadata", "Incompatible response types requested: " + newClient.grantTypes + " / " + newClient.responseTypes, HttpStatus.BAD_REQUEST)
+                throw ValidationException("invalid_client_metadata", "Incompatible response types requested: " + builder.authorizedGrantTypes + " / " + builder.responseTypes, HttpStatus.BAD_REQUEST)
             }
 
-            newClient.responseTypes.add("token")
+            builder.responseTypes.add("token")
 
             // don't allow refresh tokens in implicit clients
-            newClient.grantTypes.remove("refresh_token")
-            newClient.getScope().remove(SystemScopeService.OFFLINE_ACCESS)
+            builder.authorizedGrantTypes.remove("refresh_token")
+            builder.scope.remove(SystemScopeService.OFFLINE_ACCESS)
         }
 
-        if (newClient.grantTypes.contains("client_credentials")) {
+        if (builder.authorizedGrantTypes.contains("client_credentials")) {
             // check for incompatible grants
 
             if (!config.isDualClient &&
-                (newClient.grantTypes.contains("authorization_code") || newClient.grantTypes.contains("implicit"))
+                (builder.authorizedGrantTypes.contains("authorization_code") || builder.authorizedGrantTypes.contains("implicit"))
             ) {
                 // return an error, you can't have these grant types together
-                throw ValidationException("invalid_client_metadata", "Incompatible grant types requested: " + newClient.grantTypes, HttpStatus.BAD_REQUEST)
+                throw ValidationException("invalid_client_metadata", "Incompatible grant types requested: " + builder.authorizedGrantTypes, HttpStatus.BAD_REQUEST)
             }
 
-            if (!newClient.responseTypes.isEmpty()) {
+            if (!builder.responseTypes.isEmpty()) {
                 // return an error, you can't have this grant type and response type together
-                throw ValidationException("invalid_client_metadata", "Incompatible response types requested: " + newClient.grantTypes + " / " + newClient.responseTypes, HttpStatus.BAD_REQUEST)
+                throw ValidationException("invalid_client_metadata", "Incompatible response types requested: " + builder.authorizedGrantTypes + " / " + builder.responseTypes, HttpStatus.BAD_REQUEST)
             }
 
             // don't allow refresh tokens or id tokens in client_credentials clients
-            newClient.grantTypes.remove("refresh_token")
-            newClient.getScope().remove(SystemScopeService.OFFLINE_ACCESS)
-            newClient.getScope().remove(SystemScopeService.OPENID_SCOPE)
+            builder.authorizedGrantTypes.remove("refresh_token")
+            builder.scope.remove(SystemScopeService.OFFLINE_ACCESS)
+            builder.scope.remove(SystemScopeService.OPENID_SCOPE)
         }
 
-        if (newClient.grantTypes.isEmpty()) {
+        if (builder.authorizedGrantTypes.isEmpty()) {
             // return an error, you need at least one grant type selected
             throw ValidationException("invalid_client_metadata", "Clients must register at least one grant type.", HttpStatus.BAD_REQUEST)
         }
-        return newClient
+
     }
 
     @Throws(ValidationException::class)
-    private fun validateRedirectUris(newClient: ClientDetailsEntity): ClientDetailsEntity {
+    private fun validateRedirectUris(newClient: ClientDetailsEntity.Builder) {
         // check to make sure this client registered a redirect URI if using a redirect flow
-        if (newClient.grantTypes.contains("authorization_code") || newClient.grantTypes.contains("implicit")) {
+        if (newClient.authorizedGrantTypes.contains("authorization_code") || newClient.authorizedGrantTypes.contains("implicit")) {
             if (newClient.redirectUris.isEmpty()) {
                 // return an error
                 throw ValidationException("invalid_redirect_uri", "Clients using a redirect-based grant type must register at least one redirect URI.", HttpStatus.BAD_REQUEST)
@@ -540,34 +538,36 @@ class DynamicClientRegistrationEndpoint {
                 }
             }
         }
-
-        return newClient
     }
 
     @Throws(ValidationException::class)
-    private fun validateAuth(newClient: ClientDetailsEntity): ClientDetailsEntity {
-        var newClient = newClient
+    private fun validateAuth(newClient: ClientDetailsEntity.Builder) {
         if (newClient.tokenEndpointAuthMethod == null) {
-            newClient.tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.SECRET_BASIC
+            newClient.tokenEndpointAuthMethod = AuthMethod.SECRET_BASIC
         }
 
-        if (newClient.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_BASIC || newClient.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_JWT || newClient.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_POST) {
-            if (newClient.getClientSecret().isNullOrEmpty()) {
-                // no secret yet, we need to generate a secret
-                newClient = newClient.copy(clientSecret = clientService.generateClientSecret(newClient))
-            }
-        } else if (newClient.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.PRIVATE_KEY) {
-            if (newClient.jwksUri.isNullOrEmpty() && newClient.jwks == null) {
-                throw ValidationException("invalid_client_metadata", "JWK Set URI required when using private key authentication", HttpStatus.BAD_REQUEST)
+        when (newClient.tokenEndpointAuthMethod) {
+            AuthMethod.SECRET_BASIC,
+            AuthMethod.SECRET_JWT,
+            AuthMethod.SECRET_POST -> {
+                if (newClient.clientSecret.isNullOrEmpty()) {
+                    // no secret yet, we need to generate a secret
+                    newClient.clientSecret = clientService.generateClientSecret(newClient)
+                }
             }
 
-            newClient.setClientSecret(null)
-        } else if (newClient.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.NONE) {
-            newClient.setClientSecret(null)
-        } else {
-            throw ValidationException("invalid_client_metadata", "Unknown authentication method", HttpStatus.BAD_REQUEST)
+            AuthMethod.PRIVATE_KEY -> {
+                if (newClient.jwksUri.isNullOrEmpty() && newClient.jwks == null) {
+                    throw ValidationException("invalid_client_metadata", "JWK Set URI required when using private key authentication", HttpStatus.BAD_REQUEST)
+                }
+
+                newClient.clientSecret = null
+            }
+
+            AuthMethod.NONE -> newClient.clientSecret = null
+
+            else -> throw ValidationException("invalid_client_metadata", "Unknown authentication method", HttpStatus.BAD_REQUEST)
         }
-        return newClient
     }
 
 
@@ -575,102 +575,102 @@ class DynamicClientRegistrationEndpoint {
      * @throws ValidationException
      */
     @Throws(ValidationException::class)
-    private fun validateSoftwareStatement(newClient: ClientDetailsEntity): ClientDetailsEntity {
-        if (newClient.softwareStatement != null) {
-            if (assertionValidator.isValid(newClient.softwareStatement!!)) {
-                // we have a software statement and its envelope passed all the checks from our validator
+    private fun validateSoftwareStatement(newClient: ClientDetailsEntity.Builder) {
+        if (newClient.softwareStatement == null) return
 
-                // swap out all of the client's fields for the associated parts of the software statement
+        if (!assertionValidator.isValid(newClient.softwareStatement!!)) {
+            throw ValidationException("invalid_client_metadata", "Software statement rejected by validator", HttpStatus.BAD_REQUEST)
+        }
 
-                try {
-                    val claimSet = newClient.softwareStatement!!.jwtClaimsSet
-                    for (claim in claimSet.claims.keys) {
-                        when (claim) {
-                            SOFTWARE_STATEMENT -> throw ValidationException("invalid_client_metadata", "Software statement can't include another software statement", HttpStatus.BAD_REQUEST)
-                            CLAIMS_REDIRECT_URIS -> newClient.claimsRedirectUris =
-                                claimSet.getStringListClaim(claim).toHashSet()
+        try {
+            val claimSet = newClient.softwareStatement!!.jwtClaimsSet
+            for (claim in claimSet.claims.keys) {
+                when (claim) {
+                    SOFTWARE_STATEMENT -> throw ValidationException("invalid_client_metadata", "Software statement can't include another software statement", HttpStatus.BAD_REQUEST)
+                    CLAIMS_REDIRECT_URIS -> newClient.claimsRedirectUris =
+                        claimSet.getStringListClaim(claim).toHashSet()
 
-                            CLIENT_SECRET_EXPIRES_AT -> throw ValidationException("invalid_client_metadata", "Software statement can't include a client secret expiration time", HttpStatus.BAD_REQUEST)
-                            CLIENT_ID_ISSUED_AT -> throw ValidationException("invalid_client_metadata", "Software statement can't include a client ID issuance time", HttpStatus.BAD_REQUEST)
-                            REGISTRATION_CLIENT_URI -> throw ValidationException("invalid_client_metadata", "Software statement can't include a client configuration endpoint", HttpStatus.BAD_REQUEST)
-                            REGISTRATION_ACCESS_TOKEN -> throw ValidationException("invalid_client_metadata", "Software statement can't include a client registration access token", HttpStatus.BAD_REQUEST)
-                            REQUEST_URIS -> newClient.requestUris = claimSet.getStringListClaim(claim).toHashSet()
-                            POST_LOGOUT_REDIRECT_URIS -> newClient.postLogoutRedirectUris =
-                                claimSet.getStringListClaim(claim).toHashSet()
+                    CLIENT_SECRET_EXPIRES_AT -> throw ValidationException("invalid_client_metadata", "Software statement can't include a client secret expiration time", HttpStatus.BAD_REQUEST)
+                    CLIENT_ID_ISSUED_AT -> throw ValidationException("invalid_client_metadata", "Software statement can't include a client ID issuance time", HttpStatus.BAD_REQUEST)
+                    REGISTRATION_CLIENT_URI -> throw ValidationException("invalid_client_metadata", "Software statement can't include a client configuration endpoint", HttpStatus.BAD_REQUEST)
+                    REGISTRATION_ACCESS_TOKEN -> throw ValidationException("invalid_client_metadata", "Software statement can't include a client registration access token", HttpStatus.BAD_REQUEST)
+                    REQUEST_URIS -> newClient.requestUris = claimSet.getStringListClaim(claim).toHashSet()
+                    POST_LOGOUT_REDIRECT_URIS -> newClient.postLogoutRedirectUris =
+                        claimSet.getStringListClaim(claim).toHashSet()
 
-                            INITIATE_LOGIN_URI -> newClient.initiateLoginUri = claimSet.getStringClaim(claim)
-                            DEFAULT_ACR_VALUES -> newClient.defaultACRvalues =
-                                claimSet.getStringListClaim(claim).toHashSet()
+                    INITIATE_LOGIN_URI -> newClient.initiateLoginUri = claimSet.getStringClaim(claim)
+                    DEFAULT_ACR_VALUES -> newClient.defaultACRvalues =
+                        claimSet.getStringListClaim(claim).toHashSet()
 
-                            REQUIRE_AUTH_TIME -> newClient.requireAuthTime = claimSet.getBooleanClaim(claim)
-                            DEFAULT_MAX_AGE -> newClient.defaultMaxAge = claimSet.getIntegerClaim(claim)?.toLong()
-                            TOKEN_ENDPOINT_AUTH_SIGNING_ALG -> newClient.tokenEndpointAuthSigningAlg =
-                                JWSAlgorithm.parse(claimSet.getStringClaim(claim))
+                    REQUIRE_AUTH_TIME -> newClient.requireAuthTime = claimSet.getBooleanClaim(claim)
+                    DEFAULT_MAX_AGE -> newClient.defaultMaxAge = claimSet.getIntegerClaim(claim)?.toLong()
+                    TOKEN_ENDPOINT_AUTH_SIGNING_ALG -> newClient.tokenEndpointAuthSigningAlg =
+                        JWSAlgorithm.parse(claimSet.getStringClaim(claim))
 
-                            ID_TOKEN_ENCRYPTED_RESPONSE_ENC -> newClient.idTokenEncryptedResponseEnc =
-                                EncryptionMethod.parse(claimSet.getStringClaim(claim))
+                    ID_TOKEN_ENCRYPTED_RESPONSE_ENC -> newClient.idTokenEncryptedResponseEnc =
+                        EncryptionMethod.parse(claimSet.getStringClaim(claim))
 
-                            ID_TOKEN_ENCRYPTED_RESPONSE_ALG -> newClient.idTokenEncryptedResponseAlg =
-                                JWEAlgorithm.parse(claimSet.getStringClaim(claim))
+                    ID_TOKEN_ENCRYPTED_RESPONSE_ALG -> newClient.idTokenEncryptedResponseAlg =
+                        JWEAlgorithm.parse(claimSet.getStringClaim(claim))
 
-                            ID_TOKEN_SIGNED_RESPONSE_ALG -> newClient.idTokenSignedResponseAlg =
-                                JWSAlgorithm.parse(claimSet.getStringClaim(claim))
+                    ID_TOKEN_SIGNED_RESPONSE_ALG -> newClient.idTokenSignedResponseAlg =
+                        JWSAlgorithm.parse(claimSet.getStringClaim(claim))
 
-                            USERINFO_ENCRYPTED_RESPONSE_ENC -> newClient.userInfoEncryptedResponseEnc =
-                                EncryptionMethod.parse(claimSet.getStringClaim(claim))
+                    USERINFO_ENCRYPTED_RESPONSE_ENC -> newClient.userInfoEncryptedResponseEnc =
+                        EncryptionMethod.parse(claimSet.getStringClaim(claim))
 
-                            USERINFO_ENCRYPTED_RESPONSE_ALG -> newClient.userInfoEncryptedResponseAlg =
-                                JWEAlgorithm.parse(claimSet.getStringClaim(claim))
+                    USERINFO_ENCRYPTED_RESPONSE_ALG -> newClient.userInfoEncryptedResponseAlg =
+                        JWEAlgorithm.parse(claimSet.getStringClaim(claim))
 
-                            USERINFO_SIGNED_RESPONSE_ALG -> newClient.userInfoSignedResponseAlg =
-                                JWSAlgorithm.parse(claimSet.getStringClaim(claim))
+                    USERINFO_SIGNED_RESPONSE_ALG -> newClient.userInfoSignedResponseAlg =
+                        JWSAlgorithm.parse(claimSet.getStringClaim(claim))
 
-                            REQUEST_OBJECT_SIGNING_ALG -> newClient.requestObjectSigningAlg =
-                                JWSAlgorithm.parse(claimSet.getStringClaim(claim))
+                    REQUEST_OBJECT_SIGNING_ALG -> newClient.requestObjectSigningAlg =
+                        JWSAlgorithm.parse(claimSet.getStringClaim(claim))
 
-                            SUBJECT_TYPE -> newClient.subjectType =
-                                OAuthClientDetails.SubjectType.getByValue(claimSet.getStringClaim(claim))
+                    SUBJECT_TYPE -> newClient.subjectType =
+                        OAuthClientDetails.SubjectType.getByValue(claimSet.getStringClaim(claim))
 
-                            SECTOR_IDENTIFIER_URI -> newClient.sectorIdentifierUri = claimSet.getStringClaim(claim)
-                            APPLICATION_TYPE -> newClient.applicationType =
-                                OAuthClientDetails.AppType.valueOf(claimSet.getStringClaim(claim))
+                    SECTOR_IDENTIFIER_URI -> newClient.sectorIdentifierUri = claimSet.getStringClaim(claim)
+                    APPLICATION_TYPE -> newClient.applicationType =
+                        OAuthClientDetails.AppType.valueOf(claimSet.getStringClaim(claim))
 
-                            JWKS_URI -> newClient.jwksUri = claimSet.getStringClaim(claim)
-                            JWKS -> newClient.jwks = JWKSet.parse(JSONObjectUtils.toJSONString(claimSet.getJSONObjectClaim(claim)))
-                            POLICY_URI -> newClient.policyUri = claimSet.getStringClaim(claim)
-                            RESPONSE_TYPES -> newClient.responseTypes =
-                                claimSet.getStringListClaim(claim).toHashSet()
+                    JWKS_URI -> newClient.jwksUri = claimSet.getStringClaim(claim)
+                    JWKS -> newClient.jwks =
+                        JWKSet.parse(JSONObjectUtils.toJSONString(claimSet.getJSONObjectClaim(claim)))
 
-                            GRANT_TYPES -> newClient.grantTypes = claimSet.getStringListClaim(claim).toHashSet()
-                            SCOPE -> newClient.setScope(OAuth2Utils.parseParameterList(claimSet.getStringClaim(claim)))
-                            TOKEN_ENDPOINT_AUTH_METHOD -> newClient.tokenEndpointAuthMethod =
-                                OAuthClientDetails.AuthMethod.getByValue(claimSet.getStringClaim(claim))
+                    POLICY_URI -> newClient.policyUri = claimSet.getStringClaim(claim)
+                    RESPONSE_TYPES -> newClient.responseTypes =
+                        claimSet.getStringListClaim(claim).toHashSet()
 
-                            TOS_URI -> newClient.tosUri = claimSet.getStringClaim(claim)
-                            CONTACTS -> newClient.contacts = claimSet.getStringListClaim(claim).toHashSet()
-                            LOGO_URI -> newClient.logoUri = claimSet.getStringClaim(claim)
-                            CLIENT_URI -> newClient.clientUri = claimSet.getStringClaim(claim)
-                            CLIENT_NAME -> newClient.clientName = claimSet.getStringClaim(claim)
-                            REDIRECT_URIS -> newClient.redirectUris =
-                                claimSet.getStringListClaim(claim).toHashSet()
+                    GRANT_TYPES -> newClient.authorizedGrantTypes =
+                        claimSet.getStringListClaim(claim).toHashSet()
 
-                            CLIENT_SECRET -> throw ValidationException("invalid_client_metadata", "Software statement can't contain client secret", HttpStatus.BAD_REQUEST)
-                            CLIENT_ID -> throw ValidationException("invalid_client_metadata", "Software statement can't contain client ID", HttpStatus.BAD_REQUEST)
-
-                            else -> logger.warn("Software statement contained unknown field: " + claim + " with value " + claimSet.getClaim(claim))
-                        }
+                    SCOPE -> {
+                        newClient.scope =
+                            OAuth2Utils.parseParameterList(claimSet.getStringClaim(claim))?.toHashSet()
+                                ?: hashSetOf()
                     }
 
-                    return newClient
-                } catch (e: ParseException) {
-                    throw ValidationException("invalid_client_metadata", "Software statement claims didn't parse", HttpStatus.BAD_REQUEST)
+                    TOKEN_ENDPOINT_AUTH_METHOD -> newClient.tokenEndpointAuthMethod =
+                        OAuthClientDetails.AuthMethod.getByValue(claimSet.getStringClaim(claim))
+
+                    TOS_URI -> newClient.tosUri = claimSet.getStringClaim(claim)
+                    CONTACTS -> newClient.contacts = claimSet.getStringListClaim(claim).toHashSet()
+                    LOGO_URI -> newClient.logoUri = claimSet.getStringClaim(claim)
+                    CLIENT_URI -> newClient.clientUri = claimSet.getStringClaim(claim)
+                    CLIENT_NAME -> newClient.clientName = claimSet.getStringClaim(claim)
+                    REDIRECT_URIS -> newClient.redirectUris =
+                        claimSet.getStringListClaim(claim).toHashSet()
+
+                    CLIENT_SECRET -> throw ValidationException("invalid_client_metadata", "Software statement can't contain client secret", HttpStatus.BAD_REQUEST)
+                    CLIENT_ID -> throw ValidationException("invalid_client_metadata", "Software statement can't contain client ID", HttpStatus.BAD_REQUEST)
+
+                    else -> logger.warn("Software statement contained unknown field: " + claim + " with value " + claimSet.getClaim(claim))
                 }
-            } else {
-                throw ValidationException("invalid_client_metadata", "Software statement rejected by validator", HttpStatus.BAD_REQUEST)
             }
-        } else {
-            // nothing to see here, carry on
-            return newClient
+        } catch (e: ParseException) {
+            throw ValidationException("invalid_client_metadata", "Software statement claims didn't parse", HttpStatus.BAD_REQUEST)
         }
     }
 
@@ -690,7 +690,7 @@ class DynamicClientRegistrationEndpoint {
                 // Re-issue the token if it has been issued before [currentTime - validity]
                 val validToDate = Date(System.currentTimeMillis() - config.regTokenLifeTime!! * 1000)
                 if (token.jwt!!.jwtClaimsSet.issueTime.before(validToDate)) {
-                    logger.info("Rotating the registration access token for " + client.getClientId())
+                    logger.info("Rotating the registration access token for " + client.clientId)
                     tokenService.revokeAccessToken(token)
                     val newToken = connectTokenService.createRegistrationAccessToken(client)
                     tokenService.saveAccessToken(newToken!!)

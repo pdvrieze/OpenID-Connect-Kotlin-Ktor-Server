@@ -53,7 +53,7 @@ class DefaultDeviceCodeService : DeviceCodeService {
             deviceCode = deviceCode,
             userCode = userCode,
             scope = requestedScopes,
-            clientId = client.getClientId(),
+            clientId = client.clientId,
             params = parameters
         )
 
@@ -101,7 +101,7 @@ class DefaultDeviceCodeService : DeviceCodeService {
             found == null -> null
 
             // make sure the client matches, if so, we're good
-            found.clientId == client.getClientId() -> found
+            found.clientId == client.clientId -> found
 
             // if the clients don't match, pretend the code wasn't found
             else -> null

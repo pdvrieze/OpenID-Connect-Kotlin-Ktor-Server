@@ -58,8 +58,8 @@ class TestBlacklistAwareRedirectResolver {
     fun testResolveRedirect_safe() {
         whenever(blacklistService.isBlacklisted(ArgumentMatchers.anyString())) doReturn false
 
-        whenever(client.getAuthorizedGrantTypes()) doReturn setOf("authorization_code")
-        whenever(client.getRegisteredRedirectUri()) doReturn setOf(goodUri, blacklistedUri)
+        whenever(client.authorizedGrantTypes) doReturn setOf("authorization_code")
+        whenever(client.registeredRedirectUri) doReturn setOf(goodUri, blacklistedUri)
 
         whenever(config.isHeartMode) doReturn false
 
@@ -79,8 +79,8 @@ class TestBlacklistAwareRedirectResolver {
 
         whenever(blacklistService.isBlacklisted(blacklistedUri)) doReturn true
 
-        whenever(client.getAuthorizedGrantTypes()) doReturn setOf("authorization_code")
-        whenever(client.getRegisteredRedirectUri()) doReturn setOf(goodUri, blacklistedUri)
+        whenever(client.authorizedGrantTypes) doReturn setOf("authorization_code")
+        whenever(client.registeredRedirectUri) doReturn setOf(goodUri, blacklistedUri)
 
         whenever(config.isHeartMode) doReturn false
 

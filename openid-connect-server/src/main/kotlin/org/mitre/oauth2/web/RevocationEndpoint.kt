@@ -80,10 +80,10 @@ class RevocationEndpoint {
             val accessToken = tokenServices.readAccessToken(tokenValue)
 
             // client acting on its own, make sure it owns the token
-            if (accessToken.client!!.getClientId() != authClient!!.getClientId()) {
+            if (accessToken.client!!.clientId != authClient!!.clientId) {
                 // trying to revoke a token we don't own, throw a 403
 
-                logger.info("Client ${authClient.getClientId()} tried to revoke a token owned by ${accessToken.client!!.getClientId()}")
+                logger.info("Client ${authClient.clientId} tried to revoke a token owned by ${accessToken.client!!.clientId}")
 
                 model.addAttribute(HttpCodeView.CODE, HttpStatus.FORBIDDEN)
                 return HttpCodeView.VIEWNAME
@@ -92,7 +92,7 @@ class RevocationEndpoint {
             // if we got this far, we're allowed to do this
             tokenServices.revokeAccessToken(accessToken)
 
-            logger.debug("Client ${authClient.getClientId()} revoked access token $tokenValue")
+            logger.debug("Client ${authClient.clientId} revoked access token $tokenValue")
 
             model.addAttribute(HttpCodeView.CODE, HttpStatus.OK)
             return HttpCodeView.VIEWNAME
@@ -102,10 +102,10 @@ class RevocationEndpoint {
             try {
                 val refreshToken = tokenServices.getRefreshToken(tokenValue)
                 // client acting on its own, make sure it owns the token
-                if (refreshToken!!.client!!.getClientId() != authClient!!.getClientId()) {
+                if (refreshToken!!.client!!.clientId != authClient!!.clientId) {
                     // trying to revoke a token we don't own, throw a 403
 
-                    logger.info("Client ${authClient.getClientId()} tried to revoke a token owned by ${refreshToken.client!!.getClientId()}")
+                    logger.info("Client ${authClient.clientId} tried to revoke a token owned by ${refreshToken.client!!.clientId}")
 
                     model.addAttribute(HttpCodeView.CODE, HttpStatus.FORBIDDEN)
                     return HttpCodeView.VIEWNAME
@@ -114,7 +114,7 @@ class RevocationEndpoint {
                 // if we got this far, we're allowed to do this
                 tokenServices.revokeRefreshToken(refreshToken)
 
-                logger.debug("Client ${authClient.getClientId()} revoked access token $tokenValue")
+                logger.debug("Client ${authClient.clientId} revoked access token $tokenValue")
 
                 model.addAttribute(HttpCodeView.CODE, HttpStatus.OK)
                 return HttpCodeView.VIEWNAME

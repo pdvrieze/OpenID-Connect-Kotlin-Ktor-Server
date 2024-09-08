@@ -153,7 +153,7 @@ class TestMITREidDataService_1_0 {
         val expirationDate1 = formatter.parse("2014-09-10T22:49:44.090+00:00", Locale.ENGLISH)
 
         val mockedClient1 = mock<ClientDetailsEntity>()
-        whenever(mockedClient1.getClientId()).thenReturn("mocked_client_1")
+        whenever(mockedClient1.clientId).thenReturn("mocked_client_1")
 
         val mockedAuthHolder1 = mock<AuthenticationHolderEntity>()
 
@@ -170,7 +170,7 @@ class TestMITREidDataService_1_0 {
         val expirationDate2 = formatter.parse("2015-01-07T18:31:50.079+00:00", Locale.ENGLISH)
 
         val mockedClient2 = mock<ClientDetailsEntity>()
-        whenever(mockedClient2.getClientId()).thenReturn("mocked_client_2")
+        whenever(mockedClient2.clientId).thenReturn("mocked_client_2")
 
         val mockedAuthHolder2 = mock<AuthenticationHolderEntity>()
 
@@ -221,7 +221,7 @@ class TestMITREidDataService_1_0 {
         whenever(clientRepository.getClientByClientId(ArgumentMatchers.anyString())).thenAnswer { invocation ->
             val _clientId = invocation.arguments[0] as String
             val _client = mock<ClientDetailsEntity>()
-            whenever(_client.getClientId()).thenReturn(_clientId)
+            whenever(_client.clientId).thenReturn(_clientId)
             _client
         }
         whenever(authHolderRepository.getById(anyLong()))
@@ -245,11 +245,11 @@ class TestMITREidDataService_1_0 {
 
         assertEquals(2, savedRefreshTokens.size)
 
-        assertEquals(token1.client!!.getClientId(), savedRefreshTokens[0].client!!.getClientId())
+        assertEquals(token1.client!!.clientId, savedRefreshTokens[0].client!!.clientId)
         assertEquals(token1.expiration, savedRefreshTokens[0].expiration)
         assertEquals(token1.value, savedRefreshTokens[0].value)
 
-        assertEquals(token2.client!!.getClientId(), savedRefreshTokens[1].client!!.getClientId())
+        assertEquals(token2.client!!.clientId, savedRefreshTokens[1].client!!.clientId)
         assertEquals(token2.expiration, savedRefreshTokens[1].expiration)
         assertEquals(token2.value, savedRefreshTokens[1].value)
     }
@@ -266,7 +266,7 @@ class TestMITREidDataService_1_0 {
         val expirationDate1 = formatter.parse("2014-09-10T22:49:44.090+00:00", Locale.ENGLISH)
 
         val mockedClient1 = mock<ClientDetailsEntity>()
-        whenever(mockedClient1.getClientId()).thenReturn("mocked_client_1")
+        whenever(mockedClient1.clientId).thenReturn("mocked_client_1")
 
         val mockedAuthHolder1 = mock<AuthenticationHolderEntity>()
 
@@ -287,7 +287,7 @@ class TestMITREidDataService_1_0 {
         val expirationDate2 = formatter.parse(expiration2, Locale.ENGLISH)
 
         val mockedClient2 = mock<ClientDetailsEntity>()
-        whenever(mockedClient2.getClientId()).thenReturn("mocked_client_2")
+        whenever(mockedClient2.clientId).thenReturn("mocked_client_2")
 
         val mockedAuthHolder2 = mock<AuthenticationHolderEntity>()
 
@@ -349,7 +349,7 @@ class TestMITREidDataService_1_0 {
         whenever(clientRepository.getClientByClientId(ArgumentMatchers.anyString())).thenAnswer { invocation ->
             val _clientId = invocation.arguments[0] as String
             val _client = mock<ClientDetailsEntity>()
-            whenever(_client.getClientId()).thenReturn(_clientId)
+            whenever(_client.clientId).thenReturn(_clientId)
             _client
         }
         whenever(authHolderRepository.getById(anyLong()))
@@ -378,11 +378,11 @@ class TestMITREidDataService_1_0 {
 
         assertEquals(2, savedAccessTokens.size)
 
-        assertEquals(token1.client!!.getClientId(), savedAccessTokens[0].client!!.getClientId())
+        assertEquals(token1.client!!.clientId, savedAccessTokens[0].client!!.clientId)
         assertEquals(token1.expiration, savedAccessTokens[0].expiration)
         assertEquals(token1.value, savedAccessTokens[0].value)
 
-        assertEquals(token2.client!!.getClientId(), savedAccessTokens[1].client!!.getClientId())
+        assertEquals(token2.client!!.clientId, savedAccessTokens[1].client!!.clientId)
         assertEquals(token2.expiration, savedAccessTokens[1].expiration)
         assertEquals(token2.value, savedAccessTokens[1].value)
     }
@@ -399,7 +399,7 @@ class TestMITREidDataService_1_0 {
             clientSecret = "clientsecret1",
             redirectUris = setOf("http://foo.com/"),
             scope = hashSetOf("foo", "bar", "baz", "dolphin"),
-            grantTypes = hashSetOf("implicit", "authorization_code", "urn:ietf:params:oauth:grant_type:redelegate", "refresh_token"),
+            authorizedGrantTypes = hashSetOf("implicit", "authorization_code", "urn:ietf:params:oauth:grant_type:redelegate", "refresh_token"),
             isAllowIntrospection = true,
         )
 
@@ -410,7 +410,7 @@ class TestMITREidDataService_1_0 {
             clientSecret = "clientsecret2",
             redirectUris = setOf("http://bar.baz.com/"),
             scope = hashSetOf("foo", "dolphin", "electric-wombat"),
-            grantTypes = hashSetOf("client_credentials", "urn:ietf:params:oauth:grant_type:redelegate"),
+            authorizedGrantTypes = hashSetOf("client_credentials", "urn:ietf:params:oauth:grant_type:redelegate"),
             isAllowIntrospection = false,
         )
 
@@ -446,20 +446,20 @@ class TestMITREidDataService_1_0 {
 
         assertEquals(2, savedClients.size)
 
-        assertEquals(client1.getAccessTokenValiditySeconds(), savedClients[0].getAccessTokenValiditySeconds())
-        assertEquals(client1.getClientId(), savedClients[0].getClientId())
-        assertEquals(client1.getClientSecret(), savedClients[0].getClientSecret())
+        assertEquals(client1.accessTokenValiditySeconds, savedClients[0].accessTokenValiditySeconds)
+        assertEquals(client1.clientId, savedClients[0].clientId)
+        assertEquals(client1.clientSecret, savedClients[0].clientSecret)
         assertEquals(client1.redirectUris, savedClients[0].redirectUris)
-        assertEquals(client1.getScope(), savedClients[0].getScope())
-        assertEquals(client1.grantTypes, savedClients[0].grantTypes)
+        assertEquals(client1.scope, savedClients[0].scope)
+        assertEquals(client1.authorizedGrantTypes, savedClients[0].authorizedGrantTypes)
         assertEquals(client1.isAllowIntrospection, savedClients[0].isAllowIntrospection)
 
-        assertEquals(client2.getAccessTokenValiditySeconds(), savedClients[1].getAccessTokenValiditySeconds())
-        assertEquals(client2.getClientId(), savedClients[1].getClientId())
-        assertEquals(client2.getClientSecret(), savedClients[1].getClientSecret())
+        assertEquals(client2.accessTokenValiditySeconds, savedClients[1].accessTokenValiditySeconds)
+        assertEquals(client2.clientId, savedClients[1].clientId)
+        assertEquals(client2.clientSecret, savedClients[1].clientSecret)
         assertEquals(client2.redirectUris, savedClients[1].redirectUris)
-        assertEquals(client2.getScope(), savedClients[1].getScope())
-        assertEquals(client2.grantTypes, savedClients[1].grantTypes)
+        assertEquals(client2.scope, savedClients[1].scope)
+        assertEquals(client2.authorizedGrantTypes, savedClients[1].authorizedGrantTypes)
         assertEquals(client2.isAllowIntrospection, savedClients[1].isAllowIntrospection)
     }
 

@@ -29,6 +29,7 @@ import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonObject
 import org.eclipse.persistence.exceptions.DatabaseException
 import org.mitre.jwt.assertion.AssertionValidator
+import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.ClientDetailsEntity.*
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.RegisteredClientFields.APPLICATION_TYPE
@@ -141,10 +142,10 @@ class ClientAPI {
     @RequestMapping(method = [RequestMethod.POST], consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun apiAddClient(@RequestBody jsonString: String, m: Model, auth: Authentication): String {
         val json: JsonObject = MITREidDataService.json.parseToJsonElement(jsonString).jsonObject
-        var client: OAuthClientDetails
+        val clientBuilder: OAuthClientDetails.Builder
 
         try {
-            client = MITREidDataService.json.decodeFromJsonElement(json)
+            clientBuilder = MITREidDataService.json.decodeFromJsonElement<ClientDetailsEntity>(json).builder()
         } catch (e: SerializationException) {
             logger.error("apiAddClient failed due to SerializationException", e)
             m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
@@ -163,23 +164,22 @@ class ClientAPI {
         }
 
         // if they leave the client identifier empty, force it to be generated
-        if (client.getClientId().isNullOrEmpty()) client =
-            client.copy(clientId = clientService.generateClientIdString(client))
+        if (clientBuilder.clientId.isNullOrEmpty()) clientBuilder.clientId = clientService.generateClientIdString(clientBuilder.build())
 
-        if (client.tokenEndpointAuthMethod == null || client.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.NONE) {
+        if (clientBuilder.tokenEndpointAuthMethod == null || clientBuilder.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.NONE) {
             // we shouldn't have a secret for this client
 
-            client.copy(clientSecret = null)
-        } else if (client.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_BASIC || client.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_POST || client.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_JWT) {
+            clientBuilder.clientSecret = null
+        } else if (clientBuilder.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_BASIC || clientBuilder.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_POST || clientBuilder.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_JWT) {
             // if they've asked for us to generate a client secret (or they left it blank but require one), do so here
 
             if (json["generateClientSecret"]?.asBooleanOrNull() == true
-                || client.getClientSecret().isNullOrEmpty()
+                || clientBuilder.clientSecret.isNullOrEmpty()
             ) {
-                client = client.copy(clientSecret = clientService.generateClientSecret(client))
+                clientBuilder.clientSecret = clientService.generateClientSecret(clientBuilder)
             }
-        } else if (client.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.PRIVATE_KEY) {
-            if (client.jwksUri.isNullOrEmpty() && client.jwks == null) {
+        } else if (clientBuilder.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.PRIVATE_KEY) {
+            if (clientBuilder.jwksUri.isNullOrEmpty() && clientBuilder.jwks == null) {
                 logger.error("tried to create client with private key auth but no private key")
                 m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
                 m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Can not create a client with private key authentication without registering a key via the JWK Set URI or JWK Set Value.")
@@ -187,7 +187,7 @@ class ClientAPI {
             }
 
             // otherwise we shouldn't have a secret for this client
-            client = client.copy(clientSecret = null)
+            clientBuilder.clientSecret = null
         } else {
             logger.error("unknown auth method")
             m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
@@ -195,10 +195,10 @@ class ClientAPI {
             return JsonErrorView.VIEWNAME
         }
 
-        client = client.copy(isDynamicallyRegistered = false)
+        clientBuilder.isDynamicallyRegistered = false
 
         try {
-            val newClient = clientService.saveNewClient(client)
+            val newClient = clientService.saveNewClient(clientBuilder.build())
             m.addAttribute(JsonEntityView.ENTITY, newClient)
 
             return if (AuthenticationUtilities.isAdmin(auth)) {
@@ -216,9 +216,9 @@ class ClientAPI {
             if (cause is DatabaseException) {
                 val databaseExceptionCause = cause.cause
                 if (databaseExceptionCause is SQLIntegrityConstraintViolationException) {
-                    logger.error("apiAddClient failed; duplicate client id entry found: {}", client.getClientId())
+                    logger.error("apiAddClient failed; duplicate client id entry found: {}", clientBuilder.clientId)
                     m.addAttribute(HttpCodeView.CODE, HttpStatus.CONFLICT)
-                    m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Unable to save client. Duplicate client id entry found: " + client.getClientId())
+                    m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Unable to save client. Duplicate client id entry found: " + clientBuilder.clientId)
                     return JsonErrorView.VIEWNAME
                 }
             }
@@ -238,13 +238,13 @@ class ClientAPI {
         auth: Authentication
     ): String {
         val json: JsonObject
-        var client: OAuthClientDetails
+        val clientBuilder: ClientDetailsEntity.Builder
 
         try {
             json = Json.parseToJsonElement(jsonString).jsonObject
             // parse the client passed in (from JSON) and fetch the old client from the store
-            client = Json.decodeFromJsonElement(json)
-            client = validateSoftwareStatement(client)
+            clientBuilder = Json.decodeFromJsonElement<ClientDetailsEntity>(json).builder()
+            validateSoftwareStatement(clientBuilder)
         } catch (e: SerializationException) {
             logger.error("apiUpdateClient failed due to SerializationException", e)
             m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
@@ -272,22 +272,22 @@ class ClientAPI {
         }
 
         // if they leave the client identifier empty, force it to be generated
-        if (client.getClientId().isNullOrEmpty()) {
-            client = client.copy(clientId = clientService.generateClientIdString(client))
+        if (clientBuilder.clientId.isNullOrEmpty()) {
+            clientBuilder.clientId = clientService.generateClientIdString(clientBuilder.build())
         }
 
-        if (client.tokenEndpointAuthMethod == null || client.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.NONE) {
+        if (clientBuilder.tokenEndpointAuthMethod == null || clientBuilder.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.NONE) {
             // we shouldn't have a secret for this client
 
-            client.copy(clientSecret = null)
-        } else if (client.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_BASIC || client.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_POST || client.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_JWT) {
+            clientBuilder.clientSecret = null
+        } else if (clientBuilder.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_BASIC || clientBuilder.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_POST || clientBuilder.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_JWT) {
             // if they've asked for us to generate a client secret (or they left it blank but require one), do so here
 
-            if (json["generateClientSecret"]?.asBoolean() == true || client.getClientSecret().isNullOrEmpty()) {
-                client = client.copy(clientSecret = clientService.generateClientSecret(client))
+            if (json["generateClientSecret"]?.asBoolean() == true || clientBuilder.clientSecret.isNullOrEmpty()) {
+                clientBuilder.clientSecret = clientService.generateClientSecret(clientBuilder)
             }
-        } else if (client.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.PRIVATE_KEY) {
-            if (client.jwksUri.isNullOrEmpty() && client.jwks == null) {
+        } else if (clientBuilder.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.PRIVATE_KEY) {
+            if (clientBuilder.jwksUri.isNullOrEmpty() && clientBuilder.jwks == null) {
                 logger.error("tried to create client with private key auth but no private key")
                 m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
                 m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Can not create a client with private key authentication without registering a key via the JWK Set URI or JWK Set Value.")
@@ -295,7 +295,7 @@ class ClientAPI {
             }
 
             // otherwise we shouldn't have a secret for this client
-            client = client.copy(clientSecret = null)
+            clientBuilder.clientSecret = null
         } else {
             logger.error("unknown auth method")
             m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
@@ -304,7 +304,7 @@ class ClientAPI {
         }
 
         try {
-            val newClient = clientService.updateClient(oldClient, client)
+            val newClient = clientService.updateClient(oldClient, clientBuilder.build())
             m.addAttribute(JsonEntityView.ENTITY, newClient)
 
             return if (AuthenticationUtilities.isAdmin(auth)) {
@@ -391,11 +391,11 @@ class ClientAPI {
     }
 
     @Throws(ValidationException::class)
-    private fun validateSoftwareStatement(newClient: OAuthClientDetails): OAuthClientDetails {
-        val softwareStatement = newClient.softwareStatement
+    private fun validateSoftwareStatement(clientBuilder: OAuthClientDetails.Builder) {
+        val softwareStatement = clientBuilder.softwareStatement
         if (softwareStatement == null) {
             // nothing to see here, carry on
-            return newClient
+            return
         } else {
             if (assertionValidator.isValid(softwareStatement)) {
                 // we have a software statement and its envelope passed all the checks from our validator
@@ -405,106 +405,75 @@ class ClientAPI {
                 try {
                     val claimSet = softwareStatement.jwtClaimsSet
 
-                    var newClaimsRedirectUris: Set<String>? = newClient.claimsRedirectUris
-                    var newRequestUris: Set<String>? = newClient.requestUris
-                    var newPostLogoutRedirectUris: Set<String>? = newClient.postLogoutRedirectUris
-                    var newInitiateLoginUri: String? = newClient.initiateLoginUri
-                    var newDefaultACRvalues: Set<String>? = newClient.defaultACRvalues
-                    var newRequireAuthTime: Boolean? = newClient.requireAuthTime
-                    var newDefaultMaxAge: Long? = newClient.defaultMaxAge
-                    var newTokenEndpointAuthSigningAlg: JWSAlgorithm? = newClient.tokenEndpointAuthSigningAlg
-                    var newIdTokenEncryptedResponseEnc: EncryptionMethod? = newClient.idTokenEncryptedResponseEnc
-                    var newIdTokenEncryptedResponseAlg: JWEAlgorithm? = newClient.idTokenEncryptedResponseAlg
-                    var newIdTokenSignedResponseAlg: JWSAlgorithm? = newClient.idTokenSignedResponseAlg
-                    var newUserInfoEncryptedResponseEnc: EncryptionMethod? = newClient.userInfoEncryptedResponseEnc
-                    var newUserInfoEncryptedResponseAlg: JWEAlgorithm? = newClient.userInfoEncryptedResponseAlg
-                    var newUserInfoSignedResponseAlg: JWSAlgorithm? = newClient.userInfoSignedResponseAlg
-                    var newRequestObjectSigningAlg: JWSAlgorithm? = newClient.requestObjectSigningAlg
-                    var newSubjectType: OAuthClientDetails.SubjectType? = newClient.subjectType
-                    var newSectorIdentifierUri: String? = newClient.sectorIdentifierUri
-                    var newApplicationType: OAuthClientDetails.AppType = newClient.applicationType
-                    var newJwksUri: String? = newClient.jwksUri
-                    var newJwks: JWKSet? = newClient.jwks
-                    var newPolicyUri: String? = newClient.policyUri
-                    var newResponseTypes: Set<String> = newClient.responseTypes
-                    var newGrantTypes: Set<String> = newClient.grantTypes
-                    var newScopes: Set<String> = newClient.getScope()
-                    var newTokenEndpointAuthMethod: OAuthClientDetails.AuthMethod? = newClient.tokenEndpointAuthMethod
-                    var newTosUri: String? = newClient.tosUri
-                    var newContacts: Set<String>? = newClient.contacts
-                    var newLogoUri: String? = newClient.logoUri
-                    var newClientUri: String? = newClient.clientUri
-                    var newClientName: String? = newClient.clientName
-                    var newRedirectUris: Set<String> = newClient.redirectUris
-
                     for (claim in claimSet.claims.keys) {
                         when (claim) {
                             SOFTWARE_STATEMENT -> throw ValidationException("invalid_client_metadata", "Software statement can't include another software statement", HttpStatus.BAD_REQUEST)
-                            CLAIMS_REDIRECT_URIS -> newClaimsRedirectUris =
-                                claimSet.getStringListClaim(claim).toHashSet()
+                            CLAIMS_REDIRECT_URIS ->
+                                clientBuilder.claimsRedirectUris = claimSet.getStringListClaim(claim).toHashSet()
 
                             CLIENT_SECRET_EXPIRES_AT -> throw ValidationException("invalid_client_metadata", "Software statement can't include a client secret expiration time", HttpStatus.BAD_REQUEST)
                             CLIENT_ID_ISSUED_AT -> throw ValidationException("invalid_client_metadata", "Software statement can't include a client ID issuance time", HttpStatus.BAD_REQUEST)
                             REGISTRATION_CLIENT_URI -> throw ValidationException("invalid_client_metadata", "Software statement can't include a client configuration endpoint", HttpStatus.BAD_REQUEST)
                             REGISTRATION_ACCESS_TOKEN -> throw ValidationException("invalid_client_metadata", "Software statement can't include a client registration access token", HttpStatus.BAD_REQUEST)
-                            REQUEST_URIS -> newRequestUris = claimSet.getStringListClaim(claim).toHashSet()
-                            POST_LOGOUT_REDIRECT_URIS -> newPostLogoutRedirectUris =
+                            REQUEST_URIS -> clientBuilder.requestUris = claimSet.getStringListClaim(claim).toHashSet()
+                            POST_LOGOUT_REDIRECT_URIS -> clientBuilder.postLogoutRedirectUris =
                                 claimSet.getStringListClaim(claim).toHashSet()
 
-                            INITIATE_LOGIN_URI -> newInitiateLoginUri = claimSet.getStringClaim(claim)
-                            DEFAULT_ACR_VALUES -> newDefaultACRvalues =
-                                claimSet.getStringListClaim(claim).toHashSet()
+                            INITIATE_LOGIN_URI -> clientBuilder.initiateLoginUri = claimSet.getStringClaim(claim)
+                            DEFAULT_ACR_VALUES -> clientBuilder.defaultACRvalues = claimSet.getStringListClaim(claim).toHashSet()
 
-                            REQUIRE_AUTH_TIME -> newRequireAuthTime = claimSet.getBooleanClaim(claim)
-                            DEFAULT_MAX_AGE -> newDefaultMaxAge = claimSet.getIntegerClaim(claim)?.toLong()
-                            TOKEN_ENDPOINT_AUTH_SIGNING_ALG -> newTokenEndpointAuthSigningAlg =
+                            REQUIRE_AUTH_TIME -> clientBuilder.requireAuthTime = claimSet.getBooleanClaim(claim)
+                            DEFAULT_MAX_AGE -> clientBuilder.defaultMaxAge = claimSet.getIntegerClaim(claim)?.toLong()
+                            TOKEN_ENDPOINT_AUTH_SIGNING_ALG -> clientBuilder.tokenEndpointAuthSigningAlg =
                                 JWSAlgorithm.parse(claimSet.getStringClaim(claim))
 
-                            ID_TOKEN_ENCRYPTED_RESPONSE_ENC -> newIdTokenEncryptedResponseEnc =
+                            ID_TOKEN_ENCRYPTED_RESPONSE_ENC -> clientBuilder.idTokenEncryptedResponseEnc =
                                 EncryptionMethod.parse(claimSet.getStringClaim(claim))
 
-                            ID_TOKEN_ENCRYPTED_RESPONSE_ALG -> newIdTokenEncryptedResponseAlg =
+                            ID_TOKEN_ENCRYPTED_RESPONSE_ALG -> clientBuilder.idTokenEncryptedResponseAlg =
                                 JWEAlgorithm.parse(claimSet.getStringClaim(claim))
 
-                            ID_TOKEN_SIGNED_RESPONSE_ALG -> newIdTokenSignedResponseAlg =
+                            ID_TOKEN_SIGNED_RESPONSE_ALG -> clientBuilder.idTokenSignedResponseAlg =
                                 JWSAlgorithm.parse(claimSet.getStringClaim(claim))
 
-                            USERINFO_ENCRYPTED_RESPONSE_ENC -> newUserInfoEncryptedResponseEnc =
+                            USERINFO_ENCRYPTED_RESPONSE_ENC -> clientBuilder.userInfoEncryptedResponseEnc =
                                 EncryptionMethod.parse(claimSet.getStringClaim(claim))
 
-                            USERINFO_ENCRYPTED_RESPONSE_ALG -> newUserInfoEncryptedResponseAlg =
+                            USERINFO_ENCRYPTED_RESPONSE_ALG -> clientBuilder.userInfoEncryptedResponseAlg =
                                 JWEAlgorithm.parse(claimSet.getStringClaim(claim))
 
-                            USERINFO_SIGNED_RESPONSE_ALG -> newUserInfoSignedResponseAlg =
+                            USERINFO_SIGNED_RESPONSE_ALG -> clientBuilder.userInfoSignedResponseAlg =
                                 JWSAlgorithm.parse(claimSet.getStringClaim(claim))
 
-                            REQUEST_OBJECT_SIGNING_ALG -> newRequestObjectSigningAlg =
+                            REQUEST_OBJECT_SIGNING_ALG -> clientBuilder.requestObjectSigningAlg =
                                 JWSAlgorithm.parse(claimSet.getStringClaim(claim))
 
-                            SUBJECT_TYPE -> newSubjectType =
+                            SUBJECT_TYPE -> clientBuilder.subjectType =
                                 OAuthClientDetails.SubjectType.getByValue(claimSet.getStringClaim(claim))
 
-                            SECTOR_IDENTIFIER_URI -> newSectorIdentifierUri = claimSet.getStringClaim(claim)
-                            APPLICATION_TYPE -> newApplicationType =
+                            SECTOR_IDENTIFIER_URI -> clientBuilder.sectorIdentifierUri = claimSet.getStringClaim(claim)
+                            APPLICATION_TYPE -> clientBuilder.applicationType =
                                 OAuthClientDetails.AppType.valueOf(claimSet.getStringClaim(claim))
 
-                            JWKS_URI -> newJwksUri = claimSet.getStringClaim(claim)
-                            JWKS -> newJwks = JWKSet.parse(JSONObjectUtils.toJSONString(claimSet.getJSONObjectClaim(claim)))
-                            POLICY_URI -> newPolicyUri = claimSet.getStringClaim(claim)
-                            RESPONSE_TYPES -> newResponseTypes =
+                            JWKS_URI -> clientBuilder.jwksUri = claimSet.getStringClaim(claim)
+                            JWKS -> clientBuilder.jwks =
+                                JWKSet.parse(JSONObjectUtils.toJSONString(claimSet.getJSONObjectClaim(claim)))
+
+                            POLICY_URI -> clientBuilder.policyUri = claimSet.getStringClaim(claim)
+                            RESPONSE_TYPES -> clientBuilder.responseTypes =
                                 claimSet.getStringListClaim(claim).toHashSet()
 
-                            GRANT_TYPES -> newGrantTypes = claimSet.getStringListClaim(claim).toHashSet()
-                            SCOPE -> newScopes = OAuth2Utils.parseParameterList(claimSet.getStringClaim(claim))
-                            TOKEN_ENDPOINT_AUTH_METHOD -> newTokenEndpointAuthMethod =
+                            GRANT_TYPES -> clientBuilder.authorizedGrantTypes = claimSet.getStringListClaim(claim).toHashSet()
+                            SCOPE -> clientBuilder.scope = OAuth2Utils.parseParameterList(claimSet.getStringClaim(claim))
+                            TOKEN_ENDPOINT_AUTH_METHOD -> clientBuilder.tokenEndpointAuthMethod =
                                 OAuthClientDetails.AuthMethod.getByValue(claimSet.getStringClaim(claim))
 
-                            TOS_URI -> newTosUri = claimSet.getStringClaim(claim)
-                            CONTACTS -> newContacts = claimSet.getStringListClaim(claim).toHashSet()
-                            LOGO_URI -> newLogoUri = claimSet.getStringClaim(claim)
-                            CLIENT_URI -> newClientUri = claimSet.getStringClaim(claim)
-                            CLIENT_NAME -> newClientName = claimSet.getStringClaim(claim)
-                            REDIRECT_URIS -> newRedirectUris = claimSet.getStringListClaim(claim).toHashSet()
+                            TOS_URI -> clientBuilder.tosUri = claimSet.getStringClaim(claim)
+                            CONTACTS -> clientBuilder.contacts = claimSet.getStringListClaim(claim).toHashSet()
+                            LOGO_URI -> clientBuilder.logoUri = claimSet.getStringClaim(claim)
+                            CLIENT_URI -> clientBuilder.clientUri = claimSet.getStringClaim(claim)
+                            CLIENT_NAME -> clientBuilder.clientName = claimSet.getStringClaim(claim)
+                            REDIRECT_URIS -> clientBuilder.redirectUris = claimSet.getStringListClaim(claim).toHashSet()
 
                             CLIENT_SECRET -> throw ValidationException("invalid_client_metadata", "Software statement can't contain client secret", HttpStatus.BAD_REQUEST)
                             CLIENT_ID -> throw ValidationException("invalid_client_metadata", "Software statement can't contain client ID", HttpStatus.BAD_REQUEST)
@@ -512,42 +481,6 @@ class ClientAPI {
                             else -> logger.warn("Software statement contained unknown field: " + claim + " with value " + claimSet.getClaim(claim))
                         }
                     }
-
-                    val updatedClient = newClient.copy(
-                        redirectUris = newRedirectUris,
-                        clientName = newClientName,
-                        clientUri = newClientUri,
-                        logoUri = newLogoUri,
-                        contacts = newContacts,
-                        tosUri = newTosUri,
-                        tokenEndpointAuthMethod = newTokenEndpointAuthMethod,
-                        scope = newScopes,
-                        grantTypes = newGrantTypes,
-                        responseTypes = newResponseTypes,
-                        policyUri = newPolicyUri,
-                        jwksUri = newJwksUri,
-                        jwks = newJwks,
-                        applicationType = newApplicationType,
-                        sectorIdentifierUri = newSectorIdentifierUri,
-                        subjectType = newSubjectType,
-                        requestObjectSigningAlg = newRequestObjectSigningAlg,
-                        userInfoSignedResponseAlg = newUserInfoSignedResponseAlg,
-                        userInfoEncryptedResponseAlg = newUserInfoEncryptedResponseAlg,
-                        userInfoEncryptedResponseEnc = newUserInfoEncryptedResponseEnc,
-                        idTokenSignedResponseAlg = newIdTokenSignedResponseAlg,
-                        idTokenEncryptedResponseAlg = newIdTokenEncryptedResponseAlg,
-                        idTokenEncryptedResponseEnc = newIdTokenEncryptedResponseEnc,
-                        tokenEndpointAuthSigningAlg = newTokenEndpointAuthSigningAlg,
-                        defaultMaxAge = newDefaultMaxAge,
-                        requireAuthTime = newRequireAuthTime,
-                        defaultACRvalues = newDefaultACRvalues,
-                        initiateLoginUri = newInitiateLoginUri,
-                        postLogoutRedirectUris = newPostLogoutRedirectUris,
-                        requestUris = newRequestUris,
-                        claimsRedirectUris = newClaimsRedirectUris,
-                    )
-
-                    return updatedClient
                 } catch (e: ParseException) {
                     throw ValidationException("invalid_client_metadata", "Software statement claims didn't parse", HttpStatus.BAD_REQUEST)
                 }
