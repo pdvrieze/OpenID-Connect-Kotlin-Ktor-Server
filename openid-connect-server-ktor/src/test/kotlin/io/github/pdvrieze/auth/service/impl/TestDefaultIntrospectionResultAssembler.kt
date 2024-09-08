@@ -352,7 +352,7 @@ class TestDefaultIntrospectionResultAssembler {
             clientId = clientId,
             authorities = emptySet(),
             isApproved = true,
-            scope = emptySet(),
+            scope = scopes ?: emptySet(),
             resourceIds = null,
             redirectUri = null,
             responseTypes = null,

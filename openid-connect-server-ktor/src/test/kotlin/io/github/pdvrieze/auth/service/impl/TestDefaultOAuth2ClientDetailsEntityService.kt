@@ -40,7 +40,6 @@ import org.mitre.openid.connect.service.WhitelistedSiteService
 import org.mitre.uma.service.ResourceSetService
 import org.mockito.AdditionalAnswers
 import org.mockito.ArgumentMatchers
-import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
@@ -86,17 +85,32 @@ class TestDefaultOAuth2ClientDetailsEntityService {
     @Mock
     private lateinit var config: ConfigurationPropertiesBean
 
-    @InjectMocks
+//    @InjectMocks
     private lateinit var service: DefaultOAuth2ClientDetailsEntityService
 
     @BeforeEach
     fun prepare() {
         reset(clientRepository, tokenRepository, approvedSiteService, whitelistedSiteService, blacklistedSiteService, scopeService, statsService)
 
+        service = DefaultOAuth2ClientDetailsEntityService(
+            clientRepository = clientRepository,
+            tokenRepository = tokenRepository,
+            approvedSiteService = approvedSiteService,
+            whitelistedSiteService = whitelistedSiteService,
+            blacklistedSiteService = blacklistedSiteService,
+            scopeService = scopeService,
+            statsService = statsService,
+            resourceSetService = resourceSetService,
+            config = config
+        )
+
+
         whenever(clientRepository.saveClient(isA()))
             .thenAnswer { invocation ->
                 val args = invocation.arguments
-                args[0] as ClientDetailsEntity
+                (args[0] as ClientDetailsEntity).also {
+                    it.id = 1L
+                }
             }
 
         whenever(clientRepository.updateClient(isA(), isA()))
@@ -513,10 +527,10 @@ class TestDefaultOAuth2ClientDetailsEntityService {
             jwksUri = "https://foo.bar/jwks"
         }
 
-        service.saveNewClient(client)
+        val savedClient = service.saveNewClient(client)
 
-        assertNotNull(client.getClientId())
-        assertNull(client.getClientSecret())
+        assertNotNull(savedClient.getClientId())
+        assertNull(savedClient.getClientSecret())
     }
 
     @Test
