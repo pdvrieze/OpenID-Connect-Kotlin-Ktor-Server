@@ -248,9 +248,9 @@ class DefaultOAuth2ProviderTokenService(
         require(refreshTokenValue.isNotBlank()) { "Invalid refresh token: $refreshTokenValue" }
 
         // throw an invalid token exception if we couldn't find the token
-        val refreshToken = requireNotNull(clearExpiredRefreshToken(tokenRepository.getRefreshTokenByValue(refreshTokenValue))) {
-            "Invalid refresh token: $refreshTokenValue"
-        }
+        val refreshToken = clearExpiredRefreshToken(tokenRepository.getRefreshTokenByValue(refreshTokenValue))
+            ?: throw InvalidTokenException("Invalid refresh token: $refreshTokenValue")
+
 
         val client = refreshToken.client
 
