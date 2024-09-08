@@ -65,6 +65,7 @@ import org.mitre.oauth2.model.RegisteredClientFields.USERINFO_SIGNED_RESPONSE_AL
 import org.mitre.oauth2.model.convert.*
 import java.util.*
 import javax.persistence.*
+import kotlin.collections.HashSet
 import kotlinx.serialization.Transient as KXS_Transient
 import javax.persistence.Transient as JPATransient
 
@@ -293,6 +294,7 @@ open class ClientDetailsEntity(
     @KXS_Transient
     private var accessTokenValiditySeconds: Int? = 0,
 ) : OAuthClientDetails/*, SpringClientDetails*/ {
+
     /** Fields to support the ClientDetails interface  */
     @KXS_Transient
     private var authorities: Set<GrantedAuthority> = HashSet()
@@ -364,52 +366,52 @@ open class ClientDetailsEntity(
         authorities: Set<GrantedAuthority>,
     ): ClientDetailsEntity {
         return ClientDetailsEntity(
-            id = this.id,
-            clientId = this.clientId,
-            clientSecret = this.clientSecret,
-            redirectUris = this.redirectUris,
-            clientName = this.clientName,
-            clientUri = this.clientUri,
-            logoUri = this.logoUri,
-            contacts = this.contacts,
-            tosUri = this.tosUri,
-            tokenEndpointAuthMethod = this.tokenEndpointAuthMethod,
-            scope = this.scope,
-            grantTypes = this.grantTypes,
-            responseTypes = this.responseTypes,
-            policyUri = this.policyUri,
-            jwksUri = this.jwksUri,
-            jwks = this.jwks,
-            softwareId = this.softwareId,
-            softwareVersion = this.softwareVersion,
-            applicationType = this.applicationType,
-            sectorIdentifierUri = this.sectorIdentifierUri,
-            subjectType = this.subjectType,
-            requestObjectSigningAlg = this.requestObjectSigningAlg,
-            userInfoSignedResponseAlg = this.userInfoSignedResponseAlg,
-            userInfoEncryptedResponseAlg = this.userInfoEncryptedResponseAlg,
-            userInfoEncryptedResponseEnc = this.userInfoEncryptedResponseEnc,
-            idTokenSignedResponseAlg = this.idTokenSignedResponseAlg,
-            idTokenEncryptedResponseAlg = this.idTokenEncryptedResponseAlg,
-            idTokenEncryptedResponseEnc = this.idTokenEncryptedResponseEnc,
-            tokenEndpointAuthSigningAlg = this.tokenEndpointAuthSigningAlg,
-            defaultMaxAge = this.defaultMaxAge,
-            requireAuthTime = this.requireAuthTime,
-            defaultACRvalues = this.defaultACRvalues,
-            initiateLoginUri = this.initiateLoginUri,
-            postLogoutRedirectUris = this.postLogoutRedirectUris,
-            requestUris = this.requestUris,
-            clientDescription = this.clientDescription,
-            isReuseRefreshToken = this.isReuseRefreshToken,
-            isDynamicallyRegistered = this.isDynamicallyRegistered,
-            isAllowIntrospection = this.isAllowIntrospection,
-            idTokenValiditySeconds = this.idTokenValiditySeconds,
-            createdAt = this.createdAt,
-            isClearAccessTokensOnRefresh = this.isClearAccessTokensOnRefresh,
-            deviceCodeValiditySeconds = this.deviceCodeValiditySeconds,
-            claimsRedirectUris = this.claimsRedirectUris,
-            softwareStatement = this.softwareStatement,
-            codeChallengeMethod = this.codeChallengeMethod,
+            id = id,
+            clientId = clientId,
+            clientSecret = clientSecret,
+            redirectUris = redirectUris,
+            clientName = clientName,
+            clientUri = clientUri,
+            logoUri = logoUri,
+            contacts = contacts,
+            tosUri = tosUri,
+            tokenEndpointAuthMethod = tokenEndpointAuthMethod,
+            scope = scope.toHashSet(),
+            grantTypes = grantTypes.toHashSet(),
+            responseTypes = responseTypes.toHashSet(),
+            policyUri = policyUri,
+            jwksUri = jwksUri,
+            jwks = jwks,
+            softwareId = softwareId,
+            softwareVersion = softwareVersion,
+            applicationType = applicationType,
+            sectorIdentifierUri = sectorIdentifierUri,
+            subjectType = subjectType,
+            requestObjectSigningAlg = requestObjectSigningAlg,
+            userInfoSignedResponseAlg = userInfoSignedResponseAlg,
+            userInfoEncryptedResponseAlg = userInfoEncryptedResponseAlg,
+            userInfoEncryptedResponseEnc = userInfoEncryptedResponseEnc,
+            idTokenSignedResponseAlg = idTokenSignedResponseAlg,
+            idTokenEncryptedResponseAlg = idTokenEncryptedResponseAlg,
+            idTokenEncryptedResponseEnc = idTokenEncryptedResponseEnc,
+            tokenEndpointAuthSigningAlg = tokenEndpointAuthSigningAlg,
+            defaultMaxAge = defaultMaxAge,
+            requireAuthTime = requireAuthTime,
+            defaultACRvalues = defaultACRvalues,
+            initiateLoginUri = initiateLoginUri,
+            postLogoutRedirectUris = postLogoutRedirectUris,
+            requestUris = requestUris,
+            clientDescription = clientDescription,
+            isReuseRefreshToken = isReuseRefreshToken,
+            isDynamicallyRegistered = isDynamicallyRegistered,
+            isAllowIntrospection = isAllowIntrospection,
+            idTokenValiditySeconds = idTokenValiditySeconds,
+            createdAt = createdAt,
+            isClearAccessTokensOnRefresh = isClearAccessTokensOnRefresh,
+            deviceCodeValiditySeconds = deviceCodeValiditySeconds,
+            claimsRedirectUris = claimsRedirectUris,
+            softwareStatement = softwareStatement,
+            codeChallengeMethod = codeChallengeMethod,
         ).also {
             it.setAccessTokenValiditySeconds(accessTokenValiditySeconds)
             it.setRefreshTokenValiditySeconds(refreshTokenValiditySeconds)
@@ -483,7 +485,7 @@ open class ClientDetailsEntity(
      * passthrough for SECOAUTH api
      */
     @JPATransient
-    override fun getAuthorizedGrantTypes(): MutableSet<String> {
+    override fun getAuthorizedGrantTypes(): Set<String> {
         return grantTypes
     }
 
