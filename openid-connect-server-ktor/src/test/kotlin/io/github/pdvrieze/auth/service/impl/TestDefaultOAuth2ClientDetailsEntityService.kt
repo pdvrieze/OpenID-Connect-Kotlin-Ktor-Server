@@ -143,7 +143,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
     fun saveNewClient_badId() {
         // Set up a mock client.
 
-        val client = mock<ClientDetailsEntity>()
+        val client = mock<ClientDetailsEntity.Builder>()
         whenever(client.id) doReturn (12345L) // any non-null ID will work
 
         assertThrows<IllegalArgumentException> {
@@ -156,13 +156,13 @@ class TestDefaultOAuth2ClientDetailsEntityService {
      */
     @Test
     fun saveNewClient_blacklisted() {
-        val client = mock<ClientDetailsEntity>()
+        val client = mock<ClientDetailsEntity.Builder>()
         whenever(client.id) doReturn (null)
 
         val badUri = "badplace.xxx"
 
         whenever(blacklistedSiteService.isBlacklisted(badUri)) doReturn (true)
-        whenever(client.registeredRedirectUri) doReturn (hashSetOf(badUri))
+        whenever(client.redirectUris) doReturn (hashSetOf(badUri))
 
         assertThrows<IllegalArgumentException> {
             service.saveNewClient(client)
@@ -173,12 +173,12 @@ class TestDefaultOAuth2ClientDetailsEntityService {
     fun saveNewClient_idWasAssigned() {
         // Set up a mock client.
 
-        val client = mock<ClientDetailsEntity>()
-        whenever(client.id) doReturn (null)
+        val client = ClientDetailsEntity.Builder(scope = hashSetOf("foo"))
+//        whenever(client.id) doReturn (null)
 
         service.saveNewClient(client)
 
-        verify(client).setClientId(ArgumentMatchers.anyString())
+        assertFalse(client.clientId.isNullOrBlank()) { "Client id not set: ${client.clientId}" }
     }
 
     /**
@@ -199,7 +199,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
     @Test
     fun saveNewClient_noOfflineAccess() {
 
-        val client = service.saveNewClient(ClientDetailsEntity())
+        val client = service.saveNewClient(ClientDetailsEntity(scope = hashSetOf("foo")))
 
         verify(scopeService, atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
 
@@ -260,15 +260,15 @@ class TestDefaultOAuth2ClientDetailsEntityService {
     @Test
     fun updateClient_blacklistedUri() {
         val oldClient = mock<ClientDetailsEntity>()
-        val newClient = mock<ClientDetailsEntity>()
 
         val badSite = "badsite.xxx"
+        val newClient = ClientDetailsEntity.Builder(scope = hashSetOf("foo"), redirectUris = hashSetOf(badSite))
 
-        whenever(newClient.registeredRedirectUri) doReturn (hashSetOf(badSite))
+
         whenever(blacklistedSiteService.isBlacklisted(badSite)) doReturn (true)
 
         assertThrows<IllegalArgumentException> {
-            service.updateClient(oldClient, newClient)
+            service.updateClient(oldClient, newClient.build())
         }
     }
 
