@@ -5,12 +5,13 @@ plugins {
 }
 
 base {
-    archivesName = "openid-connect-server-jpa"
+    archivesName = "openid-connect-server-spring"
 }
 
 dependencies {
     implementation(projects.openidConnectCommon)
     implementation(projects.openidConnectServer)
+    implementation(projects.openidConnectSpring)
 
     implementation(libs.slf4j.api)
     implementation(libs.guava)

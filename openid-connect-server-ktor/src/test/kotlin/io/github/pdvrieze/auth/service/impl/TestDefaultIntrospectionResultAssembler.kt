@@ -1,21 +1,6 @@
-/*******************************************************************************
- * Copyright 2018 The MIT Internet Trust Consortium
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-package org.mitre.oauth2.service.impl
+package io.github.pdvrieze.auth.service.impl
 
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.GrantedAuthority
@@ -25,19 +10,13 @@ import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.convert.OAuth2Request
 import org.mitre.oauth2.service.IntrospectionResultAssembler
+import org.mitre.oauth2.service.impl.DefaultIntrospectionResultAssembler
 import org.mitre.openid.connect.model.UserInfo
 import org.mitre.uma.model.Permission
-import org.mockito.Mockito
-import org.mockito.kotlin.given
-import org.mockito.kotlin.mock
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.swing.text.DateFormatter
-import org.springframework.security.core.Authentication as SpringAuthentication
-import org.springframework.security.oauth2.provider.OAuth2Authentication as SpringOAuth2Authentication
-import org.springframework.security.oauth2.provider.OAuth2Request as SpringOAuth2Request
 
 class TestDefaultIntrospectionResultAssembler {
     private val assembler: IntrospectionResultAssembler = DefaultIntrospectionResultAssembler()
@@ -71,7 +50,7 @@ class TestDefaultIntrospectionResultAssembler {
             "client_id" to "clientId",
             "token_type" to "Bearer",
         )
-        assertEquals(expected, result)
+        Assertions.assertEquals(expected, result)
     }
 
     @Test
@@ -109,7 +88,7 @@ class TestDefaultIntrospectionResultAssembler {
             "client_id" to "clientId",
             "token_type" to "Bearer",
         )
-        assertEquals(expected, result)
+        Assertions.assertEquals(expected, result)
     }
 
     @Test
@@ -140,7 +119,7 @@ class TestDefaultIntrospectionResultAssembler {
             "token_type" to "Bearer",
         )
 
-        assertEquals(expected, result)
+        Assertions.assertEquals(expected, result)
     }
 
     @Test
@@ -170,8 +149,8 @@ class TestDefaultIntrospectionResultAssembler {
             "token_type" to "Bearer",
 
         )
-        
-        assertEquals(expected, result)
+
+        Assertions.assertEquals(expected, result)
     }
 
     @Test
@@ -200,7 +179,7 @@ class TestDefaultIntrospectionResultAssembler {
             "token_type" to "Bearer",
         )
 
-        assertEquals(expected, result)
+        Assertions.assertEquals(expected, result)
     }
 
     @Test
@@ -231,9 +210,9 @@ class TestDefaultIntrospectionResultAssembler {
             "user_id" to "name",
             "client_id" to "clientId",
 
-        )
+            )
 
-        assertEquals(expected, result)
+        Assertions.assertEquals(expected, result)
     }
 
     @Test
@@ -262,7 +241,7 @@ class TestDefaultIntrospectionResultAssembler {
             "client_id" to "clientId",
         )
 
-        assertEquals(expected, result)
+        Assertions.assertEquals(expected, result)
     }
 
     @Test
@@ -291,7 +270,7 @@ class TestDefaultIntrospectionResultAssembler {
             "client_id" to "clientId",
         )
 
-        assertEquals(expected, result)
+        Assertions.assertEquals(expected, result)
     }
 
     @Test
@@ -317,13 +296,13 @@ class TestDefaultIntrospectionResultAssembler {
             "client_id" to "clientId",
         )
 
-        assertEquals(expected, result)
+        Assertions.assertEquals(expected, result)
     }
 
 
     private fun userInfo(sub: String): UserInfo {
-        val userInfo = mock<UserInfo>()
-        given(userInfo.sub).willReturn(sub)
+        val userInfo = org.mockito.kotlin.mock<UserInfo>()
+        org.mockito.kotlin.given(userInfo.sub).willReturn(sub)
         return userInfo
     }
 
@@ -334,20 +313,21 @@ class TestDefaultIntrospectionResultAssembler {
         tokenType: String,
         authentication: OAuth2Authentication
     ): OAuth2AccessTokenEntity {
-        return mock<OAuth2AccessTokenEntity>(defaultAnswer = Mockito.RETURNS_DEEP_STUBS).also {
-            given(it.expiration).willReturn(exp)
-            given(it.scope).willReturn(scopes)
-            given(it.permissions).willReturn(permissions)
-            given(it.tokenType).willReturn(tokenType)
-            given(it.authenticationHolder.authentication).willReturn(authentication)
+        return org.mockito.kotlin.mock<OAuth2AccessTokenEntity>(defaultAnswer = org.mockito.Mockito.RETURNS_DEEP_STUBS).also {
+            org.mockito.kotlin.given(it.expiration).willReturn(exp)
+            org.mockito.kotlin.given(it.scope).willReturn(scopes)
+            org.mockito.kotlin.given(it.permissions).willReturn(permissions)
+            org.mockito.kotlin.given(it.tokenType).willReturn(tokenType)
+            org.mockito.kotlin.given(it.authenticationHolder.authentication).willReturn(authentication)
         }
     }
 
     private fun refreshToken(exp: Date?, authentication: OAuth2Authentication): OAuth2RefreshTokenEntity {
-        mock<OAuth2AccessTokenEntity>(defaultAnswer = Mockito.RETURNS_DEEP_STUBS)
-        return mock<OAuth2RefreshTokenEntity>(defaultAnswer = Mockito.RETURNS_DEEP_STUBS).apply {
-            given(expiration).willReturn(exp)
-            given(authenticationHolder.authentication).willReturn(authentication)
+        org.mockito.kotlin.mock<OAuth2AccessTokenEntity>(defaultAnswer = org.mockito.Mockito.RETURNS_DEEP_STUBS)
+        return org.mockito.kotlin.mock<OAuth2RefreshTokenEntity>(defaultAnswer = org.mockito.Mockito.RETURNS_DEEP_STUBS)
+            .apply {
+            org.mockito.kotlin.given(expiration).willReturn(exp)
+            org.mockito.kotlin.given(authenticationHolder.authentication).willReturn(authentication)
         }
     }
 
@@ -390,9 +370,9 @@ class TestDefaultIntrospectionResultAssembler {
     }
 
     private fun permission(resourceSetId: Long, vararg scopes: String): Permission {
-        val permission = mock<Permission>(defaultAnswer = Mockito.RETURNS_DEEP_STUBS)
-        given(permission.resourceSet!!.id).willReturn(resourceSetId)
-        given(permission.scopes).willReturn(scopes(*scopes))
+        val permission = org.mockito.kotlin.mock<Permission>(defaultAnswer = org.mockito.Mockito.RETURNS_DEEP_STUBS)
+        org.mockito.kotlin.given(permission.resourceSet!!.id).willReturn(resourceSetId)
+        org.mockito.kotlin.given(permission.scopes).willReturn(scopes(*scopes))
         return permission
     }
 

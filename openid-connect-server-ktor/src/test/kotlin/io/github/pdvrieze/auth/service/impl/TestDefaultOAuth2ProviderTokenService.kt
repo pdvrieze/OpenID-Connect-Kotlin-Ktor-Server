@@ -15,13 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mitre.oauth2.service.impl
+package io.github.pdvrieze.auth.service.impl
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mitre.oauth2.exception.InvalidClientException
+import org.mitre.oauth2.exception.InvalidScopeException
+import org.mitre.oauth2.exception.InvalidTokenException
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessToken
@@ -34,6 +37,7 @@ import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.SystemScopeService
+import org.mitre.oauth2.service.impl.DefaultOAuth2ProviderTokenService
 import org.mitre.openid.connect.token.ConnectTokenEnhancer
 import org.mockito.AdditionalAnswers
 import org.mockito.ArgumentMatchers
@@ -52,10 +56,8 @@ import org.mockito.kotlin.reset
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
-import org.springframework.security.oauth2.common.exceptions.InvalidClientException
-import org.springframework.security.oauth2.common.exceptions.InvalidScopeException
-import org.springframework.security.oauth2.common.exceptions.InvalidTokenException
 import java.util.*
+import kotlin.collections.HashSet
 
 /**
  * @author wkim

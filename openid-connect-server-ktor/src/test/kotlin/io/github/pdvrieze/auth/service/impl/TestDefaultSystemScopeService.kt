@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mitre.oauth2.service.impl
+package io.github.pdvrieze.auth.service.impl
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.repository.SystemScopeRepository
+import org.mitre.oauth2.service.impl.DefaultSystemScopeService
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension

@@ -4,39 +4,25 @@ plugins {
 }
 
 base {
-    archivesName = "openid-connect-server-webapp"
+    archivesName = "openid-connect-server-ktor"
 }
 
 dependencies {
     implementation(projects.openidConnectCommon)
     api(projects.openidConnectServer)
     implementation(projects.openidConnectServerExposed)
-/*
-    implementation(libs.spring.core) {
-        exclude("commons-logging:commons-logging")
-    }
-    implementation(libs.spring.webmvc)
-//    implementation(libs.spring.security)
-    implementation(libs.spring.oauth)
+    implementation(libs.guava) // for caching code
+    implementation(libs.ktor.http)
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.java)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.serialization.json)
 
-    implementation(libs.guava)
-    implementation(libs.commons.httpclient)
-    implementation(libs.jwt)
-    implementation(libs.persistence)
-    implementation(libs.slf4j.api)
-    implementation(libs.jaxb.api)
-    implementation(libs.jaxb.bindapi)
-    implementation(libs.jaxb.runtime)
-    implementation(libs.jackson.databind)
-    implementation(libs.jackson.annotations)
-    implementation(libs.servlet.api)
-    implementation(libs.persistence)
-    implementation(libs.javax.persistence)
-    implementation(libs.javax.ann)
-    implementation(libs.bcprov)
-*/
+
 
     testImplementation(libs.junit.jupiter.api)
+    testImplementation(libs.mockito.jupiter)
+    testImplementation(libs.mockito.kotlin)
 
     testRuntimeOnly(libs.junit.jupiter.engine)
 }

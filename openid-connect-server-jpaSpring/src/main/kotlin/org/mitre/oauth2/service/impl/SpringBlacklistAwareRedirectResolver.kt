@@ -15,6 +15,8 @@
  */
 package org.mitre.oauth2.service.impl
 
+import org.mitre.oauth2.model.OAuthClientDetails
+import org.mitre.oauth2.service.BlacklistAwareRedirectResolver
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.service.BlacklistedSiteService
 import org.springframework.beans.factory.annotation.Autowired
@@ -32,7 +34,7 @@ import org.springframework.stereotype.Component
  * @author jricher
  */
 @Component("blacklistAwareRedirectResolver")
-class BlacklistAwareRedirectResolver : DefaultRedirectResolver() {
+class SpringBlacklistAwareRedirectResolver : DefaultRedirectResolver(), BlacklistAwareRedirectResolver {
     @Autowired
     private lateinit var blacklistService: BlacklistedSiteService
 
@@ -43,13 +45,13 @@ class BlacklistAwareRedirectResolver : DefaultRedirectResolver() {
      * Set this to true to require exact string matches for all redirect URIs. (Default is false)
      *
      */
-    var isStrictMatch: Boolean = true
+    override var isStrictMatch: Boolean = true
 
         get() = config.isHeartMode || field // HEART mode enforces strict matching
 
     /* (non-Javadoc)
-	 * @see org.springframework.security.oauth2.provider.endpoint.RedirectResolver#resolveRedirect(java.lang.String, org.springframework.security.oauth2.provider.ClientDetails)
-	 */
+         * @see org.springframework.security.oauth2.provider.endpoint.RedirectResolver#resolveRedirect(java.lang.String, org.springframework.security.oauth2.provider.ClientDetails)
+         */
     @Throws(OAuth2Exception::class)
     override fun resolveRedirect(requestedRedirect: String, client: ClientDetails): String {
         val redirect = super.resolveRedirect(requestedRedirect, client)
@@ -60,6 +62,11 @@ class BlacklistAwareRedirectResolver : DefaultRedirectResolver() {
             // not blacklisted, passed the parent test, we're fine
             return redirect
         }
+    }
+
+    override fun resolveRedirect(requestedRedirect: String, client: OAuthClientDetails): String {
+        return TODO("No client mapping")
+//        return resolveRedirect(requestedRedirect, client.toSpring())
     }
 
     /* (non-Javadoc)

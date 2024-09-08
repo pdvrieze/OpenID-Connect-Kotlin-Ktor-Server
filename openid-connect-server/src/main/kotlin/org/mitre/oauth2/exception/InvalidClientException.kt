@@ -1,6 +1,6 @@
 package org.mitre.oauth2.exception
 
-open class OAuth2Exception: RuntimeException {
+class InvalidClientException: AuthenticationException {
     constructor(message: String? = null, cause: Throwable? = null) : super(message, cause)
     constructor(cause: Throwable?) : super(cause)
     constructor(
@@ -10,4 +10,3 @@ open class OAuth2Exception: RuntimeException {
         writableStackTrace: Boolean
     ) : super(message, cause, enableSuppression, writableStackTrace)
 }
-

@@ -19,6 +19,8 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mitre.oauth2.model.OAuthClientDetails
+import org.mitre.oauth2.service.BlacklistAwareRedirectResolver
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.service.BlacklistedSiteService
 import org.mockito.ArgumentMatchers
@@ -28,7 +30,6 @@ import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.whenever
 import org.springframework.security.oauth2.common.exceptions.InvalidRequestException
-import org.springframework.security.oauth2.provider.ClientDetails
 
 /**
  * @author jricher
@@ -39,7 +40,7 @@ class TestBlacklistAwareRedirectResolver {
     private lateinit var blacklistService: BlacklistedSiteService
 
     @Mock
-    private lateinit var client: ClientDetails
+    private lateinit var client: OAuthClientDetails
 
     @Mock
     private lateinit var config: ConfigurationPropertiesBean
@@ -57,8 +58,8 @@ class TestBlacklistAwareRedirectResolver {
     fun testResolveRedirect_safe() {
         whenever(blacklistService.isBlacklisted(ArgumentMatchers.anyString())) doReturn false
 
-        whenever(client.authorizedGrantTypes) doReturn setOf("authorization_code")
-        whenever(client.registeredRedirectUri) doReturn setOf(goodUri, blacklistedUri)
+        whenever(client.getAuthorizedGrantTypes()) doReturn setOf("authorization_code")
+        whenever(client.getRegisteredRedirectUri()) doReturn setOf(goodUri, blacklistedUri)
 
         whenever(config.isHeartMode) doReturn false
 
@@ -78,8 +79,8 @@ class TestBlacklistAwareRedirectResolver {
 
         whenever(blacklistService.isBlacklisted(blacklistedUri)) doReturn true
 
-        whenever(client.authorizedGrantTypes) doReturn setOf("authorization_code")
-        whenever(client.registeredRedirectUri) doReturn setOf(goodUri, blacklistedUri)
+        whenever(client.getAuthorizedGrantTypes()) doReturn setOf("authorization_code")
+        whenever(client.getRegisteredRedirectUri()) doReturn setOf(goodUri, blacklistedUri)
 
         whenever(config.isHeartMode) doReturn false
 

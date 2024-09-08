@@ -5,7 +5,7 @@ plugins {
 }
 
 base {
-    archivesName = "openid-connect-server-webapp"
+    archivesName = "openid-connect-server-exposed"
 }
 
 dependencies {

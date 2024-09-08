@@ -3,7 +3,7 @@ plugins {
 }
 
 base {
-    archivesName = "uma-server"
+    archivesName = "uma-server-common"
 }
 
 dependencies {

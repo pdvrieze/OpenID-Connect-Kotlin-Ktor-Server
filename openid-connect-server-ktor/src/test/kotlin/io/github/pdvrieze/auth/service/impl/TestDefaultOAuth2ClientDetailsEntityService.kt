@@ -15,13 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mitre.oauth2.service.impl
+package io.github.pdvrieze.auth.service.impl
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mitre.oauth2.exception.InvalidClientException
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
@@ -29,6 +30,7 @@ import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.repository.OAuth2ClientRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.oauth2.service.SystemScopeService
+import org.mitre.oauth2.service.impl.DefaultOAuth2ClientDetailsEntityService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.model.WhitelistedSite
 import org.mitre.openid.connect.service.ApprovedSiteService
@@ -50,7 +52,6 @@ import org.mockito.kotlin.reset
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
-import org.springframework.security.oauth2.common.exceptions.InvalidClientException
 
 /**
  * @author wkim

@@ -1,46 +1,44 @@
-/*******************************************************************************
- * Copyright 2018 The MIT Internet Trust Consortium
- *
- * Portions copyright 2011-2013 The MITRE Corporation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package org.mitre.openid.connect.token
 
 import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
+import io.github.pdvrieze.openid.spring.fromSpring
+import io.github.pdvrieze.openid.spring.toSpring
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
-import org.mitre.oauth2.TokenEnhancer
-import org.mitre.oauth2.model.OAuth2AccessToken
-import org.mitre.oauth2.model.OAuth2Authentication
+import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.service.OIDCTokenService
 import org.mitre.openid.connect.service.UserInfoService
 import org.mitre.util.getLogger
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.oauth2.common.OAuth2AccessToken
+import org.springframework.security.oauth2.provider.OAuth2Authentication
+import org.springframework.security.oauth2.provider.token.TokenEnhancer
+import org.springframework.stereotype.Service
 import java.util.*
 
-abstract class ConnectTokenEnhancer: TokenEnhancer {
+@Service
+class SpringConnectTokenEnhancer : ConnectTokenEnhancer(), TokenEnhancer {
+    @Autowired
+    override lateinit var configBean: ConfigurationPropertiesBean
 
-    abstract val clientService: ClientDetailsEntityService
-    abstract val configBean: ConfigurationPropertiesBean
-    abstract val jwtService: JWTSigningAndValidationService
-    abstract val userInfoService: UserInfoService
-    abstract val connectTokenService: OIDCTokenService
+    @Autowired
+    override lateinit var jwtService: JWTSigningAndValidationService
 
-    override fun enhance(accessToken: OAuth2AccessToken.Builder, authentication: OAuth2Authentication) {
+    @Autowired
+    override lateinit var clientService: ClientDetailsEntityService
+
+    @Autowired
+    override lateinit var userInfoService: UserInfoService
+
+    @Autowired
+    override lateinit var connectTokenService: OIDCTokenService
+
+    override fun enhance(accessToken: OAuth2AccessToken, authentication: OAuth2Authentication): OAuth2AccessToken {
+        val token = accessToken as OAuth2AccessTokenEntity
         val originalAuthRequest = authentication.oAuth2Request
 
         val clientId = originalAuthRequest.clientId
@@ -50,30 +48,31 @@ abstract class ConnectTokenEnhancer: TokenEnhancer {
             .claim("azp", clientId)
             .issuer(configBean.issuer)
             .issueTime(Date())
-            .expirationTime(accessToken.expiration)
+            .expirationTime(token.expiration)
             .subject(authentication.name)
             .jwtID(UUID.randomUUID().toString()) // set a random NONCE in the middle of it
 
-        val audience = authentication.oAuth2Request.extensionStrings?.get("aud")
+        val audience = authentication.oAuth2Request.extensions["aud"] as String?
         if (!audience.isNullOrEmpty()) {
             builder.audience(listOf(audience))
         }
 
-        addCustomAccessTokenClaims(builder, accessToken, authentication)
+        addCustomAccessTokenClaims(builder, token, authentication)
 
         val claims = builder.build()
 
         val signingAlg = jwtService.defaultSigningAlgorithm
         val header = JWSHeader(
             signingAlg, null, null, null, null, null, null, null, null, null,
-            jwtService.defaultSignerKeyId, true,
+            jwtService.defaultSignerKeyId,
+            true,
             null, null
         )
         val signed = SignedJWT(header, claims)
 
         jwtService.signJwt(signed)
 
-        accessToken.jwt = signed
+        token.jwt = signed
 
         /**
          * Authorization request scope MUST include "openid" in OIDC, but access token request
@@ -93,19 +92,19 @@ abstract class ConnectTokenEnhancer: TokenEnhancer {
             if (userInfo != null) {
                 val idToken = connectTokenService.createIdToken(
                     client,
-                    originalAuthRequest, claims.issueTime,
-                    userInfo.sub,
-                    accessToken
+                    originalAuthRequest.fromSpring(), claims.issueTime,
+                    userInfo.sub, token.builder()
                 )
 
                 // attach the id token to the parent access token
-                accessToken.setIdToken(idToken)
+                token.setIdToken(idToken)
             } else {
                 // can't create an id token if we can't find the user
                 logger.warn("Request for ID token when no user is present.")
             }
         }
 
+        return token.toSpring()
     }
 
     /**
@@ -114,11 +113,12 @@ abstract class ConnectTokenEnhancer: TokenEnhancer {
      * @param token the un-enhanced token
      * @param authentication current authentication
      */
-    protected open fun addCustomAccessTokenClaims(
-        builder: JWTClaimsSet.Builder, token: OAuth2AccessToken.Builder,
+    protected fun addCustomAccessTokenClaims(
+        builder: JWTClaimsSet.Builder, token: OAuth2AccessTokenEntity?,
         authentication: OAuth2Authentication?
     ) {
     }
+
 
     companion object {
         /**
@@ -126,6 +126,4 @@ abstract class ConnectTokenEnhancer: TokenEnhancer {
          */
         private val logger = getLogger<ConnectTokenEnhancer>()
     }
-
 }
-
