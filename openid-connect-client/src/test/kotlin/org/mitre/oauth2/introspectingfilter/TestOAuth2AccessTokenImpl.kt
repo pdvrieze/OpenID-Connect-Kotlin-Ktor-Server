@@ -21,6 +21,7 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.time.Instant
 import java.util.*
 
 class TestOAuth2AccessTokenImpl {
@@ -42,7 +43,7 @@ class TestOAuth2AccessTokenImpl {
     }
 
     @Test
-    fun testNullExp() {
+    fun testMinExp() {
         val tokenObj = buildJsonObject {
             put("active", true)
             put("scope", scopeString)
@@ -53,7 +54,7 @@ class TestOAuth2AccessTokenImpl {
         val tok = OAuth2AccessTokenImpl(tokenObj, tokenString)
 
         assertEquals(scopes, tok.scope)
-        assertEquals(null, tok.expiration)
+        assertEquals(Instant.MIN, tok.expirationInstant)
     }
 
     @Test
@@ -72,7 +73,7 @@ class TestOAuth2AccessTokenImpl {
     }
 
     @Test
-    fun testNullScopesNullExp() {
+    fun testNullScopesMinExp() {
         val tokenObj = buildJsonObject {
             put("active", true)
             put("sub", "subject")
@@ -81,8 +82,8 @@ class TestOAuth2AccessTokenImpl {
 
         val tok = OAuth2AccessTokenImpl(tokenObj, tokenString)
 
-        assertEquals(Collections.EMPTY_SET, tok.scope)
-        assertEquals(null, tok.expiration)
+        assertEquals(emptySet<String>(), tok.scope)
+        assertEquals(Instant.MIN, tok.expirationInstant)
     }
 
     companion object {
