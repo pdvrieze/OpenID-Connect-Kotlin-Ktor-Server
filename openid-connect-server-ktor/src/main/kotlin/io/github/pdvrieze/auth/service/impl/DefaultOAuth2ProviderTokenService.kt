@@ -185,6 +185,8 @@ class DefaultOAuth2ProviderTokenService(
             tokenBuilder.setRefreshToken(savedRefreshToken)
         }
 
+        tokenBuilder.scope = scope
+
         //Add approved site reference, if any
         val originalAuthRequest = authHolder.authentication.oAuth2Request
 
