@@ -318,8 +318,8 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
             authenticationHolderRepository: AuthenticationHolderRepository,
             tokenRepository: OAuth2TokenResolver
         ): OAuth2AccessTokenEntity {
-            val authenticationHolder = authenticationHolderId?.let { authenticationHolderRepository.getById(it) }
-            val refreshToken = refreshTokenId?.let{ tokenRepository.getRefreshTokenById(it) }
+            val authenticationHolder = authenticationHolder ?: authenticationHolderId?.let { authenticationHolderRepository.getById(it) }
+            val refreshToken = refreshToken ?: refreshTokenId?.let{ tokenRepository.getRefreshTokenById(it) }
             return OAuth2AccessTokenEntity(
                 id = currentId,
                 expirationInstant = (expiration?.toInstant() ?: Instant.MIN),
