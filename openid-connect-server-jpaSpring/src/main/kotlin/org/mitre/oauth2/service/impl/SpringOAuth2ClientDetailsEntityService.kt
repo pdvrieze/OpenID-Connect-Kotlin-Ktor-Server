@@ -137,7 +137,7 @@ class SpringOAuth2ClientDetailsEntityService : SpringClientDetailsEntityService 
 
 
         val newRequestedScopes = requireNotNull(ensureNoReservedScopes(clientBuilder)) { "No valid scope for client" }
-        require(client.scope.isNotEmpty()) { "No valid scope for client" }
+        require(!client.scope.isNullOrEmpty()) { "No valid scope for client" }
 
         clientBuilder.createdAt = Date()
 
@@ -165,8 +165,8 @@ class SpringOAuth2ClientDetailsEntityService : SpringClientDetailsEntityService 
      */
     private fun ensureNoReservedScopes(client: OAuthClientDetails.Builder) {
         val s = scopeService.fromStrings(client.scope)
-        client.scope.clear()
-        client.scope.addAll(scopeService.toStrings(scopeService.removeReservedScopes(s)))
+        client.scope?.clear()
+        client.scope?.addAll(scopeService.toStrings(scopeService.removeReservedScopes(s))!!)
     }
 
     /**
@@ -194,9 +194,9 @@ class SpringOAuth2ClientDetailsEntityService : SpringClientDetailsEntityService 
      */
     private fun ensureRefreshTokenConsistency(client: OAuthClientDetails.Builder) {
         if (client.authorizedGrantTypes.contains("refresh_token")
-            || client.scope.contains(SystemScopeService.OFFLINE_ACCESS)
+            || client.scope?.contains(SystemScopeService.OFFLINE_ACCESS) == true
         ) {
-            client.scope.add(SystemScopeService.OFFLINE_ACCESS)
+            client.scope?.add(SystemScopeService.OFFLINE_ACCESS)
             client.authorizedGrantTypes.add("refresh_token")
         }
     }

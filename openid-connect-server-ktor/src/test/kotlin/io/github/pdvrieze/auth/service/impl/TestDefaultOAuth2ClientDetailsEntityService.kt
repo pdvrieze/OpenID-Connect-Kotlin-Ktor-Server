@@ -190,7 +190,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
             authorizedGrantTypes = hashSetOf("refresh_token")
         }.let { service.saveNewClient(it) }
 
-        assertTrue(SystemScopeService.OFFLINE_ACCESS in client.scope)
+        assertTrue(client.scope.let { it != null && SystemScopeService.OFFLINE_ACCESS in it })
     }
 
     /**
@@ -203,7 +203,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
 
         verify(scopeService, atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
 
-        assertFalse(SystemScopeService.OFFLINE_ACCESS in client.scope)
+        assertFalse(SystemScopeService.OFFLINE_ACCESS in checkNotNull(client.scope))
     }
 
     @Test
@@ -283,7 +283,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
 
         verify(scopeService, atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
 
-        assertTrue(SystemScopeService.OFFLINE_ACCESS in client.scope)
+        assertTrue(SystemScopeService.OFFLINE_ACCESS in checkNotNull(client.scope))
     }
 
     @Test
@@ -291,13 +291,13 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         val oldClient = ClientDetailsEntity()
         oldClient.id = 1L // Needs a hard-coded id as there is no jpa
 
-        oldClient.scope.add(SystemScopeService.OFFLINE_ACCESS)
+        (oldClient.scope as MutableSet).add(SystemScopeService.OFFLINE_ACCESS)
 
         val client = service.updateClient(oldClient, ClientDetailsEntity())
 
         verify(scopeService, atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
 
-        assertFalse(SystemScopeService.OFFLINE_ACCESS in client.scope)
+        assertFalse(SystemScopeService.OFFLINE_ACCESS in checkNotNull(client.scope))
     }
 
     @Test

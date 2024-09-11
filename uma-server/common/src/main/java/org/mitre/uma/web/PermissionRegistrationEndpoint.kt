@@ -85,7 +85,7 @@ class PermissionRegistrationEndpoint {
             }
 
             // trim any restricted scopes
-            val scopesRequested: Set<SystemScope> =
+            val scopesRequested: Set<SystemScope>? =
                 scopeService.removeRestrictedAndReservedScopes(scopeService.fromStrings(scopes)!!)
 
             scopes = scopeService.toStrings(scopesRequested)

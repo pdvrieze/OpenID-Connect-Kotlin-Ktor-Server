@@ -30,12 +30,10 @@ import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
 import org.springframework.security.authentication.AuthenticationServiceException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException
 import java.util.*
 import java.util.concurrent.TimeUnit
-import org.springframework.security.core.GrantedAuthority as SpringGrantedAuthority
 
 @ExtendWith(MockitoExtension::class)
 @MockitoSettings(strictness = Strictness.WARN)

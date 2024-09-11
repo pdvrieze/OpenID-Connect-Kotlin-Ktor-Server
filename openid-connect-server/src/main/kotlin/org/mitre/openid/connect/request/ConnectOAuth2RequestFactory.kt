@@ -34,7 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception
 import org.springframework.security.oauth2.common.util.OAuth2Utils
-import org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory
 import org.springframework.stereotype.Component
 import java.text.ParseException
 import org.springframework.security.oauth2.provider.AuthorizationRequest as SpringAuthorizationRequest
@@ -111,7 +110,7 @@ class ConnectOAuth2RequestFactory @Autowired constructor(
                 val client = clientDetailsService.loadClientByClientId(request.clientId)
 
                 if ((request.scope == null || request.scope.isEmpty())) {
-                    val clientScopes: Set<String> = client!!.scope
+                    val clientScopes: Set<String>? = client!!.scope
                     request.setScope(clientScopes)
                 }
 

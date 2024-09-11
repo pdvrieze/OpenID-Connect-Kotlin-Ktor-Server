@@ -59,28 +59,28 @@ interface SystemScopeService {
     /**
      * Translate the set of scope strings into a set of SystemScope objects.
      */
-    fun fromStrings(scope: Set<String>?): Set<SystemScope>
+    fun fromStrings(scope: Set<String>?): Set<SystemScope>?
 
     /**
      * Pluck the scope values from the set of SystemScope objects and return a list of strings
      */
-    fun toStrings(scope: Set<SystemScope>?): Set<String>
+    fun toStrings(scope: Set<SystemScope>?): Set<String>?
 
     /**
      * Test whether the scopes in both sets are compatible. All scopes in "actual" must exist in "expected".
      */
-    fun scopesMatch(expected: Set<String>?, actual: Set<String>): Boolean
+    fun scopesMatch(expected: Set<String>?, actual: Set<String>?): Boolean
 
     /**
      * Remove any system-reserved or registered restricted scopes from the
      * set and return the result.
      */
-    fun removeRestrictedAndReservedScopes(scopes: Set<SystemScope>): Set<SystemScope>
+    fun removeRestrictedAndReservedScopes(scopes: Set<SystemScope>?): Set<SystemScope>?
 
     /**
      * Remove any system-reserved scopes from the set and return the result.
      */
-    fun removeReservedScopes(scopes: Set<SystemScope>): Set<SystemScope>
+    fun removeReservedScopes(scopes: Set<SystemScope>?): Set<SystemScope>?
 
     companion object {
         const val OFFLINE_ACCESS: String = "offline_access"

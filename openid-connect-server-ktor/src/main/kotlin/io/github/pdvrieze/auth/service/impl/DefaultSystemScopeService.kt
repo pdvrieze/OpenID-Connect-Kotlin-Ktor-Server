@@ -91,9 +91,9 @@ class DefaultSystemScopeService : SystemScopeService {
     /* (non-Javadoc)
 	 * @see org.mitre.oauth2.service.SystemScopeService#fromStrings(java.util.Set)
 	 */
-    override fun fromStrings(scope: Set<String>?): Set<SystemScope> {
+    override fun fromStrings(scope: Set<String>?): Set<SystemScope>? {
         return when (scope) {
-            null -> emptySet()
+            null -> null
             else -> scope.mapNotNullTo(mutableSetOf(), stringToSystemScope)
         }
     }
@@ -101,9 +101,9 @@ class DefaultSystemScopeService : SystemScopeService {
     /* (non-Javadoc)
 	 * @see org.mitre.oauth2.service.SystemScopeService#toStrings(java.util.Set)
 	 */
-    override fun toStrings(scope: Set<SystemScope>?): Set<String> {
+    override fun toStrings(scope: Set<SystemScope>?): Set<String>? {
         return when (scope) {
-            null -> emptySet()
+            null -> null
             else -> scope.mapNotNullTo(mutableSetOf(), systemScopeToString)
         }
     }
@@ -111,7 +111,7 @@ class DefaultSystemScopeService : SystemScopeService {
     /* (non-Javadoc)
 	 * @see org.mitre.oauth2.service.SystemScopeService#scopesMatch(java.util.Set, java.util.Set)
 	 */
-    override fun scopesMatch(expected: Set<String>?, actual: Set<String>): Boolean {
+    override fun scopesMatch(expected: Set<String>?, actual: Set<String>?): Boolean {
         val ex = fromStrings(expected) ?: return false
         val act = fromStrings(actual) ?: return false
 
@@ -131,13 +131,13 @@ class DefaultSystemScopeService : SystemScopeService {
     override val unrestricted: Set<SystemScope>
         get() = all.filterNotTo(mutableSetOf(), isRestricted)
 
-    override fun removeRestrictedAndReservedScopes(scopes: Set<SystemScope>): Set<SystemScope> {
-        return scopes.filterNotTo(mutableSetOf()) {
+    override fun removeRestrictedAndReservedScopes(scopes: Set<SystemScope>?): Set<SystemScope>? {
+        return scopes?.filterNotTo(mutableSetOf()) {
             it.isRestricted || it in reserved
         }
     }
 
-    override fun removeReservedScopes(scopes: Set<SystemScope>): Set<SystemScope> {
-        return scopes.filterNotTo(hashSetOf(), isReserved)
+    override fun removeReservedScopes(scopes: Set<SystemScope>?): Set<SystemScope>? {
+        return scopes?.filterNotTo(hashSetOf(), isReserved)
     }
 }

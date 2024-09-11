@@ -68,13 +68,10 @@ import org.mockito.kotlin.whenever
 import org.mockito.stubbing.Answer
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.format.datetime.DateFormatter
-import org.springframework.security.core.Authentication
 import org.springframework.util.ReflectionUtils
 import java.io.IOException
 import java.text.ParseException
 import java.util.*
-import org.springframework.security.oauth2.provider.OAuth2Authentication as SpringOAuth2Authentication
-import org.springframework.security.oauth2.provider.OAuth2Request as SpringOAuth2Request
 
 @ExtendWith(MockitoExtension::class)
 class TestMITREidDataService_1_1 {

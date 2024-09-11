@@ -125,7 +125,8 @@ open class ClientDetailsEntity(
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "client_scope", joinColumns = [JoinColumn(name = "owner_id")])
     @Column(name = "scope")
-    override var scope: HashSet<String> = HashSet(), // scope
+    override var scope: Set<String>? = HashSet(), // scope
+    // TODO make the scope not null (it is not valid in the introspection endpoint original code)
 
     @get:Column(name = "grant_type")
     @get:CollectionTable(name = "client_grant_type", joinColumns = [JoinColumn(name = "owner_id")])
@@ -343,7 +344,7 @@ open class ClientDetailsEntity(
         contacts: Set<String>?,
         tosUri: String?,
         tokenEndpointAuthMethod: AuthMethod?,
-        scope: Set<String>,
+        scope: Set<String>?,
         authorizedGrantTypes: Set<String>,
         responseTypes: Set<String>,
         policyUri: String?,
@@ -394,7 +395,7 @@ open class ClientDetailsEntity(
             contacts = contacts,
             tosUri = tosUri,
             tokenEndpointAuthMethod = tokenEndpointAuthMethod,
-            scope = scope.toHashSet(),
+            scope = scope?.toHashSet(),
             authorizedGrantTypes = authorizedGrantTypes.toHashSet(),
             responseTypes = responseTypes.toHashSet(),
             policyUri = policyUri,
@@ -516,7 +517,7 @@ open class ClientDetailsEntity(
         override var id: Long? = null,
         override var clientId: String? = null,
         override var clientSecret: String? = null,
-        override var scope: MutableSet<String> = hashSetOf(),
+        override var scope: MutableSet<String>? = hashSetOf(),
         override var authorizedGrantTypes: MutableSet<String> = hashSetOf(),
         override var tokenEndpointAuthMethod: AuthMethod? = null,
         override var redirectUris: MutableSet<String> = hashSetOf(),
@@ -568,7 +569,7 @@ open class ClientDetailsEntity(
             id = entity.id,
             clientId = entity.clientId,
             clientSecret = entity.clientSecret,
-            scope = entity.scope.toHashSet(),
+            scope = entity.scope?.toHashSet(),
             authorizedGrantTypes = entity.authorizedGrantTypes.toHashSet(),
             tokenEndpointAuthMethod = entity.tokenEndpointAuthMethod,
             redirectUris = entity.redirectUris.toHashSet(),
@@ -624,7 +625,7 @@ open class ClientDetailsEntity(
                 contacts = contacts,
                 tosUri = tosUri,
                 tokenEndpointAuthMethod = tokenEndpointAuthMethod,
-                scope = scope.toHashSet(),
+                scope = scope?.toHashSet(),
                 authorizedGrantTypes = authorizedGrantTypes,
                 responseTypes = responseTypes,
                 policyUri = policyUri,
@@ -682,7 +683,7 @@ open class ClientDetailsEntity(
                 contacts = original.contacts,
                 tosUri = original.tosUri,
                 tokenEndpointAuthMethod = original.tokenEndpointAuthMethod,
-                scope = original.scope.toHashSet(),
+                scope = original.scope?.toHashSet(),
                 authorizedGrantTypes = original.authorizedGrantTypes.toHashSet(),
                 responseTypes = original.responseTypes.toHashSet(),
                 policyUri = original.policyUri,

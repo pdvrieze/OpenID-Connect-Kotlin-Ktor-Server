@@ -84,8 +84,8 @@ class TestConnectTokenEnhancer {
 
         val tokenBuilder = OAuth2AccessTokenEntity.Builder()
 
-        val enhanced = enhancer.enhance(tokenBuilder, authentication) as OAuth2AccessTokenEntity
-        Assertions.assertEquals("foo", enhanced.jwt.jwtClaimsSet.getClaim("test"))
+        enhancer.enhance(tokenBuilder, authentication)
+        Assertions.assertEquals("foo", tokenBuilder.jwt!!.jwtClaimsSet.getClaim("test"))
     }
 
     companion object {

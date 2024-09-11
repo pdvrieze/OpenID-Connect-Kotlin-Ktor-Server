@@ -51,7 +51,7 @@ interface OAuthClientDetails {
 
     val clientSecret: String?
 
-    val scope: Set<String>
+    val scope: Set<String>?
 
     @Deprecated("Use authorizedGrantTypes", ReplaceWith("authorizedGrantTypes"))
     val grantTypes: Set<String> get() = authorizedGrantTypes
@@ -194,7 +194,7 @@ interface OAuthClientDetails {
     val isSecretRequired: Boolean
         get() = tokenEndpointAuthMethod in SECRET_REQUIRING_METHODS
 
-    val isScoped: Boolean get() = scope.isNotEmpty()
+    val isScoped: Boolean get() = ! scope.isNullOrEmpty()
 
     val authorities: Set<GrantedAuthority>
 
@@ -227,7 +227,7 @@ interface OAuthClientDetails {
         contacts: Set<String>? = this.contacts,
         tosUri: String? = this.tosUri,
         tokenEndpointAuthMethod: AuthMethod? = this.tokenEndpointAuthMethod,
-        scope: Set<String> = this.scope,
+        scope: Set<String>? = this.scope,
         authorizedGrantTypes: Set<String> = this.authorizedGrantTypes,
         responseTypes: Set<String> = this.responseTypes,
         policyUri: String? = this.policyUri,
@@ -277,7 +277,7 @@ interface OAuthClientDetails {
         var id: Long?
         var clientId: String?
         var clientSecret: String?
-        var scope: MutableSet<String>
+        var scope: MutableSet<String>?
         var authorizedGrantTypes: MutableSet<String>
         var tokenEndpointAuthMethod: AuthMethod?
         var redirectUris: MutableSet<String>

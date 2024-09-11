@@ -39,14 +39,20 @@ class SpringSystemScopeService : SystemScopeService {
         this.repository = repository
     }
 
-    private val isDefault: (SystemScope?) -> Boolean = { input -> input != null && input.isDefaultScope }
+    private val predIsDefault = fun(input: SystemScope?): Boolean {
+        return input != null && input.isDefaultScope
+    }
 
-    private val isRestricted: (SystemScope?) -> Boolean = { input -> input != null && input.isRestricted }
+    private val predIsRestricted = fun(input: SystemScope?): Boolean {
+        return input != null && input.isRestricted
+    }
 
-    private val isReserved: (SystemScope?) -> Boolean = { input -> input != null && input in reserved }
+    private val predIsReserved = fun(input: SystemScope?): Boolean {
+        return input != null && input in reserved
+    }
 
-    private val stringToSystemScope: (String?) -> SystemScope? = { input ->
-        when {
+    private val funStringToSystemScope = fun(input: String?): SystemScope? {
+        return when {
             input.isNullOrEmpty() -> null
 
             // get the real scope if it's available,make a fake one otherwise
@@ -54,12 +60,11 @@ class SpringSystemScopeService : SystemScopeService {
         }
     }
 
-    private val systemScopeToString: (SystemScope?) -> String? = { input -> input?.value }
+    private val funSystemScopeToString = fun(input: SystemScope?): String? {
+        return input?.value
+    }
 
     override val all: Set<SystemScope>
-        /* (non-Javadoc)
-	 * @see org.mitre.oauth2.service.SystemScopeService#getAll()
-	 */
         get() = repository.all
 
     /* (non-Javadoc)
@@ -88,34 +93,34 @@ class SpringSystemScopeService : SystemScopeService {
 	 */
     override fun save(scope: SystemScope): SystemScope? = when {
         // don't allow saving of reserved scopes
-        isReserved(scope) -> null
+        predIsReserved(scope) -> null
         else -> repository.save(scope)
     }
 
     /* (non-Javadoc)
 	 * @see org.mitre.oauth2.service.SystemScopeService#fromStrings(java.util.Set)
 	 */
-    override fun fromStrings(scope: Set<String>?): Set<SystemScope> {
+    override fun fromStrings(scope: Set<String>?): Set<SystemScope>? {
         return when (scope) {
             null -> emptySet()
-            else -> scope.mapNotNullTo(mutableSetOf(), stringToSystemScope)
+            else -> scope.mapNotNullTo(mutableSetOf(), funStringToSystemScope)
         }
     }
 
     /* (non-Javadoc)
 	 * @see org.mitre.oauth2.service.SystemScopeService#toStrings(java.util.Set)
 	 */
-    override fun toStrings(scope: Set<SystemScope>?): Set<String> {
+    override fun toStrings(scope: Set<SystemScope>?): Set<String>? {
         return when (scope) {
             null -> emptySet()
-            else -> scope.mapNotNullTo(mutableSetOf(), systemScopeToString)
+            else -> scope.mapNotNullTo(mutableSetOf(), funSystemScopeToString)
         }
     }
 
     /* (non-Javadoc)
 	 * @see org.mitre.oauth2.service.SystemScopeService#scopesMatch(java.util.Set, java.util.Set)
 	 */
-    override fun scopesMatch(expected: Set<String>?, actual: Set<String>): Boolean {
+    override fun scopesMatch(expected: Set<String>?, actual: Set<String>?): Boolean {
         val ex = fromStrings(expected) ?: return false
         val act = fromStrings(actual) ?: return false
 
@@ -123,25 +128,25 @@ class SpringSystemScopeService : SystemScopeService {
     }
 
     override val defaults: Set<SystemScope>
-        get() = all.filterTo(HashSet(), isDefault)
+        get() = all.filterTo(HashSet(), predIsDefault)
 
 
     override val reserved: Set<SystemScope>
         get() = reservedScopes
 
     override val restricted: Set<SystemScope>
-        get() = all.filterTo(mutableSetOf(), isRestricted)
+        get() = all.filterTo(mutableSetOf(), predIsRestricted)
 
     override val unrestricted: Set<SystemScope>
-        get() = all.filterNotTo(mutableSetOf(), isRestricted)
+        get() = all.filterNotTo(mutableSetOf(), predIsRestricted)
 
-    override fun removeRestrictedAndReservedScopes(scopes: Set<SystemScope>): Set<SystemScope> {
-        return scopes.filterNotTo(mutableSetOf()) {
+    override fun removeRestrictedAndReservedScopes(scopes: Set<SystemScope>?): Set<SystemScope>? {
+        return scopes?.filterNotTo(mutableSetOf()) {
             it.isRestricted || it in reserved
         }
     }
 
-    override fun removeReservedScopes(scopes: Set<SystemScope>): Set<SystemScope> {
-        return scopes.filterNotTo(hashSetOf(), isReserved)
+    override fun removeReservedScopes(scopes: Set<SystemScope>?): Set<SystemScope>? {
+        return scopes?.filterNotTo(hashSetOf(), predIsReserved)
     }
 }

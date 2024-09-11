@@ -654,7 +654,7 @@ class TestMITREidDataService_1_3 {
             clientId = "client1",
             clientSecret = "clientsecret1",
             redirectUris = setOf("http://foo.com/"),
-            scope= hashSetOf("foo", "bar", "baz", "dolphin"),
+            scope = hashSetOf("foo", "bar", "baz", "dolphin"),
             authorizedGrantTypes = hashSetOf("implicit", "authorization_code", "urn:ietf:params:oauth:grant_type:redelegate", "refresh_token"),
             isAllowIntrospection = true,
         )
@@ -769,7 +769,7 @@ class TestMITREidDataService_1_3 {
             clientId = "client2",
             clientSecret = "clientsecret2",
             redirectUris = setOf("http://bar.baz.com/"),
-            scope= hashSetOf("foo", "dolphin", "electric-wombat"),
+            scope = hashSetOf("foo", "dolphin", "electric-wombat"),
             authorizedGrantTypes = hashSetOf("client_credentials", "urn:ietf:params:oauth:grant_type:redelegate"),
             isAllowIntrospection = false,
         )

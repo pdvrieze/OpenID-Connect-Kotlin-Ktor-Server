@@ -85,7 +85,7 @@ class IntrospectionEndpoint {
             // the owner is the user who authorized the token in the first place
             val ownerId = o2a.userAuthentication.name
 
-            authScopes.addAll(authClient.scope)
+            authClient.scope?.let { authScopes.addAll(it) }
 
             // UMA style clients also get a subset of scopes of all the resource sets they've registered
             val resourceSets = resourceSetService.getAllForOwnerAndClient(ownerId, authClientId)
@@ -102,7 +102,7 @@ class IntrospectionEndpoint {
             authClient = checkNotNull(clientService.loadClientByClientId(authClientId))
 
             // directly authenticated clients get a subset of any scopes that they've registered for
-            authScopes.addAll(authClient.scope)
+            authClient.scope?.let { authScopes.addAll(it) }
 
             if (!AuthenticationUtilities.hasRole(auth, "ROLE_CLIENT")
                 || !authClient.isAllowIntrospection

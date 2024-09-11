@@ -69,9 +69,11 @@ class ExposedOauth2ClientRepository(database: Database) :
             }
         }
 
-        ClientScopes.batchInsert(client.scope) { scope ->
-            this[ClientScopes.ownerId] = newId
-            this[ClientScopes.scope] = scope
+        client.scope?.let { s ->
+            ClientScopes.batchInsert(s) { scope ->
+                this[ClientScopes.ownerId] = newId
+                this[ClientScopes.scope] = scope
+            }
         }
 
         ClientGrantTypes.batchInsert(client.authorizedGrantTypes) { grantType ->

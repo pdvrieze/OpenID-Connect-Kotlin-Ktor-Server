@@ -408,7 +408,7 @@ class DynamicClientRegistrationEndpoint {
             allowedScopes = scopeService.defaults
         }
 
-        newClient.scope = scopeService.toStrings(allowedScopes).toHashSet()
+        newClient.scope = scopeService.toStrings(allowedScopes)?.toHashSet()
     }
 
     @Throws(ValidationException::class)
@@ -419,7 +419,7 @@ class DynamicClientRegistrationEndpoint {
     @Throws(ValidationException::class)
     private fun validateGrantTypes(builder: ClientDetailsEntity.Builder) {
         if (builder.authorizedGrantTypes.isEmpty()) {
-            if (builder.scope.contains("offline_access")) { // client asked for offline access
+            if (builder.scope?.contains("offline_access") == true) { // client asked for offline access
                 builder.authorizedGrantTypes =
                     hashSetOf("authorization_code", "refresh_token") // allow authorization code and refresh token grant types by default
             } else {
@@ -486,7 +486,7 @@ class DynamicClientRegistrationEndpoint {
 
             // don't allow refresh tokens in implicit clients
             builder.authorizedGrantTypes.remove("refresh_token")
-            builder.scope.remove(SystemScopeService.OFFLINE_ACCESS)
+            builder.scope?.remove(SystemScopeService.OFFLINE_ACCESS)
         }
 
         if (builder.authorizedGrantTypes.contains("client_credentials")) {
@@ -506,8 +506,10 @@ class DynamicClientRegistrationEndpoint {
 
             // don't allow refresh tokens or id tokens in client_credentials clients
             builder.authorizedGrantTypes.remove("refresh_token")
-            builder.scope.remove(SystemScopeService.OFFLINE_ACCESS)
-            builder.scope.remove(SystemScopeService.OPENID_SCOPE)
+            builder.scope?.run {
+                remove(SystemScopeService.OFFLINE_ACCESS)
+                remove(SystemScopeService.OPENID_SCOPE)
+            }
         }
 
         if (builder.authorizedGrantTypes.isEmpty()) {

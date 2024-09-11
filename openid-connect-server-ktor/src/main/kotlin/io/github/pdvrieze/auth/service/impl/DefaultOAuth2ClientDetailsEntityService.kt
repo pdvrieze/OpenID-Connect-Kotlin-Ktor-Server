@@ -107,7 +107,7 @@ class DefaultOAuth2ClientDetailsEntityService(
 
 
         ensureNoReservedScopes(client)
-        require(client.scope.isNotEmpty()) { "No valid scope for client" }
+        require(! client.scope.isNullOrEmpty()) { "No valid scope for client" }
 
         client.createdAt = Date()
 
@@ -133,8 +133,13 @@ class DefaultOAuth2ClientDetailsEntityService(
      */
     private fun ensureNoReservedScopes(client: OAuthClientDetails.Builder) {
         val scope = scopeService.fromStrings(client.scope)
-        client.scope.clear()
-        client.scope.addAll(scopeService.toStrings(scopeService.removeReservedScopes(scope)))
+        client.scope?.clear()
+        if (scope !=null) {
+            when (val s = client.scope) {
+                null -> client.scope = scopeService.toStrings(scopeService.removeReservedScopes(scope))?.toHashSet()
+                else -> s.addAll(scopeService.toStrings(scopeService.removeReservedScopes(scope))!!)
+            }
+        }
     }
 
     /**
@@ -161,10 +166,12 @@ class DefaultOAuth2ClientDetailsEntityService(
      * Make sure the client has the appropriate scope and grant type.
      */
     private fun ensureRefreshTokenConsistency(client: OAuthClientDetails.Builder) {
+        val s = client.scope
         if ("refresh_token" in client.authorizedGrantTypes
-            || SystemScopeService.OFFLINE_ACCESS in client.scope
+            || (s != null && SystemScopeService.OFFLINE_ACCESS in s)
         ) {
-            client.scope.add(SystemScopeService.OFFLINE_ACCESS)
+            if (s == null) client.scope = hashSetOf()
+            client.scope!!.add(SystemScopeService.OFFLINE_ACCESS)
             client.authorizedGrantTypes.add("refresh_token")
         }
     }
