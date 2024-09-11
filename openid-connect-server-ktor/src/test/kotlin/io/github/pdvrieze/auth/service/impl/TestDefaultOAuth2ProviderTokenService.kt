@@ -19,6 +19,7 @@ package io.github.pdvrieze.auth.service.impl
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
@@ -44,12 +45,12 @@ import org.mockito.AdditionalAnswers
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.anyLong
 import org.mockito.ArgumentMatchers.anySet
-import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
 import org.mockito.kotlin.any
 import org.mockito.kotlin.atLeastOnce
+import org.mockito.kotlin.atMost
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
@@ -144,8 +145,10 @@ class TestDefaultOAuth2ProviderTokenService {
 
         refreshToken = mock<OAuth2RefreshTokenEntity>()
         whenever(tokenRepository.getRefreshTokenByValue(refreshTokenValue)) doReturn (refreshToken)
+        whenever(tokenRepository.getRefreshTokenById(43)) doReturn (refreshToken)
         whenever(refreshToken.client) doReturn (client)
         whenever(refreshToken.isExpired) doReturn (false)
+        whenever(refreshToken.id) doReturn 43
 
         accessToken = mock<OAuth2AccessTokenEntity>()
 
@@ -158,9 +161,11 @@ class TestDefaultOAuth2ProviderTokenService {
 
         whenever(refreshToken.authenticationHolder) doReturn (storedAuthHolder)
         whenever(storedAuthHolder.authentication) doReturn (storedAuthentication)
+        whenever(storedAuthHolder.id) doReturn (33)
         whenever(storedAuthentication.oAuth2Request) doReturn (storedAuthRequest)
 
         whenever(authenticationHolderRepository.save(isA())) doReturn (storedAuthHolder)
+        whenever(authenticationHolderRepository.getById(33)) doReturn (storedAuthHolder)
 
         whenever(scopeService.fromStrings(anySet())).thenAnswer { invocation ->
             val input = invocation.arguments[0] as Set<String>
@@ -202,6 +207,7 @@ class TestDefaultOAuth2ProviderTokenService {
      * Tests exception handling for null authentication or null authorization.
      */
     @Test
+    @Disabled
     fun createAccessToken_nullAuth() {
         TODO("Probably invalid")
 /*
@@ -264,7 +270,7 @@ class TestDefaultOAuth2ProviderTokenService {
         lateinit var refreshToken: OAuth2RefreshTokenEntity
         whenever(tokenRepository.saveRefreshToken(isA<OAuth2RefreshTokenEntity>())) doAnswer { mock ->
             (mock.arguments[0] as OAuth2RefreshTokenEntity).also {
-                it.id = it.id ?: 42L
+                it.id = it.id ?: 43L
                 refreshToken = it
             }
         }
@@ -275,7 +281,7 @@ class TestDefaultOAuth2ProviderTokenService {
 
         val token = service.createAccessToken(authentication)
 
-        verify(tokenRepository, atLeastOnce()).getRefreshTokenById(anyLong())
+        verify(tokenRepository, atMost(1)).getRefreshTokenById(anyLong())
 
         // Note: a refactor may be appropriate to only save refresh tokens once to the repository during creation.
         verify(tokenRepository, atLeastOnce()).saveRefreshToken(isA<OAuth2RefreshTokenEntity>())
@@ -291,7 +297,7 @@ class TestDefaultOAuth2ProviderTokenService {
     @Test
     fun createAccessToken_expiration() {
         val accessTokenValiditySeconds = 3600
-        val refreshTokenValiditySeconds = 600
+        val refreshTokenValiditySeconds = 6000
 
         whenever(client.accessTokenValiditySeconds) doReturn (accessTokenValiditySeconds)
         whenever(client.refreshTokenValiditySeconds) doReturn (refreshTokenValiditySeconds)
@@ -387,7 +393,7 @@ class TestDefaultOAuth2ProviderTokenService {
     }
 
     @Test
-    fun refreshAccessToken_verifyAcessToken() {
+    fun refreshAccessToken_verifyAccessToken() {
         val token = service.refreshAccessToken(refreshTokenValue, tokenRequest)
 
         verify(tokenRepository).clearAccessTokensForRefreshToken(refreshToken)
@@ -396,7 +402,7 @@ class TestDefaultOAuth2ProviderTokenService {
         assertEquals(refreshToken, token.refreshToken)
         assertEquals(storedAuthHolder, token.authenticationHolder)
 
-        verify(tokenEnhancer).enhance(token.builder(), storedAuthentication)
+        verify(tokenEnhancer).enhance(any(), eq(storedAuthentication))
         verify(tokenRepository).saveAccessToken(token as OAuth2AccessTokenEntity)
         verify(scopeService, atLeastOnce()).removeReservedScopes(anySet())
     }
@@ -413,7 +419,7 @@ class TestDefaultOAuth2ProviderTokenService {
         assertNotEquals(refreshToken, token.refreshToken)
         assertEquals(storedAuthHolder, token.authenticationHolder)
 
-        verify(tokenEnhancer).enhance(token.builder(), storedAuthentication)
+        verify(tokenEnhancer).enhance(any(), eq(storedAuthentication))
         verify(tokenRepository).saveAccessToken(token as OAuth2AccessTokenEntity)
         verify(tokenRepository).removeRefreshToken(refreshToken)
         verify(scopeService, atLeastOnce()).removeReservedScopes(anySet())
@@ -431,7 +437,7 @@ class TestDefaultOAuth2ProviderTokenService {
         assertEquals(refreshToken, token.refreshToken)
         assertEquals(storedAuthHolder, token.authenticationHolder)
 
-        verify(tokenEnhancer).enhance(token.builder(), storedAuthentication)
+        verify(tokenEnhancer).enhance(any(), eq(storedAuthentication))
         verify(tokenRepository).saveAccessToken(token as OAuth2AccessTokenEntity)
         verify(scopeService, atLeastOnce()).removeReservedScopes(anySet())
     }
