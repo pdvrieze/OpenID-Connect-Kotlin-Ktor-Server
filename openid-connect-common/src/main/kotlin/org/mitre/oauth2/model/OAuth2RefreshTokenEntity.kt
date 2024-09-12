@@ -18,6 +18,8 @@
 package org.mitre.oauth2.model
 
 import com.nimbusds.jwt.JWT
+import com.nimbusds.jwt.JWTClaimsSet
+import com.nimbusds.jwt.PlainJWT
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.mitre.oauth2.model.convert.JWTStringConverter
@@ -75,10 +77,10 @@ class OAuth2RefreshTokenEntity : OAuth2RefreshToken {
     constructor()
 
     constructor(
-        id: Long?,
+        id: Long? = null,
         authenticationHolder: AuthenticationHolderEntity,
-        client: ClientDetailsEntity?,
-        jwt: JWT,
+        client: ClientDetailsEntity? = null,
+        jwt: JWT = PlainJWT(JWTClaimsSet.Builder().build()),
         expiration: ISODate?,
     ) {
         this.id = id
@@ -86,6 +88,20 @@ class OAuth2RefreshTokenEntity : OAuth2RefreshToken {
         this.client = client
         this.jwt = jwt
         this.expiration = expiration
+    }
+
+    constructor(
+        id: Long? = null,
+        authenticationHolder: AuthenticationHolderEntity,
+        client: ClientDetailsEntity? = null,
+        jwt: JWT = PlainJWT(JWTClaimsSet.Builder().build()),
+        expirationInstant: Instant? = null,
+    ) {
+        this.id = id
+        this.authenticationHolder = authenticationHolder
+        this.client = client
+        this.jwt = jwt
+        this.expirationInstant = expirationInstant ?: Instant.MIN
     }
 
     /**

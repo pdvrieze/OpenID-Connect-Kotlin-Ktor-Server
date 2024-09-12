@@ -20,14 +20,17 @@ import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.uma.model.ResourceSet
 import org.mitre.util.getLogger
+import java.text.ParseException
 import java.time.Instant
 import java.util.*
+import kotlin.math.log
 
 class ExposedOauth2TokenRepository(
     database: Database,
     val authenticationHolderRepository: AuthenticationHolderRepository,
     val clientRepository: OAuth2ClientRepository,
-) : RepositoryBase(database, AccessTokens, RefreshTokens), OAuth2TokenRepository {
+) : RepositoryBase(database, AccessTokens, RefreshTokens, SavedUserAuths, SavedUserAuthAuthorities, TokenScopes),
+    OAuth2TokenRepository {
 
     override fun getRefreshTokenByValue(refreshTokenValue: String): OAuth2RefreshTokenEntity? = transaction {
         RefreshTokens.selectAll()
@@ -82,7 +85,7 @@ class ExposedOauth2TokenRepository(
         val tokenId = refreshToken.id ?: return // does not exist in the database
 
         return transaction {
-            AccessTokens.deleteWhere { AccessTokens.refreshTokenId eq tokenId }
+            AccessTokens.deleteWhere { refreshTokenId eq tokenId }
             RefreshTokens.deleteWhere { id eq tokenId }
         }
     }
@@ -90,10 +93,10 @@ class ExposedOauth2TokenRepository(
     override fun saveRefreshToken(refreshToken: OAuth2RefreshTokenEntity): OAuth2RefreshTokenEntity = transaction {
         with (RefreshTokens) {
             val newId = RefreshTokens.save(refreshToken.id) { b ->
-                b[RefreshTokens.authHolderId] = requireNotNull(refreshToken.authenticationHolder.id)
-                b[RefreshTokens.clientId] = refreshToken.client?.id
-                b[RefreshTokens.tokenValue] = refreshToken.jwt.serialize()
-                b[RefreshTokens.expiration] = refreshToken.expiration?.toInstant()
+                b[authHolderId] = requireNotNull(refreshToken.authenticationHolder.id)
+                b[clientId] = refreshToken.client?.id
+                b[tokenValue] = refreshToken.jwt.serialize()
+                b[expiration] = refreshToken.expiration?.toInstant()
             }
             refreshToken.apply { id = newId }
         }
@@ -128,6 +131,16 @@ class ExposedOauth2TokenRepository(
     }
 
     override fun getAccessTokensByUserName(name: String): Set<OAuth2AccessTokenEntity> = transaction {
+        // select r from OAuth2AccessTokenEntity r where r.authenticationHolder.userAuth.name = :${OAuth2AccessTokenEntity.PARAM_NAME}
+/*
+        val t = (AccessTokens.innerJoin(AuthenticationHolders innerJoin SavedUserAuths)).selectAll().map { r ->
+            r.fieldIndex.entries.joinToString { (k, _) ->
+                "$k = ${r[k]}"
+            }
+        }
+        logger.warn(t.joinToString("\n"))
+*/
+
         (AccessTokens.innerJoin(AuthenticationHolders innerJoin SavedUserAuths))
             .select(AccessTokens.columns)
             .where { SavedUserAuths.name eq name }
@@ -198,17 +211,17 @@ class ExposedOauth2TokenRepository(
         return transaction {
             val newId = with(AccessTokens) {
                 AccessTokens.save(tokenId) { b ->
-                    b[AccessTokens.expiration] = token.expiration.toInstant()
-                    b[AccessTokens.tokenValue] = token.jwt.serialize()
-                    b[AccessTokens.clientId] = token.client?.id
-                    b[AccessTokens.authHolderId] = token.authenticationHolder.id!!
-                    b[AccessTokens.refreshTokenId] = token.refreshToken!!.id!!
-                    b[AccessTokens.tokenType] = token.tokenType
+                    b[expiration] = token.expiration.toInstant()
+                    b[tokenValue] = token.jwt.serialize()
+                    b[clientId] = token.client?.id
+                    b[authHolderId] = token.authenticationHolder.id!!
+                    b[refreshTokenId] = token.refreshToken!!.id!!
+                    b[tokenType] = token.tokenType
 
                 }
             }
 
-            TokenScopes.deleteWhere { TokenScopes.ownerId eq tokenId }
+            TokenScopes.deleteWhere { ownerId eq tokenId }
             val scopes = token.scope
             if (scopes.isNotEmpty()) {
                 TokenScopes.batchInsert(scopes) { scope ->
@@ -235,18 +248,18 @@ class ExposedOauth2TokenRepository(
     private fun ResultRow.toOAuthRefeshToken(): OAuth2RefreshTokenEntity {
         val r = this
         with(RefreshTokens) {
-            val authenticationHolder = checkNotNull(authenticationHolderRepository.getById(r[RefreshTokens.authHolderId])) {
+            val authenticationHolder = checkNotNull(authenticationHolderRepository.getById(r[authHolderId])) {
                 "violated foreign key constraint with missing authentication holder"
             }
 
-            val client = r[RefreshTokens.clientId]?.let { clientRepository.getById(it) } as ClientDetailsEntity?
+            val client = r[clientId]?.let { clientRepository.getById(it) } as ClientDetailsEntity?
 
             return OAuth2RefreshTokenEntity(
                 id = r[id].value,
                 authenticationHolder = authenticationHolder,
                 client = client,
-                jwt = JWTParser.parse(r[RefreshTokens.tokenValue]),
-                expiration = r[RefreshTokens.expiration]?.let { Date.from(it) },
+                jwt = JWTParser.parse(r[tokenValue]),
+                expiration = r[expiration]?.let { Date.from(it) },
             )
         }
 
@@ -257,14 +270,17 @@ class ExposedOauth2TokenRepository(
         with(AccessTokens) {
             val tokenId = r[id].value
 
-            val authenticationHolder = checkNotNull(authenticationHolderRepository.getById(r[AccessTokens.authHolderId])) {
+            val authenticationHolder = checkNotNull(authenticationHolderRepository.getById(r[authHolderId])) {
                 "violated foreign key constraint with missing authentication holder"
             }
 
-            val client = r[AccessTokens.clientId]?.let { clientRepository.getById(it) } as ClientDetailsEntity?
+            val client = r[clientId]?.let { clientRepository.getById(it) } as ClientDetailsEntity?
 
-            val refreshToken = checkNotNull(getRefreshTokenById(r[AccessTokens.refreshTokenId])) {
-                "Invalid refresh token id as for access token: ${r[AccessTokens.refreshTokenId]}"
+            val refreshTokenId = r[refreshTokenId]
+            val refreshToken = refreshTokenId?.let {
+                checkNotNull(getRefreshTokenById(it)) {
+                    "Invalid refresh token id as for access token: ${r[AccessTokens.refreshTokenId]}"
+                }
             }
 
             val scopes = TokenScopes
@@ -274,14 +290,13 @@ class ExposedOauth2TokenRepository(
 
             return OAuth2AccessTokenEntity(
                 id = tokenId,
-                expiration = (r[AccessTokens.expiration]
-                    ?: java.time.Instant.MIN).let { Date.from(it) },
-                jwt = JWTParser.parse(r[AccessTokens.tokenValue]),
+                expirationInstant = (r[expiration] ?: Instant.MIN),
+                jwt = try { JWTParser.parse(r[tokenValue]) } catch (e: ParseException) { throw RuntimeException("Failure to parse ${r[tokenValue]}", e) },
                 client = client,
                 authenticationHolder = authenticationHolder,
                 refreshToken = refreshToken,
                 scope = scopes,
-                tokenType = r[AccessTokens.tokenType] ?: OAuth2AccessToken.BEARER_TYPE,
+                tokenType = r[tokenType] ?: OAuth2AccessToken.BEARER_TYPE,
             )
         }
 

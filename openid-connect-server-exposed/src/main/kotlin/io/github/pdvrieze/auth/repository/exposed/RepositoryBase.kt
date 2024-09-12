@@ -1,10 +1,12 @@
 package io.github.pdvrieze.auth.exposed
 
 import io.github.pdvrieze.auth.repository.exposed.SystemScopes
+import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.Transaction
+import org.jetbrains.exposed.sql.batchInsert
 import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -58,5 +60,12 @@ abstract class RepositoryBase(protected val database: Database, vararg val table
         builder[SystemScopes.restricted] = isRestricted
     }
 
+    protected fun Transaction.saveStrings(data: Collection<String>?, table: Table, idColumn: Column<Long>, idValue: Long, dataColumn: Column<String>) {
+        if(data.isNullOrEmpty()) return
+        table.batchInsert(data) { value ->
+            this[idColumn] = idValue
+            this[dataColumn] = value
+        }
+    }
 
 }

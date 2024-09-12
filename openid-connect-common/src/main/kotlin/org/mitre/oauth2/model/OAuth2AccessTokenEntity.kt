@@ -79,6 +79,7 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
     override lateinit var expirationInstant: Instant
         private set
 
+    @Deprecated("Use expirationInstant")
     override var expiration: Date
         get() = Date.from(expirationInstant)
         private set(value) {
@@ -135,7 +136,7 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
     constructor(
         id: Long? = null,
         expirationInstant: Instant = Instant.MIN,
-        jwt: JWT,
+        jwt: JWT = PlainJWT(JWTClaimsSet.Builder().build()),
         client: ClientDetailsEntity? = null,
         authenticationHolder: AuthenticationHolderEntity,
         refreshToken: OAuth2RefreshTokenEntity? = null,

@@ -39,8 +39,11 @@ dependencies {
     implementation(libs.bcprov)
 */
 
+    testImplementation(libs.mockito.jupiter)
+    testImplementation(libs.mockito.kotlin)
     testImplementation(libs.junit.jupiter.api)
 
+    testRuntimeOnly(libs.h2)
     testRuntimeOnly(libs.junit.jupiter.engine)
 }
 

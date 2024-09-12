@@ -9,7 +9,7 @@ object AccessTokens : LongIdTable("access_token") {
     val tokenValue = varchar("token_value", 4096)
     val expiration = timestamp("expiration").nullable().default(null)
     val tokenType = varchar("token_type", 256).nullable()
-    val refreshTokenId = long("refresh_token_id").references(RefreshTokens.id)
+    val refreshTokenId = long("refresh_token_id").references(RefreshTokens.id).nullable()
     val clientId = long("client_id").references(ClientDetails.id).nullable()
     val authHolderId = long("auth_holder_id").references(AuthenticationHolders.id)
     val approvedSiteId = long("approved_site_id").references(ApprovedSites.id).nullable()

@@ -5,7 +5,7 @@ import org.jetbrains.exposed.sql.Table
 
 
 object AuthenticationHolders : LongIdTable("authentication_holder") {
-    val userAuthId = long("user_auth_id").nullable() // TODO add foreign key
+    val userAuthId = long("user_auth_id").references(SavedUserAuths.id).nullable() // TODO add foreign key
     val approved = bool("approved").nullable()
     val redirectUri = varchar("redirect_uri", 2048).nullable()
     val clientId = varchar("client_id", 256).nullable()
@@ -13,7 +13,7 @@ object AuthenticationHolders : LongIdTable("authentication_holder") {
 
 object AuthenticationHolderAuthorities : Table("authentication_holder_authority") {
     val ownerId = long("owner_id").references(AuthenticationHolders.id) // TODO add foreign key
-    val authority = varchar("authority", 256).nullable()
+    val authority = varchar("authority", 256)
 }
 
 object AuthenticationHolderResourceIds : Table("authentication_holder_resource_id") {

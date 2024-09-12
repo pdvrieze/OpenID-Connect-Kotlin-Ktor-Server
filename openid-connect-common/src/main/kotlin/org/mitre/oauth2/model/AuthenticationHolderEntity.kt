@@ -98,6 +98,34 @@ class AuthenticationHolderEntity(
         )
     }
 
+    fun copy(
+        id: Long? = this.id,
+        userAuth: SavedUserAuthentication? = this.userAuth,
+        authorities: Collection<GrantedAuthority>? = this.authorities,
+        resourceIds: Set<String>? = this.resourceIds,
+        isApproved: Boolean = this.isApproved,
+        redirectUri: String? = this.redirectUri,
+        responseTypes: Set<String>? = this.responseTypes,
+        extensions: Map<String, IoSerializable>? = this.extensions,
+        clientId: String? = this.clientId,
+        scope: Set<String>? = this.scope,
+        requestParameters: Map<String, String>? = this.requestParameters,
+    ): AuthenticationHolderEntity {
+        return AuthenticationHolderEntity(
+            id = id,
+            userAuth = userAuth,
+            authorities = authorities,
+            resourceIds = resourceIds,
+            isApproved = isApproved,
+            redirectUri = redirectUri,
+            responseTypes = responseTypes,
+            extensions = extensions,
+            clientId = clientId,
+            scope = scope,
+            requestParameters = requestParameters,
+        )
+    }
+
 //    @KXS_Serializable
 //    private class AuthenticationEntry(
 //        val clientAuthorization: AuthorizationRequest? = null,
