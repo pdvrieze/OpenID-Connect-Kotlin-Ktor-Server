@@ -58,7 +58,9 @@ import org.mitre.openid.connect.service.MITREidDataService.Companion.REFRESHTOKE
 import org.mitre.openid.connect.service.MITREidDataService.Companion.SYSTEMSCOPES
 import org.mitre.openid.connect.service.MITREidDataService.Companion.WHITELISTEDSITES
 import org.mitre.openid.connect.service.MITREidDataServiceMaps
+import org.mitre.openid.connect.util.assertIs
 import org.mitre.util.asBoolean
+import org.mitre.util.asBooleanOrNull
 import org.mitre.util.asString
 import org.mitre.util.getLogger
 import org.mockito.ArgumentCaptor
@@ -224,14 +226,14 @@ class TestMITREidDataService_1_3 {
         assertTrue(AUTHENTICATIONHOLDERS in config)
 
         // make sure the root elements are all arrays
-        assertTrue(config[CLIENTS] is JsonArray)
-        assertTrue(config[GRANTS] is JsonArray)
-        assertTrue(config[WHITELISTEDSITES] is JsonArray)
-        assertTrue(config[BLACKLISTEDSITES] is JsonArray)
-        assertTrue(config[REFRESHTOKENS] is JsonArray)
-        assertTrue(config[ACCESSTOKENS] is JsonArray)
-        assertTrue(config[SYSTEMSCOPES] is JsonArray)
-        assertTrue(config[AUTHENTICATIONHOLDERS] is JsonArray)
+        assertIs<JsonArray>(config[CLIENTS])
+        assertIs<JsonArray>(config[GRANTS])
+        assertIs<JsonArray>(config[WHITELISTEDSITES])
+        assertIs<JsonArray>(config[BLACKLISTEDSITES])
+        assertIs<JsonArray>(config[REFRESHTOKENS])
+        assertIs<JsonArray>(config[ACCESSTOKENS])
+        assertIs<JsonArray>(config[SYSTEMSCOPES])
+        assertIs<JsonArray>(config[AUTHENTICATIONHOLDERS])
 
 
         // check our refresh token list (this test)
@@ -241,7 +243,7 @@ class TestMITREidDataService_1_3 {
         // check for both of our refresh tokens in turn
         val checked: MutableSet<OAuth2RefreshTokenEntity> = HashSet()
         for (e in refreshTokens) {
-            assertTrue(e is JsonObject)
+            assertIs<JsonObject>(e)
             val token = e.jsonObject
 
             var compare: OAuth2RefreshTokenEntity? = null
@@ -465,14 +467,14 @@ class TestMITREidDataService_1_3 {
         assertTrue(config.contains(AUTHENTICATIONHOLDERS))
 
         // make sure the root elements are all arrays
-        assertTrue(config[CLIENTS] is JsonArray)
-        assertTrue(config[GRANTS] is JsonArray)
-        assertTrue(config[WHITELISTEDSITES] is JsonArray)
-        assertTrue(config[BLACKLISTEDSITES] is JsonArray)
-        assertTrue(config[REFRESHTOKENS] is JsonArray)
-        assertTrue(config[ACCESSTOKENS] is JsonArray)
-        assertTrue(config[SYSTEMSCOPES] is JsonArray)
-        assertTrue(config[AUTHENTICATIONHOLDERS] is JsonArray)
+        assertIs<JsonArray>(config[CLIENTS])
+        assertIs<JsonArray>(config[GRANTS])
+        assertIs<JsonArray>(config[WHITELISTEDSITES])
+        assertIs<JsonArray>(config[BLACKLISTEDSITES])
+        assertIs<JsonArray>(config[REFRESHTOKENS])
+        assertIs<JsonArray>(config[ACCESSTOKENS])
+        assertIs<JsonArray>(config[SYSTEMSCOPES])
+        assertIs<JsonArray>(config[AUTHENTICATIONHOLDERS])
 
 
         // check our access token list (this test)
@@ -482,7 +484,7 @@ class TestMITREidDataService_1_3 {
         // check for both of our access tokens in turn
         val checked: MutableSet<OAuth2AccessTokenEntity> = HashSet()
         for (e in accessTokens) {
-            assertTrue(e is JsonObject)
+            assertIs<JsonObject>(e)
             val token = e as JsonObject
 
             var compare: OAuth2AccessTokenEntity? = null
@@ -502,7 +504,7 @@ class TestMITREidDataService_1_3 {
                 assertEquals(compare.value, token["value"].asString())
                 assertEquals(compare.tokenType, token["type"].asString())
                 assertEquals(compare.authenticationHolder.id, token["authenticationHolderId"]!!.jsonPrimitive.long)
-                assertTrue(token["scope"] is JsonArray)
+                assertIs<JsonArray>(token["scope"])
                 assertEquals(compare.scope, jsonArrayToStringSet(token["scope"]!!.jsonArray))
                 if (token["refreshTokenId"] is JsonNull) {
                     assertNull(compare.refreshToken)
@@ -706,14 +708,14 @@ class TestMITREidDataService_1_3 {
         assertTrue(AUTHENTICATIONHOLDERS in config)
 
         // make sure the root elements are all arrays
-        assertTrue(config[CLIENTS] is JsonArray)
-        assertTrue(config[GRANTS] is JsonArray)
-        assertTrue(config[WHITELISTEDSITES] is JsonArray)
-        assertTrue(config[BLACKLISTEDSITES] is JsonArray)
-        assertTrue(config[REFRESHTOKENS] is JsonArray)
-        assertTrue(config[ACCESSTOKENS] is JsonArray)
-        assertTrue(config[SYSTEMSCOPES] is JsonArray)
-        assertTrue(config[AUTHENTICATIONHOLDERS] is JsonArray)
+        assertIs<JsonArray>(config[CLIENTS])
+        assertIs<JsonArray>(config[GRANTS])
+        assertIs<JsonArray>(config[WHITELISTEDSITES])
+        assertIs<JsonArray>(config[BLACKLISTEDSITES])
+        assertIs<JsonArray>(config[REFRESHTOKENS])
+        assertIs<JsonArray>(config[ACCESSTOKENS])
+        assertIs<JsonArray>(config[SYSTEMSCOPES])
+        assertIs<JsonArray>(config[AUTHENTICATIONHOLDERS])
 
 
         // check our client list (this test)
@@ -723,7 +725,7 @@ class TestMITREidDataService_1_3 {
         // check for both of our clients in turn
         val checked: MutableSet<ClientDetailsEntity> = HashSet()
         for (e in clients) {
-            assertTrue(e is JsonObject)
+            assertIs<JsonObject>(e)
             val client = e as JsonObject
 
             var compare: ClientDetailsEntity? = null
@@ -876,14 +878,14 @@ class TestMITREidDataService_1_3 {
         assertTrue(AUTHENTICATIONHOLDERS in config)
 
         // make sure the root elements are all arrays
-        assertTrue(config[CLIENTS] is JsonArray)
-        assertTrue(config[GRANTS] is JsonArray)
-        assertTrue(config[WHITELISTEDSITES] is JsonArray)
-        assertTrue(config[BLACKLISTEDSITES] is JsonArray)
-        assertTrue(config[REFRESHTOKENS] is JsonArray)
-        assertTrue(config[ACCESSTOKENS] is JsonArray)
-        assertTrue(config[SYSTEMSCOPES] is JsonArray)
-        assertTrue(config[AUTHENTICATIONHOLDERS] is JsonArray)
+        assertIs<JsonArray>(config[CLIENTS])
+        assertIs<JsonArray>(config[GRANTS])
+        assertIs<JsonArray>(config[WHITELISTEDSITES])
+        assertIs<JsonArray>(config[BLACKLISTEDSITES])
+        assertIs<JsonArray>(config[REFRESHTOKENS])
+        assertIs<JsonArray>(config[ACCESSTOKENS])
+        assertIs<JsonArray>(config[SYSTEMSCOPES])
+        assertIs<JsonArray>(config[AUTHENTICATIONHOLDERS])
 
         // check our scope list (this test)
         val sites = config[BLACKLISTEDSITES]!!.jsonArray
@@ -892,7 +894,7 @@ class TestMITREidDataService_1_3 {
         // check for both of our sites in turn
         val checked: MutableSet<BlacklistedSite> = HashSet()
         for (e in sites) {
-            assertTrue(e is JsonObject)
+            assertIs<JsonObject>(e)
             val site = e.jsonObject
 
             var compare: BlacklistedSite? = null
@@ -1009,14 +1011,14 @@ class TestMITREidDataService_1_3 {
         assertTrue(config.contains(AUTHENTICATIONHOLDERS))
 
         // make sure the root elements are all arrays
-        assertTrue(config[CLIENTS] is JsonArray)
-        assertTrue(config[GRANTS] is JsonArray)
-        assertTrue(config[WHITELISTEDSITES] is JsonArray)
-        assertTrue(config[BLACKLISTEDSITES] is JsonArray)
-        assertTrue(config[REFRESHTOKENS] is JsonArray)
-        assertTrue(config[ACCESSTOKENS] is JsonArray)
-        assertTrue(config[SYSTEMSCOPES] is JsonArray)
-        assertTrue(config[AUTHENTICATIONHOLDERS] is JsonArray)
+        assertIs<JsonArray>(config[CLIENTS])
+        assertIs<JsonArray>(config[GRANTS])
+        assertIs<JsonArray>(config[WHITELISTEDSITES])
+        assertIs<JsonArray>(config[BLACKLISTEDSITES])
+        assertIs<JsonArray>(config[REFRESHTOKENS])
+        assertIs<JsonArray>(config[ACCESSTOKENS])
+        assertIs<JsonArray>(config[SYSTEMSCOPES])
+        assertIs<JsonArray>(config[AUTHENTICATIONHOLDERS])
 
         // check our scope list (this test)
         val sites = config[WHITELISTEDSITES]!!.jsonArray
@@ -1025,7 +1027,7 @@ class TestMITREidDataService_1_3 {
         // check for both of our sites in turn
         val checked: MutableSet<WhitelistedSite> = HashSet()
         for (e in sites) {
-            assertTrue(e is JsonObject)
+            assertIs<JsonObject>(e)
             val site = e.jsonObject
 
             var compare: WhitelistedSite? = null
@@ -1176,14 +1178,14 @@ class TestMITREidDataService_1_3 {
         assertTrue(config.contains(AUTHENTICATIONHOLDERS))
 
         // make sure the root elements are all arrays
-        assertTrue(config[CLIENTS] is JsonArray)
-        assertTrue(config[GRANTS] is JsonArray)
-        assertTrue(config[WHITELISTEDSITES] is JsonArray)
-        assertTrue(config[BLACKLISTEDSITES] is JsonArray)
-        assertTrue(config[REFRESHTOKENS] is JsonArray)
-        assertTrue(config[ACCESSTOKENS] is JsonArray)
-        assertTrue(config[SYSTEMSCOPES] is JsonArray)
-        assertTrue(config[AUTHENTICATIONHOLDERS] is JsonArray)
+        assertIs<JsonArray>(config[CLIENTS])
+        assertIs<JsonArray>(config[GRANTS])
+        assertIs<JsonArray>(config[WHITELISTEDSITES])
+        assertIs<JsonArray>(config[BLACKLISTEDSITES])
+        assertIs<JsonArray>(config[REFRESHTOKENS])
+        assertIs<JsonArray>(config[ACCESSTOKENS])
+        assertIs<JsonArray>(config[SYSTEMSCOPES])
+        assertIs<JsonArray>(config[AUTHENTICATIONHOLDERS])
 
         // check our scope list (this test)
         val sites = config[GRANTS]!!.jsonArray
@@ -1192,7 +1194,7 @@ class TestMITREidDataService_1_3 {
         // check for both of our sites in turn
         val checked: MutableSet<ApprovedSite> = HashSet()
         for (e in sites) {
-            assertTrue(e is JsonObject)
+            assertIs<JsonObject>(e)
             val site = e.jsonObject
 
             var compare: ApprovedSite? = null
@@ -1398,14 +1400,14 @@ class TestMITREidDataService_1_3 {
         assertTrue(config.contains(AUTHENTICATIONHOLDERS))
 
         // make sure the root elements are all arrays
-        assertTrue(config[CLIENTS] is JsonArray)
-        assertTrue(config[GRANTS] is JsonArray)
-        assertTrue(config[WHITELISTEDSITES] is JsonArray)
-        assertTrue(config[BLACKLISTEDSITES] is JsonArray)
-        assertTrue(config[REFRESHTOKENS] is JsonArray)
-        assertTrue(config[ACCESSTOKENS] is JsonArray)
-        assertTrue(config[SYSTEMSCOPES] is JsonArray)
-        assertTrue(config[AUTHENTICATIONHOLDERS] is JsonArray)
+        assertIs<JsonArray>(config[CLIENTS])
+        assertIs<JsonArray>(config[GRANTS])
+        assertIs<JsonArray>(config[WHITELISTEDSITES])
+        assertIs<JsonArray>(config[BLACKLISTEDSITES])
+        assertIs<JsonArray>(config[REFRESHTOKENS])
+        assertIs<JsonArray>(config[ACCESSTOKENS])
+        assertIs<JsonArray>(config[SYSTEMSCOPES])
+        assertIs<JsonArray>(config[AUTHENTICATIONHOLDERS])
 
 
         // check our holder list (this test)
@@ -1415,7 +1417,7 @@ class TestMITREidDataService_1_3 {
         // check for both of our clients in turn
         val checked: MutableSet<AuthenticationHolderEntity> = HashSet()
         for (e in holders) {
-            assertTrue(e is JsonObject)
+            assertIs<JsonObject>(e)
             val holder = e.jsonObject
 
             var compare: AuthenticationHolderEntity? = null
@@ -1428,15 +1430,19 @@ class TestMITREidDataService_1_3 {
             if (compare == null) {
                 fail("Could not find matching authentication holder id: " + holder["id"].asString())
             } else {
-                assertTrue(holder["clientId"].asString() == compare.clientId)
-                assertTrue(holder["approved"].asBoolean() == compare.isApproved)
-                assertTrue(holder["redirectUri"].asString() == compare.redirectUri)
+                assertEquals(compare.clientId, holder["clientId"].asString())
+                assertEquals(compare.isApproved, holder["approved"].asBoolean())
+                assertEquals(compare.redirectUri, holder["redirectUri"].asString())
                 if (compare.userAuth != null) {
-                    assertTrue(holder["savedUserAuthentication"] is JsonObject)
+                    assertIs<JsonObject>(holder["savedUserAuthentication"])
                     val savedAuth = holder["savedUserAuthentication"]!!.jsonObject
-                    assertTrue(savedAuth["name"].asString() == compare.userAuth!!.name)
-                    assertTrue(savedAuth["authenticated"].asBoolean() == compare.userAuth!!.isAuthenticated)
-                    assertTrue(savedAuth["sourceClass"].asString() == compare.userAuth!!.sourceClass)
+                    assertEquals(compare.userAuth!!.name, savedAuth["name"].asString())
+                    val expectedAuthenticated =  when(val a = savedAuth["authenticated"]) {
+                        is JsonNull -> null
+                        else -> a.asBoolean()
+                    }
+                    assertEquals(compare.userAuth!!.isAuthenticated, expectedAuthenticated)
+                    assertEquals(compare.userAuth!!.sourceClass, savedAuth["sourceClass"].asString())
                 }
                 checked.add(compare)
             }
@@ -1579,14 +1585,14 @@ class TestMITREidDataService_1_3 {
         assertTrue(AUTHENTICATIONHOLDERS in config)
 
         // make sure the root elements are all arrays
-        assertTrue(config[CLIENTS] is JsonArray)
-        assertTrue(config[GRANTS] is JsonArray)
-        assertTrue(config[WHITELISTEDSITES] is JsonArray)
-        assertTrue(config[BLACKLISTEDSITES] is JsonArray)
-        assertTrue(config[REFRESHTOKENS] is JsonArray)
-        assertTrue(config[ACCESSTOKENS] is JsonArray)
-        assertTrue(config[SYSTEMSCOPES] is JsonArray)
-        assertTrue(config[AUTHENTICATIONHOLDERS] is JsonArray)
+        assertIs<JsonArray>(config[CLIENTS])
+        assertIs<JsonArray>(config[GRANTS])
+        assertIs<JsonArray>(config[WHITELISTEDSITES])
+        assertIs<JsonArray>(config[BLACKLISTEDSITES])
+        assertIs<JsonArray>(config[REFRESHTOKENS])
+        assertIs<JsonArray>(config[ACCESSTOKENS])
+        assertIs<JsonArray>(config[SYSTEMSCOPES])
+        assertIs<JsonArray>(config[AUTHENTICATIONHOLDERS])
 
 
         // check our scope list (this test)
@@ -1596,7 +1602,7 @@ class TestMITREidDataService_1_3 {
         // check for both of our clients in turn
         val checked: MutableSet<SystemScope> = HashSet()
         for (e in scopes) {
-            assertTrue(e is JsonObject)
+            assertIs<JsonObject>(e)
             val scope = e.jsonObject
 
             var compare: SystemScope? = null

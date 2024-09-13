@@ -60,7 +60,7 @@ fun JsonElement.asBooleanOrNull(): Boolean? {
 }
 
 fun JsonElement?.asBoolean(): Boolean {
-    require(this is JsonPrimitive) { "Expected Json primitive, found: ${this?.javaClass?.name}" }
+    require(this is JsonPrimitive) { "Expected Json primitive with boolean, found: ${this?.javaClass?.name}" }
     return boolean
 }
 
