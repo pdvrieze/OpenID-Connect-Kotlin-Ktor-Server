@@ -1,9 +1,9 @@
 package io.github.pdvrieze.auth.repository.exposed
 
-import com.nimbusds.jwt.JWT
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.PlainJWT
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.Assertions
@@ -16,18 +16,15 @@ import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2ClientRepository
 
-//@ExtendWith(MockitoExtension::class)
 class TestExposedOAuth2TokenRepository {
     private val dbName = "TestMemDB"
 
-//    @Spy
-    private val database: Database = Database.connect("jdbc:h2:mem:$dbName;DB_CLOSE_DELAY=-1;", driver = "org.h2.Driver", "root")
+    private var database: Database = Database.connect("jdbc:h2:mem:$dbName;DB_CLOSE_DELAY=-1;", driver = "org.h2.Driver", "root")
 
     private lateinit var authenticationHolderRepository: AuthenticationHolderRepository
 
     private lateinit var clientRepository: OAuth2ClientRepository
 
-//    @InjectMocks
     private lateinit var repository: ExposedOauth2TokenRepository
 
     @BeforeEach
@@ -36,6 +33,11 @@ class TestExposedOAuth2TokenRepository {
         clientRepository = ExposedOauth2ClientRepository(database)
         repository = ExposedOauth2TokenRepository(database, authenticationHolderRepository, clientRepository)
 
+        transaction(database) {
+            for (table in listOf(RefreshTokens, AccessTokens, AuthenticationHolders, SavedUserAuths)) {
+                table.deleteAll()
+            }
+        }
 
         createAccessToken("user1")
         createAccessToken("user1")
@@ -60,7 +62,7 @@ class TestExposedOAuth2TokenRepository {
     fun testGetRefreshTokensByUserName() {
         val tokens = repository.getRefreshTokensByUserName("user2")
         Assertions.assertEquals(3, tokens.size.toLong())
-        Assertions.assertEquals("user2", tokens.iterator().next().authenticationHolder!!.userAuth!!.name)
+        Assertions.assertEquals("user2", tokens.iterator().next().authenticationHolder.userAuth!!.name)
     }
 
     @Test
