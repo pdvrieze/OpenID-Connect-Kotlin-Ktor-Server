@@ -15,20 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mitre.openid.connect.service
+package org.mitre.openid.connect.service.impl
 
-import org.mitre.oauth2.model.OAuthClientDetails
-import org.mitre.openid.connect.model.UserInfo
+import org.mitre.openid.connect.repository.PairwiseIdentifierRepository
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Service
 
 /**
  * @author jricher
  */
-interface PairwiseIdentiferService {
-    /**
-     * Calcualtes the pairwise identifier for the given userinfo object and client.
-     *
-     * Returns 'null' if no identifer could be calculated.
-     *
-     */
-    fun getIdentifier(userInfo: UserInfo, client: OAuthClientDetails): String?
+@Service("uuidPairwiseIdentiferService")
+class SpringUUIDPairwiseIdentiferService : AbstractUUIDPairwiseIdentiferService() {
+    @Autowired
+    override lateinit var pairwiseIdentifierRepository: PairwiseIdentifierRepository
 }

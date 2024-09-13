@@ -121,7 +121,7 @@ class EndSessionEndpoint {
                 val subject = idTokenClaims.subject
                 // see if the current user is the same as the one in the ID token
                 // TODO: should we do anything different in these cases?
-                if (!subject.isNullOrEmpty() && subject == ui!!.sub) {
+                if (!subject.isNullOrEmpty() && subject == ui!!.subject) {
                     // it's the same user
                 } else {
                     // it's not the same user

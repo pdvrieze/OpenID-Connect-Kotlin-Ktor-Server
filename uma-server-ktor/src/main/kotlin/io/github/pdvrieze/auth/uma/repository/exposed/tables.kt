@@ -35,7 +35,7 @@ object ClientResources : Table("client_resource") {
 }
 
 object UserInfos : LongIdTable("user_info") {
-    val sub = varchar("sub", 256).nullable()
+    val sub = varchar("sub", 256)
     val preferredUsername = varchar("preferred_username", 256).nullable()
     val name = varchar("name", 256).nullable()
     val givenName = varchar("given_name", 256).nullable()

@@ -19,9 +19,10 @@ package org.mitre.openid.connect.service.impl
 
 import org.mitre.oauth2.model.OAuthClientDetails.SubjectType
 import org.mitre.oauth2.service.ClientDetailsEntityService
+import org.mitre.openid.connect.model.DefaultUserInfo
 import org.mitre.openid.connect.model.UserInfo
 import org.mitre.openid.connect.repository.UserInfoRepository
-import org.mitre.openid.connect.service.PairwiseIdentiferService
+import org.mitre.openid.connect.service.PairwiseIdentifierService
 import org.mitre.openid.connect.service.UserInfoService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -40,7 +41,7 @@ class DefaultUserInfoService : UserInfoService {
     private lateinit var clientService: ClientDetailsEntityService
 
     @Autowired
-    private lateinit var pairwiseIdentifierService: PairwiseIdentiferService
+    private lateinit var pairwiseIdentifierService: PairwiseIdentifierService
 
     @Deprecated("Use constructor that doesn't rely on autowiring")
     constructor()
@@ -48,7 +49,7 @@ class DefaultUserInfoService : UserInfoService {
     constructor(
         userInfoRepository: UserInfoRepository,
         clientService: ClientDetailsEntityService,
-        pairwiseIdentifierService: PairwiseIdentiferService,
+        pairwiseIdentifierService: PairwiseIdentifierService,
     ) {
         this.userInfoRepository = userInfoRepository
         this.clientService = clientService
@@ -62,11 +63,11 @@ class DefaultUserInfoService : UserInfoService {
     override fun getByUsernameAndClientId(username: String, clientId: String): UserInfo? {
         val client = clientService.loadClientByClientId(clientId) ?: return null
 
-        val userInfo = getByUsername(username) ?: return null
+        val userInfo = getByUsername(username)?.let{ DefaultUserInfo.from(it) } ?: return null
 
         if (SubjectType.PAIRWISE == client.subjectType) {
-            val pairwiseSub = pairwiseIdentifierService.getIdentifier(userInfo, client)
-            userInfo.sub = pairwiseSub
+            val pairwiseSub = pairwiseIdentifierService.getIdentifier(userInfo, client) ?: return null // pairwise not found
+            userInfo.subject = pairwiseSub
         }
 
         return userInfo

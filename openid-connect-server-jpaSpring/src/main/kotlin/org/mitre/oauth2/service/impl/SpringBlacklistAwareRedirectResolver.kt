@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.oauth2.common.exceptions.InvalidRequestException
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception
 import org.springframework.security.oauth2.provider.ClientDetails
+import org.springframework.security.oauth2.provider.client.BaseClientDetails
 import org.springframework.security.oauth2.provider.endpoint.DefaultRedirectResolver
 import org.springframework.stereotype.Component
 
@@ -65,7 +66,14 @@ class SpringBlacklistAwareRedirectResolver : DefaultRedirectResolver(), IBlackli
     }
 
     override fun resolveRedirect(requestedRedirect: String, client: OAuthClientDetails): String {
-        return TODO("No client mapping")
+        val clientMapping = BaseClientDetails(
+            client.clientId,
+            client.resourceIds.joinToString(),
+            client.scope?.joinToString(),
+            client.authorizedGrantTypes.joinToString(),
+            client.redirectUris.joinToString()
+        )
+        return resolveRedirect(requestedRedirect, clientMapping)
 //        return resolveRedirect(requestedRedirect, client.toSpring())
     }
 

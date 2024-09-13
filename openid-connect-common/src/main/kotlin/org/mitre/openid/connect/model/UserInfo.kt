@@ -24,7 +24,7 @@ interface UserInfo : Serializable {
     /**
      * The userId
      */
-    var sub: String?
+    var subject: String
 
     /**
      * The preferred username

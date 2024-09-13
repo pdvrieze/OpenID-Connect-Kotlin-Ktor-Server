@@ -56,7 +56,7 @@ class DefaultUserInfo(
 
     @get:Basic
     @get:Column(name = "sub")
-    override var sub: String? = null,
+    override var subject: String,
 
     @Basic
     @Column(name = "preferred_username")
@@ -155,7 +155,7 @@ class DefaultUserInfo(
         }
 
     constructor(
-        sub: String? = null,
+        sub: String,
         preferredUsername: String? = null,
         name: String? = null,
         givenName: String? = null,
@@ -177,7 +177,7 @@ class DefaultUserInfo(
         birthdate: String? = null,
         source: JsonObject? = null,
     ) : this(
-        sub = sub,
+        subject = sub,
         preferredUsername = preferredUsername,
         name = name,
         givenName = givenName,
@@ -299,6 +299,32 @@ class DefaultUserInfo(
 
         private fun nullSafeGetString(obj: JsonObject, field: String): String? {
             return (obj[field] as? JsonPrimitive)?.toString()
+        }
+
+        fun from(info: UserInfo): DefaultUserInfo {
+            return info as? DefaultUserInfo ?: DefaultUserInfo(
+                subject = info.subject,
+                        preferredUsername = info.preferredUsername,
+                        name = info.name,
+                        givenName = info.givenName,
+                        familyName = info.familyName,
+                        middleName = info.middleName,
+                        nickname = info.nickname,
+                        profile = info.profile,
+                        picture = info.picture,
+                        website = info.website,
+                        email = info.email,
+                        emailVerified = info.emailVerified,
+                        gender = info.gender,
+                        zoneinfo = info.zoneinfo,
+                        locale = info.locale,
+                        phoneNumber = info.phoneNumber,
+                        phoneNumberVerified = info.phoneNumberVerified,
+                        _address = info.address?.let { DefaultAddress.from(it) },
+                        updatedTime = info.updatedTime,
+                        birthdate = info.birthdate,
+                        source = info.source,
+            )
         }
     }
 }

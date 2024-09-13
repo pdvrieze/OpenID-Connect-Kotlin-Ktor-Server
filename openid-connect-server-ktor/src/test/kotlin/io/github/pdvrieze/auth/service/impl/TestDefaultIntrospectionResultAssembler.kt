@@ -301,7 +301,7 @@ class TestDefaultIntrospectionResultAssembler {
 
     private fun userInfo(sub: String): UserInfo {
         val userInfo = org.mockito.kotlin.mock<UserInfo>()
-        org.mockito.kotlin.given(userInfo.sub).willReturn(sub)
+        org.mockito.kotlin.given(userInfo.subject).willReturn(sub)
         return userInfo
     }
 

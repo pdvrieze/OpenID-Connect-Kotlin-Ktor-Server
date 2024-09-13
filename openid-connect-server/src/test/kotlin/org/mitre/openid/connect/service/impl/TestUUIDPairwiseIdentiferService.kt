@@ -29,7 +29,7 @@ import org.mitre.openid.connect.model.DefaultUserInfo
 import org.mitre.openid.connect.model.PairwiseIdentifier
 import org.mitre.openid.connect.model.UserInfo
 import org.mitre.openid.connect.repository.PairwiseIdentifierRepository
-import org.mitre.openid.connect.service.PairwiseIdentiferService
+import org.mitre.openid.connect.service.PairwiseIdentifierService
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
@@ -63,9 +63,10 @@ class TestUUIDPairwiseIdentiferService {
 
     @BeforeEach
     fun prepare() {
-        userInfoRegular = DefaultUserInfo()
-        userInfoRegular.preferredUsername = regularUsername
-        userInfoRegular.sub = regularSub
+        userInfoRegular = DefaultUserInfo(
+            preferredUsername = regularUsername,
+            subject = regularSub,
+        )
 
         // pairwise set 1
         pairwiseClient1 = ClientDetailsEntity(
@@ -104,7 +105,7 @@ class TestUUIDPairwiseIdentiferService {
 
         // saved pairwise identifier from repository
         savedPairwiseIdentifier = PairwiseIdentifier(
-            userSub = regularSub,
+            userSubject = regularSub,
             sectorIdentifier = sectorHost12,
         ).also {
             it.identifier = pairwiseSub
@@ -112,7 +113,7 @@ class TestUUIDPairwiseIdentiferService {
     }
 
     /**
-     * Test method for [PairwiseIdentiferService.getIdentifier].
+     * Test method for [PairwiseIdentifierService.getIdentifier].
      */
     @Test
     fun testGetIdentifier_existingEqual() {

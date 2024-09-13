@@ -13,9 +13,10 @@ import org.mitre.uma.model.Permission
 import org.mitre.uma.model.PermissionTicket
 import org.mitre.uma.model.ResourceSet
 import org.mitre.uma.repository.PermissionRepository
+import org.mitre.uma.repository.ResourceSetRepository
 import java.util.*
 
-class ExposedPermissionRepository(database: Database, private val resourceSets: ExposedResourceSetRepository) :
+class ExposedPermissionRepository(database: Database, private val resourceSets: ResourceSetRepository) :
     RepositoryBase(database, Permissions, PermissionScopes, PermissionTickets), PermissionRepository {
 
     override fun save(p: PermissionTicket): PermissionTicket? {

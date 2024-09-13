@@ -15,10 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mitre.openid.connect.service.impl
+package org.mitre.openid.connect.service
 
-import org.mitre.openid.connect.repository.PairwiseIdentifierRepository
+import org.mitre.oauth2.model.OAuthClientDetails
+import org.mitre.openid.connect.model.UserInfo
 
-class UUIDPairwiseIdentiferService(
-    override val pairwiseIdentifierRepository: PairwiseIdentifierRepository
-): AbstractUUIDPairwiseIdentiferService()
+/**
+ * @author jricher
+ */
+interface PairwiseIdentifierService {
+    /**
+     * Calcualtes the pairwise identifier for the given userinfo object and client.
+     *
+     * Returns 'null' if no identifer could be calculated.
+     *
+     */
+    fun getIdentifier(userInfo: UserInfo, client: OAuthClientDetails): String?
+}

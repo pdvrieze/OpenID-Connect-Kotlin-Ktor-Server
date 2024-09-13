@@ -77,7 +77,7 @@ class UserClaimSearchHelper {
             val s = mapOf(
                 "issuer" to setOf(config.issuer),
                 "name" to "sub",
-                "value" to localUser.sub,
+                "value" to localUser.subject,
             )
 
             m.addAttribute(JsonEntityView.ENTITY, setOf(e, ev, s))

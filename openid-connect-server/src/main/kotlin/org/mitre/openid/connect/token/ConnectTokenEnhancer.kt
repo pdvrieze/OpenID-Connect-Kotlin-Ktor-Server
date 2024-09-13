@@ -94,7 +94,7 @@ abstract class ConnectTokenEnhancer: TokenEnhancer {
                 val idToken = connectTokenService.createIdToken(
                     client,
                     originalAuthRequest, claims.issueTime,
-                    userInfo.sub,
+                    userInfo.subject,
                     accessToken
                 )
 

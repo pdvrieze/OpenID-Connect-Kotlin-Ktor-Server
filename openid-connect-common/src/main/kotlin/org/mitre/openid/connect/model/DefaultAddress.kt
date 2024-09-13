@@ -82,6 +82,18 @@ class DefaultAddress(
     )
 
     companion object {
+        fun from(address: Address): DefaultAddress {
+            return address as? DefaultAddress ?: DefaultAddress(
+                id = address.id,
+                formatted = address.formatted,
+                streetAddress = address.streetAddress,
+                locality = address.locality,
+                region = address.region,
+                postalCode = address.postalCode,
+                country = address.country,
+            )
+        }
+
         private const val serialVersionUID = -1304880008685206811L
     }
 

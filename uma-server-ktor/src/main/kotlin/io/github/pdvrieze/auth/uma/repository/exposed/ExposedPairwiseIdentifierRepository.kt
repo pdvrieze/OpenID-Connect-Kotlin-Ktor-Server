@@ -11,12 +11,19 @@ class ExposedPairwiseIdentifierRepository(database: Database) : RepositoryBase(d
 
     override fun getBySectorIdentifier(sub: String, sectorIdentifierUri: String): PairwiseIdentifier? {
         val t = PairwiseIdentifiers
-        return t.selectAll()
-            .where {
-                (PairwiseIdentifiers.sub eq sub) and
-                    (PairwiseIdentifiers.sectorIdentifier eq sectorIdentifierUri)
-            }.map { PairwiseIdentifier(it[PairwiseIdentifiers.identifier]!!.toLong(), it[PairwiseIdentifiers.sub]!!, it[PairwiseIdentifiers.sectorIdentifier]!!) }
-            .singleOrNull()
+        return transaction {
+            t.selectAll()
+                .where {
+                    (PairwiseIdentifiers.sub eq sub) and
+                            (PairwiseIdentifiers.sectorIdentifier eq sectorIdentifierUri)
+                }
+                .map { PairwiseIdentifier(
+                    identifier = it[PairwiseIdentifiers.identifier],
+                    userSubject = it[PairwiseIdentifiers.sub]!!,
+                    sectorIdentifier = it[PairwiseIdentifiers.sectorIdentifier]!!
+                ) }
+                .singleOrNull()
+        }
     }
 
     override fun save(pairwise: PairwiseIdentifier): PairwiseIdentifier {

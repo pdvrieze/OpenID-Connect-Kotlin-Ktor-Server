@@ -57,14 +57,20 @@ class PairwiseIdentifier {
     @Deprecated("For JPA")
     constructor()
 
-    constructor(id: Long? = null, userSub: String, sectorIdentifier: String) {
+    constructor(id: Long? = null, identifier: String? = null, userSubject: String, sectorIdentifier: String) {
         this.id = id
-        this.userSub = userSub
+        this.identifier = identifier
+        this.userSub = userSubject
         this.sectorIdentifier = sectorIdentifier
     }
 
-    fun copy(id: Long? = this.id, userSub: String = this.userSub!!, sectorIdentifier: String = this.sectorIdentifier!!) : PairwiseIdentifier {
-        return PairwiseIdentifier(id, userSub, sectorIdentifier)
+    fun copy(
+        id: Long? = this.id,
+        identifier: String? = this.identifier,
+        userSub: String = this.userSub!!,
+        sectorIdentifier: String = this.sectorIdentifier!!
+    ) : PairwiseIdentifier {
+        return PairwiseIdentifier(id, this.identifier, userSub, sectorIdentifier)
     }
 
     companion object {

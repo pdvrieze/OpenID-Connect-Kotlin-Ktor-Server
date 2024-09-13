@@ -7,6 +7,9 @@ import io.github.pdvrieze.auth.uma.repository.exposed.ExposedBlacklistedSiteRepo
 import io.github.pdvrieze.auth.repository.exposed.ExposedOauth2ClientRepository
 import io.github.pdvrieze.auth.repository.exposed.ExposedOauth2TokenRepository
 import io.github.pdvrieze.auth.repository.exposed.ExposedSystemScopeRepository
+import io.github.pdvrieze.auth.uma.repository.exposed.ExposedPairwiseIdentifierRepository
+import io.github.pdvrieze.auth.uma.repository.exposed.ExposedPermissionRepository
+import io.github.pdvrieze.auth.uma.repository.exposed.ExposedResourceSetRepository
 import io.github.pdvrieze.auth.uma.repository.exposed.ExposedUserInfoRepository
 import io.github.pdvrieze.auth.uma.repository.exposed.ExposedWhitelistedSiteRepository
 import org.jetbrains.exposed.sql.Database
@@ -25,11 +28,12 @@ import org.mitre.oauth2.service.impl.DefaultSystemScopeService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.repository.ApprovedSiteRepository
 import org.mitre.openid.connect.repository.BlacklistedSiteRepository
+import org.mitre.openid.connect.repository.PairwiseIdentifierRepository
 import org.mitre.openid.connect.repository.UserInfoRepository
 import org.mitre.openid.connect.repository.WhitelistedSiteRepository
 import org.mitre.openid.connect.service.ApprovedSiteService
 import org.mitre.openid.connect.service.BlacklistedSiteService
-import org.mitre.openid.connect.service.PairwiseIdentiferService
+import org.mitre.openid.connect.service.PairwiseIdentifierService
 import org.mitre.openid.connect.service.StatsService
 import org.mitre.openid.connect.service.UserInfoService
 import org.mitre.openid.connect.service.WhitelistedSiteService
@@ -37,6 +41,7 @@ import org.mitre.openid.connect.service.impl.DefaultApprovedSiteService
 import org.mitre.openid.connect.service.impl.DefaultBlacklistedSiteService
 import org.mitre.openid.connect.service.impl.DefaultUserInfoService
 import org.mitre.openid.connect.service.impl.DefaultWhitelistedSiteService
+import org.mitre.openid.connect.service.impl.UUIDPairwiseIdentiferService
 import org.mitre.uma.repository.PermissionRepository
 import org.mitre.uma.repository.ResourceSetRepository
 import org.mitre.uma.service.ResourceSetService
@@ -64,7 +69,7 @@ data class OpenIdConfig(
         val encryptionService: JWTEncryptionAndDecryptionService
         val userInfoRepository: UserInfoRepository
         val clientService: ClientDetailsEntityService
-        val pairwiseIdentifierService: PairwiseIdentiferService
+        val pairwiseIdentifierService: PairwiseIdentifierService
         val userService: UserInfoService
         val clientRepository: OAuth2ClientRepository
         val tokenRepository: OAuth2TokenRepository
@@ -86,10 +91,9 @@ data class OpenIdConfig(
 
         override val userInfoRepository: UserInfoRepository = ExposedUserInfoRepository(config.database)
 
-        override val pairwiseIdentifierService: PairwiseIdentiferService = TODO()
+        val pairwiseIdentiferRepository: PairwiseIdentifierRepository = ExposedPairwiseIdentifierRepository(config.database)
 
-        override val userService: UserInfoService =
-            DefaultUserInfoService(userInfoRepository, clientService, pairwiseIdentifierService)
+        override val pairwiseIdentifierService: PairwiseIdentifierService = UUIDPairwiseIdentiferService(pairwiseIdentiferRepository)
 
         override val clientRepository: OAuth2ClientRepository = ExposedOauth2ClientRepository(config.database)
 
@@ -118,9 +122,9 @@ data class OpenIdConfig(
 
         val blacklistedSiteService: BlacklistedSiteService = DefaultBlacklistedSiteService(blacklistedSiteRepository)
 
-        val resourceSetRepository: ResourceSetRepository = TODO()
+        val resourceSetRepository: ResourceSetRepository = ExposedResourceSetRepository(config.database)
 
-        val ticketRepository: PermissionRepository = TODO()
+        val ticketRepository: PermissionRepository = ExposedPermissionRepository(config.database, resourceSetRepository)
 
         val resourceSetService: ResourceSetService = DefaultResourceSetService(
             repository = resourceSetRepository,
@@ -139,5 +143,9 @@ data class OpenIdConfig(
             resourceSetService = resourceSetService,
             config = this.config,
         )
+
+        override val userService: UserInfoService =
+            DefaultUserInfoService(userInfoRepository, clientService, pairwiseIdentifierService)
+
     }
 }

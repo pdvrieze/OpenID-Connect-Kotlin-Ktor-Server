@@ -63,7 +63,7 @@ class DefaultIntrospectionResultAssembler : IntrospectionResultAssembler {
 
         if (userInfo != null) {
             // if we have a UserInfo, use that for the subject
-            result[IntrospectionResultAssembler.SUB] = userInfo.sub!!
+            result[IntrospectionResultAssembler.SUB] = userInfo.subject!!
         } else {
             // otherwise, use the authentication's username
             result[IntrospectionResultAssembler.SUB] = authentication.name
@@ -109,7 +109,7 @@ class DefaultIntrospectionResultAssembler : IntrospectionResultAssembler {
 
         if (userInfo != null) {
             // if we have a UserInfo, use that for the subject
-            result[IntrospectionResultAssembler.SUB] = userInfo.sub!!
+            result[IntrospectionResultAssembler.SUB] = userInfo.subject!!
         } else {
             // otherwise, use the authentication's username
             result[IntrospectionResultAssembler.SUB] = authentication.name

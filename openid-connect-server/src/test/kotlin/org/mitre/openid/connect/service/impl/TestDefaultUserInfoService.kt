@@ -28,7 +28,7 @@ import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.model.DefaultUserInfo
 import org.mitre.openid.connect.model.UserInfo
 import org.mitre.openid.connect.repository.UserInfoRepository
-import org.mitre.openid.connect.service.PairwiseIdentiferService
+import org.mitre.openid.connect.service.PairwiseIdentifierService
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
@@ -52,7 +52,7 @@ class TestDefaultUserInfoService {
     private lateinit var clientDetailsEntityService: ClientDetailsEntityService
 
     @Mock
-    private lateinit var pairwiseIdentiferService: PairwiseIdentiferService
+    private lateinit var pairwiseIdentiferService: PairwiseIdentifierService
 
     private lateinit var userInfoAdmin: UserInfo
     private lateinit var userInfoRegular: UserInfo
@@ -72,13 +72,15 @@ class TestDefaultUserInfoService {
      */
     @BeforeEach
     fun prepare() {
-        userInfoAdmin = DefaultUserInfo()
-        userInfoAdmin.preferredUsername = adminUsername
-        userInfoAdmin.sub = adminSub
+        userInfoAdmin = DefaultUserInfo(
+            subject = adminSub,
+            preferredUsername = adminUsername,
+        )
 
-        userInfoRegular = DefaultUserInfo()
-        userInfoRegular.preferredUsername = regularUsername
-        userInfoRegular.sub = regularSub
+        userInfoRegular = DefaultUserInfo(
+            preferredUsername = regularUsername,
+            subject = regularSub,
+        )
 
         publicClient1 = ClientDetailsEntity()
         publicClient1.setClientId(publicClientId1)
@@ -118,7 +120,7 @@ class TestDefaultUserInfoService {
     fun loadByUsername_admin_success() {
         whenever(userInfoRepository.getByUsername(adminUsername)).thenReturn(userInfoAdmin)
         val user = service.getByUsername(adminUsername)!!
-        assertEquals(user.sub, adminSub)
+        assertEquals(user.subject, adminSub)
     }
 
     /**
@@ -129,7 +131,7 @@ class TestDefaultUserInfoService {
     fun loadByUsername_regular_success() {
         whenever(userInfoRepository.getByUsername(regularUsername)).thenReturn(userInfoRegular)
         val user = service.getByUsername(regularUsername)!!
-        assertEquals(user.sub, regularSub)
+        assertEquals(user.subject, regularSub)
     }
 
     /**
@@ -156,8 +158,8 @@ class TestDefaultUserInfoService {
         val user1 = service.getByUsernameAndClientId(regularUsername, publicClientId1)!!
         val user2 = service.getByUsernameAndClientId(regularUsername, publicClientId2)!!
 
-        assertEquals(regularSub, user1.sub)
-        assertEquals(regularSub, user2.sub)
+        assertEquals(regularSub, user1.subject)
+        assertEquals(regularSub, user2.subject)
     }
 
     @Test
@@ -172,10 +174,10 @@ class TestDefaultUserInfoService {
             .thenReturn(pairwiseClient4)
 
         whenever(userInfoRepository.getByUsername(regularUsername)).thenAnswer {
-            val userInfo: UserInfo = DefaultUserInfo()
-            userInfo.preferredUsername = regularUsername
-            userInfo.sub = regularSub
-            userInfo
+            DefaultUserInfo(
+                preferredUsername = regularUsername,
+                subject = regularSub,
+            )
         }
 
         whenever(pairwiseIdentiferService.getIdentifier(userInfoRegular, pairwiseClient1))
@@ -192,10 +194,10 @@ class TestDefaultUserInfoService {
         val user3 = service.getByUsernameAndClientId(regularUsername, pairwiseClientId3)
         val user4 = service.getByUsernameAndClientId(regularUsername, pairwiseClientId4)
 
-        assertEquals(pairwiseSub12, user1!!.sub)
-        assertEquals(pairwiseSub12, user2!!.sub)
-        assertEquals(pairwiseSub3, user3!!.sub)
-        assertEquals(pairwiseSub4, user4!!.sub)
+        assertEquals(pairwiseSub12, user1!!.subject)
+        assertEquals(pairwiseSub12, user2!!.subject)
+        assertEquals(pairwiseSub3, user3!!.subject)
+        assertEquals(pairwiseSub4, user4!!.subject)
     }
     
     

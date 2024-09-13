@@ -59,7 +59,7 @@ internal fun ResultRow.toUserInfo(address: Address?): UserInfo {
     with(UserInfos) {
         return DefaultUserInfo(
             id = r[id].value,
-            sub = r[sub],
+            subject = r[sub],
             preferredUsername = r[preferredUsername],
             name = r[name],
             givenName = r[givenName],

@@ -93,7 +93,7 @@ class SpringConnectTokenEnhancer : ConnectTokenEnhancer(), TokenEnhancer {
                 val idToken = connectTokenService.createIdToken(
                     client,
                     originalAuthRequest.fromSpring(), claims.issueTime,
-                    userInfo.sub, token.builder()
+                    userInfo.subject, token.builder()
                 )
 
                 // attach the id token to the parent access token
