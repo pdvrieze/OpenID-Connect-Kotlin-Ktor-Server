@@ -17,13 +17,28 @@
  */
 package org.mitre.openid.connect.service.impl
 
+import org.mitre.openid.connect.model.WhitelistedSite
 import org.mitre.openid.connect.repository.WhitelistedSiteRepository
+import org.mitre.openid.connect.service.WhitelistedSiteService
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 /**
  * Implementation of the WhitelistedSiteService
  *
  * @author Michael Joseph Walsh, aanganes
  */
-class DefaultWhitelistedSiteService(
-    override var repository: WhitelistedSiteRepository,
-) : AbstractWhitelistedSiteService()
+@Service
+@Transactional(value = "defaultTransactionManager")
+class JpaWhitelistedSiteService : AbstractWhitelistedSiteService {
+    @Autowired
+    override lateinit var repository: WhitelistedSiteRepository
+
+    @Deprecated("Only for spring")
+    constructor()
+
+    constructor(repository: WhitelistedSiteRepository) {
+        this.repository = repository
+    }
+}
