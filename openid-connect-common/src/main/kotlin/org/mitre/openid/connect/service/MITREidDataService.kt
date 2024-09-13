@@ -120,11 +120,11 @@ interface MITREidDataService {
         for (ahe in conf.authenticationHolders) importAuthenticationHolder(this, ahe)
         logger.info("Done reading authentication holders")
 
-        for (delegate in conf.accessTokens) importAccessToken(this, delegate)
-        logger.info("Done reading access tokens")
-
         for (delegate in conf.refreshTokens) importRefreshToken(this, delegate)
         logger.info("Done reading refresh tokens")
+
+        for (delegate in conf.accessTokens) importAccessToken(this, delegate)
+        logger.info("Done reading access tokens")
 
         for (scope in conf.systemScopes) importSystemScope(this, scope)
         logger.info("Done reading system scopes")

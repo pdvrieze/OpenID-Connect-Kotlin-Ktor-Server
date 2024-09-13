@@ -58,6 +58,7 @@ import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.junit.jupiter.MockitoExtension
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.capture
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.isA
@@ -133,6 +134,7 @@ class TestMITREidDataService_1_0 {
         formatter = DateFormatter()
         formatter.setIso(DateTimeFormat.ISO.DATE_TIME)
         reset(clientRepository, approvedSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository, wlSiteRepository, blSiteRepository)
+
         val mapsField = ReflectionUtils.findField(MITREidDataService_1_0::class.java, "maps")!!
         mapsField.isAccessible = true
         maps = ReflectionUtils.getField(mapsField, dataService) as MITREidDataServiceMaps
@@ -198,6 +200,7 @@ class TestMITREidDataService_1_0 {
                 "}")
 
         System.err.println(configJson)
+
         val fakeDb: MutableMap<Long, OAuth2RefreshTokenEntity> = HashMap()
         whenever(tokenRepository.saveRefreshToken(isA<OAuth2RefreshTokenEntity>()))
             .thenAnswer(object : Answer<OAuth2RefreshTokenEntity> {
@@ -206,7 +209,7 @@ class TestMITREidDataService_1_0 {
                 @Throws(Throwable::class)
                 override fun answer(invocation: InvocationOnMock): OAuth2RefreshTokenEntity {
                     val _token = invocation.arguments[0] as OAuth2RefreshTokenEntity
-                    val id: Long = _token.id ?: (id++).also { _token.id = it }
+                    val id = _token.id ?: id++.also { _token.id = it }
                     fakeDb[id] = _token
                     return _token
                 }
@@ -234,6 +237,7 @@ class TestMITREidDataService_1_0 {
         maps.authHolderOldToNewIdMap[1L] = 678L
         maps.authHolderOldToNewIdMap[2L] = 679L
         dataService.importData(configJson)
+
         //2 times for token, 2 times to update client, 2 times to update authHolder
         verify(tokenRepository, times(6)).saveRefreshToken(capture(capturedRefreshTokens))
 
@@ -277,7 +281,6 @@ class TestMITREidDataService_1_0 {
             jwt = JWTParser.parse("eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0MTI3ODk5NjgsInN1YiI6IjkwMzQyLkFTREZKV0ZBIiwiYXRfaGFzaCI6InptTmt1QmNRSmNYQktNaVpFODZqY0EiLCJhdWQiOlsiY2xpZW50Il0sImlzcyI6Imh0dHA6XC9cL2xvY2FsaG9zdDo4MDgwXC9vcGVuaWQtY29ubmVjdC1zZXJ2ZXItd2ViYXBwXC8iLCJpYXQiOjE0MTI3ODkzNjh9.xkEJ9IMXpH7qybWXomfq9WOOlpGYnrvGPgey9UQ4GLzbQx7JC0XgJK83PmrmBZosvFPCmota7FzI_BtwoZLgAZfFiH6w3WIlxuogoH-TxmYbxEpTHoTsszZppkq9mNgOlArV4jrR9y3TPo4MovsH71dDhS_ck-CvAlJunHlqhs0"),
             authenticationHolder = mockedAuthHolder1,
             tokenType = "Bearer",
-            refreshToken = null
         )
 
         val expiration2 = "2015-01-07T18:31:50.079+00:00"
@@ -702,7 +705,6 @@ class TestMITREidDataService_1_0 {
     @Throws(IOException::class)
     fun testImportAuthenticationHolders() {
         val req1 = OAuth2Request(
-            requestParameters = HashMap(),
             clientId = "client1",
             isApproved = true,
             redirectUri = "http://foo.com",
@@ -905,6 +907,7 @@ class TestMITREidDataService_1_0 {
             isApproved = true,
             redirectUri = "http://bar.com",
         )
+
         val mockAuth2 = SavedUserAuthentication(name ="mockAuth2")
         val auth2 = OAuth2Authentication(req2, mockAuth2)
 
@@ -990,13 +993,12 @@ class TestMITREidDataService_1_0 {
             fakeRefreshTokenTable.values.sortedWith(refreshTokenIdComparator())
         //capturedRefreshTokens.getAllValues();
 
-        assertEquals(356L, savedRefreshTokens[0].authenticationHolder!!.id)
-        assertEquals(357L, savedRefreshTokens[1].authenticationHolder!!.id)
+        assertEquals(356L, savedRefreshTokens[0].authenticationHolder.id)
+        assertEquals(357L, savedRefreshTokens[1].authenticationHolder.id)
     }
 
     @Test
     fun testExportDisabled() {
-//        val writer = JsonWriter(StringWriter())
         assertThrows<UnsupportedOperationException> {
             dataService.exportData()
         }

@@ -140,8 +140,12 @@ class MITREidDataService_1_1 : MITREidDataService {
             context.tokenRepository.saveAccessToken(accessToken)
         }
         for ((oldAccessTokenId, oldRefreshTokenId) in context.maps.accessTokenToRefreshTokenRefs) {
-            val newRefreshTokenId = context.maps.refreshTokenOldToNewIdMap[oldRefreshTokenId]!!
-            val refreshToken = context.tokenRepository.getRefreshTokenById(newRefreshTokenId)!!
+            val newRefreshTokenId = context.maps.refreshTokenOldToNewIdMap[oldRefreshTokenId]
+                ?: error("Missing map for old refresh token: $oldRefreshTokenId")
+
+            val refreshToken = context.tokenRepository.getRefreshTokenById(newRefreshTokenId)
+                ?: error("Missing access token with id $newRefreshTokenId")
+
             val newAccessTokenId = context.maps.accessTokenOldToNewIdMap[oldAccessTokenId]!!
             val accessToken = context.tokenRepository.getAccessTokenById(newAccessTokenId)!!
             accessToken.setRefreshToken(refreshToken)
