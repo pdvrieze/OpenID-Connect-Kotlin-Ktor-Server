@@ -32,16 +32,17 @@ dependencies {
     implementation(libs.spring.oauth)
 
 
-
     testImplementation(libs.mockito.jupiter)
     testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.spring.test)
     testImplementation(libs.junit.jupiter.api)
-//    testImplementation(libs.spring.core)
 
     testImplementation(libs.eclipse.persistence.jpa)
-    testImplementation(libs.eclipse.persistence.core)
+//    testImplementation(libs.eclipse.persistence.core)
 
     testRuntimeOnly(libs.junit.jupiter.engine)
+//    testRuntimeOnly(libs.eclipse.persistence.jpa)
+    testRuntimeOnly(libs.eclipse.persistence.core)
 }
 
 tasks.named<Test>("test") {

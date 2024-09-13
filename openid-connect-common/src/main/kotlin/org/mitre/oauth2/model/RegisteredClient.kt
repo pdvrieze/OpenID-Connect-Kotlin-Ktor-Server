@@ -83,7 +83,7 @@ import java.util.*
 /**
  * @author jricher
  */
-@Serializable(RegisteredClient.Companion::class)
+@Serializable(RegisteredClient.Serializer::class)
 class RegisteredClient(
     val client: OAuthClientDetails = ClientDetailsEntity(),
     // these fields are needed in addition to the ones in ClientDetailsEntity

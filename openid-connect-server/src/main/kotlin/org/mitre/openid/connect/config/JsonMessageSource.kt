@@ -118,12 +118,12 @@ class JsonMessageSource : AbstractMessageSource() {
 
                     if (!r.exists()) {
                         // fallback to language only
-                        logger.debug("Fallback locale to language only.")
+                        myLogger.debug("Fallback locale to language only.")
                         filename = locale.language + File.separator + namespace + ".json"
                         r = baseDirectory.createRelative(filename)
                     }
 
-                    logger.info("No locale loaded, trying to load from $r")
+                    myLogger.info("No locale loaded, trying to load from $r")
 
                     val obj = r.inputStream.use {
                         val reader = InputStreamReader(r.inputStream, "UTF-8")
@@ -134,12 +134,12 @@ class JsonMessageSource : AbstractMessageSource() {
                 }
                 languageMaps[locale] = set
             } catch (e: FileNotFoundException) {
-                logger.info("Unable to load locale because no messages file was found for locale ${locale.displayName}")
+                myLogger.info("Unable to load locale because no messages file was found for locale ${locale.displayName}")
                 languageMaps[locale] = null
             } catch (e: SerializationException) {
-                logger.error("Unable to load locale", e)
+                myLogger.error("Unable to load locale", e)
             } catch (e: IOException) {
-                logger.error("Unable to load locale", e)
+                myLogger.error("Unable to load locale", e)
             }
         }
 
@@ -147,6 +147,7 @@ class JsonMessageSource : AbstractMessageSource() {
     }
 
     companion object {
-        private val logger = getLogger<JsonMessageSource>()
+        @JvmStatic
+        private val myLogger = getLogger<JsonMessageSource>()
     }
 }
