@@ -177,7 +177,7 @@ class TestMITREidDataService_1_0 {
             id = 2L,
             client = mockedClient2,
             expiration = expirationDate2,
-            jwt = JWTParser.parse("eyJhbGciOiJub25lI,n0.eyJqdGkiOiJlYmEyYjc3My0xNjAzLTRmNDAtOWQ3MS1hMGIxZDg1OWE2MDAifQ."),
+            jwt = JWTParser.parse("eyJhbGciOiJub25lIn0.eyJqdGkiOiJlYmEyYjc3My0xNjAzLTRmNDAtOWQ3MS1hMGIxZDg1OWE2MDAifQ."),
             authenticationHolder = mockedAuthHolder2,
         )
 
