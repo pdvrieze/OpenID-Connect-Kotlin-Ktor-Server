@@ -240,10 +240,11 @@ interface MITREidDataService {
             val clientId: String = delegate.clientId
             val authHolderId: Long = delegate.authenticationHolderId
 
-            val token = OAuth2RefreshTokenEntity().apply {
-                expiration = delegate.expiration
+            val token = OAuth2RefreshTokenEntity(
+                authenticationHolder = DUMMY_AUTH_HOLDER, // dummy value
+                expiration = delegate.expiration,
                 jwt = delegate.value ?: error("Missing jwt token")
-            }
+            )
 
             val newId = tokenRepository.saveRefreshToken(token).id!!
 
@@ -307,10 +308,11 @@ interface MITREidDataService {
             for ((oldAccessTokenId, oldRefreshTokenId) in maps.accessTokenToRefreshTokenRefs) {
                 val newRefreshTokenId = maps.refreshTokenOldToNewIdMap[oldRefreshTokenId]!!
                 val refreshToken = tokenRepository.getRefreshTokenById(newRefreshTokenId)
+
                 val newAccessTokenId = maps.accessTokenOldToNewIdMap[oldAccessTokenId]!!
-                val accessToken = tokenRepository.getAccessTokenById(newAccessTokenId)!!
+                val accessToken = tokenRepository.getAccessTokenById(newAccessTokenId)?: error("Missing access token $newAccessTokenId")
 //                refreshToken?.let { accessToken.refreshToken = it }
-                accessToken.refreshToken = refreshToken ?: error("Missing refresh token")
+                accessToken.refreshToken = refreshToken
                 tokenRepository.saveAccessToken(accessToken)
             }
 
@@ -905,5 +907,7 @@ interface MITREidDataService {
         const val GRANTS: String = "grants"
         const val CLIENTS: String = "clients"
         const val SYSTEMSCOPES: String = "systemScopes"
+
+        private val DUMMY_AUTH_HOLDER = AuthenticationHolderEntity()
     }
 }
