@@ -42,7 +42,7 @@ abstract class AbstractRedirectResolver(
             if (redirectUris.size == 1) return redirectUris.first()
         } else {
             redirectUris.firstOrNull { redirectMatches(requestedRedirect, it) }
-                ?.let { return it }
+                ?.let { return requestedRedirect }
         }
 
         throw RedirectResolver.RedirectMismatchException(
