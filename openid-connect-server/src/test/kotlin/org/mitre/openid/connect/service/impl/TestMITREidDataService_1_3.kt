@@ -60,7 +60,6 @@ import org.mitre.openid.connect.service.MITREidDataService.Companion.WHITELISTED
 import org.mitre.openid.connect.service.MITREidDataServiceMaps
 import org.mitre.openid.connect.util.assertIs
 import org.mitre.util.asBoolean
-import org.mitre.util.asBooleanOrNull
 import org.mitre.util.asString
 import org.mitre.util.getLogger
 import org.mockito.ArgumentCaptor
@@ -1382,7 +1381,7 @@ class TestMITREidDataService_1_3 {
 
         // parse the output as a JSON object for testing
         val elem = Json.parseToJsonElement(data)
-        val root = elem!!.jsonObject
+        val root = elem.jsonObject
 
         // make sure the root is there
         assertTrue(root.contains(MITREidDataService.MITREID_CONNECT_1_3))
@@ -1437,12 +1436,12 @@ class TestMITREidDataService_1_3 {
                     assertIs<JsonObject>(holder["savedUserAuthentication"])
                     val savedAuth = holder["savedUserAuthentication"]!!.jsonObject
                     assertEquals(compare.userAuth!!.name, savedAuth["name"].asString())
-                    val expectedAuthenticated =  when(val a = savedAuth["authenticated"]) {
+                    val actualAuthenticated =  when(val a = savedAuth["authenticated"]) {
                         is JsonNull -> null
                         else -> a.asBoolean()
                     }
-                    assertEquals(compare.userAuth!!.isAuthenticated, expectedAuthenticated)
-                    assertEquals(compare.userAuth!!.sourceClass, savedAuth["sourceClass"].asString())
+                    assertEquals(compare.userAuth!!.isAuthenticated, actualAuthenticated)
+                    assertEquals(compare.userAuth!!.sourceClass, savedAuth["sourceClass"]?.asString())
                 }
                 checked.add(compare)
             }

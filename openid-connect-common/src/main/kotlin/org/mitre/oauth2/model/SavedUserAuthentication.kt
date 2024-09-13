@@ -49,7 +49,10 @@ class SavedUserAuthentication(
         authorities = src.authorities,
         authenticated = src.isAuthenticated,
         // if we're copying in a saved auth, carry over the original class name
-        sourceClass = (src as? SavedUserAuthentication)?.sourceClass ?: src.javaClass.name,
+        sourceClass = when (src) {
+            is SavedUserAuthentication -> src.sourceClass
+            else -> src.javaClass.name
+        },
     )
 
     companion object {

@@ -1,5 +1,6 @@
 package org.mitre.oauth2.model.convert
 
+import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -29,12 +30,15 @@ object AuthenticationSerializer : KSerializer<Authentication> {
     private class SerialDelegate(
         val name: String,
         val sourceClass: String? = null,
-        val authenticated: Boolean = false,
+        @EncodeDefault val authenticated: Boolean = false,
         val authorities: Set<@Serializable(SimpleGrantedAuthorityStringConverter::class) GrantedAuthority> = emptySet(),
     ) {
         constructor(e: Authentication) : this(
             name = e.name,
-            sourceClass = (e as? SavedUserAuthentication)?.sourceClass ?: e.javaClass.name,
+            sourceClass = when (e) {
+                is SavedUserAuthentication -> e.sourceClass
+                else -> e.javaClass.name
+            },
             authenticated = e.isAuthenticated,
             authorities = e.authorities.toSet(),
         )
