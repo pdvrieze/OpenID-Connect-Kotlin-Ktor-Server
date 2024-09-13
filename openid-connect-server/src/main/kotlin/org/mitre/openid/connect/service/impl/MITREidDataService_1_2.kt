@@ -108,9 +108,8 @@ class MITREidDataService_1_2 : MITREidDataService {
 
     override fun fixObjectReferences(context: Context) {
         logger.info("Fixing object references...")
-        for (oldRefreshTokenId in context.maps.refreshTokenToClientRefs.keys) {
-            val clientRef = context.maps.refreshTokenToClientRefs[oldRefreshTokenId]
-            val client = context.clientRepository.getClientByClientId(clientRef!!)
+        for ((oldRefreshTokenId, clientRef) in context.maps.refreshTokenToClientRefs) {
+            val client = context.clientRepository.getClientByClientId(clientRef)
             val newRefreshTokenId = context.maps.refreshTokenOldToNewIdMap[oldRefreshTokenId]!!
             val refreshToken = context.tokenRepository.getRefreshTokenById(newRefreshTokenId)!!
             refreshToken.client = client?.let(ClientDetailsEntity::from)
@@ -133,30 +132,34 @@ class MITREidDataService_1_2 : MITREidDataService {
             accessToken.client = client?.let(ClientDetailsEntity::from)
             context.tokenRepository.saveAccessToken(accessToken)
         }
+
         for ((oldAccessTokenId, oldAuthHolderId) in context.maps.accessTokenToAuthHolderRefs) {
-            val newAuthHolderId = context.maps.authHolderOldToNewIdMap[oldAuthHolderId] ?: error("Missing authHolder map $oldAuthHolderId")
-            val authHolder = context.authHolderRepository.getById(newAuthHolderId) ?: error("Missing authHolder $newAuthHolderId")
+            val newAuthHolderId = context.maps.authHolderOldToNewIdMap[oldAuthHolderId]
+                ?: error("Missing authHolder map $oldAuthHolderId")
+            val authHolder = context.authHolderRepository.getById(newAuthHolderId)
+                ?: error("Missing authHolder $newAuthHolderId")
             val newAccessTokenId = context.maps.accessTokenOldToNewIdMap[oldAccessTokenId].requireId()
             val accessToken = context.tokenRepository.getAccessTokenById(newAccessTokenId)!!
             accessToken.authenticationHolder = authHolder
             context.tokenRepository.saveAccessToken(accessToken)
         }
+
         for ((oldAccessTokenId, oldRefreshTokenId) in context.maps.accessTokenToRefreshTokenRefs) {
             val newRefreshTokenId = context.maps.refreshTokenOldToNewIdMap[oldRefreshTokenId]
                 ?: error("Missing map for old refresh token: $oldRefreshTokenId")
 
             val refreshToken = context.tokenRepository.getRefreshTokenById(newRefreshTokenId)
                 ?: error("Missing access token with id $newRefreshTokenId")
+
             val newAccessTokenId = context.maps.accessTokenOldToNewIdMap[oldAccessTokenId]!!
             val accessToken = context.tokenRepository.getAccessTokenById(newAccessTokenId)!!
             accessToken.setRefreshToken(refreshToken)
             context.tokenRepository.saveAccessToken(accessToken)
         }
-        for (oldGrantId in context.maps.grantToAccessTokensRefs.keys) {
-            val oldAccessTokenIds = context.maps.grantToAccessTokensRefs[oldGrantId]!!
 
+        for ((oldGrantId, oldAccessTokenIds) in context.maps.grantToAccessTokensRefs) {
             val newGrantId = context.maps.grantOldToNewIdMap[oldGrantId]!!
-            val site = context.approvedSiteRepository.getById(newGrantId)
+            val site = context.approvedSiteRepository.getById(newGrantId)!!
 
             for (oldTokenId in oldAccessTokenIds) {
                 val newTokenId = context.maps.accessTokenOldToNewIdMap[oldTokenId]?: error("Missing map $oldTokenId")
@@ -165,7 +168,7 @@ class MITREidDataService_1_2 : MITREidDataService {
                 context.tokenRepository.saveAccessToken(token)
             }
 
-            context.approvedSiteRepository.save(site!!)
+            context.approvedSiteRepository.save(site)
         }
         logger.info("Done fixing object references.")
     }

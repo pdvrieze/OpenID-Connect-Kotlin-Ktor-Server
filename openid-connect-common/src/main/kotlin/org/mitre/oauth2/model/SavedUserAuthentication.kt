@@ -21,8 +21,8 @@ package org.mitre.oauth2.model
  * @author jricher
  */
 class SavedUserAuthentication(
-    id: Long? = null,
     name: String,
+    id: Long? = null,
     authorities: Collection<GrantedAuthority> = emptyList(),
     authenticated: Boolean = false,
     sourceClass: String? = null,
@@ -44,8 +44,8 @@ class SavedUserAuthentication(
      * Create a Saved Auth from an existing Auth token
      */
     constructor(src: Authentication) : this(
-        id = null,
         name = src.name,
+        id = null,
         authorities = src.authorities,
         authenticated = src.isAuthenticated,
         // if we're copying in a saved auth, carry over the original class name

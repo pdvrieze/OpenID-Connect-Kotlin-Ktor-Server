@@ -8,6 +8,7 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import java.time.Instant
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
 
@@ -24,6 +25,6 @@ object IsoDateSerializer : KSerializer<Date> {
         return Date.from(Instant.from(dateFormatter.parse(decoder.decodeString())))
     }
 
-    private val dateFormatter: DateTimeFormatter = DateTimeFormatter.ISO_DATE_TIME.withLocale(Locale.ENGLISH)
+    private val dateFormatter: DateTimeFormatter = DateTimeFormatter.ISO_DATE_TIME.withLocale(Locale.ENGLISH).withZone(ZoneId.of("UTC"))
 
 }

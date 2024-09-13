@@ -169,8 +169,8 @@ fun SpringOAuth2Authentication.fromSpring(): OAuth2Authentication {
 
 fun Authentication.fromSpring(): SavedUserAuthentication? {
     return SavedUserAuthentication(
-        id = null,
         name = name,
+        id = null,
         authorities = authorities.map { GrantedAuthority(it.authority) },
         authenticated = isAuthenticated,
         sourceClass = this.javaClass.name

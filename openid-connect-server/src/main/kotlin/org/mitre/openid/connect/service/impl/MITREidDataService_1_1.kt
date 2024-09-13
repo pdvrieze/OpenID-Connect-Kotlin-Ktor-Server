@@ -22,6 +22,8 @@ import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2ClientRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.oauth2.repository.SystemScopeRepository
+import org.mitre.oauth2.util.requireId
+import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.openid.connect.repository.ApprovedSiteRepository
 import org.mitre.openid.connect.repository.BlacklistedSiteRepository
 import org.mitre.openid.connect.repository.WhitelistedSiteRepository
@@ -132,9 +134,11 @@ class MITREidDataService_1_1 : MITREidDataService {
         }
         context.maps.accessTokenToClientRefs.clear()
         for ((oldAccessTokenId, oldAuthHolderId) in context.maps.accessTokenToAuthHolderRefs) {
-            val newAuthHolderId = context.maps.authHolderOldToNewIdMap[oldAuthHolderId]!!
-            val authHolder = context.authHolderRepository.getById(newAuthHolderId)!!
-            val newAccessTokenId = context.maps.accessTokenOldToNewIdMap[oldAccessTokenId]!!
+            val newAuthHolderId = context.maps.authHolderOldToNewIdMap[oldAuthHolderId]
+                ?: error("Missing authHolder map $oldAuthHolderId")
+            val authHolder = context.authHolderRepository.getById(newAuthHolderId)
+                ?: error("Missing authHolder $newAuthHolderId")
+            val newAccessTokenId = context.maps.accessTokenOldToNewIdMap[oldAccessTokenId].requireId()
             val accessToken = context.tokenRepository.getAccessTokenById(newAccessTokenId)!!
             accessToken.authenticationHolder = authHolder
             context.tokenRepository.saveAccessToken(accessToken)
@@ -157,7 +161,7 @@ class MITREidDataService_1_1 : MITREidDataService {
             val site = context.approvedSiteRepository.getById(newGrantId)!!
 
             for (oldTokenId in oldAccessTokenIds) {
-                val newTokenId = checkNotNull(context.maps.accessTokenOldToNewIdMap[oldTokenId]) { "missing map for old token $oldTokenId" }
+                val newTokenId = context.maps.accessTokenOldToNewIdMap[oldTokenId]?: error("Missing map $oldTokenId")
                 val token = context.tokenRepository.getAccessTokenById(newTokenId)!!
                 token.approvedSite = site
                 context.tokenRepository.saveAccessToken(token)

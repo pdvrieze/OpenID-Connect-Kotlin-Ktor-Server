@@ -292,6 +292,7 @@ class TestMITREidDataService_1_2 {
 
         // unused by mockito (causs unnecessary stubbing exception
 //		when(mockedAuthHolder2.getId()).thenReturn(2L);
+        val mockRefreshToken1 = mock<OAuth2RefreshTokenEntity>()
         val mockRefreshToken2 = mock<OAuth2RefreshTokenEntity>()
 
         // unused by mockito (causs unnecessary stubbing exception
@@ -366,6 +367,10 @@ class TestMITREidDataService_1_2 {
                     return _auth
                 }
             })
+
+        whenever(tokenRepository.getRefreshTokenById(1L)).thenReturn(mockRefreshToken1)
+        whenever(tokenRepository.getRefreshTokenById(135L)).thenReturn(mockRefreshToken2)
+
         maps.authHolderOldToNewIdMap[1L] = 133L
         maps.authHolderOldToNewIdMap[2L] = 134L
         maps.refreshTokenOldToNewIdMap[1L] = 135L
@@ -708,14 +713,14 @@ class TestMITREidDataService_1_2 {
             isApproved = true,
             redirectUri = "http://foo.com",
         )
-        val mockAuth1 = mock<SavedUserAuthentication>(serializable = true)
+        val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
         val auth1 = OAuth2Authentication(req1, mockAuth1)
 
         val holder1 = AuthenticationHolderEntity()
         holder1.id = 1L
         holder1.authentication = auth1
 
-        val mockAuth2 = mock<SavedUserAuthentication>(serializable = true)
+        val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
 
         val holder2 = AuthenticationHolderEntity(
             id = 2L,
@@ -858,7 +863,7 @@ class TestMITREidDataService_1_2 {
             isApproved = true,
             redirectUri = "http://foo.com",
         )
-        val mockAuth1 = mock<SavedUserAuthentication>(serializable = true)
+        val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
         val auth1 = OAuth2Authentication(req1, mockAuth1)
 
         val holder1 = AuthenticationHolderEntity()
@@ -885,7 +890,7 @@ class TestMITREidDataService_1_2 {
             isApproved = true,
             redirectUri = "http://bar.com",
         )
-        val mockAuth2 = mock<SavedUserAuthentication>(serializable = true)
+        val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
         val auth2 = OAuth2Authentication(req2, mockAuth2)
 
         val holder2 = AuthenticationHolderEntity()

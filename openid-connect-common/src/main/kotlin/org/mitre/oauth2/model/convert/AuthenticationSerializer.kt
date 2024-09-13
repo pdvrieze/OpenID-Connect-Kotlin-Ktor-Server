@@ -41,8 +41,8 @@ object AuthenticationSerializer : KSerializer<Authentication> {
 
         fun toAuthentication(): SavedUserAuthentication {
             return SavedUserAuthentication(
-                id = null,
                 name = name,
+                id = null,
                 authorities = authorities,
                 authenticated = authenticated,
                 sourceClass = sourceClass

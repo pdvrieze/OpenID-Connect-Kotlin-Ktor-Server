@@ -214,8 +214,8 @@ private fun ResultRow.toUserAuth(): SavedUserAuthentication {
 
     return with(SavedUserAuths) {
         SavedUserAuthentication(
-            id = savedUserId,
             name = r[name]!!,
+            id = savedUserId,
             authorities = authorities,
             authenticated = r[authenticated],
             sourceClass = r[sourceClass]

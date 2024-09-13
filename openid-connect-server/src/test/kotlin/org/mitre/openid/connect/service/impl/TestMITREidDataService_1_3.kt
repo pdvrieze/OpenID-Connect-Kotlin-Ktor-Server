@@ -63,6 +63,7 @@ import org.mitre.util.asString
 import org.mitre.util.getLogger
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
+import org.mockito.ArgumentMatchers.eq
 import org.mockito.Captor
 import org.mockito.InjectMocks
 import org.mockito.Mock
@@ -553,7 +554,7 @@ class TestMITREidDataService_1_3 {
         whenever(mockedAuthHolder2.id).thenReturn(2L)
 
         val mockRefreshToken2 = mock<OAuth2RefreshTokenEntity>()
-        whenever(mockRefreshToken2.id).thenReturn(1L)
+        whenever(mockRefreshToken2.id).thenReturn(324L)
 
         val token2 = OAuth2AccessTokenEntity(
             id = 2L,
@@ -588,14 +589,13 @@ class TestMITREidDataService_1_3 {
         logger.debug(configJson)
 
         val fakeDb: MutableMap<Long, OAuth2AccessTokenEntity> = HashMap()
-        whenever<OAuth2AccessTokenEntity>(tokenRepository.saveAccessToken(isA<OAuth2AccessTokenEntity>()))
-            .thenAnswer(object : Answer<OAuth2AccessTokenEntity> {
+        whenever(tokenRepository.saveAccessToken(any())).thenAnswer(object : Answer<OAuth2AccessTokenEntity> {
                 var id: Long = 324L
 
                 @Throws(Throwable::class)
                 override fun answer(invocation: InvocationOnMock): OAuth2AccessTokenEntity {
                     val _token = invocation.arguments[0] as OAuth2AccessTokenEntity
-                    val id = _token.id ?: id++.also { _token.id = it }
+                    val id = _token.id ?: (id++).also { _token.id = it }
                     fakeDb[id] = _token
                     return _token
                 }
@@ -625,6 +625,8 @@ class TestMITREidDataService_1_3 {
         maps.refreshTokenOldToNewIdMap[1L] = 133L
         maps.authHolderOldToNewIdMap[1L] = 222L
         maps.authHolderOldToNewIdMap[2L] = 223L
+
+        whenever(tokenRepository.getRefreshTokenById(eq(133L))).thenReturn(mockRefreshToken2)
 
         dataService.importData(configJson)
 
@@ -1343,7 +1345,7 @@ class TestMITREidDataService_1_3 {
             isApproved = true,
             redirectUri = "http://foo.com",
         )
-        val mockAuth1: SavedUserAuthentication =  TODO("No mock object")
+        val mockAuth1: SavedUserAuthentication =  SavedUserAuthentication(name = "mockAuth1")
 //            UsernamePasswordAuthenticationToken("user1", "pass1", AuthorityUtils.commaSeparatedStringToAuthorityList("ROLE_USER"))
         val auth1 = OAuth2Authentication(req1, mockAuth1)
 
@@ -1414,7 +1416,7 @@ class TestMITREidDataService_1_3 {
         val checked: MutableSet<AuthenticationHolderEntity> = HashSet()
         for (e in holders) {
             assertTrue(e is JsonObject)
-            val holder = e!!.jsonObject
+            val holder = e.jsonObject
 
             var compare: AuthenticationHolderEntity? = null
             if (holder["id"]!!.jsonPrimitive.long == holder1.id) {
@@ -1451,7 +1453,7 @@ class TestMITREidDataService_1_3 {
             isApproved = true,
             redirectUri = "http://foo.com",
         )
-        val mockAuth1 = mock<SavedUserAuthentication>(serializable = true)
+        val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
         val auth1 = OAuth2Authentication(req1, mockAuth1)
 
         val holder1 = AuthenticationHolderEntity()
@@ -1463,7 +1465,7 @@ class TestMITREidDataService_1_3 {
             isApproved = true,
             redirectUri = "http://bar.com",
         )
-        val mockAuth2 = mock<SavedUserAuthentication>(serializable = true)
+        val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
         val auth2 = OAuth2Authentication(req2, mockAuth2)
 
         val holder2 = AuthenticationHolderEntity()
@@ -1708,7 +1710,7 @@ class TestMITREidDataService_1_3 {
             isApproved = true,
             redirectUri = "http://foo.com",
         )
-        val mockAuth1 = mock<SavedUserAuthentication>(serializable = true)
+        val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
         val auth1 = OAuth2Authentication(req1, mockAuth1)
 
         val holder1 = AuthenticationHolderEntity()
@@ -1734,7 +1736,7 @@ class TestMITREidDataService_1_3 {
             isApproved = true,
             redirectUri = "http://bar.com",
         )
-        val mockAuth2 = mock<SavedUserAuthentication>(serializable = true)
+        val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
         val auth2 = OAuth2Authentication(req2, mockAuth2)
 
         val holder2 = AuthenticationHolderEntity()
