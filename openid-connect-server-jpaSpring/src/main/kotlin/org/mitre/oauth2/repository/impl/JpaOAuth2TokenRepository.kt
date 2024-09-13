@@ -214,6 +214,12 @@ class JpaOAuth2TokenRepository : OAuth2TokenRepository {
         return LinkedHashSet(query.resultList)
     }
 
+    @Deprecated(
+        """this method was added to return the remove duplicate access tokens values
+	  so that {code removeAccessToken(OAuth2AccessTokenEntity o)} would not to fail. the
+	  removeAccessToken method has been updated so as it will not fail in the event that an
+	  accessToken has been duplicated, so this method is unnecessary."""
+    )
     @Transactional(value = "defaultTransactionManager")
     override fun clearDuplicateAccessTokens() {
         val query =
@@ -235,6 +241,12 @@ class JpaOAuth2TokenRepository : OAuth2TokenRepository {
     }
 
     @Transactional(value = "defaultTransactionManager")
+    @Deprecated(
+        """this method was added to return the remove duplicate refresh token value
+	  so that {code removeRefreshToken(OAuth2RefreshTokenEntity o)} would not to fail. the
+	  removeRefreshToken method has been updated so as it will not fail in the event that
+	  refreshToken has been duplicated, so this method is unnecessary."""
+    )
     override fun clearDuplicateRefreshTokens() {
         val query =
             manager.createQuery("select a.jwt, count(1) as c from OAuth2RefreshTokenEntity a GROUP BY a.jwt HAVING count(1) > 1")
