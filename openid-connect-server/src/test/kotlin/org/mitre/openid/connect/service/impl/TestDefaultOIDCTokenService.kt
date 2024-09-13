@@ -22,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
+import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
@@ -36,9 +37,11 @@ import java.util.*
 
 @ExtendWith(MockitoExtension::class)
 class TestDefaultOIDCTokenService {
-    private val configBean = ConfigurationPropertiesBean()
+    private val configBean = ConfigurationPropertiesBean(javaClass.name)
     private val client = ClientDetailsEntity()
-    private val accessToken = OAuth2AccessTokenEntity()
+    private val accessToken = OAuth2AccessTokenEntity(
+        authenticationHolder = AuthenticationHolderEntity()
+    )
     private val request: OAuth2Request = OAuth2Request(clientId = CLIENT_ID)
 
     @Mock

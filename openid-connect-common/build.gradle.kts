@@ -19,7 +19,6 @@ dependencies {
     implementation(libs.eclipse.persistence.core)
     implementation(libs.slf4j.api)
     implementation(libs.servlet.api)
-    implementation(libs.eclipse.persistence.core)
     implementation(libs.javax.persistence)
     implementation(libs.javax.ann)
     implementation(libs.bcprov)
