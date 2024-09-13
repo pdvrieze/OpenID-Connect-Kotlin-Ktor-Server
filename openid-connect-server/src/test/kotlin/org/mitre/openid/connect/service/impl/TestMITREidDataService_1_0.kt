@@ -707,7 +707,7 @@ class TestMITREidDataService_1_0 {
             isApproved = true,
             redirectUri = "http://foo.com",
         )
-        val mockAuth1 = mock<SavedUserAuthentication>(serializable = true)
+        val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
         val auth1 = OAuth2Authentication(req1, mockAuth1)
 
         val holder1 = AuthenticationHolderEntity()
@@ -719,7 +719,7 @@ class TestMITREidDataService_1_0 {
             isApproved =  true,
             redirectUri = "http://bar.com",
         )
-        val mockAuth2 = mock<SavedUserAuthentication>(serializable = true)
+        val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
         val auth2 = OAuth2Authentication(req2, mockAuth2)
 
         val holder2 = AuthenticationHolderEntity()
@@ -878,7 +878,7 @@ class TestMITREidDataService_1_0 {
             isApproved = true,
             redirectUri = "http://foo.com",
         )
-        val mockAuth1 = mock<SavedUserAuthentication>(serializable = true)
+        val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
         val auth1 = OAuth2Authentication(req1, mockAuth1)
 
         val holder1 = AuthenticationHolderEntity()
@@ -905,7 +905,7 @@ class TestMITREidDataService_1_0 {
             isApproved = true,
             redirectUri = "http://bar.com",
         )
-        val mockAuth2 = mock<SavedUserAuthentication>(serializable = true)
+        val mockAuth2 = SavedUserAuthentication(name ="mockAuth2")
         val auth2 = OAuth2Authentication(req2, mockAuth2)
 
         val holder2 = AuthenticationHolderEntity()
