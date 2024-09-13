@@ -26,13 +26,10 @@ import org.mitre.oauth2.model.convert.JWTStringConverter
 import org.mitre.openid.connect.model.convert.ISODate
 import java.time.Instant
 import java.util.*
-import javax.persistence.*
-import javax.persistence.Transient as JPATransient
 
 /**
  * @author jricher
  */
-@Entity
 //@Table(name = "refresh_token")
 //@NamedQueries(
 //    NamedQuery(name = OAuth2RefreshTokenEntity.QUERY_ALL, query = "select r from OAuth2RefreshTokenEntity r"),
@@ -41,29 +38,19 @@ import javax.persistence.Transient as JPATransient
 //    NamedQuery(name = OAuth2RefreshTokenEntity.QUERY_BY_TOKEN_VALUE, query = "select r from OAuth2RefreshTokenEntity r where r.jwt = :${OAuth2RefreshTokenEntity.PARAM_TOKEN_VALUE}"),
 //    NamedQuery(name = OAuth2RefreshTokenEntity.QUERY_BY_NAME, query = "select r from OAuth2RefreshTokenEntity r where r.authenticationHolder.userAuth.name = :${OAuth2RefreshTokenEntity.PARAM_NAME}"))
 class OAuth2RefreshTokenEntity : OAuth2RefreshToken {
-    @get:Column(name = "id")
-    @get:GeneratedValue(strategy = GenerationType.IDENTITY)
-    @get:Id
     var id: Long? = null
 
     /**
      * The authentication in place when the original access token was created
      */
-    @get:JoinColumn(name = "auth_holder_id")
-    @get:ManyToOne
     lateinit var authenticationHolder: AuthenticationHolderEntity
 
-    @get:JoinColumn(name = "client_id")
-    @get:ManyToOne(fetch = FetchType.EAGER)
     var client: OAuthClientDetails? = null
 
     /**
      * Get the JWT object directly
      */
     //JWT-encoded representation of this access token entity
-    @get:Convert(converter = JWTStringConverter::class)
-    @get:Column(name = "token_value")
-    @get:Basic
     lateinit var jwt: JWT
 
     // our refresh tokens might expire
@@ -114,20 +101,23 @@ class OAuth2RefreshTokenEntity : OAuth2RefreshToken {
      * Has this token expired?
      * true if it has a timeout set and the timeout has passed
      */
-    @get:JPATransient
     val isExpired: Boolean
         get() = expiration?.let { System.currentTimeMillis() > it.time } ?: false
 
-    @JPATransient
     fun serialDelegate(): SerialDelegate = SerialDelegate(this)
 
     @Serializable
     class SerialDelegate(
-        @SerialName("id") val currentId: Long,
-        @SerialName("expiration") val expiration: ISODate? = null,
-        @SerialName("value") val value: @Serializable(JWTStringConverter::class) JWT? = null,
-        @SerialName("clientId") val clientId: String,
-        @SerialName("authenticationHolderId") val authenticationHolderId: Long,
+        @SerialName("id")
+        val currentId: Long,
+        @SerialName("expiration")
+        val expiration: ISODate? = null,
+        @SerialName("value")
+        val value: @Serializable(JWTStringConverter::class) JWT? = null,
+        @SerialName("clientId")
+        val clientId: String,
+        @SerialName("authenticationHolderId")
+        val authenticationHolderId: Long,
     ) {
         constructor(s: OAuth2RefreshTokenEntity): this(
             currentId = s.id!!,

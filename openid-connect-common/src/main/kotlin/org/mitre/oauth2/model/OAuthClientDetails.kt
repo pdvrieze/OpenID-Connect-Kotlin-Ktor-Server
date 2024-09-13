@@ -327,11 +327,16 @@ interface OAuthClientDetails {
 
     @Serializable
     enum class AuthMethod(val value: String) {
-        @SerialName("client_secret_post") SECRET_POST("client_secret_post"),
-        @SerialName("client_secret_basic") SECRET_BASIC("client_secret_basic"),
-        @SerialName("client_secret_jwt") SECRET_JWT("client_secret_jwt"),
-        @SerialName("private_key_jwt") PRIVATE_KEY("private_key_jwt"),
-        @SerialName("none") NONE("none");
+        @SerialName("client_secret_post")
+        SECRET_POST("client_secret_post"),
+        @SerialName("client_secret_basic")
+        SECRET_BASIC("client_secret_basic"),
+        @SerialName("client_secret_jwt")
+        SECRET_JWT("client_secret_jwt"),
+        @SerialName("private_key_jwt")
+        PRIVATE_KEY("private_key_jwt"),
+        @SerialName("none")
+        NONE("none");
 
         companion object {
             // map to aid reverse lookup
@@ -348,8 +353,10 @@ interface OAuthClientDetails {
 
     @Serializable
     enum class AppType(val value: String) {
-        @SerialName("web") WEB("web"),
-        @SerialName("native") NATIVE("native");
+        @SerialName("web")
+        WEB("web"),
+        @SerialName("native")
+        NATIVE("native");
 
         companion object {
             // map to aid reverse lookup
@@ -366,8 +373,10 @@ interface OAuthClientDetails {
 
     @Serializable
     enum class SubjectType(val value: String) {
-        @SerialName("pairwise") PAIRWISE("pairwise"),
-        @SerialName("public") PUBLIC("public");
+        @SerialName("pairwise")
+        PAIRWISE("pairwise"),
+        @SerialName("public")
+        PUBLIC("public");
 
         companion object {
             // map to aid reverse lookup

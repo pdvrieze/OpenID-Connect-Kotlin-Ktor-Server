@@ -171,10 +171,14 @@ class DataAPI {
 
     @Serializable
     private class RawData(
-        @SerialName("mitreid-connect-1.0") val config10: MITREidDataService.ExtendedConfiguration10? = null,
-        @SerialName("mitreid-connect-1.1") val config11: MITREidDataService.ExtendedConfiguration10? = null,
-        @SerialName("mitreid-connect-1.2") val config12: MITREidDataService.ExtendedConfiguration12? = null,
-        @SerialName("mitreid-connect-1.3") val config13: MITREidDataService.ExtendedConfiguration12? = null,
+        @SerialName("mitreid-connect-1.0")
+        val config10: MITREidDataService.ExtendedConfiguration10? = null,
+        @SerialName("mitreid-connect-1.1")
+        val config11: MITREidDataService.ExtendedConfiguration10? = null,
+        @SerialName("mitreid-connect-1.2")
+        val config12: MITREidDataService.ExtendedConfiguration12? = null,
+        @SerialName("mitreid-connect-1.3")
+        val config13: MITREidDataService.ExtendedConfiguration12? = null,
     )
 
     companion object {

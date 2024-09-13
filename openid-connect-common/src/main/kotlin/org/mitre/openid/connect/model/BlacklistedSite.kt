@@ -20,49 +20,31 @@ package org.mitre.openid.connect.model
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
-import javax.persistence.Basic
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.GeneratedValue
-import javax.persistence.GenerationType
-import javax.persistence.Id
-import javax.persistence.NamedQueries
-import javax.persistence.NamedQuery
-import javax.persistence.Table
 
 /**
  * @author jricher
  */
 @OptIn(ExperimentalSerializationApi::class)
-@Entity
-@Table(name = "blacklisted_site")
-@NamedQueries(NamedQuery(name = BlacklistedSite.QUERY_ALL, query = "select b from BlacklistedSite b"))
 @Serializable
-class BlacklistedSite {
+/**
+ * @property id unique id
+ * @property uri URI pattern to black list
+ */
+class BlacklistedSite(
     /**
      * unique id
      */
-    @get:Column(name = "id")
-    @get:GeneratedValue(strategy = GenerationType.IDENTITY)
-    @get:Id
     @EncodeDefault
-    var id: Long? = null
+    var id: Long? = null,
 
     /**
      * URI pattern to black list
      */
-    @get:Column(name = "uri")
-    @get:Basic
     @EncodeDefault
-    lateinit var uri: String
+    var uri: String,
+) {
 
-    @Deprecated("JPA only")
-    constructor()
-
-    constructor(id: Long?, uri: String) {
-        this.id = id
-        this.uri = uri
-    }
+    constructor(uri: String) : this(null, uri)
 
     companion object {
         const val QUERY_ALL: String = "BlacklistedSite.getAll"

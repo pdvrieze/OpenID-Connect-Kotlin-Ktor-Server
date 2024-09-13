@@ -30,56 +30,19 @@ import org.mitre.oauth2.model.SystemScope.Companion.PARAM_VALUE
 import org.mitre.oauth2.model.SystemScope.Companion.QUERY_ALL
 import org.mitre.oauth2.model.SystemScope.Companion.QUERY_BY_VALUE
 import org.mitre.util.getLogger
-import javax.persistence.Basic
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.GeneratedValue
-import javax.persistence.GenerationType
-import javax.persistence.Id
-import javax.persistence.NamedQueries
-import javax.persistence.NamedQuery
-import javax.persistence.Table
 
 /**
  * @author jricher
  */
-@Entity
-@Table(name = "system_scope")
-@NamedQueries(
-    NamedQuery(name = QUERY_ALL, query = "select s from SystemScope s ORDER BY s.id"),
-    NamedQuery(name = QUERY_BY_VALUE, query = "select s from SystemScope s WHERE s.value = :$PARAM_VALUE"))
 @Serializable(SystemScope.Companion::class)
 class SystemScope(
-    @get:Column(name = "id")
-    @get:GeneratedValue(strategy = GenerationType.IDENTITY)
-    @get:Id
     var id: Long? = null,
-
-    @get:Column(name = "scope")
-    @get:Basic
     var value: String? = null, // scope value
-
-    @get:Column(name = "description")
-    @get:Basic
     var description: String? = null, // human-readable description
-
-    @get:Column(name = "icon")
-    @get:Basic
     var icon: String? = null, // class of the icon to display on the auth page
-
-    @get:Column(name = "default_scope")
-    @get:Basic
     var isDefaultScope: Boolean = false, // is this a default scope for newly-registered clients?
-
-    @get:Column(name = "restricted")
-    @get:Basic
     var isRestricted: Boolean = false, // is this scope restricted to admin-only registration access?
 ) {
-    /**
-     * Make a blank system scope with no value
-     */
-    constructor() : this(id=null)
-
     /**
      * Make a system scope with the given scope value
      */
@@ -170,12 +133,16 @@ class SystemScope(
         @EncodeDefault @SerialName("id") val id: Long? = null,
         @EncodeDefault @SerialName("value") val value: String? = null, //value
         @EncodeDefault @SerialName("description") val description: String? = null, //description
-        @SerialName("allowDynReg") val isAllowDynReg: Boolean? = null, //allowDynReg
-        @SerialName("restricted") val isRestricted: Boolean? = null, // opposite of allowDynReg
+        @SerialName("allowDynReg")
+        val isAllowDynReg: Boolean? = null, //allowDynReg
+        @SerialName("restricted")
+        val isRestricted: Boolean? = null, // opposite of allowDynReg
         @EncodeDefault @SerialName("defaultScope") val isDefaultScope: Boolean = false, //defaultScope
         @EncodeDefault @SerialName("icon") val icon: String? = null, //icon
-        @SerialName("structured") val structured: JsonElement? = null,
-        @SerialName("structuredParameter") val structuredParameter: JsonElement? = null
+        @SerialName("structured")
+        val structured: JsonElement? = null,
+        @SerialName("structuredParameter")
+        val structuredParameter: JsonElement? = null
 
     ) {
         constructor(s: SystemScope) : this (

@@ -371,7 +371,8 @@ interface MITREidDataService {
         @EncodeDefault @SerialName("idTokenEncryptedResponseEnc") val idTokenEncryptedResponseEnc: @Serializable(JWEEncryptionMethodStringConverter::class) EncryptionMethod? = null,
         @EncodeDefault @SerialName("tokenEndpointAuthSigningAlg") val tokenEndpointAuthSigningAlg: @Serializable(JWSAlgorithmStringConverter::class) JWSAlgorithm? = null,
         @EncodeDefault @SerialName("defaultMaxAge") val defaultMaxAge: Long? = null,
-        @SerialName("requireAuthTime") val requireAuthTime: Boolean? = null,
+        @SerialName("requireAuthTime")
+        val requireAuthTime: Boolean? = null,
         @EncodeDefault @SerialName("defaultACRValues") val defaultACRValues: Set<String>? = null,
         @EncodeDefault @SerialName("initiateLoginUri") val initiateLoginUri: String? = null,
         @EncodeDefault @SerialName("postLogoutRedirectUri") val postLogoutRedirectUris: Set<String>? = null,
@@ -512,19 +513,26 @@ interface MITREidDataService {
     @OptIn(ExperimentalSerializationApi::class)
     @Serializable
     abstract class ConfigurationDataBase(
-        @SerialName("clients") @EncodeDefault
+        @SerialName("clients")
+        @EncodeDefault
         override val clients: List<ClientDetailsConfiguration> = emptyList(),
-        @SerialName("grants") @EncodeDefault
+        @SerialName("grants")
+        @EncodeDefault
         override val grants: List<ApprovedSite.SerialDelegate> = emptyList(),
-        @SerialName("whitelistedSites") @EncodeDefault
+        @SerialName("whitelistedSites")
+        @EncodeDefault
         override val whitelistedSites: List<WhitelistedSite> = emptyList(),
-        @SerialName("blacklistedSites") @EncodeDefault
+        @SerialName("blacklistedSites")
+        @EncodeDefault
         override val blacklistedSites: List<BlacklistedSite> = emptyList(),
-        @SerialName("accessTokens") @EncodeDefault
+        @SerialName("accessTokens")
+        @EncodeDefault
         override val accessTokens: List<OAuth2AccessTokenEntity.SerialDelegate> = emptyList(),
-        @SerialName("refreshTokens") @EncodeDefault
+        @SerialName("refreshTokens")
+        @EncodeDefault
         override val refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate> = emptyList(),
-        @SerialName("systemScopes") @EncodeDefault
+        @SerialName("systemScopes")
+        @EncodeDefault
         override val systemScopes: List<SystemScope> = emptyList(),
     ) : ConfigurationData {
     }

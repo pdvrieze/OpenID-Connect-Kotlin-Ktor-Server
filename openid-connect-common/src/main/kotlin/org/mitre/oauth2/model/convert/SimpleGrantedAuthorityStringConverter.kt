@@ -21,25 +21,14 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import javax.persistence.AttributeConverter
-import javax.persistence.Converter
 import org.mitre.oauth2.model.GrantedAuthority
 
 /**
  * @author jricher
  */
-@Converter
-class SimpleGrantedAuthorityStringConverter : AttributeConverter<GrantedAuthority?, String?>, KSerializer<GrantedAuthority> {
+class SimpleGrantedAuthorityStringConverter : KSerializer<GrantedAuthority> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor("org.springframework.security.core.authority.SimpleGrantedAuthority", PrimitiveKind.STRING)
-
-    override fun convertToDatabaseColumn(attribute: GrantedAuthority?): String? {
-        return attribute?.authority
-    }
-
-    override fun convertToEntityAttribute(dbData: String?): GrantedAuthority? {
-        return dbData?.let { GrantedAuthority(it) }
-    }
 
     override fun serialize(encoder: Encoder, value: GrantedAuthority) {
         encoder.encodeString(value.authority)

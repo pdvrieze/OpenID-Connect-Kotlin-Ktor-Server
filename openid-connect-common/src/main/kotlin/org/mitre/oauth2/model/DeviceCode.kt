@@ -16,60 +16,27 @@
 package org.mitre.oauth2.model
 
 import java.util.*
-import javax.persistence.*
 
 /**
  * @author jricher
+ *
+ * @property authenticationHolder The authentication in place when this token was created.
  */
-@Entity
-@Table(name = "device_code")
-@NamedQueries(NamedQuery(name = DeviceCode.QUERY_BY_USER_CODE, query = "select d from DeviceCode d where d.userCode = :" + DeviceCode.PARAM_USER_CODE), NamedQuery(name = DeviceCode.QUERY_BY_DEVICE_CODE, query = "select d from DeviceCode d where d.deviceCode = :" + DeviceCode.PARAM_DEVICE_CODE), NamedQuery(name = DeviceCode.QUERY_EXPIRED_BY_DATE, query = "select d from DeviceCode d where d.expiration <= :" + DeviceCode.PARAM_DATE))
-class DeviceCode {
-	@get:Column(name = "id")
-    @get:GeneratedValue(strategy = GenerationType.IDENTITY)
-    @get:Id
-    var id: Long? = null
+//@NamedQueries(NamedQuery(name = DeviceCode.QUERY_BY_USER_CODE, query = "select d from DeviceCode d where d.userCode = :" + DeviceCode.PARAM_USER_CODE),
+//              NamedQuery(name = DeviceCode.QUERY_BY_DEVICE_CODE, query = "select d from DeviceCode d where d.deviceCode = :" + DeviceCode.PARAM_DEVICE_CODE),
+//              NamedQuery(name = DeviceCode.QUERY_EXPIRED_BY_DATE, query = "select d from DeviceCode d where d.expiration <= :" + DeviceCode.PARAM_DATE))
+class DeviceCode(
+    var id: Long? = null,
+    var deviceCode: String? = null,
+    var userCode: String? = null,
+    var scope: Set<String>? = null,
+    var expiration: Date? = null,
+    var clientId: String? = null,
+    var requestParameters: Map<String, String>? = null,
+    var isApproved: Boolean? = false,
+    var authenticationHolder: AuthenticationHolderEntity? = null,
+) {
 
-	@get:Column(name = "device_code")
-    @get:Basic
-    var deviceCode: String? = null
-
-	@get:Column(name = "user_code")
-    @get:Basic
-    var userCode: String? = null
-
-	@get:Column(name = "scope")
-    @get:CollectionTable(name = "device_code_scope", joinColumns = [JoinColumn(name = "owner_id")])
-    @get:ElementCollection(fetch = FetchType.EAGER)
-    var scope: Set<String>? = null
-
-	@get:Column(name = "expiration")
-    @get:Temporal(TemporalType.TIMESTAMP)
-    @get:Basic
-    var expiration: Date? = null
-
-	@get:Column(name = "client_id")
-    @get:Basic
-    var clientId: String? = null
-
-	@get:MapKeyColumn(name = "param")
-    @get:Column(name = "val")
-    @get:CollectionTable(name = "device_code_request_parameter", joinColumns = [JoinColumn(name = "owner_id")])
-    @get:ElementCollection(fetch = FetchType.EAGER)
-    var requestParameters: Map<String, String>? = null
-
-    @get:Column(name = "approved")
-    @get:Basic
-    var isApproved: Boolean? = false
-
-    /**
-     * The authentication in place when this token was created.
-     */
-	@get:JoinColumn(name = "auth_holder_id")
-    @get:ManyToOne
-    var authenticationHolder: AuthenticationHolderEntity? = null
-
-    @JvmOverloads
     constructor(
         id: Long? = null,
         deviceCode: String? = null,
@@ -80,6 +47,16 @@ class DeviceCode {
         approved: Boolean? = null,
         authenticationHolder: AuthenticationHolderEntity? = null,
         params: Map<String, String>? = null,
+    ) : this(
+        id = id,
+        deviceCode = deviceCode,
+        userCode = userCode,
+        scope = scope,
+        expiration = expiration,
+        clientId = clientId,
+        requestParameters = params,
+        isApproved = approved,
+        authenticationHolder = authenticationHolder,
     ) {
         this.deviceCode = deviceCode
         this.userCode = userCode

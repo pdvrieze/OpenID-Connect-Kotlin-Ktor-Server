@@ -29,91 +29,31 @@ import org.mitre.openid.connect.model.ApprovedSite.Companion.QUERY_BY_CLIENT_ID_
 import org.mitre.openid.connect.model.ApprovedSite.Companion.QUERY_BY_USER_ID
 import org.mitre.openid.connect.model.convert.ISODate
 import java.util.*
-import javax.persistence.*
 
-@Entity
-@Table(name = "approved_site")
-@NamedQueries(
-    NamedQuery(name = QUERY_ALL, query = "select a from ApprovedSite a"),
-    NamedQuery(name = QUERY_BY_USER_ID, query = "select a from ApprovedSite a where a.userId = :$PARAM_USER_ID"),
-    NamedQuery(name = QUERY_BY_CLIENT_ID, query = "select a from ApprovedSite a where a.clientId = :$PARAM_CLIENT_ID"),
-    NamedQuery(name = QUERY_BY_CLIENT_ID_AND_USER_ID, query = "select a from ApprovedSite a where a.clientId = :$PARAM_CLIENT_ID and a.userId = :$PARAM_USER_ID"))
-class ApprovedSite {
-
-    @get:Column(name = "id")
-    @get:GeneratedValue(strategy = GenerationType.IDENTITY)
-    @get:Id
-    var id: Long? = null
-
-    /** which user made the approval */
-    @get:Column(name = "user_id")
-    @get:Basic
-    var userId: String? = null
-
-    /**
-     * which OAuth2 client is this tied to
-     */
-    @get:Column(name = "client_id")
-    @get:Basic
-    var clientId: String? = null
-
-    /**
-     * when was this first approved?
-     */
-    @get:Column(name = "creation_date")
-    @get:Temporal(TemporalType.TIMESTAMP)
-    @get:Basic
-    var creationDate: ISODate? = null
-
-    /**
-     * when was this last accessed?
-     */
-    @get:Column(name = "access_date")
-    @get:Temporal(TemporalType.TIMESTAMP)
-    @get:Basic
-    var accessDate: ISODate? = null
-
-    /**
-     * if this is a time-limited access, when does it run out?
-     */
-    @get:Column(name = "timeout_date")
-    @get:Temporal(TemporalType.TIMESTAMP)
-    @get:Basic
-    var timeoutDate: ISODate? = null
-
-    /**
-     * What scopes have been allowed this should include all information for what data to access
-     */
-    @get:Column(name = "scope")
-    @get:CollectionTable(name = "approved_site_scope", joinColumns = [JoinColumn(name = "owner_id")])
-    @get:ElementCollection(fetch = FetchType.EAGER)
-    var allowedScopes: Set<String> = emptySet()
-
-    @Deprecated("JPA only")
-    constructor()
-
-    constructor(
-        id: Long?,
-        userId: String?,
-        clientId: String?,
-        creationDate: ISODate?,
-        accessDate: ISODate?,
-        timeoutDate: ISODate?,
-        allowedScopes: Set<String>,
-    ) {
-        this.id = id
-        this.userId = userId
-        this.clientId = clientId
-        this.creationDate = creationDate
-        this.accessDate = accessDate
-        this.timeoutDate = timeoutDate
-        this.allowedScopes = allowedScopes
-    }
+//    NamedQuery(name = QUERY_ALL, query = "select a from ApprovedSite a"),
+//    NamedQuery(name = QUERY_BY_USER_ID, query = "select a from ApprovedSite a where a.userId = :$PARAM_USER_ID"),
+//    NamedQuery(name = QUERY_BY_CLIENT_ID, query = "select a from ApprovedSite a where a.clientId = :$PARAM_CLIENT_ID"),
+//    NamedQuery(name = QUERY_BY_CLIENT_ID_AND_USER_ID, query = "select a from ApprovedSite a where a.clientId = :$PARAM_CLIENT_ID and a.userId = :$PARAM_USER_ID"))
+/**
+ * @property clientId which OAuth2 client is this tied to
+ * @property creationDate when was this first approved?
+ * @property accessDate when was this last accessed?
+ * @property timeoutDate if this is a time-limited access, when does it run out?
+ * @property allowedScopes What scopes have been allowed this should include all information for what data to access
+ */
+class ApprovedSite(
+    var id: Long?,
+    var userId: String?,
+    var clientId: String?,
+    var creationDate: ISODate?,
+    var accessDate: ISODate?,
+    var timeoutDate: ISODate?,
+    var allowedScopes: Set<String>
+) {
 
     /**
      * Has this approval expired?
      */
-    @get:Transient
     val isExpired: Boolean
         get() {
             return when (val timeoutDate = timeoutDate) {
@@ -125,15 +65,24 @@ class ApprovedSite {
     @OptIn(ExperimentalSerializationApi::class)
     @Serializable
     class SerialDelegate(
-        @EncodeDefault @SerialName("id") val currentId: Long,
-        @EncodeDefault @SerialName("accessDate") val accessDate: ISODate? = null,
-        @EncodeDefault @SerialName("clientId") val clientId: String,
-        @EncodeDefault @SerialName("creationDate") val creationDate: ISODate? = null,
-        @EncodeDefault @SerialName("timeoutDate") val timeoutDate: ISODate? = null,
-        @EncodeDefault @SerialName("userId") val userId: String? = null,
-        @EncodeDefault @SerialName("allowedScopes") val allowedScopes: Set<String>? = null,
-        @EncodeDefault @SerialName("whitelistedSiteId") var whitelistedSiteId: Long? = null,
-        @EncodeDefault @SerialName("approvedAccessTokens") val approvedAccessTokens: Set<Long> = emptySet(),
+        @EncodeDefault @SerialName("id")
+        val currentId: Long,
+        @EncodeDefault @SerialName("accessDate")
+        val accessDate: ISODate? = null,
+        @EncodeDefault @SerialName("clientId")
+        val clientId: String,
+        @EncodeDefault @SerialName("creationDate")
+        val creationDate: ISODate? = null,
+        @EncodeDefault @SerialName("timeoutDate")
+        val timeoutDate: ISODate? = null,
+        @EncodeDefault @SerialName("userId")
+        val userId: String? = null,
+        @EncodeDefault @SerialName("allowedScopes")
+        val allowedScopes: Set<String>? = null,
+        @EncodeDefault @SerialName("whitelistedSiteId")
+        var whitelistedSiteId: Long? = null,
+        @EncodeDefault @SerialName("approvedAccessTokens")
+        val approvedAccessTokens: Set<Long> = emptySet(),
     ) {
         constructor(s: ApprovedSite, approvedAccessTokens: Set<Long>): this(
             s.id!!,

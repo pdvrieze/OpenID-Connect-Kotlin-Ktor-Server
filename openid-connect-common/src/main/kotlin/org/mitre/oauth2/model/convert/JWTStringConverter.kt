@@ -25,34 +25,13 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import org.mitre.util.getLogger
 import java.text.ParseException
-import javax.persistence.AttributeConverter
-import javax.persistence.Converter
 
 /**
  * @author jricher
  */
-@Converter
-class JWTStringConverter : AttributeConverter<JWT?, String?>, KSerializer<JWT> {
+class JWTStringConverter : KSerializer<JWT> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor("com.nimbusds.jwt.JWT", PrimitiveKind.STRING)
-
-    override fun convertToDatabaseColumn(attribute: JWT?): String? {
-        return attribute?.serialize()
-    }
-
-    /* (non-Javadoc)
-	 * @see javax.persistence.AttributeConverter#convertToEntityAttribute(java.lang.Object)
-	 */
-    override fun convertToEntityAttribute(dbData: String?): JWT? {
-        return dbData?.let {
-            try {
-                JWTParser.parse(it)
-            } catch (e: ParseException) {
-                logger.error("Unable to parse JWT", e)
-                throw e
-            }
-        }
-    }
 
     override fun serialize(encoder: Encoder, value: JWT) {
         encoder.encodeString(value.serialize())

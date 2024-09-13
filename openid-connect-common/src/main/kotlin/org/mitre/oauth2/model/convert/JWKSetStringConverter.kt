@@ -24,31 +24,13 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import org.mitre.util.getLogger
 import java.text.ParseException
-import javax.persistence.AttributeConverter
-import javax.persistence.Converter
 
 /**
  * @author jricher
  */
-@Converter
-class JWKSetStringConverter : AttributeConverter<JWKSet?, String?>, KSerializer<JWKSet> {
+class JWKSetStringConverter : KSerializer<JWKSet> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor("com.nimbusds.jose.jwk.JKWSet", PrimitiveKind.STRING)
-
-    override fun convertToDatabaseColumn(attribute: JWKSet?): String? {
-        return attribute?.toString()
-    }
-
-    override fun convertToEntityAttribute(dbData: String?): JWKSet? {
-        return dbData?.let {
-            try {
-                JWKSet.parse(it)
-            } catch (e: ParseException) {
-                logger.error("Unable to parse JWK Set", e)
-                throw e
-            }
-        }
-    }
 
     override fun serialize(encoder: Encoder, value: JWKSet) {
         encoder.encodeString(value.toString())

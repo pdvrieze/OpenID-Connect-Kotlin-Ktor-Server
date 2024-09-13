@@ -30,7 +30,6 @@ import org.mitre.oauth2.model.convert.AuthenticationSerializer
 import org.mitre.oauth2.model.convert.KXS_OAuth2Authentication
 import org.mitre.oauth2.model.convert.OAuth2Request
 import org.mitre.oauth2.model.convert.SimpleGrantedAuthorityStringConverter
-import javax.persistence.Transient
 import kotlinx.serialization.Serializable as KXS_Serializable
 import java.io.Serializable as IoSerializable
 
@@ -59,7 +58,6 @@ class AuthenticationHolderEntity(
     var scope: Set<String>? = null,
     var requestParameters: Map<String, String>? = null,
 ) {
-    @get:Transient
     var authentication: OAuth2Authentication
         get() =// TODO: memoize this
             OAuth2Authentication(createOAuth2Request(), userAuth)
@@ -74,7 +72,7 @@ class AuthenticationHolderEntity(
             requestParameters = o2Request.requestParameters.toMap()
             resourceIds = o2Request.resourceIds?.toHashSet()
             responseTypes = o2Request.responseTypes?.toHashSet()
-            scope = if (o2Request.scope == null) null else HashSet(o2Request.scope)
+            scope = HashSet(o2Request.scope)
             isApproved = o2Request.isApproved
 
             if (authentication.userAuthentication != null) {
@@ -139,9 +137,12 @@ class AuthenticationHolderEntity(
 
     @KXS_Serializable
     public class SerialDelegate10(
-        @SerialName("id") val currentId: Long? = null,
-        @SerialName("ownerId") val ownerId: JsonElement? = null,
-        @SerialName("authentication") val _authentication: KXS_OAuth2Authentication? = null,
+        @SerialName("id")
+        val currentId: Long? = null,
+        @SerialName("ownerId")
+        val ownerId: JsonElement? = null,
+        @SerialName("authentication")
+        val _authentication: KXS_OAuth2Authentication? = null,
     ) : SerialDelegate {
         constructor(e: AuthenticationHolderEntity) : this(
             currentId = e.id,
@@ -160,18 +161,30 @@ class AuthenticationHolderEntity(
     @OptIn(ExperimentalSerializationApi::class)
     @KXS_Serializable
     public class SerialDelegate12(
-        @SerialName("id") val currentId: Long,
-        @SerialName("requestParameters") @EncodeDefault val requestParameters: Map<String, String> = emptyMap(),
-        @SerialName("clientId") @EncodeDefault val clientId: String? = null,
-        @SerialName("scope") @EncodeDefault val scope: Set<String>? = null,
-        @SerialName("resourceIds") @EncodeDefault val resourceIds: Set<String>? = null,
-        @SerialName("authorities") @EncodeDefault val authorities: Collection<@Serializable(SimpleGrantedAuthorityStringConverter::class) GrantedAuthority> = emptyList(),
-        @SerialName("approved") @EncodeDefault val isApproved: Boolean = false,
-        @SerialName("redirectUri") @EncodeDefault val redirectUri: String? = null,
-        @SerialName("responseTypes") @EncodeDefault val responseTypes: Set<String> = emptySet(),
-        @SerialName("extensions") @EncodeDefault val extensions: Map<String, String> = emptyMap(),
-        @SerialName("authorizationRequest") val authorizationRequest: OAuth2Request? = null,
-        @SerialName("savedUserAuthentication") val userAuth: @Serializable(AuthenticationSerializer::class) Authentication? = null,
+        @SerialName("id")
+        val currentId: Long,
+        @SerialName("requestParameters")
+        @EncodeDefault val requestParameters: Map<String, String> = emptyMap(),
+        @SerialName("clientId")
+        @EncodeDefault val clientId: String? = null,
+        @SerialName("scope")
+        @EncodeDefault val scope: Set<String>? = null,
+        @SerialName("resourceIds")
+        @EncodeDefault val resourceIds: Set<String>? = null,
+        @SerialName("authorities")
+        @EncodeDefault val authorities: Collection<@Serializable(SimpleGrantedAuthorityStringConverter::class) GrantedAuthority> = emptyList(),
+        @SerialName("approved")
+        @EncodeDefault val isApproved: Boolean = false,
+        @SerialName("redirectUri")
+        @EncodeDefault val redirectUri: String? = null,
+        @SerialName("responseTypes")
+        @EncodeDefault val responseTypes: Set<String> = emptySet(),
+        @SerialName("extensions")
+        @EncodeDefault val extensions: Map<String, String> = emptyMap(),
+        @SerialName("authorizationRequest")
+        val authorizationRequest: OAuth2Request? = null,
+        @SerialName("savedUserAuthentication")
+        val userAuth: @Serializable(AuthenticationSerializer::class) Authentication? = null,
     ) : SerialDelegate {
         constructor(e: AuthenticationHolderEntity) : this(
             currentId = e.id!!,

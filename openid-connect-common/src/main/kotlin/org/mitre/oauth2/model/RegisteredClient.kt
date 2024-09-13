@@ -266,47 +266,88 @@ class RegisteredClient(
 
     @Serializable
     private class SerialDelegate(
-        @SerialName(CLIENT_ID) val clientId: String? = null,
-        @SerialName(CLIENT_SECRET) val clientSecret: String? = null,
-        @SerialName(CLIENT_SECRET_EXPIRES_AT) val clientSecretExpiresAt: EpochInstant? = null,
-        @SerialName(CLIENT_ID_ISSUED_AT) val clientIdIssuedAt: EpochInstant? = null,
-        @SerialName(REGISTRATION_ACCESS_TOKEN) val registrationAccessToken: String? = null,
-        @SerialName(REGISTRATION_CLIENT_URI) val registrationClientUri: String? = null,
-        @SerialName(REDIRECT_URIS) val redirectUris: Set<String> = emptySet(),
-        @SerialName(CLIENT_NAME) val clientName: String? = null,
-        @SerialName(CLIENT_URI) val clientUri: String? = null,
-        @SerialName(LOGO_URI) val logoUri: String? = null,
-        @SerialName(CONTACTS) val contacts: Set<String>? = null,
-        @SerialName(TOS_URI) val tosUri: String? = null,
-        @SerialName(TOKEN_ENDPOINT_AUTH_METHOD) val tokenEndpointAuthMethod: OAuthClientDetails.AuthMethod? = null,
-        @SerialName(SCOPE) val scope: String? = null,
-        @SerialName(GRANT_TYPES) val grantTypes: Set<String> = emptySet(),
-        @SerialName(RESPONSE_TYPES) val responseTypes: Set<String> = emptySet(),
-        @SerialName(POLICY_URI) val policyUri: String? = null,
-        @SerialName(JWKS_URI) val jwksUri: String? = null,
-        @SerialName(JWKS) val jwks: @Serializable(with = JWKSetStringConverter::class) JWKSet? = null,
-        @SerialName(APPLICATION_TYPE) val applicationType: OAuthClientDetails.AppType? = null,
-        @SerialName(SECTOR_IDENTIFIER_URI) val sectorIdentifierUri: String? = null,
-        @SerialName(SUBJECT_TYPE) val subjectType: OAuthClientDetails.SubjectType? = null,
-        @SerialName(REQUEST_OBJECT_SIGNING_ALG) val requestObjectSigningAlg: @Serializable(with = JWSAlgorithmStringConverter::class) JWSAlgorithm? = null,
-        @SerialName(USERINFO_SIGNED_RESPONSE_ALG) val userInfoSignedResponseAlg: @Serializable(with = JWSAlgorithmStringConverter::class) JWSAlgorithm? = null,
-        @SerialName(USERINFO_ENCRYPTED_RESPONSE_ALG) val userInfoEncryptedResponseAlg: @Serializable(with = JWEAlgorithmStringConverter::class) JWEAlgorithm? = null,
-        @SerialName(USERINFO_ENCRYPTED_RESPONSE_ENC) val userInfoEncryptedResponseEnc: @Serializable(with = JWEEncryptionMethodStringConverter::class) EncryptionMethod? = null,
-        @SerialName(ID_TOKEN_SIGNED_RESPONSE_ALG) val idTokenSignedResponseAlg: @Serializable(with = JWSAlgorithmStringConverter::class) JWSAlgorithm? = null,
-        @SerialName(ID_TOKEN_ENCRYPTED_RESPONSE_ALG) val idTokenEncryptedResponseAlg: @Serializable(with = JWEAlgorithmStringConverter::class) JWEAlgorithm? = null,
-        @SerialName(ID_TOKEN_ENCRYPTED_RESPONSE_ENC) val idTokenEncryptedResponseEnc: @Serializable(with = JWEEncryptionMethodStringConverter::class) EncryptionMethod? = null,
-        @SerialName(TOKEN_ENDPOINT_AUTH_SIGNING_ALG) val tokenEndpointAuthSigningAlg: @Serializable(with = JWSAlgorithmStringConverter::class) JWSAlgorithm? = null,
-        @SerialName(DEFAULT_MAX_AGE) val defaultMaxAge: Long? = null,
-        @SerialName(REQUIRE_AUTH_TIME) val requireAuthTime: Boolean? = null,
-        @SerialName(DEFAULT_ACR_VALUES) val defaultACRvalues: Set<String>? = null,
-        @SerialName(INITIATE_LOGIN_URI) val initiateLoginUri: String? = null,
-        @SerialName(POST_LOGOUT_REDIRECT_URIS) val postLogoutRedirectUris: Set<String>? = null,
-        @SerialName(REQUEST_URIS) val requestUris: Set<String>? = null,
-        @SerialName(CLAIMS_REDIRECT_URIS) val claimsRedirectUris: Set<String>? = null,
-        @SerialName(CODE_CHALLENGE_METHOD) val codeChallengeMethod: PKCEAlgorithm? = null,
-        @SerialName(SOFTWARE_ID) val softwareId: String? = null,
-        @SerialName(SOFTWARE_VERSION) val softwareVersion: String? = null,
-        @SerialName(SOFTWARE_STATEMENT) val softwareStatement: @Serializable(with = JWTStringConverter::class) JWT? = null,
+        @SerialName(CLIENT_ID)
+        val clientId: String? = null,
+        @SerialName(CLIENT_SECRET)
+        val clientSecret: String? = null,
+        @SerialName(CLIENT_SECRET_EXPIRES_AT)
+        val clientSecretExpiresAt: EpochInstant? = null,
+        @SerialName(CLIENT_ID_ISSUED_AT)
+        val clientIdIssuedAt: EpochInstant? = null,
+        @SerialName(REGISTRATION_ACCESS_TOKEN)
+        val registrationAccessToken: String? = null,
+        @SerialName(REGISTRATION_CLIENT_URI)
+        val registrationClientUri: String? = null,
+        @SerialName(REDIRECT_URIS)
+        val redirectUris: Set<String> = emptySet(),
+        @SerialName(CLIENT_NAME)
+        val clientName: String? = null,
+        @SerialName(CLIENT_URI)
+        val clientUri: String? = null,
+        @SerialName(LOGO_URI)
+        val logoUri: String? = null,
+        @SerialName(CONTACTS)
+        val contacts: Set<String>? = null,
+        @SerialName(TOS_URI)
+        val tosUri: String? = null,
+        @SerialName(TOKEN_ENDPOINT_AUTH_METHOD)
+        val tokenEndpointAuthMethod: OAuthClientDetails.AuthMethod? = null,
+        @SerialName(SCOPE)
+        val scope: String? = null,
+        @SerialName(GRANT_TYPES)
+        val grantTypes: Set<String> = emptySet(),
+        @SerialName(RESPONSE_TYPES)
+        val responseTypes: Set<String> = emptySet(),
+        @SerialName(POLICY_URI)
+        val policyUri: String? = null,
+        @SerialName(JWKS_URI)
+        val jwksUri: String? = null,
+        @SerialName(JWKS)
+        val jwks: @Serializable(with = JWKSetStringConverter::class) JWKSet? = null,
+        @SerialName(APPLICATION_TYPE)
+        val applicationType: OAuthClientDetails.AppType? = null,
+        @SerialName(SECTOR_IDENTIFIER_URI)
+        val sectorIdentifierUri: String? = null,
+        @SerialName(SUBJECT_TYPE)
+        val subjectType: OAuthClientDetails.SubjectType? = null,
+        @SerialName(REQUEST_OBJECT_SIGNING_ALG)
+        val requestObjectSigningAlg: @Serializable(with = JWSAlgorithmStringConverter::class) JWSAlgorithm? = null,
+        @SerialName(USERINFO_SIGNED_RESPONSE_ALG)
+        val userInfoSignedResponseAlg: @Serializable(with = JWSAlgorithmStringConverter::class) JWSAlgorithm? = null,
+        @SerialName(USERINFO_ENCRYPTED_RESPONSE_ALG)
+        val userInfoEncryptedResponseAlg: @Serializable(with = JWEAlgorithmStringConverter::class) JWEAlgorithm? = null,
+        @SerialName(USERINFO_ENCRYPTED_RESPONSE_ENC)
+        val userInfoEncryptedResponseEnc: @Serializable(with = JWEEncryptionMethodStringConverter::class) EncryptionMethod? = null,
+        @SerialName(ID_TOKEN_SIGNED_RESPONSE_ALG)
+        val idTokenSignedResponseAlg: @Serializable(with = JWSAlgorithmStringConverter::class) JWSAlgorithm? = null,
+        @SerialName(ID_TOKEN_ENCRYPTED_RESPONSE_ALG)
+        val idTokenEncryptedResponseAlg: @Serializable(with = JWEAlgorithmStringConverter::class) JWEAlgorithm? = null,
+        @SerialName(ID_TOKEN_ENCRYPTED_RESPONSE_ENC)
+        val idTokenEncryptedResponseEnc: @Serializable(with = JWEEncryptionMethodStringConverter::class) EncryptionMethod? = null,
+        @SerialName(TOKEN_ENDPOINT_AUTH_SIGNING_ALG)
+        val tokenEndpointAuthSigningAlg: @Serializable(with = JWSAlgorithmStringConverter::class) JWSAlgorithm? = null,
+        @SerialName(DEFAULT_MAX_AGE)
+        val defaultMaxAge: Long? = null,
+        @SerialName(REQUIRE_AUTH_TIME)
+        val requireAuthTime: Boolean? = null,
+        @SerialName(DEFAULT_ACR_VALUES)
+        val defaultACRvalues: Set<String>? = null,
+        @SerialName(INITIATE_LOGIN_URI)
+        val initiateLoginUri: String? = null,
+        @SerialName(POST_LOGOUT_REDIRECT_URIS)
+        val postLogoutRedirectUris: Set<String>? = null,
+        @SerialName(REQUEST_URIS)
+        val requestUris: Set<String>? = null,
+        @SerialName(CLAIMS_REDIRECT_URIS)
+        val claimsRedirectUris: Set<String>? = null,
+        @SerialName(CODE_CHALLENGE_METHOD)
+        val codeChallengeMethod: PKCEAlgorithm? = null,
+        @SerialName(SOFTWARE_ID)
+        val softwareId: String? = null,
+        @SerialName(SOFTWARE_VERSION)
+        val softwareVersion: String? = null,
+        @SerialName(SOFTWARE_STATEMENT)
+        val softwareStatement: @Serializable(with = JWTStringConverter::class) JWT? = null,
     ) {
 
         constructor(client: RegisteredClient) : this(

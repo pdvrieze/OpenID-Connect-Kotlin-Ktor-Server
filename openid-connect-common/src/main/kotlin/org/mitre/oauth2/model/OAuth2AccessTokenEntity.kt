@@ -34,15 +34,12 @@ import org.mitre.openid.connect.model.convert.ISODate
 import org.mitre.uma.model.Permission
 import java.time.Instant
 import java.util.*
-import javax.persistence.*
-import javax.persistence.Transient as JPATransient
 
 /**
  * Create a new, blank access token
  *
  * @author jricher
  */
-@Entity
 //@Table(name = "access_token")
 //@NamedQueries(
 //    NamedQuery(name = OAuth2AccessTokenEntity.QUERY_ALL, query = "select a from OAuth2AccessTokenEntity a"),
@@ -55,25 +52,15 @@ import javax.persistence.Transient as JPATransient
 //    NamedQuery(name = OAuth2AccessTokenEntity.QUERY_BY_NAME, query = "select r from OAuth2AccessTokenEntity r where r.authenticationHolder.userAuth.name = :${OAuth2AccessTokenEntity.PARAM_NAME}")
 //)
 class OAuth2AccessTokenEntity : OAuth2AccessToken {
-	@get:Column(name = "id")
-    @get:GeneratedValue(strategy = GenerationType.IDENTITY)
-    @get:Id
     var id: Long? = null
 
-	@get:JoinColumn(name = "client_id")
-    @ManyToOne
     override var client: OAuthClientDetails? = null
 
     /**
      * The authentication in place when this token was created.
      */
-	@get:JoinColumn(name = "auth_holder_id")
-    @ManyToOne
     override lateinit var authenticationHolder: AuthenticationHolderEntity // the authentication that made this access
 
-    @get:Convert(converter = JWTStringConverter::class)
-    @get:Column(name = "token_value")
-    @get:Basic
     override lateinit var jwt: JWT // JWT-encoded access token value
 
     override lateinit var expirationInstant: Instant
@@ -89,8 +76,6 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
     override var tokenType = OAuth2AccessToken.BEARER_TYPE
         private set
 
-    @ManyToOne
-    @JoinColumn(name = "refresh_token_id")
     override var refreshToken: OAuth2RefreshTokenEntity? = null
         internal set
 
@@ -99,12 +84,8 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
 
 
 
-	@get:JoinTable(name = "access_token_permissions", joinColumns = [JoinColumn(name = "access_token_id")], inverseJoinColumns = [JoinColumn(name = "permission_id")])
-    @get:OneToMany(fetch = FetchType.EAGER, cascade = [CascadeType.ALL])
     var permissions: Set<Permission>? = null
 
-	@get:JoinColumn(name = "approved_site_id")
-    @ManyToOne
     var approvedSite: ApprovedSite? = null
 
     private val additionalInformation: MutableMap<String, JsonElement> =
@@ -178,15 +159,14 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
     /**
      * Add the ID Token to the additionalInformation map for a token response.
      */
-    @JPATransient
     fun setIdToken(idToken: JWT?) {
         if (idToken != null) {
             additionalInformation[ID_TOKEN_FIELD_NAME] = Json.parseToJsonElement(idToken.serialize())
         }
     }
 
-    @JPATransient
     fun serialDelegate(): SerialDelegate = SerialDelegate(this)
+
     override fun builder(): Builder {
         return Builder(this)
 
@@ -340,14 +320,22 @@ class OAuth2AccessTokenEntity : OAuth2AccessToken {
 
     @Serializable
     class SerialDelegate internal constructor(
-        @SerialName("id") val currentId: Long,
-        @SerialName("expiration") @EncodeDefault val expiration: ISODate? = null,
-        @SerialName("value") @EncodeDefault val value: @Serializable(JWTStringConverter::class) JWT? = null,
-        @SerialName("clientId") val clientId: String,
-        @SerialName("authenticationHolderId")  val authenticationHolderId: Long,
-        @SerialName("refreshTokenId") @EncodeDefault val refreshTokenId: Long? = null,
-        @SerialName("scope") @EncodeDefault val scope: Set<String>? = null,
-        @SerialName("type") @EncodeDefault val tokenType: String = OAuth2AccessToken.BEARER_TYPE
+        @SerialName("id")
+        val currentId: Long,
+        @SerialName("expiration")
+        @EncodeDefault val expiration: ISODate? = null,
+        @SerialName("value")
+        @EncodeDefault val value: @Serializable(JWTStringConverter::class) JWT? = null,
+        @SerialName("clientId")
+        val clientId: String,
+        @SerialName("authenticationHolderId")
+        val authenticationHolderId: Long,
+        @SerialName("refreshTokenId")
+        @EncodeDefault val refreshTokenId: Long? = null,
+        @SerialName("scope")
+        @EncodeDefault val scope: Set<String>? = null,
+        @SerialName("type")
+        @EncodeDefault val tokenType: String = OAuth2AccessToken.BEARER_TYPE
     ) {
 
         constructor(s: OAuth2AccessTokenEntity): this(

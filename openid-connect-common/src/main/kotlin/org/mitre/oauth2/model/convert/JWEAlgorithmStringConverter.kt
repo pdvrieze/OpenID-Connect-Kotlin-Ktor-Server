@@ -22,24 +22,10 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import javax.persistence.AttributeConverter
-import javax.persistence.Converter
 
-@Converter
-class JWEAlgorithmStringConverter : AttributeConverter<JWEAlgorithm?, String?>, KSerializer<JWEAlgorithm> {
+class JWEAlgorithmStringConverter : KSerializer<JWEAlgorithm> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor("com.nimbusds.jose.JWEAlgorithm", PrimitiveKind.STRING)
-
-    override fun convertToDatabaseColumn(attribute: JWEAlgorithm?): String? {
-        return attribute?.name
-    }
-
-    /* (non-Javadoc)
-	 * @see javax.persistence.AttributeConverter#convertToEntityAttribute(java.lang.Object)
-	 */
-    override fun convertToEntityAttribute(dbData: String?): JWEAlgorithm? {
-        return dbData?.let(JWEAlgorithm::parse)
-    }
 
     override fun serialize(encoder: Encoder, value: JWEAlgorithm) {
         encoder.encodeString(value.name)

@@ -64,268 +64,175 @@ import org.mitre.oauth2.model.RegisteredClientFields.USERINFO_ENCRYPTED_RESPONSE
 import org.mitre.oauth2.model.RegisteredClientFields.USERINFO_SIGNED_RESPONSE_ALG
 import org.mitre.oauth2.model.convert.*
 import java.util.*
-import javax.persistence.*
 import kotlin.collections.HashSet
 import kotlinx.serialization.Transient as KXS_Transient
-import javax.persistence.Transient as JPATransient
 
 /**
  * @author jricher
  */
 @Serializable
 open class ClientDetailsEntity(
-    @get:Column(name = "id")
-    @get:GeneratedValue(strategy = GenerationType.IDENTITY)
-    @get:Id
     override var id: Long? = null,
 
     /** Fields from the OAuth2 Dynamic Registration Specification  */
     @SerialName(CLIENT_ID)
-    @Basic
-    @Column(name = "client_id")
     override var clientId: String? = null, // client_id
 
-    @Basic
-    @Column(name = "client_secret")
     @SerialName(CLIENT_SECRET)
     override var clientSecret: String? = null, // client_secret
 
-    @get:Column(name = "redirect_uri")
-    @get:CollectionTable(name = "client_redirect_uri", joinColumns = [JoinColumn(name = "owner_id")])
-    @get:ElementCollection(fetch = FetchType.EAGER)
-    @SerialName(REDIRECT_URIS) override var redirectUris: Set<String> = HashSet(), // redirect_uris
+    @SerialName(REDIRECT_URIS)
+    override var redirectUris: Set<String> = HashSet(), // redirect_uris
 
-    @get:Column(name = "client_name")
-    @get:Basic
-    @SerialName(CLIENT_NAME) override var clientName: String? = null, // client_name
+    @SerialName(CLIENT_NAME)
+    override var clientName: String? = null, // client_name
 
-    @get:Column(name = "client_uri")
-    @get:Basic
-    @SerialName(CLIENT_URI) override var clientUri: String? = null, // client_uri
+    @SerialName(CLIENT_URI)
+    override var clientUri: String? = null, // client_uri
 
-    @get:Column(name = "logo_uri")
-    @get:Basic
-    @SerialName(LOGO_URI) override var logoUri: String? = null, // logo_uri
+    @SerialName(LOGO_URI)
+    override var logoUri: String? = null, // logo_uri
 
-    @get:Column(name = "contact")
-    @get:CollectionTable(name = "client_contact", joinColumns = [JoinColumn(name = "owner_id")])
-    @get:ElementCollection(fetch = FetchType.EAGER)
-    @SerialName(CONTACTS) override var contacts: Set<String>? = null, // contacts
+    @SerialName(CONTACTS)
+    override var contacts: Set<String>? = null, // contacts
 
-    @get:Column(name = "tos_uri")
-    @get:Basic
-    @SerialName(TOS_URI) override var tosUri: String? = null, // tos_uri
+    @SerialName(TOS_URI)
+    override var tosUri: String? = null, // tos_uri
 
-    @get:Column(name = "token_endpoint_auth_method")
-    @get:Enumerated(EnumType.STRING)
     @SerialName(TOKEN_ENDPOINT_AUTH_METHOD)
     override var tokenEndpointAuthMethod: AuthMethod? = AuthMethod.SECRET_BASIC, // token_endpoint_auth_method
 
     @SerialName(SCOPE)
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "client_scope", joinColumns = [JoinColumn(name = "owner_id")])
-    @Column(name = "scope")
     override var scope: Set<String>? = HashSet(), // scope
     // TODO make the scope not null (it is not valid in the introspection endpoint original code)
 
-    @get:Column(name = "grant_type")
-    @get:CollectionTable(name = "client_grant_type", joinColumns = [JoinColumn(name = "owner_id")])
-    @get:ElementCollection(fetch = FetchType.EAGER)
     @SerialName(GRANT_TYPES)
     override var authorizedGrantTypes: Set<String> = HashSet(), // grant_types
 
-    @get:Column(name = "response_type")
-    @get:CollectionTable(name = "client_response_type", joinColumns = [JoinColumn(name = "owner_id")])
-    @get:ElementCollection(fetch = FetchType.EAGER)
-    @SerialName(RESPONSE_TYPES) override var responseTypes: MutableSet<String> = HashSet(), // response_types
+    @SerialName(RESPONSE_TYPES)
+    override var responseTypes: MutableSet<String> = HashSet(), // response_types
 
-    @get:Column(name = "policy_uri")
-    @get:Basic
-    @SerialName(POLICY_URI) override var policyUri: String? = null,
+    @SerialName(POLICY_URI)
+    override var policyUri: String? = null,
 
-    @get:Column(name = "jwks_uri")
-    @get:Basic
-    @SerialName(JWKS_URI) override var jwksUri: String? = null, // URI pointer to keys
+    @SerialName(JWKS_URI)
+    override var jwksUri: String? = null, // URI pointer to keys
 
-    @get:Convert(converter = JWKSetStringConverter::class)
-    @get:Column(name = "jwks")
-    @get:Basic
-    @SerialName(JWKS) override var jwks: @Serializable(with = JWKSetStringConverter::class) JWKSet? = null, // public key stored by value
+    @SerialName(JWKS)
+    override var jwks: @Serializable(with = JWKSetStringConverter::class) JWKSet? = null, // public key stored by value
 
-    @get:Column(name = "software_id")
-    @get:Basic
-    @SerialName(SOFTWARE_ID) override var softwareId: String? = null,
+    @SerialName(SOFTWARE_ID)
+    override var softwareId: String? = null,
 
-    @get:Column(name = "software_version")
-    @get:Basic
-    @SerialName(SOFTWARE_VERSION) override var softwareVersion: String? = null,
+    @SerialName(SOFTWARE_VERSION)
+    override var softwareVersion: String? = null,
 
     /** Fields from OIDC Client Registration Specification  */
-    @get:Column(name = "application_type")
-    @get:Enumerated(EnumType.STRING)
-    @SerialName(APPLICATION_TYPE) override var applicationType: AppType = AppType.WEB, // application_type
+    @SerialName(APPLICATION_TYPE)
+    override var applicationType: AppType = AppType.WEB, // application_type
 
-    @get:Column(name = "sector_identifier_uri")
-    @get:Basic
-    @SerialName(SECTOR_IDENTIFIER_URI) override var sectorIdentifierUri: String? = null, // sector_identifier_uri
+    @SerialName(SECTOR_IDENTIFIER_URI)
+    override var sectorIdentifierUri: String? = null, // sector_identifier_uri
 
-    @get:Column(name = "subject_type")
-    @get:Enumerated(EnumType.STRING)
-    @SerialName(SUBJECT_TYPE) override var subjectType: SubjectType? = null, // subject_type
+    @SerialName(SUBJECT_TYPE)
+    override var subjectType: SubjectType? = null, // subject_type
 
-    @get:Convert(converter = JWSAlgorithmStringConverter::class)
-    @get:Column(name = "request_object_signing_alg")
-    @get:Basic
-    @SerialName(REQUEST_OBJECT_SIGNING_ALG) override var requestObjectSigningAlg: @Serializable(with = JWSAlgorithmStringConverter::class) JWSAlgorithm? = null, // request_object_signing_alg
+    @SerialName(REQUEST_OBJECT_SIGNING_ALG)
+    override var requestObjectSigningAlg: @Serializable(with = JWSAlgorithmStringConverter::class) JWSAlgorithm? = null, // request_object_signing_alg
 
-    @get:Convert(converter = JWSAlgorithmStringConverter::class)
-    @get:Column(name = "user_info_signed_response_alg")
-    @get:Basic
     @SerialName(USERINFO_SIGNED_RESPONSE_ALG)
     override var userInfoSignedResponseAlg: @Serializable(with = JWSAlgorithmStringConverter::class) JWSAlgorithm? = null, // user_info_signed_response_alg
 
-    @get:Convert(converter = JWEAlgorithmStringConverter::class)
-    @get:Column(name = "user_info_encrypted_response_alg")
-    @get:Basic
     @SerialName(USERINFO_ENCRYPTED_RESPONSE_ALG)
     override var userInfoEncryptedResponseAlg: @Serializable(with = JWEAlgorithmStringConverter::class) JWEAlgorithm? = null, // user_info_encrypted_response_alg
 
-    @get:Convert(converter = JWEEncryptionMethodStringConverter::class)
-    @get:Column(name = "user_info_encrypted_response_enc")
-    @get:Basic
     @SerialName(USERINFO_ENCRYPTED_RESPONSE_ENC)
     override var userInfoEncryptedResponseEnc: @Serializable(with = JWEEncryptionMethodStringConverter::class) EncryptionMethod? = null, // user_info_encrypted_response_enc
 
-    @get:Convert(converter = JWSAlgorithmStringConverter::class)
-    @get:Column(name = "id_token_signed_response_alg")
-    @get:Basic
-    @SerialName(ID_TOKEN_SIGNED_RESPONSE_ALG) override var idTokenSignedResponseAlg: @Serializable(with = JWSAlgorithmStringConverter::class) JWSAlgorithm? = null, // id_token_signed_response_alg
+    @SerialName(ID_TOKEN_SIGNED_RESPONSE_ALG)
+    override var idTokenSignedResponseAlg: @Serializable(with = JWSAlgorithmStringConverter::class) JWSAlgorithm? = null, // id_token_signed_response_alg
 
-    @get:Convert(converter = JWEAlgorithmStringConverter::class)
-    @get:Column(name = "id_token_encrypted_response_alg")
-    @get:Basic
-    @SerialName(ID_TOKEN_ENCRYPTED_RESPONSE_ALG) override var idTokenEncryptedResponseAlg: @Serializable(with = JWEAlgorithmStringConverter::class) JWEAlgorithm? = null, // id_token_encrypted_response_alg
+    @SerialName(ID_TOKEN_ENCRYPTED_RESPONSE_ALG)
+    override var idTokenEncryptedResponseAlg: @Serializable(with = JWEAlgorithmStringConverter::class) JWEAlgorithm? = null, // id_token_encrypted_response_alg
 
-    @get:Convert(converter = JWEEncryptionMethodStringConverter::class)
-    @get:Column(name = "id_token_encrypted_response_enc")
-    @get:Basic
-    @SerialName(ID_TOKEN_ENCRYPTED_RESPONSE_ENC) override var idTokenEncryptedResponseEnc: @Serializable(with = JWEEncryptionMethodStringConverter::class) EncryptionMethod? = null, // id_token_encrypted_response_enc
+    @SerialName(ID_TOKEN_ENCRYPTED_RESPONSE_ENC)
+    override var idTokenEncryptedResponseEnc: @Serializable(with = JWEEncryptionMethodStringConverter::class) EncryptionMethod? = null, // id_token_encrypted_response_enc
 
-    @get:Convert(converter = JWSAlgorithmStringConverter::class)
-    @get:Column(name = "token_endpoint_auth_signing_alg")
-    @get:Basic
-    @SerialName(TOKEN_ENDPOINT_AUTH_SIGNING_ALG) override var tokenEndpointAuthSigningAlg: @Serializable(with = JWSAlgorithmStringConverter::class) JWSAlgorithm? = null, // token_endpoint_auth_signing_alg
+    @SerialName(TOKEN_ENDPOINT_AUTH_SIGNING_ALG)
+    override var tokenEndpointAuthSigningAlg: @Serializable(with = JWSAlgorithmStringConverter::class) JWSAlgorithm? = null, // token_endpoint_auth_signing_alg
 
-    @get:Column(name = "default_max_age")
-    @get:Basic
-    @SerialName(DEFAULT_MAX_AGE) override var defaultMaxAge: Long? = null, // default_max_age
+    @SerialName(DEFAULT_MAX_AGE)
+    override var defaultMaxAge: Long? = null, // default_max_age
 
-    @get:Column(name = "require_auth_time")
-    @get:Basic
-    @SerialName(REQUIRE_AUTH_TIME) override var requireAuthTime: Boolean? = null, // require_auth_time
+    @SerialName(REQUIRE_AUTH_TIME)
+    override var requireAuthTime: Boolean? = null, // require_auth_time
 
-    @get:Column(name = "default_acr_value")
-    @get:CollectionTable(name = "client_default_acr_value", joinColumns = [JoinColumn(name = "owner_id")])
-    @get:ElementCollection(fetch = FetchType.EAGER)
-    @SerialName(DEFAULT_ACR_VALUES) override var defaultACRvalues: Set<String>? = null, // default_acr_values
+    @SerialName(DEFAULT_ACR_VALUES)
+    override var defaultACRvalues: Set<String>? = null, // default_acr_values
 
-    @get:Column(name = "initiate_login_uri")
-    @get:Basic
     @SerialName(INITIATE_LOGIN_URI)
     override var initiateLoginUri: String? = null, // initiate_login_uri
 
-    @get:Column(name = "post_logout_redirect_uri")
-    @get:CollectionTable(name = "client_post_logout_redirect_uri", joinColumns = [JoinColumn(name = "owner_id")])
-    @get:ElementCollection(fetch = FetchType.EAGER)
     @SerialName(POST_LOGOUT_REDIRECT_URIS)
     override var postLogoutRedirectUris: Set<String>? = null, // post_logout_redirect_uris
 
-    @get:Column(name = "request_uri")
-    @get:CollectionTable(name = "client_request_uri", joinColumns = [JoinColumn(name = "owner_id")])
-    @get:ElementCollection(fetch = FetchType.EAGER)
     @SerialName(REQUEST_URIS)
     override var requestUris: Set<String>? = null, // request_uris
 
     /**
      * Human-readable long description of the client (optional)
      */
-    @get:Column(name = "client_description")
-    @get:Basic
-    @KXS_Transient override var clientDescription: String = "", // human-readable description
-
-    @get:Column(name = "reuse_refresh_tokens")
-    @get:Basic
-    @KXS_Transient override var isReuseRefreshToken: Boolean = true, // do we let someone reuse a refresh token?
-
-    @get:Column(name = "dynamically_registered")
-    @get:Basic
-    @KXS_Transient override var isDynamicallyRegistered: Boolean = false, // was this client dynamically registered?
-
-    @get:Column(name = "allow_introspection")
-    @get:Basic
-    @KXS_Transient override var isAllowIntrospection: Boolean = false, // do we let this client call the introspection endpoint?
-
-    @get:Column(name = "id_token_validity_seconds")
-    @get:Basic
-    @KXS_Transient override var idTokenValiditySeconds: Int? = null, //timeout for id tokens
-
-    @get:Column(name = "created_at")
-    @get:Temporal(TemporalType.TIMESTAMP)
-    @KXS_Transient override var createdAt: Date? = null, // time the client was created
-
-    @get:Column(name = "clear_access_tokens_on_refresh")
-    @get:Basic
-    @KXS_Transient override var isClearAccessTokensOnRefresh: Boolean = true, // do we clear access tokens on refresh?
-
-    @get:Column(name = "device_code_validity_seconds")
-    @get:Basic
-    @KXS_Transient override var deviceCodeValiditySeconds: Int? = null, // timeout for device codes
-
-    /** fields for UMA  */
-    @get:Column(name = "redirect_uri")
-    @get:CollectionTable(name = "client_claims_redirect_uri", joinColumns = [JoinColumn(name = "owner_id")])
-    @get:ElementCollection(fetch = FetchType.EAGER)
-    @SerialName(CLAIMS_REDIRECT_URIS) override var claimsRedirectUris: Set<String>? = null,
-
-    /** Software statement  */
-    @get:Convert(converter = JWTStringConverter::class)
-    @get:Column(name = "software_statement")
-    @get:Basic
-    @SerialName(SOFTWARE_STATEMENT) override var softwareStatement: @Serializable(with = JWTStringConverter::class) JWT? = null,
-
-    /** PKCE  */
-    @get:Convert(converter = PKCEAlgorithmStringConverter::class)
-    @get:Column(name = "code_challenge_method")
-    @get:Basic
-    @SerialName(CODE_CHALLENGE_METHOD) override var codeChallengeMethod: PKCEAlgorithm? = null,
+    @KXS_Transient
+    override var clientDescription: String = "", // human-readable description
 
     @KXS_Transient
-    @Basic
-    @Column(name = "access_token_validity_seconds")
+    override var isReuseRefreshToken: Boolean = true, // do we let someone reuse a refresh token?
+
+    @KXS_Transient
+    override var isDynamicallyRegistered: Boolean = false, // was this client dynamically registered?
+
+    @KXS_Transient
+    override var isAllowIntrospection: Boolean = false, // do we let this client call the introspection endpoint?
+
+    @KXS_Transient
+    override var idTokenValiditySeconds: Int = DEFAULT_ID_TOKEN_VALIDITY_SECONDS, //timeout for id tokens
+
+    @KXS_Transient
+    override var createdAt: Date? = null, // time the client was created
+
+    @KXS_Transient
+    override var isClearAccessTokensOnRefresh: Boolean = true, // do we clear access tokens on refresh?
+
+    @KXS_Transient
+    override var deviceCodeValiditySeconds: Int? = null, // timeout for device codes
+
+    /** fields for UMA  */
+    @SerialName(CLAIMS_REDIRECT_URIS)
+    override var claimsRedirectUris: Set<String>? = null,
+
+    /** Software statement  */
+    @SerialName(SOFTWARE_STATEMENT)
+    override var softwareStatement: @Serializable(with = JWTStringConverter::class) JWT? = null,
+
+    /** PKCE  */
+    @SerialName(CODE_CHALLENGE_METHOD)
+    override var codeChallengeMethod: PKCEAlgorithm? = null,
+
+    @KXS_Transient
     override var accessTokenValiditySeconds: Int? = 0,
 ) : OAuthClientDetails/*, SpringClientDetails*/ {
 
     /** Fields to support the ClientDetails interface  */
     @KXS_Transient
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "client_authority", joinColumns = [JoinColumn(name = "owner_id")])
-    @Convert(converter = SimpleGrantedAuthorityStringConverter::class)
-    @Column(name = "authority")
     override var authorities: Set<GrantedAuthority> = HashSet()
 
     @KXS_Transient
-    @Basic
-    @Column(name = "refresh_token_validity_seconds")
     override var refreshTokenValiditySeconds: Int? = 0 // in seconds
 
     @KXS_Transient
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "client_resource", joinColumns = [JoinColumn(name = "owner_id")])
-    @Column(name = "resource_id")
     override var resourceIds: Set<String> = HashSet()
 
     @KXS_Transient
-    @JPATransient
     override val additionalInformation: Map<String, Any> = HashMap()
 
     override fun withId(id: Long): OAuthClientDetails {
@@ -424,7 +331,7 @@ open class ClientDetailsEntity(
             isReuseRefreshToken = isReuseRefreshToken,
             isDynamicallyRegistered = isDynamicallyRegistered,
             isAllowIntrospection = isAllowIntrospection,
-            idTokenValiditySeconds = idTokenValiditySeconds,
+            idTokenValiditySeconds = idTokenValiditySeconds ?: DEFAULT_ID_TOKEN_VALIDITY_SECONDS,
             createdAt = createdAt,
             isClearAccessTokensOnRefresh = isClearAccessTokensOnRefresh,
             deviceCodeValiditySeconds = deviceCodeValiditySeconds,
@@ -439,8 +346,6 @@ open class ClientDetailsEntity(
         }
     }
 
-    @PrePersist
-    @PreUpdate
     protected open fun prePersist() {
         // make sure that ID tokens always time out, default to 5 minutes
         if (idTokenValiditySeconds == null) {
@@ -448,18 +353,15 @@ open class ClientDetailsEntity(
         }
     }
 
-    @get:JPATransient
     override val isAllowRefresh: Boolean get() = super.isAllowRefresh
 
 
-    @get:JPATransient
     override val isSecretRequired: Boolean
         get() = super.isSecretRequired
 
     /**
      * If the scope list is not null or empty, then this client has been scoped.
      */
-    @get:JPATransient
     override val isScoped: Boolean
         get() = super.isScoped
 
@@ -654,7 +556,7 @@ open class ClientDetailsEntity(
                 isReuseRefreshToken = isReuseRefreshToken,
                 isDynamicallyRegistered = isDynamicallyRegistered,
                 isAllowIntrospection = isAllowIntrospection,
-                idTokenValiditySeconds = idTokenValiditySeconds,
+                idTokenValiditySeconds = idTokenValiditySeconds ?: DEFAULT_ID_TOKEN_VALIDITY_SECONDS,
                 createdAt = createdAt,
                 isClearAccessTokensOnRefresh = isClearAccessTokensOnRefresh,
                 deviceCodeValiditySeconds = deviceCodeValiditySeconds,
@@ -712,7 +614,7 @@ open class ClientDetailsEntity(
                 isReuseRefreshToken = original.isReuseRefreshToken,
                 isDynamicallyRegistered = original.isDynamicallyRegistered,
                 isAllowIntrospection = original.isAllowIntrospection,
-                idTokenValiditySeconds = original.idTokenValiditySeconds,
+                idTokenValiditySeconds = original.idTokenValiditySeconds ?: DEFAULT_ID_TOKEN_VALIDITY_SECONDS,
                 createdAt = original.createdAt,
                 isClearAccessTokensOnRefresh = original.isClearAccessTokensOnRefresh,
                 deviceCodeValiditySeconds = original.deviceCodeValiditySeconds,
