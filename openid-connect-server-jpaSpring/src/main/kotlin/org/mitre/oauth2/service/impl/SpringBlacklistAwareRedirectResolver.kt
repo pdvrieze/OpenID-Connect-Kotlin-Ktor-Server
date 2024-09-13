@@ -16,7 +16,7 @@
 package org.mitre.oauth2.service.impl
 
 import org.mitre.oauth2.model.OAuthClientDetails
-import org.mitre.oauth2.service.BlacklistAwareRedirectResolver
+import org.mitre.oauth2.service.IBlacklistAwareRedirectResolver
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.service.BlacklistedSiteService
 import org.springframework.beans.factory.annotation.Autowired
@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component
  * @author jricher
  */
 @Component("blacklistAwareRedirectResolver")
-class SpringBlacklistAwareRedirectResolver : DefaultRedirectResolver(), BlacklistAwareRedirectResolver {
+class SpringBlacklistAwareRedirectResolver : DefaultRedirectResolver(), IBlacklistAwareRedirectResolver {
     @Autowired
     private lateinit var blacklistService: BlacklistedSiteService
 

@@ -1,26 +1,12 @@
-/*******************************************************************************
- * Copyright 2018 The MIT Internet Trust Consortium
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-package org.mitre.oauth2.service.impl
+package io.github.pdvrieze.auth.service.impl
 
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mitre.oauth2.exception.InvalidRequestException
 import org.mitre.oauth2.model.OAuthClientDetails
-import org.mitre.oauth2.service.BlacklistAwareRedirectResolver
+import org.mitre.oauth2.service.IBlacklistAwareRedirectResolver
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.service.BlacklistedSiteService
 import org.mockito.ArgumentMatchers
@@ -29,13 +15,12 @@ import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.whenever
-import org.springframework.security.oauth2.common.exceptions.InvalidRequestException
 
 /**
  * @author jricher
  */
 @ExtendWith(MockitoExtension::class)
-class TestBlacklistAwareRedirectResolver {
+class TestKtorBlacklistAwareRedirectResolver {
     @Mock
     private lateinit var blacklistService: BlacklistedSiteService
 
@@ -64,13 +49,13 @@ class TestBlacklistAwareRedirectResolver {
         whenever(config.isHeartMode) doReturn false
 
         // default uses prefix matching, the first one should work fine
-        assertEquals(goodUri, resolver.resolveRedirect(goodUri, client))
+        Assertions.assertEquals(goodUri, resolver.resolveRedirect(goodUri, client))
 
 
         // set the resolver to non-strict and test the path-based redirect resolution
         resolver.isStrictMatch = false
 
-        assertEquals(pathUri, resolver.resolveRedirect(pathUri, client))
+        Assertions.assertEquals(pathUri, resolver.resolveRedirect(pathUri, client))
     }
 
     @Test
@@ -95,10 +80,10 @@ class TestBlacklistAwareRedirectResolver {
         whenever(config.isHeartMode) doReturn false
 
         // this is not an exact match
-        assertFalse(resolver.redirectMatches(pathUri, goodUri))
+        Assertions.assertFalse(resolver.redirectMatches(pathUri, goodUri))
 
         // this is an exact match
-        assertTrue(resolver.redirectMatches(goodUri, goodUri))
+        Assertions.assertTrue(resolver.redirectMatches(goodUri, goodUri))
     }
 
     @Test
@@ -111,10 +96,10 @@ class TestBlacklistAwareRedirectResolver {
 
 
         // this is not an exact match (but that's OK)
-        assertTrue(resolver.redirectMatches(pathUri, goodUri))
+        Assertions.assertTrue(resolver.redirectMatches(pathUri, goodUri))
 
         // this is an exact match
-        assertTrue(resolver.redirectMatches(goodUri, goodUri))
+        Assertions.assertTrue(resolver.redirectMatches(goodUri, goodUri))
     }
 
     @Test
@@ -122,9 +107,9 @@ class TestBlacklistAwareRedirectResolver {
         whenever(config.isHeartMode) doReturn (true)
 
         // this is not an exact match
-        assertFalse(resolver.redirectMatches(pathUri, goodUri))
+        Assertions.assertFalse(resolver.redirectMatches(pathUri, goodUri))
 
         // this is an exact match
-        assertTrue(resolver.redirectMatches(goodUri, goodUri))
+        Assertions.assertTrue(resolver.redirectMatches(goodUri, goodUri))
     }
 }
