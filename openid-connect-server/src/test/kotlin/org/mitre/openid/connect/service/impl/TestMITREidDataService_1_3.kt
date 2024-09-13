@@ -165,13 +165,13 @@ class TestMITREidDataService_1_3 {
         val mockedAuthHolder1 = mock<AuthenticationHolderEntity>()
         whenever(mockedAuthHolder1.id).thenReturn(1L)
 
-        val token1 = OAuth2RefreshTokenEntity()
-        token1.id = 1L
-        token1.client = mockedClient1
-        token1.expiration = expirationDate1
-        token1.jwt =
-            JWTParser.parse("eyJhbGciOiJub25lIn0.eyJqdGkiOiJmOTg4OWQyOS0xMTk1LTQ4ODEtODgwZC1lZjVlYzAwY2Y4NDIifQ.")
-        token1.authenticationHolder = mockedAuthHolder1
+        val token1 = OAuth2RefreshTokenEntity(
+            id = 1L,
+            client = mockedClient1,
+            expiration = expirationDate1,
+            jwt = JWTParser.parse("eyJhbGciOiJub25lIn0.eyJqdGkiOiJmOTg4OWQyOS0xMTk1LTQ4ODEtODgwZC1lZjVlYzAwY2Y4NDIifQ."),
+            authenticationHolder = mockedAuthHolder1,
+        )
 
         val expiration2 = "2015-01-07T18:31:50.079+00:00"
         val expirationDate2 = formatter.parse(expiration2, Locale.ENGLISH)
@@ -182,13 +182,13 @@ class TestMITREidDataService_1_3 {
         val mockedAuthHolder2 = mock<AuthenticationHolderEntity>()
         whenever(mockedAuthHolder2.id).thenReturn(2L)
 
-        val token2 = OAuth2RefreshTokenEntity()
-        token2.id = 2L
-        token2.client = mockedClient2
-        token2.expiration = expirationDate2
-        token2.jwt =
-            JWTParser.parse("eyJhbGciOiJub25lIn0.eyJqdGkiOiJlYmEyYjc3My0xNjAzLTRmNDAtOWQ3MS1hMGIxZDg1OWE2MDAifQ.")
-        token2.authenticationHolder = mockedAuthHolder2
+        val token2 = OAuth2RefreshTokenEntity(
+            id = 2L,
+            client = mockedClient2,
+            expiration = expirationDate2,
+            jwt = JWTParser.parse("eyJhbGciOiJub25lIn0.eyJqdGkiOiJlYmEyYjc3My0xNjAzLTRmNDAtOWQ3MS1hMGIxZDg1OWE2MDAifQ."),
+            authenticationHolder = mockedAuthHolder2,
+        )
 
         val allRefreshTokens: Set<OAuth2RefreshTokenEntity> = setOf(token1, token2)
 
@@ -254,7 +254,7 @@ class TestMITREidDataService_1_3 {
             if (compare == null) {
                 fail("Could not find matching id: ${token["id"].asString()}")
             } else {
-                assertEquals(compare.id, token["id"].asString())
+                assertEquals(compare.id, token["id"]?.jsonPrimitive?.long)
                 assertEquals(compare.client!!.clientId, token["clientId"].asString())
                 assertEquals(formatter.print(compare.expiration!!, Locale.ENGLISH), token["expiration"].asString())
                 assertEquals(compare.value, token["value"].asString())
