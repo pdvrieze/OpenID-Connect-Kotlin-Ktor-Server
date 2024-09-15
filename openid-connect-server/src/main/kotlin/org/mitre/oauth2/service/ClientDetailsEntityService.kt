@@ -15,21 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mitre.openid.connect.repository
+package org.mitre.oauth2.service
 
-import org.mitre.openid.connect.model.BlacklistedSite
+import org.mitre.oauth2.model.OAuthClientDetails
+import org.mitre.oauth2.resolver.ClientResolver
 
-/**
- * @author jricher
- */
-interface BlacklistedSiteRepository {
-    val all: Collection<BlacklistedSite>
+interface ClientDetailsEntityService : ClientResolver {
+    fun saveNewClient(client: OAuthClientDetails): OAuthClientDetails =
+        saveNewClient(client.builder())
 
-    fun getById(id: Long): BlacklistedSite?
+    fun saveNewClient(client: OAuthClientDetails.Builder): OAuthClientDetails
 
-    fun remove(blacklistedSite: BlacklistedSite)
+    fun deleteClient(client: OAuthClientDetails)
 
-    fun save(blacklistedSite: BlacklistedSite): BlacklistedSite
+    fun updateClient(oldClient: OAuthClientDetails, newClient: OAuthClientDetails): OAuthClientDetails
 
-    fun update(oldBlacklistedSite: BlacklistedSite, blacklistedSite: BlacklistedSite): BlacklistedSite
+    val allClients: Collection<OAuthClientDetails>
+
+    fun generateClientIdString(client: OAuthClientDetails): String
+
+    fun generateClientSecret(client: OAuthClientDetails.Builder): String?
 }
+

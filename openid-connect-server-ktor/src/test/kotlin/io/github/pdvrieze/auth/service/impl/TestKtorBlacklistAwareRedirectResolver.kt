@@ -6,7 +6,6 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.oauth2.exception.InvalidRequestException
 import org.mitre.oauth2.model.OAuthClientDetails
-import org.mitre.oauth2.service.IBlacklistAwareRedirectResolver
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.service.BlacklistedSiteService
 import org.mockito.ArgumentMatchers

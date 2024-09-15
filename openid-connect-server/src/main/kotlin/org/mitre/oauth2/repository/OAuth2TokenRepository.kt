@@ -21,7 +21,7 @@ import org.mitre.data.PageCriteria
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.OAuthClientDetails
-import org.mitre.oauth2.service.OAuth2TokenResolver
+import org.mitre.oauth2.resolver.OAuth2TokenResolver
 import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.uma.model.ResourceSet
 

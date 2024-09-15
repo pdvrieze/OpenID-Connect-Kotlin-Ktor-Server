@@ -20,7 +20,7 @@ package org.mitre.oauth2.token
 import io.github.pdvrieze.openid.spring.fromSpring
 import io.github.pdvrieze.openid.spring.toSpring
 import org.mitre.oauth2.model.OAuth2Authentication
-import org.mitre.oauth2.service.ClientDetailsEntityService
+import org.mitre.oauth2.resolver.ClientResolver
 import org.mitre.oauth2.service.OAuth2TokenEntityService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.AuthenticationException
@@ -41,7 +41,7 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication as Spri
 @Component("chainedTokenGranter")
 class ChainedTokenGranter @Autowired constructor(// keep down-cast versions so we can get to the right queries
     private val tokenServices: OAuth2TokenEntityService,
-    clientDetailsService: ClientDetailsEntityService?,
+    clientDetailsService: ClientResolver?,
     requestFactory: OAuth2RequestFactory?
     // TODO: remove cast to ClientDetails service, but that means inhertence needs to be different
 ) : AbstractTokenGranter(null, clientDetailsService as ClientDetailsService, requestFactory, GRANT_TYPE) {

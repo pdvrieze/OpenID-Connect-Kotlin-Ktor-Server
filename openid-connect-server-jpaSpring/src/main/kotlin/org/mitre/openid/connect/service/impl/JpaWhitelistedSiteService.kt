@@ -17,9 +17,7 @@
  */
 package org.mitre.openid.connect.service.impl
 
-import org.mitre.openid.connect.model.WhitelistedSite
 import org.mitre.openid.connect.repository.WhitelistedSiteRepository
-import org.mitre.openid.connect.service.WhitelistedSiteService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

@@ -37,7 +37,7 @@ class ClientKeyPublisher : BeanDefinitionRegistryPostProcessor {
 
     private lateinit var registry: BeanDefinitionRegistry
 
-    private var jwkViewName = JWKSetView.VIEWNAME
+    private var jwkViewName = JWK_SET_VIEW_NAME
 
     /**
      * If the jwkPublishUrl field is set on this bean, set up a listener on that URL to publish keys.
@@ -55,13 +55,13 @@ class ClientKeyPublisher : BeanDefinitionRegistryPostProcessor {
                 clientKeyMapping.addPropertyValue("jwkPublishUrl", jwkPublishUrl)
 
                 // randomize view name to make sure it doesn't conflict with local views
-                jwkViewName = JWKSetView.VIEWNAME + "-" + UUID.randomUUID().toString()
+                jwkViewName = JWK_SET_VIEW_NAME + "-" + UUID.randomUUID().toString()
                 viewResolver.addPropertyValue("jwkViewName", jwkViewName)
 
                 // view bean
                 val jwkView = BeanDefinitionBuilder.rootBeanDefinition(JWKSetView::class.java)
-                registry.registerBeanDefinition(JWKSetView.VIEWNAME, jwkView.beanDefinition)
-                viewResolver.addPropertyReference("jwk", JWKSetView.VIEWNAME)
+                registry.registerBeanDefinition(JWK_SET_VIEW_NAME, jwkView.beanDefinition)
+                viewResolver.addPropertyReference("jwk", JWK_SET_VIEW_NAME)
             }
 
             registry.registerBeanDefinition("clientKeyMapping", clientKeyMapping.beanDefinition)
@@ -87,4 +87,9 @@ class ClientKeyPublisher : BeanDefinitionRegistryPostProcessor {
 
         return ModelAndView(jwkViewName, "keys", keys)
     }
+
+    companion object {
+        const val JWK_SET_VIEW_NAME = "jwkSet"
+    }
+
 }

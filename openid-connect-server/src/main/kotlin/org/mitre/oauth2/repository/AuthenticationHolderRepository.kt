@@ -2,6 +2,7 @@ package org.mitre.oauth2.repository
 
 import org.mitre.data.PageCriteria
 import org.mitre.oauth2.model.AuthenticationHolderEntity
+import org.mitre.oauth2.resolver.AuthenticationHolderResolver
 
 interface AuthenticationHolderRepository : AuthenticationHolderResolver {
 	val all: List<AuthenticationHolderEntity>

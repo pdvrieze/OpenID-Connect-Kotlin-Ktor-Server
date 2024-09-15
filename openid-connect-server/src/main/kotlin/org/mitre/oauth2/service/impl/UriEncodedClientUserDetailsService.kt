@@ -16,11 +16,8 @@
 package org.mitre.oauth2.service.impl
 
 import org.mitre.oauth2.model.GrantedAuthority
-import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
-import java.math.BigInteger
-import java.security.SecureRandom
 
 /**
  * Loads client details based on URI encoding as passed in from basic auth.

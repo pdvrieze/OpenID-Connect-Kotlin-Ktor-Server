@@ -14,7 +14,8 @@ import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.openid.connect.repository.ApprovedSiteRepository
 import java.util.*
 
-class ExposedApprovedSiteRepository(database: Database): RepositoryBase(database, ApprovedSites, ApprovedSiteScopes), ApprovedSiteRepository {
+class ExposedApprovedSiteRepository(database: Database): RepositoryBase(database, ApprovedSites, ApprovedSiteScopes),
+                                                         ApprovedSiteRepository {
 
     override fun getById(id: Long): ApprovedSite? = transaction {
         ApprovedSites.selectAll().where { ApprovedSites.id eq id }

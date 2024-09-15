@@ -23,11 +23,7 @@ import org.mitre.oauth2.model.OAuth2Authentication
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.convert.OAuth2Request
-
-interface OAuth2TokenResolver {
-    fun getAccessTokenById(id: Long): OAuth2AccessTokenEntity?
-    fun getRefreshTokenById(id: Long): OAuth2RefreshTokenEntity?
-}
+import org.mitre.oauth2.resolver.OAuth2TokenResolver
 
 interface OAuth2TokenEntityService : OAuth2TokenResolver {
 

@@ -1,4 +1,4 @@
-package org.mitre.oauth2.repository
+package org.mitre.oauth2.resolver
 
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 

@@ -7,7 +7,8 @@ import org.jetbrains.exposed.sql.selectAll
 import org.mitre.openid.connect.model.PairwiseIdentifier
 import org.mitre.openid.connect.repository.PairwiseIdentifierRepository
 
-class ExposedPairwiseIdentifierRepository(database: Database) : RepositoryBase(database, PairwiseIdentifiers), PairwiseIdentifierRepository {
+class ExposedPairwiseIdentifierRepository(database: Database) : RepositoryBase(database, PairwiseIdentifiers),
+                                                                PairwiseIdentifierRepository {
 
     override fun getBySectorIdentifier(sub: String, sectorIdentifierUri: String): PairwiseIdentifier? {
         val t = PairwiseIdentifiers
