@@ -23,7 +23,6 @@ import org.mitre.util.getLogger
 import java.text.ParseException
 import java.time.Instant
 import java.util.*
-import kotlin.math.log
 
 class ExposedOauth2TokenRepository(
     database: Database,
