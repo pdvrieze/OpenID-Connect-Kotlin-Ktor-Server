@@ -21,7 +21,6 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.mitre.util.getLogger
 import java.util.*
-import javax.annotation.PostConstruct
 
 /**
  * Bean to hold configuration information that must be injected into various parts
@@ -79,7 +78,7 @@ class ConfigurationPropertiesBean {
      * Endpoints protected by TLS must have https scheme in the URI.
      * @throws HttpsUrlRequiredException
      */
-    @PostConstruct
+    //@PostConstruct
     fun checkConfigConsistency() {
         if (!issuer.startsWith("https", ignoreCase = true)) {
             if (this.isForceHttps) {

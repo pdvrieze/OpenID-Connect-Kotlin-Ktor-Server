@@ -26,7 +26,6 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
-import org.mitre.jwt.signer.service.impl.ClientKeyCacheService
 import org.mitre.jwt.signer.service.impl.SymmetricKeyJWTValidatorCacheService
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
@@ -53,7 +52,7 @@ class UserInfoJWTView : UserInfoView() {
     private lateinit var config: ConfigurationPropertiesBean
 
     @Autowired
-    private lateinit var encrypters: ClientKeyCacheService
+    private lateinit var encrypters: org.mitre.jwt.signer.service.impl.ClientKeyCacheService
 
     @Autowired
     private lateinit var symmetricCacheService: SymmetricKeyJWTValidatorCacheService

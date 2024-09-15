@@ -28,7 +28,6 @@ import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.PlainJWT
 import com.nimbusds.jwt.SignedJWT
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
-import org.mitre.jwt.signer.service.impl.ClientKeyCacheService
 import org.mitre.jwt.signer.service.impl.SymmetricKeyJWTValidatorCacheService
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
@@ -68,7 +67,7 @@ class DefaultOIDCTokenService : OIDCTokenService {
     lateinit var configBean: ConfigurationPropertiesBean
 
     @Autowired
-    private lateinit var encrypters: ClientKeyCacheService
+    private lateinit var encrypters: org.mitre.jwt.signer.service.impl.ClientKeyCacheService
 
     @Autowired
     private lateinit var symmetricCacheService: SymmetricKeyJWTValidatorCacheService

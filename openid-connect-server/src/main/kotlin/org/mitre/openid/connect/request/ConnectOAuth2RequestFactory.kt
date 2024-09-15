@@ -25,7 +25,6 @@ import com.nimbusds.jwt.PlainJWT
 import com.nimbusds.jwt.SignedJWT
 import kotlinx.serialization.json.JsonObject
 import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
-import org.mitre.jwt.signer.service.impl.ClientKeyCacheService
 import org.mitre.oauth2.model.PKCEAlgorithm
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.service.MITREidDataService
@@ -46,7 +45,7 @@ class ConnectOAuth2RequestFactory @Autowired constructor(
 ) /*: DefaultOAuth2RequestFactory(clientDetailsService)*/ {
 
     @Autowired
-    private lateinit var validators: ClientKeyCacheService
+    private lateinit var validators: org.mitre.jwt.signer.service.impl.ClientKeyCacheService
 
     @Autowired
     private lateinit var encryptionService: JWTEncryptionAndDecryptionService

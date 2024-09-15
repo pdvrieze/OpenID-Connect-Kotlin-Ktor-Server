@@ -20,6 +20,7 @@ package org.mitre.openid.connect.client
 import com.nimbusds.jose.Algorithm
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.JWSHeader
+import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jose.util.Base64
 import com.nimbusds.jose.util.Base64URL
 import com.nimbusds.jwt.JWTClaimsSet
@@ -31,9 +32,13 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import org.apache.http.client.HttpClient
 import org.apache.http.client.config.RequestConfig
+import org.apache.http.client.methods.HttpGet
 import org.apache.http.impl.client.HttpClientBuilder
+import org.mitre.jose.keystore.JWKSetKeyStore
+import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
+import org.mitre.jwt.signer.service.JWKSetCacheService
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
-import org.mitre.jwt.signer.service.impl.JWKSetCacheService
+import org.mitre.jwt.signer.service.impl.DefaultJWTSigningAndValidationService
 import org.mitre.jwt.signer.service.impl.SymmetricKeyJWTValidatorCacheService
 import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.model.PKCEAlgorithm
@@ -63,6 +68,7 @@ import org.springframework.web.util.UriUtils
 import java.io.IOException
 import java.math.BigInteger
 import java.net.URI
+import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
@@ -141,7 +147,34 @@ class OIDCAuthenticationFilter : AbstractAuthenticationProcessingFilter(FILTER_P
 
         // if our JOSE validators don't get wired in, drop defaults into place
         if (! ::validationServices.isInitialized) {
-            validationServices = JWKSetCacheService()
+            validationServices = object: JWKSetCacheService {
+                private lateinit var jwksUri: String
+                private lateinit var service: JWTSigningAndValidationService
+
+                override fun getValidator(jwksUri: String): JWTSigningAndValidationService? {
+                    if (::jwksUri.isInitialized) {
+                        require(this.jwksUri == jwksUri) { "Differing jwksUri's" }
+                        return service
+                    }
+                    require(!::jwksUri.isInitialized || jwksUri == jwksUri) { "Differing jwksUri's" }
+                    val request = HttpGet(jwksUri)
+                    val response = httpClient!!.execute(request)
+                    if (response.statusLine.statusCode !in 200..299) {
+                        return null
+                    }
+                    this.jwksUri = jwksUri
+                    val jsonString = response.entity.content.readAllBytes().toString(response.entity.contentEncoding?.let { Charset.forName(it.value) } ?: Charset.defaultCharset())
+                    val keyStore = JWKSetKeyStore(JWKSet.parse(jsonString))
+
+                    service = DefaultJWTSigningAndValidationService(keyStore)
+
+                    return service
+                }
+
+                override fun getEncrypter(jwksUri: String): JWTEncryptionAndDecryptionService? {
+                    return null
+                }
+            }
         }
 
         if (! ::symmetricCacheService.isInitialized) {

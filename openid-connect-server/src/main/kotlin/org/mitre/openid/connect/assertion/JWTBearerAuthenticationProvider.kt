@@ -19,7 +19,6 @@ package org.mitre.openid.connect.assertion
 
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jwt.SignedJWT
-import org.mitre.jwt.signer.service.impl.ClientKeyCacheService
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.service.ClientDetailsEntityService
@@ -43,7 +42,7 @@ import java.util.*
 class JWTBearerAuthenticationProvider : AuthenticationProvider {
     // map of verifiers, load keys for clients
     @Autowired
-    private lateinit var validators: ClientKeyCacheService
+    private lateinit var validators: org.mitre.jwt.signer.service.impl.ClientKeyCacheService
 
     // Allow for time sync issues by having a window of X seconds.
     private val timeSkewAllowance = 300

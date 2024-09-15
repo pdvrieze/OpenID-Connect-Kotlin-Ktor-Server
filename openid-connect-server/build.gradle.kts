@@ -27,6 +27,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.jwt)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.bcprov)
 
     testImplementation(libs.mockito.jupiter)
     testImplementation(libs.mockito.kotlin)

@@ -1,20 +1,3 @@
-/*******************************************************************************
- * Copyright 2018 The MIT Internet Trust Consortium
- *
- * Portions copyright 2011-2013 The MITRE Corporation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package org.mitre.jwt.encryption.service.impl
 
 import com.nimbusds.jose.EncryptionMethod
@@ -32,8 +15,10 @@ import com.nimbusds.jose.util.Base64URL
 import com.nimbusds.jose.util.JSONObjectUtils
 import com.nimbusds.jwt.EncryptedJWT
 import com.nimbusds.jwt.JWTClaimsSet
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Assumptions.assumeTrue
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -172,7 +157,7 @@ class TestDefaultJWTEncryptionAndDecryptionService {
     @Test
     @Throws(ParseException::class, NoSuchAlgorithmException::class)
     fun decrypt_RSA() {
-        assumeTrue(
+        Assumptions.assumeTrue(
             (JCASupport.isSupported(JWEAlgorithm.RSA_OAEP) // check for algorithm support
                     && JCASupport.isSupported(EncryptionMethod.A256GCM)) && Cipher.getMaxAllowedKeyLength("RC5") >= 256
         ) // check for unlimited crypto strength
@@ -182,7 +167,7 @@ class TestDefaultJWTEncryptionAndDecryptionService {
 
         val jwt = JWEObject.parse(compactSerializedJwe)
 
-        assertNull(jwt.payload) // observe..nothing is there
+        Assertions.assertNull(jwt.payload) // observe..nothing is there
 
         service.decryptJwt(jwt)
         val result = jwt.payload.toString() // and voila! decrypto-magic
@@ -194,7 +179,7 @@ class TestDefaultJWTEncryptionAndDecryptionService {
     @Test
     @Throws(ParseException::class, NoSuchAlgorithmException::class)
     fun encryptThenDecrypt_RSA() {
-        assumeTrue(
+        Assumptions.assumeTrue(
             (JCASupport.isSupported(JWEAlgorithm.RSA_OAEP) // check for algorithm support
                     && JCASupport.isSupported(EncryptionMethod.A256GCM)) && Cipher.getMaxAllowedKeyLength("RC5") >= 256
         ) // check for unlimited crypto strength
@@ -213,7 +198,7 @@ class TestDefaultJWTEncryptionAndDecryptionService {
         val serialized = jwt.serialize()
 
         val encryptedJwt = EncryptedJWT.parse(serialized)
-        assertNull(encryptedJwt.jwtClaimsSet)
+        Assertions.assertNull(encryptedJwt.jwtClaimsSet)
         service.decryptJwt(encryptedJwt)
 
         val resultClaims = encryptedJwt.jwtClaimsSet
@@ -227,7 +212,7 @@ class TestDefaultJWTEncryptionAndDecryptionService {
     @Test
     @Throws(ParseException::class, NoSuchAlgorithmException::class)
     fun encryptThenDecrypt_nullID() {
-        assumeTrue(
+        Assumptions.assumeTrue(
             (JCASupport.isSupported(JWEAlgorithm.RSA_OAEP) // check for algorithm support
                     && JCASupport.isSupported(EncryptionMethod.A256GCM)) && Cipher.getMaxAllowedKeyLength("RC5") >= 256
         ) // check for unlimited crypto strength
@@ -246,7 +231,7 @@ class TestDefaultJWTEncryptionAndDecryptionService {
         val serialized = jwt.serialize()
 
         val encryptedJwt = EncryptedJWT.parse(serialized)
-        assertNull(encryptedJwt.jwtClaimsSet)
+        Assertions.assertNull(encryptedJwt.jwtClaimsSet)
         service.decryptJwt(encryptedJwt)
 
         val resultClaims = encryptedJwt.jwtClaimsSet
@@ -259,7 +244,7 @@ class TestDefaultJWTEncryptionAndDecryptionService {
     @Test
     @Throws(NoSuchAlgorithmException::class)
     fun encrypt_nullID_oneKey() {
-        assumeTrue(
+        Assumptions.assumeTrue(
             (JCASupport.isSupported(JWEAlgorithm.RSA_OAEP) // check for algorithm support
                     && JCASupport.isSupported(EncryptionMethod.A256GCM)) && Cipher.getMaxAllowedKeyLength("RC5") >= 256
         ) // check for unlimited crypto strength
@@ -281,7 +266,7 @@ class TestDefaultJWTEncryptionAndDecryptionService {
     @Test
     @Throws(ParseException::class, NoSuchAlgorithmException::class)
     fun decrypt_nullID() {
-        assumeTrue(
+        Assumptions.assumeTrue(
             (JCASupport.isSupported(JWEAlgorithm.RSA_OAEP) // check for algorithm support
                     && JCASupport.isSupported(EncryptionMethod.A256GCM)) && Cipher.getMaxAllowedKeyLength("RC5") >= 256
         ) // check for unlimited crypto strength
@@ -300,7 +285,7 @@ class TestDefaultJWTEncryptionAndDecryptionService {
             val serialized = jwt.serialize()
 
             val encryptedJwt = EncryptedJWT.parse(serialized)
-            assertNull(encryptedJwt.jwtClaimsSet)
+            Assertions.assertNull(encryptedJwt.jwtClaimsSet)
 
             assertEquals(null, service_2.defaultDecryptionKeyId)
             service_2.decryptJwt(encryptedJwt)
@@ -367,7 +352,7 @@ class TestDefaultJWTEncryptionAndDecryptionService {
     fun getDefaultCryptoKeyId() {
         // Test set/getDefaultEn/DecryptionKeyId
 
-        assertNull(service_4.defaultEncryptionKeyId)
+        Assertions.assertNull(service_4.defaultEncryptionKeyId)
         assertEquals(null, service_4.defaultDecryptionKeyId)
         service_4.defaultEncryptionKeyId = RSAkid
         service_4.defaultDecryptionKeyId = AESkid

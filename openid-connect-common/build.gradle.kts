@@ -18,10 +18,9 @@ dependencies {
     api(libs.jwt) // needed for base class of PKCEAlgorithm
     implementation(libs.slf4j.api)
     implementation(libs.servlet.api)
-    testImplementation(libs.javax.persistence)
-    implementation(libs.javax.ann)
-    implementation(libs.bcprov)
+//    implementation(libs.javax.ann)
     implementation(libs.ktor.http)
+    runtimeOnly(libs.bcprov)
 
     api(libs.kotlinx.serialization.json)
 

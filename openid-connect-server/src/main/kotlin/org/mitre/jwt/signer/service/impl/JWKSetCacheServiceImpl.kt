@@ -1,20 +1,3 @@
-/*******************************************************************************
- * Copyright 2018 The MIT Internet Trust Consortium
- *
- * Portions copyright 2011-2013 The MITRE Corporation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package org.mitre.jwt.signer.service.impl
 
 import com.google.common.cache.CacheBuilder
@@ -22,14 +5,15 @@ import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
 import com.google.common.util.concurrent.UncheckedExecutionException
 import com.nimbusds.jose.jwk.JWKSet
-import io.ktor.utils.io.errors.*
 import org.apache.http.client.HttpClient
 import org.apache.http.impl.client.HttpClientBuilder
 import org.mitre.jose.keystore.JWKSetKeyStore
 import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
 import org.mitre.jwt.encryption.service.impl.DefaultJWTEncryptionAndDecryptionService
+import org.mitre.jwt.signer.service.JWKSetCacheService
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.util.getLogger
+import java.io.IOException
 import java.text.ParseException
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
@@ -41,7 +25,7 @@ import java.util.concurrent.TimeUnit
  *
  * @author jricher
  */
-class JWKSetCacheService {
+class JWKSetCacheServiceImpl : JWKSetCacheService {
     // map of jwk set uri -> signing/validation service built on the keys found in that jwk set
     private val validators: LoadingCache<String, JWTSigningAndValidationService> =
         CacheBuilder.newBuilder()
@@ -60,7 +44,7 @@ class JWKSetCacheService {
      * @throws ExecutionException
      * @see com.google.common.cache.Cache.get
      */
-    fun getValidator(jwksUri: String): JWTSigningAndValidationService? {
+    override fun getValidator(jwksUri: String): JWTSigningAndValidationService? {
         try {
             return validators.get(jwksUri)
         } catch (e: UncheckedExecutionException) {
@@ -72,7 +56,7 @@ class JWKSetCacheService {
         }
     }
 
-    fun getEncrypter(jwksUri: String): JWTEncryptionAndDecryptionService? {
+    override fun getEncrypter(jwksUri: String): JWTEncryptionAndDecryptionService? {
         try {
             return encrypters[jwksUri]
         } catch (e: UncheckedExecutionException) {
@@ -125,7 +109,7 @@ class JWKSetCacheService {
 
                 val keyStore = JWKSetKeyStore(jwkSet)
 
-                val service: JWTEncryptionAndDecryptionService = DefaultJWTEncryptionAndDecryptionService(keyStore)
+                val service = DefaultJWTEncryptionAndDecryptionService(keyStore)
 
                 return service
             } catch (e: ParseException) {

@@ -18,6 +18,7 @@ dependencies {
     implementation(libs.slf4j.api)
     implementation(libs.guava)
     implementation(libs.commons.httpclient)
+    implementation(libs.servlet.api)
 
 //    implementation(libs.persistence)
     implementation(libs.javax.persistence)

@@ -23,7 +23,7 @@ import com.nimbusds.jose.JWEHeader
 import com.nimbusds.jwt.EncryptedJWT
 import com.nimbusds.jwt.JWTClaimsSet
 import org.apache.http.client.utils.URIBuilder
-import org.mitre.jwt.signer.service.impl.JWKSetCacheService
+import org.mitre.jwt.signer.service.JWKSetCacheService
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.openid.connect.client.service.AuthRequestUrlBuilder
 import org.mitre.openid.connect.config.ServerConfiguration
