@@ -1,5 +1,8 @@
 package org.mitre.oauth2.repository.impl
 
+import com.nimbusds.jwt.JWT
+import com.nimbusds.jwt.JWTClaimsSet
+import com.nimbusds.jwt.PlainJWT
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
@@ -12,6 +15,7 @@ import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
+import java.time.Instant
 import javax.persistence.EntityManager
 
 @ExtendWith(MockitoExtension::class)
@@ -79,7 +83,9 @@ class TestJpaOAuth2TokenRepository {
         }
 
         val accessToken = OAuth2AccessTokenEntity(
-            authenticationHolder = authHolder
+            authenticationHolder = authHolder,
+            expirationInstant = Instant.now().plusSeconds(120),
+            jwt = PlainJWT(JWTClaimsSet.Builder().build())
         )
         entityManager.merge(accessToken)
 

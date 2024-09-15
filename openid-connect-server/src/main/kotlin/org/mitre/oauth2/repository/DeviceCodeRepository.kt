@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mitre.oauth2.repository.impl
+package org.mitre.oauth2.repository
 
 import org.mitre.oauth2.model.DeviceCode
 
@@ -21,6 +21,8 @@ import org.mitre.oauth2.model.DeviceCode
  * @author jricher
  */
 interface DeviceCodeRepository {
+    val expiredCodes: Collection<DeviceCode>
+
     fun getById(id: Long): DeviceCode?
 
     fun getByDeviceCode(deviceCode: String): DeviceCode?
@@ -30,6 +32,4 @@ interface DeviceCodeRepository {
     fun save(code: DeviceCode): DeviceCode?
 
     fun getByUserCode(userCode: String): DeviceCode?
-
-	val expiredCodes: Collection<DeviceCode>
 }

@@ -17,8 +17,6 @@
  */
 package org.mitre.oauth2.service.impl
 
-import io.github.pdvrieze.openid.spring.fromSpring
-import io.github.pdvrieze.openid.spring.toSpring
 import org.mitre.data.AbstractPageOperationTemplate
 import org.mitre.oauth2.exception.InvalidGrantException
 import org.mitre.oauth2.model.AuthenticationHolderEntity

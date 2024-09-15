@@ -25,6 +25,7 @@ import org.mitre.oauth2.repository.SystemScopeRepository
 import org.mitre.openid.connect.repository.ApprovedSiteRepository
 import org.mitre.openid.connect.repository.BlacklistedSiteRepository
 import org.mitre.openid.connect.repository.WhitelistedSiteRepository
+import org.mitre.openid.connect.service.DataServiceContext
 import org.mitre.openid.connect.service.MITREidDataService
 import org.mitre.openid.connect.service.MITREidDataService.*
 import org.mitre.openid.connect.service.MITREidDataService.Companion.warnIgnored
@@ -78,7 +79,7 @@ class MITREidDataService_1_0 : MITREidDataService {
     }
 
     override fun importData(config: ExtendedConfiguration) {
-        val context = Context(THIS_VERSION, clientRepository, approvedSiteRepository, wlSiteRepository, blSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository, extensions, maps)
+        val context = DataServiceContext(THIS_VERSION, clientRepository, approvedSiteRepository, wlSiteRepository, blSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository, extensions, maps)
         context.importData(config)
     }
 
@@ -86,7 +87,7 @@ class MITREidDataService_1_0 : MITREidDataService {
         importData(MITREidDataService.json.decodeFromString<ExtendedConfiguration10>(configJson))
     }
 
-    override fun importClient(context: Context, client: ClientDetailsConfiguration) {
+    override fun importClient(context: DataServiceContext, client: ClientDetailsConfiguration) {
         with(client) {
             // New in 1.2
             claimsRedirectUris = claimsRedirectUris.warnIgnored("claimsRedirectUris")
@@ -104,7 +105,7 @@ class MITREidDataService_1_0 : MITREidDataService {
         super.importClient(context, client)
     }
 
-    override fun importAuthenticationHolder(context: Context, ahe: AuthenticationHolderEntity) {
+    override fun importAuthenticationHolder(context: DataServiceContext, ahe: AuthenticationHolderEntity) {
         val r = ahe.authentication.oAuth2Request
         r.extensions.warnIgnored("authentication/userAuthentication/extensions")
 

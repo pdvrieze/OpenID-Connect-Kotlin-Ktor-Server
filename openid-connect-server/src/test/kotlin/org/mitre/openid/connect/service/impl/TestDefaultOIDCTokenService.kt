@@ -17,6 +17,7 @@ package org.mitre.openid.connect.service.impl
 
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jwt.JWTClaimsSet
+import com.nimbusds.jwt.PlainJWT
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -33,6 +34,7 @@ import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.whenever
 import java.text.ParseException
+import java.time.Instant
 import java.util.*
 
 @ExtendWith(MockitoExtension::class)
@@ -40,7 +42,9 @@ class TestDefaultOIDCTokenService {
     private val configBean = ConfigurationPropertiesBean(javaClass.name)
     private val client = ClientDetailsEntity()
     private val accessToken = OAuth2AccessTokenEntity(
-        authenticationHolder = AuthenticationHolderEntity()
+        authenticationHolder = AuthenticationHolderEntity(),
+        expirationInstant = Instant.now().plusSeconds(120),
+        jwt = PlainJWT(JWTClaimsSet.Builder().build()),
     )
     private val request: OAuth2Request = OAuth2Request(clientId = CLIENT_ID)
 

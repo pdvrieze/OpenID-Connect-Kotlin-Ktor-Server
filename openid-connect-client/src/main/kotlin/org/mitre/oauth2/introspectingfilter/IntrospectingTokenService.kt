@@ -19,6 +19,7 @@ package org.mitre.oauth2.introspectingfilter
 
 import com.nimbusds.jose.util.Base64
 import io.github.pdvrieze.openid.spring.toSpring
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.apache.http.client.HttpClient
@@ -30,18 +31,15 @@ import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2Authentication
-import org.mitre.oauth2.model.OAuth2RefreshToken
 import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.convert.OAuth2Request
-import org.mitre.openid.connect.service.MITREidDataService.Companion.json
 import org.mitre.util.asBoolean
 import org.mitre.util.getLogger
 import org.springframework.http.HttpMethod
 import org.springframework.http.client.ClientHttpRequest
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
-import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.util.MultiValueMap
@@ -51,12 +49,8 @@ import java.io.IOException
 import java.net.URI
 import java.time.Instant
 import java.util.*
-import org.springframework.security.core.Authentication as SpringAuthentication
-import org.springframework.security.core.GrantedAuthority as SpringGrantedAuthority
 import org.springframework.security.oauth2.common.OAuth2AccessToken as SpringOAuth2AccessToken
-import org.springframework.security.oauth2.common.OAuth2RefreshToken as SpringOAuth2RefreshToken
 import org.springframework.security.oauth2.provider.OAuth2Authentication as SpringOAuth2Authentication
-import org.springframework.security.oauth2.provider.OAuth2Request as SpringOAuth2Request
 
 /**
  * This ResourceServerTokenServices implementation introspects incoming tokens at a
@@ -286,6 +280,13 @@ class IntrospectingTokenService(
          * Logger for this class
          */
         private val logger = getLogger<IntrospectingTokenService>()
+        
+        val json: Json = Json {
+            ignoreUnknownKeys = true
+            prettyPrint = true
+            prettyPrintIndent = "  "
+        }
+
     }
 }
 

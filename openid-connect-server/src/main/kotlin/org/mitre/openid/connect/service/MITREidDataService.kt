@@ -56,7 +56,6 @@ import org.mitre.oauth2.model.convert.JWKSetStringConverter
 import org.mitre.oauth2.model.convert.JWSAlgorithmStringConverter
 import org.mitre.oauth2.model.convert.JWTStringConverter
 import org.mitre.oauth2.model.convert.SimpleGrantedAuthorityStringConverter
-import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2ClientRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.oauth2.repository.SystemScopeRepository
@@ -104,7 +103,7 @@ interface MITREidDataService {
     fun supportsVersion(version: String?): Boolean
 
 
-    fun Context.importData(conf: ExtendedConfiguration) {
+    fun DataServiceContext.importData(conf: ExtendedConfiguration) {
         for (client in conf.clients) importClient(this, client)
         logger.info("Done reading clients")
 
@@ -141,11 +140,11 @@ interface MITREidDataService {
 */
     }
 
-    fun importClient(context: Context, client: ClientDetailsConfiguration) {
+    fun importClient(context: DataServiceContext, client: ClientDetailsConfiguration) {
         context.clientRepository.saveClient(client.toClientDetailsEntity())
     }
 
-    fun importGrant(context: Context, delegate: ApprovedSite.SerialDelegate) {
+    fun importGrant(context: DataServiceContext, delegate: ApprovedSite.SerialDelegate) {
         with(context) {
             val currentId: Long = delegate.currentId
 
@@ -174,7 +173,7 @@ interface MITREidDataService {
         }
     }
 
-    fun importWhitelistedSite(context: Context, wlSite: WhitelistedSite) {
+    fun importWhitelistedSite(context: DataServiceContext, wlSite: WhitelistedSite) {
         with(context) {
             val currentId: Long = wlSite.id!!
             wlSite.id = null // reset to null
@@ -185,12 +184,12 @@ interface MITREidDataService {
         }
     }
 
-    fun importBlacklistedSite(context: Context, blSite: BlacklistedSite) {
+    fun importBlacklistedSite(context: DataServiceContext, blSite: BlacklistedSite) {
         blSite.id = null // ignore ID
         context.blSiteRepository.save(blSite)
     }
 
-    fun importAuthenticationHolder(context: Context, ahe: AuthenticationHolderEntity) {
+    fun importAuthenticationHolder(context: DataServiceContext, ahe: AuthenticationHolderEntity) {
         with(context) {
             val currentId: Long = requireNotNull(ahe.id) { "Missing id for authentication holder" }
             ahe.id = null
@@ -201,7 +200,7 @@ interface MITREidDataService {
         }
     }
 
-    fun importAccessToken(context: Context, delegate: OAuth2AccessTokenEntity.SerialDelegate) {
+    fun importAccessToken(context: DataServiceContext, delegate: OAuth2AccessTokenEntity.SerialDelegate) {
         with(context) {
             val currentId: Long = delegate.currentId
             val clientId: String = delegate.clientId
@@ -234,7 +233,7 @@ interface MITREidDataService {
         }
     }
 
-    fun importRefreshToken(context: Context, delegate: OAuth2RefreshTokenEntity.SerialDelegate) {
+    fun importRefreshToken(context: DataServiceContext, delegate: OAuth2RefreshTokenEntity.SerialDelegate) {
         with(context) {
             val currentId: Long = delegate.currentId
             val clientId: String = delegate.clientId
@@ -255,11 +254,11 @@ interface MITREidDataService {
         }
     }
 
-    fun importSystemScope(context: Context, scope: SystemScope) {
+    fun importSystemScope(context: DataServiceContext, scope: SystemScope) {
         context.sysScopeRepository.save(scope)
     }
 
-    fun fixExtensionObjectReferences(context: Context) {
+    fun fixExtensionObjectReferences(context: DataServiceContext) {
         for (extension in context.extensions) {
             if (extension.supportsVersion(context.version)) {
                 extension.fixExtensionObjectReferences(context.maps)
@@ -269,7 +268,7 @@ interface MITREidDataService {
 
     }
 
-    fun fixObjectReferences(context: Context) {
+    fun fixObjectReferences(context: DataServiceContext) {
         with(context) {
             for ((oldRefreshTokenId, clientRef) in maps.refreshTokenToClientRefs) {
                 val client = clientRepository.getClientByClientId(clientRef)
@@ -312,7 +311,7 @@ interface MITREidDataService {
                 val newAccessTokenId = maps.accessTokenOldToNewIdMap[oldAccessTokenId]!!
                 val accessToken = tokenRepository.getAccessTokenById(newAccessTokenId)?: error("Missing access token $newAccessTokenId")
 //                refreshToken?.let { accessToken.refreshToken = it }
-                accessToken.refreshToken = refreshToken
+                val newAccessToken = accessToken.copy(refreshToken = refreshToken)
                 tokenRepository.saveAccessToken(accessToken)
             }
 
@@ -818,19 +817,6 @@ interface MITREidDataService {
         }
     }
 
-    class Context(
-        val version: String,
-        val clientRepository: OAuth2ClientRepository,
-        val approvedSiteRepository: ApprovedSiteRepository,
-        val wlSiteRepository: WhitelistedSiteRepository,
-        val blSiteRepository: BlacklistedSiteRepository,
-        val authHolderRepository: AuthenticationHolderRepository,
-        val tokenRepository: OAuth2TokenRepository,
-        val sysScopeRepository: SystemScopeRepository,
-        val extensions: List<MITREidDataServiceExtension>,
-        val maps: MITREidDataServiceMaps,
-    )
-
     companion object {
         private val dateFormatter = DateTimeFormatter.ISO_DATE_TIME.withLocale(Locale.ENGLISH)
 
@@ -919,3 +905,16 @@ interface MITREidDataService {
         private val DUMMY_AUTH_HOLDER = AuthenticationHolderEntity()
     }
 }
+
+class DataServiceContext(
+    val version: String,
+    val clientRepository: OAuth2ClientRepository,
+    val approvedSiteRepository: ApprovedSiteRepository,
+    val wlSiteRepository: WhitelistedSiteRepository,
+    val blSiteRepository: BlacklistedSiteRepository,
+    val authHolderRepository: org.mitre.oauth2.repository.AuthenticationHolderRepository,
+    val tokenRepository: OAuth2TokenRepository,
+    val sysScopeRepository: SystemScopeRepository,
+    val extensions: List<MITREidDataServiceExtension>,
+    val maps: MITREidDataServiceMaps,
+)

@@ -17,11 +17,6 @@
  */
 package org.mitre.openid.connect.web
 
-import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.builtins.nullable
-import org.mitre.oauth2.model.convert.SimpleGrantedAuthorityStringConverter
-import org.mitre.openid.connect.model.OIDCAuthenticationToken
-import org.mitre.openid.connect.service.MITREidDataService
 import org.mitre.openid.connect.service.UserInfoService
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse

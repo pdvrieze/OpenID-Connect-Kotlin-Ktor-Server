@@ -17,7 +17,6 @@ package org.mitre.openid.connect.service.impl
 
 import com.nimbusds.jwt.JWTParser
 import kotlinx.serialization.json.JsonArray
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -40,7 +39,6 @@ import org.mitre.openid.connect.model.WhitelistedSite
 import org.mitre.openid.connect.repository.ApprovedSiteRepository
 import org.mitre.openid.connect.repository.BlacklistedSiteRepository
 import org.mitre.openid.connect.repository.WhitelistedSiteRepository
-import org.mitre.openid.connect.service.MITREidDataService
 import org.mitre.openid.connect.service.MITREidDataService.Companion.ACCESSTOKENS
 import org.mitre.openid.connect.service.MITREidDataService.Companion.AUTHENTICATIONHOLDERS
 import org.mitre.openid.connect.service.MITREidDataService.Companion.BLACKLISTEDSITES

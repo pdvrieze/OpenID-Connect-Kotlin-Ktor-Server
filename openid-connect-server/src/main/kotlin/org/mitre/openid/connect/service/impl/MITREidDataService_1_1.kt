@@ -23,13 +23,12 @@ import org.mitre.oauth2.repository.OAuth2ClientRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.oauth2.repository.SystemScopeRepository
 import org.mitre.oauth2.util.requireId
-import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.openid.connect.repository.ApprovedSiteRepository
 import org.mitre.openid.connect.repository.BlacklistedSiteRepository
 import org.mitre.openid.connect.repository.WhitelistedSiteRepository
 import org.mitre.openid.connect.service.MITREidDataService
 import org.mitre.openid.connect.service.MITREidDataService.Companion.warnIgnored
-import org.mitre.openid.connect.service.MITREidDataService.Context
+import org.mitre.openid.connect.service.DataServiceContext
 import org.mitre.openid.connect.service.MITREidDataServiceExtension
 import org.mitre.openid.connect.service.MITREidDataServiceMaps
 import org.mitre.util.getLogger
@@ -80,7 +79,7 @@ class MITREidDataService_1_1 : MITREidDataService {
     }
 
     override fun importData(config: MITREidDataService.ExtendedConfiguration) {
-        val context = Context(THIS_VERSION, clientRepository, approvedSiteRepository, wlSiteRepository, blSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository, extensions, maps)
+        val context = DataServiceContext(THIS_VERSION, clientRepository, approvedSiteRepository, wlSiteRepository, blSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository, extensions, maps)
         context.importData(config)
     }
 
@@ -88,7 +87,7 @@ class MITREidDataService_1_1 : MITREidDataService {
         importData(MITREidDataService.json.decodeFromString<MITREidDataService.ExtendedConfiguration10>(configJson))
     }
 
-    override fun importClient(context: Context, client: MITREidDataService.ClientDetailsConfiguration) {
+    override fun importClient(context: DataServiceContext, client: MITREidDataService.ClientDetailsConfiguration) {
         with(client) {
             // New in 1.2
             claimsRedirectUris = claimsRedirectUris.warnIgnored("claimsRedirectUris")
@@ -107,7 +106,7 @@ class MITREidDataService_1_1 : MITREidDataService {
         super.importClient(context, client)
     }
 
-    override fun fixObjectReferences(context: Context) {
+    override fun fixObjectReferences(context: DataServiceContext) {
         for ((oldRefreshTokenId, clientRef) in context.maps.refreshTokenToClientRefs) {
             val client = context.clientRepository.getClientByClientId(clientRef)
             val newRefreshTokenId = context.maps.refreshTokenOldToNewIdMap[oldRefreshTokenId]!!
@@ -152,8 +151,8 @@ class MITREidDataService_1_1 : MITREidDataService {
 
             val newAccessTokenId = context.maps.accessTokenOldToNewIdMap[oldAccessTokenId]!!
             val accessToken = context.tokenRepository.getAccessTokenById(newAccessTokenId)!!
-            accessToken.setRefreshToken(refreshToken)
-            context.tokenRepository.saveAccessToken(accessToken)
+
+            context.tokenRepository.saveAccessToken(accessToken.copy(refreshToken = refreshToken))
         }
 
         for ((oldGrantId, oldAccessTokenIds) in context.maps.grantToAccessTokensRefs) {

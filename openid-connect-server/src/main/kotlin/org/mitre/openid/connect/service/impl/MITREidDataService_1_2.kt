@@ -27,7 +27,7 @@ import org.mitre.openid.connect.repository.BlacklistedSiteRepository
 import org.mitre.openid.connect.repository.WhitelistedSiteRepository
 import org.mitre.openid.connect.service.MITREidDataService
 import org.mitre.openid.connect.service.MITREidDataService.Companion.warnIgnored
-import org.mitre.openid.connect.service.MITREidDataService.Context
+import org.mitre.openid.connect.service.DataServiceContext
 import org.mitre.openid.connect.service.MITREidDataServiceExtension
 import org.mitre.openid.connect.service.MITREidDataServiceMaps
 import org.mitre.util.getLogger
@@ -78,7 +78,7 @@ class MITREidDataService_1_2 : MITREidDataService {
     }
 
     override fun importData(config: MITREidDataService.ExtendedConfiguration) {
-        val context = Context(THIS_VERSION, clientRepository, approvedSiteRepository, wlSiteRepository, blSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository, extensions, maps)
+        val context = DataServiceContext(THIS_VERSION, clientRepository, approvedSiteRepository, wlSiteRepository, blSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository, extensions, maps)
         context.importData(config)
     }
 
@@ -86,7 +86,7 @@ class MITREidDataService_1_2 : MITREidDataService {
         importData(MITREidDataService.json.decodeFromString<MITREidDataService.ExtendedConfiguration12>(configJson))
     }
 
-    override fun importClient(context: Context, client: MITREidDataService.ClientDetailsConfiguration) {
+    override fun importClient(context: DataServiceContext, client: MITREidDataService.ClientDetailsConfiguration) {
         with(client) {
             // New in 1.3
             codeChallengeMethod = codeChallengeMethod.warnIgnored("codeChallengeMethod")
@@ -99,14 +99,14 @@ class MITREidDataService_1_2 : MITREidDataService {
         super.importClient(context, client)
     }
 
-    override fun importGrant(context: Context, delegate: ApprovedSite.SerialDelegate) {
+    override fun importGrant(context: DataServiceContext, delegate: ApprovedSite.SerialDelegate) {
         with(delegate) {
             whitelistedSiteId = whitelistedSiteId.warnIgnored("whitelistedSiteId")
         }
         super.importGrant(context, delegate)
     }
 
-    override fun fixObjectReferences(context: Context) {
+    override fun fixObjectReferences(context: DataServiceContext) {
         logger.info("Fixing object references...")
         for ((oldRefreshTokenId, clientRef) in context.maps.refreshTokenToClientRefs) {
             val client = context.clientRepository.getClientByClientId(clientRef)
@@ -153,8 +153,8 @@ class MITREidDataService_1_2 : MITREidDataService {
 
             val newAccessTokenId = context.maps.accessTokenOldToNewIdMap[oldAccessTokenId]!!
             val accessToken = context.tokenRepository.getAccessTokenById(newAccessTokenId)!!
-            accessToken.setRefreshToken(refreshToken)
-            context.tokenRepository.saveAccessToken(accessToken)
+
+            context.tokenRepository.saveAccessToken(accessToken.copy(refreshToken = refreshToken))
         }
 
         for ((oldGrantId, oldAccessTokenIds) in context.maps.grantToAccessTokensRefs) {

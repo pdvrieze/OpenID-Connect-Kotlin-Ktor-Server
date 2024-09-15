@@ -10,7 +10,7 @@ import org.jetbrains.exposed.sql.batchInsert
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.selectAll
 import org.mitre.oauth2.model.DeviceCode
-import org.mitre.oauth2.repository.impl.DeviceCodeRepository
+import org.mitre.oauth2.repository.DeviceCodeRepository
 import java.time.Instant
 import java.util.*
 

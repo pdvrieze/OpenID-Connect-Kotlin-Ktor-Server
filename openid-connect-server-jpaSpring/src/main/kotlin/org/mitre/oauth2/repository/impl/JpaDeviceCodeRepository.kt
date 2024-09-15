@@ -16,6 +16,7 @@
 package org.mitre.oauth2.repository.impl
 
 import org.mitre.oauth2.model.DeviceCode
+import org.mitre.oauth2.repository.DeviceCodeRepository
 import org.mitre.util.jpa.JpaUtil.getSingleResult
 import org.mitre.util.jpa.JpaUtil.saveOrUpdate
 import org.springframework.stereotype.Repository
@@ -76,7 +77,7 @@ class JpaDeviceCodeRepository : DeviceCodeRepository {
     @get:Transactional(value = "defaultTransactionManager")
     override val expiredCodes: Collection<DeviceCode>
         /* (non-Javadoc)
-	 * @see org.mitre.oauth2.repository.impl.DeviceCodeRepository#getExpiredCodes()
+	 * @see org.mitre.oauth2.repository.DeviceCodeRepository#getExpiredCodes()
 	 */ get() {
             val query = em.createNamedQuery(DeviceCode.QUERY_EXPIRED_BY_DATE, DeviceCode::class.java)
             query.setParameter(DeviceCode.PARAM_DATE, Date())

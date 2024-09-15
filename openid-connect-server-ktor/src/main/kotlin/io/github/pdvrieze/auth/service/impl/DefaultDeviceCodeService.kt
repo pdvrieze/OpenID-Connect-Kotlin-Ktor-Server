@@ -20,7 +20,7 @@ import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.DeviceCode
 import org.mitre.oauth2.model.OAuth2Authentication
 import org.mitre.oauth2.model.OAuthClientDetails
-import org.mitre.oauth2.repository.impl.DeviceCodeRepository
+import org.mitre.oauth2.repository.DeviceCodeRepository
 import org.mitre.oauth2.service.DeviceCodeService
 import org.mitre.oauth2.util.RandomStringGenerator
 import org.mitre.oauth2.util.requireId

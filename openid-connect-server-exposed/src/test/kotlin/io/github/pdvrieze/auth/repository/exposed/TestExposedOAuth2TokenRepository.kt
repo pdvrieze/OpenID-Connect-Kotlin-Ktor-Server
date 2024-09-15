@@ -15,6 +15,7 @@ import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2ClientRepository
+import java.time.Instant
 
 class TestExposedOAuth2TokenRepository {
     private val dbName = "TestMemDB"
@@ -91,7 +92,12 @@ class TestExposedOAuth2TokenRepository {
                 it[this.authHolderId] = authHolderId.value
                 it[tokenValue] = nextTokenValue()
             }
-            OAuth2AccessTokenEntity(id = accessTokenId.value, authenticationHolder = authHolder)
+            OAuth2AccessTokenEntity(
+                id = accessTokenId.value,
+                authenticationHolder = authHolder,
+                expirationInstant = Instant.now().plusSeconds(120),
+                jwt = PlainJWT(JWTClaimsSet.Builder().build()),
+            )
         }
     }
 
