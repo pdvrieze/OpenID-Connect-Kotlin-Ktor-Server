@@ -155,14 +155,14 @@ interface MITREidDataService {
 
             val tokenIds: Set<Long> = delegate.approvedAccessTokens
 
-            val site = ApprovedSite().apply {
-                accessDate = delegate.accessDate
-                clientId = delegate.clientId
-                creationDate = delegate.creationDate
-                timeoutDate = delegate.timeoutDate
-                userId = delegate.userId
-                allowedScopes = delegate.allowedScopes ?: emptySet()
-            }
+            val site = ApprovedSite(
+                accessDate = delegate.accessDate,
+                clientId = delegate.clientId,
+                creationDate = delegate.creationDate,
+                timeoutDate = delegate.timeoutDate,
+                userId = delegate.userId,
+                allowedScopes = delegate.allowedScopes ?: emptySet(),
+            )
 
             val newId = approvedSiteRepository.save(site).id!!
             maps.grantOldToNewIdMap[currentId] = newId
@@ -483,7 +483,7 @@ interface MITREidDataService {
                 isReuseRefreshToken = isReuseRefreshToken,
                 isDynamicallyRegistered = isDynamicallyRegistered,
                 isAllowIntrospection = allowIntrospection,
-                idTokenValiditySeconds = idTokenValiditySeconds,
+                idTokenValiditySeconds = idTokenValiditySeconds ?: -1,
                 createdAt = createdAt,
                 isClearAccessTokensOnRefresh = isClearAccessTokensOnRefresh,
                 deviceCodeValiditySeconds = deviceCodeValiditySeconds,

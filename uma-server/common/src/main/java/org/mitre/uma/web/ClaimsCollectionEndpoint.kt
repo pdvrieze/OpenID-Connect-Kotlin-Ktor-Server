@@ -16,7 +16,6 @@
 package org.mitre.uma.web
 
 import io.ktor.http.*
-import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.model.OIDCAuthenticationToken
@@ -79,29 +78,69 @@ class ClaimsCollectionEndpoint {
         val issuer = auth.issuer
         val userInfo = auth.userInfo!!
 
-        claimsSupplied.add(mkClaim(issuer, "sub", JsonPrimitive(auth.sub)))
+        claimsSupplied.add(
+            Claim(
+                name = "sub",
+                value = JsonPrimitive(auth.sub),
+                issuer = hashSetOf(issuer),
+            )
+        )
         if (userInfo.email != null) {
-            claimsSupplied.add(mkClaim(issuer, "email", JsonPrimitive(userInfo.email)))
+            claimsSupplied.add(
+                Claim(
+                    name = "email",
+                    value = JsonPrimitive(userInfo.email),
+                    issuer = hashSetOf(issuer),
+                )
+            )
         }
         if (userInfo.emailVerified != null) {
-            claimsSupplied.add(mkClaim(issuer, "email_verified", JsonPrimitive(userInfo.emailVerified)))
+            claimsSupplied.add(
+                Claim(
+                    name = "email_verified",
+                    value = JsonPrimitive(userInfo.emailVerified),
+                    issuer = hashSetOf(issuer),
+                )
+            )
         }
         if (userInfo.phoneNumber != null) {
-            claimsSupplied.add(mkClaim(issuer, "phone_number", JsonPrimitive(auth.userInfo!!.phoneNumber)))
+            claimsSupplied.add(
+                Claim(
+                    name = "phone_number",
+                    value = JsonPrimitive(auth.userInfo!!.phoneNumber),
+                    issuer = hashSetOf(issuer),
+                )
+            )
         }
         if (userInfo.phoneNumberVerified != null) {
-            claimsSupplied.add(mkClaim(issuer, "phone_number_verified", JsonPrimitive(auth.userInfo!!.phoneNumberVerified)))
+            claimsSupplied.add(
+                Claim(
+                    name = "phone_number_verified",
+                    value = JsonPrimitive(auth.userInfo!!.phoneNumberVerified),
+                    issuer = hashSetOf(issuer),
+                )
+            )
         }
         if (userInfo.preferredUsername != null) {
-            claimsSupplied.add(mkClaim(issuer, "preferred_username", JsonPrimitive(auth.userInfo!!.preferredUsername)))
+            claimsSupplied.add(
+                Claim(
+                    name = "preferred_username",
+                    value = JsonPrimitive(auth.userInfo!!.preferredUsername),
+                    issuer = hashSetOf(issuer),
+                )
+            )
         }
         if (userInfo.profile != null) {
-            claimsSupplied.add(mkClaim(issuer, "profile", JsonPrimitive(auth.userInfo!!.profile)))
+            claimsSupplied.add(
+                Claim(
+                    name = "profile",
+                    value = JsonPrimitive(auth.userInfo!!.profile),
+                    issuer = hashSetOf(issuer),
+                )
+            )
         }
 
-        ticket.claimsSupplied = claimsSupplied
-
-        val updatedTicket = permissionService.updateTicket(ticket)
+        val updatedTicket = permissionService.updateTicket(ticket.copy(claimsSupplied = claimsSupplied))
 
         if (redirectUri.isNullOrEmpty()) {
             if (client.claimsRedirectUris!!.size == 1) {
@@ -130,14 +169,6 @@ class ClaimsCollectionEndpoint {
         return "redirect:$uriString"
     }
 
-
-    private fun mkClaim(issuer: String, name: String, value: JsonElement): Claim {
-        val c = Claim()
-        c.issuer = hashSetOf(issuer)
-        c.name = name
-        c.value = value
-        return c
-    }
 
     companion object {
         // Logger for this class

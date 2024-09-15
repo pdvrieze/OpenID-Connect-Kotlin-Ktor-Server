@@ -207,26 +207,22 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
 	 */
     @Throws(IOException::class)
     override fun importExtensionData(name: String?, data: JsonElement): Boolean {
-        if (name == SAVED_REGISTERED_CLIENTS) {
-            readSavedRegisteredClients(data)
-            return true
-        } else if (name == RESOURCE_SETS) {
-            readResourceSets(data)
-            return true
-        } else if (name == PERMISSION_TICKETS) {
-            readPermissionTickets(data)
-            return true
-        } else if (name == TOKEN_PERMISSIONS) {
-            readTokenPermissions(data)
-            return true
-        } else {
-            return false
+        val extData = pendingExtensionData?: PendingExtensionData().also { pendingExtensionData = it }
+
+        when (name) {
+            SAVED_REGISTERED_CLIENTS -> extData.registeredClients = data
+            RESOURCE_SETS -> extData.resourceSets = data
+            PERMISSION_TICKETS -> extData.permissionTickets = data
+            TOKEN_PERMISSIONS -> extData.permissions = data
+
+            else -> return false
         }
+        return true
     }
 
 
     @Throws(IOException::class)
-    private fun readTokenPermissions(data: JsonElement) {
+    private fun readTokenPermissions(data: JsonElement, resourceSets: Map<Long, ResourceSet>) {
         check(data is JsonArray)
         for(o in data) {
             require(o is JsonObject)
@@ -234,8 +230,9 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
             val permissions: Set<Long> = requireNotNull(o[PERMISSIONS]).jsonArray.mapTo(HashSet()) { permObj ->
                 require(permObj is JsonObject)
                 val rsId = requireNotNull(permObj[RESOURCE_SET]).jsonPrimitive.long
+                val rs = checkNotNull(resourceSets[rsId]) { "Missing resource set $rsId" }
                 val scope = (permObj[SCOPES] as JsonArray).mapTo(HashSet()) { it.asString() }
-                val saved = permissionRepository.saveRawPermission(Permission(scopes = scope))
+                val saved = permissionRepository.saveRawPermission(Permission(resourceSet = rs, scopes = scope))
                 permissionToResourceRefs[saved.id!!] = rsId
                 saved.id!!
             }
@@ -245,9 +242,11 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
 
     private val permissionToResourceRefs: MutableMap<Long, Long> = HashMap()
 
+    private var pendingExtensionData: PendingExtensionData? = null
+
 
     @Throws(IOException::class)
-    private fun readPermissionTickets(reader: JsonElement) {
+    private fun readPermissionTickets(reader: JsonElement, resourceSets: Map<Long, ResourceSet>) {
         require(reader is JsonArray)
 
         for(ticketObj in reader) {
@@ -257,7 +256,8 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
             val permission = requireNotNull(ticketObj[PERMISSIONS]).jsonObject.let { p ->
                 val scopes = requireNotNull(p[SCOPES]).jsonArray.mapTo(HashSet()) { it.asString() }
                 val rsId = requireNotNull(p[RESOURCE_SET]).jsonPrimitive.long
-                val savedPerm = permissionRepository.saveRawPermission(Permission(scopes = scopes))
+                val rs = requireNotNull(resourceSets[rsId])
+                val savedPerm = permissionRepository.saveRawPermission(Permission(resourceSet = rs, scopes = scopes))
                 permissionToResourceRefs[savedPerm.id!!] = rsId
                 savedPerm
             }
@@ -279,17 +279,21 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
 
 
     @Throws(IOException::class)
-    private fun readResourceSets(reader: JsonElement) {
+    private fun readResourceSets(reader: JsonElement): Map<Long, ResourceSet> {
         require(reader is JsonArray)
+        val result = mutableMapOf<Long, ResourceSet>()
         for(e in reader) {
             val rawRS = json.decodeFromJsonElement<ResourceSet>(e)
             val oldId = rawRS.id
-            val newId = resourceSetRepository.save(rawRS).id
+            val newRS = resourceSetRepository.save(rawRS)
+            val newId = newRS.id
 
             if (oldId!=null) {
                 resourceSetOldToNewIdMap[oldId] = newId
+                result[oldId] = newRS
             }
         }
+        return result
     }
 
 
@@ -310,15 +314,24 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
 	 * @see org.mitre.openid.connect.service.MITREidDataServiceExtension#fixExtensionObjectReferences()
 	 */
     override fun fixExtensionObjectReferences(maps: MITREidDataServiceMaps) {
-        for (permissionId in permissionToResourceRefs.keys) {
-            val oldResourceId = permissionToResourceRefs[permissionId]
-            val newResourceId = resourceSetOldToNewIdMap[oldResourceId].requireId()
-            val p = permissionRepository.getById(permissionId)!!
-            val rs = resourceSetRepository.getById(newResourceId)!!
-            p.resourceSet = rs
-            permissionRepository.saveRawPermission(p)
-            logger.debug("Mapping rsid $oldResourceId to $newResourceId for permission $permissionId")
+        val extData = pendingExtensionData ?: return
+        val cData = extData.registeredClients
+        val rsData = extData.resourceSets
+        val tData = extData.permissionTickets
+        val pData = extData.permissions
+
+        if (cData != null) { readSavedRegisteredClients(cData) }
+
+        if (rsData != null) {
+            val rsMap = readResourceSets(rsData)
+
+            if (tData!=null) { readPermissionTickets(tData, rsMap) }
+            if (pData!=null) { readTokenPermissions(pData,rsMap) }
+        } else {
+            require(tData == null || (tData is JsonNull) || (tData is JsonArray && tData.isEmpty()))
+            require(pData == null || (pData is JsonNull) || (pData is JsonArray && pData.isEmpty()))
         }
+
         for (tokenId in tokenToPermissionRefs.keys) {
             val newTokenId = maps.accessTokenOldToNewIdMap[tokenId].requireId()
             val token = tokenRepository.getAccessTokenById(newTokenId)!!
@@ -328,13 +341,19 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
                 val p = permissionRepository.getById(permissionId)!!
                 permissions.add(p)
             }
-
             token.permissions = permissions
             tokenRepository.saveAccessToken(token)
         }
         permissionToResourceRefs.clear()
         resourceSetOldToNewIdMap.clear()
         tokenToPermissionRefs.clear()
+    }
+
+    private class PendingExtensionData() {
+        var permissions: JsonElement? = null
+        var permissionTickets: JsonElement? = null
+        var registeredClients: JsonElement? = null
+        var resourceSets: JsonElement? = null
     }
 
     companion object {

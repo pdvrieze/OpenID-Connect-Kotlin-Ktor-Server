@@ -19,139 +19,50 @@ package org.mitre.openid.connect.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
-import org.mitre.openid.connect.model.convert.JsonObjectStringConverter
 import java.io.IOException
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
-import javax.persistence.Basic
-import javax.persistence.CascadeType
-import javax.persistence.Column
-import javax.persistence.Convert
-import javax.persistence.Entity
-import javax.persistence.GeneratedValue
-import javax.persistence.GenerationType
-import javax.persistence.Id
-import javax.persistence.JoinColumn
-import javax.persistence.NamedQueries
-import javax.persistence.NamedQuery
-import javax.persistence.OneToOne
-import javax.persistence.Table
 
-@Entity
-@Table(name = "user_info")
-@NamedQueries(NamedQuery(name = DefaultUserInfo.QUERY_BY_USERNAME, query = "select u from DefaultUserInfo u WHERE u.preferredUsername = :" + DefaultUserInfo.PARAM_USERNAME), NamedQuery(name = DefaultUserInfo.QUERY_BY_EMAIL, query = "select u from DefaultUserInfo u WHERE u.email = :" + DefaultUserInfo.PARAM_EMAIL))
+//@NamedQueries(NamedQuery(name = DefaultUserInfo.QUERY_BY_USERNAME, query = "select u from DefaultUserInfo u WHERE u.preferredUsername = :" + DefaultUserInfo.PARAM_USERNAME), NamedQuery(name = DefaultUserInfo.QUERY_BY_EMAIL, query = "select u from DefaultUserInfo u WHERE u.email = :" + DefaultUserInfo.PARAM_EMAIL))
 @Serializable
 class DefaultUserInfo(
-    @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Id
-    @kotlinx.serialization.Transient
     var id: Long? = null,
-
-    @get:Basic
-    @get:Column(name = "sub")
     override var subject: String,
-
-    @Basic
-    @Column(name = "preferred_username")
     override var preferredUsername: String? = null,
-
-    @Basic
-    @Column(name = "name")
     override var name: String? = null,
-
-    @Basic
-    @Column(name = "given_name")
     override var givenName: String? = null,
-
-    @Basic
-    @Column(name = "family_name")
     override var familyName: String? = null,
-
-    @Basic
-    @Column(name = "middle_name")
     override var middleName: String? = null,
-
-    @Basic
-    @Column(name = "nickname")
     override var nickname: String? = null,
-
-    @Basic
-    @Column(name = "profile")
     override var profile: String? = null,
-
-    @Basic
-    @Column(name = "picture")
     override var picture: String? = null,
-
-    @Basic
-    @Column(name = "website")
     override var website: String? = null,
-
-    @Basic
-    @Column(name = "email")
     override var email: String? = null,
-
-    @Basic
-    @Column(name = "email_verified")
     override var emailVerified: Boolean? = null,
-
-    @Basic
-    @Column(name = "gender")
     override var gender: String? = null,
-
-    @Basic
-    @Column(name = "zone_info")
     override var zoneinfo: String? = null,
-
-    @Basic
-    @Column(name = "locale")
     override var locale: String? = null,
-
-    @Basic
-    @Column(name = "phone_number")
     override var phoneNumber: String? = null,
-
-    @Basic
-    @Column(name = "phone_number_verified")
     override var phoneNumberVerified: Boolean? = null,
-
-    @OneToOne(targetEntity = DefaultAddress::class, cascade = [CascadeType.ALL])
-    @JoinColumn(name = "address_id")
     @SerialName("address")
     private var _address: DefaultAddress? = null,
-
-    @Basic
-    @Column(name = "updated_time")
     override var updatedTime: String? = null,
-
-    @Basic
-    @Column(name = "birthdate")
     override var birthdate: String? = null,
-
-    @get:Convert(converter = JsonObjectStringConverter::class)
-    @get:Column(name = "src")
-    @get:Basic
     @Transient
-    @kotlinx.serialization.Transient
     override var source: JsonObject? = null, // source JSON if this is loaded remotely
 ) : UserInfo {
-
-//    @OneToOne(targetEntity = DefaultAddress::class, cascade = [CascadeType.ALL])
-//    @JoinColumn(name = "address_id")
-//    @SerialName("address")
-//    private var _address: DefaultAddress? = address?.let { it as? DefaultAddress ?: DefaultAddress(it) }
 
     override var address: Address?
         get() = _address
         set(value) {
-            _address = value?.let { it as? DefaultAddress ?: DefaultAddress(it) }
+            _address = value?.let { DefaultAddress.from(it) }
         }
 
     constructor(
@@ -194,7 +105,7 @@ class DefaultUserInfo(
         locale = locale,
         phoneNumber = phoneNumber,
         phoneNumberVerified = phoneNumberVerified,
-        _address = address?.let { it as? DefaultAddress ?: DefaultAddress(it) },
+        _address = address?.let { DefaultAddress.from(it) },
         updatedTime = updatedTime,
         birthdate = birthdate,
         source = source,

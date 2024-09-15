@@ -42,13 +42,13 @@ import java.util.*
  * @property allowedScopes What scopes have been allowed this should include all information for what data to access
  */
 class ApprovedSite(
-    var id: Long?,
+    var id: Long? = null,
     var userId: String?,
     var clientId: String?,
-    var creationDate: ISODate?,
-    var accessDate: ISODate?,
-    var timeoutDate: ISODate?,
-    var allowedScopes: Set<String>
+    var creationDate: ISODate? = null,
+    var accessDate: ISODate? = null,
+    var timeoutDate: ISODate? = null,
+    var allowedScopes: Set<String> = emptySet(),
 ) {
 
     /**

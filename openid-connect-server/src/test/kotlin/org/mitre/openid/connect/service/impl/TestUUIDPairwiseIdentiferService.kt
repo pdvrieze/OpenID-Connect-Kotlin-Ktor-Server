@@ -133,10 +133,11 @@ class TestUUIDPairwiseIdentiferService {
         verify(pairwiseIdentifierRepository, atLeast(1))
             .save(any<PairwiseIdentifier>())
 
-        val pairwiseId = PairwiseIdentifier()
-        pairwiseId.userSub = regularSub
-        pairwiseId.identifier = pairwise1
-        pairwiseId.sectorIdentifier = sectorHost12
+        val pairwiseId = PairwiseIdentifier(
+            userSubject = regularSub,
+            identifier = pairwise1,
+            sectorIdentifier = sectorHost12,
+        )
 
         whenever(pairwiseIdentifierRepository.getBySectorIdentifier(regularSub, sectorHost12))
             .thenReturn(pairwiseId)

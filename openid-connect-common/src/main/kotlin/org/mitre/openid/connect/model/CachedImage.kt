@@ -18,10 +18,8 @@ package org.mitre.openid.connect.model
 /**
  * @author jricher
  */
-class CachedImage {
-    var data: ByteArray? = null
-
-    var contentType: String? = null
-
-    var length: Long = 0
-}
+class CachedImage(
+    var data: ByteArray,
+    var contentType: String,
+    var length: Long,
+)

@@ -76,7 +76,7 @@ internal fun ResultRow.toUserInfo(address: Address?): UserInfo {
             locale = r[locale],
             phoneNumber = r[phoneNumber],
             phoneNumberVerified = r[phoneNumberVerified],
-            _address = address?.let { it as? DefaultAddress ?: DefaultAddress(it) },
+            _address = address?.let { DefaultAddress.from(it) },
             updatedTime = r[updatedTime],
             birthdate = r[birthdate],
             source = r[src]?.let { Json.parseToJsonElement(it).jsonObject },

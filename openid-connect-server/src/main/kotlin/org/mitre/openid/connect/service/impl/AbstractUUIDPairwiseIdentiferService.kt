@@ -39,8 +39,7 @@ abstract class AbstractUUIDPairwiseIdentiferService : PairwiseIdentifierService 
                     identifier = UUID.randomUUID().toString(),
                     userSubject = userInfo.subject,
                     sectorIdentifier = sectorIdentifier,
-
-                    )
+                )
 
                 pairwiseIdentifierRepository.save(pairwise)
             }

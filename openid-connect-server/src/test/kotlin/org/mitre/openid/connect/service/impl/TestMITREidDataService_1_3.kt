@@ -373,8 +373,7 @@ class TestMITREidDataService_1_3 {
         verify(tokenRepository, times(6)).saveRefreshToken(capture(capturedRefreshTokens))
 
         val savedRefreshTokens: List<OAuth2RefreshTokenEntity> = fakeDb.values.sortedWith(refreshTokenIdComparator())
-        ArrayList<Any>(fakeDb.values) //capturedRefreshTokens.getAllValues();
-        Collections.sort(savedRefreshTokens, refreshTokenIdComparator())
+        //capturedRefreshTokens.getAllValues();
 
         assertEquals(2, savedRefreshTokens.size)
 
@@ -623,11 +622,11 @@ class TestMITREidDataService_1_3 {
                     return _auth
                 }
             })
+        whenever(tokenRepository.getRefreshTokenById(eq(133L))).thenReturn(mockRefreshToken2)
+
         maps.refreshTokenOldToNewIdMap[1L] = 133L
         maps.authHolderOldToNewIdMap[1L] = 222L
         maps.authHolderOldToNewIdMap[2L] = 223L
-
-        whenever(tokenRepository.getRefreshTokenById(eq(133L))).thenReturn(mockRefreshToken2)
 
         dataService.importData(configJson)
 
@@ -635,7 +634,6 @@ class TestMITREidDataService_1_3 {
         verify(tokenRepository, times(7)).saveAccessToken(capture(capturedAccessTokens))
 
         val savedAccessTokens: List<OAuth2AccessTokenEntity> = fakeDb.values.sortedWith(accessTokenIdComparator())
-        //capturedAccessTokens.getAllValues();
 
         assertEquals(2, savedAccessTokens.size)
 
@@ -919,17 +917,11 @@ class TestMITREidDataService_1_3 {
     @Test
     @Throws(IOException::class)
     fun testImportBlacklistedSites() {
-        val site1 = BlacklistedSite()
-        site1.id = 1L
-        site1.uri = "http://foo.com"
+        val site1 = BlacklistedSite(id = 1L, uri = "http://foo.com")
 
-        val site2 = BlacklistedSite()
-        site2.id = 2L
-        site2.uri = "http://bar.com"
+        val site2 = BlacklistedSite(id = 2L, uri = "http://bar.com")
 
-        val site3 = BlacklistedSite()
-        site3.id = 3L
-        site3.uri = "http://baz.com"
+        val site3 = BlacklistedSite(id = 3L, uri = "http://baz.com")
 
         val configJson = "{" +
                 "\"" + CLIENTS + "\": [], " +
@@ -1122,27 +1114,29 @@ class TestMITREidDataService_1_3 {
         val mockToken1 = mock<OAuth2AccessTokenEntity>()
         whenever(mockToken1.id).thenReturn(1L)
 
-        val site1 = ApprovedSite()
-        site1.id = 1L
-        site1.clientId = "foo"
-        site1.creationDate = creationDate1
-        site1.accessDate = accessDate1
-        site1.userId = "user1"
-        site1.allowedScopes = setOf("openid", "phone")
+        val site1 = ApprovedSite(
+            id = 1L,
+            clientId = "foo",
+            creationDate = creationDate1,
+            accessDate = accessDate1,
+            userId = "user1",
+            allowedScopes = setOf("openid", "phone"),
+        )
         whenever(mockToken1.approvedSite).thenReturn(site1)
 
         val creationDate2 = formatter.parse("2014-09-11T18:49:44.090+00:00", Locale.ENGLISH)
         val accessDate2 = formatter.parse("2014-09-11T20:49:44.090+00:00", Locale.ENGLISH)
         val timeoutDate2 = formatter.parse("2014-10-01T20:49:44.090+00:00", Locale.ENGLISH)
 
-        val site2 = ApprovedSite()
-        site2.id = 2L
-        site2.clientId = "bar"
-        site2.creationDate = creationDate2
-        site2.accessDate = accessDate2
-        site2.userId = "user2"
-        site2.allowedScopes = setOf("openid", "offline_access", "email", "profile")
-        site2.timeoutDate = timeoutDate2
+        val site2 = ApprovedSite(
+            id = 2L,
+            clientId = "bar",
+            creationDate = creationDate2,
+            accessDate = accessDate2,
+            userId = "user2",
+            allowedScopes = setOf("openid", "offline_access", "email", "profile"),
+            timeoutDate = timeoutDate2,
+        )
 
         val allApprovedSites: Set<ApprovedSite> = setOf(site1, site2)
 
@@ -1232,27 +1226,29 @@ class TestMITREidDataService_1_3 {
         val mockToken1 = mock<OAuth2AccessTokenEntity>()
         whenever(mockToken1.id).thenReturn(1L)
 
-        val site1 = ApprovedSite()
-        site1.id = 1L
-        site1.clientId = "foo"
-        site1.creationDate = creationDate1
-        site1.accessDate = accessDate1
-        site1.userId = "user1"
-        site1.allowedScopes = setOf("openid", "phone")
+        val site1 = ApprovedSite(
+            id = 1L,
+            clientId = "foo",
+            creationDate = creationDate1,
+            accessDate = accessDate1,
+            userId = "user1",
+            allowedScopes = setOf("openid", "phone"),
+        )
         whenever(mockToken1.approvedSite).thenReturn(site1)
 
         val creationDate2 = formatter.parse("2014-09-11T18:49:44.090+00:00", Locale.ENGLISH)
         val accessDate2 = formatter.parse("2014-09-11T20:49:44.090+00:00", Locale.ENGLISH)
         val timeoutDate2 = formatter.parse("2014-10-01T20:49:44.090+00:00", Locale.ENGLISH)
 
-        val site2 = ApprovedSite()
-        site2.id = 2L
-        site2.clientId = "bar"
-        site2.creationDate = creationDate2
-        site2.accessDate = accessDate2
-        site2.userId = "user2"
-        site2.allowedScopes = setOf("openid", "offline_access", "email", "profile")
-        site2.timeoutDate = timeoutDate2
+        val site2 = ApprovedSite(
+            id = 2L,
+            clientId = "bar",
+            creationDate = creationDate2,
+            accessDate = accessDate2,
+            userId = "user2",
+            allowedScopes = setOf("openid", "offline_access", "email", "profile"),
+            timeoutDate = timeoutDate2,
+        )
 
         val configJson = ("{" +
                 "\"" + CLIENTS + "\": [], " +
@@ -1275,7 +1271,7 @@ class TestMITREidDataService_1_3 {
         logger.debug(configJson)
 
         val fakeDb: MutableMap<Long, ApprovedSite> = HashMap()
-        whenever<ApprovedSite>(approvedSiteRepository.save(isA<ApprovedSite>()))
+        whenever(approvedSiteRepository.save(isA<ApprovedSite>()))
             .thenAnswer(object : Answer<ApprovedSite> {
                 var id: Long = 364L
 

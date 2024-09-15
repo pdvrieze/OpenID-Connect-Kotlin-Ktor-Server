@@ -69,23 +69,23 @@ class TestDefaultApprovedSiteService {
             it.setClientId(clientId)
         }
 
-        site1 = ApprovedSite().apply {
-            id = 1L
-            userId = "user1"
-            clientId = "other"
-        }
+        site1 = ApprovedSite(
+            id = 1L,
+            userId = "user1",
+            clientId = "other",
+        )
 
-        site2 = ApprovedSite().also {
-            it.id = 2L
-            it.userId = "user1"
-            it.clientId = clientId
-        }
+        site2 = ApprovedSite(
+            id = 2L,
+            userId = "user1",
+            clientId = clientId,
+        )
 
-        site3 = ApprovedSite().also {
-            it.id = 3L
-            it.userId = "user2"
-            it.clientId = clientId
-        }
+        site3 = ApprovedSite(
+            id = 3L,
+            userId = "user2",
+            clientId = clientId,
+        )
 
         reset(repository, statsService)
     }

@@ -17,110 +17,17 @@ package org.mitre.uma.model
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
-import org.mitre.oauth2.model.convert.JsonElementStringConverter
-import javax.persistence.Basic
-import javax.persistence.CollectionTable
-import javax.persistence.Column
-import javax.persistence.Convert
-import javax.persistence.ElementCollection
-import javax.persistence.Entity
-import javax.persistence.FetchType
-import javax.persistence.GeneratedValue
-import javax.persistence.GenerationType
-import javax.persistence.Id
-import javax.persistence.JoinColumn
-import javax.persistence.Table
 
 /**
  * @author jricher
  */
-@Entity
-@Table(name = "claim")
 @Serializable
-class Claim {
-    @get:Column(name = "id")
-    @get:GeneratedValue(strategy = GenerationType.IDENTITY)
-    @get:Id
-    var id: Long? = null
-
-    @get:Column(name = "name")
-    @get:Basic
-    var name: String? = null
-
-    @get:Column(name = "friendly_name")
-    @get:Basic
-    var friendlyName: String? = null
-
-    @get:Column(name = "claim_type")
-    @get:Basic
-    var claimType: String? = null
-
-    @get:Convert(converter = JsonElementStringConverter::class)
-    @get:Column(name = "claim_value")
-    @get:Basic
-    var value: JsonElement? = null
-
-    @get:CollectionTable(name = "claim_token_format", joinColumns = [JoinColumn(name = "owner_id")])
-    @get:Column(name = "claim_token_format")
-    @get:ElementCollection(fetch = FetchType.EAGER)
-    var claimTokenFormat: Set<String> = emptySet()
-
-    @get:CollectionTable(name = "claim_issuer", joinColumns = [JoinColumn(name = "owner_id")])
-    @get:Column(name = "issuer")
-    @get:ElementCollection(fetch = FetchType.EAGER)
-    var issuer: Set<String> = emptySet()
-
-    @Deprecated("For JPA")
-    constructor()
-
-    constructor(
-        id: Long?,
-        name: String?,
-        friendlyName: String?,
-        claimType: String?,
-        value: JsonElement?,
-        claimTokenFormat: Set<String>,
-        issuer: Set<String>,
-    ) {
-        this.id = id
-        this.name = name
-        this.friendlyName = friendlyName
-        this.claimType = claimType
-        this.value = value
-        this.claimTokenFormat = claimTokenFormat
-        this.issuer = issuer
-    }
-
-    override fun toString(): String {
-        return "Claim [id=$id, name=$name, friendlyName=$friendlyName, claimType=$claimType, value=$value, claimTokenFormat=$claimTokenFormat, issuer=$issuer]"
-    }
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as Claim
-
-        if (id != other.id) return false
-        if (name != other.name) return false
-        if (friendlyName != other.friendlyName) return false
-        if (claimType != other.claimType) return false
-        if (value != other.value) return false
-        if (claimTokenFormat != other.claimTokenFormat) return false
-        if (issuer != other.issuer) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = id?.hashCode() ?: 0
-        result = 31 * result + (name?.hashCode() ?: 0)
-        result = 31 * result + (friendlyName?.hashCode() ?: 0)
-        result = 31 * result + (claimType?.hashCode() ?: 0)
-        result = 31 * result + (value?.hashCode() ?: 0)
-        result = 31 * result + (claimTokenFormat?.hashCode() ?: 0)
-        result = 31 * result + (issuer?.hashCode() ?: 0)
-        return result
-    }
-
-}
+data class Claim(
+    val id: Long? = null,
+    val name: String? = null,
+    val friendlyName: String? = null,
+    val claimType: String? = null,
+    val value: JsonElement? = null,
+    val claimTokenFormat: Set<String> = emptySet(),
+    val issuer: Set<String> = emptySet(),
+)

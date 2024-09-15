@@ -23,7 +23,6 @@ import org.apache.commons.io.IOUtils
 import org.apache.http.client.HttpClient
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.impl.client.HttpClientBuilder
-import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.openid.connect.model.CachedImage
 import org.mitre.openid.connect.service.ClientLogoLoadingService
@@ -79,13 +78,11 @@ class InMemoryClientLogoLoadingService(
 
                 val entity = response.entity
 
-                val image = CachedImage()
-
-                image.contentType = entity.contentType.value
-                image.length = entity.contentLength
-                image.data = IOUtils.toByteArray(entity.content)
-
-                return image
+                return CachedImage(
+                    data = IOUtils.toByteArray(entity.content),
+                    contentType = entity.contentType.value,
+                    length = entity.contentLength,
+                )
             } catch (e: IOException) {
                 throw IllegalArgumentException("Unable to load client image.")
             }

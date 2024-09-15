@@ -50,14 +50,11 @@ class DefaultPermissionService : PermissionService {
             throw InsufficientScopeException("Scopes of resource set are not enough for requested permission.")
         }
 
-        val ticket = PermissionTicket().apply {
-            permission = Permission().also {
-                it.resourceSet = resourceSet
-                it.scopes = scopes
-            }
-            ticket = UUID.randomUUID().toString()
-            expiration = Date(System.currentTimeMillis() + permissionExpirationSeconds * 1000L)
-        }
+        val ticket = PermissionTicket(
+            permission = Permission(resourceSet = resourceSet, scopes = scopes),
+            expiration = Date(System.currentTimeMillis() + permissionExpirationSeconds * 1000L),
+            ticket = UUID.randomUUID().toString(),
+        )
 
         return repository.save(ticket)
     }

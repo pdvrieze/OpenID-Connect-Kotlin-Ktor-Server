@@ -33,7 +33,7 @@ open class JpaRegisteredClientService : RegisteredClientService, SavedRegistered
     @Transactional(value = "defaultTransactionManager")
     override fun save(issuer: String, client: RegisteredClient) {
         val saved = getSavedRegisteredClientFromStorage(issuer)
-            ?: SavedRegisteredClient().also { it.issuer = issuer }
+            ?: SavedRegisteredClient(issuer = issuer)
 
         saved.registeredClient = client
 
@@ -45,7 +45,7 @@ open class JpaRegisteredClientService : RegisteredClientService, SavedRegistered
             em.createQuery("SELECT c from SavedRegisteredClient c where c.issuer = :issuer", SavedRegisteredClient::class.java)
         query.setParameter("issuer", issuer)
 
-        return JpaUtil.getSingleResult(query.resultList)
+        return org.mitre.util.jpa.JpaUtil.getSingleResult(query.resultList)
     }
 
 

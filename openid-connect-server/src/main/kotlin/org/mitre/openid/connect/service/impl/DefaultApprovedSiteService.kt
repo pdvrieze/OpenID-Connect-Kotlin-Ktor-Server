@@ -101,14 +101,14 @@ class DefaultApprovedSiteService : ApprovedSiteService {
         allowedScopes: Set<String>?
     ): ApprovedSite {
         val now = Date()
-        val approvedSite = approvedSiteRepository.save(ApprovedSite())
-
-        approvedSite.creationDate = now
-        approvedSite.accessDate = now
-        approvedSite.clientId = clientId
-        approvedSite.userId = userId
-        approvedSite.timeoutDate = timeoutDate
-        approvedSite.allowedScopes = allowedScopes ?: emptySet()
+        val approvedSite = approvedSiteRepository.save(ApprovedSite(
+            creationDate = now,
+            accessDate = now,
+            clientId = clientId,
+            userId = userId,
+            timeoutDate = timeoutDate,
+            allowedScopes = allowedScopes ?: emptySet(),
+        ))
 
         return save(approvedSite)
     }

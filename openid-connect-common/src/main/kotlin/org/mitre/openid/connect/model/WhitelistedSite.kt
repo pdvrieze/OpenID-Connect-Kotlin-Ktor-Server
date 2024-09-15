@@ -20,65 +20,28 @@ package org.mitre.openid.connect.model
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
-import javax.persistence.Basic
-import javax.persistence.CollectionTable
-import javax.persistence.Column
-import javax.persistence.ElementCollection
-import javax.persistence.Entity
-import javax.persistence.FetchType
-import javax.persistence.GeneratedValue
-import javax.persistence.GenerationType
-import javax.persistence.Id
-import javax.persistence.JoinColumn
-import javax.persistence.NamedQueries
-import javax.persistence.NamedQuery
-import javax.persistence.Table
 
 /**
  * Indicator that login to a site should be automatically granted
  * without user interaction.
+ * @property creatorUserId Reference to the admin user who created this entry
+ * @property clientId which OAuth2 client is this tied to
+ * @property allowedScopes What scopes be allowed by default. this should include all information for what data to access
  * @author jricher, aanganes
  */
 @OptIn(ExperimentalSerializationApi::class)
-@Entity
-@Table(name = "whitelisted_site")
-@NamedQueries(NamedQuery(name = WhitelistedSite.QUERY_ALL, query = "select w from WhitelistedSite w"), NamedQuery(name = WhitelistedSite.QUERY_BY_CLIENT_ID, query = "select w from WhitelistedSite w where w.clientId = :" + WhitelistedSite.PARAM_CLIENT_ID), NamedQuery(name = WhitelistedSite.QUERY_BY_CREATOR, query = "select w from WhitelistedSite w where w.creatorUserId = :" + WhitelistedSite.PARAM_USER_ID))
+//@NamedQueries(NamedQuery(name = WhitelistedSite.QUERY_ALL, query = "select w from WhitelistedSite w"), NamedQuery(name = WhitelistedSite.QUERY_BY_CLIENT_ID, query = "select w from WhitelistedSite w where w.clientId = :" + WhitelistedSite.PARAM_CLIENT_ID), NamedQuery(name = WhitelistedSite.QUERY_BY_CREATOR, query = "select w from WhitelistedSite w where w.creatorUserId = :" + WhitelistedSite.PARAM_USER_ID))
 @Serializable
 class WhitelistedSite(
-    @get:Column(name = "id")
-    @get:GeneratedValue(strategy = GenerationType.IDENTITY)
-    @get:Id
     @EncodeDefault
     var id: Long? = null,
-
-    /** Reference to the admin user who created this entry */
-    @get:Column(name = "creator_user_id")
-    @get:Basic
     @EncodeDefault
     var creatorUserId: String? = null,
-
-    /**
-     * which OAuth2 client is this tied to
-     */
-    @get:Column(name = "client_id")
-    @get:Basic
     @EncodeDefault
     var clientId: String? = null,
-
-    /**
-     * What scopes be allowed by default. this should include all information for what data to access
-     */
-    @get:Column(name = "scope")
-    @get:CollectionTable(name = "whitelisted_site_scope", joinColumns = [JoinColumn(name = "owner_id")])
-    @get:ElementCollection(fetch = FetchType.EAGER)
     @EncodeDefault
     var allowedScopes: Set<String> = emptySet(),
 ) {
-
-    @Serializable
-    class SerialDelegate(
-
-    )
 
     companion object {
         const val QUERY_BY_CREATOR: String = "WhitelistedSite.getByCreatoruserId"

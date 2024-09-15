@@ -17,60 +17,29 @@
  */
 package org.mitre.openid.connect.model
 
-import javax.persistence.Basic
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.GeneratedValue
-import javax.persistence.GenerationType
-import javax.persistence.Id
-import javax.persistence.NamedQueries
-import javax.persistence.NamedQuery
-import javax.persistence.Table
-
 /**
  *
  * Holds the generated pairwise identifiers for a user. Can be tied to either a client ID or a sector identifier URL.
  *
  * @author jricher
  */
-@Entity
-@Table(name = "pairwise_identifier")
-@NamedQueries(NamedQuery(name = PairwiseIdentifier.QUERY_ALL, query = "select p from PairwiseIdentifier p"), NamedQuery(name = PairwiseIdentifier.QUERY_BY_SECTOR_IDENTIFIER, query = "select p from PairwiseIdentifier p WHERE p.userSub = :" + PairwiseIdentifier.PARAM_SUB + " AND p.sectorIdentifier = :" + PairwiseIdentifier.PARAM_SECTOR_IDENTIFIER))
-class PairwiseIdentifier {
-    @get:Column(name = "id")
-    @get:GeneratedValue(strategy = GenerationType.IDENTITY)
-    @get:Id
-    var id: Long? = null
-
-    @get:Column(name = "identifier")
-    @get:Basic
-    var identifier: String? = null
-
-    @get:Column(name = PARAM_SUB)
-    @get:Basic
-    var userSub: String? = null
-
-    @get:Column(name = "sector_identifier")
-    @get:Basic
-    var sectorIdentifier: String? = null
-
-    @Deprecated("For JPA")
-    constructor()
-
-    constructor(id: Long? = null, identifier: String? = null, userSubject: String, sectorIdentifier: String) {
-        this.id = id
-        this.identifier = identifier
-        this.userSub = userSubject
-        this.sectorIdentifier = sectorIdentifier
-    }
+//@NamedQueries(NamedQuery(name = PairwiseIdentifier.QUERY_ALL, query = "select p from PairwiseIdentifier p"), NamedQuery(name = PairwiseIdentifier.QUERY_BY_SECTOR_IDENTIFIER, query = "select p from PairwiseIdentifier p WHERE p.userSub = :" + PairwiseIdentifier.PARAM_SUB + " AND p.sectorIdentifier = :" + PairwiseIdentifier.PARAM_SECTOR_IDENTIFIER))
+class PairwiseIdentifier(
+    var id: Long? = null,
+    var identifier: String? = null,
+    userSubject: String,
+    sectorIdentifier: String
+) {
+    var userSub: String? = userSubject
+    var sectorIdentifier: String? = sectorIdentifier
 
     fun copy(
         id: Long? = this.id,
         identifier: String? = this.identifier,
-        userSub: String = this.userSub!!,
+        userSubject: String = this.userSub!!,
         sectorIdentifier: String = this.sectorIdentifier!!
     ) : PairwiseIdentifier {
-        return PairwiseIdentifier(id, this.identifier, userSub, sectorIdentifier)
+        return PairwiseIdentifier(id, identifier, userSubject, sectorIdentifier)
     }
 
     companion object {

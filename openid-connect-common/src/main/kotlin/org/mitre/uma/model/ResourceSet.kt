@@ -16,87 +16,24 @@
 package org.mitre.uma.model
 
 import kotlinx.serialization.Serializable
-import org.mitre.uma.model.ResourceSet.Companion.PARAM_CLIENTID
-import org.mitre.uma.model.ResourceSet.Companion.PARAM_OWNER
-import org.mitre.uma.model.ResourceSet.Companion.QUERY_ALL
-import org.mitre.uma.model.ResourceSet.Companion.QUERY_BY_CLIENT
-import org.mitre.uma.model.ResourceSet.Companion.QUERY_BY_OWNER
-import org.mitre.uma.model.ResourceSet.Companion.QUERY_BY_OWNER_AND_CLIENT
-import javax.persistence.*
 
-@Entity
-@Table(name = "resource_set")
-@NamedQueries(
-    NamedQuery(name = QUERY_BY_OWNER, query = "select r from ResourceSet r where r.owner = :$PARAM_OWNER"),
-    NamedQuery(name = QUERY_BY_OWNER_AND_CLIENT, query = "select r from ResourceSet r where r.owner = :$PARAM_OWNER and r.clientId = :$PARAM_CLIENTID"),
-    NamedQuery(name = QUERY_BY_CLIENT, query = "select r from ResourceSet r where r.clientId = :$PARAM_CLIENTID"),
-    NamedQuery(name = QUERY_ALL, query = "select r from ResourceSet r"))
+/**
+ * @property owner Username of the person responsible for the registration (either directly or via OAuth token)
+ * @property clientId Client id of the protected resource that registered this resource set via OAuth token
+ */
 @Serializable
-class ResourceSet {
-    @get:Column(name = "id")
-    @get:GeneratedValue(strategy = GenerationType.IDENTITY)
-    @get:Id
-    var id: Long? = null
-
-    @get:Column(name = "name")
-    @get:Basic
-    lateinit var name: String
-
-    @get:Column(name = "uri")
-    @get:Basic
-    var uri: String? = null
-
-    @get:Column(name = "rs_type")
-    @get:Basic
-    var type: String? = null
-
-    @get:CollectionTable(name = "resource_set_scope", joinColumns = [JoinColumn(name = "owner_id")])
-    @get:Column(name = "scope")
-    @get:ElementCollection(fetch = FetchType.EAGER)
-    var scopes: Set<String> = HashSet()
-
-    @get:Column(name = "icon_uri")
-    @get:Basic
-    var iconUri: String? = null
-
-    /** username of the person responsible for the registration (either directly or via OAuth token) */
-    @get:Column(name = "owner")
-    @get:Basic
-    var owner: String? = null
-
-    /** client id of the protected resource that registered this resource set via OAuth token */
-    @get:Column(name = "client_id")
-    @get:Basic
-    var clientId: String? = null
-
-    @get:JoinColumn(name = "resource_set_id")
-    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
-    var policies: Collection<Policy> = HashSet()
-
-    @Deprecated("JPA only")
-    constructor()
-
-    constructor(
-        id: Long? = null,
-        name: String,
-        uri: String? = null,
-        type: String? = null,
-        scopes: Set<String> = emptySet(),
-        iconUri: String? = null,
-        owner: String? = null,
-        clientId: String? = null,
-        policies: Collection<Policy> = emptySet(),
-    ) {
-        this.id = id
-        this.name = name
-        this.uri = uri
-        this.type = type
-        this.scopes = scopes
-        this.iconUri = iconUri
-        this.owner = owner
-        this.clientId = clientId
-        this.policies = policies
-    }
+class ResourceSet(
+    @Transient
+    var id: Long? = null,
+    var name: String,
+    var uri: String? = null,
+    var type: String? = null,
+    var scopes: Set<String> = emptySet(),
+    var iconUri: String? = null,
+    var owner: String? = null,
+    var clientId: String? = null,
+    var policies: Collection<Policy> = emptyList(),
+) {
 
     fun copy(
         id: Long? = this.id,
@@ -108,7 +45,7 @@ class ResourceSet {
         owner: String? = this.owner,
         clientId: String? = this.clientId,
         policies: Collection<Policy> = this.policies,
-    ) : ResourceSet = ResourceSet(id, name, uri, type, scopes, iconUri, owner, clientId, policies)
+    ) : ResourceSet = ResourceSet(id, name, uri, type, scopes.toHashSet(), iconUri, owner, clientId, policies.toList())
 
     /* (non-Javadoc)
     * @see java.lang.Object#toString()

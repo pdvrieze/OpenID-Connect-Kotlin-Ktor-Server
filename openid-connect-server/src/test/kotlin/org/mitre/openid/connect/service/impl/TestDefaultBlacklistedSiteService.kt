@@ -53,8 +53,8 @@ class TestDefaultBlacklistedSiteService {
     @BeforeEach
     @Throws(Exception::class)
     fun prepare() {
-        site1 = BlacklistedSite().apply { uri = uri1 }
-        site2 = BlacklistedSite().apply { uri = uri2 }
+        site1 = BlacklistedSite(uri = uri1)
+        site2 = BlacklistedSite(uri = uri2)
 
         blackListedSitesSet = setOf(site1, site2)
     }

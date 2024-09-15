@@ -8,6 +8,7 @@ base {
 
 dependencies {
     implementation(projects.openidConnectServer)
+    implementation(projects.openidConnectServerJpaSpring)
     implementation(projects.openidConnectClient)
     api(projects.umaServer.common)
 

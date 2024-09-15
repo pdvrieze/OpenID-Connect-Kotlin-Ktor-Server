@@ -86,7 +86,9 @@ class ExposedPermissionRepository(database: Database, private val resourceSets: 
     fun ResultRow.toPermission(): Permission {
         val permId = get(Permissions.id).value
         val resourceSetId = get(Permissions.resourceSetId)
-        val resourceSet = resourceSetId?.let { resourceSets.getById(it) }
+        val resourceSet = checkNotNull(resourceSetId?.let { resourceSets.getById(it) }) {
+            "Missing resource set $resourceSetId for permission $permId"
+        }
 
         val scopes = PermissionScopes.select(PermissionScopes.scope)
             .where { PermissionScopes.ownerId eq permId }

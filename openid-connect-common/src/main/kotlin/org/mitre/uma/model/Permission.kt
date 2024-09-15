@@ -16,49 +16,13 @@
 package org.mitre.uma.model
 
 import kotlinx.serialization.Serializable
-import javax.persistence.CollectionTable
-import javax.persistence.Column
-import javax.persistence.ElementCollection
-import javax.persistence.Entity
-import javax.persistence.FetchType
-import javax.persistence.GeneratedValue
-import javax.persistence.GenerationType
-import javax.persistence.Id
-import javax.persistence.JoinColumn
-import javax.persistence.ManyToOne
-import javax.persistence.Table
 
 /**
  * @author  jricher
  */
-@Entity
-@Table(name = "permission")
 @Serializable
-class Permission {
-    @get:Column(name = "id")
-    @get:GeneratedValue(strategy = GenerationType.IDENTITY)
-    @get:Id
-    var id: Long? = null
-
-    @get:JoinColumn(name = "resource_set_id")
-    @get:ManyToOne(fetch = FetchType.EAGER)
-    lateinit var resourceSet: ResourceSet
-
-    @get:CollectionTable(name = "permission_scope", joinColumns = [JoinColumn(name = "owner_id")])
-    @get:Column(name = "scope")
-    @get:ElementCollection(fetch = FetchType.EAGER)
-    var scopes: Set<String> = emptySet()
-
-    @Deprecated("For JPA")
-    constructor()
-
-    constructor(id: Long? = null, resourceSet: ResourceSet? = null, scopes: Set<String>) {
-        this.id = id
-        resourceSet?.let { this.resourceSet = it }
-        this.scopes = scopes.toSet()
-    }
-
-    fun copy(id: Long? = this.id, resourceSet: ResourceSet? = this.resourceSet, scopes:Set<String> = this.scopes): Permission {
-        return Permission(id, resourceSet, scopes)
-    }
-}
+data class Permission(
+    val id: Long? = null,
+    val resourceSet: ResourceSet,
+    val scopes: Set<String>,
+)

@@ -287,13 +287,15 @@ class PolicyAPI {
                 }
 
                 // update the existing object with the new values
-                policy.claimsRequired = p.claimsRequired
-                policy.name = p.name
-                policy.scopes = p.scopes
+                val newPolicy = policy.copy(
+                    name = p.name,
+                    claimsRequired = p.claimsRequired,
+                    scopes = p.scopes,
+                )
 
                 resourceSetService.update(rs, rs)
 
-                m.addAttribute(JsonEntityView.ENTITY, policy)
+                m.addAttribute(JsonEntityView.ENTITY, newPolicy)
                 return JsonEntityView.VIEWNAME
             }
         }

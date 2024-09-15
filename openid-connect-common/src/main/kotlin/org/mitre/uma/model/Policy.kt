@@ -16,87 +16,16 @@
 package org.mitre.uma.model
 
 import kotlinx.serialization.Serializable
-import javax.persistence.Basic
-import javax.persistence.CascadeType
-import javax.persistence.CollectionTable
-import javax.persistence.Column
-import javax.persistence.ElementCollection
-import javax.persistence.Entity
-import javax.persistence.FetchType
-import javax.persistence.GeneratedValue
-import javax.persistence.GenerationType
-import javax.persistence.Id
-import javax.persistence.JoinColumn
-import javax.persistence.JoinTable
-import javax.persistence.OneToMany
-import javax.persistence.Table
 
 /**
  * A set of claims required to fulfill a given permission.
  *
  * @author jricher
  */
-@Entity
-@Table(name = "policy")
 @Serializable
-class Policy {
-    @get:Column(name = "id")
-    @get:GeneratedValue(strategy = GenerationType.IDENTITY)
-    @get:Id
-    var id: Long? = null
-
-    @get:Column(name = "name")
-    @get:Basic
-    var name: String? = null
-
-    @get:JoinTable(name = "claim_to_policy", joinColumns = [JoinColumn(name = "policy_id")], inverseJoinColumns = [JoinColumn(name = "claim_id")])
-    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
-    var claimsRequired: Collection<Claim>? = null
-
-    @get:CollectionTable(name = "policy_scope", joinColumns = [JoinColumn(name = "owner_id")])
-    @get:Column(name = "scope")
-    @get:ElementCollection(fetch = FetchType.EAGER)
-    var scopes: Set<String> = emptySet()
-
-    @Deprecated("JPA only")
-    constructor()
-
-    constructor(
-        id: Long?,
-        name: String?,
-        claimsRequired: Collection<Claim>,
-        scopes: Set<String>,
-    ) {
-        this.id = id
-        this.name = name
-        this.claimsRequired = claimsRequired
-        this.scopes = scopes
-    }
-
-    override fun toString(): String {
-        return "Policy [id=$id, name=$name, claimsRequired=$claimsRequired, scopes=$scopes]"
-    }
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as Policy
-
-        if (id != other.id) return false
-        if (name != other.name) return false
-        if (claimsRequired != other.claimsRequired) return false
-        if (scopes != other.scopes) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = id?.hashCode() ?: 0
-        result = 31 * result + (name?.hashCode() ?: 0)
-        result = 31 * result + (claimsRequired?.hashCode() ?: 0)
-        result = 31 * result + scopes.hashCode()
-        return result
-    }
-
-}
+data class Policy(
+    val id: Long? = null,
+    val name: String? = null,
+    val claimsRequired: Collection<Claim> = emptyList(),
+    val scopes: Set<String> = emptySet(),
+)
