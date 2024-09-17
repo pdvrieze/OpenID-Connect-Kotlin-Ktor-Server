@@ -55,7 +55,7 @@ class UserInfoEndpoint {
      * Get information about the user as specified in the accessToken included in this request
      */
     @PreAuthorize("hasRole('ROLE_USER') and #oauth2.hasScope('" + SystemScopeService.OPENID_SCOPE + "')")
-    @RequestMapping(method = [RequestMethod.GET, RequestMethod.POST], produces = [MediaType.APPLICATION_JSON_VALUE, UserInfoJWTView.JOSE_MEDIA_TYPE_VALUE])
+    @RequestMapping(method = [RequestMethod.GET, RequestMethod.POST], produces = [MediaType.APPLICATION_JSON_VALUE, org.mitre.openid.connect.view.UserInfoJWTView.JOSE_MEDIA_TYPE_VALUE])
     fun getInfo(
         @RequestParam(value = "claims", required = false) claimsRequestJsonString: String?,
         @RequestHeader(value = HttpHeaders.ACCEPT, required = false) acceptHeader: String?,
@@ -77,21 +77,21 @@ class UserInfoEndpoint {
             return HttpCodeView.VIEWNAME
         }
 
-        model.addAttribute(UserInfoView.SCOPE, auth.oAuth2Request.scope)
+        model.addAttribute(org.mitre.openid.connect.view.UserInfoView.SCOPE, auth.oAuth2Request.scope)
 
-        model.addAttribute(UserInfoView.AUTHORIZED_CLAIMS, auth.oAuth2Request.extensions["claims"])
+        model.addAttribute(org.mitre.openid.connect.view.UserInfoView.AUTHORIZED_CLAIMS, auth.oAuth2Request.extensions["claims"])
 
         if (!claimsRequestJsonString.isNullOrEmpty()) {
-            model.addAttribute(UserInfoView.REQUESTED_CLAIMS, claimsRequestJsonString)
+            model.addAttribute(org.mitre.openid.connect.view.UserInfoView.REQUESTED_CLAIMS, claimsRequestJsonString)
         }
 
-        model.addAttribute(UserInfoView.USER_INFO, userInfo)
+        model.addAttribute(org.mitre.openid.connect.view.UserInfoView.USER_INFO, userInfo)
 
         // content negotiation
 
         // start off by seeing if the client has registered for a signed/encrypted JWT from here
         val client = checkNotNull(clientService.loadClientByClientId(auth.oAuth2Request.clientId))
-        model.addAttribute(UserInfoJWTView.CLIENT, client)
+        model.addAttribute(org.mitre.openid.connect.view.UserInfoJWTView.CLIENT, client)
 
         val mediaTypes = MediaType.parseMediaTypes(acceptHeader)
         MediaType.sortBySpecificityAndQuality(mediaTypes)
@@ -99,27 +99,27 @@ class UserInfoEndpoint {
         if (client.userInfoSignedResponseAlg != null || client.userInfoEncryptedResponseAlg != null || client.userInfoEncryptedResponseEnc != null) {
             // client has a preference, see if they ask for plain JSON specifically on this request
             for (m in mediaTypes) {
-                if (!m.isWildcardType && m.isCompatibleWith(UserInfoJWTView.JOSE_MEDIA_TYPE)) {
-                    return UserInfoJWTView.VIEWNAME
+                if (!m.isWildcardType && m.isCompatibleWith(org.mitre.openid.connect.view.UserInfoJWTView.JOSE_MEDIA_TYPE)) {
+                    return org.mitre.openid.connect.view.UserInfoJWTView.VIEWNAME
                 } else if (!m.isWildcardType && m.isCompatibleWith(MediaType.APPLICATION_JSON)) {
-                    return UserInfoView.VIEWNAME
+                    return org.mitre.openid.connect.view.UserInfoView.VIEWNAME
                 }
             }
 
             // otherwise return JWT
-            return UserInfoJWTView.VIEWNAME
+            return org.mitre.openid.connect.view.UserInfoJWTView.VIEWNAME
         } else {
             // client has no preference, see if they asked for JWT specifically on this request
             for (m in mediaTypes) {
                 if (!m.isWildcardType && m.isCompatibleWith(MediaType.APPLICATION_JSON)) {
-                    return UserInfoView.VIEWNAME
-                } else if (!m.isWildcardType && m.isCompatibleWith(UserInfoJWTView.JOSE_MEDIA_TYPE)) {
-                    return UserInfoJWTView.VIEWNAME
+                    return org.mitre.openid.connect.view.UserInfoView.VIEWNAME
+                } else if (!m.isWildcardType && m.isCompatibleWith(org.mitre.openid.connect.view.UserInfoJWTView.JOSE_MEDIA_TYPE)) {
+                    return org.mitre.openid.connect.view.UserInfoJWTView.VIEWNAME
                 }
             }
 
             // otherwise return JSON
-            return UserInfoView.VIEWNAME
+            return org.mitre.openid.connect.view.UserInfoView.VIEWNAME
         }
     }
 

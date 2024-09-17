@@ -121,8 +121,8 @@ class IntrospectionEndpoint {
         if (tokenValue.isNullOrEmpty()) {
             logger.error("Verify failed; token value is null")
             val entity: Map<String, Boolean> = mapOf("active" to java.lang.Boolean.FALSE)
-            model.addAttribute(JsonEntityView.ENTITY, entity)
-            return JsonEntityView.VIEWNAME
+            model.addAttribute(org.mitre.openid.connect.view.JsonEntityView.ENTITY, entity)
+            return org.mitre.openid.connect.view.JsonEntityView.VIEWNAME
         }
 
         var accessToken: OAuth2AccessTokenEntity? = null
@@ -156,28 +156,28 @@ class IntrospectionEndpoint {
                 logger.error("Invalid refresh token")
                 val entity: Map<String, Boolean> =
                     mapOf(IntrospectionResultAssembler.ACTIVE to java.lang.Boolean.FALSE)
-                model.addAttribute(JsonEntityView.ENTITY, entity)
-                return JsonEntityView.VIEWNAME
+                model.addAttribute(org.mitre.openid.connect.view.JsonEntityView.ENTITY, entity)
+                return org.mitre.openid.connect.view.JsonEntityView.VIEWNAME
             }
         }
 
         // if it's a valid token, we'll print out information on it
         if (accessToken != null) {
             val entity = introspectionResultAssembler.assembleFrom(accessToken, user, authScopes)
-            model.addAttribute(JsonEntityView.ENTITY, entity)
+            model.addAttribute(org.mitre.openid.connect.view.JsonEntityView.ENTITY, entity)
         } else if (refreshToken != null) {
             val entity = introspectionResultAssembler.assembleFrom(refreshToken, user, authScopes)
-            model.addAttribute(JsonEntityView.ENTITY, entity)
+            model.addAttribute(org.mitre.openid.connect.view.JsonEntityView.ENTITY, entity)
         } else {
             // no tokens were found (we shouldn't get here)
             logger.error("Verify failed; Invalid access/refresh token")
             val entity: Map<String, Boolean> =
                 mapOf(IntrospectionResultAssembler.ACTIVE to java.lang.Boolean.FALSE)
-            model.addAttribute(JsonEntityView.ENTITY, entity)
-            return JsonEntityView.VIEWNAME
+            model.addAttribute(org.mitre.openid.connect.view.JsonEntityView.ENTITY, entity)
+            return org.mitre.openid.connect.view.JsonEntityView.VIEWNAME
         }
 
-        return JsonEntityView.VIEWNAME
+        return org.mitre.openid.connect.view.JsonEntityView.VIEWNAME
     }
 
     companion object {

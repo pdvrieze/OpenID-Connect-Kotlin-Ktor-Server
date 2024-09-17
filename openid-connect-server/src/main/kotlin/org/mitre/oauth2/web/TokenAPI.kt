@@ -57,7 +57,7 @@ class TokenAPI {
     @RequestMapping(value = ["/access"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getAllAccessTokens(m: ModelMap, p: Principal): String {
         val allTokens = tokenService.getAllAccessTokensForUser(p.name)
-        m[JsonEntityView.ENTITY] = allTokens
+        m[org.mitre.openid.connect.view.JsonEntityView.ENTITY] = allTokens
         return org.mitre.oauth2.view.TokenApiView.VIEWNAME
     }
 
@@ -68,15 +68,15 @@ class TokenAPI {
         if (token == null) {
             logger.error("getToken failed; token not found: $id")
             m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
-            m[JsonErrorView.ERROR_MESSAGE] = "The requested token with id $id could not be found."
-            return JsonErrorView.VIEWNAME
+            m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] = "The requested token with id $id could not be found."
+            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
         } else if (token.authenticationHolder.authentication.name != p.name) {
             logger.error("getToken failed; token does not belong to principal " + p.name)
             m[HttpCodeView.CODE] = HttpStatus.FORBIDDEN
-            m[JsonErrorView.ERROR_MESSAGE] = "You do not have permission to view this token"
-            return JsonErrorView.VIEWNAME
+            m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] = "You do not have permission to view this token"
+            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
         } else {
-            m[JsonEntityView.ENTITY] = token
+            m[org.mitre.openid.connect.view.JsonEntityView.ENTITY] = token
             return org.mitre.oauth2.view.TokenApiView.VIEWNAME
         }
     }
@@ -88,13 +88,13 @@ class TokenAPI {
         if (token == null) {
             logger.error("getToken failed; token not found: $id")
             m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
-            m[JsonErrorView.ERROR_MESSAGE] = "The requested token with id $id could not be found."
-            return JsonErrorView.VIEWNAME
+            m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] = "The requested token with id $id could not be found."
+            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
         } else if (token.authenticationHolder.authentication.name != p.name) {
             logger.error("getToken failed; token does not belong to principal " + p.name)
             m[HttpCodeView.CODE] = HttpStatus.FORBIDDEN
-            m[JsonErrorView.ERROR_MESSAGE] = "You do not have permission to view this token"
-            return JsonErrorView.VIEWNAME
+            m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] = "You do not have permission to view this token"
+            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
         } else {
             tokenService.revokeAccessToken(token)
 
@@ -109,13 +109,13 @@ class TokenAPI {
 
         if (client != null) {
             val tokens = tokenService.getAccessTokensForClient(client)
-            m[JsonEntityView.ENTITY] = tokens
+            m[org.mitre.openid.connect.view.JsonEntityView.ENTITY] = tokens
             return org.mitre.oauth2.view.TokenApiView.VIEWNAME
         } else {
             // client not found
             m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
-            m[JsonErrorView.ERROR_MESSAGE] = "The requested client with id $clientId could not be found."
-            return JsonErrorView.VIEWNAME
+            m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] = "The requested client with id $clientId could not be found."
+            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
         }
     }
 
@@ -127,18 +127,18 @@ class TokenAPI {
         if (client != null) {
             val token = tokenService.getRegistrationAccessTokenForClient(client)
             if (token != null) {
-                m[JsonEntityView.ENTITY] = token
+                m[org.mitre.openid.connect.view.JsonEntityView.ENTITY] = token
                 return org.mitre.oauth2.view.TokenApiView.VIEWNAME
             } else {
                 m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
-                m[JsonErrorView.ERROR_MESSAGE] = "No registration token could be found."
-                return JsonErrorView.VIEWNAME
+                m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] = "No registration token could be found."
+                return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
             }
         } else {
             // client not found
             m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
-            m[JsonErrorView.ERROR_MESSAGE] = "The requested client with id $clientId could not be found."
-            return JsonErrorView.VIEWNAME
+            m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] = "The requested client with id $clientId could not be found."
+            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
         }
     }
 
@@ -156,25 +156,25 @@ class TokenAPI {
                 ?.let { tokenService.saveAccessToken(it) }
 
             if (token != null) {
-                m[JsonEntityView.ENTITY] = token
+                m[org.mitre.openid.connect.view.JsonEntityView.ENTITY] = token
                 return org.mitre.oauth2.view.TokenApiView.VIEWNAME
             } else {
                 m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
-                m[JsonErrorView.ERROR_MESSAGE] = "No registration token could be found."
-                return JsonErrorView.VIEWNAME
+                m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] = "No registration token could be found."
+                return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
             }
         } else {
             // client not found
             m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
-            m[JsonErrorView.ERROR_MESSAGE] = "The requested client with id $clientId could not be found."
-            return JsonErrorView.VIEWNAME
+            m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] = "The requested client with id $clientId could not be found."
+            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
         }
     }
 
     @RequestMapping(value = ["/refresh"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getAllRefreshTokens(m: ModelMap, p: Principal): String {
         val allTokens = tokenService.getAllRefreshTokensForUser(p.name)
-        m[JsonEntityView.ENTITY] = allTokens
+        m[org.mitre.openid.connect.view.JsonEntityView.ENTITY] = allTokens
         return org.mitre.oauth2.view.TokenApiView.VIEWNAME
     }
 
@@ -185,15 +185,15 @@ class TokenAPI {
         if (token == null) {
             logger.error("refresh token not found: $id")
             m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
-            m[JsonErrorView.ERROR_MESSAGE] = "The requested token with id $id could not be found."
-            return JsonErrorView.VIEWNAME
+            m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] = "The requested token with id $id could not be found."
+            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
         } else if (token.authenticationHolder!!.authentication.name != p.name) {
             logger.error("refresh token " + id + " does not belong to principal " + p.name)
             m[HttpCodeView.CODE] = HttpStatus.FORBIDDEN
-            m[JsonErrorView.ERROR_MESSAGE] = "You do not have permission to view this token"
-            return JsonErrorView.VIEWNAME
+            m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] = "You do not have permission to view this token"
+            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
         } else {
-            m[JsonEntityView.ENTITY] = token
+            m[org.mitre.openid.connect.view.JsonEntityView.ENTITY] = token
             return org.mitre.oauth2.view.TokenApiView.VIEWNAME
         }
     }
@@ -205,13 +205,13 @@ class TokenAPI {
         if (token == null) {
             logger.error("refresh token not found: $id")
             m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
-            m[JsonErrorView.ERROR_MESSAGE] = "The requested token with id $id could not be found."
-            return JsonErrorView.VIEWNAME
+            m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] = "The requested token with id $id could not be found."
+            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
         } else if (token.authenticationHolder!!.authentication.name != p.name) {
             logger.error("refresh token " + id + " does not belong to principal " + p.name)
             m[HttpCodeView.CODE] = HttpStatus.FORBIDDEN
-            m[JsonErrorView.ERROR_MESSAGE] = "You do not have permission to view this token"
-            return JsonErrorView.VIEWNAME
+            m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] = "You do not have permission to view this token"
+            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
         } else {
             tokenService.revokeRefreshToken(token)
 

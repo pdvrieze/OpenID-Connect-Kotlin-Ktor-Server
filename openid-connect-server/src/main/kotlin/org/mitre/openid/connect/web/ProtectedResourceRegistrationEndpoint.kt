@@ -100,10 +100,10 @@ class ProtectedResourceRegistrationEndpoint {
             validateAuth(newClientBuilder)
         } catch (ve: ValidationException) {
             // validation failed, return an error
-            m.addAttribute(JsonErrorView.ERROR, ve.error)
-            m.addAttribute(JsonErrorView.ERROR_MESSAGE, ve.errorDescription)
+            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR, ve.error)
+            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, ve.errorDescription)
             m.addAttribute(HttpCodeView.CODE, ve.status)
-            return JsonErrorView.VIEWNAME
+            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
         }
 
 
@@ -154,15 +154,15 @@ class ProtectedResourceRegistrationEndpoint {
             m.addAttribute("client", registered)
             m.addAttribute(HttpCodeView.CODE, HttpStatus.CREATED) // http 201
 
-            return ClientInformationResponseView.VIEWNAME
+            return org.mitre.openid.connect.view.ClientInformationResponseView.VIEWNAME
         } catch (e: IllegalArgumentException) {
             logger.error("Couldn't save client", e)
 
-            m.addAttribute(JsonErrorView.ERROR, "invalid_client_metadata")
-            m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Unable to save client due to invalid or inconsistent metadata.")
+            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR, "invalid_client_metadata")
+            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "Unable to save client due to invalid or inconsistent metadata.")
             m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST) // http 400
 
-            return JsonErrorView.VIEWNAME
+            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
         }
     }
 
@@ -202,7 +202,7 @@ class ProtectedResourceRegistrationEndpoint {
             m.addAttribute("client", registered)
             m.addAttribute(HttpCodeView.CODE, HttpStatus.OK) // http 200
 
-            return ClientInformationResponseView.VIEWNAME
+            return org.mitre.openid.connect.view.ClientInformationResponseView.VIEWNAME
         } else {
             // client mismatch
             logger.error(
@@ -297,10 +297,10 @@ class ProtectedResourceRegistrationEndpoint {
             validateAuth(newClient)
         } catch (ve: ValidationException) {
             // validation failed, return an error
-            m.addAttribute(JsonErrorView.ERROR, ve.error)
-            m.addAttribute(JsonErrorView.ERROR_MESSAGE, ve.errorDescription)
+            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR, ve.error)
+            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, ve.errorDescription)
             m.addAttribute(HttpCodeView.CODE, ve.status)
-            return JsonErrorView.VIEWNAME
+            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
         }
 
 
@@ -318,15 +318,15 @@ class ProtectedResourceRegistrationEndpoint {
             m.addAttribute("client", registered)
             m.addAttribute(HttpCodeView.CODE, HttpStatus.OK) // http 200
 
-            return ClientInformationResponseView.VIEWNAME
+            return org.mitre.openid.connect.view.ClientInformationResponseView.VIEWNAME
         } catch (e: IllegalArgumentException) {
             logger.error("Couldn't save client", e)
 
-            m.addAttribute(JsonErrorView.ERROR, "invalid_client_metadata")
-            m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Unable to save client due to invalid or inconsistent metadata.")
+            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR, "invalid_client_metadata")
+            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "Unable to save client due to invalid or inconsistent metadata.")
             m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST) // http 400
 
-            return JsonErrorView.VIEWNAME
+            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
         }
     }
 

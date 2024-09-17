@@ -18,25 +18,20 @@
 package org.mitre.openid.connect.view
 
 import org.springframework.stereotype.Component
-import org.springframework.validation.BeanPropertyBindingResult
 
 /**
  *
- * View bean for field-limited view of client entity, for regular users.
+ * View bean for full view of client entity, for admins.
  *
- * @see AbstractClientEntityView
- *
- * @see ClientEntityViewForAdmins
+ * @see ClientEntityViewForUsers
  *
  * @author jricher
  */
-@Component(ClientEntityViewForUsers.VIEWNAME)
-class ClientEntityViewForUsers : AbstractClientEntityView() {
-    private val whitelistedFields: Set<String> =
-        hashSetOf("clientName", "clientId", "id", "clientDescription", "scope", "logoUri")
-
+@Component(ClientEntityViewForAdmins.VIEWNAME)
+class ClientEntityViewForAdmins : AbstractClientEntityView() {
+    private val blacklistedFields: Set<String> = hashSetOf("additionalInformation")
 
     companion object {
-        const val VIEWNAME: String = "clientEntityViewUsers"
+        const val VIEWNAME: String = "clientEntityViewAdmins"
     }
 }

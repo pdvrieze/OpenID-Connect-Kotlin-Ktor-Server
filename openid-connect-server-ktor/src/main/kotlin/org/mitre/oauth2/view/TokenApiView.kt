@@ -8,16 +8,21 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 
-inline suspend fun <reified T> PipelineContext<Unit, ApplicationCall>.tokenApiView(
+suspend inline fun <reified T> PipelineContext<Unit, ApplicationCall>.tokenApiView(
     jsonEntity: T,
     code:HttpStatusCode = HttpStatusCode.OK,
-) = tokenApiView(serializer<T>(), jsonEntity, code)
+) = call.respondJson(serializer<T>(), jsonEntity, code)
 
-suspend fun <T> PipelineContext<Unit, ApplicationCall>.tokenApiView(
+suspend inline fun <reified T> ApplicationCall.respondJson(
+    jsonEntity: T,
+    code:HttpStatusCode = HttpStatusCode.OK,
+) = respondJson(serializer<T>(), jsonEntity, code)
+
+suspend fun <T> ApplicationCall.respondJson(
     serializer: KSerializer<T>,
     jsonEntity: T,
     code:HttpStatusCode = HttpStatusCode.OK,
 ) {
     val textData = Json.encodeToString(serializer, jsonEntity)
-    call.respondText(textData, ContentType.Application.Json, code)
+    respondText(textData, ContentType.Application.Json, code)
 }

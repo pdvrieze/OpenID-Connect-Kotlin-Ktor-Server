@@ -38,9 +38,9 @@ class StatsAPI {
     fun statsSummary(m: ModelMap): String {
         val e = statsService.summaryStats
 
-        m[JsonEntityView.ENTITY] = e
+        m[org.mitre.openid.connect.view.JsonEntityView.ENTITY] = e
 
-        return JsonEntityView.VIEWNAME
+        return org.mitre.openid.connect.view.JsonEntityView.VIEWNAME
     }
 
     //	@PreAuthorize("hasRole('ROLE_USER')")
@@ -58,9 +58,9 @@ class StatsAPI {
     fun statsByClientId(@PathVariable("id") clientId: String?, m: ModelMap): String {
         val e = statsService.getCountForClientId(clientId!!)
 
-        m[JsonEntityView.ENTITY] = e
+        m[org.mitre.openid.connect.view.JsonEntityView.ENTITY] = e
 
-        return JsonEntityView.VIEWNAME
+        return org.mitre.openid.connect.view.JsonEntityView.VIEWNAME
     }
 
     companion object {

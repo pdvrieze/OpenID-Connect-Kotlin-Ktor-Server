@@ -111,8 +111,8 @@ class DeviceEndpoint {
             // client asked for scopes it can't have
             logger.error("Client asked for $requestedScopes but is allowed $allowedScopes")
             model[HttpCodeView.CODE] = HttpStatus.BAD_REQUEST
-            model[JsonErrorView.ERROR] = "invalid_scope"
-            return JsonErrorView.VIEWNAME
+            model[org.mitre.openid.connect.view.JsonErrorView.ERROR] = "invalid_scope"
+            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
         }
 
         // if we got here the request is legit
@@ -135,16 +135,16 @@ class DeviceEndpoint {
                 response["verification_uri_complete"] = verificationUriComplete.toString()
             }
 
-            model[JsonEntityView.ENTITY] = response
+            model[org.mitre.openid.connect.view.JsonEntityView.ENTITY] = response
 
 
-            return JsonEntityView.VIEWNAME
+            return org.mitre.openid.connect.view.JsonEntityView.VIEWNAME
         } catch (dcce: DeviceCodeCreationException) {
             model[HttpCodeView.CODE] = HttpStatus.BAD_REQUEST
-            model[JsonErrorView.ERROR] = dcce.error
-            model[JsonErrorView.ERROR_MESSAGE] = dcce.message
+            model[org.mitre.openid.connect.view.JsonErrorView.ERROR] = dcce.error
+            model[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] = dcce.message
 
-            return JsonErrorView.VIEWNAME
+            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
         } catch (use: URISyntaxException) {
             logger.error("unable to build verification_uri_complete due to wrong syntax of uri components")
             model[HttpCodeView.CODE] = HttpStatus.INTERNAL_SERVER_ERROR
