@@ -17,32 +17,21 @@
  */
 package org.mitre.openid.connect.web
 
+import io.ktor.server.routing.*
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
-import org.mitre.openid.connect.view.JWKSetView
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.MediaType
-import org.springframework.stereotype.Controller
-import org.springframework.ui.Model
-import org.springframework.web.bind.annotation.RequestMapping
+import org.mitre.openid.connect.ktor.views.jwkView
+import org.mitre.web.util.KtorEndpoint
 
-@Controller
-class JWKSetPublishingEndpoint {
-    @Autowired
-    lateinit var jwtService: JWTSigningAndValidationService
+class JWKSetPublishingEndpoint(val jwtService: JWTSigningAndValidationService): KtorEndpoint {
 
-    @RequestMapping(value = ["/" + URL], produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun getJwk(m: Model): String {
-        // map from key id to key
-
-        val keys = jwtService.allPublicKeys
-
-        // TODO: check if keys are empty, return a 404 here or just an empty list?
-        m.addAttribute("keys", keys)
-
-        return JWKSetView.VIEWNAME
+    override fun Route.addRoutes() {
+        addJWKSetPublishingEndpoint(jwtService)
     }
 
-    companion object {
-        const val URL: String = "jwk"
+    fun Route.addJWKSetPublishingEndpoint(jwtService: JWTSigningAndValidationService) {
+        get("/jwk") {
+            val keys = jwtService.allPublicKeys
+            jwkView(keys = keys)
+        }
     }
 }

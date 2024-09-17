@@ -18,10 +18,8 @@
 package org.mitre.openid.connect.client.keypublisher
 
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
-import org.mitre.openid.connect.view.JWKSetView
 import org.springframework.beans.BeansException
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory
-import org.springframework.beans.factory.support.BeanDefinitionBuilder
 import org.springframework.beans.factory.support.BeanDefinitionRegistry
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor
 import org.springframework.web.servlet.ModelAndView
@@ -44,6 +42,8 @@ class ClientKeyPublisher : BeanDefinitionRegistryPostProcessor {
      */
     @Throws(BeansException::class)
     override fun postProcessBeanFactory(beanFactory: ConfigurableListableBeanFactory) {
+        return
+/*
         if (!jwkPublishUrl.isNullOrEmpty()) {
             // add a mapping to this class
 
@@ -59,7 +59,7 @@ class ClientKeyPublisher : BeanDefinitionRegistryPostProcessor {
                 viewResolver.addPropertyValue("jwkViewName", jwkViewName)
 
                 // view bean
-                val jwkView = BeanDefinitionBuilder.rootBeanDefinition(JWKSetView::class.java)
+                val jwkView = BeanDefinitionBuilder.rootBeanDefinition(org.mitre.openid.connect.view.JWKSetView::class.java)
                 registry.registerBeanDefinition(JWK_SET_VIEW_NAME, jwkView.beanDefinition)
                 viewResolver.addPropertyReference("jwk", JWK_SET_VIEW_NAME)
             }
@@ -67,6 +67,7 @@ class ClientKeyPublisher : BeanDefinitionRegistryPostProcessor {
             registry.registerBeanDefinition("clientKeyMapping", clientKeyMapping.beanDefinition)
             registry.registerBeanDefinition("jwkViewResolver", viewResolver.beanDefinition)
         }
+*/
     }
 
     /* (non-Javadoc)

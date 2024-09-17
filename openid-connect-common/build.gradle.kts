@@ -17,7 +17,7 @@ dependencies {
     implementation(libs.commons.httpclient)
     api(libs.jwt) // needed for base class of PKCEAlgorithm
     implementation(libs.slf4j.api)
-    implementation(libs.servlet.api)
+//    implementation(libs.servlet.api)
     implementation(libs.ktor.http)
 
     api(libs.kotlinx.serialization.json)
