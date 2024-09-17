@@ -22,7 +22,6 @@ import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.service.UserInfoService
 import org.mitre.util.getLogger
-import org.mitre.web.util.CT_JSON
 import org.mitre.web.util.KtorEndpoint
 
 /**
@@ -333,7 +332,7 @@ class DiscoveryEndpoint(
             }
 
             // force json
-            call.respondText(Json.encodeToString(result), CT_JSON)
+            call.respondText(Json.encodeToString(result), ContentType.Application.Json)
         }
     }
 

@@ -1,6 +1,5 @@
 package org.mitre.web.util
 
-import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.util.pipeline.*
 
@@ -11,5 +10,3 @@ fun interface KtorView: (suspend PipelineContext<Unit, ApplicationCall>.(Unit) -
 
     suspend fun PipelineContext<Unit, ApplicationCall>.invoke()
 }
-
-val CT_JSON = ContentType.parse("application/json")

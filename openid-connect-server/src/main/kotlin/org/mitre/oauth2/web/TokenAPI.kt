@@ -58,7 +58,7 @@ class TokenAPI {
     fun getAllAccessTokens(m: ModelMap, p: Principal): String {
         val allTokens = tokenService.getAllAccessTokensForUser(p.name)
         m[JsonEntityView.ENTITY] = allTokens
-        return TokenApiView.VIEWNAME
+        return org.mitre.oauth2.view.TokenApiView.VIEWNAME
     }
 
     @RequestMapping(value = ["/access/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -77,7 +77,7 @@ class TokenAPI {
             return JsonErrorView.VIEWNAME
         } else {
             m[JsonEntityView.ENTITY] = token
-            return TokenApiView.VIEWNAME
+            return org.mitre.oauth2.view.TokenApiView.VIEWNAME
         }
     }
 
@@ -110,7 +110,7 @@ class TokenAPI {
         if (client != null) {
             val tokens = tokenService.getAccessTokensForClient(client)
             m[JsonEntityView.ENTITY] = tokens
-            return TokenApiView.VIEWNAME
+            return org.mitre.oauth2.view.TokenApiView.VIEWNAME
         } else {
             // client not found
             m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
@@ -128,7 +128,7 @@ class TokenAPI {
             val token = tokenService.getRegistrationAccessTokenForClient(client)
             if (token != null) {
                 m[JsonEntityView.ENTITY] = token
-                return TokenApiView.VIEWNAME
+                return org.mitre.oauth2.view.TokenApiView.VIEWNAME
             } else {
                 m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
                 m[JsonErrorView.ERROR_MESSAGE] = "No registration token could be found."
@@ -157,7 +157,7 @@ class TokenAPI {
 
             if (token != null) {
                 m[JsonEntityView.ENTITY] = token
-                return TokenApiView.VIEWNAME
+                return org.mitre.oauth2.view.TokenApiView.VIEWNAME
             } else {
                 m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
                 m[JsonErrorView.ERROR_MESSAGE] = "No registration token could be found."
@@ -175,7 +175,7 @@ class TokenAPI {
     fun getAllRefreshTokens(m: ModelMap, p: Principal): String {
         val allTokens = tokenService.getAllRefreshTokensForUser(p.name)
         m[JsonEntityView.ENTITY] = allTokens
-        return TokenApiView.VIEWNAME
+        return org.mitre.oauth2.view.TokenApiView.VIEWNAME
     }
 
     @RequestMapping(value = ["/refresh/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -194,7 +194,7 @@ class TokenAPI {
             return JsonErrorView.VIEWNAME
         } else {
             m[JsonEntityView.ENTITY] = token
-            return TokenApiView.VIEWNAME
+            return org.mitre.oauth2.view.TokenApiView.VIEWNAME
         }
     }
 
