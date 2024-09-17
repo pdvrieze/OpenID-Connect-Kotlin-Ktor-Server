@@ -1,7 +1,5 @@
 package org.mitre.discovery.web
 
-import com.google.common.base.Function
-import com.google.common.collect.Collections2
 import com.nimbusds.jose.Algorithm
 import com.nimbusds.jose.JWSAlgorithm
 import org.mitre.discovery.util.WebfingerURLNormalizer
@@ -70,8 +68,7 @@ class DiscoveryEndpoint {
     }
 
     // used to map JWA algorithms objects to strings
-    private val toAlgorithmName: Function<Algorithm?, String?> =
-        Function { alg -> alg?.name }
+    private val toAlgorithmName: ((Algorithm) -> String) = { alg -> alg.name }
 
     @RequestMapping(value = ["/" + WEBFINGER_URL], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun webfinger(
@@ -294,27 +291,27 @@ class DiscoveryEndpoint {
         //acr_values_supported
         m["subject_types_supported"] = listOf("public", "pairwise")
         m["userinfo_signing_alg_values_supported"] =
-            Collections2.transform(clientSymmetricAndAsymmetricSigningAlgs, toAlgorithmName)
+            clientSymmetricAndAsymmetricSigningAlgs.map(toAlgorithmName)
         m["userinfo_encryption_alg_values_supported"] =
-            Collections2.transform(encService.allEncryptionAlgsSupported, toAlgorithmName)
+            encService.allEncryptionAlgsSupported.map(toAlgorithmName)
         m["userinfo_encryption_enc_values_supported"] =
-            Collections2.transform(encService.allEncryptionEncsSupported, toAlgorithmName)
+            encService.allEncryptionEncsSupported.map(toAlgorithmName)
         m["id_token_signing_alg_values_supported"] =
-            Collections2.transform(clientSymmetricAndAsymmetricSigningAlgsWithNone, toAlgorithmName)
+            clientSymmetricAndAsymmetricSigningAlgsWithNone.map(toAlgorithmName)
         m["id_token_encryption_alg_values_supported"] =
-            Collections2.transform(encService.allEncryptionAlgsSupported, toAlgorithmName)
+            encService.allEncryptionAlgsSupported.map(toAlgorithmName)
         m["id_token_encryption_enc_values_supported"] =
-            Collections2.transform(encService.allEncryptionEncsSupported, toAlgorithmName)
+            encService.allEncryptionEncsSupported.map(toAlgorithmName)
         m["request_object_signing_alg_values_supported"] =
-            Collections2.transform(clientSymmetricAndAsymmetricSigningAlgs, toAlgorithmName)
+            clientSymmetricAndAsymmetricSigningAlgs.map(toAlgorithmName)
         m["request_object_encryption_alg_values_supported"] =
-            Collections2.transform(encService.allEncryptionAlgsSupported, toAlgorithmName)
+            encService.allEncryptionAlgsSupported.map(toAlgorithmName)
         m["request_object_encryption_enc_values_supported"] =
-            Collections2.transform(encService.allEncryptionEncsSupported, toAlgorithmName)
+            encService.allEncryptionEncsSupported.map(toAlgorithmName)
         m["token_endpoint_auth_methods_supported"] =
             listOf("client_secret_post", "client_secret_basic", "client_secret_jwt", "private_key_jwt", "none")
         m["token_endpoint_auth_signing_alg_values_supported"] =
-            Collections2.transform(clientSymmetricAndAsymmetricSigningAlgs, toAlgorithmName)
+            clientSymmetricAndAsymmetricSigningAlgs.map(toAlgorithmName)
         //display_types_supported
         m["claim_types_supported"] = listOf("normal")
         m["claims_supported"] = listOf(

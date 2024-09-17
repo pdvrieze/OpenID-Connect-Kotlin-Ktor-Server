@@ -1,6 +1,5 @@
 package org.mitre.discovery.web
 
-import com.google.common.collect.Collections2
 import com.nimbusds.jose.Algorithm
 import com.nimbusds.jose.JWSAlgorithm
 import io.ktor.http.*
@@ -25,7 +24,6 @@ import org.mitre.openid.connect.service.UserInfoService
 import org.mitre.util.getLogger
 import org.mitre.web.util.CT_JSON
 import org.mitre.web.util.KtorEndpoint
-import com.google.common.base.Function as GFunction
 
 /**
  *
@@ -42,8 +40,7 @@ class DiscoveryEndpoint(
 ) : KtorEndpoint {
 
     // used to map JWA algorithms objects to strings
-    private val toAlgorithmName: GFunction<Algorithm?, String?> =
-        GFunction { alg -> alg?.name }
+    private val toAlgorithmName: ((Algorithm) -> String) = { alg -> alg.name }
 
 
     override fun Route.addRoutes() {
@@ -269,39 +266,39 @@ class DiscoveryEndpoint(
                     addAll(listOf("public", "pairwise"))
                 }
                 putJsonArray("userinfo_signing_alg_values_supported") {
-                    addAll(Collections2.transform(clientSymmetricAndAsymmetricSigningAlgs, toAlgorithmName))
+                    addAll(clientSymmetricAndAsymmetricSigningAlgs.map(toAlgorithmName))
                 }
 
                 putJsonArray("userinfo_encryption_alg_values_supported") {
-                    addAll(Collections2.transform(encService.allEncryptionAlgsSupported, toAlgorithmName))
+                    addAll(encService.allEncryptionAlgsSupported.map(toAlgorithmName))
                 }
 
                 putJsonArray("userinfo_encryption_enc_values_supported") {
-                    addAll(Collections2.transform(encService.allEncryptionEncsSupported, toAlgorithmName))
+                    addAll(encService.allEncryptionEncsSupported.map(toAlgorithmName))
                 }
 
                 putJsonArray("id_token_signing_alg_values_supported") {
-                    addAll(Collections2.transform(clientSymmetricAndAsymmetricSigningAlgsWithNone, toAlgorithmName))
+                    addAll(clientSymmetricAndAsymmetricSigningAlgsWithNone.map(toAlgorithmName))
                 }
 
                 putJsonArray("id_token_encryption_alg_values_supported") {
-                    addAll(Collections2.transform(encService.allEncryptionAlgsSupported, toAlgorithmName))
+                    addAll(encService.allEncryptionAlgsSupported.map(toAlgorithmName))
                 }
 
                 putJsonArray("id_token_encryption_enc_values_supported") {
-                    addAll(Collections2.transform(encService.allEncryptionEncsSupported, toAlgorithmName))
+                    addAll(encService.allEncryptionEncsSupported.map(toAlgorithmName))
                 }
 
                 putJsonArray("request_object_signing_alg_values_supported") {
-                    addAll(Collections2.transform(clientSymmetricAndAsymmetricSigningAlgs, toAlgorithmName))
+                    addAll(clientSymmetricAndAsymmetricSigningAlgs.map(toAlgorithmName))
                 }
 
                 putJsonArray("request_object_encryption_alg_values_supported") {
-                    addAll(Collections2.transform(encService.allEncryptionAlgsSupported, toAlgorithmName))
+                    addAll(encService.allEncryptionAlgsSupported.map(toAlgorithmName))
                 }
 
                 putJsonArray("request_object_encryption_enc_values_supported") {
-                    addAll(Collections2.transform(encService.allEncryptionEncsSupported, toAlgorithmName))
+                    addAll(encService.allEncryptionEncsSupported.map(toAlgorithmName))
                 }
 
                 putJsonArray("token_endpoint_auth_methods_supported") {
@@ -309,7 +306,7 @@ class DiscoveryEndpoint(
                 }
 
                 putJsonArray("token_endpoint_auth_signing_alg_values_supported") {
-                    addAll(Collections2.transform(clientSymmetricAndAsymmetricSigningAlgs, toAlgorithmName))
+                    addAll(clientSymmetricAndAsymmetricSigningAlgs.map(toAlgorithmName))
                 }
                 //display_types_supported
                 putJsonArray("claim_types_supported") { addAll(listOf("normal")) }
