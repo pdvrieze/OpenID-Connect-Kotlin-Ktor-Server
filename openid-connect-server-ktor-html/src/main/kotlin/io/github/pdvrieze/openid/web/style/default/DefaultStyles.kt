@@ -3286,45 +3286,45 @@ object DefaultStyles : Styles {
     }
 
 
-    override fun CssBuilder.pager(){/*
-rule(".pager") {
-  margin: vars.baseLineHeight 0px;
-  listStyleType = ListStyleType.none
-  textAlign = TextAlign.center
-  with(mixins) { clearfix() }
-}
+    override fun CssBuilder.pager() {
+        rule(".pager") {
+            margin = Margin(vars.baseLineHeight, 0.px)
+            listStyleType = ListStyleType.none
+            textAlign = TextAlign.center
+            with(mixins) { clearfix() }
+        }
 
-rule(".pager li") {
-  display = Display.inline
-}
+        rule(".pager li") {
+            display = Display.inline
+        }
 
-ruleOf(".pager li > a", ".pager li > span") {
-  display = Display.inlineBlock
-  padding = Padding(5.px, 14.px)
-  backgroundColor = Color("#fff")
-  border = Border(1.px, BorderStyle.solid, Color("#ddd"))
-  with(mixins) { borderRadius(15.px) }
-}
+        ruleOf(".pager li > a", ".pager li > span") {
+            display = Display.inlineBlock
+            padding = Padding(5.px, 14.px)
+            backgroundColor = Color("#fff")
+            border = Border(1.px, BorderStyle.solid, Color("#ddd"))
+            with(mixins) { borderRadius(15.px) }
+        }
 
-ruleOf(".pager li > a:hover", ".pager li > a:focus") {
-  textDecoration = TextDecoration.none
-  backgroundColor = Color("#f5f5f5")
-}
+        ruleOf(".pager li > a:hover", ".pager li > a:focus") {
+            textDecoration = TextDecoration.none
+            backgroundColor = Color("#f5f5f5")
+        }
 
-ruleOf(".pager .next > a", ".pager .next > span") {
-  float = Float.right
-}
+        ruleOf(".pager .next > a", ".pager .next > span") {
+            float = Float.right
+        }
 
-ruleOf(".pager .previous > a", ".pager .previous > span") {
-  float = Float.left
-}
+        ruleOf(".pager .previous > a", ".pager .previous > span") {
+            float = Float.left
+        }
 
-ruleOf(".pager .disabled > a", ".pager .disabled > a:hover", ".pager .disabled > a:focus", ".pager .disabled > span") {
-  color = vars.grayLight
-  backgroundColor = Color("#fff")
-  cursor = Cursor.default
-}
-    */}
+        ruleOf(".pager .disabled > a", ".pager .disabled > a:hover", ".pager .disabled > a:focus", ".pager .disabled > span") {
+            color = vars.grayLight
+            backgroundColor = Color("#fff")
+            cursor = Cursor.default
+        }
+    }
 
 
     override fun CssBuilder.pagination(){/*
