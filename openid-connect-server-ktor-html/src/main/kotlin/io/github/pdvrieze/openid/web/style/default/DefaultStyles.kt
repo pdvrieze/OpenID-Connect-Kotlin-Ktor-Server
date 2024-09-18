@@ -4,6 +4,7 @@ import io.github.pdvrieze.openid.web.style.Mixins
 import io.github.pdvrieze.openid.web.style.Styles
 import io.github.pdvrieze.openid.web.style.borderWidth
 import io.github.pdvrieze.openid.web.style.ruleOf
+import io.github.pdvrieze.openid.web.style.zoom
 import kotlinx.css.*
 import kotlinx.css.Float
 import kotlinx.css.properties.BoxShadow
@@ -223,7 +224,7 @@ object DefaultStyles : Styles {
         override val navbarLinkBackgroundHover = Color.transparent
         override val navbarLinkBackgroundActive = navbarBackground.darken(5);
 
-        override val navbarBrandcolor get() = navbarLinkColor
+        override val navbarBrandColor get() = navbarLinkColor
 
         // Inverted navbar
         override val navbarInverseBackground = Color("111111")
@@ -231,7 +232,7 @@ object DefaultStyles : Styles {
         override val navbarInverseBorder = Color("252525")
 
         override val navbarInverseText get() = grayLight
-        override val navbarInverseLinkcolor get() = grayLight
+        override val navbarInverseLinkColor get() = grayLight
         override val navbarInverseLinkColorHover get() = white
         override val navbarInverseLinkColorActive get() = navbarInverseLinkColorHover
         override val navbarInverseLinkBackgroundHover = Color.transparent;
@@ -242,7 +243,7 @@ object DefaultStyles : Styles {
         override val navbarInverseSearchBorder get() = navbarInverseBackground
         override val navbarInverseSearchPlaceholderColor = Color("ccc")
 
-        override val navbarInverseBrandcolor get() = navbarInverseLinkcolor
+        override val navbarInverseBrandColor get() = navbarInverseLinkColor
 
 
         // Pagination
@@ -2094,758 +2095,784 @@ object DefaultStyles : Styles {
     }
 
 
-    override fun CssBuilder.grid(){/*
-// Fixed (940px)
-#grid > .core(vars.gridColumnWidth, vars.gridGutterWidth);
+    override fun CssBuilder.grid() {
+        with(mixins) {
+            // Fixed (940px)
+            gridCore(vars.gridColumnWidth, vars.gridGutterWidth)
 
-// Fluid (940px)
-#grid > .fluid(vars.fluidGridColumnWidth, vars.fluidGridGutterWidth);
-
-// Reset utility classes due to specificity
-ruleOf("[class*=\"span\"].hide", ".row-fluid [class*=\"span\"].hide") {
-  display = Display.none
-}
-
-ruleOf("[class*=\"span\"].pull-right", ".row-fluid [class*=\"span\"].pull-right") {
-  float = Float.right
-}
-    */}
+            // Fluid (940px)
+            gridFluid(vars.fluidGridColumnWidth, vars.fluidGridGutterWidth);
+        }
 
 
-    override fun CssBuilder.heroUnit(){/*
-rule(".hero-unit") {
-  padding = Padding(60.px)
-  marginBottom = 30.px
-  fontSize = 18.px
-  fontWeight = FontWeight.w200
-  lineHeight = vars.baseLineHeight * 1.5
-  color = vars.heroUnitLeadColor
-  backgroundColor = vars.heroUnitBackground
-  with(mixins) { borderRadius(6px) }
-  h1 {
-    marginBottom = 0.px
-    fontSize = 60.px
-    lineHeight = 1.px.lh
-    color = vars.heroUnitHeadingColor
-    letter-spacing: -1px;
-  }
-  li {
-    lineHeight = vars.baseLineHeight * 1.5
- // Reset since we specify in type.less
-  }
-}
-    */}
+        // Reset utility classes due to specificity
+        ruleOf("[class*=\"span\"].hide", ".row-fluid [class*=\"span\"].hide") {
+            display = Display.none
+        }
 
-
-    override fun CssBuilder.labelsBadges(){/*
-// Base classes
-ruleOf(".label", ".badge") {
-  display = Display.inlineBlock
-  padding = Padding(2.px, 4.px)
-  fontSize = vars.baseFontSize * .846
-  fontWeight = FontWeight.bold
-  lineHeight = 14.px.lh
- // ensure proper line-height if floated
-  color = vars.white
-  verticalAlign = VerticalAlign.baseline
-  whiteSpace = WhiteSpace.nowrap
-  declarations["text-shadow"] = "0px -1px 0px rgba(0,0,0,.25)"
-  backgroundColor = vars.grayLight
-}
-// Set unique padding and border-radii
-rule(".label") {
-  with(mixins) { borderRadius(3px) }
-}
-
-rule(".badge") {
-  paddingLeft = 9.px
-  paddingRight = 9.px
-  with(mixins) { borderRadius(9px) }
-}
-
-// Empty labels/badges collapse
-ruleOf(".label", ".badge") {
-  "&:empty" {
-    display = Display.none
-  }
-}
-
-// Hover/focus state, but only for links
-a {
-  ruleOf("&.label:hover", "&.label:focus", "&.badge:hover", "&.badge:focus") {
-    color = vars.white
-    textDecoration = TextDecoration.none
-    cursor = Cursor.pointer
-  }
-}
-
-// Colors
-// Only give background-color difference to links (and to simplify, we don't qualifty with `a` but [href] attribute)
-ruleOf(".label", ".badge") {
-  // Important (red)
-  "&-important" { backgroundColor = vars.errorText }
-  "&-important[href]" { background-color: darken(vars.errorText, 10%); }
-  // Warnings (orange)
-  "&-warning" { backgroundColor = vars.orange }
-  "&-warning[href]" { background-color: darken(vars.orange, 10%); }
-  // Success (green)
-  "&-success" { backgroundColor = vars.successText }
-  "&-success[href]" { background-color: darken(vars.successText, 10%); }
-  // Info (turquoise)
-  "&-info" { backgroundColor = vars.infoText }
-  "&-info[href]" { background-color: darken(vars.infoText, 10%); }
-  // Inverse (black)
-  "&-inverse" { backgroundColor = vars.grayDark }
-  "&-inverse[href]" { background-color: darken(vars.grayDark, 10%); }
-}
-
-// Quick fix for labels/badges in buttons
-rule(".btn") {
-  ruleOf(".label", ".badge") {
-    position = Position.relative
-    top = -1.px
-  }
-}
-
-rule(".btn-mini") {
-  ruleOf(".label", ".badge") {
-    top = 0.px
-  }
-}
-    */}
-
-
-    override fun CssBuilder.layouts(){/*
-// Container (centered, fixed-width layouts)
-rule(".container") {
-  with(mixins) { containerFixed() }
-}
-
-// Fluid layouts (left aligned, with sidebar, min- & max-width content)
-rule(".container-fluid") {
-  paddingRight = vars.gridGutterWidth
-  paddingLeft = vars.gridGutterWidth
-  with(mixins) { clearfix() }
-}
-    */}
-
-
-    override fun CssBuilder.media(){/*
-// Common styles
-
-// Clear the floats
-ruleOf(".media", ".media-body") {
-  overflow = Overflow.hidden
-  declarations["*overflow"] = "visible"
-  zoom: 1;
-}
-
-// Proper spacing between instances of .media
-ruleOf(".media", ".media .media") {
-  marginTop = 15.px
-}
-
-rule(".media:first-child") {
-  marginTop = 0.px
-}
-
-// For images and videos, set to block
-rule(".media-object") {
-  display = Display.block
-}
-
-// Reset margins on headings for tighter default spacing
-rule(".media-heading") {
-  margin = Margin(0.px, 0.px, 5.px)
-}
-
-
-// Media image alignment
-rule(".media > .pull-left") {
-  marginRight = 10.px
-}
-
-rule(".media > .pull-right") {
-  marginLeft = 10.px
-}
-
-
-// Media list variation
-
-// Undo default ul/ol styles
-rule(".media-list") {
-  marginLeft = 0.px
-  listStyleType = ListStyleType.none
-}
-    */}
-
-
-    override fun CssBuilder.modals(){/*
-// Background
-rule(".modal-backdrop") {
-  position = Position.fixed
-  top = 0.px
-  right = 0.px
-  bottom = 0.px
-  left = 0.px
-  zIndex = vars.zindexModalBackdrop
-  backgroundColor = vars.black
-  // Fade for backdrop
-  "&.fade" { opacity = 0 }
-}
-
-ruleOf(".modal-backdrop", ".modal-backdrop.fade.in") {
-  with(mixins) { opacity(80.0) }
-}
-
-// Base modal
-rule(".modal") {
-  position = Position.fixed
-  top = 10.pct
-  left = 50.pct
-  zIndex = vars.zindexModal
-  width = 560.px
-  marginLeft = -280.px
-  backgroundColor = vars.white
-  border = Border(1.px, BorderStyle.solid, Color("#999"))
-  border: 1px solid rgba(0,0,0,.3);
-  declarations["*border"] = Border(1.px, BorderStyle.solid, Color("#999"))
- /* IE6-7 */
-  with(mixins) { borderRadius(6px) }
-  with(mixins) { boxShadow(0px 3px 7px rgba(0,0,0,0.3)) }
-  with(mixins) { backgroundClip(padding-box) }
-  // Remove focus outline from opened modal
-  outline: none;
-rule("&.fade") {
-    with(mixins) { transition(e('opacity .3s linear, top .3s ease-out')) }
-    top = -25.pct
-  }
-  "&.fade.in" { top = 10.pct }
-}
-
-rule(".modal-header") {
-  padding = Padding(9.px, 15.px)
-  borderBottom = Border(1.px, BorderStyle.solid, Color.solid)
-  // Close icon
-  .close { marginTop = 2.px }
-  // Heading
-  h3 {
-    margin = Margin(0.px)
-    lineHeight = 30.px.lh
-  }
-}
-
-// Body (where all modal content resides)
-rule(".modal-body") {
-  position = Position.relative
-  overflowY = Overflow.auto
-  maxHeight = 400.px
-  padding = Padding(15.px)
-}
-// Remove bottom margin if need be
-rule(".modal-form") {
-  marginBottom = 0.px
-}
-
-// Footer (for actions)
-rule(".modal-footer") {
-  padding = Padding(14.px, 15.px, 15.px)
-  marginBottom = 0.px
-  textAlign = TextAlign.right
- // right align buttons
-  backgroundColor = Color("#f5f5f5")
-  borderTop = Border(1.px, BorderStyle.solid, Color.solid)
-  with(mixins) { borderRadius(0.px, 0.px, 6.px, 6.px) }
-  with(mixins) { boxShadow(inset 0px 1px 0px vars.white) }
-  with(mixins) { clearfix() }
- // clear it in case folks use .pull-* classes on buttons
-
-  // Properly space out buttons
-  ".btn + .btn" {
-    marginLeft = 5.px
-    marginBottom = 0.px // account for input[type="submit"] which gets the bottom margin like all other inputs
-  }
-  // but override that for button groups
-  ".btn-group .btn + .btn" {
-    marginLeft = -1.px
-  }
-  // and override it for block buttons as well
-  ".btn-block + .btn-block" {
-    marginLeft = 0.px
-  }
-}
-    */}
-
-
-    override fun CssBuilder.navbar(){/*
-// COMMON STYLES
-
-// Base class and wrapper
-rule(".navbar") {
-  overflow = Overflow.visible
-  marginBottom = vars.baseLineHeight
-
-  // Fix for IE7's bad z-indexing so dropdowns don't appear below content that follows the navbar
-  declarations["*position"] = "relative"
-  declarations["*z-index"] = "2"
-}
-
-// Inner for background effects
-// Gradient is applied to its own element because overflow visible is not honored by IE when filter is present
-rule(".navbar-inner") {
-  minHeight = vars.navbarHeight
-  paddingLeft = 20.px
-  paddingRight = 20.px
-  #gradient > .vertical(vars.navbarBackgroundHighlight, vars.navbarBackground);
-  border = Border(1.px, BorderStyle.solid, vars.navbarBorder)
-  with(mixins) { borderRadius(vars.baseBorderRadius) }
-  with(mixins) { boxShadow(0px 1px 4px rgba(0,0,0,.065)) }
-
-  // Prevent floats from breaking the navbar
-  with(mixins) { clearfix() }
-}
-
-// Set width to auto for default container
-// We then reset it for fixed navbars in the #gridSystem mixin
-rule(".navbar .container") {
-  width = LinearDimension.auto
-}
-
-// Override the default collapsed state
-rule(".nav-collapse.collapse") {
-  height = LinearDimension.auto
-  overflow = Overflow.visible
-}
-
-
-// Brand: website or project name
-rule(".navbar .brand") {
-  float = Float.left
-  display = Display.block
-  // Vertically center the text given vars.navbarHeight
-  padding: ((vars.navbarHeight-vars.baseLineHeight) / 2) 20px ((vars.navbarHeight-vars.baseLineHeight) / 2);
-  marginLeft = -20.px
- // negative indent to left-align the text down the page
-  fontSize = 20.px
-  fontWeight = FontWeight.w200
-  color = vars.navbarBrandColor
-  declarations["text-shadow"] = "0px 1px 0px vars.navbarBackgroundHighlight"
-  ruleOf("&:hover", "&:focus") {
-    textDecoration = TextDecoration.none
-  }
-}
-
-// Plain text in topbar
-rule(".navbar-text") {
-  marginBottom = 0.px
-  lineHeight = vars.navbarHeight.lh
-  color = vars.navbarText
-}
-
-// Janky solution for now to account for links outside the .nav
-rule(".navbar-link") {
-  color = vars.navbarLinkColor
-  ruleOf("&:hover", "&:focus") {
-    color = vars.navbarLinkColorHover
-  }
-}
-
-// Dividers in navbar
-rule(".navbar .divider-vertical") {
-  height: vars.navbarHeight;
-  margin = Margin(0.px, 9.px)
-  borderLeft = Border(1.px, BorderStyle.solid, Color.solid)
-  borderRight = Border(1.px, BorderStyle.solid, Color.solid)
-}
-
-// Buttons in navbar
-ruleOf(".navbar .btn", ".navbar .btn-group") {
-  with(mixins) { navbarVerticalAlign(30px) }
- // Vertically center in navbar
-}
-
-ruleOf(".navbar .btn-group .btn",
-    ".navbar .input-prepend .btn",
-    ".navbar .input-append .btn",
-    ".navbar .input-prepend .btn-group",
-    ".navbar .input-append .btn-group") {
-  marginTop = 0.px // then undo the margin here so we don't accidentally double it
-}
-
-// Navbar forms
-rule(".navbar-form") {
-  marginBottom = 0.px // remove default bottom margin
-  with(mixins) { clearfix() }
-  
-  ruleOf("input", "select", ".radio", ".checkbox") {
-    with(mixins) { navbarVerticalAlign(30px) }
- // Vertically center in navbar
-  }
-  
-  ruleOf("input", "select", ".btn") {
-    display = Display.inlineBlock
-    marginBottom = 0.px
-  }
-  ruleOf("input[type=\"image\"]", "input[type=\"checkbox\"]", "input[type=\"radio\"]") {
-    marginTop = 3.px
-  }
-  ruleOf(".input-append", ".input-prepend") {
-    marginTop = 5.px
-    whiteSpace = WhiteSpace.nowrap
- // preven two  items from separating within a .navbar-form that has .pull-left
-    input {
-      marginTop = 0.px // remove the margin on top since it's on the parent
+        ruleOf("[class*=\"span\"].pull-right", ".row-fluid [class*=\"span\"].pull-right") {
+            float = Float.right
+        }
     }
-  }
-}
-
-// Navbar search
-rule(".navbar-search") {
-  position = Position.relative
-  float = Float.left
-  with(mixins) { navbarVerticalAlign(30px) }
- // Vertically center in navbar
-  marginBottom = 0.px
-  ".search-query" {
-    marginBottom = 0.px
-    padding = Padding(4.px, 14.px)
-    #font > .sans-serif(13px, normal, 1);
-    with(mixins) { borderRadius(15px) }
- // redeclare because of specificity of the type attribute
-  }
-}
 
 
-
-// Static navbar
-rule(".navbar-static-top") {
-  position = Position.static
-  marginBottom = 0.px // remove 18px margin for default navbar
-  ".navbar-inner" {
-    with(mixins) { borderRadius(0px) }
-  }
-}
-
-
-
-// Fixed navbar
-
-// Shared (top/bottom) styles
-ruleOf(".navbar-fixed-top", ".navbar-fixed-bottom") {
-  position = Position.fixed
-  right = 0.px
-  left = 0.px
-  zIndex = vars.zindexFixedNavbar
-  marginBottom = 0.px // remove 18px margin for default navbar
-}
-
-ruleOf(".navbar-fixed-top .navbar-inner", ".navbar-static-top .navbar-inner") {
-  border-width: 0px 0px 1px;
-}
-
-rule(".navbar-fixed-bottom .navbar-inner") {
-  border-width: 1px 0px 0px;
-}
-
-ruleOf(".navbar-fixed-top .navbar-inner", ".navbar-fixed-bottom .navbar-inner") {
-  paddingLeft = 0.px
-  paddingRight = 0.px
-  with(mixins) { borderRadius(0px) }
-}
-
-// Reset container width
-// Required here as we reset the width earlier on and the grid mixins don't override early enough
-ruleOf(".navbar-static-top .container", ".navbar-fixed-top .container", ".navbar-fixed-bottom .container") {
-  #grid > .core > .span(vars.gridColumns);
-}
-
-// Fixed to top
-rule(".navbar-fixed-top") {
-  top = 0.px
-}
-
-ruleOf(".navbar-fixed-top", ".navbar-static-top") {
-  ".navbar-inner" {
-    with(mixins) { boxShadow(~"0px 1px 10px rgba(0,0,0,.1)") }
-  }
-}
-
-// Fixed to bottom
-rule(".navbar-fixed-bottom") {
-  bottom = 0.px
-  ".navbar-inner" {
-    with(mixins) { boxShadow(~"0px -1px 10px rgba(0,0,0,.1)") }
-  }
-}
-
-
-
-// NAVIGATION
-rule(".navbar .nav") {
-  position = Position.relative
-  left = 0.px
-  display = Display.block
-  float = Float.left
-  margin = Margin(0.px, 10.px, 0.px, 0.px)
-}
-
-rule(".navbar .nav.pull-right") {
-  float = Float.right
- // redeclare due to specificity
-  marginRight = 0.px // remove margin on float right nav
-}
-
-rule(".navbar .nav > li") {
-  float = Float.left
-}
-
-// Links
-rule(".navbar .nav > li > a") {
-  float = Float.none
-  // Vertically center the text given vars.navbarHeight
-  padding: ((vars.navbarHeight-vars.baseLineHeight) / 2) 15px ((vars.navbarHeight-vars.baseLineHeight) / 2);
-  color = vars.navbarLinkColor
-  textDecoration = TextDecoration.none
-  declarations["text-shadow"] = "0px 1px 0px vars.navbarBackgroundHighlight"
-}
-
-rule(".navbar .nav .dropdown-toggle .caret") {
-  marginTop = 8.px
-}
-
-// Hover/focus
-ruleOf(".navbar .nav > li > a:focus", ".navbar .nav > li > a:hover") {
-  backgroundColor = vars.navbarLinkBackgroundHover
- // "transparent" is default to differentiate :hover/:focus from .active
-  color = vars.navbarLinkColorHover
-  textDecoration = TextDecoration.none
-}
-
-// Active nav items
-ruleOf(".navbar .nav > .active > a", ".navbar .nav > .active > a:hover", ".navbar .nav > .active > a:focus") {
-  color = vars.navbarLinkColorActive
-  textDecoration = TextDecoration.none
-  backgroundColor = vars.navbarLinkBackgroundActive
-  with(mixins) { boxShadow(inset 0px 3px 8px rgba(0,0,0,.125)) }
-}
-
-// Navbar button for toggling navbar items in responsive layouts
-// These definitions need to come after '.navbar .btn'
-rule(".navbar .btn-navbar") {
-  display = Display.none
-  float = Float.right
-  padding = Padding(7.px, 10.px)
-  marginLeft = 5.px
-  marginRight = 5.px
-  with(mixins) { buttonBackground(darken(vars.navbarBackgroundHighlight, 5%), darken(vars.navbarBackground, 5%)) }
-  with(mixins) { boxShadow(~"inset 0px 1px 0px rgba(255,255,255,.1), 0px 1px 0px rgba(255,255,255,.075)") }
-}
-
-rule(".navbar .btn-navbar .icon-bar") {
-  display = Display.block
-  width = 18.px
-  height = 2.px
-  backgroundColor = Color("#f5f5f5")
-  with(mixins) { borderRadius(1px) }
-  with(mixins) { boxShadow(0px 1px 0px rgba(0,0,0,.25)) }
-}
-
-rule(".btn-navbar .icon-bar + .icon-bar") {
-  marginTop = 3.px
-}
-
-
-
-// Dropdown menus
-
-// Menu position and menu carets
-rule(".navbar .nav > li > .dropdown-menu") {
-  "&:before" {
-    content: '';
-    display = Display.inlineBlock
-    border-left:   7px solid transparent;
-    border-right:  7px solid transparent;
-    borderBottom = Border(7.px, BorderStyle.solid, Color.solid)
-    border-bottom-color = vars.dropdownBorder
-    position = Position.absolute
-    top = -7.px
-    left = 9.px
-  }
-  "&:after" {
-    content: '';
-    display = Display.inlineBlock
-    border-left:   6px solid transparent;
-    border-right:  6px solid transparent;
-    borderBottom = Border(6.px, BorderStyle.solid, Color.solid)
-    position = Position.absolute
-    top = -6.px
-    left = 10.px
-  }
-}
-// Menu position and menu caret support for dropups via extra dropup class
-rule(".navbar-fixed-bottom .nav > li > .dropdown-menu") {
-  "&:before" {
-    borderTop = Border(7.px, BorderStyle.solid, Color.solid)
-    border-top-color = vars.dropdownBorder
-    borderBottom = Border(0.px)
-    bottom = -7.px
-    top = LinearDimension.auto
-  }
-  "&:after" {
-    borderTop = Border(6.px, BorderStyle.solid, Color.solid)
-    borderBottom = Border(0.px)
-    bottom = -6.px
-    top = LinearDimension.auto
-  }
-}
-
-// Caret should match text color on hover/focus
-ruleOf(".navbar .nav li.dropdown > a:hover .caret", ".navbar .nav li.dropdown > a:focus .caret") {
-  border-top-color = vars.navbarLinkColorHover
-  border-bottom-color = vars.navbarLinkColorHover
-}
-
-// Remove background color from open dropdown
-ruleOf(".navbar .nav li.dropdown.open > .dropdown-toggle",
-    ".navbar .nav li.dropdown.active > .dropdown-toggle",
-    ".navbar .nav li.dropdown.open.active > .dropdown-toggle") {
-  backgroundColor = vars.navbarLinkBackgroundActive
-  color = vars.navbarLinkColorActive
-}
-
-rule(".navbar .nav li.dropdown > .dropdown-toggle .caret") {
-  border-top-color = vars.navbarLinkColor
-  border-bottom-color = vars.navbarLinkColor
-}
-
-ruleOf(".navbar .nav li.dropdown.open > .dropdown-toggle .caret",
-    ".navbar .nav li.dropdown.active > .dropdown-toggle .caret",
-    ".navbar .nav li.dropdown.open.active > .dropdown-toggle .caret") {
-  border-top-color = vars.navbarLinkColorActive
-  border-bottom-color = vars.navbarLinkColorActive
-}
-
-// Right aligned menus need alt position
-ruleOf(".navbar .pull-right > li > .dropdown-menu", ".navbar .nav > li > .dropdown-menu.pull-right") {
-  left = LinearDimension.auto
-  right = 0.px
-  "&:before" {
-    left = LinearDimension.auto
-    right = 12.px
-  }
-  "&:after" {
-    left = LinearDimension.auto
-    right = 13.px
-  }
-  ".dropdown-menu" {
-    left = LinearDimension.auto
-    right = 100.pct
-    marginLeft = 0.px
-    marginRight = -1.px
-    with(mixins) { borderRadius(6.px, 0.px, 6.px, 6.px) }
-  }
-}
-
-
-// Inverted navbar
-rule(".navbar-inverse") {
-rule(".navbar-inner") {
-    #gradient > .vertical(vars.navbarInverseBackgroundHighlight, vars.navbarInverseBackground);
-    borderColor =  vars.navbarInverseBorder
-  }
-
-ruleOf(".brand", ".nav > li > a") {
-    color = vars.navbarInverseLinkColor
-    declarations["text-shadow"] = "0px -1px 0px rgba(0,0,0,.25)"
-    ruleOf("&:hover", "&:focus") {
-      color = vars.navbarInverseLinkColorHover
+    override fun CssBuilder.heroUnit(){
+        rule(".hero-unit") {
+            padding = Padding(60.px)
+            marginBottom = 30.px
+            fontSize = 18.px
+            fontWeight = FontWeight.w200
+            lineHeight = (vars.baseLineHeight * 1.5).lh
+            color = vars.heroUnitLeadColor
+            backgroundColor = vars.heroUnitBackground
+            with(mixins) { borderRadius(6.px) }
+            h1 {
+                marginBottom = 0.px
+                fontSize = 60.px
+                lineHeight = 1.px.lh
+                color = vars.heroUnitHeadingColor
+                letterSpacing = -1.px;
+            }
+            li {
+                lineHeight = (vars.baseLineHeight * 1.5).lh
+                // Reset since we specify in type.less
+            }
+        }
     }
-  }
 
-rule(".brand") {
-    color = vars.navbarInverseBrandColor
-  }
 
-rule(".navbar-text") {
-    color = vars.navbarInverseText
-  }
+    override fun CssBuilder.labelsBadges() {
+        // Base classes
+        ruleOf(".label", ".badge") {
+            display = Display.inlineBlock
+            padding = Padding(2.px, 4.px)
+            fontSize = vars.baseFontSize * .846
+            fontWeight = FontWeight.bold
+            lineHeight = 14.px.lh
+            // ensure proper line-height if floated
+            color = vars.white
+            verticalAlign = VerticalAlign.baseline
+            whiteSpace = WhiteSpace.nowrap
+            declarations["text-shadow"] = "0px -1px 0px rgb(0,0,0,.25)"
+            backgroundColor = vars.grayLight
+        }
+        // Set unique padding and border-radii
+        rule(".label") {
+            with(mixins) { borderRadius(3.px) }
+        }
 
-ruleOf(".nav > li > a:focus", ".nav > li > a:hover") {
-    backgroundColor = vars.navbarInverseLinkBackgroundHover
-    color = vars.navbarInverseLinkColorHover
-  }
+        rule(".badge") {
+            paddingLeft = 9.px
+            paddingRight = 9.px
+            with(mixins) { borderRadius(9.px) }
+        }
 
-ruleOf(".nav .active > a", ".nav .active > a:hover", ".nav .active > a:focus") {
-    color = vars.navbarInverseLinkColorActive
-    backgroundColor = vars.navbarInverseLinkBackgroundActive
-  }
+        // Empty labels/badges collapse
+        ruleOf(".label", ".badge") {
+            "&:empty" {
+                display = Display.none
+            }
+        }
 
-  // Inline text links
-  ".navbar-link" {
-    color = vars.navbarInverseLinkColor
-    ruleOf("&:hover", "&:focus") {
-      color = vars.navbarInverseLinkColorHover
+        // Hover/focus state, but only for links
+        a {
+            ruleOf("&.label:hover", "&.label:focus", "&.badge:hover", "&.badge:focus") {
+                color = vars.white
+                textDecoration = TextDecoration.none
+                cursor = Cursor.pointer
+            }
+        }
+
+        // Colors
+        // Only give background-color difference to links (and to simplify, we don't qualifty with `a` but [href] attribute)
+        ruleOf(".label", ".badge") {
+            // Important (red)
+            "&-important" { backgroundColor = vars.errorText }
+            "&-important[href]" { backgroundColor = vars.errorText.darken(10) }
+            // Warnings (orange)
+            "&-warning" { backgroundColor = vars.orange }
+            "&-warning[href]" { backgroundColor = vars.orange.darken(10) }
+            // Success (green)
+            "&-success" { backgroundColor = vars.successText }
+            "&-success[href]" { backgroundColor = vars.successText.darken(10) }
+            // Info (turquoise)
+            "&-info" { backgroundColor = vars.infoText }
+            "&-info[href]" { backgroundColor = vars.infoText.darken(10) }
+            // Inverse (black)
+            "&-inverse" { backgroundColor = vars.grayDark }
+            "&-inverse[href]" { backgroundColor = vars.grayDark.darken(10) }
+        }
+
+        // Quick fix for labels/badges in buttons
+        rule(".btn") {
+            ruleOf(".label", ".badge") {
+                position = Position.relative
+                top = -1.px
+            }
+        }
+
+        rule(".btn-mini") {
+            ruleOf(".label", ".badge") {
+                top = 0.px
+            }
+        }
     }
-  }
 
-  // Dividers in navbar
-  ".divider-vertical" {
-    border-left-color = vars.navbarInverseBackground
-    border-right-color = vars.navbarInverseBackgroundHighlight
-  }
 
-  // Dropdowns
-  ruleOf(".nav li.dropdown.open > .dropdown-toggle",
-      ".nav li.dropdown.active > .dropdown-toggle",
-      ".nav li.dropdown.open.active > .dropdown-toggle") {
-    backgroundColor = vars.navbarInverseLinkBackgroundActive
-    color = vars.navbarInverseLinkColorActive
-  }
-  ruleOf(".nav li.dropdown > a:hover .caret", ".nav li.dropdown > a:focus .caret") {
-    border-top-color = vars.navbarInverseLinkColorActive
-    border-bottom-color = vars.navbarInverseLinkColorActive
-  }
-  ".nav li.dropdown > .dropdown-toggle .caret" {
-    border-top-color = vars.navbarInverseLinkColor
-    border-bottom-color = vars.navbarInverseLinkColor
-  }
-  ruleOf(".nav li.dropdown.open > .dropdown-toggle .caret",
-      ".nav li.dropdown.active > .dropdown-toggle .caret",
-      ".nav li.dropdown.open.active > .dropdown-toggle .caret") {
-    border-top-color = vars.navbarInverseLinkColorActive
-    border-bottom-color = vars.navbarInverseLinkColorActive
-  }
+    override fun CssBuilder.layouts(){
+        // Container (centered, fixed-width layouts)
+        rule(".container") {
+            with(mixins) { containerFixed() }
+        }
 
-  // Navbar search
-  ".navbar-search" {
-    ".search-query" {
-      color = vars.white
-      backgroundColor = vars.navbarInverseSearchBackground
-      borderColor =  vars.navbarInverseSearchBorder
-      with(mixins) { boxShadow(~"inset 0px 1px 2px rgba(0,0,0,.1), 0px 1px 0px rgba(255,255,255,.15)") }
-      with(mixins) { transition(none) }
-      with(mixins) { placeholder(vars.navbarInverseSearchPlaceholderColor) }
-
-      // Focus states (we use .focused since IE7-8 and down doesn't support :focus)
-      ruleOf("&:focus", "&.focused") {
-        padding = Padding(5.px, 15.px)
-        color = vars.grayDark
-        declarations["text-shadow"] = "0px 1px 0px vars.white"
-        backgroundColor = vars.navbarInverseSearchBackgroundFocus
-        borderWidth = 0.px
-        with(mixins) { boxShadow(0px 0px 3px rgba(0,0,0,.15)) }
-        outlineWidth = 0.px
-      }
+        // Fluid layouts (left aligned, with sidebar, min- & max-width content)
+        rule(".container-fluid") {
+            paddingRight = vars.gridGutterWidth
+            paddingLeft = vars.gridGutterWidth
+            with(mixins) { clearfix() }
+        }
     }
-  }
 
-  // Navbar collapse button
-  ".btn-navbar" {
-    with(mixins) { buttonBackground(darken(vars.navbarInverseBackgroundHighlight, 5%), darken(vars.navbarInverseBackground, 5%)) }
-  }
 
-}
-    */}
+    override fun CssBuilder.media() {
+        // Common styles
+
+        // Clear the floats
+        ruleOf(".media", ".media-body") {
+            overflow = Overflow.hidden
+            declarations["*overflow"] = "visible"
+            zoom = 1.0
+        }
+
+        // Proper spacing between instances of .media
+        ruleOf(".media", ".media .media") {
+            marginTop = 15.px
+        }
+
+        rule(".media:first-child") {
+            marginTop = 0.px
+        }
+
+        // For images and videos, set to block
+        rule(".media-object") {
+            display = Display.block
+        }
+
+        // Reset margins on headings for tighter default spacing
+        rule(".media-heading") {
+            margin = Margin(0.px, 0.px, 5.px)
+        }
+
+
+        // Media image alignment
+        rule(".media > .pull-left") {
+            marginRight = 10.px
+        }
+
+        rule(".media > .pull-right") {
+            marginLeft = 10.px
+        }
+
+
+        // Media list variation
+
+        // Undo default ul/ol styles
+        rule(".media-list") {
+            marginLeft = 0.px
+            listStyleType = ListStyleType.none
+        }
+    }
+
+
+    override fun CssBuilder.modals() {
+        // Background
+        rule(".modal-backdrop") {
+            position = Position.fixed
+            top = 0.px
+            right = 0.px
+            bottom = 0.px
+            left = 0.px
+            zIndex = vars.zindexModalBackdrop
+            backgroundColor = vars.black
+            // Fade for backdrop
+            "&.fade" { opacity = 0 }
+        }
+
+        ruleOf(".modal-backdrop", ".modal-backdrop.fade.in") {
+            with(mixins) { opacity(80.0) }
+        }
+
+        // Base modal
+        rule(".modal") {
+            position = Position.fixed
+            top = 10.pct
+            left = 50.pct
+            zIndex = vars.zindexModal
+            width = 560.px
+            marginLeft = -280.px
+            backgroundColor = vars.white
+            border = Border(1.px, BorderStyle.solid, Color("#999"))
+            border = Border(1.px, BorderStyle.solid, rgb(0, 0, 0, .3))
+            declarations["*border"] = Border(1.px, BorderStyle.solid, Color("#999")) // IE6-7
+            with(mixins) { borderRadius(6.px) }
+            with(mixins) { boxShadow(0.px, 3.px, 7.px, rgb(0, 0, 0, 0.3)) }
+            with(mixins) { backgroundClip(BackgroundClip.paddingBox) }
+            // Remove focus outline from opened modal
+            outlineStyle = OutlineStyle.none
+            rule("&.fade") {
+                with(mixins) { transition("e('opacity .3s linear, top .3s ease-out')") }
+                top = -25.pct
+            }
+            "&.fade.in" { top = 10.pct }
+        }
+
+        rule(".modal-header") {
+            padding = Padding(9.px, 15.px)
+            borderBottom = Border(1.px, BorderStyle.solid, Color("#eee"))
+            // Close icon
+            ".close" { marginTop = 2.px }
+            // Heading
+            h3 {
+                margin = Margin(0.px)
+                lineHeight = 30.px.lh
+            }
+        }
+
+        // Body (where all modal content resides)
+        rule(".modal-body") {
+            position = Position.relative
+            overflowY = Overflow.auto
+            maxHeight = 400.px
+            padding = Padding(15.px)
+        }
+        // Remove bottom margin if need be
+        rule(".modal-form") {
+            marginBottom = 0.px
+        }
+
+        // Footer (for actions)
+        rule(".modal-footer") {
+            padding = Padding(14.px, 15.px, 15.px)
+            marginBottom = 0.px
+            textAlign = TextAlign.right
+            // right align buttons
+            backgroundColor = Color("#f5f5f5")
+            borderTop = Border(1.px, BorderStyle.solid, Color("#ddd"))
+            with(mixins) { borderRadius(0.px, 0.px, 6.px, 6.px) }
+            with(mixins) { boxShadowInset(0.px, 1.px, 0.px, vars.white) }
+            with(mixins) { clearfix() }
+            // clear it in case folks use .pull-* classes on buttons
+
+            // Properly space out buttons
+            ".btn + .btn" {
+                marginLeft = 5.px
+                marginBottom =
+                    0.px // account for input[type="submit"] which gets the bottom margin like all other inputs
+            }
+            // but override that for button groups
+            ".btn-group .btn + .btn" {
+                marginLeft = -1.px
+            }
+            // and override it for block buttons as well
+            ".btn-block + .btn-block" {
+                marginLeft = 0.px
+            }
+        }
+    }
+
+
+    override fun CssBuilder.navbar(){
+        // COMMON STYLES
+
+        // Base class and wrapper
+        rule(".navbar") {
+          overflow = Overflow.visible
+          marginBottom = vars.baseLineHeight
+
+          // Fix for IE7's bad z-indexing so dropdowns don't appear below content that follows the navbar
+          declarations["*position"] = "relative"
+          declarations["*z-index"] = "2"
+        }
+
+        // Inner for background effects
+        // Gradient is applied to its own element because overflow visible is not honored by IE when filter is present
+        rule(".navbar-inner") {
+          minHeight = vars.navbarHeight
+          paddingLeft = 20.px
+          paddingRight = 20.px
+            with(mixins) {
+                gradientVertical(vars.navbarBackgroundHighlight, vars.navbarBackground)
+            }
+          border = Border(1.px, BorderStyle.solid, vars.navbarBorder)
+          with(mixins) {
+              borderRadius(vars.baseBorderRadius)
+              boxShadow(0.px, 1.px, 4.px, rgb(0,0,0,.065))
+          }
+
+          // Prevent floats from breaking the navbar
+          with(mixins) { clearfix() }
+        }
+
+        // Set width to auto for default container
+        // We then reset it for fixed navbars in the #gridSystem mixin
+        rule(".navbar .container") {
+          width = LinearDimension.auto
+        }
+
+        // Override the default collapsed state
+        rule(".nav-collapse.collapse") {
+          height = LinearDimension.auto
+          overflow = Overflow.visible
+        }
+
+
+        // Brand: website or project name
+        rule(".navbar .brand") {
+          float = Float.left
+          display = Display.block
+          // Vertically center the text given vars.navbarHeight
+            padding =
+                Padding(((vars.navbarHeight - vars.baseLineHeight) / 2), 20.px, ((vars.navbarHeight - vars.baseLineHeight) / 2))
+          marginLeft = -20.px
+         // negative indent to left-align the text down the page
+          fontSize = 20.px
+          fontWeight = FontWeight.w200
+          color = vars.navbarBrandColor
+          declarations["text-shadow"] = "0px 1px 0px vars.navbarBackgroundHighlight"
+          ruleOf("&:hover", "&:focus") {
+            textDecoration = TextDecoration.none
+          }
+        }
+
+        // Plain text in topbar
+        rule(".navbar-text") {
+          marginBottom = 0.px
+          lineHeight = vars.navbarHeight.lh
+          color = vars.navbarText
+        }
+
+        // Janky solution for now to account for links outside the .nav
+        rule(".navbar-link") {
+          color = vars.navbarLinkColor
+          ruleOf("&:hover", "&:focus") {
+            color = vars.navbarLinkColorHover
+          }
+        }
+
+        // Dividers in navbar
+        rule(".navbar .divider-vertical") {
+          height = vars.navbarHeight
+          margin = Margin(0.px, 9.px)
+          borderLeft = Border(1.px, BorderStyle.solid, vars.navbarBackground)
+          borderRight = Border(1.px, BorderStyle.solid, vars.navbarBackgroundHighlight)
+        }
+
+        // Buttons in navbar
+        ruleOf(".navbar .btn", ".navbar .btn-group") {
+          with(mixins) { navbarVerticalAlign(30.px) }
+         // Vertically center in navbar
+        }
+
+        ruleOf(".navbar .btn-group .btn",
+            ".navbar .input-prepend .btn",
+            ".navbar .input-append .btn",
+            ".navbar .input-prepend .btn-group",
+            ".navbar .input-append .btn-group") {
+          marginTop = 0.px // then undo the margin here so we don't accidentally double it
+        }
+
+        // Navbar forms
+        rule(".navbar-form") {
+          marginBottom = 0.px // remove default bottom margin
+          with(mixins) { clearfix() }
+
+          ruleOf("input", "select", ".radio", ".checkbox") {
+            with(mixins) { navbarVerticalAlign(30.px) }
+         // Vertically center in navbar
+          }
+
+          ruleOf("input", "select", ".btn") {
+            display = Display.inlineBlock
+            marginBottom = 0.px
+          }
+          ruleOf("input[type=\"image\"]", "input[type=\"checkbox\"]", "input[type=\"radio\"]") {
+            marginTop = 3.px
+          }
+          ruleOf(".input-append", ".input-prepend") {
+            marginTop = 5.px
+            whiteSpace = WhiteSpace.nowrap
+         // preven two  items from separating within a .navbar-form that has .pull-left
+            input {
+              marginTop = 0.px // remove the margin on top since it's on the parent
+            }
+          }
+        }
+
+        // Navbar search
+        rule(".navbar-search") {
+          position = Position.relative
+          float = Float.left
+          with(mixins) { navbarVerticalAlign(30.px) }
+         // Vertically center in navbar
+          marginBottom = 0.px
+          ".search-query" {
+            marginBottom = 0.px
+            padding = Padding(4.px, 14.px)
+//            #font > .sans-serif(13px, normal, 1);
+            with(mixins) {
+                sansSerif(vars, FontWeight.normal, 13.px, LineHeight("1"))
+                borderRadius(15.px)
+            }
+         // redeclare because of specificity of the type attribute
+          }
+        }
+
+
+
+        // Static navbar
+        rule(".navbar-static-top") {
+          position = Position.static
+          marginBottom = 0.px // remove 18px margin for default navbar
+          ".navbar-inner" {
+            with(mixins) { borderRadius(0.px) }
+          }
+        }
+
+
+
+        // Fixed navbar
+
+        // Shared (top/bottom) styles
+        ruleOf(".navbar-fixed-top", ".navbar-fixed-bottom") {
+          position = Position.fixed
+          right = 0.px
+          left = 0.px
+          zIndex = vars.zindexFixedNavbar
+          marginBottom = 0.px // remove 18px margin for default navbar
+        }
+
+        ruleOf(".navbar-fixed-top .navbar-inner", ".navbar-static-top .navbar-inner") {
+          borderWidth(0.px, 0.px, 1.px)
+        }
+
+        rule(".navbar-fixed-bottom .navbar-inner") {
+          borderWidth(1.px, 0.px, 0.px)
+        }
+
+        ruleOf(".navbar-fixed-top .navbar-inner", ".navbar-fixed-bottom .navbar-inner") {
+          paddingLeft = 0.px
+          paddingRight = 0.px
+          with(mixins) { borderRadius(0.px) }
+        }
+
+        // Reset container width
+        // Required here as we reset the width earlier on and the grid mixins don't override early enough
+        ruleOf(".navbar-static-top .container", ".navbar-fixed-top .container", ".navbar-fixed-bottom .container") {
+            with (mixins) { gridCore { span(vars.gridColumns) }}
+
+        }
+
+        // Fixed to top
+        rule(".navbar-fixed-top") {
+          top = 0.px
+        }
+
+        ruleOf(".navbar-fixed-top", ".navbar-static-top") {
+          ".navbar-inner" {
+              with(mixins) { boxShadow(0.px, 1.px, 10.px, rgb(0, 0, 0, .1)) }
+          }
+        }
+
+        // Fixed to bottom
+        rule(".navbar-fixed-bottom") {
+          bottom = 0.px
+          ".navbar-inner" {
+              with(mixins) { boxShadow(0.px, -1.px, 10.px, rgb(0, 0, 0, .1)) }
+          }
+        }
+
+
+
+        // NAVIGATION
+        rule(".navbar .nav") {
+          position = Position.relative
+          left = 0.px
+          display = Display.block
+          float = Float.left
+          margin = Margin(0.px, 10.px, 0.px, 0.px)
+        }
+
+        rule(".navbar .nav.pull-right") {
+          float = Float.right
+         // redeclare due to specificity
+          marginRight = 0.px // remove margin on float right nav
+        }
+
+        rule(".navbar .nav > li") {
+          float = Float.left
+        }
+
+        // Links
+        rule(".navbar .nav > li > a") {
+          float = Float.none
+          // Vertically center the text given vars.navbarHeight
+          padding = Padding(((vars.navbarHeight-vars.baseLineHeight) / 2), 15.px, ((vars.navbarHeight-vars.baseLineHeight) / 2));
+          color = vars.navbarLinkColor
+          textDecoration = TextDecoration.none
+          declarations["text-shadow"] = "0px 1px 0px vars.navbarBackgroundHighlight"
+        }
+
+        rule(".navbar .nav .dropdown-toggle .caret") {
+          marginTop = 8.px
+        }
+
+        // Hover/focus
+        ruleOf(".navbar .nav > li > a:focus", ".navbar .nav > li > a:hover") {
+          backgroundColor = vars.navbarLinkBackgroundHover
+         // "transparent" is default to differentiate :hover/:focus from .active
+          color = vars.navbarLinkColorHover
+          textDecoration = TextDecoration.none
+        }
+
+        // Active nav items
+        ruleOf(".navbar .nav > .active > a", ".navbar .nav > .active > a:hover", ".navbar .nav > .active > a:focus") {
+          color = vars.navbarLinkColorActive
+          textDecoration = TextDecoration.none
+          backgroundColor = vars.navbarLinkBackgroundActive
+          with(mixins) { boxShadowInset( 0.px, 3.px, 8.px, rgb(0,0,0,.125)) }
+        }
+
+        // Navbar button for toggling navbar items in responsive layouts
+        // These definitions need to come after '.navbar .btn'
+        rule(".navbar .btn-navbar") {
+          display = Display.none
+          float = Float.right
+          padding = Padding(7.px, 10.px)
+          marginLeft = 5.px
+          marginRight = 5.px
+          with(mixins) { buttonBackground(vars.navbarBackgroundHighlight.darken(5), vars.navbarBackground.darken(5)) }
+          with(mixins) {
+              boxShadow {
+                  this+=BoxShadowInset(rgb(255,255,255,.1), 0.px, 1.px, 0.px)
+                  this+=BoxShadow(rgb(255,255,255,.075), 0.px, 1.px, 0.px)
+              }
+          }
+        }
+
+        rule(".navbar .btn-navbar .icon-bar") {
+          display = Display.block
+          width = 18.px
+          height = 2.px
+          backgroundColor = Color("#f5f5f5")
+          with(mixins) {
+              borderRadius(1.px)
+              boxShadow(0.px, 1.px, 0.px, rgb(0,0,0,.25))
+          }
+        }
+
+        rule(".btn-navbar .icon-bar + .icon-bar") {
+          marginTop = 3.px
+        }
+
+
+
+        // Dropdown menus
+
+        // Menu position and menu carets
+        rule(".navbar .nav > li > .dropdown-menu") {
+          "&:before" {
+            content = QuotedString("")
+            display = Display.inlineBlock
+            borderLeft = Border(7.px, BorderStyle.solid, Color.transparent)
+            borderRight = Border(7.px, BorderStyle.solid, Color.transparent)
+            borderBottom = Border(7.px, BorderStyle.solid, Color("#ccc"))
+            borderBottomColor = vars.dropdownBorder
+            position = Position.absolute
+            top = -7.px
+            left = 9.px
+          }
+          "&:after" {
+            content = QuotedString("")
+            display = Display.inlineBlock
+            borderLeft = Border(6.px, BorderStyle.solid, Color.transparent)
+            borderRight = Border(6.px, BorderStyle.solid, Color.transparent)
+            borderBottom = Border(6.px, BorderStyle.solid, vars.dropdownBackground)
+            position = Position.absolute
+            top = -6.px
+            left = 10.px
+          }
+        }
+        // Menu position and menu caret support for dropups via extra dropup class
+        rule(".navbar-fixed-bottom .nav > li > .dropdown-menu") {
+          "&:before" {
+            borderTop = Border(7.px, BorderStyle.solid, Color("#ccc"))
+            borderTopColor = vars.dropdownBorder
+            borderBottomWidth = 0.px
+            bottom = -7.px
+            top = LinearDimension.auto
+          }
+          "&:after" {
+            borderTop = Border(6.px, BorderStyle.solid, vars.dropdownBackground)
+            borderBottomWidth = 0.px
+            bottom = -6.px
+            top = LinearDimension.auto
+          }
+        }
+
+        // Caret should match text color on hover/focus
+        ruleOf(".navbar .nav li.dropdown > a:hover .caret", ".navbar .nav li.dropdown > a:focus .caret") {
+          borderTopColor = vars.navbarLinkColorHover
+          borderBottomColor = vars.navbarLinkColorHover
+        }
+
+        // Remove background color from open dropdown
+        ruleOf(".navbar .nav li.dropdown.open > .dropdown-toggle",
+            ".navbar .nav li.dropdown.active > .dropdown-toggle",
+            ".navbar .nav li.dropdown.open.active > .dropdown-toggle") {
+          backgroundColor = vars.navbarLinkBackgroundActive
+          color = vars.navbarLinkColorActive
+        }
+
+        rule(".navbar .nav li.dropdown > .dropdown-toggle .caret") {
+          borderTopColor = vars.navbarLinkColor
+          borderBottomColor = vars.navbarLinkColor
+        }
+
+        ruleOf(".navbar .nav li.dropdown.open > .dropdown-toggle .caret",
+            ".navbar .nav li.dropdown.active > .dropdown-toggle .caret",
+            ".navbar .nav li.dropdown.open.active > .dropdown-toggle .caret") {
+          borderTopColor = vars.navbarLinkColorActive
+          borderBottomColor = vars.navbarLinkColorActive
+        }
+
+        // Right aligned menus need alt position
+        ruleOf(".navbar .pull-right > li > .dropdown-menu", ".navbar .nav > li > .dropdown-menu.pull-right") {
+          left = LinearDimension.auto
+          right = 0.px
+          "&:before" {
+            left = LinearDimension.auto
+            right = 12.px
+          }
+          "&:after" {
+            left = LinearDimension.auto
+            right = 13.px
+          }
+          ".dropdown-menu" {
+            left = LinearDimension.auto
+            right = 100.pct
+            marginLeft = 0.px
+            marginRight = -1.px
+            with(mixins) { borderRadius(6.px, 0.px, 6.px, 6.px) }
+          }
+        }
+
+
+        // Inverted navbar
+        rule(".navbar-inverse") {
+        rule(".navbar-inner") {
+            with(mixins) {
+                gradientVertical(vars.navbarInverseBackgroundHighlight, vars.navbarInverseBackground)
+            }
+            borderColor =  vars.navbarInverseBorder
+          }
+
+        ruleOf(".brand", ".nav > li > a") {
+            color = vars.navbarInverseLinkColor
+            declarations["text-shadow"] = "0px -1px 0px rgb(0,0,0,.25)"
+            ruleOf("&:hover", "&:focus") {
+              color = vars.navbarInverseLinkColorHover
+            }
+          }
+
+        rule(".brand") {
+            color = vars.navbarInverseBrandColor
+          }
+
+        rule(".navbar-text") {
+            color = vars.navbarInverseText
+          }
+
+        ruleOf(".nav > li > a:focus", ".nav > li > a:hover") {
+            backgroundColor = vars.navbarInverseLinkBackgroundHover
+            color = vars.navbarInverseLinkColorHover
+          }
+
+        ruleOf(".nav .active > a", ".nav .active > a:hover", ".nav .active > a:focus") {
+            color = vars.navbarInverseLinkColorActive
+            backgroundColor = vars.navbarInverseLinkBackgroundActive
+          }
+
+          // Inline text links
+          ".navbar-link" {
+            color = vars.navbarInverseLinkColor
+            ruleOf("&:hover", "&:focus") {
+              color = vars.navbarInverseLinkColorHover
+            }
+          }
+
+          // Dividers in navbar
+          ".divider-vertical" {
+            borderLeftColor = vars.navbarInverseBackground
+            borderRightColor = vars.navbarInverseBackgroundHighlight
+          }
+
+          // Dropdowns
+          ruleOf(".nav li.dropdown.open > .dropdown-toggle",
+              ".nav li.dropdown.active > .dropdown-toggle",
+              ".nav li.dropdown.open.active > .dropdown-toggle") {
+            backgroundColor = vars.navbarInverseLinkBackgroundActive
+            color = vars.navbarInverseLinkColorActive
+          }
+          ruleOf(".nav li.dropdown > a:hover .caret", ".nav li.dropdown > a:focus .caret") {
+            borderTopColor = vars.navbarInverseLinkColorActive
+            borderBottomColor = vars.navbarInverseLinkColorActive
+          }
+          ".nav li.dropdown > .dropdown-toggle .caret" {
+            borderTopColor = vars.navbarInverseLinkColor
+            borderBottomColor = vars.navbarInverseLinkColor
+          }
+          ruleOf(".nav li.dropdown.open > .dropdown-toggle .caret",
+              ".nav li.dropdown.active > .dropdown-toggle .caret",
+              ".nav li.dropdown.open.active > .dropdown-toggle .caret") {
+            borderTopColor = vars.navbarInverseLinkColorActive
+            borderBottomColor = vars.navbarInverseLinkColorActive
+          }
+
+          // Navbar search
+          ".navbar-search" {
+            ".search-query" {
+              color = vars.white
+              backgroundColor = vars.navbarInverseSearchBackground
+              borderColor =  vars.navbarInverseSearchBorder
+              with(mixins) {
+                  boxShadow {
+                      this+=BoxShadowInset(rgb(0,0,0,.1), 0.px, 1.px, 2.px)
+                      this+=BoxShadow(rgb(255,255,255,.15), 0.px, 1.px, 0.px)
+                  }
+                  transition("none")
+                  placeholder(vars.navbarInverseSearchPlaceholderColor)
+              }
+
+              // Focus states (we use .focused since IE7-8 and down doesn't support :focus)
+              ruleOf("&:focus", "&.focused") {
+                padding = Padding(5.px, 15.px)
+                color = vars.grayDark
+                declarations["text-shadow"] = "0px 1px 0px vars.white"
+                backgroundColor = vars.navbarInverseSearchBackgroundFocus
+                borderWidth = 0.px
+                with(mixins) { boxShadow(0.px, 0.px, 3.px, rgb(0,0,0,.15)) }
+                outlineWidth = 0.px
+              }
+            }
+          }
+
+          // Navbar collapse button
+          ".btn-navbar" {
+            with(mixins) { buttonBackground(vars.navbarInverseBackgroundHighlight.darken(5), vars.navbarInverseBackground.darken(5)) }
+          }
+
+        }
+    }
 
 
     override fun CssBuilder.navs(){/*
@@ -2885,7 +2912,7 @@ rule(".nav-header") {
   fontWeight = FontWeight.bold
   lineHeight = vars.baseLineHeight.lh
   color = vars.grayLight
-  declarations["text-shadow"] = "0px 1px 0px rgba(255,255,255,.5)"
+  declarations["text-shadow"] = "0px 1px 0px rgb(255,255,255,.5)"
   textTransform = TextTransform.uppercase
 }
 // Space them out when they follow another list item (link)
@@ -2906,7 +2933,7 @@ rule(".nav-list") {
 ruleOf(".nav-list > li > a", ".nav-list .nav-header") {
   marginLeft = -15.px
   marginRight = -15.px
-  declarations["text-shadow"] = "0px 1px 0px rgba(255,255,255,.5)"
+  declarations["text-shadow"] = "0px 1px 0px rgb(255,255,255,.5)"
 }
 
 rule(".nav-list > li > a") {
@@ -2915,7 +2942,7 @@ rule(".nav-list > li > a") {
 
 ruleOf(".nav-list > .active > a", ".nav-list > .active > a:hover", ".nav-list > .active > a:focus") {
   color = vars.white
-  declarations["text-shadow"] = "0px -1px 0px rgba(0,0,0,.2)"
+  declarations["text-shadow"] = "0px -1px 0px rgb(0,0,0,.2)"
   backgroundColor = vars.linkColor
 }
 
@@ -2989,7 +3016,7 @@ rule(".nav-pills > li > a") {
   paddingBottom = 8.px
   marginTop = 2.px
   marginBottom = 2.px
-  with(mixins) { borderRadius(5px) }
+  with(mixins) { borderRadius(5.px) }
 }
 
 // Active state
@@ -3018,7 +3045,7 @@ rule(".nav-tabs.nav-stacked") {
 
 rule(".nav-tabs.nav-stacked > li > a") {
   border = Border(1.px, BorderStyle.solid, Color("#ddd"))
-  with(mixins) { borderRadius(0px) }
+  with(mixins) { borderRadius(0.px) }
 }
 
 rule(".nav-tabs.nav-stacked > li:first-child > a") {
@@ -3053,7 +3080,7 @@ rule(".nav-tabs .dropdown-menu") {
 }
 
 rule(".nav-pills .dropdown-menu") {
-  with(mixins) { borderRadius(6px) }
+  with(mixins) { borderRadius(6.px) }
  // make rounded corners match the pills
 }
 
@@ -3266,7 +3293,7 @@ ruleOf(".pager li > a", ".pager li > span") {
   padding = Padding(5.px, 14.px)
   backgroundColor = Color("#fff")
   border = Border(1.px, BorderStyle.solid, Color("#ddd"))
-  with(mixins) { borderRadius(15px) }
+  with(mixins) { borderRadius(15.px) }
 }
 
 ruleOf(".pager li > a:hover", ".pager li > a:focus") {
@@ -3305,7 +3332,7 @@ rule(".pagination ul") {
   marginBottom = 0.px
   // Visuals
   with(mixins) { borderRadius(vars.baseBorderRadius) }
-  with(mixins) { boxShadow(0px 1px 2px rgba(0,0,0,.05)) }
+  with(mixins) { boxShadow(0px 1px 2px rgb(0,0,0,.05)) }
 }
 
 rule(".pagination ul > li") {
@@ -3427,9 +3454,9 @@ rule(".popover") {
      -moz-background-clip: padding;
           background-clip: padding-box;
   border = Border(1.px, BorderStyle.solid, Color("#ccc"))
-  border: 1px solid rgba(0,0,0,.2);
-  with(mixins) { borderRadius(6px) }
-  with(mixins) { boxShadow(0px 5px 10px rgba(0,0,0,.2)) }
+  border = Border(1px, BorderStyle.solid, rgb(0,0,0,.2))
+  with(mixins) { borderRadius(6.px) }
+  with(mixins) { boxShadow(0px 5px 10px rgb(0,0,0,.2)) }
 
   // Overrides for proper insertion
   whiteSpace = WhiteSpace.normal
@@ -3448,7 +3475,7 @@ rule(".popover-title") {
   fontWeight = FontWeight.normal
   lineHeight = 18.px.lh
   backgroundColor = vars.popoverTitleBackground
-  border-bottom: 1px solid darken(vars.popoverTitleBackground, 5%);
+  borderBottom = Border(1.px, BorderStyle.solid, Color.vars).popoverTitleBackground.darken(5);
   with(mixins) { borderRadius(5.px, 5.px, 0.px, 0.px) }
 rule("&:empty") {
     display = Display.none
@@ -3591,7 +3618,7 @@ rule(".progress") {
   height: vars.baseLineHeight;
   marginBottom = vars.baseLineHeight
   #gradient > .vertical(#f5f5f5, #f9f9f9);
-  with(mixins) { boxShadow(inset 0px 1px 2px rgba(0,0,0,.1)) }
+  with(mixins) { boxShadow(inset 0px 1px 2px rgb(0,0,0,.1)) }
   with(mixins) { borderRadius(vars.baseBorderRadius) }
 }
 
@@ -3603,15 +3630,15 @@ rule(".progress .bar") {
   float = Float.left
   fontSize = 12.px
   textAlign = TextAlign.center
-  declarations["text-shadow"] = "0px -1px 0px rgba(0,0,0,.25)"
+  declarations["text-shadow"] = "0px -1px 0px rgb(0,0,0,.25)"
   #gradient > .vertical(#149bdf, #0480be);
-  with(mixins) { boxShadow(inset 0px -1px 0px rgba(0,0,0,.15)) }
+  with(mixins) { boxShadow(inset 0px -1px 0px rgb(0,0,0,.15)) }
   with(mixins) { boxSizing(border-box) }
   with(mixins) { transition(width .6s ease) }
 }
 
 rule(".progress .bar + .bar") {
-  with(mixins) { boxShadow(~"inset 1px 0px 0px rgba(0,0,0,.15), inset 0px -1px 0px rgba(0,0,0,.15)") }
+  with(mixins) { boxShadow(~"inset 1px 0px 0px rgb(0,0,0,.15), inset 0px -1px 0px rgb(0,0,0,.15)") }
 }
 
 // Striped bars
@@ -3663,11 +3690,11 @@ rule(".progress-info.progress-striped .bar, .progress-striped .bar-info") {
 
 // Warning (orange)
 rule(".progress-warning .bar, .progress .bar-warning") {
-  #gradient > .vertical(lighten(vars.orange, 15%), vars.orange);
+  #gradient > .vertical(vars.orange.lighten(15), vars.orange);
 }
 
 rule(".progress-warning.progress-striped .bar, .progress-striped .bar-warning") {
-  #gradient > .striped(lighten(vars.orange, 15%));
+  #gradient > .striped(vars.orange.lighten(15));
 }
     */}
 
@@ -4154,7 +4181,7 @@ vars.media (max-width: vars.navbarCollapseWidth) {
     padding = Padding(9.px, 15.px)
     fontWeight = FontWeight.bold
     color = vars.navbarLinkColor
-    with(mixins) { borderRadius(3px) }
+    with(mixins) { borderRadius(3.px) }
   }
   // Buttons
   ".nav-collapse .btn" {
@@ -4197,7 +4224,7 @@ vars.media (max-width: vars.navbarCollapseWidth) {
     padding = Padding(0.px)
     backgroundColor = Color.transparent
     border: none;
-    with(mixins) { borderRadius(0px) }
+    with(mixins) { borderRadius(0.px) }
     with(mixins) { boxShadow(none) }
   }
   ".nav-collapse .open > .dropdown-menu" {
@@ -4222,7 +4249,7 @@ ruleOf(".nav-collapse .dropdown-menu:before", ".nav-collapse .dropdown-menu:afte
     margin: (vars.baseLineHeight / 2) 0px;
     borderTop = Border(1.px, BorderStyle.solid, Color.solid)
     borderBottom = Border(1.px, BorderStyle.solid, Color.solid)
-    with(mixins) { boxShadow(~"inset 0px 1px 0px rgba(255,255,255,.1), 0px 1px 0px rgba(255,255,255,.1)") }
+    with(mixins) { boxShadow(~"inset 0px 1px 0px rgb(255,255,255,.1), 0px 1px 0px rgb(255,255,255,.1)") }
   }
   ruleOf(".navbar-inverse .nav-collapse .navbar-form", ".navbar-inverse .nav-collapse .navbar-search") {
     border-top-color = vars.navbarInverseBackground
@@ -4360,7 +4387,7 @@ ruleOf("a:hover", "a:focus") {
 
 // Rounded corners
 rule(".img-rounded") {
-  with(mixins) { borderRadius(6px) }
+  with(mixins) { borderRadius(6.px) }
 }
 
 // Add polaroid-esque trim
@@ -4368,13 +4395,13 @@ rule(".img-polaroid") {
   padding = Padding(4.px)
   backgroundColor = Color("#fff")
   border = Border(1.px, BorderStyle.solid, Color("#ccc"))
-  border: 1px solid rgba(0,0,0,.2);
-  with(mixins) { boxShadow(0px 1px 3px rgba(0,0,0,.1)) }
+  border = Border(1px, BorderStyle.solid, rgb(0,0,0,.2))
+  with(mixins) { boxShadow(0px 1px 3px rgb(0,0,0,.1)) }
 }
 
 // Perfect circle
 rule(".img-circle") {
-  with(mixins) { borderRadius(500px) }
+  with(mixins) { borderRadius(500.px) }
  // crank the border-radius so it works with most reasonably sized images
 }
     */}
@@ -4781,16 +4808,16 @@ rule(".table tbody tr") {
 // Hover states for .table-hover
 rule(".table-hover tbody tr") {
   "&.success:hover > td" {
-    background-color: darken(vars.successBackground, 5%);
+    backgroundColor = vars.successBackground.darken(5)
   }
   "&.error:hover > td" {
-    background-color: darken(vars.errorBackground, 5%);
+    backgroundColor = vars.errorBackground.darken(5)
   }
   "&.warning:hover > td" {
-    background-color: darken(vars.warningBackground, 5%);
+    backgroundColor = vars.warningBackground.darken(5)
   }
   "&.info:hover > td" {
-    background-color: darken(vars.infoBackground, 5%);
+    backgroundColor = vars.infoBackground.darken(5)
   }
 }
     */}
@@ -4825,13 +4852,13 @@ rule(".thumbnail") {
   lineHeight = vars.baseLineHeight.lh
   border = Border(1.px, BorderStyle.solid, Color("#ddd"))
   with(mixins) { borderRadius(vars.baseBorderRadius) }
-  with(mixins) { boxShadow(0px 1px 3px rgba(0,0,0,.055)) }
+  with(mixins) { boxShadow(0px 1px 3px rgb(0,0,0,.055)) }
   with(mixins) { transition(all .2s ease-in-out) }
 }
 // Add a hover/focus state for linked versions only
 ruleOf("a.thumbnail:hover", "a.thumbnail:focus") {
   borderColor =  vars.linkColor
-  with(mixins) { boxShadow(0px 1px 4px rgba(0,105,214,.25)) }
+  with(mixins) { boxShadow(0px 1px 4px rgb(0,105,214,.25)) }
 }
 
 // Images and captions
@@ -4950,19 +4977,19 @@ rule("cite") { font-style: normal; }
 
 // Utility classes
 rule(".muted") { color = vars.grayLight }
-ruleOf("a.muted:hover", "a.muted:focus") { color: darken(vars.grayLight, 10%); }
+ruleOf("a.muted:hover", "a.muted:focus") { color = vars.grayLight.darken(10) }
 
 rule(".text-warning") { color = vars.warningText }
-ruleOf("a.text-warning:hover", "a.text-warning:focus") { color: darken(vars.warningText, 10%); }
+ruleOf("a.text-warning:hover", "a.text-warning:focus") { color = vars.warningText.darken(10) }
 
 rule(".text-error") { color = vars.errorText }
-ruleOf("a.text-error:hover", "a.text-error:focus") { color: darken(vars.errorText, 10%); }
+ruleOf("a.text-error:hover", "a.text-error:focus") { color = vars.errorText.darken(10) }
 
 rule(".text-info") { color = vars.infoText }
-ruleOf("a.text-info:hover", "a.text-info:focus") { color: darken(vars.infoText, 10%); }
+ruleOf("a.text-info:hover", "a.text-info:focus") { color = vars.infoText.darken(10) }
 
 rule(".text-success") { color = vars.successText }
-ruleOf("a.text-success:hover", "a.text-success:focus") { color: darken(vars.successText, 10%); }
+ruleOf("a.text-success:hover", "a.text-success:focus") { color = vars.successText.darken(10) }
 
 rule(".text-left") { textAlign = TextAlign.left }
 
@@ -5133,7 +5160,7 @@ rule("blockquote") {
     }
     small {
       "&:before" {
-        content: '';
+        content = QuotedString("")
       }
       "&:after" {
         content: '\00A0 \2014';
@@ -5198,9 +5225,9 @@ rule(".well") {
   padding = Padding(19.px)
   marginBottom = 20.px
   backgroundColor = vars.wellBackground
-  border: 1px solid darken(vars.wellBackground, 7%);
+  border = Border(1px, BorderStyle.solid, vars.wellBackground.darken(7))
   with(mixins) { borderRadius(vars.baseBorderRadius) }
-  with(mixins) { boxShadow(inset 0px 1px 1px rgba(0,0,0,.05)) }
+  with(mixins) { boxShadow(inset 0px 1px 1px rgb(0,0,0,.05)) }
   blockquote {
     borderColor = Color("#ddd")
     borderColor = rgb(0,0,0,.15)

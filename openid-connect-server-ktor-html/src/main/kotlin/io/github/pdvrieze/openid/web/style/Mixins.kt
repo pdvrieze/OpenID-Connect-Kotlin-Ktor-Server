@@ -329,7 +329,7 @@ interface Mixins {
         gridGutterWidth: LinearDimension = vars.gridGutterWidth,
     )
 
-    fun CssBuilder.gridCore(gridColumnWidth: LinearDimension, gridGutterWidth: LinearDimension, builder: GridCore.() -> Unit): Unit {
+    fun CssBuilder.gridCore(gridColumnWidth: LinearDimension, gridGutterWidth: LinearDimension, builder: GridCore.() -> Unit = {}): Unit {
         gridCore(DefaultStyles.DefaultVars, gridColumnWidth, gridGutterWidth, builder = builder)
     }
 
@@ -341,7 +341,7 @@ interface Mixins {
         builder: GridCore.() -> Unit
     )
 
-    fun CssBuilder.gridFluid(gridColumnWidth: LinearDimension, gridGutterWidth: LinearDimension, builder: GridFluid.() -> Unit): Unit {
+    fun CssBuilder.gridFluid(gridColumnWidth: LinearDimension, gridGutterWidth: LinearDimension, builder: GridFluid.() -> Unit = {}): Unit {
         gridFluid(DefaultStyles.DefaultVars, gridColumnWidth, gridGutterWidth, builder = builder)
     }
 
@@ -354,7 +354,7 @@ interface Mixins {
         builder: GridFluid.() -> Unit
     )
 
-    fun CssBuilder.gridInput(gridColumnWidth: LinearDimension, gridGutterWidth: LinearDimension, builder: GridInput.() -> Unit): Unit {
+    fun CssBuilder.gridInput(gridColumnWidth: LinearDimension, gridGutterWidth: LinearDimension, builder: GridInput.() -> Unit = {}): Unit {
         gridInput(DefaultStyles.DefaultVars, gridColumnWidth, gridGutterWidth, builder = builder)
     }
 
@@ -367,9 +367,24 @@ interface Mixins {
     )
 
     interface GridInput {
+        fun CssBuilder.spanX(index: Int)
+        fun CssBuilder.span(columns: Int)
 
     }
 
-    interface GridCore
-    interface GridFluid
+    interface GridCore {
+        fun CssBuilder.spanX(index: Int)
+        fun CssBuilder.offsetX(index: Int)
+        fun CssBuilder.offset (columns: Int)
+        fun CssBuilder.span (columns: Int)
+        fun CssBuilder.row ()
+    }
+
+    interface GridFluid {
+        fun CssBuilder.spanX(index: Int)
+        fun CssBuilder.offsetX(index: Int)
+        fun CssBuilder.offset(columns: Int)
+        fun CssBuilder.offsetFirstChild (columns: Int)
+        fun CssBuilder.span(columns: Int)
+    }
 }

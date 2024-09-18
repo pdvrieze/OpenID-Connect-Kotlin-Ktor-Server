@@ -178,14 +178,14 @@ interface Styles {
         val navbarLinkColorActive: Color
         val navbarLinkBackgroundHover: Color
         val navbarLinkBackgroundActive: Color
-        val navbarBrandcolor: Color
+        val navbarBrandColor: Color
 
         // Inverted navbar
                 val navbarInverseBackground: Color
         val navbarInverseBackgroundHighlight: Color
         val navbarInverseBorder: Color
         val navbarInverseText: Color
-        val navbarInverseLinkcolor: Color
+        val navbarInverseLinkColor: Color
         val navbarInverseLinkColorHover: Color
         val navbarInverseLinkColorActive: Color
         val navbarInverseLinkBackgroundHover: Color
@@ -194,7 +194,7 @@ interface Styles {
         val navbarInverseSearchBackgroundFocus: Color
         val navbarInverseSearchBorder: Color
         val navbarInverseSearchPlaceholderColor: Color
-        val navbarInverseBrandcolor: Color
+        val navbarInverseBrandColor: Color
 
         // Pagination
         // -------------------------

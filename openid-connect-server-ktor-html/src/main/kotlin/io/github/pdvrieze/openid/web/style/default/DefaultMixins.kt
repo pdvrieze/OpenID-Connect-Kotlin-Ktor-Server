@@ -760,14 +760,14 @@ object DefaultMixins: Mixins {
         val gridColumnWidth: LinearDimension,
         val gridGutterWidth: LinearDimension,
     ) : Mixins.GridCore {
-        fun CssBuilder.spanX(index: Int) {
+        override fun CssBuilder.spanX(index: Int) {
             if (index != 0) {
                 ".span@$index" { span(index) }
                 spanX(index-1) // recurse
             }
         }
 
-        fun CssBuilder.offsetX(index:Int) {
+        override fun CssBuilder.offsetX(index:Int) {
             if (index > 0) {
                 ".offset@$index" {
                     offset(index)
@@ -776,19 +776,18 @@ object DefaultMixins: Mixins {
             }
         }
 
-        fun CssBuilder.offset (columns: Int) {
+        override fun CssBuilder.offset (columns: Int) {
             marginLeft = (gridColumnWidth * columns) + (gridGutterWidth * (columns + 1))
         }
 
-        fun CssBuilder.span (columns: Int) {
+        override fun CssBuilder.span (columns: Int) {
             width = (gridColumnWidth * columns) + (gridGutterWidth * (columns-1))
         }
 
-        fun CssBuilder.row () {
+        override fun CssBuilder.row () {
             marginLeft = gridGutterWidth * -1
             clearfix()
         }
-
 
     }
 
@@ -836,35 +835,40 @@ object DefaultMixins: Mixins {
         val fluidGridGutterWidth: LinearDimension,
         val gridRowWidth: LinearDimension,
     ) : Mixins.GridFluid {
-        fun CssBuilder.spanX(index: Int) {
-            if (index>0) {
+        override fun CssBuilder.spanX(index: Int) {
+            if (index > 0) {
                 ".span@$index" { span(index) }
-                spanX(index-1) // recurse
+                spanX(index - 1) // recurse
             }
         }
 
-        fun CssBuilder.offsetX(index: Int){
-            if(index>0) {
+        override fun CssBuilder.offsetX(index: Int) {
+            if (index > 0) {
                 ".offset@$index" { offset(index) }
                 ".offset@$index:first-child" { offsetFirstChild(index) }
-                offsetX(index-1) // recurse
+                offsetX(index - 1) // recurse
             }
         }
 
-    fun CssBuilder.offset(columns: Int) {
-        marginLeft = (fluidGridColumnWidth * columns) + (fluidGridGutterWidth * (columns-1)) + (fluidGridGutterWidth*2)
-        declarations["*marginLeft"] = "calc((@fluidGridColumnWidth * @columns) + (@fluidGridGutterWidth * (${columns - 1})) - (.5 / $gridRowWidth * 100 * 1%) + ($fluidGridGutterWidth*2) - (.5 / $gridRowWidth * 100 * 1%))"
-    }
+        override fun CssBuilder.offset(columns: Int) {
+            marginLeft =
+                (fluidGridColumnWidth * columns) + (fluidGridGutterWidth * (columns - 1)) + (fluidGridGutterWidth * 2)
+            declarations["*marginLeft"] =
+                "calc((@fluidGridColumnWidth * @columns) + (@fluidGridGutterWidth * (${columns - 1})) - (.5 / $gridRowWidth * 100 * 1%) + ($fluidGridGutterWidth*2) - (.5 / $gridRowWidth * 100 * 1%))"
+        }
 
-    fun CssBuilder.offsetFirstChild (columns: Int) {
-        marginLeft = (fluidGridColumnWidth * columns) + (fluidGridGutterWidth * (columns-1)) + (fluidGridGutterWidth)
-        declarations["*marginLeft"] = "calc((@fluidGridColumnWidth * @columns) + (@fluidGridGutterWidth * (${columns - 1})) - (.5 / $gridRowWidth * 100 * 1%) + ($fluidGridGutterWidth) - (.5 / $gridRowWidth * 100 * 1%))"
-    }
+        override fun CssBuilder.offsetFirstChild(columns: Int) {
+            marginLeft =
+                (fluidGridColumnWidth * columns) + (fluidGridGutterWidth * (columns - 1)) + (fluidGridGutterWidth)
+            declarations["*marginLeft"] =
+                "calc((@fluidGridColumnWidth * @columns) + (@fluidGridGutterWidth * (${columns - 1})) - (.5 / $gridRowWidth * 100 * 1%) + ($fluidGridGutterWidth) - (.5 / $gridRowWidth * 100 * 1%))"
+        }
 
-    fun CssBuilder.span(columns: Int) {
-        width = (fluidGridColumnWidth * columns) + (fluidGridGutterWidth * (columns-1))
-        declarations["*width"] ="calc(($fluidGridColumnWidth * $columns) + ($fluidGridGutterWidth * (${columns - 1})) - (.5 / @gridRowWidth * 100 * 1%))"
-    }
+        override fun CssBuilder.span(columns: Int) {
+            width = (fluidGridColumnWidth * columns) + (fluidGridGutterWidth * (columns - 1))
+            declarations["*width"] =
+                "calc(($fluidGridColumnWidth * $columns) + ($fluidGridGutterWidth * (${columns - 1})) - (.5 / @gridRowWidth * 100 * 1%))"
+        }
 
 
     }
@@ -896,7 +900,7 @@ object DefaultMixins: Mixins {
         val gridColumnWidth: LinearDimension,
         val gridGutterWidth: LinearDimension,
     ) : Mixins.GridInput {
-        fun CssBuilder.spanX(index:Int) {
+        override fun CssBuilder.spanX(index:Int) {
             if(index>0) {
                 "input.span@${index}, textarea.span@${index}, .uneditable-input.span@${index}" {
                     span(index)
@@ -905,7 +909,7 @@ object DefaultMixins: Mixins {
             }
         }
 
-        fun CssBuilder.span(columns: Int) {
+        override fun CssBuilder.span(columns: Int) {
             width = ((gridColumnWidth) * columns) + (gridGutterWidth * (columns-1))-14.px
         }
 
