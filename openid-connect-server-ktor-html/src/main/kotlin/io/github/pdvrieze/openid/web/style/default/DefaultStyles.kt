@@ -3922,241 +3922,251 @@ object DefaultStyles : Styles {
     }
 
 
-    override fun CssBuilder.responsive1200pxMin(){/*
-vars.media (min-width: 1200px) {
+    override fun CssBuilder.responsive1200pxMin() {
+        "@media(min-width: 1200px)" {
 
-  // Fixed grid
-  #grid > .core(vars.gridColumnWidth1200, vars.gridGutterWidth1200)
+            with(mixins) {
 
-  // Fluid grid
-  #grid > .fluid(vars.fluidGridColumnWidth1200, vars.fluidGridGutterWidth1200)
+                // Fixed grid
+                gridCore(vars.gridColumnWidth1200, vars.gridGutterWidth1200)
 
-  // Input grid
-  #grid > .input(vars.gridColumnWidth1200, vars.gridGutterWidth1200)
+                // Fluid grid
+                gridFluid(vars.fluidGridColumnWidth1200, vars.fluidGridGutterWidth1200)
 
-  // Thumbnails
-  ".thumbnails" {
-    marginLeft = -vars.gridGutterWidth1200
-  }
-  ".thumbnails > li" {
-    marginLeft = vars.gridGutterWidth1200
-  }
-  ".row-fluid .thumbnails" {
-    marginLeft = 0.px
-  }
+                // Input grid
+                gridInput(vars.gridColumnWidth1200, vars.gridGutterWidth1200)
+            }
 
-}
-    */}
+            // Thumbnails
+            ".thumbnails" {
+                marginLeft = -vars.gridGutterWidth1200
+            }
+            ".thumbnails > li" {
+                marginLeft = vars.gridGutterWidth1200
+            }
+            ".row-fluid .thumbnails" {
+                marginLeft = 0.px
+            }
 
-
-    override fun CssBuilder.responsive767pxMax(){/*
-vars.media (max-width: 767px) {
-
-  // Padding to set content in a bit
-  body {
-    paddingLeft = 20.px
-    paddingRight = 20.px
-  }
-  // Negative indent the now static "fixed" navbar
-  ruleOf(".navbar-fixed-top", ".navbar-fixed-bottom", ".navbar-static-top") {
-    marginLeft = -20.px
-    marginRight = -20.px
-  }
-  // Remove padding on container given explicit padding set on body
-  ".container-fluid" {
-    padding = Padding(0.px)
-  }
-
-  // TYPOGRAPHY
-  // ----------
-  // Reset horizontal dl
-  ".dl-horizontal" {
-    dt {
-      float = Float.none
-      clear = Clear.none
-      width = LinearDimension.auto
-      textAlign = TextAlign.left
+        }
     }
-    dd {
-      marginLeft = 0.px
+
+
+    override fun CssBuilder.responsive767pxMax() {
+        "@media(max-width: 767px)" {
+
+            // Padding to set content in a bit
+            body {
+                paddingLeft = 20.px
+                paddingRight = 20.px
+            }
+            // Negative indent the now static "fixed" navbar
+            ruleOf(".navbar-fixed-top", ".navbar-fixed-bottom", ".navbar-static-top") {
+                marginLeft = -20.px
+                marginRight = -20.px
+            }
+            // Remove padding on container given explicit padding set on body
+            ".container-fluid" {
+                padding = Padding(0.px)
+            }
+
+            // TYPOGRAPHY
+            // ----------
+            // Reset horizontal dl
+            ".dl-horizontal" {
+                dt {
+                    float = Float.none
+                    clear = Clear.none
+                    width = LinearDimension.auto
+                    textAlign = TextAlign.left
+                }
+                dd {
+                    marginLeft = 0.px
+                }
+            }
+
+            // GRID & CONTAINERS
+            // -----------------
+            // Remove width from containers
+            ".container" {
+                width = LinearDimension.auto
+            }
+            // Fluid rows
+            ".row-fluid" {
+                width = 100.pct
+            }
+            // Undo negative margin on rows and thumbnails
+            ruleOf(".row", ".thumbnails") {
+                marginLeft = 0.px
+            }
+            ".thumbnails > li" {
+                float = Float.none
+                marginLeft = 0.px // Reset the default margin for all li elements when no .span* classes are present
+            }
+            // Make all grid-sized elements block level again
+            ruleOf(
+                "[class*=\"span\"]",
+                ".uneditable-input[class*=\"span\"]", // Makes uneditable inputs full-width when using grid sizing
+                ".row-fluid [class*=\"span\"]"
+            ) {
+                float = Float.none
+                display = Display.block
+                width = 100.pct
+                marginLeft = 0.px
+                with(mixins) { boxSizing(BoxSizing.borderBox) }
+            }
+            ruleOf(".span12", ".row-fluid .span12") {
+                width = 100.pct
+                with(mixins) { boxSizing(BoxSizing.borderBox) }
+            }
+            ".row-fluid [class*=\"offset\"]:first-child" {
+                marginLeft = 0.px
+            }
+
+            // FORM FIELDS
+            // -----------
+            // Make span* classes full width
+            ruleOf(
+                ".input-large",
+                ".input-xlarge",
+                ".input-xxlarge",
+                "input[class*=\"span\"]",
+                "select[class*=\"span\"]",
+                "textarea[class*=\"span\"]",
+                ".uneditable-input"
+            ) {
+                with(mixins) { inputBlockLevel() }
+            }
+
+            // But don't let it screw up prepend/append inputs
+            ruleOf(
+                ".input-prepend input",
+                ".input-append input",
+                ".input-prepend input[class*=\"span\"]",
+                ".input-append input[class*=\"span\"]"
+            ) {
+                display = Display.inlineBlock // redeclare so they don't wrap to new lines
+                width = LinearDimension.auto
+            }
+            ".controls-row [class*=\"span\"] + [class*=\"span\"]" {
+                marginLeft = 0.px
+            }
+
+            // Modals
+            ".modal" {
+                position = Position.fixed
+                top = 20.px
+                left = 20.px
+                right = 20.px
+                width = LinearDimension.auto
+                margin = Margin(0.px)
+                "&.fade" { top = -100.px }
+                "&.fade.in" { top = 20.px }
+            }
+
+        }
+
+
+        // UP TO LANDSCAPE PHONE
+
+        media("max-width: 480px") {
+
+            // Smooth out the collapsing/expanding nav
+            ".nav-collapse" {
+                declarations["-webkit-transform"] = "translate3d(0, 0, 0px)"
+                // activate the GPU
+            }
+
+            // Block level the page header small tag for readability
+            ".page-header h1 small" {
+                display = Display.block
+                lineHeight = vars.baseLineHeight.lh
+            }
+
+            // Update checkboxes for iOS
+            ruleOf("input[type=\"checkbox\"]", "input[type=\"radio\"]") {
+                border = Border(1.px, BorderStyle.solid, Color("#ccc"))
+            }
+
+            // Remove the horizontal form styles
+            ".form-horizontal" {
+                ".control-label" {
+                    float = Float.none
+                    width = LinearDimension.auto
+                    paddingTop = 0.px
+                    textAlign = TextAlign.left
+                }
+                // Move over all input controls and content
+                ".controls" {
+                    marginLeft = 0.px
+                }
+                // Move the options list down to align with labels
+                ".control-list" {
+                    paddingTop = 0.px // has to be padding because margin collaspes
+                }
+                // Move over buttons in .form-actions to align with .controls
+                ".form-actions" {
+                    paddingLeft = 10.px
+                    paddingRight = 10.px
+                }
+            }
+
+            // Medias
+            // Reset float and spacing to stack
+            ruleOf(".media .pull-left", ".media .pull-right") {
+                float = Float.none
+                display = Display.block
+                marginBottom = 10.px
+            }
+            // Remove side margins since we stack instead of indent
+            ".media-object" {
+                marginRight = 0.px
+                marginLeft = 0.px
+            }
+
+            // Modals
+            ".modal" {
+                top = 10.px
+                left = 10.px
+                right = 10.px
+            }
+            ".modal-header .close" {
+                padding = Padding(10.px)
+                margin = Margin(-10.px)
+            }
+
+            // Carousel
+            ".carousel-caption" {
+                position = Position.static
+            }
+
+        }
     }
-  }
-
-  // GRID & CONTAINERS
-  // -----------------
-  // Remove width from containers
-  ".container" {
-    width = LinearDimension.auto
-  }
-  // Fluid rows
-  ".row-fluid" {
-    width = 100.pct
-  }
-  // Undo negative margin on rows and thumbnails
-  ruleOf(".row", ".thumbnails") {
-    marginLeft = 0.px
-  }
-  ".thumbnails > li" {
-    float = Float.none
-    marginLeft = 0.px // Reset the default margin for all li elements when no .span* classes are present
-  }
-  // Make all grid-sized elements block level again
-  ruleOf("[class*=\"span\"]",
-      ".uneditable-input[class*=\"span\"]" // Makes uneditable inputs full-width when using grid sizing
-      ".row-fluid [class*=\"span\"]") {
-    float = Float.none
-    display = Display.block
-    width = 100.pct
-    marginLeft = 0.px
-    with(mixins) { boxSizing(border-box) }
-  }
-  ruleOf(".span12", ".row-fluid .span12") {
-    width = 100.pct
-    with(mixins) { boxSizing(border-box) }
-  }
-  ".row-fluid [class*="offset"]:first-child" {
-    marginLeft = 0.px
-  }
-
-  // FORM FIELDS
-  // -----------
-  // Make span* classes full width
-  ruleOf(".input-large",
-      ".input-xlarge",
-      ".input-xxlarge",
-      "input[class*="span"]",
-      "select[class*="span"]",
-      "textarea[class*="span"]",
-      ".uneditable-input") {
-    with(mixins) { inputBlockLevel() }
-  }
-
-  // But don't let it screw up prepend/append inputs
-  ruleOf(".input-prepend input",
-      ".input-append input",
-      ".input-prepend input[class*=\"span\"]",
-      ".input-append input[class*=\"span\"]") {
-    display = Display.inlineBlock // redeclare so they don't wrap to new lines
-    width = LinearDimension.auto
-  }
-  ".controls-row [class*=\"span\"] + [class*=\"span\"]" {
-    marginLeft = 0.px
-  }
-
-  // Modals
-  ".modal" {
-    position = Position.fixed
-    top = 20.px
-    left = 20.px
-    right = 20.px
-    width = LinearDimension.auto
-    margin = Margin(0.px)
-    "&.fade" { top = -100.px }
-    "&.fade.in" { top = 20.px }
-  }
-
-}
 
 
+    override fun CssBuilder.responsive768px979px(){
+        media("(min-width: 768px) and (max-width: 979px)") {
+            with(mixins) {
 
-// UP TO LANDSCAPE PHONE
+                  // Fixed grid
+                  gridCore(vars.gridColumnWidth768, vars.gridGutterWidth768)
 
-vars.media (max-width: 480px) {
+                  // Fluid grid
+                  gridFluid(vars.fluidGridColumnWidth768, vars.fluidGridGutterWidth768)
 
-  // Smooth out the collapsing/expanding nav
-  ".nav-collapse" {
-    declarations["-webkit-transform"] = "translate3d(0, 0, 0px)"
- // activate the GPU
-  }
+                  // Input grid
+                  gridInput(vars.gridColumnWidth768, vars.gridGutterWidth768)
 
-  // Block level the page header small tag for readability
-  ".page-header h1 small" {
-    display = Display.block
-    lineHeight = vars.baseLineHeight.lh
-  }
+                  // No need to reset .thumbnails here since it's the same vars.gridGutterWidth
+            }
 
-  // Update checkboxes for iOS
-  ruleOf("input[type=\"checkbox\"]", "input[type=\"radio\"]") {
-    border = Border(1.px, BorderStyle.solid, Color("#ccc"))
-  }
-
-  // Remove the horizontal form styles
-  ".form-horizontal" {
-    ".control-label" {
-      float = Float.none
-      width = LinearDimension.auto
-      paddingTop = 0.px
-      textAlign = TextAlign.left
+        }
     }
-    // Move over all input controls and content
-    ".controls" {
-      marginLeft = 0.px
-    }
-    // Move the options list down to align with labels
-    ".control-list" {
-      paddingTop = 0.px // has to be padding because margin collaspes
-    }
-    // Move over buttons in .form-actions to align with .controls
-    ".form-actions" {
-      paddingLeft = 10.px
-      paddingRight = 10.px
-    }
-  }
-
-  // Medias
-  // Reset float and spacing to stack
-  ruleOf(".media .pull-left", ".media .pull-right") {
-    float = Float.none
-    display = Display.block
-    marginBottom = 10.px
-  }
-  // Remove side margins since we stack instead of indent
-  ".media-object" {
-    marginRight = 0.px
-    marginLeft = 0.px
-  }
-
-  // Modals
-  ".modal" {
-    top = 10.px
-    left = 10.px
-    right = 10.px
-  }
-  ".modal-header .close" {
-    padding = Padding(10.px)
-    margin: -10px
-  }
-
-  // Carousel
-  ".carousel-caption" {
-    position = Position.static
-  }
-
-}
-    */}
-
-
-    override fun CssBuilder.responsive768px979px(){/*
-vars.media (min-width: 768px) and (max-width: 979px) {
-
-  // Fixed grid
-  #grid > .core(vars.gridColumnWidth768, vars.gridGutterWidth768)
-
-  // Fluid grid
-  #grid > .fluid(vars.fluidGridColumnWidth768, vars.fluidGridGutterWidth768)
-
-  // Input grid
-  #grid > .input(vars.gridColumnWidth768, vars.gridGutterWidth768)
-
-  // No need to reset .thumbnails here since it's the same vars.gridGutterWidth
-
-}
-    */}
 
 
     override fun CssBuilder.responsiveNavbar(){/*
 // TABLETS AND BELOW
-vars.media (max-width: vars.navbarCollapseWidth) {
+@media(max-width: vars.navbarCollapseWidth) {
 
   // UNFIX THE TOPBAR
   // ----------------
@@ -4319,7 +4329,7 @@ ruleOf(".nav-collapse .dropdown-menu:before", ".nav-collapse .dropdown-menu:afte
 
 // DEFAULT DESKTOP
 
-    vars.media (min-width: vars.navbarCollapseDesktopWidth) {
+    @media(min-width: vars.navbarCollapseDesktopWidth) {
 
         // Required to make the collapsing navbar work on regular desktops
          rule(".nav-collapse.collapse") {
@@ -4362,7 +4372,7 @@ rule(".hidden-desktop") { display: none !important; }
 rule(".visible-desktop") { display: inherit !important; }
 
 // Tablets & small desktops only
-vars.media (min-width: 768px) and (max-width: 979px) {
+@media(min-width: 768px) and (max-width: 979px) {
   // Hide everything else
   .hidden-desktop    { display: inherit !important; }
   .visible-desktop   { display: none !important ; }
@@ -4373,7 +4383,7 @@ vars.media (min-width: 768px) and (max-width: 979px) {
 }
 
 // Phones only
-vars.media (max-width: 767px) {
+@media(max-width: 767px) {
   // Hide everything else
   .hidden-desktop    { display: inherit !important; }
   .visible-desktop   { display: none !important; }
@@ -4388,7 +4398,7 @@ rule(".visible-print") { display: none !important; }
 
 rule(".hidden-print") { }
 
-rule("vars.media print") {
+rule("@media print") {
   .visible-print  { display: inherit !important; }
   .hidden-print   { display: none !important; }
 }
