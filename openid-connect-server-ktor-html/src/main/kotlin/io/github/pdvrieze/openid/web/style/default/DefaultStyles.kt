@@ -1613,7 +1613,7 @@ object DefaultStyles : Styles {
             color = vars.grayLight
             backgroundColor = vars.inputBackground.darken(1)
             borderColor = vars.inputBorder
-            with(mixins) { boxShadowInset(rgb(0,0,0,.025), 0.px, 1.px, 2.px) }
+            with(mixins) { boxShadowInset(rgb(0, 0, 0, .025), 0.px, 1.px, 2.px) }
             cursor = Cursor.notAllowed
         }
 
@@ -1738,8 +1738,10 @@ object DefaultStyles : Styles {
 
         // Float to collapse white-space for proper grid alignment
         // Redeclare the fluid grid collapse since we undo the float for inputs
-        ruleOf(".controls-row [class*=\"span\"]",
-            ".row-fluid .controls-row [class*=\"span\"]") {
+        ruleOf(
+            ".controls-row [class*=\"span\"]",
+            ".row-fluid .controls-row [class*=\"span\"]"
+        ) {
             float = Float.left
         }
         // Explicity set top padding on all checkboxes/radios, not just first-child
@@ -1814,7 +1816,7 @@ object DefaultStyles : Styles {
 
         // FORM ACTIONS
         rule(".form-actions") {
-            padding = Padding((vars.baseLineHeight-1.px), 20.px, vars.baseLineHeight);
+            padding = Padding((vars.baseLineHeight - 1.px), 20.px, vars.baseLineHeight);
             marginTop = vars.baseLineHeight
             marginBottom = vars.baseLineHeight
             backgroundColor = vars.formActionsBackground
@@ -1909,8 +1911,8 @@ object DefaultStyles : Styles {
             ruleOf("input", "select", ".uneditable-input") {
                 with(mixins) { borderRadius(vars.inputBorderRadius, 0.px, 0.px, vars.inputBorderRadius) }
                 "+. btn-group.btn:last-child" {
-                with(mixins) { borderRadius(0.px, vars.inputBorderRadius, vars.inputBorderRadius, 0.px) }
-            }
+                    with(mixins) { borderRadius(0.px, vars.inputBorderRadius, vars.inputBorderRadius, 0.px) }
+                }
             }
             ".add-on .btn .btn-group" {
                 marginLeft = -1.px
@@ -1954,8 +1956,10 @@ object DefaultStyles : Styles {
         }
 
         //Allow for input prepend / append in search forms
-        ruleOf(".form-search .input-append .search-query",
-               ".form-search .input-prepend .search-query") {
+        ruleOf(
+            ".form-search .input-append .search-query",
+            ".form-search .input-prepend .search-query"
+        ) {
             with(mixins) { borderRadius(0.px) }
             // Override due to specificity
         }
@@ -1993,34 +1997,42 @@ object DefaultStyles : Styles {
             }
         }
 
-        ruleOf(".form-search label",
+        ruleOf(
+            ".form-search label",
             ".form-inline label",
             ".form-search .btn-group",
-            ".form-inline .btn-group") {
+            ".form-inline .btn-group"
+        ) {
             display = Display.inlineBlock
         }
-        
+
         // Remove margin for input-prepend/-append
-        ruleOf(".form-search .input-append",
+        ruleOf(
+            ".form-search .input-append",
             ".form-inline .input-append",
             ".form-search .input-prepend",
-            ".form-inline .input-prepend") {
+            ".form-inline .input-prepend"
+        ) {
             marginBottom = 0.px
         }
         // Inline checkbox/radio labels (remove padding on left)
-        ruleOf(".form-search .radio",
+        ruleOf(
+            ".form-search .radio",
             ".form-search .checkbox",
             ".form-inline .radio",
-            ".form-inline .checkbox") {
+            ".form-inline .checkbox"
+        ) {
             paddingLeft = 0.px
             marginBottom = 0.px
             verticalAlign = VerticalAlign.middle
         }
         // Remove float and margin, set to inline-block
-        ruleOf(".form-search .radio input[type=\"radio\"]",
+        ruleOf(
+            ".form-search .radio input[type=\"radio\"]",
             ".form-search .checkbox input[type=\"checkbox\"]",
             ".form-inline .radio input[type=\"radio\"]",
-            ".form-inline .checkbox input[type=\"checkbox\"]") {
+            ".form-inline .checkbox input[type=\"checkbox\"]"
+        ) {
             float = Float.left
             marginRight = 3.px
             marginLeft = 0.px
@@ -2048,7 +2060,7 @@ object DefaultStyles : Styles {
             // Float the labels left
             ".control-label" {
                 float = Float.left
-                width = vars.horizontalComponentOffset-20.px;
+                width = vars.horizontalComponentOffset - 20.px;
                 paddingTop = 5.px
                 textAlign = TextAlign.right
             }
