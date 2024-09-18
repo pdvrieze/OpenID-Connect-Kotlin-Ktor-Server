@@ -14,12 +14,15 @@ import kotlinx.css.UserSelect
 import kotlinx.css.Visibility
 import kotlinx.css.pct
 import kotlinx.css.properties.Angle
+import kotlinx.css.properties.BoxShadow
+import kotlinx.css.properties.BoxShadowInset
 import kotlinx.css.properties.BoxShadows
 import kotlinx.css.properties.LineHeight
 import kotlinx.css.properties.Time
 import kotlinx.css.properties.Timing
 import kotlinx.css.properties.deg
 import kotlinx.css.properties.lh
+import kotlinx.css.px
 
 interface Mixins {
     val mixins: DefaultMixins
@@ -128,6 +131,46 @@ interface Mixins {
 
     fun CssBuilder.boxShadow(builder: BoxShadows.() -> Unit) {
         boxShadow(BoxShadows().apply(builder))
+    }
+
+    fun CssBuilder.boxShadow(
+        color: Color,
+        offsetX: LinearDimension = 0.px,
+        offsetY: LinearDimension = 0.px,
+        blurRadius: LinearDimension = 0.px,
+        spreadRadius: LinearDimension = 0.px,
+    ) {
+        boxShadow(BoxShadows().apply {  this+= BoxShadow(color, offsetX, offsetY, blurRadius, spreadRadius) })
+    }
+
+    fun CssBuilder.boxShadowInset(
+        color: Color,
+        offsetX: LinearDimension = 0.px,
+        offsetY: LinearDimension = 0.px,
+        blurRadius: LinearDimension = 0.px,
+        spreadRadius: LinearDimension = 0.px,
+    ) {
+        boxShadow(BoxShadows().apply {  this+= BoxShadowInset(color, offsetX, offsetY, blurRadius, spreadRadius) })
+    }
+
+    fun CssBuilder.boxShadow(
+        offsetX: LinearDimension,
+        offsetY: LinearDimension,
+        blurRadius: LinearDimension,
+        color: Color,
+        spreadRadius: LinearDimension = 0.px,
+    ) {
+        boxShadow(BoxShadows().apply {  this+= BoxShadow(color, offsetX, offsetY, blurRadius, spreadRadius) })
+    }
+
+    fun CssBuilder.boxShadowInset(
+        offsetX: LinearDimension,
+        offsetY: LinearDimension,
+        blurRadius: LinearDimension,
+        color: Color,
+        spreadRadius: LinearDimension = 0.px,
+    ) {
+        boxShadow(BoxShadows().apply {  this+= BoxShadowInset(color, offsetX, offsetY, blurRadius, spreadRadius) })
     }
 
     // Drop shadows

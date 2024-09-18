@@ -2,10 +2,13 @@ package io.github.pdvrieze.openid.web.style.default
 
 import io.github.pdvrieze.openid.web.style.Mixins
 import io.github.pdvrieze.openid.web.style.Styles
+import io.github.pdvrieze.openid.web.style.borderWidth
+import io.github.pdvrieze.openid.web.style.ruleOf
 import kotlinx.css.*
 import kotlinx.css.Float
 import kotlinx.css.properties.BoxShadow
 import kotlinx.css.properties.BoxShadowInset
+import kotlinx.css.properties.LineHeight
 import kotlinx.css.properties.TextDecoration
 import kotlinx.css.properties.TextDecorationLine
 import kotlinx.css.properties.Timing
@@ -52,7 +55,7 @@ object DefaultStyles : Styles {
 
         // Scaffolding
         override val bodyBackground get() = white
-        override val textcolor = grayDark
+        override val textColor = grayDark
 
 
         // Links
@@ -80,8 +83,8 @@ object DefaultStyles : Styles {
         // empty to use BS default, vars.textColor
 
 
-// Component sizing
-// Based on 14px font-size and 20px line-height
+        // Component sizing
+        // Based on 14px font-size and 20px line-height
 
         override val fontSizeLarge get() = baseFontSize * 1.25;
 
@@ -161,7 +164,7 @@ object DefaultStyles : Styles {
         override val dropdownDividerTop = Color("e5e5e5")
         override val dropdownDividerBottom get() = white
 
-        override val dropdownLinkcolor get() = grayDark
+        override val dropdownLinkColor get() = grayDark
         override val dropdownLinkColorHover get() = white
         override val dropdownLinkColorActive get() = white
 
@@ -169,7 +172,7 @@ object DefaultStyles : Styles {
         override val dropdownLinkBackgroundHover get() = dropdownLinkBackgroundActive
 
 
-// COMPONENT vars.IABLES
+// COMPONENT VARIABLES
 
 
         // Z-index master list
@@ -402,13 +405,13 @@ object DefaultStyles : Styles {
             color = vars.successText
         }
 
-        rule(".alert-danger .alert-error") {
+        rule(".alert-danger, .alert-error") {
             backgroundColor = vars.errorBackground
             borderColor =  vars.errorBorder
             color = vars.errorText
         }
 
-        rule(".alert-danger h4 .alert-error h4") {
+        rule(".alert-danger h4, .alert-error h4") {
             color = vars.errorText
         }
 
@@ -428,7 +431,7 @@ object DefaultStyles : Styles {
             paddingBottom = 14.px
         }
 
-        rule(".alert-block > p .alert-block > ul") {
+        rule(".alert-block > p, .alert-block > ul") {
             marginBottom = 0.px
         }
 
@@ -504,7 +507,7 @@ object DefaultStyles : Styles {
             marginLeft = -1.px
         }
 
-        rule(".btn-group > .btn .btn-group > .dropdown-menu .btn-group > .popover") {
+        rule(".btn-group > .btn, .btn-group > .dropdown-menu, .btn-group > .popover") {
             fontSize = vars.baseFontSize
             // redeclare as part 2 of font-size inline-block hack
         }
@@ -529,7 +532,7 @@ object DefaultStyles : Styles {
             with(mixins) { borderBottomLeftRadius(vars.baseBorderRadius) }
         }
         // Need .dropdown-toggle since :last-child doesn't apply given a .dropdown-menu immediately after it
-        rule(".btn-group > .btn:last-child .btn-group > .dropdown-toggle") {
+        ".btn-group > .btn:last-child, .btn-group > .dropdown-toggle" {
             with(mixins) { borderTopRightRadius(vars.baseBorderRadius) }
             with(mixins) { borderBottomRightRadius(vars.baseBorderRadius) }
         }
@@ -540,13 +543,13 @@ object DefaultStyles : Styles {
             with(mixins) { borderBottomLeftRadius(vars.borderRadiusLarge) }
         }
 
-        rule(".btn-group > .btn.large:last-child .btn-group > .large.dropdown-toggle") {
+        rule(".btn-group > .btn.large:last-child, .btn-group > .large.dropdown-toggle") {
             with(mixins) { borderTopRightRadius(vars.borderRadiusLarge) }
             with(mixins) { borderBottomRightRadius(vars.borderRadiusLarge) }
         }
 
         // On hover/focus/active, bring the proper btn to front
-        rule(".btn-group > .btn:hover .btn-group > .btn:focus .btn-group > .btn:active .btn-group > .btn.active") {
+        rule(".btn-group > .btn:hover, .btn-group > .btn:focus, .btn-group > .btn:active, .btn-group > .btn.active") {
             zIndex = 2
         }
 
@@ -647,7 +650,7 @@ object DefaultStyles : Styles {
             borderTopWidth = 5.px
         }
 
-        rule(".btn-mini .caret .btn-small .caret") {
+        rule(".btn-mini .caret, .btn-small .caret") {
             marginTop = 8.px
         }
         // Upside down carets for .dropup
@@ -657,7 +660,7 @@ object DefaultStyles : Styles {
 
 
         // Account for other colors
-        rule(".btn-primary .btn-warning .btn-danger .btn-info .btn-success .btn-inverse") {
+        rule(".btn-primary, .btn-warning, .btn-danger, .btn-info, .btn-success, .btn-inverse") {
             ".caret" {
                 borderTopColor = vars.white
                 borderBottomColor = vars.white
@@ -738,7 +741,7 @@ object DefaultStyles : Styles {
             }
 
             // Hover/focus state
-            "&:hover &:focus" {
+            "&:hover, &:focus" {
                 color = vars.grayDark
                 textDecoration = TextDecoration.none
                 backgroundPosition = RelativePosition("0px 15px")
@@ -755,7 +758,7 @@ object DefaultStyles : Styles {
             }
 
             // Active state
-            "&.active &:active" {
+            "&.active, &:active" {
                 backgroundImage = Image.none
                 outlineWidth = 0.px
                 with(mixins) {
@@ -767,7 +770,7 @@ object DefaultStyles : Styles {
             }
 
             // Disabled state
-            "&.disabled &[disabled]" {
+            "&.disabled, &[disabled]" {
                 cursor = Cursor.default
                 backgroundImage = Image.none
                 with(mixins) { opacity(65) }
@@ -786,7 +789,7 @@ object DefaultStyles : Styles {
             with(mixins) { borderRadius(vars.borderRadiusLarge) }
         }
 
-        rule(".btn-large [class^=\"icon-\"] .btn-large [class*=\" icon-\"]") {
+        rule(".btn-large [class^=\"icon-\"], .btn-large [class*=\" icon-\"]") {
             marginTop = 4.px
         }
 
@@ -797,11 +800,11 @@ object DefaultStyles : Styles {
             with(mixins) { borderRadius(vars.borderRadiusSmall) }
         }
 
-        rule(".btn-small [class^=\"icon-\"] .btn-small [class*=\" icon-\"]") {
+        rule(".btn-small [class^=\"icon-\"], .btn-small [class*=\" icon-\"]") {
             marginTop = 0.px
         }
 
-        rule(".btn-mini [class^=\"icon-\"] .btn-mini [class*=\" icon-\"]") {
+        rule(".btn-mini [class^=\"icon-\"], .btn-mini [class*=\" icon-\"]") {
             marginTop = -1.px
         }
 
@@ -828,7 +831,7 @@ object DefaultStyles : Styles {
         }
 
         // Specificity overrides
-        rule("input[type=\"submit\"] input[type=\"reset\"] input[type=\"button\"]") {
+        rule("input[type=\"submit\"], input[type=\"reset\"], input[type=\"button\"]") {
             "&.btn-block" {
                 width = 100.pct
             }
@@ -838,7 +841,7 @@ object DefaultStyles : Styles {
         // Alternate buttons
 
         // Provide *some* extra contrast for those who can get it
-        rule(".btn-primary.active .btn-warning.active .btn-danger.active .btn-success.active .btn-info.active .btn-inverse.active") {
+        rule(".btn-primary.active, .btn-warning.active, .btn-danger.active, .btn-success.active, .btn-info.active, .btn-inverse.active") {
             color = rgb(255, 255, 255, .75);
         }
 
@@ -869,7 +872,7 @@ object DefaultStyles : Styles {
 
 
         // Cross-browser Jank
-        rule("button.btn input[type=\"submit\"].btn") {
+        rule("button.btn, input[type=\"submit\"].btn") {
 
             // Firefox 3.6 only I believe
             "&::-moz-focus-inner" {
@@ -898,7 +901,7 @@ object DefaultStyles : Styles {
         // Link buttons
 
         // Make a button look and behave like a link
-        rule(".btn-link .btn-link:active .btn-link[disabled]") {
+        rule(".btn-link, .btn-link:active, .btn-link[disabled]") {
             backgroundColor = Color.transparent
             backgroundImage = Image.none
             with(mixins) { boxShadow { } }
@@ -911,13 +914,13 @@ object DefaultStyles : Styles {
             with(mixins) { borderRadius(0.px) }
         }
 
-        rule(".btn-link:hover .btn-link:focus") {
+        rule(".btn-link:hover, .btn-link:focus") {
             color = vars.linkColorHover
             textDecoration = TextDecoration(setOf(TextDecorationLine.underline))
             backgroundColor = Color.transparent
         }
 
-        rule(".btn-link[disabled]:hover .btn-link[disabled]:focus") {
+        rule(".btn-link[disabled]:hover, .btn-link[disabled]:focus") {
             color = vars.grayDark
             textDecoration = TextDecoration.none
         }
@@ -950,13 +953,13 @@ object DefaultStyles : Styles {
                 }
             }
 
-            rule("> .active > .next > .prev") { display = Display.block }
+            rule("> .active, > .next, > .prev") { display = Display.block }
 
             rule("> .active") {
                 left = 0.px
             }
 
-            rule("> .next > .prev") {
+            rule("> .next, > .prev") {
                 position = Position.absolute
                 top = 0.px
                 width = 100.pct
@@ -968,7 +971,7 @@ object DefaultStyles : Styles {
             child(".prev") {
                 left = -100.pct
             }
-            child(".next.left > .prev.right") {
+            child(".next.left, > .prev.right") {
                 left = 0.px
             }
 
@@ -1055,7 +1058,7 @@ object DefaultStyles : Styles {
             backgroundColor = rgb(0, 0, 0, .75)
         }
 
-        rule(".carousel-caption h4 .carousel-caption p") {
+        rule(".carousel-caption h4, .carousel-caption p") {
             color = vars.white
             lineHeight = vars.baseLineHeight.lh
         }
@@ -1104,11 +1107,11 @@ object DefaultStyles : Styles {
 
     override fun CssBuilder.code() {
         // Inline and block code styles
-        rule("code pre") {
+        rule("code, pre") {
             padding = Padding(0.px, 3.px, 2.px)
             with(mixins) { fontFamilyMonospace() }
 
-            fontSize = vars.baseFontSize - 2.px
+            fontSize = vars.baseFontSize-2.px
             color = vars.grayDark
             with(mixins) { borderRadius(3.px) }
         }
@@ -1125,9 +1128,9 @@ object DefaultStyles : Styles {
         // Blocks of code
         rule("pre") {
             display = Display.block
-            padding = Padding((vars.baseLineHeight - 1.px) / 2)
+            padding = Padding((vars.baseLineHeight-1.px) / 2)
             margin = Margin(0.px, 0.px, vars.baseLineHeight / 2)
-            fontSize = vars.baseFontSize - 1.px
+            fontSize = vars.baseFontSize-1.px
             // 14px to 13px
             lineHeight = vars.baseLineHeight.lh
             wordBreak = WordBreak.breakAll;
@@ -1185,807 +1188,898 @@ object DefaultStyles : Styles {
     }
 
 
-    override fun CssBuilder.dropdowns(){/*
-// Use the .menu class on any <li> element within the topbar or ul.tabs and you'll get some superfancy dropdowns
-rule(".dropup .dropdown") {
-  position = Position.relative
-}
-
-rule(".dropdown-toggle") {
-  // The caret makes the toggle a bit too tall in IE7
-  declarations["*marginBottom"] = -3.px
-}
-
-rule(".dropdown-toggle:active .open .dropdown-toggle") {
-  outlineWidth = 0.px
-}
-
-// Dropdown arrow/caret
-rule(".caret") {
-  display = Display.inlineBlock
-  width = 0.px
-  height = 0.px
-  verticalAlign = VerticalAlign.top
-  border-top:   4px solid vars.black;
-  borderRight = Border(4.px, BorderStyle.solid, Color(solid))
-  border-left:  4px solid transparent;
-  content: "";
-}
-
-// Place the caret
-rule(".dropdown .caret") {
-  marginTop = 8.px
-  marginLeft = 2.px
-}
-
-// The dropdown menu (ul)
-rule(".dropdown-menu") {
-  position = Position.absolute
-  top = 100.pct
-  left = 0.px
-  z-index: vars.zindexDropdown;
-  display = Display.none // none by default, but block on "open" of the menu
-  float = Float.left
-  minWidth = 160.px
-  padding = Padding(5.px, 0.px)
-  margin = Margin(2.px, 0.px, 0.px)
- // override default ul
-  listStyle = ListStyle.none
-  backgroundColor = vars.dropdownBackground
-  border = Border(1.px, BorderStyle.solid, Color("#ccc"))
- // Fallback for IE7-8
-  border = Border(1.px, BorderStyle.solid, vars.dropdownBorder)
-  declarations["*border-right-width"] = "2px"
-  declarations["*border-bottom-width"] = "2px"
-  with(mixins) { borderRadius(6px) }
-  with(mixins) { boxShadow(0px 5px 10px rgba(0,0,0,.2)) }
-  -webkit-background-clip: padding-box;
-     -moz-background-clip: padding;
-          background-clip: padding-box;
-
-  // Aligns the dropdown menu to right
-  "&.pull-right" {
-    right = 0.px
-    left = LinearDimension.auto
-  }
-
-  // Dividers (basically an hr) within the dropdown
-  .divider {
-    with(mixins) { navDivider(vars.dropdownDividerTop, vars.dropdownDividerBottom) }
-  }
-
-  // Links within the dropdown menu
-  child("li > a") {
-    display = Display.block
-    padding = Padding(3.px, 20.px)
-    clear: both;
-    fontWeight = FontWeight.normal
-    lineHeight = vars.baseLineHeight.lh
-    color = vars.dropdownLinkColor
-    whiteSpace = WhiteSpace.nowrap
-  }
-}
-
-// Hover/Focus state
-rule(".dropdown-menu > li > a:hover .dropdown-menu > li > a:focus .dropdown-submenu:hover > a .dropdown-submenu:focus > a") {
-  textDecoration = TextDecoration.none
-  color = vars.dropdownLinkColorHover
-  #gradient > .vertical(vars.dropdownLinkBackgroundHover, darken(vars.dropdownLinkBackgroundHover, 5%));
-}
-
-// Active state
-rule(".dropdown-menu > .active > a .dropdown-menu > .active > a:hover .dropdown-menu > .active > a:focus") {
-  color = vars.dropdownLinkColorActive
-  textDecoration = TextDecoration.none
-  outlineWidth = 0.px
-  #gradient > .vertical(vars.dropdownLinkBackgroundActive, darken(vars.dropdownLinkBackgroundActive, 5%));
-}
-
-// Disabled state
-// Gray out text and ensure the hover/focus state remains gray
-rule(".dropdown-menu > .disabled > a .dropdown-menu > .disabled > a:hover .dropdown-menu > .disabled > a:focus") {
-  color = vars.grayLight
-}
-// Nuke hover/focus effects
-rule(".dropdown-menu > .disabled > a:hover .dropdown-menu > .disabled > a:focus") {
-  textDecoration = TextDecoration.none
-  backgroundColor = Color.transparent
-  backgroundImage = Image.none
- // Remove CSS gradient
-  with(mixins) { resetFilter() }
-  cursor = Cursor.default
-}
-
-// Open state for the dropdown
-rule(".open") {
-  // IE7's z-index only goes to the nearest positioned ancestor, which would
-  // make the menu appear below buttons that appeared later on the page
-  declarations["*z-index"] = "vars.zindexDropdown"
-rule("& > .dropdown-menu") {
-    display = Display.block
-  }
-}
-
-// Backdrop to catch body clicks on mobile, etc.
-rule(".dropdown-backdrop") {
-  position = Position.fixed
-  left = 0.px
-  right = 0.px
-  bottom = 0.px
-  top = 0.px
-  z-index: vars.zindexDropdown-10;
-}
-
-// Right aligned dropdowns
-rule(".pull-right > .dropdown-menu") {
-  right = 0.px
-  left = LinearDimension.auto
-}
-
-// Allow for dropdowns to go bottom up (aka, dropup-menu)
-// Just add .dropup after the standard .dropdown class and you're set, bro.
-// TODO: abstract this so that the navbar fixed styles are not placed here?
-rule(".dropup .navbar-fixed-bottom .dropdown") {
-  // Reverse the caret
-  .caret {
-    borderTop = Border(0.px)
-    borderBottom = Border(4.px, BorderStyle.solid, Color(solid))
-    content: "";
-  }
-  // Different positioning for bottom up menu
-  .dropdown-menu {
-    top = LinearDimension.auto
-    bottom = 100.pct
-    marginBottom = 1.px
-  }
-}
-
-// Sub menus
-rule(".dropdown-submenu") {
-  position = Position.relative
-}
-// Default dropdowns
-rule(".dropdown-submenu > .dropdown-menu") {
-  top = 0.px
-  left = 100.pct
-  marginTop = -6.px
-  marginLeft = -1.px
-  with(mixins) { borderRadius(0px 6px 6px 6px) }
-}
-
-rule(".dropdown-submenu:hover > .dropdown-menu") {
-  display = Display.block
-}
-
-// Dropups
-rule(".dropup .dropdown-submenu > .dropdown-menu") {
-  top = LinearDimension.auto
-  bottom = 0.px
-  marginTop = 0.px
-  marginBottom = -2.px
-  with(mixins) { borderRadius(5px 5px 5px 0px) }
-}
-
-// Caret to indicate there is a submenu
-rule(".dropdown-submenu > a:after") {
-  display = Display.block
-  content: " ";
-  float = Float.right
-  width = 0.px
-  height = 0.px
-  border-color: transparent;
-  border-style: solid;
-  border-width: 5px 0px 5px 5px;
-  border-left-color: darken(vars.dropdownBackground, 20%);
-  marginTop = 5.px
-  marginRight = -10.px
-}
-
-rule(".dropdown-submenu:hover > a:after") {
-  border-left-color = vars.dropdownLinkColorHover
-}
-
-// Left aligned submenus
-rule(".dropdown-submenu.pull-left") {
-  // Undo the float
-  // Yes, this is awkward since .pull-left adds a float, but it sticks to our conventions elsewhere.
-  float = Float.none
-
-  // Positioning the submenu
-  child(".dropdown-menu") {
-    left = -100.pct
-    marginLeft = 10.px
-    with(mixins) { borderRadius(6px 0px 6px 6px) }
-  }
-}
-
-// Tweak nav headers
-// Increase padding from 15px to 20px on sides
-rule(".dropdown .dropdown-menu .nav-header") {
-  paddingLeft = 20.px
-  paddingRight = 20.px
-}
-
-// Typeahead
-// ---------
-rule(".typeahead") {
-  zIndex = 1051
-  marginTop = 2.px // give it some space to breathe
-  with(mixins) { borderRadius(vars.baseBorderRadius) }
-}
-    */}
-
-
-    override fun CssBuilder.forms(){/*
-// GENERAL STYLES
-
-// Make all forms have space below them
-rule("form") {
-  margin: 0px 0px vars.baseLineHeight;
-}
-
-rule("fieldset") {
-  padding = Padding(0.px)
-  margin = Margin(0.px)
-  border: 0px;
-}
-
-// Groups of fields with labels on top (legends)
-rule("legend") {
-  display = Display.block
-  width = 100.pct
-  padding = Padding(0.px)
-  marginBottom = vars.baseLineHeight
-  fontSize = vars.baseFontSize * 1.5
-  line-height: vars.baseLineHeight * 2;
-  color = vars.grayDark
-  border: 0px;
-  borderBottom = Border(1.px, BorderStyle.solid, Color(solid))
-
-  // Small
-  small {
-    fontSize = vars.baseLineHeight * .75
-    color = vars.grayLight
-  }
-}
-
-// Set font for forms
-rule("label input button select textarea") {
-  #font > .shorthand(vars.baseFontSize,normal,vars.baseLineHeight);
- // Set size, weight, line-height here
-}
-
-rule("input button select textarea") {
-  font-family: vars.baseFontFamily;
- // And only set font-family here for those that need it (note the missing label element)
-}
-
-// Identify controls by their labels
-rule("label") {
-  display = Display.block
-  marginBottom = 5.px
-}
-
-// Form controls
-
-// Shared size and type resets
-rule("select textarea input[type=\"text\"] input[type=\"password\"] input[type=\"datetime\"] input[type=\"datetime-local\"] input[type=\"date\"] input[type=\"month\"] input[type=\"time\"] input[type=\"week\"] input[type=\"number\"] input[type=\"email\"] input[type=\"url\"] input[type=\"search\"] input[type=\"tel\"] input[type=\"color\"] .uneditable-input") {
-  display = Display.inlineBlock
-  height: vars.baseLineHeight;
-  padding = Padding(4.px, 6.px)
-  marginBottom = vars.baseLineHeight / 2
-  fontSize = vars.baseFontSize
-  lineHeight = vars.baseLineHeight.lh
-  color = vars.gray
-  with(mixins) { borderRadius(vars.inputBorderRadius) }
-  verticalAlign = VerticalAlign.middle
-}
-
-// Reset appearance properties for textual inputs and textarea
-// Declare width for legacy (can't be on input[type=*] selectors or it's too specific)
-rule("input textarea .uneditable-input") {
-  width = 206.px
- // plus 12px padding and 2px border
-}
-// Reset height since textareas have rows
-rule("textarea") {
-  height = LinearDimension.auto
-}
-// Everything else
-rule("textarea input[type=\"text\"] input[type=\"password\"] input[type=\"datetime\"] input[type=\"datetime-local\"] input[type=\"date\"] input[type=\"month\"] input[type=\"time\"] input[type=\"week\"] input[type=\"number\"] input[type=\"email\"] input[type=\"url\"] input[type=\"search\"] input[type=\"tel\"] input[type=\"color\"] .uneditable-input") {
-  backgroundColor = vars.inputBackground
-  border = Border(1.px, BorderStyle.solid, vars.inputBorder)
-  with(mixins) { boxShadow(inset 0px 1px 1px rgba(0,0,0,.075)) }
-  with(mixins) { transition(~"border linear .2s, box-shadow linear .2s") }
-
-  // Focus state
-  "&:focus" {
-    borderColor = rgb(82,168,236,.8)
-    outlineWidth = 0.px
-    outline: thin dotted \9;
- /* IE6-9 */
-    with(mixins) { boxShadow(~"inset 0px 1px 1px rgba(0,0,0,.075), 0px 0px 8px rgba(82,168,236,.6)") }
-  }
-}
-
-// Position radios and checkboxes better
-rule("input[type=\"radio\"] input[type=\"checkbox\"]") {
-  margin = Margin(4.px, 0.px, 0.px)
-  declarations["*marginTop"] = 0.px /* IE7 */
-  marginTop = 1px \9
- /* IE8-9 */
-  line-height: normal;
-}
-
-// Reset width of input images, buttons, radios, checkboxes
-rule("input[type=\"file\"] input[type=\"image\"] input[type=\"submit\"] input[type=\"reset\"] input[type=\"button\"] input[type=\"radio\"] input[type=\"checkbox\"]") {
-  width = LinearDimension.auto
- // Override of generic input selector
-}
-
-// Set the height of select and file controls to match text inputs
-rule("select input[type=\"file\"]") {
-  height: vars.inputHeight;
- /* In IE7, the height of the select element cannot be changed by height, only font-size */
-  declarations["*marginTop"] = 4.px /* For IE7, add top margin to align select with labels */
-  lineHeight = vars.inputHeight.lh
-}
-
-// Make select elements obey height by applying a border
-rule("select") {
-  width = 220.px
- // default input width + 10px of padding that doesn't get applied
-  border = Border(1.px, BorderStyle.solid, vars.inputBorder)
-  backgroundColor = vars.inputBackground
- // Chrome on Linux and Mobile Safari need background-color
-}
-
-// Make multiple select elements height not fixed
-rule("select[multiple] select[size]") {
-  height = LinearDimension.auto
-}
-
-// Focus for select, file, radio, and checkbox
-rule("select:focus input[type=\"file\"]:focus input[type=\"radio\"]:focus input[type=\"checkbox\"]:focus") {
-  with(mixins) { tabFocus() }
-}
-
-
-// Uneditable inputs
-
-// Make uneditable inputs look inactive
-rule(".uneditable-input .uneditable-textarea") {
-  color = vars.grayLight
-  background-color: darken(vars.inputBackground, 1%);
-  borderColor =  vars.inputBorder
-  with(mixins) { boxShadow(inset 0px 1px 2px rgba(0,0,0,.025)) }
-  cursor: not-allowed;
-}
-
-// For text that needs to appear as an input but should not be an input
-rule(".uneditable-input") {
-  overflow = Overflow.hidden
- // prevent text from wrapping, but still cut it off like an input does
-  whiteSpace = WhiteSpace.nowrap
-}
-
-// Make uneditable textareas behave like a textarea
-rule(".uneditable-textarea") {
-  width = LinearDimension.auto
-  height = LinearDimension.auto
-}
-
-
-// Placeholder
-
-// Placeholder text gets special styles because when browsers invalidate entire lines if it doesn't understand a selector
-rule("input textarea") {
-  with(mixins) { placeholder() }
-}
-
-
-// CHECKBOXES & RADIOS
-
-// Indent the labels to position radios/checkboxes as hanging
-rule(".radio .checkbox") {
-  min-height: vars.baseLineHeight;
- // clear the floating input if there is no label text
-  paddingLeft = 20.px
-}
-
-rule(".radio input[type=\"radio\"] .checkbox input[type=\"checkbox\"]") {
-  float = Float.left
-  marginLeft = -20.px
-}
-
-// Move the options list down to align with labels
-rule(".controls > .radio:first-child .controls > .checkbox:first-child") {
-  paddingTop = 5.px // has to be padding because margin collaspes
-}
-
-// Radios and checkboxes on same line
-// TODO v3: Convert .inline to .control-inline
-rule(".radio.inline .checkbox.inline") {
-  display = Display.inlineBlock
-  paddingTop = 5.px
-  marginBottom = 0.px
-  verticalAlign = VerticalAlign.middle
-}
-
-rule(".radio.inline + .radio.inline .checkbox.inline + .checkbox.inline") {
-  marginLeft = 10.px // space out consecutive inline controls
-}
-
-
-
-// INPUT SIZES
-
-// General classes for quick sizes
-rule(".input-mini") { width = 60.px
- }
-
-rule(".input-small") { width = 90.px
- }
-
-rule(".input-medium") { width = 150.px
- }
-
-rule(".input-large") { width = 210.px
- }
-
-rule(".input-xlarge") { width = 270.px
- }
-
-rule(".input-xxlarge") { width = 530.px
- }
-
-// Grid style input sizes
-input[class*="span"] select[class*="span"] textarea[class*="span"] .uneditable-input[class*="span"] // Redeclare since the fluid row class is more specific
-rule(".row-fluid input[class*=\"span\"] .row-fluid select[class*=\"span\"] .row-fluid textarea[class*=\"span\"] .row-fluid .uneditable-input[class*=\"span\"]") {
-  float = Float.none
-  marginLeft = 0.px
-}
-// Ensure input-prepend/append never wraps
-rule(".input-append input[class*=\"span\"] .input-append .uneditable-input[class*=\"span\"] .input-prepend input[class*=\"span\"] .input-prepend .uneditable-input[class*=\"span\"] .row-fluid input[class*=\"span\"] .row-fluid select[class*=\"span\"] .row-fluid textarea[class*=\"span\"] .row-fluid .uneditable-input[class*=\"span\"] .row-fluid .input-prepend [class*=\"span\"] .row-fluid .input-append [class*=\"span\"]") {
-  display = Display.inlineBlock
-}
-
-
-
-// GRID SIZING FOR INPUTS
-
-// Grid sizes
-#grid > .input(vars.gridColumnWidth, vars.gridGutterWidth);
-
-// Control row for multiple inputs per line
-rule(".controls-row") {
-  with(mixins) { clearfix() }
- // Clear the float from controls
-}
-
-// Float to collapse white-space for proper grid alignment
-.controls-row [class*="span"] // Redeclare the fluid grid collapse since we undo the float for inputs
-rule(".row-fluid .controls-row [class*=\"span\"]") {
-  float = Float.left
-}
-// Explicity set top padding on all checkboxes/radios, not just first-child
-rule(".controls-row .checkbox[class*=\"span\"] .controls-row .radio[class*=\"span\"]") {
-  paddingTop = 5.px
-}
-
-
-
-
-// DISABLED STATE
-
-// Disabled and read-only inputs
-rule("input[disabled] select[disabled] textarea[disabled] input[readonly] select[readonly] textarea[readonly]") {
-  cursor: not-allowed;
-  backgroundColor = vars.inputDisabledBackground
-}
-// Explicitly reset the colors here
-rule("input[type=\"radio\"][disabled] input[type=\"checkbox\"][disabled] input[type=\"radio\"][readonly] input[type=\"checkbox\"][readonly]") {
-  backgroundColor = Color.transparent
-}
-
-
-
-
-// FORM FIELD FEEDBACK STATES
-
-// Warning
-rule(".control-group.warning") {
-  with(mixins) { formFieldState(vars.warningText, vars.warningText, vars.warningBackground) }
-}
-// Error
-rule(".control-group.error") {
-  with(mixins) { formFieldState(vars.errorText, vars.errorText, vars.errorBackground) }
-}
-// Success
-rule(".control-group.success") {
-  with(mixins) { formFieldState(vars.successText, vars.successText, vars.successBackground) }
-}
-// Success
-rule(".control-group.info") {
-  with(mixins) { formFieldState(vars.infoText, vars.infoText, vars.infoBackground) }
-}
-
-// HTML5 invalid states
-// Shares styles with the .control-group.error above
-rule("input:focus:invalid textarea:focus:invalid select:focus:invalid") {
-  color = Color("#b94a48")
-  borderColor = Color("#ee5f5b")
-  "&:focus" {
-    border-color: darken(#ee5f5b, 10%);
-    vars.shadow: 0px 0px 6px lighten(#ee5f5b, 20%);
-    with(mixins) { boxShadow(vars.shadow) }
-  }
-}
-
-
-
-// FORM ACTIONS
-rule(".form-actions") {
-  padding: (vars.baseLineHeight-1) 20px vars.baseLineHeight;
-  marginTop = vars.baseLineHeight
-  marginBottom = vars.baseLineHeight
-  backgroundColor = vars.formActionsBackground
-  borderTop = Border(1.px, BorderStyle.solid, Color(solid))
-  with(mixins) { clearfix() }
- // Adding clearfix to allow for .pull-right button containers
-}
-
-
-
-// HELP TEXT
-// ---------
-rule(".help-block .help-inline") {
-  color: lighten(vars.textColor, 15%);
- // lighten the text some for contrast
-}
-
-rule(".help-block") {
-  display = Display.block // account for any element using help-block
-  marginBottom = vars.baseLineHeight / 2
-}
-
-rule(".help-inline") {
-  display = Display.inlineBlock
-  with(mixins) { ie7InlineBlock() }
-  verticalAlign = VerticalAlign.middle
-  paddingLeft = 5.px
-}
-
-
-
-// INPUT GROUPS
-
-// Allow us to put symbols and text within the input field for a cleaner look
-rule(".input-append .input-prepend") {
-  display = Display.inlineBlock
-  marginBottom = vars.baseLineHeight / 2
-  verticalAlign = VerticalAlign.middle
-  fontSize = 0.px
- // white space collapse hack
-  whiteSpace = WhiteSpace.nowrap
- // Prevent span and input from separating
-
-  // Reset the white space collapse hack
-  input select .uneditable-input .dropdown-menu .popover {
-    fontSize = vars.baseFontSize
-  }
-
-rule("input select .uneditable-input") {
-    position = Position.relative
- // placed here by default so that on :focus we can place the input above the .add-on for full border and box-shadow goodness
-    marginBottom = 0.px // prevent bottom margin from screwing up alignment in stacked forms
-    declarations["*marginLeft"] = 0.px
-    verticalAlign = VerticalAlign.top
-    with(mixins) { borderRadius(0px vars.inputBorderRadius vars.inputBorderRadius 0px) }
-    // Make input on top when focused so blue border and shadow always show
-    "&:focus" {
-      zIndex = 2
+    override fun CssBuilder.dropdowns() {
+        // Use the .menu class on any <li> element within the topbar or ul.tabs and you'll get some superfancy dropdowns
+        rule(".dropup, .dropdown") {
+            position = Position.relative
+        }
+
+        rule(".dropdown-toggle") {
+            // The caret makes the toggle a bit too tall in IE7
+            declarations["*marginBottom"] = -3.px
+        }
+
+        rule(".dropdown-toggle:active, .open .dropdown-toggle") {
+            outlineWidth = 0.px
+        }
+
+        // Dropdown arrow/caret
+        rule(".caret") {
+            display = Display.inlineBlock
+            width = 0.px
+            height = 0.px
+            verticalAlign = VerticalAlign.top
+            borderTop = Border(4.px, BorderStyle.solid, vars.black)
+            borderRight = Border(4.px, BorderStyle.solid, Color.transparent)
+            borderLeft = Border(4.px, BorderStyle.solid, Color.transparent)
+            content = QuotedString("")
+        }
+
+        // Place the caret
+        rule(".dropdown .caret") {
+            marginTop = 8.px
+            marginLeft = 2.px
+        }
+
+        // The dropdown menu (ul)
+        rule(".dropdown-menu") {
+            position = Position.absolute
+            top = 100.pct
+            left = 0.px
+            zIndex = vars.zindexDropdown
+            display = Display.none // none by default, but block on "open" of the menu
+            float = Float.left
+            minWidth = 160.px
+            padding = Padding(5.px, 0.px)
+            margin = Margin(2.px, 0.px, 0.px)
+            // override default ul
+            listStyleType = ListStyleType.none
+            backgroundColor = vars.dropdownBackground
+            border = Border(1.px, BorderStyle.solid, Color("#ccc"))
+            // Fallback for IE7-8
+            border = Border(1.px, BorderStyle.solid, vars.dropdownBorder)
+            declarations["*border-right-width"] = "2px"
+            declarations["*border-bottom-width"] = "2px"
+            with(mixins) { borderRadius(6.px) }
+            with(mixins) {
+                boxShadow {
+                    this += BoxShadow(rgb(0, 0, 0, 0.2), 0.px, 5.px, 10.px)
+                }
+            }
+            declarations["-webkit-background-clip"] = BackgroundClip.paddingBox
+            declarations["-moz-background-clip"] = BackgroundClip.paddingBox
+            backgroundClip = BackgroundClip.paddingBox
+
+            // Aligns the dropdown menu to right
+            "&.pull-right" {
+                right = 0.px
+                left = LinearDimension.auto
+            }
+
+            // Dividers (basically an hr) within the dropdown
+            ".divider" {
+                with(mixins) { navDivider(vars.dropdownDividerTop, vars.dropdownDividerBottom) }
+            }
+
+            // Links within the dropdown menu
+            child("li > a") {
+                display = Display.block
+                padding = Padding(3.px, 20.px)
+                clear = Clear.both
+                fontWeight = FontWeight.normal
+                lineHeight = vars.baseLineHeight.lh
+                color = vars.dropdownLinkColor
+                whiteSpace = WhiteSpace.nowrap
+            }
+        }
+
+        // Hover/Focus state
+        rule(".dropdown-menu > li, > a:hover .dropdown-menu, > li > a:focus, .dropdown-submenu:hover > a, .dropdown-submenu:focus > a") {
+            textDecoration = TextDecoration.none
+            color = vars.dropdownLinkColorHover
+            with(mixins) {
+                gradientVertical(vars.dropdownLinkBackgroundHover, vars.dropdownLinkBackgroundHover.darken(5))
+            }
+        }
+
+        // Active state
+        rule(".dropdown-menu > .active, > a .dropdown-menu > .active > a:hover, .dropdown-menu, > .active > a:focus") {
+            color = vars.dropdownLinkColorActive
+            textDecoration = TextDecoration.none
+            outlineWidth = 0.px
+            with(mixins) {
+                gradientVertical(vars.dropdownLinkBackgroundActive, vars.dropdownLinkBackgroundActive.darken(5));
+            }
+        }
+
+        // Disabled state
+        // Gray out text and ensure the hover/focus state remains gray
+        rule(".dropdown-menu > .disabled > a, .dropdown-menu > .disabled > a:hover, .dropdown-menu > .disabled > a:focus") {
+            color = vars.grayLight
+        }
+        // Nuke hover/focus effects
+        rule(".dropdown-menu > .disabled > a:hover, .dropdown-menu > .disabled > a:focus") {
+            textDecoration = TextDecoration.none
+            backgroundColor = Color.transparent
+            backgroundImage = Image.none
+            // Remove CSS gradient
+            with(mixins) { resetFilter() }
+            cursor = Cursor.default
+        }
+
+        // Open state for the dropdown
+        rule(".open") {
+            // IE7's z-index only goes to the nearest positioned ancestor, which would
+            // make the menu appear below buttons that appeared later on the page
+            declarations["*z-index"] = "vars.zindexDropdown"
+            rule("& > .dropdown-menu") {
+                display = Display.block
+            }
+        }
+
+        // Backdrop to catch body clicks on mobile, etc.
+        rule(".dropdown-backdrop") {
+            position = Position.fixed
+            left = 0.px
+            right = 0.px
+            bottom = 0.px
+            top = 0.px
+            zIndex = vars.zindexDropdown-10
+        }
+
+        // Right aligned dropdowns
+        rule(".pull-right > .dropdown-menu") {
+            right = 0.px
+            left = LinearDimension.auto
+        }
+
+        // Allow for dropdowns to go bottom up (aka, dropup-menu)
+        // Just add .dropup after the standard .dropdown class and you're set, bro.
+        // TODO: abstract this so that the navbar fixed styles are not placed here?
+        rule(".dropup, .navbar-fixed-bottom .dropdown") {
+            // Reverse the caret
+            ".caret" {
+                borderTopWidth = 0.px
+                borderBottom = Border(4.px, BorderStyle.solid, vars.black)
+                content = QuotedString("")
+            }
+            // Different positioning for bottom up menu
+            ".dropdown-menu" {
+                top = LinearDimension.auto
+                bottom = 100.pct
+                marginBottom = 1.px
+            }
+        }
+
+        // Sub menus
+        rule(".dropdown-submenu") {
+            position = Position.relative
+        }
+        // Default dropdowns
+        rule(".dropdown-submenu > .dropdown-menu") {
+            top = 0.px
+            left = 100.pct
+            marginTop = -6.px
+            marginLeft = -1.px
+            with(mixins) { borderRadius(0.px, 6.px, 6.px, 6.px) }
+        }
+
+        rule(".dropdown-submenu:hover > .dropdown-menu") {
+            display = Display.block
+        }
+
+        // Dropups
+        rule(".dropup .dropdown-submenu > .dropdown-menu") {
+            top = LinearDimension.auto
+            bottom = 0.px
+            marginTop = 0.px
+            marginBottom = -2.px
+            with(mixins) { borderRadius(5.px, 5.px, 5.px, 0.px) }
+        }
+
+        // Caret to indicate there is a submenu
+        rule(".dropdown-submenu > a:after") {
+            display = Display.block
+            content = QuotedString(" ")
+            float = Float.right
+            width = 0.px
+            height = 0.px
+
+            borderColor = Color.transparent;
+            borderStyle = BorderStyle.solid;
+            borderWidth(5.px, 0.px, 5.px, 5.px)
+            borderLeftColor = vars.dropdownBackground.darken(20)
+            marginTop = 5.px
+            marginRight = -10.px
+        }
+
+        rule(".dropdown-submenu:hover > a:after") {
+            borderLeftColor = vars.dropdownLinkColorHover
+        }
+
+        // Left aligned submenus
+        rule(".dropdown-submenu.pull-left") {
+            // Undo the float
+            // Yes, this is awkward since .pull-left adds a float, but it sticks to our conventions elsewhere.
+            float = Float.none
+
+            // Positioning the submenu
+            child(".dropdown-menu") {
+                left = -100.pct
+                marginLeft = 10.px
+                with(mixins) { borderRadius(6.px, 0.px, 6.px, 6.px) }
+            }
+        }
+
+        // Tweak nav headers
+        // Increase padding from 15px to 20px on sides
+        rule(".dropdown .dropdown-menu .nav-header") {
+            paddingLeft = 20.px
+            paddingRight = 20.px
+        }
+
+        // Typeahead
+        // ---------
+        rule(".typeahead") {
+            zIndex = 1051
+            marginTop = 2.px // give it some space to breathe
+            with(mixins) { borderRadius(vars.baseBorderRadius) }
+        }
     }
-  }
-  .add-on {
-    display = Display.inlineBlock
-    width = LinearDimension.auto
-    height: vars.baseLineHeight;
-    minWidth = 16.px
-    padding = Padding(4.px, 5.px)
-    fontSize = vars.baseFontSize
-    fontWeight = FontWeight.normal
-    lineHeight = vars.baseLineHeight.lh
-    textAlign = TextAlign.center
-    declarations["text-shadow"] = "0px 1px 0px vars.white"
-    backgroundColor = vars.grayLighter
-    border = Border(1.px, BorderStyle.solid, Color("#ccc"))
-  }
-  .add-on .btn .btn-group > .dropdown-toggle {
-    verticalAlign = VerticalAlign.top
-    with(mixins) { borderRadius(0px) }
-  }
-  .active {
-    background-color: lighten(vars.green, 30);
-    borderColor =  vars.green
-  }
-}
 
-rule(".input-prepend") {
-  .add-on .btn {
-    marginRight = -1.px
-  }
-  .add-on:first-child .btn:first-child {
-    // FYI, `.btn:first-child` accounts for a button group that's prepended
-    with(mixins) { borderRadius(vars.inputBorderRadius 0px 0px vars.inputBorderRadius) }
-  }
-}
 
-rule(".input-append") {
-  input select .uneditable-input {
-    with(mixins) { borderRadius(vars.inputBorderRadius 0px 0px vars.inputBorderRadius) }
-    + .btn-group .btn:last-child {
-      with(mixins) { borderRadius(0px vars.inputBorderRadius vars.inputBorderRadius 0px) }
+    override fun CssBuilder.forms() {
+        // GENERAL STYLES
+
+        // Make all forms have space below them
+        rule("form") {
+            margin = Margin(0.px, 0.px, vars.baseLineHeight);
+        }
+
+        rule("fieldset") {
+            padding = Padding(0.px)
+            margin = Margin(0.px)
+            borderWidth = 0.px
+        }
+
+        // Groups of fields with labels on top (legends)
+        rule("legend") {
+            display = Display.block
+            width = 100.pct
+            padding = Padding(0.px)
+            marginBottom = vars.baseLineHeight
+            fontSize = vars.baseFontSize * 1.5
+            lineHeight = (vars.baseLineHeight * 2).lh
+            color = vars.grayDark
+            borderWidth = 0.px
+            borderBottom = Border(1.px, BorderStyle.solid, Color("#e5e5e5"))
+
+            // Small
+            small {
+                fontSize = vars.baseLineHeight * .75
+                color = vars.grayLight
+            }
+        }
+
+        // Set font for forms
+        rule("label, input, button, select, textarea") {
+            // Set size, weight, line-height here
+            with(mixins) { fontShorthand(vars.baseFontSize, FontWeight.normal, vars.baseLineHeight.lh) }
+        }
+
+        ruleOf("input", "button", "select", "textarea") {
+            fontFamily = vars.baseFontFamily
+            // And only set font-family here for those that need it (note the missing label element)
+        }
+
+        // Identify controls by their labels
+        rule("label") {
+            display = Display.block
+            marginBottom = 5.px
+        }
+
+        // Form controls
+
+        // Shared size and type resets
+        ruleOf(
+            "select",
+            "textarea",
+            "input[type=\"text\"]",
+            "input[type=\"password\"]",
+            "input[type=\"datetime\"]",
+            "input[type=\"datetime-local\"]",
+            "input[type=\"date\"]",
+            "input[type=\"month\"]",
+            "input[type=\"time\"]",
+            "input[type=\"week\"]",
+            "input[type=\"number\"]",
+            "input[type=\"email\"]",
+            "input[type=\"url\"]",
+            "input[type=\"search\"]",
+            "input[type=\"tel\"]",
+            "input[type=\"color\"]",
+            ".uneditable-input"
+        ) {
+            display = Display.inlineBlock
+            height = vars.baseLineHeight
+            padding = Padding(4.px, 6.px)
+            marginBottom = vars.baseLineHeight / 2
+            fontSize = vars.baseFontSize
+            lineHeight = vars.baseLineHeight.lh
+            color = vars.gray
+            with(mixins) { borderRadius(vars.inputBorderRadius) }
+            verticalAlign = VerticalAlign.middle
+        }
+
+        // Reset appearance properties for textual inputs and textarea
+        // Declare width for legacy (can't be on input[type=*] selectors or it's too specific)
+        rule("input textarea .uneditable-input") {
+            width = 206.px
+            // plus 12px padding and 2px border
+        }
+        // Reset height since textareas have rows
+        rule("textarea") {
+            height = LinearDimension.auto
+        }
+        // Everything else
+        ruleOf(
+            "textarea",
+            "input[type=\"text\"]",
+            "input[type=\"password\"]",
+            "input[type=\"datetime\"]",
+            "input[type=\"datetime-local\"]",
+            "input[type=\"date\"]",
+            "input[type=\"month\"]",
+            "input[type=\"time\"]",
+            "input[type=\"week\"]",
+            "input[type=\"number\"]",
+            "input[type=\"email\"]",
+            "input[type=\"url\"]",
+            "input[type=\"search\"]",
+            "input[type=\"tel\"]",
+            "input[type=\"color\"]",
+            ".uneditable-input"
+        ) {
+            backgroundColor = vars.inputBackground
+            border = Border(1.px, BorderStyle.solid, vars.inputBorder)
+            with(mixins) {
+                boxShadow {
+                    this += BoxShadowInset(rgb(0, 0, 0, .075), 0.px, 1.px, 1.px)
+                }
+                transition("border linear .2s, box-shadow linear .2s")
+            }
+
+            // Focus state
+            "&:focus" {
+                borderColor = rgb(82, 168, 236, .8)
+                outlineWidth = 0.px
+                declarations["outline"] = "thin dotted \\9;" /* IE6-9 */
+                // IE6-9
+                with(mixins) {
+                    boxShadow {
+                        this += BoxShadowInset(rgb(0, 0, 0, .075), 0.px, 1.px, 1.px)
+                        this += BoxShadowInset(rgb(82, 168, 236, .6), 0.px, 0.px, 8.px)
+                    }
+                }
+            }
+        }
+
+        // Position radios and checkboxes better
+        "input[type=\"radio\"], input[type=\"checkbox\"]" {
+            margin = Margin(4.px, 0.px, 0.px)
+            declarations["*marginTop"] = "0.px" // IE7
+            declarations["marginTop"] = "1px \\9" // IE8-9
+            lineHeight = LineHeight.normal
+        }
+
+        // Reset width of input images, buttons, radios, checkboxes
+        "input[type=\"file\"], input[type=\"image\"], input[type=\"submit\"], input[type=\"reset\"], input[type=\"button\"], input[type=\"radio\"], input[type=\"checkbox\"]" {
+            width = LinearDimension.auto
+            // Override of generic input selector
+        }
+
+        // Set the height of select and file controls to match text inputs
+        rule("select, input[type=\"file\"]") {
+            height =
+                vars.inputHeight // In IE7, the height of the select element cannot be changed by height, only font-size
+            declarations["*marginTop"] = "4.px" //  For IE7, add top margin to align select with labels
+            lineHeight = vars.inputHeight.lh
+        }
+
+        // Make select elements obey height by applying a border
+        rule("select") {
+            width = 220.px
+            // default input width + 10px of padding that doesn't get applied
+            border = Border(1.px, BorderStyle.solid, vars.inputBorder)
+            backgroundColor = vars.inputBackground
+            // Chrome on Linux and Mobile Safari need background-color
+        }
+
+        // Make multiple select elements height not fixed
+        rule("select[multiple], select[size]") {
+            height = LinearDimension.auto
+        }
+
+        // Focus for select, file, radio, and checkbox
+        rule("select:focus, input[type=\"file\"]:focus, input[type=\"radio\"]:focus, input[type=\"checkbox\"]:focus") {
+            with(mixins) { tabFocus() }
+        }
+
+
+        // Uneditable inputs
+
+        // Make uneditable inputs look inactive
+        ruleOf(".uneditable-input", ".uneditable-textarea") {
+            color = vars.grayLight
+            backgroundColor = vars.inputBackground.darken(1)
+            borderColor = vars.inputBorder
+            with(mixins) { boxShadowInset(rgb(0,0,0,.025), 0.px, 1.px, 2.px) }
+            cursor = Cursor.notAllowed
+        }
+
+        // For text that needs to appear as an input but should not be an input
+        rule(".uneditable-input") {
+            overflow = Overflow.hidden
+            // prevent text from wrapping, but still cut it off like an input does
+            whiteSpace = WhiteSpace.nowrap
+        }
+
+        // Make uneditable textareas behave like a textarea
+        rule(".uneditable-textarea") {
+            width = LinearDimension.auto
+            height = LinearDimension.auto
+        }
+
+
+        // Placeholder
+
+        // Placeholder text gets special styles because when browsers invalidate entire lines if it doesn't understand a selector
+        ruleOf("input", "textarea") {
+            with(mixins) { placeholder() }
+        }
+
+
+        // CHECKBOXES & RADIOS
+
+        // Indent the labels to position radios/checkboxes as hanging
+        rule(".radio .checkbox") {
+            minHeight = vars.baseLineHeight
+            // clear the floating input if there is no label text
+            paddingLeft = 20.px
+        }
+
+        ruleOf(".radio input[type=\"radio\"]", ".checkbox input[type=\"checkbox\"]") {
+            float = Float.left
+            marginLeft = -20.px
+        }
+
+        // Move the options list down to align with labels
+        ruleOf(".controls > .radio:first-child", ".controls > .checkbox:first-child") {
+            paddingTop = 5.px // has to be padding because margin collaspes
+        }
+
+        // Radios and checkboxes on same line
+        // TODO v3: Convert .inline to .control-inline
+        ruleOf(".radio.inline", ".checkbox.inline") {
+            display = Display.inlineBlock
+            paddingTop = 5.px
+            marginBottom = 0.px
+            verticalAlign = VerticalAlign.middle
+        }
+
+        ruleOf(
+            ".radio.inline + .radio.inline",
+            ".checkbox.inline + .checkbox.inline"
+        ) {
+            marginLeft = 10.px // space out consecutive inline controls
+        }
+
+
+        // INPUT SIZES
+
+        // General classes for quick sizes
+        rule(".input-mini") { width = 60.px }
+
+        rule(".input-small") { width = 90.px }
+
+        rule(".input-medium") { width = 150.px }
+
+        rule(".input-large") { width = 210.px }
+
+        rule(".input-xlarge") { width = 270.px }
+
+        rule(".input-xxlarge") { width = 530.px }
+
+        // Grid style input sizes
+
+// Redeclare since the fluid row class is more specific
+        ruleOf(
+            "input[class*=\"span\"],",
+            "select[class*=\"span\"],",
+            "textarea[class*=\"span\"],",
+            ".uneditable-input[class*=\"span\"],",
+            // Redeclare since the fluid row class is more specific
+            ".row-fluid input[class*=\"span\"],",
+            ".row-fluid select[class*=\"span\"],",
+            ".row-fluid textarea[class*=\"span\"],",
+            ".row-fluid .uneditable-input[class*=\"span\"]"
+        ) {
+            float = Float.none
+            marginLeft = 0.px
+        }
+
+        // Ensure input-prepend/append never wraps
+        ruleOf(
+            ".input-append input[class*=\"span\"]",
+            ".input-append .uneditable-input[class*=\"span\"]",
+            ".input-prepend input[class*=\"span\"]",
+            ".input-prepend .uneditable-input[class*=\"span\"]",
+            ".row-fluid input[class*=\"span\"]",
+            ".row-fluid select[class*=\"span\"]",
+            ".row-fluid textarea[class*=\"span\"]",
+            ".row-fluid .uneditable-input[class*=\"span\"]",
+            ".row-fluid .input-prepend [class*=\"span\"]",
+            ".row-fluid .input-append [class*=\"span\"]"
+        ) {
+            display = Display.inlineBlock
+        }
+
+
+        // GRID SIZING FOR INPUTS
+
+        // Grid sizes
+        with(mixins) { gridInput(vars.gridColumnWidth, vars.gridGutterWidth) {} }
+
+        // Control row for multiple inputs per line
+        rule(".controls-row") {
+            with(mixins) { clearfix() }
+            // Clear the float from controls
+        }
+
+        // Float to collapse white-space for proper grid alignment
+        // Redeclare the fluid grid collapse since we undo the float for inputs
+        ruleOf(".controls-row [class*=\"span\"]",
+            ".row-fluid .controls-row [class*=\"span\"]") {
+            float = Float.left
+        }
+        // Explicity set top padding on all checkboxes/radios, not just first-child
+        ruleOf(".controls-row .checkbox[class*=\"span\"]", ".controls-row .radio[class*=\"span\"]") {
+            paddingTop = 5.px
+        }
+
+
+        // DISABLED STATE
+
+        // Disabled and read-only inputs
+        ruleOf(
+            "input[disabled]",
+            "select[disabled]",
+            "textarea[disabled]",
+            "input[readonly]",
+            "select[readonly]",
+            "textarea[readonly]"
+        ) {
+            cursor = Cursor.notAllowed;
+            backgroundColor = vars.inputDisabledBackground
+        }
+        // Explicitly reset the colors here
+        ruleOf(
+            "input[type=\"radio\"][disabled]",
+            "input[type=\"checkbox\"][disabled]",
+            "input[type=\"radio\"][readonly]",
+            "input[type=\"checkbox\"][readonly]"
+        ) {
+            backgroundColor = Color.transparent
+        }
+
+        // FORM FIELD FEEDBACK STATES
+
+        // Warning
+        rule(".control-group.warning") {
+            with(mixins) { formFieldState(vars.warningText, vars.warningText, vars.warningBackground) }
+        }
+        // Error
+        rule(".control-group.error") {
+            with(mixins) { formFieldState(vars.errorText, vars.errorText, vars.errorBackground) }
+        }
+        // Success
+        rule(".control-group.success") {
+            with(mixins) { formFieldState(vars.successText, vars.successText, vars.successBackground) }
+        }
+        // Success
+        rule(".control-group.info") {
+            with(mixins) { formFieldState(vars.infoText, vars.infoText, vars.infoBackground) }
+        }
+
+        // HTML5 invalid states
+        // Shares styles with the .control-group.error above
+        ruleOf(
+            "input:focus:invalid",
+            "textarea:focus:invalid",
+            "select:focus:invalid"
+        ) {
+            color = Color("#b94a48")
+            borderColor = Color("#ee5f5b")
+            "&:focus" {
+                borderColor = Color("#ee5f5b").darken(10)
+
+                with(mixins) {
+                    boxShadow {
+                        this += BoxShadow(Color("#ee5f5b").lighten(20), 0.px, 0.px, 6.px)
+                    }
+                }
+            }
+        }
+
+
+        // FORM ACTIONS
+        rule(".form-actions") {
+            padding = Padding((vars.baseLineHeight-1.px), 20.px, vars.baseLineHeight);
+            marginTop = vars.baseLineHeight
+            marginBottom = vars.baseLineHeight
+            backgroundColor = vars.formActionsBackground
+            borderTop = Border(1.px, BorderStyle.solid, Color("#e5e5e5"))
+            with(mixins) { clearfix() }
+            // Adding clearfix to allow for .pull-right button containers
+        }
+
+
+        // HELP TEXT
+        // ---------
+        ruleOf(".help-block", ".help-inline") {
+            color = vars.textColor.lighten(15)
+            // lighten the text some for contrast
+        }
+
+        rule(".help-block") {
+            display = Display.block // account for any element using help-block
+            marginBottom = vars.baseLineHeight / 2
+        }
+
+        rule(".help-inline") {
+            display = Display.inlineBlock
+            with(mixins) { ie7InlineBlock() }
+            verticalAlign = VerticalAlign.middle
+            paddingLeft = 5.px
+        }
+
+
+        // INPUT GROUPS
+
+        // Allow us to put symbols and text within the input field for a cleaner look
+        ruleOf(".input-append", ".input-prepend") {
+            display = Display.inlineBlock
+            marginBottom = vars.baseLineHeight / 2
+            verticalAlign = VerticalAlign.middle
+            fontSize = 0.px
+            // white space collapse hack
+            whiteSpace = WhiteSpace.nowrap
+            // Prevent span and input from separating
+
+            // Reset the white space collapse hack
+            ruleOf("input", "select", ".uneditable-input", ".dropdown-menu", ".popover") {
+                fontSize = vars.baseFontSize
+            }
+
+            ruleOf("input", "select", ".uneditable-input") {
+                position = Position.relative
+                // placed here by default so that on :focus we can place the input above the .add-on for full border and box-shadow goodness
+                marginBottom = 0.px // prevent bottom margin from screwing up alignment in stacked forms
+                declarations["*marginLeft"] = 0.px
+                verticalAlign = VerticalAlign.top
+                with(mixins) { borderRadius(0.px, vars.inputBorderRadius, vars.inputBorderRadius, 0.px) }
+                // Make input on top when focused so blue border and shadow always show
+                "&:focus" { zIndex = 2 }
+            }
+            ".add-on" {
+                display = Display.inlineBlock
+                width = LinearDimension.auto
+                height = vars.baseLineHeight
+                minWidth = 16.px
+                padding = Padding(4.px, 5.px)
+                fontSize = vars.baseFontSize
+                fontWeight = FontWeight.normal
+                lineHeight = vars.baseLineHeight.lh
+                textAlign = TextAlign.center
+                declarations["text-shadow"] = "0px 1px 0px vars.white"
+                backgroundColor = vars.grayLighter
+                border = Border(1.px, BorderStyle.solid, Color("#ccc"))
+            }
+            ruleOf(".add-on", ".btn", ".btn-group", ">", ".dropdown-toggle") {
+                verticalAlign = VerticalAlign.top
+                with(mixins) { borderRadius(0.px) }
+            }
+            ".active" {
+                backgroundColor = vars.green.lighten(30)
+                borderColor = vars.green
+            }
+        }
+
+        rule(".input-prepend") {
+            ruleOf(".add-on", ".btn") {
+                marginRight = -1.px
+            }
+            ruleOf(".add-on:first-child", ".btn:first-child") {
+                // FYI, `.btn:first-child` accounts for a button group that's prepended
+                with(mixins) { borderRadius(vars.inputBorderRadius, 0.px, 0.px, vars.inputBorderRadius) }
+            }
+        }
+
+        rule(".input-append") {
+            ruleOf("input", "select", ".uneditable-input") {
+                with(mixins) { borderRadius(vars.inputBorderRadius, 0.px, 0.px, vars.inputBorderRadius) }
+                "+. btn-group.btn:last-child" {
+                with(mixins) { borderRadius(0.px, vars.inputBorderRadius, vars.inputBorderRadius, 0.px) }
+            }
+            }
+            ".add-on .btn .btn-group" {
+                marginLeft = -1.px
+            }
+            ".add-on:last-child .btn:last-child .btn-group:last-child > .dropdown-toggle" {
+                with(mixins) { borderRadius(0.px, vars.inputBorderRadius, vars.inputBorderRadius, 0.px) }
+            }
+        }
+
+        // Remove all border-radius for inputs with both prepend and append
+        rule(".input-prepend.input-append") {
+            ruleOf("input", "select", ".uneditable-input") {
+                with(mixins) { borderRadius(0.px) }
+                "+ .btn-group.btn" {
+                    with(mixins) { borderRadius(0.px, vars.inputBorderRadius, vars.inputBorderRadius, 0.px) }
+                }
+            }
+            ".add-on:first-child .btn:first-child" {
+                marginRight = -1.px
+                with(mixins) { borderRadius(vars.inputBorderRadius, 0.px, 0.px, vars.inputBorderRadius) }
+            }
+            ".add-on:last-child .btn:last-child" {
+                marginLeft = -1.px
+                with(mixins) { borderRadius(0.px, vars.inputBorderRadius, vars.inputBorderRadius, 0.px) }
+            }
+            ".btn-group:first-child" {
+                marginLeft = 0.px
+            }
+        }
+
+
+        // SEARCH FORM
+        rule("input.search-query") {
+            paddingRight = 14.px
+            declarations["padding-right"] = "4px \\9"
+            paddingLeft = 14.px
+            //IE7-8 doesn 't have border-radius, so don' t indent the padding
+            declarations["padding-left"] = "4px \\9"
+            marginBottom = 0.px // Remove the default margin on all inputs
+            with(mixins) { borderRadius(15.px) }
+        }
+
+        //Allow for input prepend / append in search forms
+        ruleOf(".form-search .input-append .search-query",
+               ".form-search .input-prepend .search-query") {
+            with(mixins) { borderRadius(0.px) }
+            // Override due to specificity
+        }
+
+        rule(".form-search .input-append .search-query") {
+            with(mixins) { borderRadius(14.px, 0.px, 0.px, 14.px) }
+        }
+
+        rule(".form-search .input-append .btn") {
+            with(mixins) { borderRadius(0.px, 14.px, 14.px, 0.px) }
+        }
+
+        rule(".form-search .input-prepend .search-query") {
+            with(mixins) { borderRadius(0.px, 14.px, 14.px, 0.px) }
+        }
+
+        rule(".form-search .input-prepend .btn") {
+            with(mixins) { borderRadius(14.px, 0.px, 0.px, 14.px) }
+        }
+
+
+        // HORIZONTAL & VERTICAL FORMS
+
+        // Common properties
+        ruleOf(".form-search", ".form-inline", ".form-horizontal") {
+            ruleOf("input", "textarea", "select", ".help-inline", ".uneditable-input", ".input-prepend", ".input-append") {
+                display = Display.inlineBlock
+                with(mixins) { ie7InlineBlock() }
+                marginBottom = 0.px
+                verticalAlign = VerticalAlign.middle
+            }
+            // Re-hide hidden elements due to specifity
+            ".hide" {
+                display = Display.none
+            }
+        }
+
+        ruleOf(".form-search label",
+            ".form-inline label",
+            ".form-search .btn-group",
+            ".form-inline .btn-group") {
+            display = Display.inlineBlock
+        }
+        
+        // Remove margin for input-prepend/-append
+        ruleOf(".form-search .input-append",
+            ".form-inline .input-append",
+            ".form-search .input-prepend",
+            ".form-inline .input-prepend") {
+            marginBottom = 0.px
+        }
+        // Inline checkbox/radio labels (remove padding on left)
+        ruleOf(".form-search .radio",
+            ".form-search .checkbox",
+            ".form-inline .radio",
+            ".form-inline .checkbox") {
+            paddingLeft = 0.px
+            marginBottom = 0.px
+            verticalAlign = VerticalAlign.middle
+        }
+        // Remove float and margin, set to inline-block
+        ruleOf(".form-search .radio input[type=\"radio\"]",
+            ".form-search .checkbox input[type=\"checkbox\"]",
+            ".form-inline .radio input[type=\"radio\"]",
+            ".form-inline .checkbox input[type=\"checkbox\"]") {
+            float = Float.left
+            marginRight = 3.px
+            marginLeft = 0.px
+        }
+
+
+        // Margin to space out fieldsets
+        rule(".control-group") {
+            marginBottom = vars.baseLineHeight / 2
+        }
+
+        // Legend collapses margin, so next element is responsible for spacing
+        rule("legend + .control-group") {
+            marginTop = vars.baseLineHeight
+            declarations["-webkit-margin-top-collapse"] = "separate";
+        }
+
+        // Horizontal-specific styles
+        rule(".form-horizontal") {
+            // Increase spacing between groups
+            ".control-group" {
+                marginBottom = vars.baseLineHeight
+                with(mixins) { clearfix() }
+            }
+            // Float the labels left
+            ".control-label" {
+                float = Float.left
+                width = vars.horizontalComponentOffset-20.px;
+                paddingTop = 5.px
+                textAlign = TextAlign.right
+            }
+            // Move over all input controls and content
+            ".controls" {
+                // Super jank IE7 fix to ensure the inputs in .input-append and input-prepend
+                // don't inherit the margin of the parent, in this case .controls
+                declarations["*display"] = Display.inlineBlock
+                declarations["*paddingLeft"] = 20.px
+                marginLeft = vars.horizontalComponentOffset
+                declarations["*marginLeft"] = 0.px
+                "&:first-child" {
+                    declarations["*paddingLeft"] = vars.horizontalComponentOffset
+                }
+            }
+            // Remove bottom margin on block level help text since that's accounted for on .control-group
+            ".help-block" {
+                marginBottom = 0.px
+            }
+            // And apply it only to .help-block instances that follow a form control
+            ruleOf("input", "select", "textarea.uneditable-input", ".input-prepend", ".input-append") {
+                "+ .help-block" {
+                    marginTop = vars.baseLineHeight / 2
+                }
+            }
+            // Move over buttons in .form-actions to align with .controls
+            ".form-actions" {
+                paddingLeft = vars.horizontalComponentOffset
+            }
+        }
     }
-  }
-  .add-on .btn .btn-group {
-    marginLeft = -1.px
-  }
-  .add-on:last-child .btn:last-child .btn-group:last-child > .dropdown-toggle {
-    with(mixins) { borderRadius(0px vars.inputBorderRadius vars.inputBorderRadius 0px) }
-  }
-}
-
-// Remove all border-radius for inputs with both prepend and append
-rule(".input-prepend.input-append") {
-  input select .uneditable-input {
-    with(mixins) { borderRadius(0px) }
-    + .btn-group .btn {
-      with(mixins) { borderRadius(0px vars.inputBorderRadius vars.inputBorderRadius 0px) }
-    }
-  }
-  .add-on:first-child .btn:first-child {
-    marginRight = -1.px
-    with(mixins) { borderRadius(vars.inputBorderRadius 0px 0px vars.inputBorderRadius) }
-  }
-  .add-on:last-child .btn:last-child {
-    marginLeft = -1.px
-    with(mixins) { borderRadius(0px vars.inputBorderRadius vars.inputBorderRadius 0px) }
-  }
-  .btn-group:first-child {
-    marginLeft = 0.px
-  }
-}
-
-
-
-
-// SEARCH FORM
-rule("input.search-query") {
-  paddingRight = 14.px
-  padding-right: 4px \9;
-  paddingLeft = 14.px
-  padding-left: 4px \9;
- /* IE7-8 doesn't have border-radius, so don't indent the padding */
-  marginBottom = 0.px // Remove the default margin on all inputs
-  with(mixins) { borderRadius(15px) }
-}
-
-/* Allow for input prepend/append in search forms */
-rule(".form-search .input-append .search-query .form-search .input-prepend .search-query") {
-  with(mixins) { borderRadius(0px) }
- // Override due to specificity
-}
-
-rule(".form-search .input-append .search-query") {
-  with(mixins) { borderRadius(14px 0px 0px 14px) }
-}
-
-rule(".form-search .input-append .btn") {
-  with(mixins) { borderRadius(0px 14px 14px 0px) }
-}
-
-rule(".form-search .input-prepend .search-query") {
-  with(mixins) { borderRadius(0px 14px 14px 0px) }
-}
-
-rule(".form-search .input-prepend .btn") {
-  with(mixins) { borderRadius(14px 0px 0px 14px) }
-}
-
-
-
-
-// HORIZONTAL & VERTICAL FORMS
-
-// Common properties
-rule(".form-search .form-inline .form-horizontal") {
-  input textarea select .help-inline .uneditable-input .input-prepend .input-append {
-    display = Display.inlineBlock
-    with(mixins) { ie7InlineBlock() }
-    marginBottom = 0.px
-    verticalAlign = VerticalAlign.middle
-  }
-  // Re-hide hidden elements due to specifity
-  .hide {
-    display = Display.none
-  }
-}
-
-rule(".form-search label .form-inline label .form-search .btn-group .form-inline .btn-group") {
-  display = Display.inlineBlock
-}
-// Remove margin for input-prepend/-append
-rule(".form-search .input-append .form-inline .input-append .form-search .input-prepend .form-inline .input-prepend") {
-  marginBottom = 0.px
-}
-// Inline checkbox/radio labels (remove padding on left)
-rule(".form-search .radio .form-search .checkbox .form-inline .radio .form-inline .checkbox") {
-  paddingLeft = 0.px
-  marginBottom = 0.px
-  verticalAlign = VerticalAlign.middle
-}
-// Remove float and margin, set to inline-block
-rule(".form-search .radio input[type=\"radio\"] .form-search .checkbox input[type=\"checkbox\"] .form-inline .radio input[type=\"radio\"] .form-inline .checkbox input[type=\"checkbox\"]") {
-  float = Float.left
-  marginRight = 3.px
-  marginLeft = 0.px
-}
-
-
-// Margin to space out fieldsets
-rule(".control-group") {
-  marginBottom = vars.baseLineHeight / 2
-}
-
-// Legend collapses margin, so next element is responsible for spacing
-rule("legend + .control-group") {
-  marginTop = vars.baseLineHeight
-  -webkit-margin-top-collapse: separate;
-}
-
-// Horizontal-specific styles
-rule(".form-horizontal") {
-  // Increase spacing between groups
-  .control-group {
-    marginBottom = vars.baseLineHeight
-    with(mixins) { clearfix() }
-  }
-  // Float the labels left
-  .control-label {
-    float = Float.left
-    width: vars.horizontalComponentOffset-20;
-    paddingTop = 5.px
-    textAlign = TextAlign.right
-  }
-  // Move over all input controls and content
-  .controls {
-    // Super jank IE7 fix to ensure the inputs in .input-append and input-prepend
-    // don't inherit the margin of the parent, in this case .controls
-    declarations["*display"] = Display.inlineBlock
-    declarations["*paddingLeft"] = 20.px
-    marginLeft = vars.horizontalComponentOffset
-    declarations["*marginLeft"] = 0.px
-    "&:first-child" {
-      declarations["*paddingLeft"] = vars.horizontalComponentOffset
-    }
-  }
-  // Remove bottom margin on block level help text since that's accounted for on .control-group
-  .help-block {
-    marginBottom = 0.px
-  }
-  // And apply it only to .help-block instances that follow a form control
-  input select textarea .uneditable-input .input-prepend .input-append {
-    + .help-block {
-      marginTop = vars.baseLineHeight / 2
-    }
-  }
-  // Move over buttons in .form-actions to align with .controls
-  .form-actions {
-    paddingLeft = vars.horizontalComponentOffset
-  }
-}
-    */}
 
 
     override fun CssBuilder.grid(){/*
@@ -2012,7 +2106,7 @@ rule(".hero-unit") {
   marginBottom = 30.px
   fontSize = 18.px
   fontWeight = FontWeight.w200
-  line-height: vars.baseLineHeight * 1.5;
+  lineHeight = vars.baseLineHeight * 1.5
   color = vars.heroUnitLeadColor
   backgroundColor = vars.heroUnitBackground
   with(mixins) { borderRadius(6px) }
@@ -2024,7 +2118,7 @@ rule(".hero-unit") {
     letter-spacing: -1px;
   }
   li {
-    line-height: vars.baseLineHeight * 1.5;
+    lineHeight = vars.baseLineHeight * 1.5
  // Reset since we specify in type.less
   }
 }
@@ -2105,14 +2199,14 @@ rule(".label .badge") {
 
 // Quick fix for labels/badges in buttons
 rule(".btn") {
-  .label .badge {
+  ".label .badge" {
     position = Position.relative
     top = -1.px
   }
 }
 
 rule(".btn-mini") {
-  .label .badge {
+  ".label .badge" {
     top = 0.px
   }
 }
@@ -2179,710 +2273,7 @@ rule(".media > .pull-right") {
 // Undo default ul/ol styles
 rule(".media-list") {
   marginLeft = 0.px
-  listStyle = ListStyle.none
-}
-    */}
-
-
-    override fun CssBuilder.mixins(){/*
-// UTILITY MIXINS
-
-// Clearfix
-// --------
-// For clearing floats like a boss h5bp.com/q
-rule(".clearfix") {
-  declarations["*zoom"] = "1"
-  "&:before &:after" {
-    display = Display.table
-    content: "";
-    // Fixes Opera/contenteditable bug:
-    // http://nicolasgallagher.com/micro-clearfix-hack/#comment-36952
-    lineHeight = 0.px.lh
-  }
-  "&:after" {
-    clear: both;
-  }
-}
-
-// Webkit-style focus
-fun CssBuilder.tabFocus()
-  // Default
-  outline: thin dotted #333;
-  // Webkit
-  outline: 5px auto -webkit-focus-ring-color;
-  outline-offset: -2px;
-}
-
-// Center-align a block level element
-fun CssBuilder.centerBlock()
-  display = Display.block
-  marginLeft = LinearDimension.auto
-  marginRight = LinearDimension.auto
-}
-
-// IE7 inline-block
-fun CssBuilder.ie7InlineBlock()
-  declarations["*display"] = Display.inline /* IE7 inline-block hack */
-  declarations["*zoom"] = "1"
-}
-
-// IE7 likes to collapse whitespace on either side of the inline-block elements.
-// Ems because we're attempting to match the width of a space character. Left
-// version is for form buttons, which typically come after other elements, and
-// right version is for icons, which come before. Applying both is ok, but it will
-// mean that space between those elements will be .6em (~2 space characters) in IE7 // instead of the 1 space in other browsers.
-fun CssBuilder.ie7RestoreLeftWhitespace()
-  declarations["*margin-left"] = ".3em"
-rule("&:first-child") {
-    declarations["*marginLeft"] = 0.px
-  }
-}
-
-fun CssBuilder.ie7RestoreRightWhitespace()
-  declarations["*margin-right"] = ".3em"
-}
-
-// Sizing shortcuts
-fun CssBuilder.size(vars.height, vars.width)
-  width: vars.width;
-  height: vars.height;
-}
-fun CssBuilder.square(vars.size)
-  with(mixins) { size(vars.size, vars.size) }
-}
-
-// Placeholder text
-fun CssBuilder.placeholder(vars.color: vars.placeholderText)
-  "&:-moz-placeholder" {
-    color = vars.color
-  }
-  "&:-ms-input-placeholder" {
-    color = vars.color
-  }
-  "&::-webkit-input-placeholder" {
-    color = vars.color
-  }
-}
-
-// Text overflow
-// Requires inline-block or block for proper styling
-fun CssBuilder.textOverflow()
-  overflow = Overflow.hidden
-  textOverflow = TextOverflow.ellipsis
-  whiteSpace = WhiteSpace.nowrap
-}
-
-// CSS image replacement
-// Source: https://github.com/h5bp/html5-boilerplate/commit/aa0396eae757
-rule(".hide-text") {
-  font: 0/0px a;
-  color = Color.transparent
-  textShadow = TextShadow.none
-  backgroundColor = Color.transparent
-  border: 0px;
-}
-
-
-// FONTS
-rule("#font") {
-  #family {
-    fun CssBuilder.serif()
-      font-family: vars.serifFontFamily;
-    }
-    fun CssBuilder.sansSerif()
-      font-family: vars.sansFontFamily;
-    }
-    fun CssBuilder.monospace()
-      font-family: vars.monoFontFamily;
-    }
-  }
-  fun CssBuilder.shorthand(vars.size: vars.baseFontSize, vars.weight: normal, vars.lineHeight: vars.baseLineHeight)
-    fontSize = vars.size
-    fontWeight = vars.weight
-    lineHeight = vars.lineHeight.lh
-  }
-  fun CssBuilder.serif(vars.size: vars.baseFontSize, vars.weight: normal, vars.lineHeight: vars.baseLineHeight)
-    #font > #family > .serif;
-    #font > .shorthand(vars.size, vars.weight, vars.lineHeight);
-  }
-  fun CssBuilder.sansSerif(vars.size: vars.baseFontSize, vars.weight: normal, vars.lineHeight: vars.baseLineHeight)
-    #font > #family > .sans-serif;
-    #font > .shorthand(vars.size, vars.weight, vars.lineHeight);
-  }
-  fun CssBuilder.monospace(vars.size: vars.baseFontSize, vars.weight: normal, vars.lineHeight: vars.baseLineHeight)
-    #font > #family > .monospace;
-    #font > .shorthand(vars.size, vars.weight, vars.lineHeight);
-  }
-}
-
-
-// FORMS
-
-// Block level inputs
-rule(".input-block-level") {
-  display = Display.block
-  width = 100.pct
-  min-height: vars.inputHeight;
- // Make inputs at least the height of their button counterpart (base line-height + padding + border)
-  with(mixins) { boxSizing(border-box) }
- // Makes inputs behave like true block-level elements
-}
-
-
-
-// Mixin for form field states
-fun CssBuilder.formFieldState(vars.textColor: #555, vars.borderColor: #ccc, vars.backgroundColor: #f5f5f5)
-  // Set the text color
-  .control-label .help-block .help-inline {
-    color = vars.textColor
-  }
-  // Style inputs accordingly
-  .checkbox .radio input select textarea {
-    color = vars.textColor
-  }
-  input select textarea {
-    borderColor =  vars.borderColor
-    with(mixins) { boxShadow(inset 0px 1px 1px rgba(0,0,0,.075)) }
- // Redeclare so transitions work
-    "&:focus" {
-      border-color: darken(vars.borderColor, 10%);
-      vars.shadow: inset 0px 1px 1px rgba(0,0,0,.075), 0px 0px 6px lighten(vars.borderColor, 20%);
-      with(mixins) { boxShadow(vars.shadow) }
-    }
-  }
-  // Give a small background color for input-prepend/-append
-  .input-prepend .add-on .input-append .add-on {
-    color = vars.textColor
-    backgroundColor = vars.backgroundColor
-    borderColor =  vars.textColor
-  }
-}
-
-
-
-// CSS3 PROPERTIES
-
-// Border Radius
-fun CssBuilder.borderRadius(vars.radius)
-  -webkit-border-radius: vars.radius;
-     -moz-border-radius: vars.radius;
-          border-radius: vars.radius;
-}
-
-// Single Corner Border Radius
-fun CssBuilder.borderTopLeftRadius(vars.radius)
-  -webkit-border-top-left-radius: vars.radius;
-      -moz-border-radius-topleft: vars.radius;
-          border-top-left-radius: vars.radius;
-}
-fun CssBuilder.borderTopRightRadius(vars.radius)
-  -webkit-border-top-right-radius: vars.radius;
-      -moz-border-radius-topright: vars.radius;
-          border-top-right-radius: vars.radius;
-}
-fun CssBuilder.borderBottomRightRadius(vars.radius)
-  -webkit-border-bottom-right-radius: vars.radius;
-      -moz-border-radius-bottomright: vars.radius;
-          border-bottom-right-radius: vars.radius;
-}
-fun CssBuilder.borderBottomLeftRadius(vars.radius)
-  -webkit-border-bottom-left-radius: vars.radius;
-      -moz-border-radius-bottomleft: vars.radius;
-          border-bottom-left-radius: vars.radius;
-}
-
-// Single Side Border Radius
-fun CssBuilder.borderTopRadius(vars.radius)
-  with(mixins) { borderTopRightRadius(vars.radius) }
-  with(mixins) { borderTopLeftRadius(vars.radius) }
-}
-fun CssBuilder.borderRightRadius(vars.radius)
-  with(mixins) { borderTopRightRadius(vars.radius) }
-  with(mixins) { borderBottomRightRadius(vars.radius) }
-}
-fun CssBuilder.borderBottomRadius(vars.radius)
-  with(mixins) { borderBottomRightRadius(vars.radius) }
-  with(mixins) { borderBottomLeftRadius(vars.radius) }
-}
-fun CssBuilder.borderLeftRadius(vars.radius)
-  with(mixins) { borderTopLeftRadius(vars.radius) }
-  with(mixins) { borderBottomLeftRadius(vars.radius) }
-}
-
-// Drop shadows
-fun CssBuilder.boxShadow(vars.shadow)
-  -webkit-box-shadow: vars.shadow;
-     -moz-box-shadow: vars.shadow;
-          box-shadow: vars.shadow;
-}
-
-// Transitions
-fun CssBuilder.transition(vars.transition)
-  -webkit-transition: vars.transition;
-     -moz-transition: vars.transition;
-       -o-transition: vars.transition;
-          transition: vars.transition;
-}
-fun CssBuilder.transitionDelay(vars.transition-delay)
-  -webkit-transition-delay: vars.transition-delay;
-     -moz-transition-delay: vars.transition-delay;
-       -o-transition-delay: vars.transition-delay;
-          transition-delay: vars.transition-delay;
-}
-fun CssBuilder.transitionDuration(vars.transition-duration)
-  -webkit-transition-duration: vars.transition-duration;
-     -moz-transition-duration: vars.transition-duration;
-       -o-transition-duration: vars.transition-duration;
-          transition-duration: vars.transition-duration;
-}
-
-// Transformations
-fun CssBuilder.rotate(vars.degrees)
-  -webkit-transform: rotate(vars.degrees);
-     -moz-transform: rotate(vars.degrees);
-      -ms-transform: rotate(vars.degrees);
-       -o-transform: rotate(vars.degrees);
-          transform: rotate(vars.degrees);
-}
-fun CssBuilder.scale(vars.ratio)
-  -webkit-transform: scale(vars.ratio);
-     -moz-transform: scale(vars.ratio);
-      -ms-transform: scale(vars.ratio);
-       -o-transform: scale(vars.ratio);
-          transform: scale(vars.ratio);
-}
-fun CssBuilder.translate(vars.x, vars.y)
-  -webkit-transform: translate(vars.x, vars.y);
-     -moz-transform: translate(vars.x, vars.y);
-      -ms-transform: translate(vars.x, vars.y);
-       -o-transform: translate(vars.x, vars.y);
-          transform: translate(vars.x, vars.y);
-}
-fun CssBuilder.skew(vars.x, vars.y)
-  -webkit-transform: skew(vars.x, vars.y);
-     -moz-transform: skew(vars.x, vars.y);
-      -ms-transform: skewX(vars.x) skewY(vars.y);
- // See https://github.com/twbs/bootstrap/issues/4885
-       -o-transform: skew(vars.x, vars.y);
-          transform: skew(vars.x, vars.y);
-  -webkit-backface-visibility: hidden;
- // See https://github.com/twbs/bootstrap/issues/5319
-}
-fun CssBuilder.translate3d(vars.x, vars.y, vars.z)
-  -webkit-transform: translate3d(vars.x, vars.y, vars.z);
-     -moz-transform: translate3d(vars.x, vars.y, vars.z);
-       -o-transform: translate3d(vars.x, vars.y, vars.z);
-          transform: translate3d(vars.x, vars.y, vars.z);
-}
-
-// Backface visibility
-// Prevent browsers from flickering when using CSS 3D transforms.
-// Default value is `visible`, but can be changed to `hidden
-// See git pull https://github.com/dannykeane/bootstrap.git backface-visibility for examples
-.backfaceVisibility(vars.visibility){
-	-webkit-backface-visibility: vars.visibility;
-	   -moz-backface-visibility: vars.visibility;
-	        backface-visibility: vars.visibility;
-}
-
-// Background clipping
-// Heads up: FF 3.6 and under need "padding" instead of "padding-box"
-fun CssBuilder.backgroundClip(vars.clip)
-  -webkit-background-clip: vars.clip;
-     -moz-background-clip: vars.clip;
-          background-clip: vars.clip;
-}
-
-// Background sizing
-fun CssBuilder.backgroundSize(vars.size)
-  -webkit-background-size: vars.size;
-     -moz-background-size: vars.size;
-       -o-background-size: vars.size;
-          background-size: vars.size;
-}
-
-
-// Box sizing
-fun CssBuilder.boxSizing(vars.boxmodel)
-  -webkit-box-sizing: vars.boxmodel;
-     -moz-box-sizing: vars.boxmodel;
-          box-sizing: vars.boxmodel;
-}
-
-// User select
-// For selecting text on the page
-fun CssBuilder.userSelect(vars.select)
-  -webkit-user-select: vars.select;
-     -moz-user-select: vars.select;
-      -ms-user-select: vars.select;
-       -o-user-select: vars.select;
-          user-select: vars.select;
-}
-
-// Resize anything
-fun CssBuilder.resizable(vars.direction)
-  resize: vars.direction;
- // Options: horizontal, vertical, both
-  overflow = Overflow.auto
- // Safari fix
-}
-
-// CSS3 Content Columns
-fun CssBuilder.contentColumns(vars.columnCount, vars.columnGap: vars.gridGutterWidth)
-  -webkit-column-count: vars.columnCount;
-     -moz-column-count: vars.columnCount;
-          column-count: vars.columnCount;
-  -webkit-column-gap: vars.columnGap;
-     -moz-column-gap: vars.columnGap;
-          column-gap: vars.columnGap;
-}
-
-// Optional hyphenation
-fun CssBuilder.hyphens(vars.mode: auto)
-  word-wrap: break-word;
-  -webkit-hyphens: vars.mode;
-     -moz-hyphens: vars.mode;
-      -ms-hyphens: vars.mode;
-       -o-hyphens: vars.mode;
-          hyphens: vars.mode;
-}
-
-// Opacity
-fun CssBuilder.opacity(vars.opacity)
-  opacity: vars.opacity / 100;
-  filter: ~"alpha(opacity=@{opacity})";
-}
-
-
-
-// BACKGROUNDS
-
-// Add an alphatransparency value to any background or border color (via Elyse Holladay)
-rule("#translucent") {
-  fun CssBuilder.background(vars.color: vars.white, vars.alpha: 1)
-    background-color: hsla(hue(vars.color), saturation(vars.color), lightness(vars.color), vars.alpha);
-  }
-  fun CssBuilder.border(vars.color: vars.white, vars.alpha: 1)
-    border-color: hsla(hue(vars.color), saturation(vars.color), lightness(vars.color), vars.alpha);
-    with(mixins) { backgroundClip(padding-box) }
-  }
-}
-
-// Gradient Bar Colors for buttons and alerts
-fun CssBuilder.gradientBar(vars.primaryColor, vars.secondaryColor, vars.textColor: #fff, vars.textShadow: 0px -1px 0px rgba(0,0,0,.25))
-  color = vars.textColor
-  declarations["text-shadow"] = "vars.textShadow"
-  #gradient > .vertical(vars.primaryColor, vars.secondaryColor);
-  border-color: vars.secondaryColor vars.secondaryColor darken(vars.secondaryColor, 15%);
-  border-color: rgba(0,0,0,.1) rgba(0,0,0,.1) fadein(rgba(0,0,0,.1), 15%);
-}
-
-// Gradients
-rule("#gradient") {
-  fun CssBuilder.horizontal(vars.startColor: #555, vars.endColor: #333)
-    backgroundColor = vars.endColor
-    background-image: -moz-linear-gradient(left, vars.startColor, vars.endColor);
- // FF 3.6+
-    background-image: -webkit-gradient(linear, 0px 0, 100% 0, from(vars.startColor), to(vars.endColor));
- // Safari 4+, Chrome 2+
-    background-image: -webkit-linear-gradient(left, vars.startColor, vars.endColor);
- // Safari 5.1+, Chrome 10+
-    background-image: -o-linear-gradient(left, vars.startColor, vars.endColor);
- // Opera 11.10
-    background-image: linear-gradient(to right, vars.startColor, vars.endColor);
- // Standard, IE10
-    background-repeat: repeat-x;
-    filter: e(%("progid:DXImageTransform.Microsoft.gradient(startColorstr='%d', endColorstr='%d', GradientType=1)",argb(vars.startColor),argb(vars.endColor)));
- // IE9 and down
-  }
-  fun CssBuilder.vertical(vars.startColor: #555, vars.endColor: #333)
-    background-color: mix(vars.startColor, vars.endColor, 60%);
-    background-image: -moz-linear-gradient(top, vars.startColor, vars.endColor);
- // FF 3.6+
-    background-image: -webkit-gradient(linear, 0px 0, 0px 100%, from(vars.startColor), to(vars.endColor));
- // Safari 4+, Chrome 2+
-    background-image: -webkit-linear-gradient(top, vars.startColor, vars.endColor);
- // Safari 5.1+, Chrome 10+
-    background-image: -o-linear-gradient(top, vars.startColor, vars.endColor);
- // Opera 11.10
-    background-image: linear-gradient(to bottom, vars.startColor, vars.endColor);
- // Standard, IE10
-    background-repeat: repeat-x;
-    filter: e(%("progid:DXImageTransform.Microsoft.gradient(startColorstr='%d', endColorstr='%d', GradientType=0px)",argb(vars.startColor),argb(vars.endColor)));
- // IE9 and down
-  }
-  fun CssBuilder.directional(vars.startColor: #555, vars.endColor: #333, vars.deg: 45deg)
-    backgroundColor = vars.endColor
-    background-repeat: repeat-x;
-    background-image: -moz-linear-gradient(vars.deg, vars.startColor, vars.endColor);
- // FF 3.6+
-    background-image: -webkit-linear-gradient(vars.deg, vars.startColor, vars.endColor);
- // Safari 5.1+, Chrome 10+
-    background-image: -o-linear-gradient(vars.deg, vars.startColor, vars.endColor);
- // Opera 11.10
-    background-image: linear-gradient(vars.deg, vars.startColor, vars.endColor);
- // Standard, IE10
-  }
-  fun CssBuilder.horizontalThreeColors(vars.startColor: #00b3ee, vars.midColor: #7a43b6, vars.colorStop: 50%, vars.endColor: #c3325f)
-    background-color: mix(vars.midColor, vars.endColor, 80%);
-    background-image: -webkit-gradient(left, linear, 0px 0, 0px 100%, from(vars.startColor), color-stop(vars.colorStop, vars.midColor), to(vars.endColor));
-    background-image: -webkit-linear-gradient(left, vars.startColor, vars.midColor vars.colorStop, vars.endColor);
-    background-image: -moz-linear-gradient(left, vars.startColor, vars.midColor vars.colorStop, vars.endColor);
-    background-image: -o-linear-gradient(left, vars.startColor, vars.midColor vars.colorStop, vars.endColor);
-    background-image: linear-gradient(to right, vars.startColor, vars.midColor vars.colorStop, vars.endColor);
-    background-repeat: no-repeat;
-    filter: e(%("progid:DXImageTransform.Microsoft.gradient(startColorstr='%d', endColorstr='%d', GradientType=0px)",argb(vars.startColor),argb(vars.endColor)));
- // IE9 and down, gets no color-stop at all for proper fallback
-  }
-
-  fun CssBuilder.verticalThreeColors(vars.startColor: #00b3ee, vars.midColor: #7a43b6, vars.colorStop: 50%, vars.endColor: #c3325f)
-    background-color: mix(vars.midColor, vars.endColor, 80%);
-    background-image: -webkit-gradient(linear, 0px 0, 0px 100%, from(vars.startColor), color-stop(vars.colorStop, vars.midColor), to(vars.endColor));
-    background-image: -webkit-linear-gradient(vars.startColor, vars.midColor vars.colorStop, vars.endColor);
-    background-image: -moz-linear-gradient(top, vars.startColor, vars.midColor vars.colorStop, vars.endColor);
-    background-image: -o-linear-gradient(vars.startColor, vars.midColor vars.colorStop, vars.endColor);
-    background-image: linear-gradient(vars.startColor, vars.midColor vars.colorStop, vars.endColor);
-    background-repeat: no-repeat;
-    filter: e(%("progid:DXImageTransform.Microsoft.gradient(startColorstr='%d', endColorstr='%d', GradientType=0px)",argb(vars.startColor),argb(vars.endColor)));
- // IE9 and down, gets no color-stop at all for proper fallback
-  }
-  fun CssBuilder.radial(vars.innerColor: #555, vars.outerColor: #333)
-    backgroundColor = vars.outerColor
-    background-image: -webkit-gradient(radial, center center, 0, center center, 460, from(vars.innerColor), to(vars.outerColor));
-    background-image: -webkit-radial-gradient(circle, vars.innerColor, vars.outerColor);
-    background-image: -moz-radial-gradient(circle, vars.innerColor, vars.outerColor);
-    background-image: -o-radial-gradient(circle, vars.innerColor, vars.outerColor);
-    background-repeat: no-repeat;
-  }
-  fun CssBuilder.striped(vars.color: #555, vars.angle: 45deg)
-    backgroundColor = vars.color
-    background-image: -webkit-gradient(linear, 0px 100%, 100% 0, color-stop(.25, rgba(255,255,255,.15)), color-stop(.25, transparent), color-stop(.5, transparent), color-stop(.5, rgba(255,255,255,.15)), color-stop(.75, rgba(255,255,255,.15)), color-stop(.75, transparent), to(transparent));
-    background-image: -webkit-linear-gradient(vars.angle, rgba(255,255,255,.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.15) 50%, rgba(255,255,255,.15) 75%, transparent 75%, transparent);
-    background-image: -moz-linear-gradient(vars.angle, rgba(255,255,255,.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.15) 50%, rgba(255,255,255,.15) 75%, transparent 75%, transparent);
-    background-image: -o-linear-gradient(vars.angle, rgba(255,255,255,.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.15) 50%, rgba(255,255,255,.15) 75%, transparent 75%, transparent);
-    background-image: linear-gradient(vars.angle, rgba(255,255,255,.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.15) 50%, rgba(255,255,255,.15) 75%, transparent 75%, transparent);
-  }
-}
-// Reset filters for IE
-fun CssBuilder.resetFilter()
-  filter: e(%("progid:DXImageTransform.Microsoft.gradient(enabled = false)"));
-}
-
-
-
-// COMPONENT MIXINS
-
-// Horizontal dividers
-// Dividers (basically an hr) within dropdowns and nav lists
-fun CssBuilder.navDivider(vars.top: #e5e5e5, vars.bottom: vars.white)
-  // IE7 needs a set width since we gave a height. Restricting just
-  // to IE7 to keep the 1px left/right space in other browsers.
-  // It is unclear where IE is getting the extra space that we need
-  // to negative-margin away, but so it goes.
-  declarations["*width"] = "100%"
-  height = 1.px
-  margin: ((vars.baseLineHeight / 2)-1) 1px;
- // 8px 1px
-  declarations["*margin"] = "-5px 0px 5px"
-  overflow = Overflow.hidden
-  backgroundColor = vars.top
-  borderBottom = Border(1.px, BorderStyle.solid, Color(solid))
-}
-
-// Button backgrounds
-fun CssBuilder.buttonBackground(vars.startColor, vars.endColor, vars.textColor: #fff, vars.textShadow: 0px -1px 0px rgba(0,0,0,.25))
-  // gradientBar will set the background to a pleasing blend of these, to support IE<=9
-  with(mixins) { gradientBar(vars.startColor, vars.endColor, vars.textColor, vars.textShadow) }
-  declarations["*backgroundColor"] = vars.endColor
- /* Darken IE7 buttons by default so they stand out more given they won't have borders */
-  with(mixins) { resetFilter() }
-
-  // in these cases the gradient won't cover the background, so we override
-  "&:hover, &:focus, &:active, &.active, &.disabled, &[disabled]" {
-    color = vars.textColor
-    backgroundColor = vars.endColor
-    declarations["*background-color"] = "darken(vars.endColor, 5%)"
-  }
-
-  // IE 7 + 8 can't handle box-shadow to show active, so we darken a bit ourselves
-  "&:active &.active" {
-    background-color: darken(vars.endColor, 10%) e("\9");
-  }
-}
-
-// Navbar vertical align
-// Vertically center elements in the navbar.
-// Example: an element has a height of 30px, so write out `.navbarVerticalAlign(30px);
-` to calculate the appropriate top margin.
-fun CssBuilder.navbarVerticalAlign(vars.elementHeight)
-  margin-top: (vars.navbarHeight-vars.elementHeight) / 2;
-}
-
-
-
-// Grid System
-
-// Centered container element
-fun CssBuilder.containerFixed()
-  marginRight = LinearDimension.auto
-  marginLeft = LinearDimension.auto
-  with(mixins) { clearfix() }
-}
-
-// Table columns
-fun CssBuilder.tableColumns(vars.columnSpan: 1)
-  float = Float.none
- // undo default grid column styles
-  width: ((vars.gridColumnWidth) * vars.columnSpan) + (vars.gridGutterWidth * (vars.columnSpan-1))-16;
- // 16 is total padding on left and right of table cells
-  marginLeft = 0.px // undo default grid column styles
-}
-
-// Make a Grid
-// Use .makeRow and .makeColumn to assign semantic layouts grid system behavior
-fun CssBuilder.makeRow()
-  margin-left: vars.gridGutterWidth * -1;
-  with(mixins) { clearfix() }
-}
-fun CssBuilder.makeColumn(vars.columns: 1, vars.offset: 0px)
-  float = Float.left
-  margin-left: (vars.gridColumnWidth * vars.offset) + (vars.gridGutterWidth * (vars.offset-1)) + (vars.gridGutterWidth * 2);
-  width: (vars.gridColumnWidth * vars.columns) + (vars.gridGutterWidth * (vars.columns-1));
-}
-
-// The Grid
-rule("#grid") {
-
-  .core (vars.gridColumnWidth, vars.gridGutterWidth) {
-
-    .spanX (vars.index) when (vars.index > 0px) {
-      .span@{index} { .span(vars.index);
- }
-      with(mixins) { spanX(vars.index-1) }
-    }
-    .spanX (0px) {}
-
-    .offsetX (vars.index) when (vars.index > 0px) {
-      .offset@{index} { .offset(vars.index);
- }
-      with(mixins) { offsetX(vars.index-1) }
-    }
-    .offsetX (0px) {}
-
-    .offset (vars.columns) {
-      margin-left: (vars.gridColumnWidth * vars.columns) + (vars.gridGutterWidth * (vars.columns + 1));
-    }
-
-    .span (vars.columns) {
-      width: (vars.gridColumnWidth * vars.columns) + (vars.gridGutterWidth * (vars.columns-1));
-    }
-
-rule(".row") {
-      margin-left: vars.gridGutterWidth * -1;
-      with(mixins) { clearfix() }
-    }
-
-rule("[class*=\"span\"]") {
-      float = Float.left
-      minHeight = 1.px
- // prevent collapsing columns
-      marginLeft = vars.gridGutterWidth
-    }
-
-    // Set the container width, and override it for fixed navbars in media queries
-    .container .navbar-static-top .container .navbar-fixed-top .container .navbar-fixed-bottom .container { .span(vars.gridColumns);
- }
-
-    // generate .spanX and .offsetX
-    .spanX (vars.gridColumns);
-    .offsetX (vars.gridColumns);
-
-  }
-
-  .fluid (vars.fluidGridColumnWidth, vars.fluidGridGutterWidth) {
-
-    .spanX (vars.index) when (vars.index > 0px) {
-      .span@{index} { .span(vars.index);
- }
-      with(mixins) { spanX(vars.index-1) }
-    }
-    .spanX (0px) {}
-
-    .offsetX (vars.index) when (vars.index > 0px) {
-      .offset@{index} { .offset(vars.index);
- }
-      .offset@{index}:first-child { .offsetFirstChild(vars.index);
- }
-      with(mixins) { offsetX(vars.index-1) }
-    }
-    .offsetX (0px) {}
-
-    .offset (vars.columns) {
-      margin-left: (vars.fluidGridColumnWidth * vars.columns) + (vars.fluidGridGutterWidth * (vars.columns-1)) + (vars.fluidGridGutterWidth*2);
-  	  declarations["*margin-left"] = "(vars.fluidGridColumnWidth * vars.columns) + (vars.fluidGridGutterWidth * (vars.columns-1))-(.5 / vars.gridRowWidth * 100 * 1%) + (vars.fluidGridGutterWidth*2)-(.5 / vars.gridRowWidth * 100 * 1%)"
-    }
-
-    .offsetFirstChild (vars.columns) {
-      margin-left: (vars.fluidGridColumnWidth * vars.columns) + (vars.fluidGridGutterWidth * (vars.columns-1)) + (vars.fluidGridGutterWidth);
-      declarations["*margin-left"] = "(vars.fluidGridColumnWidth * vars.columns) + (vars.fluidGridGutterWidth * (vars.columns-1))-(.5 / vars.gridRowWidth * 100 * 1%) + vars.fluidGridGutterWidth-(.5 / vars.gridRowWidth * 100 * 1%)"
-    }
-
-    .span (vars.columns) {
-      width: (vars.fluidGridColumnWidth * vars.columns) + (vars.fluidGridGutterWidth * (vars.columns-1));
-      declarations["*width"] = "(vars.fluidGridColumnWidth * vars.columns) + (vars.fluidGridGutterWidth * (vars.columns-1))-(.5 / vars.gridRowWidth * 100 * 1%)"
-    }
-
-rule(".row-fluid") {
-      width = 100.pct
-      with(mixins) { clearfix() }
-      [class*="span"] {
-        with(mixins) { inputBlockLevel() }
-        float = Float.left
-        marginLeft = vars.fluidGridGutterWidth
-        declarations["*margin-left"] = "vars.fluidGridGutterWidth-(.5 / vars.gridRowWidth * 100 * 1%)"
-      }
-      [class*="span"]:first-child {
-        marginLeft = 0.px
-      }
-
-      // Space grid-sized controls properly if multiple per line
-      .controls-row [class*="span"] + [class*="span"] {
-        marginLeft = vars.fluidGridGutterWidth
-      }
-
-      // generate .spanX and .offsetX
-      .spanX (vars.gridColumns);
-      .offsetX (vars.gridColumns);
-    }
-
-  }
-
-  fun CssBuilder.input(vars.gridColumnWidth, vars.gridGutterWidth)
-
-    .spanX (vars.index) when (vars.index > 0px) {
-      input.span@{index}, textarea.span@{index}, .uneditable-input.span@{index} { .span(vars.index);
- }
-      with(mixins) { spanX(vars.index-1) }
-    }
-    .spanX (0px) {}
-
-    fun CssBuilder.span(vars.columns)
-      width: ((vars.gridColumnWidth) * vars.columns) + (vars.gridGutterWidth * (vars.columns-1))-14;
-    }
-
-rule("input textarea .uneditable-input") {
-      marginLeft = 0.px // override margin-left from core grid system
-    }
-
-    // Space grid-sized controls properly if multiple per line
-    .controls-row [class*="span"] + [class*="span"] {
-      marginLeft = vars.gridGutterWidth
-    }
-
-    // generate .spanX
-    .spanX (vars.gridColumns);
-
-  }
+  listStyleType = ListStyleType.none
 }
     */}
 
@@ -2895,7 +2286,7 @@ rule(".modal-backdrop") {
   right = 0.px
   bottom = 0.px
   left = 0.px
-  z-index: vars.zindexModalBackdrop;
+  zIndex = vars.zindexModalBackdrop
   backgroundColor = vars.black
   // Fade for backdrop
   "&.fade" { opacity = 0
@@ -2911,7 +2302,7 @@ rule(".modal") {
   position = Position.fixed
   top = 10.pct
   left = 50.pct
-  z-index: vars.zindexModal;
+  zIndex = vars.zindexModal
   width = 560.px
   marginLeft = -280.px
   backgroundColor = vars.white
@@ -2934,7 +2325,7 @@ rule("&.fade") {
 
 rule(".modal-header") {
   padding = Padding(9.px, 15.px)
-  borderBottom = Border(1.px, BorderStyle.solid, Color(solid))
+  borderBottom = Border(1.px, BorderStyle.solid, Color.solid)
   // Close icon
   .close { marginTop = 2.px }
   // Heading
@@ -2963,23 +2354,23 @@ rule(".modal-footer") {
   textAlign = TextAlign.right
  // right align buttons
   backgroundColor = Color("#f5f5f5")
-  borderTop = Border(1.px, BorderStyle.solid, Color(solid))
-  with(mixins) { borderRadius(0px 0px 6px 6px) }
+  borderTop = Border(1.px, BorderStyle.solid, Color.solid)
+  with(mixins) { borderRadius(0.px, 0.px, 6.px, 6.px) }
   with(mixins) { boxShadow(inset 0px 1px 0px vars.white) }
   with(mixins) { clearfix() }
  // clear it in case folks use .pull-* classes on buttons
 
   // Properly space out buttons
-  .btn + .btn {
+  ".btn + .btn" {
     marginLeft = 5.px
     marginBottom = 0.px // account for input[type="submit"] which gets the bottom margin like all other inputs
   }
   // but override that for button groups
-  .btn-group .btn + .btn {
+  ".btn-group .btn + .btn" {
     marginLeft = -1.px
   }
   // and override it for block buttons as well
-  .btn-block + .btn-block {
+  ".btn-block + .btn-block" {
     marginLeft = 0.px
   }
 }
@@ -3002,7 +2393,7 @@ rule(".navbar") {
 // Inner for background effects
 // Gradient is applied to its own element because overflow visible is not honored by IE when filter is present
 rule(".navbar-inner") {
-  min-height: vars.navbarHeight;
+  minHeight = vars.navbarHeight
   paddingLeft = 20.px
   paddingRight = 20.px
   #gradient > .vertical(vars.navbarBackgroundHighlight, vars.navbarBackground);
@@ -3063,8 +2454,8 @@ rule(".navbar-link") {
 rule(".navbar .divider-vertical") {
   height: vars.navbarHeight;
   margin = Margin(0.px, 9.px)
-  borderLeft = Border(1.px, BorderStyle.solid, Color(solid))
-  borderRight = Border(1.px, BorderStyle.solid, Color(solid))
+  borderLeft = Border(1.px, BorderStyle.solid, Color.solid)
+  borderRight = Border(1.px, BorderStyle.solid, Color.solid)
 }
 
 // Buttons in navbar
@@ -3092,7 +2483,7 @@ rule(".navbar-form") {
   input[type="image"] input[type="checkbox"] input[type="radio"] {
     marginTop = 3.px
   }
-  .input-append .input-prepend {
+  ".input-append .input-prepend" {
     marginTop = 5.px
     whiteSpace = WhiteSpace.nowrap
  // preven two  items from separating within a .navbar-form that has .pull-left
@@ -3109,7 +2500,7 @@ rule(".navbar-search") {
   with(mixins) { navbarVerticalAlign(30px) }
  // Vertically center in navbar
   marginBottom = 0.px
-  .search-query {
+  ".search-query" {
     marginBottom = 0.px
     padding = Padding(4.px, 14.px)
     #font > .sans-serif(13px, normal, 1);
@@ -3124,7 +2515,7 @@ rule(".navbar-search") {
 rule(".navbar-static-top") {
   position = Position.static
   marginBottom = 0.px // remove 18px margin for default navbar
-  .navbar-inner {
+  ".navbar-inner" {
     with(mixins) { borderRadius(0px) }
   }
 }
@@ -3138,7 +2529,7 @@ rule(".navbar-fixed-top .navbar-fixed-bottom") {
   position = Position.fixed
   right = 0.px
   left = 0.px
-  z-index: vars.zindexFixedNavbar;
+  zIndex = vars.zindexFixedNavbar
   marginBottom = 0.px // remove 18px margin for default navbar
 }
 
@@ -3168,7 +2559,7 @@ rule(".navbar-fixed-top") {
 }
 
 rule(".navbar-fixed-top .navbar-static-top") {
-  .navbar-inner {
+  ".navbar-inner" {
     with(mixins) { boxShadow(~"0px 1px 10px rgba(0,0,0,.1)") }
   }
 }
@@ -3176,7 +2567,7 @@ rule(".navbar-fixed-top .navbar-static-top") {
 // Fixed to bottom
 rule(".navbar-fixed-bottom") {
   bottom = 0.px
-  .navbar-inner {
+  ".navbar-inner" {
     with(mixins) { boxShadow(~"0px -1px 10px rgba(0,0,0,.1)") }
   }
 }
@@ -3268,7 +2659,7 @@ rule(".navbar .nav > li > .dropdown-menu") {
     display = Display.inlineBlock
     border-left:   7px solid transparent;
     border-right:  7px solid transparent;
-    borderBottom = Border(7.px, BorderStyle.solid, Color(solid))
+    borderBottom = Border(7.px, BorderStyle.solid, Color.solid)
     border-bottom-color = vars.dropdownBorder
     position = Position.absolute
     top = -7.px
@@ -3279,7 +2670,7 @@ rule(".navbar .nav > li > .dropdown-menu") {
     display = Display.inlineBlock
     border-left:   6px solid transparent;
     border-right:  6px solid transparent;
-    borderBottom = Border(6.px, BorderStyle.solid, Color(solid))
+    borderBottom = Border(6.px, BorderStyle.solid, Color.solid)
     position = Position.absolute
     top = -6.px
     left = 10.px
@@ -3288,14 +2679,14 @@ rule(".navbar .nav > li > .dropdown-menu") {
 // Menu position and menu caret support for dropups via extra dropup class
 rule(".navbar-fixed-bottom .nav > li > .dropdown-menu") {
   "&:before" {
-    borderTop = Border(7.px, BorderStyle.solid, Color(solid))
+    borderTop = Border(7.px, BorderStyle.solid, Color.solid)
     border-top-color = vars.dropdownBorder
     borderBottom = Border(0.px)
     bottom = -7.px
     top = LinearDimension.auto
   }
   "&:after" {
-    borderTop = Border(6.px, BorderStyle.solid, Color(solid))
+    borderTop = Border(6.px, BorderStyle.solid, Color.solid)
     borderBottom = Border(0.px)
     bottom = -6.px
     top = LinearDimension.auto
@@ -3336,12 +2727,12 @@ rule(".navbar .pull-right > li > .dropdown-menu .navbar .nav > li > .dropdown-me
     left = LinearDimension.auto
     right = 13.px
   }
-  .dropdown-menu {
+  ".dropdown-menu" {
     left = LinearDimension.auto
     right = 100.pct
     marginLeft = 0.px
     marginRight = -1.px
-    with(mixins) { borderRadius(6px 0px 6px 6px) }
+    with(mixins) { borderRadius(6.px, 0.px, 6.px, 6.px) }
   }
 }
 
@@ -3380,7 +2771,7 @@ rule(".nav .active > a .nav .active > a:hover .nav .active > a:focus") {
   }
 
   // Inline text links
-  .navbar-link {
+  ".navbar-link" {
     color = vars.navbarInverseLinkColor
     "&:hover &:focus" {
       color = vars.navbarInverseLinkColorHover
@@ -3388,32 +2779,32 @@ rule(".nav .active > a .nav .active > a:hover .nav .active > a:focus") {
   }
 
   // Dividers in navbar
-  .divider-vertical {
+  ".divider-vertical" {
     border-left-color = vars.navbarInverseBackground
     border-right-color = vars.navbarInverseBackgroundHighlight
   }
 
   // Dropdowns
-  .nav li.dropdown.open > .dropdown-toggle .nav li.dropdown.active > .dropdown-toggle .nav li.dropdown.open.active > .dropdown-toggle {
+  ".nav li.dropdown.open > .dropdown-toggle .nav li.dropdown.active > .dropdown-toggle .nav li.dropdown.open.active > .dropdown-toggle" {
     backgroundColor = vars.navbarInverseLinkBackgroundActive
     color = vars.navbarInverseLinkColorActive
   }
-  .nav li.dropdown > a:hover .caret .nav li.dropdown > a:focus .caret {
+  ".nav li.dropdown > a:hover .caret .nav li.dropdown > a:focus .caret" {
     border-top-color = vars.navbarInverseLinkColorActive
     border-bottom-color = vars.navbarInverseLinkColorActive
   }
-  .nav li.dropdown > .dropdown-toggle .caret {
+  ".nav li.dropdown > .dropdown-toggle .caret" {
     border-top-color = vars.navbarInverseLinkColor
     border-bottom-color = vars.navbarInverseLinkColor
   }
-  .nav li.dropdown.open > .dropdown-toggle .caret .nav li.dropdown.active > .dropdown-toggle .caret .nav li.dropdown.open.active > .dropdown-toggle .caret {
+  ".nav li.dropdown.open > .dropdown-toggle .caret .nav li.dropdown.active > .dropdown-toggle .caret .nav li.dropdown.open.active > .dropdown-toggle .caret" {
     border-top-color = vars.navbarInverseLinkColorActive
     border-bottom-color = vars.navbarInverseLinkColorActive
   }
 
   // Navbar search
-  .navbar-search {
-    .search-query {
+  ".navbar-search" {
+    ".search-query" {
       color = vars.white
       backgroundColor = vars.navbarInverseSearchBackground
       borderColor =  vars.navbarInverseSearchBorder
@@ -3427,7 +2818,7 @@ rule(".nav .active > a .nav .active > a:hover .nav .active > a:focus") {
         color = vars.grayDark
         declarations["text-shadow"] = "0px 1px 0px vars.white"
         backgroundColor = vars.navbarInverseSearchBackgroundFocus
-        border: 0px;
+        borderWidth = 0.px
         with(mixins) { boxShadow(0px 0px 3px rgba(0,0,0,.15)) }
         outlineWidth = 0.px
       }
@@ -3435,7 +2826,7 @@ rule(".nav .active > a .nav .active > a:hover .nav .active > a:focus") {
   }
 
   // Navbar collapse button
-  .btn-navbar {
+  ".btn-navbar" {
     with(mixins) { buttonBackground(darken(vars.navbarInverseBackgroundHighlight, 5%), darken(vars.navbarInverseBackground, 5%)) }
   }
 
@@ -3448,7 +2839,7 @@ rule(".nav .active > a .nav .active > a:hover .nav .active > a:focus") {
 rule(".nav") {
   marginLeft = 0.px
   marginBottom = vars.baseLineHeight
-  listStyle = ListStyle.none
+  listStyleType = ListStyleType.none
 }
 
 // Make links block level
@@ -3548,7 +2939,7 @@ rule(".nav-tabs > li > a .nav-pills > li > a") {
 
 // Give the tabs something to sit on
 rule(".nav-tabs") {
-  borderBottom = Border(1.px, BorderStyle.solid, Color(solid))
+  borderBottom = Border(1.px, BorderStyle.solid, Color.solid)
 }
 // Make the list-items overlay the bottom border
 rule(".nav-tabs > li") {
@@ -3559,10 +2950,10 @@ rule(".nav-tabs > li > a") {
   paddingTop = 8.px
   paddingBottom = 8.px
   lineHeight = vars.baseLineHeight.lh
-  border = Border(1.px, BorderStyle.solid, Color(transparent))
-  with(mixins) { borderRadius(4px 4px 0px 0px) }
+  border = Border(1.px, BorderStyle.solid, Color.transparent)
+  with(mixins) { borderRadius(4.px, 4.px, 0.px, 0.px) }
   "&:hover &:focus" {
-    border-color: vars.grayLighter vars.grayLighter #ddd;
+    borderColor = vars.grayLighter vars.grayLighter #ddd
   }
 }
 // Active state, and it's :hover/:focus to override normal :hover/:focus
@@ -3643,7 +3034,7 @@ rule(".nav-pills.nav-stacked > li:last-child > a") {
 // DROPDOWNS
 // ---------
 rule(".nav-tabs .dropdown-menu") {
-  with(mixins) { borderRadius(0px 0px 6px 6px) }
+  with(mixins) { borderRadius(0.px, 0.px, 6.px, 6.px) }
  // remove the top rounded corners here since there is a hard edge above the menu
 }
 
@@ -3739,7 +3130,7 @@ rule(".tab-content > .active .pill-content > .active") {
 // BOTTOM
 // ------
 rule(".tabs-below > .nav-tabs") {
-  borderTop = Border(1.px, BorderStyle.solid, Color(solid))
+  borderTop = Border(1.px, BorderStyle.solid, Color.solid)
 }
 
 rule(".tabs-below > .nav-tabs > li") {
@@ -3748,7 +3139,7 @@ rule(".tabs-below > .nav-tabs > li") {
 }
 
 rule(".tabs-below > .nav-tabs > li > a") {
-  with(mixins) { borderRadius(0px 0px 4px 4px) }
+  with(mixins) { borderRadius(0.px, 0.px, 4.px, 4.px) }
   "&:hover &:focus" {
     border-bottom-color: transparent;
     border-topColor = Color("#ddd")
@@ -3776,16 +3167,16 @@ rule(".tabs-left > .nav-tabs > li > a .tabs-right > .nav-tabs > li > a") {
 rule(".tabs-left > .nav-tabs") {
   float = Float.left
   marginRight = 19.px
-  borderRight = Border(1.px, BorderStyle.solid, Color(solid))
+  borderRight = Border(1.px, BorderStyle.solid, Color.solid)
 }
 
 rule(".tabs-left > .nav-tabs > li > a") {
   marginRight = -1.px
-  with(mixins) { borderRadius(4px 0px 0px 4px) }
+  with(mixins) { borderRadius(4.px, 0.px, 0.px, 4.px) }
 }
 
 rule(".tabs-left > .nav-tabs > li > a:hover .tabs-left > .nav-tabs > li > a:focus") {
-  border-color: vars.grayLighter #ddd vars.grayLighter vars.grayLighter;
+  borderColor = vars.grayLighter #ddd vars.grayLighter vars.grayLighter
 }
 
 rule(".tabs-left > .nav-tabs .active > a .tabs-left > .nav-tabs .active > a:hover .tabs-left > .nav-tabs .active > a:focus") {
@@ -3797,16 +3188,16 @@ rule(".tabs-left > .nav-tabs .active > a .tabs-left > .nav-tabs .active > a:hove
 rule(".tabs-right > .nav-tabs") {
   float = Float.right
   marginLeft = 19.px
-  borderLeft = Border(1.px, BorderStyle.solid, Color(solid))
+  borderLeft = Border(1.px, BorderStyle.solid, Color.solid)
 }
 
 rule(".tabs-right > .nav-tabs > li > a") {
   marginLeft = -1.px
-  with(mixins) { borderRadius(0px 4px 4px 0px) }
+  with(mixins) { borderRadius(0.px, 4.px, 4.px, 0.px) }
 }
 
 rule(".tabs-right > .nav-tabs > li > a:hover .tabs-right > .nav-tabs > li > a:focus") {
-  border-color: vars.grayLighter vars.grayLighter vars.grayLighter #ddd;
+  borderColor = vars.grayLighter vars.grayLighter vars.grayLighter #ddd
 }
 
 rule(".tabs-right > .nav-tabs .active > a .tabs-right > .nav-tabs .active > a:hover .tabs-right > .nav-tabs .active > a:focus") {
@@ -3834,7 +3225,7 @@ rule(".nav > .disabled > a:hover .nav > .disabled > a:focus") {
     override fun CssBuilder.pager(){/*
 rule(".pager") {
   margin: vars.baseLineHeight 0px;
-  listStyle = ListStyle.none
+  listStyleType = ListStyleType.none
   textAlign = TextAlign.center
   with(mixins) { clearfix() }
 }
@@ -3988,7 +3379,7 @@ rule(".popover") {
   position = Position.absolute
   top = 0.px
   left = 0.px
-  z-index: vars.zindexPopover;
+  zIndex = vars.zindexPopover
   display = Display.none
   maxWidth = 276.px
   padding = Padding(1.px)
@@ -4023,7 +3414,7 @@ rule(".popover-title") {
   lineHeight = 18.px.lh
   backgroundColor = vars.popoverTitleBackground
   border-bottom: 1px solid darken(vars.popoverTitleBackground, 5%);
-  with(mixins) { borderRadius(5px 5px 0px 0px) }
+  with(mixins) { borderRadius(5.px, 5.px, 0.px, 0.px) }
 rule("&:empty") {
     display = Display.none
   }
@@ -4046,12 +3437,12 @@ rule(".popover .arrow .popover .arrow:after") {
 }
 
 rule(".popover .arrow") {
-  border-width: vars.popoverArrowOuterWidth;
+  borderWidth = vars.popoverArrowOuterWidth
 }
 
 rule(".popover .arrow:after") {
-  border-width: vars.popoverArrowWidth;
-  content: "";
+  borderWidth = vars.popoverArrowWidth
+  content = QuotedString("")
 }
 
 rule(".popover") {
@@ -4317,7 +3708,7 @@ rule("img") {
  /* Part 2: Scale the height according to the width, otherwise you get stretching */
 
   verticalAlign = VerticalAlign.middle
-  border: 0px;
+  borderWidth = 0.px
   -ms-interpolation-mode: bicubic;
 }
 
@@ -4344,7 +3735,7 @@ rule("button input") {
 
 rule("button::-moz-focus-inner input::-moz-focus-inner") { // Inner padding and border oddities in FF3/4
   padding = Padding(0.px)
-  border: 0px;
+  borderWidth = 0.px
 }
 button html input[type="button"], // Avoid the WebKit bug in Android 4.0.* where (2) destroys native `audio` and `video` controls.
 rule("input[type=\"reset\"] input[type=\"submit\"]") {
@@ -4399,8 +3790,8 @@ rule("abbr[title]:after") {
   }
 
   // Don't show links for images, or javascript/internal links
-  .ir a:after a[href^="javascript:"]:after a[href^="#"]:after {
-    content: "";
+  ".ir a:after a[href^="javascript:"]:after a[href^="#"]:after" {
+    content = QuotedString("")
   }
 
 rule("pre blockquote") {
@@ -4450,13 +3841,13 @@ vars.media (min-width: 1200px) {
   #grid > .input(vars.gridColumnWidth1200, vars.gridGutterWidth1200);
 
   // Thumbnails
-  .thumbnails {
+  ".thumbnails" {
     marginLeft = -vars.gridGutterWidth1200
   }
-  .thumbnails > li {
+  ".thumbnails > li" {
     marginLeft = vars.gridGutterWidth1200
   }
-  .row-fluid .thumbnails {
+  ".row-fluid .thumbnails" {
     marginLeft = 0.px
   }
 
@@ -4473,22 +3864,22 @@ vars.media (max-width: 767px) {
     paddingRight = 20.px
   }
   // Negative indent the now static "fixed" navbar
-  .navbar-fixed-top .navbar-fixed-bottom .navbar-static-top {
+  ".navbar-fixed-top .navbar-fixed-bottom .navbar-static-top" {
     marginLeft = -20.px
     marginRight = -20.px
   }
   // Remove padding on container given explicit padding set on body
-  .container-fluid {
+  ".container-fluid" {
     padding = Padding(0.px)
   }
 
   // TYPOGRAPHY
   // ----------
   // Reset horizontal dl
-  .dl-horizontal {
+  ".dl-horizontal" {
     dt {
       float = Float.none
-      clear: none;
+      clear = Clear.none
       width = LinearDimension.auto
       textAlign = TextAlign.left
     }
@@ -4500,55 +3891,55 @@ vars.media (max-width: 767px) {
   // GRID & CONTAINERS
   // -----------------
   // Remove width from containers
-  .container {
+  ".container" {
     width = LinearDimension.auto
   }
   // Fluid rows
-  .row-fluid {
+  ".row-fluid" {
     width = 100.pct
   }
   // Undo negative margin on rows and thumbnails
-  .row .thumbnails {
+  ".row .thumbnails" {
     marginLeft = 0.px
   }
-  .thumbnails > li {
+  ".thumbnails > li" {
     float = Float.none
     marginLeft = 0.px // Reset the default margin for all li elements when no .span* classes are present
   }
   // Make all grid-sized elements block level again
   [class*="span"] .uneditable-input[class*="span"], // Makes uneditable inputs full-width when using grid sizing
-  .row-fluid [class*="span"] {
+  ".row-fluid [class*="span"]" {
     float = Float.none
     display = Display.block
     width = 100.pct
     marginLeft = 0.px
     with(mixins) { boxSizing(border-box) }
   }
-  .span12 .row-fluid .span12 {
+  ".span12 .row-fluid .span12" {
     width = 100.pct
     with(mixins) { boxSizing(border-box) }
   }
-  .row-fluid [class*="offset"]:first-child {
+  ".row-fluid [class*="offset"]:first-child" {
     marginLeft = 0.px
   }
 
   // FORM FIELDS
   // -----------
   // Make span* classes full width
-  .input-large .input-xlarge .input-xxlarge input[class*="span"] select[class*="span"] textarea[class*="span"] .uneditable-input {
+  ".input-large .input-xlarge .input-xxlarge input[class*="span"] select[class*="span"] textarea[class*="span"] .uneditable-input" {
     with(mixins) { inputBlockLevel() }
   }
   // But don't let it screw up prepend/append inputs
-  .input-prepend input .input-append input .input-prepend input[class*="span"] .input-append input[class*="span"] {
+  ".input-prepend input .input-append input .input-prepend input[class*="span"] .input-append input[class*="span"]" {
     display = Display.inlineBlock // redeclare so they don't wrap to new lines
     width = LinearDimension.auto
   }
-  .controls-row [class*="span"] + [class*="span"] {
+  ".controls-row [class*="span"] + [class*="span"]" {
     marginLeft = 0.px
   }
 
   // Modals
-  .modal {
+  ".modal" {
     position = Position.fixed
     top = 20.px
     left = 20.px
@@ -4570,13 +3961,13 @@ vars.media (max-width: 767px) {
 vars.media (max-width: 480px) {
 
   // Smooth out the collapsing/expanding nav
-  .nav-collapse {
+  ".nav-collapse" {
     -webkit-transform: translate3d(0, 0, 0px);
  // activate the GPU
   }
 
   // Block level the page header small tag for readability
-  .page-header h1 small {
+  ".page-header h1 small" {
     display = Display.block
     lineHeight = vars.baseLineHeight.lh
   }
@@ -4587,23 +3978,23 @@ vars.media (max-width: 480px) {
   }
 
   // Remove the horizontal form styles
-  .form-horizontal {
-    .control-label {
+  ".form-horizontal" {
+    ".control-label" {
       float = Float.none
       width = LinearDimension.auto
       paddingTop = 0.px
       textAlign = TextAlign.left
     }
     // Move over all input controls and content
-    .controls {
+    ".controls" {
       marginLeft = 0.px
     }
     // Move the options list down to align with labels
-    .control-list {
+    ".control-list" {
       paddingTop = 0.px // has to be padding because margin collaspes
     }
     // Move over buttons in .form-actions to align with .controls
-    .form-actions {
+    ".form-actions" {
       paddingLeft = 10.px
       paddingRight = 10.px
     }
@@ -4611,30 +4002,30 @@ vars.media (max-width: 480px) {
 
   // Medias
   // Reset float and spacing to stack
-  .media .pull-left .media .pull-right  {
+  ".media .pull-left .media .pull-right" {
     float = Float.none
     display = Display.block
     marginBottom = 10.px
   }
   // Remove side margins since we stack instead of indent
-  .media-object {
+  ".media-object" {
     marginRight = 0.px
     marginLeft = 0.px
   }
 
   // Modals
-  .modal {
+  ".modal" {
     top = 10.px
     left = 10.px
     right = 10.px
   }
-  .modal-header .close {
+  ".modal-header .close" {
     padding = Padding(10.px)
     margin: -10px;
   }
 
   // Carousel
-  .carousel-caption {
+  ".carousel-caption" {
     position = Position.static
   }
 
@@ -4671,24 +4062,24 @@ vars.media (max-width: vars.navbarCollapseWidth) {
     paddingTop = 0.px
   }
   // Unfix the navbars
-  .navbar-fixed-top .navbar-fixed-bottom {
+  ".navbar-fixed-top .navbar-fixed-bottom" {
     position = Position.static
   }
-  .navbar-fixed-top {
+  ".navbar-fixed-top" {
     marginBottom = vars.baseLineHeight
   }
-  .navbar-fixed-bottom {
+  ".navbar-fixed-bottom" {
     marginTop = vars.baseLineHeight
   }
-  .navbar-fixed-top .navbar-inner .navbar-fixed-bottom .navbar-inner {
+  ".navbar-fixed-top .navbar-inner .navbar-fixed-bottom .navbar-inner" {
     padding = Padding(5.px)
   }
-  .navbar .container {
+  ".navbar .container" {
     width = LinearDimension.auto
     padding = Padding(0.px)
   }
   // Account for brand name
-  .navbar .brand {
+  ".navbar .brand" {
     paddingLeft = 10.px
     paddingRight = 10.px
     margin: 0px 0px 0px -5px;
@@ -4697,59 +4088,59 @@ vars.media (max-width: vars.navbarCollapseWidth) {
   // COLLAPSIBLE NAVBAR
   // ------------------
   // Nav collapse clears brand
-  .nav-collapse {
-    clear: both;
+  ".nav-collapse" {
+    clear = Clear.both
   }
   // Block-level the nav
-  .nav-collapse .nav {
+  ".nav-collapse .nav" {
     float = Float.none
     margin: 0px 0px (vars.baseLineHeight / 2);
   }
-  .nav-collapse .nav > li {
+  ".nav-collapse .nav > li" {
     float = Float.none
   }
-  .nav-collapse .nav > li > a {
+  ".nav-collapse .nav > li > a" {
     marginBottom = 2.px
   }
-  .nav-collapse .nav > .divider-vertical {
+  ".nav-collapse .nav > .divider-vertical" {
     display = Display.none
   }
-  .nav-collapse .nav .nav-header {
+  ".nav-collapse .nav .nav-header" {
     color = vars.navbarText
     textShadow = TextShadow.none
   }
   // Nav and dropdown links in navbar
-  .nav-collapse .nav > li > a .nav-collapse .dropdown-menu a {
+  ".nav-collapse .nav > li > a .nav-collapse .dropdown-menu a" {
     padding = Padding(9.px, 15.px)
     fontWeight = FontWeight.bold
     color = vars.navbarLinkColor
     with(mixins) { borderRadius(3px) }
   }
   // Buttons
-  .nav-collapse .btn {
+  ".nav-collapse .btn" {
     padding = Padding(4.px, 10.px, 4.px)
     fontWeight = FontWeight.normal
     with(mixins) { borderRadius(vars.baseBorderRadius) }
   }
-  .nav-collapse .dropdown-menu li + li a {
+  ".nav-collapse .dropdown-menu li + li a" {
     marginBottom = 2.px
   }
-  .nav-collapse .nav > li > a:hover .nav-collapse .nav > li > a:focus .nav-collapse .dropdown-menu a:hover .nav-collapse .dropdown-menu a:focus {
+  ".nav-collapse .nav > li > a:hover .nav-collapse .nav > li > a:focus .nav-collapse .dropdown-menu a:hover .nav-collapse .dropdown-menu a:focus" {
     backgroundColor = vars.navbarBackground
   }
-  .navbar-inverse .nav-collapse .nav > li > a .navbar-inverse .nav-collapse .dropdown-menu a {
+  ".navbar-inverse .nav-collapse .nav > li > a .navbar-inverse .nav-collapse .dropdown-menu a" {
     color = vars.navbarInverseLinkColor
   }
-  .navbar-inverse .nav-collapse .nav > li > a:hover .navbar-inverse .nav-collapse .nav > li > a:focus .navbar-inverse .nav-collapse .dropdown-menu a:hover .navbar-inverse .nav-collapse .dropdown-menu a:focus {
+  ".navbar-inverse .nav-collapse .nav > li > a:hover .navbar-inverse .nav-collapse .nav > li > a:focus .navbar-inverse .nav-collapse .dropdown-menu a:hover .navbar-inverse .nav-collapse .dropdown-menu a:focus" {
     backgroundColor = vars.navbarInverseBackground
   }
   // Buttons in the navbar
-  .nav-collapse.in .btn-group {
+  ".nav-collapse.in .btn-group" {
     marginTop = 5.px
     padding = Padding(0.px)
   }
   // Dropdowns in the navbar
-  .nav-collapse .dropdown-menu {
+  ".nav-collapse .dropdown-menu" {
     position = Position.static
     top = LinearDimension.auto
     left = LinearDimension.auto
@@ -4763,36 +4154,36 @@ vars.media (max-width: vars.navbarCollapseWidth) {
     with(mixins) { borderRadius(0px) }
     with(mixins) { boxShadow(none) }
   }
-  .nav-collapse .open > .dropdown-menu {
+  ".nav-collapse .open > .dropdown-menu" {
     display = Display.block
   }
 
 rule(".nav-collapse .dropdown-menu:before .nav-collapse .dropdown-menu:after") {
     display = Display.none
   }
-  .nav-collapse .dropdown-menu .divider {
+  ".nav-collapse .dropdown-menu .divider" {
     display = Display.none
   }
-  .nav-collapse .nav > li > .dropdown-menu {
+  ".nav-collapse .nav > li > .dropdown-menu" {
     "&:before &:after" {
       display = Display.none
     }
   }
   // Forms in navbar
-  .nav-collapse .navbar-form .nav-collapse .navbar-search {
+  ".nav-collapse .navbar-form .nav-collapse .navbar-search" {
     float = Float.none
     padding: (vars.baseLineHeight / 2) 15px;
     margin: (vars.baseLineHeight / 2) 0px;
-    borderTop = Border(1.px, BorderStyle.solid, Color(solid))
-    borderBottom = Border(1.px, BorderStyle.solid, Color(solid))
+    borderTop = Border(1.px, BorderStyle.solid, Color.solid)
+    borderBottom = Border(1.px, BorderStyle.solid, Color.solid)
     with(mixins) { boxShadow(~"inset 0px 1px 0px rgba(255,255,255,.1), 0px 1px 0px rgba(255,255,255,.1)") }
   }
-  .navbar-inverse .nav-collapse .navbar-form .navbar-inverse .nav-collapse .navbar-search {
+  ".navbar-inverse .nav-collapse .navbar-form .navbar-inverse .nav-collapse .navbar-search" {
     border-top-color = vars.navbarInverseBackground
     border-bottom-color = vars.navbarInverseBackground
   }
   // Pull right (secondary) nav content
-  .navbar .nav-collapse .nav.pull-right {
+  ".navbar .nav-collapse .nav.pull-right" {
     float = Float.none
     marginLeft = 0.px
   }
@@ -4914,7 +4305,7 @@ rule("vars.media print") {
 // Body reset
 rule("body") {
   margin = Margin(0.px)
-  font-family: vars.baseFontFamily;
+  fontFamily = vars.baseFontFamily
   fontSize = vars.baseFontSize
   lineHeight = vars.baseLineHeight.lh
   color = vars.textColor
@@ -5423,7 +4814,7 @@ rule(".table") {
     lineHeight = vars.baseLineHeight.lh
     textAlign = TextAlign.left
     verticalAlign = VerticalAlign.top
-    borderTop = Border(1.px, BorderStyle.solid, Color(solid))
+    borderTop = Border(1.px, BorderStyle.solid, Color.solid)
   }
   th {
     fontWeight = FontWeight.bold
@@ -5438,11 +4829,11 @@ rule(".table") {
   }
   // Account for multiple tbody instances
   tbody + tbody {
-    borderTop = Border(2.px, BorderStyle.solid, Color(solid))
+    borderTop = Border(2.px, BorderStyle.solid, Color.solid)
   }
 
   // Nesting
-  .table {
+  ".table" {
     backgroundColor = vars.bodyBackground
   }
 }
@@ -5467,7 +4858,7 @@ rule(".table-bordered") {
   borderLeft = Border(0.px)
   with(mixins) { borderRadius(vars.baseBorderRadius) }
   th td {
-    borderLeft = Border(1.px, BorderStyle.solid, Color(solid))
+    borderLeft = Border(1.px, BorderStyle.solid, Color.solid)
   }
   // Prevent a double border
   caption + thead tr:first-child th caption + tbody tr:first-child th caption + tbody tr:first-child td colgroup + thead tr:first-child th colgroup + tbody tr:first-child th colgroup + tbody tr:first-child td thead:first-child tr:first-child th tbody:first-child tr:first-child th tbody:first-child tr:first-child td {
@@ -5666,7 +5057,7 @@ rule(".thumbnail .caption") {
 // Base class
 rule(".tooltip") {
   position = Position.absolute
-  z-index: vars.zindexTooltip;
+  zIndex = vars.zindexTooltip
   display = Display.block
   visibility: visible;
   fontSize = 11.px
@@ -5709,21 +5100,21 @@ rule(".tooltip") {
     bottom = 0.px
     left = 50.pct
     marginLeft = -vars.tooltipArrowWidth
-    border-width: vars.tooltipArrowWidth vars.tooltipArrowWidth 0px;
+    borderWidth = vars.tooltipArrowWidth vars.tooltipArrowWidth 0px
     border-top-color = vars.tooltipArrowColor
   }
   "&.right .tooltip-arrow" {
     top = 50.pct
     left = 0.px
     marginTop = -vars.tooltipArrowWidth
-    border-width: vars.tooltipArrowWidth vars.tooltipArrowWidth vars.tooltipArrowWidth 0px;
+    borderWidth = vars.tooltipArrowWidth vars.tooltipArrowWidth vars.tooltipArrowWidth 0px
     border-right-color = vars.tooltipArrowColor
   }
   "&.left .tooltip-arrow" {
     top = 50.pct
     right = 0.px
     marginTop = -vars.tooltipArrowWidth
-    border-width: vars.tooltipArrowWidth 0px vars.tooltipArrowWidth vars.tooltipArrowWidth;
+    borderWidth = vars.tooltipArrowWidth 0px vars.tooltipArrowWidth vars.tooltipArrowWidth
     border-left-color = vars.tooltipArrowColor
   }
   "&.bottom .tooltip-arrow" {
@@ -5747,7 +5138,7 @@ rule(".lead") {
   marginBottom = vars.baseLineHeight
   fontSize = vars.baseFontSize * 1.5
   fontWeight = FontWeight.w200
-  line-height: vars.baseLineHeight * 1.5;
+  lineHeight = vars.baseLineHeight * 1.5
 }
 
 
@@ -5810,7 +5201,7 @@ rule(".text-center") { textAlign = TextAlign.center
 // Headings
 rule("h1, h2, h3, h4, h5, h6") {
   margin: (vars.baseLineHeight / 2) 0px;
-  font-family: vars.headingsFontFamily;
+  fontFamily = vars.headingsFontFamily
   fontWeight = vars.headingsFontWeight
   lineHeight = vars.baseLineHeight.lh
   color = vars.headingsColor
@@ -5823,7 +5214,7 @@ rule("h1, h2, h3, h4, h5, h6") {
   }
 }
 
-rule("h1 h2 h3") { line-height: vars.baseLineHeight * 2;
+rule("h1 h2 h3") { lineHeight = vars.baseLineHeight * 2
  }
 
 rule("h1") { fontSize = vars.baseFontSize * 2.75
@@ -5854,7 +5245,7 @@ rule("h4 small") { fontSize = vars.baseFontSize
 rule(".page-header") {
   padding-bottom: (vars.baseLineHeight / 2)-1;
   margin: vars.baseLineHeight 0px (vars.baseLineHeight * 1.5);
-  borderBottom = Border(1.px, BorderStyle.solid, Color(solid))
+  borderBottom = Border(1.px, BorderStyle.solid, Color.solid)
 }
 
 
@@ -5907,7 +5298,7 @@ rule("dt") {
 }
 
 rule("dd") {
-  margin-left: vars.baseLineHeight / 2;
+  marginLeft = vars.baseLineHeight / 2
 }
 // Horizontal layout (like forms)
 rule(".dl-horizontal") {
@@ -5916,7 +5307,7 @@ rule(".dl-horizontal") {
   dt {
     float = Float.left
     width: vars.horizontalComponentOffset-20;
-    clear: left;
+    clear = Clear.left
     textAlign = TextAlign.right
     with(mixins) { textOverflow() }
   }
@@ -5931,16 +5322,16 @@ rule(".dl-horizontal") {
 // Horizontal rules
 rule("hr") {
   margin: vars.baseLineHeight 0px;
-  border: 0px;
-  borderTop = Border(1.px, BorderStyle.solid, Color(solid))
-  borderBottom = Border(1.px, BorderStyle.solid, Color(solid))
+  borderWidth = 0.px
+  borderTop = Border(1.px, BorderStyle.solid, Color.solid)
+  borderBottom = Border(1.px, BorderStyle.solid, Color.solid)
 }
 
 // Abbreviations and acronyms
 abbr[title] // Added data-* attribute to help out our tooltip plugin, per https://github.com/twbs/bootstrap/issues/5257
 rule("abbr[data-original-title]") {
   cursor = Cursor.help
-  borderBottom = Border(1.px, BorderStyle.solid, Color(dotted))
+  borderBottom = Border(1.px, BorderStyle.solid, Color.dotted)
 }
 
 rule("abbr.initialism") {
@@ -5952,7 +5343,7 @@ rule("abbr.initialism") {
 rule("blockquote") {
   padding = Padding(0.px, 0.px, 0.px, 15.px)
   margin: 0px 0px vars.baseLineHeight;
-  borderLeft = Border(5.px, BorderStyle.solid, Color(solid))
+  borderLeft = Border(5.px, BorderStyle.solid, Color.solid)
   p {
     marginBottom = 0.px
     fontSize = vars.baseFontSize * 1.25
@@ -5973,7 +5364,7 @@ rule("blockquote") {
     float = Float.right
     paddingRight = 15.px
     paddingLeft = 0.px
-    borderRight = Border(5.px, BorderStyle.solid, Color(solid))
+    borderRight = Border(5.px, BorderStyle.solid, Color.solid)
     borderLeft = Border(0.px)
     p small {
       textAlign = TextAlign.right
@@ -5991,7 +5382,7 @@ rule("blockquote") {
 
 // Quotes
 rule("q:before q:after blockquote:before blockquote:after") {
-  content: "";
+  content = QuotedString("")
 }
 
 // Addresses

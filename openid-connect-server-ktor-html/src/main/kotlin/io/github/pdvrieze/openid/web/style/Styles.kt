@@ -37,7 +37,7 @@ interface Styles {
         // Scaffolding
         // -------------------------
                 val bodyBackground: Color
-        val textcolor: Color
+        val textColor: Color
 
         // Links
         // -------------------------
@@ -126,7 +126,7 @@ interface Styles {
         val dropdownBorder: Color
         val dropdownDividerTop: Color
         val dropdownDividerBottom: Color
-        val dropdownLinkcolor: Color
+        val dropdownLinkColor: Color
         val dropdownLinkColorHover: Color
         val dropdownLinkColorActive: Color
         val dropdownLinkBackgroundActive: Color
@@ -282,65 +282,63 @@ interface Styles {
 
     fun CssBuilder.alerts()
 
-    fun CssBuilder.bootstrap(){
-                // Core variables and mixins
-                variables()
-                mixins()
+    fun CssBuilder.bootstrap() {
+        // Core variables and mixins
+        variables()
 
-                // CSS Reset
-                reset()
+        // CSS Reset
+        reset()
 
-                // Grid system and page structure
-                scaffolding()
-                grid()
-                layouts()
+        // Grid system and page structure
+        scaffolding()
+        grid()
+        layouts()
 
-                // Base CSS
-                type()
-                code()
-                forms()
-                tables()
+        // Base CSS
+        type()
+        code()
+        forms()
+        tables()
 
-                // Components: common
-                sprites()
-                dropdowns()
-                wells()
-                componentAnimations()
-                close()
+        // Components: common
+        sprites()
+        dropdowns()
+        wells()
+        componentAnimations()
+        close()
 
-                // Components: Buttons & Alerts
-                buttons()
-                buttonGroups()
-                alerts()
+        // Components: Buttons & Alerts
+        buttons()
+        buttonGroups()
+        alerts()
 
-                // Components: Nav
-                navs()
-                navbar()
-                breadcrumbs()
-                pagination()
-                pager()
+        // Components: Nav
+        navs()
+        navbar()
+        breadcrumbs()
+        pagination()
+        pager()
 
-                // Components: Popovers
-                modals()
-                tooltip()
-                popovers()
+        // Components: Popovers
+        modals()
+        tooltip()
+        popovers()
 
-                // Components: Misc
-                thumbnails()
-                media()
-                labelsBadges()
-                progressBars()
-                accordion()
-                carousel()
-                heroUnit()
+        // Components: Misc
+        thumbnails()
+        media()
+        labelsBadges()
+        progressBars()
+        accordion()
+        carousel()
+        heroUnit()
 
-                // Utility classes
-                utilities() // Has to be last to override when necessary
-            }
+        // Utility classes
+        utilities() // Has to be last to override when necessary
+    }
 
     fun CssBuilder.bootstrapResponsive(){
         variables()
-        mixins()
         responsiveUtilities()
         responsive1200pxMin()
         responsive768px979px()
@@ -362,7 +360,6 @@ interface Styles {
     fun CssBuilder.labelsBadges()
     fun CssBuilder.layouts()
     fun CssBuilder.media()
-    fun CssBuilder.mixins()
     fun CssBuilder.modals()
     fun CssBuilder.navbar()
     fun CssBuilder.navs()
