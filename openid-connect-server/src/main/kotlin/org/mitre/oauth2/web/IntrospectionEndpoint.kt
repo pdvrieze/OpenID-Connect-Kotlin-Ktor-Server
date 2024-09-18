@@ -74,7 +74,7 @@ class IntrospectionEndpoint {
 
         if (auth is OAuth2Authentication) {
             // the client authenticated with OAuth, do our UMA checks
-            AuthenticationUtilities.ensureOAuthScope(auth, SystemScopeService.UMA_PROTECTION_SCOPE)
+            org.mitre.oauth2.web.AuthenticationUtilities.ensureOAuthScope(auth, SystemScopeService.UMA_PROTECTION_SCOPE)
 
             // get out the client that was issued the access token (not the token being introspected)
             val o2a = auth
@@ -104,7 +104,7 @@ class IntrospectionEndpoint {
             // directly authenticated clients get a subset of any scopes that they've registered for
             authClient.scope?.let { authScopes.addAll(it) }
 
-            if (!AuthenticationUtilities.hasRole(auth, "ROLE_CLIENT")
+            if (!org.mitre.oauth2.web.AuthenticationUtilities.hasRole(auth, "ROLE_CLIENT")
                 || !authClient.isAllowIntrospection
             ) {
                 // this client isn't allowed to do direct introspection

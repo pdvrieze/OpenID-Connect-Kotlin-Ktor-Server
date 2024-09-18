@@ -31,7 +31,7 @@ class DeviceCode(
     var userCode: String? = null,
     var scope: Set<String>? = null,
     var expiration: Date? = null,
-    var clientId: String? = null,
+    var clientId: String? = null, // TODO: make this not nullable
     var requestParameters: Map<String, String>? = null,
     var isApproved: Boolean? = false,
     var authenticationHolder: AuthenticationHolderEntity? = null,

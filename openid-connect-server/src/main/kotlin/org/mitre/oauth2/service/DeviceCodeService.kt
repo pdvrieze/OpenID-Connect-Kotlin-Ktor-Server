@@ -38,7 +38,7 @@ interface DeviceCodeService {
         requestedScopes: Set<String>,
         client: OAuthClientDetails,
         parameters: Map<String, String>?
-    ): DeviceCode?
+    ): DeviceCode
 
 
     fun clearExpiredDeviceCodes()

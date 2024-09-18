@@ -128,7 +128,7 @@ class ClientAPI {
         val clients = clientService.allClients
         model.addAttribute(org.mitre.openid.connect.view.JsonEntityView.ENTITY, clients)
 
-        return if (AuthenticationUtilities.isAdmin(auth)) {
+        return if (org.mitre.oauth2.web.AuthenticationUtilities.isAdmin(auth)) {
             org.mitre.openid.connect.view.ClientEntityViewForAdmins.VIEWNAME
         } else {
             org.mitre.openid.connect.view.ClientEntityViewForUsers.VIEWNAME
@@ -201,7 +201,7 @@ class ClientAPI {
             val newClient = clientService.saveNewClient(clientBuilder.build())
             m.addAttribute(org.mitre.openid.connect.view.JsonEntityView.ENTITY, newClient)
 
-            return if (AuthenticationUtilities.isAdmin(auth)) {
+            return if (org.mitre.oauth2.web.AuthenticationUtilities.isAdmin(auth)) {
                 org.mitre.openid.connect.view.ClientEntityViewForAdmins.VIEWNAME
             } else {
                 org.mitre.openid.connect.view.ClientEntityViewForUsers.VIEWNAME
@@ -307,7 +307,7 @@ class ClientAPI {
             val newClient = clientService.updateClient(oldClient, clientBuilder.build())
             m.addAttribute(org.mitre.openid.connect.view.JsonEntityView.ENTITY, newClient)
 
-            return if (AuthenticationUtilities.isAdmin(auth)) {
+            return if (org.mitre.oauth2.web.AuthenticationUtilities.isAdmin(auth)) {
                 org.mitre.openid.connect.view.ClientEntityViewForAdmins.VIEWNAME
             } else {
                 org.mitre.openid.connect.view.ClientEntityViewForUsers.VIEWNAME
@@ -359,7 +359,7 @@ class ClientAPI {
 
         model.addAttribute(org.mitre.openid.connect.view.JsonEntityView.ENTITY, client)
 
-        return if (AuthenticationUtilities.isAdmin(auth)) {
+        return if (org.mitre.oauth2.web.AuthenticationUtilities.isAdmin(auth)) {
             org.mitre.openid.connect.view.ClientEntityViewForAdmins.VIEWNAME
         } else {
             org.mitre.openid.connect.view.ClientEntityViewForUsers.VIEWNAME

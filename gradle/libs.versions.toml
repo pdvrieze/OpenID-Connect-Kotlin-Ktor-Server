@@ -125,7 +125,8 @@ javax-activation = { module = "javax.activation:activation", version = "1.1" }
 kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinx-serialization" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 kotlinx-html = { module = "org.jetbrains.kotlinx:kotlinx-html-jvm", version = "0.10.1" }
-kotlin-wrappers-css = { module = "org.jetbrains:kotlin-css-jvm", version = "1.0.0-pre.129-kotlin-1.4.20" }
+kotlin-wrappers-css = { module = "org.jetbrains.kotlin-wrappers:kotlin-css", version = "1.0.0-pre.808" }
+kotlin-styled = { module = "org.jetbrains.kotlin-wrappers:kotlin-styled-next", version = "1.2.4-pre.808" }
 kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 
 [plugins]

@@ -18,6 +18,9 @@ dependencies {
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.json)
     implementation(libs.ktor.server.core)
+    implementation(libs.ktor.server.auth.common)
+    implementation(libs.kotlin.wrappers.css)
+//    implementation(libs.kotlin.styled)
 
 
 

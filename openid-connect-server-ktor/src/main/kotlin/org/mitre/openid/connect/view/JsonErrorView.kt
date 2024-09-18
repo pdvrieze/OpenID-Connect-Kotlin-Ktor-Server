@@ -9,12 +9,12 @@ import org.mitre.oauth2.view.respondJson
 
 suspend fun PipelineContext<Unit, ApplicationCall>.jsonErrorView(
     errorTitle: String,
-    errorMessage: String,
+    errorMessage: String ? = null,
     code: HttpStatusCode = HttpStatusCode.InternalServerError,
 ) = call.respondJson(
     buildJsonObject {
         put("error", errorTitle)
-        put("error_description", errorMessage)
+        if (errorMessage != null) put("error_description", errorMessage)
     },
     code
 )

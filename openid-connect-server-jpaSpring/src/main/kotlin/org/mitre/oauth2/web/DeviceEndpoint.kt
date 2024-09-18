@@ -29,8 +29,6 @@ import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.oauth2.token.DeviceTokenGranter
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.view.HttpCodeView
-import org.mitre.openid.connect.view.JsonEntityView
-import org.mitre.openid.connect.view.JsonErrorView
 import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus

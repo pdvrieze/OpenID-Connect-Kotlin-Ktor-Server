@@ -46,7 +46,7 @@ class SpringDeviceCodeService : DeviceCodeService {
         requestedScopes: Set<String>,
         client: OAuthClientDetails,
         parameters: Map<String, String>?
-    ): DeviceCode? {
+    ): DeviceCode {
         // create a device code, should be big and random
 
         val deviceCode = UUID.randomUUID().toString()

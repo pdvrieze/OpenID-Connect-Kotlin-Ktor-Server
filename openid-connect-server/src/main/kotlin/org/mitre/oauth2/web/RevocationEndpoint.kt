@@ -57,7 +57,7 @@ class RevocationEndpoint {
 
         if (auth is OAuth2Authentication) {
             // the client authenticated with OAuth, do our UMA checks
-            AuthenticationUtilities.ensureOAuthScope(auth, SystemScopeService.UMA_PROTECTION_SCOPE)
+            org.mitre.oauth2.web.AuthenticationUtilities.ensureOAuthScope(auth, SystemScopeService.UMA_PROTECTION_SCOPE)
             // get out the client that was issued the access token (not the token being revoked)
             val o2a = auth
 

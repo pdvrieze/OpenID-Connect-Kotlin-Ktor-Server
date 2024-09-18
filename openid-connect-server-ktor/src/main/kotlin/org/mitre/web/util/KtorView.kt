@@ -10,3 +10,7 @@ fun interface KtorView: (suspend PipelineContext<Unit, ApplicationCall>.(Unit) -
 
     suspend fun PipelineContext<Unit, ApplicationCall>.invoke()
 }
+
+interface WebViews {
+
+}
