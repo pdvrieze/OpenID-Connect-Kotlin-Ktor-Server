@@ -2102,11 +2102,11 @@ object DefaultStyles : Styles {
 #grid > .fluid(vars.fluidGridColumnWidth, vars.fluidGridGutterWidth);
 
 // Reset utility classes due to specificity
-rule("[class*=\"span\"].hide .row-fluid [class*=\"span\"].hide") {
+ruleOf("[class*=\"span\"].hide", ".row-fluid [class*=\"span\"].hide") {
   display = Display.none
 }
 
-rule("[class*=\"span\"].pull-right .row-fluid [class*=\"span\"].pull-right") {
+ruleOf("[class*=\"span\"].pull-right", ".row-fluid [class*=\"span\"].pull-right") {
   float = Float.right
 }
     */}
@@ -2139,7 +2139,7 @@ rule(".hero-unit") {
 
     override fun CssBuilder.labelsBadges(){/*
 // Base classes
-rule(".label .badge") {
+ruleOf(".label", ".badge") {
   display = Display.inlineBlock
   padding = Padding(2.px, 4.px)
   fontSize = vars.baseFontSize * .846
@@ -2164,7 +2164,7 @@ rule(".badge") {
 }
 
 // Empty labels/badges collapse
-rule(".label .badge") {
+ruleOf(".label", ".badge") {
   "&:empty" {
     display = Display.none
   }
@@ -2172,7 +2172,7 @@ rule(".label .badge") {
 
 // Hover/focus state, but only for links
 a {
-  "&.label:hover &.label:focus &.badge:hover &.badge:focus" {
+  ruleOf("&.label:hover", "&.label:focus", "&.badge:hover", "&.badge:focus") {
     color = vars.white
     textDecoration = TextDecoration.none
     cursor = Cursor.pointer
@@ -2181,44 +2181,34 @@ a {
 
 // Colors
 // Only give background-color difference to links (and to simplify, we don't qualifty with `a` but [href] attribute)
-rule(".label .badge") {
+ruleOf(".label", ".badge") {
   // Important (red)
-  "&-important" { backgroundColor = vars.errorText
- }
-  "&-important[href]" { background-color: darken(vars.errorText, 10%);
- }
+  "&-important" { backgroundColor = vars.errorText }
+  "&-important[href]" { background-color: darken(vars.errorText, 10%); }
   // Warnings (orange)
-  "&-warning" { backgroundColor = vars.orange
- }
-  "&-warning[href]" { background-color: darken(vars.orange, 10%);
- }
+  "&-warning" { backgroundColor = vars.orange }
+  "&-warning[href]" { background-color: darken(vars.orange, 10%); }
   // Success (green)
-  "&-success" { backgroundColor = vars.successText
- }
-  "&-success[href]" { background-color: darken(vars.successText, 10%);
- }
+  "&-success" { backgroundColor = vars.successText }
+  "&-success[href]" { background-color: darken(vars.successText, 10%); }
   // Info (turquoise)
-  "&-info" { backgroundColor = vars.infoText
- }
-  "&-info[href]" { background-color: darken(vars.infoText, 10%);
- }
+  "&-info" { backgroundColor = vars.infoText }
+  "&-info[href]" { background-color: darken(vars.infoText, 10%); }
   // Inverse (black)
-  "&-inverse" { backgroundColor = vars.grayDark
- }
-  "&-inverse[href]" { background-color: darken(vars.grayDark, 10%);
- }
+  "&-inverse" { backgroundColor = vars.grayDark }
+  "&-inverse[href]" { background-color: darken(vars.grayDark, 10%); }
 }
 
 // Quick fix for labels/badges in buttons
 rule(".btn") {
-  ".label .badge" {
+  ruleOf(".label", ".badge") {
     position = Position.relative
     top = -1.px
   }
 }
 
 rule(".btn-mini") {
-  ".label .badge" {
+  ruleOf(".label", ".badge") {
     top = 0.px
   }
 }
@@ -2244,14 +2234,14 @@ rule(".container-fluid") {
 // Common styles
 
 // Clear the floats
-rule(".media .media-body") {
+ruleOf(".media", ".media-body") {
   overflow = Overflow.hidden
   declarations["*overflow"] = "visible"
   zoom: 1;
 }
 
 // Proper spacing between instances of .media
-rule(".media .media .media") {
+ruleOf(".media", ".media .media") {
   marginTop = 15.px
 }
 
@@ -2301,11 +2291,10 @@ rule(".modal-backdrop") {
   zIndex = vars.zindexModalBackdrop
   backgroundColor = vars.black
   // Fade for backdrop
-  "&.fade" { opacity = 0
- }
+  "&.fade" { opacity = 0 }
 }
 
-rule(".modal-backdrop .modal-backdrop.fade.in") {
+ruleOf(".modal-backdrop", ".modal-backdrop.fade.in") {
   with(mixins) { opacity(80.0) }
 }
 
@@ -2331,8 +2320,7 @@ rule("&.fade") {
     with(mixins) { transition(e('opacity .3s linear, top .3s ease-out')) }
     top = -25.pct
   }
-  "&.fade.in" { top = 10.pct
- }
+  "&.fade.in" { top = 10.pct }
 }
 
 rule(".modal-header") {
@@ -2442,7 +2430,7 @@ rule(".navbar .brand") {
   fontWeight = FontWeight.w200
   color = vars.navbarBrandColor
   declarations["text-shadow"] = "0px 1px 0px vars.navbarBackgroundHighlight"
-  "&:hover &:focus" {
+  ruleOf("&:hover", "&:focus") {
     textDecoration = TextDecoration.none
   }
 }
@@ -2457,7 +2445,7 @@ rule(".navbar-text") {
 // Janky solution for now to account for links outside the .nav
 rule(".navbar-link") {
   color = vars.navbarLinkColor
-  "&:hover &:focus" {
+  ruleOf("&:hover", "&:focus") {
     color = vars.navbarLinkColorHover
   }
 }
@@ -2471,12 +2459,16 @@ rule(".navbar .divider-vertical") {
 }
 
 // Buttons in navbar
-rule(".navbar .btn .navbar .btn-group") {
+ruleOf(".navbar .btn", ".navbar .btn-group") {
   with(mixins) { navbarVerticalAlign(30px) }
  // Vertically center in navbar
 }
 
-rule(".navbar .btn-group .btn .navbar .input-prepend .btn .navbar .input-append .btn .navbar .input-prepend .btn-group .navbar .input-append .btn-group") {
+ruleOf(".navbar .btn-group .btn",
+    ".navbar .input-prepend .btn",
+    ".navbar .input-append .btn",
+    ".navbar .input-prepend .btn-group",
+    ".navbar .input-append .btn-group") {
   marginTop = 0.px // then undo the margin here so we don't accidentally double it
 }
 
@@ -2484,18 +2476,20 @@ rule(".navbar .btn-group .btn .navbar .input-prepend .btn .navbar .input-append 
 rule(".navbar-form") {
   marginBottom = 0.px // remove default bottom margin
   with(mixins) { clearfix() }
-  input select .radio .checkbox {
+  
+  ruleOf("input", "select", ".radio", ".checkbox") {
     with(mixins) { navbarVerticalAlign(30px) }
  // Vertically center in navbar
   }
-  input select .btn {
+  
+  ruleOf("input", "select", ".btn") {
     display = Display.inlineBlock
     marginBottom = 0.px
   }
-  input[type="image"] input[type="checkbox"] input[type="radio"] {
+  ruleOf("input[type=\"image\"]", "input[type=\"checkbox\"]", "input[type=\"radio\"]") {
     marginTop = 3.px
   }
-  ".input-append .input-prepend" {
+  ruleOf(".input-append", ".input-prepend") {
     marginTop = 5.px
     whiteSpace = WhiteSpace.nowrap
  // preven two  items from separating within a .navbar-form that has .pull-left
@@ -2537,7 +2531,7 @@ rule(".navbar-static-top") {
 // Fixed navbar
 
 // Shared (top/bottom) styles
-rule(".navbar-fixed-top .navbar-fixed-bottom") {
+ruleOf(".navbar-fixed-top", ".navbar-fixed-bottom") {
   position = Position.fixed
   right = 0.px
   left = 0.px
@@ -2545,7 +2539,7 @@ rule(".navbar-fixed-top .navbar-fixed-bottom") {
   marginBottom = 0.px // remove 18px margin for default navbar
 }
 
-rule(".navbar-fixed-top .navbar-inner .navbar-static-top .navbar-inner") {
+ruleOf(".navbar-fixed-top .navbar-inner", ".navbar-static-top .navbar-inner") {
   border-width: 0px 0px 1px;
 }
 
@@ -2553,7 +2547,7 @@ rule(".navbar-fixed-bottom .navbar-inner") {
   border-width: 1px 0px 0px;
 }
 
-rule(".navbar-fixed-top .navbar-inner .navbar-fixed-bottom .navbar-inner") {
+ruleOf(".navbar-fixed-top .navbar-inner", ".navbar-fixed-bottom .navbar-inner") {
   paddingLeft = 0.px
   paddingRight = 0.px
   with(mixins) { borderRadius(0px) }
@@ -2561,7 +2555,7 @@ rule(".navbar-fixed-top .navbar-inner .navbar-fixed-bottom .navbar-inner") {
 
 // Reset container width
 // Required here as we reset the width earlier on and the grid mixins don't override early enough
-rule(".navbar-static-top .container .navbar-fixed-top .container .navbar-fixed-bottom .container") {
+ruleOf(".navbar-static-top .container", ".navbar-fixed-top .container", ".navbar-fixed-bottom .container") {
   #grid > .core > .span(vars.gridColumns);
 }
 
@@ -2570,7 +2564,7 @@ rule(".navbar-fixed-top") {
   top = 0.px
 }
 
-rule(".navbar-fixed-top .navbar-static-top") {
+ruleOf(".navbar-fixed-top", ".navbar-static-top") {
   ".navbar-inner" {
     with(mixins) { boxShadow(~"0px 1px 10px rgba(0,0,0,.1)") }
   }
@@ -2620,7 +2614,7 @@ rule(".navbar .nav .dropdown-toggle .caret") {
 }
 
 // Hover/focus
-rule(".navbar .nav > li > a:focus .navbar .nav > li > a:hover") {
+ruleOf(".navbar .nav > li > a:focus", ".navbar .nav > li > a:hover") {
   backgroundColor = vars.navbarLinkBackgroundHover
  // "transparent" is default to differentiate :hover/:focus from .active
   color = vars.navbarLinkColorHover
@@ -2628,7 +2622,7 @@ rule(".navbar .nav > li > a:focus .navbar .nav > li > a:hover") {
 }
 
 // Active nav items
-rule(".navbar .nav > .active > a .navbar .nav > .active > a:hover .navbar .nav > .active > a:focus") {
+ruleOf(".navbar .nav > .active > a", ".navbar .nav > .active > a:hover", ".navbar .nav > .active > a:focus") {
   color = vars.navbarLinkColorActive
   textDecoration = TextDecoration.none
   backgroundColor = vars.navbarLinkBackgroundActive
@@ -2706,13 +2700,15 @@ rule(".navbar-fixed-bottom .nav > li > .dropdown-menu") {
 }
 
 // Caret should match text color on hover/focus
-rule(".navbar .nav li.dropdown > a:hover .caret .navbar .nav li.dropdown > a:focus .caret") {
+ruleOf(".navbar .nav li.dropdown > a:hover .caret", ".navbar .nav li.dropdown > a:focus .caret") {
   border-top-color = vars.navbarLinkColorHover
   border-bottom-color = vars.navbarLinkColorHover
 }
 
 // Remove background color from open dropdown
-rule(".navbar .nav li.dropdown.open > .dropdown-toggle .navbar .nav li.dropdown.active > .dropdown-toggle .navbar .nav li.dropdown.open.active > .dropdown-toggle") {
+ruleOf(".navbar .nav li.dropdown.open > .dropdown-toggle",
+    ".navbar .nav li.dropdown.active > .dropdown-toggle",
+    ".navbar .nav li.dropdown.open.active > .dropdown-toggle") {
   backgroundColor = vars.navbarLinkBackgroundActive
   color = vars.navbarLinkColorActive
 }
@@ -2722,13 +2718,15 @@ rule(".navbar .nav li.dropdown > .dropdown-toggle .caret") {
   border-bottom-color = vars.navbarLinkColor
 }
 
-rule(".navbar .nav li.dropdown.open > .dropdown-toggle .caret .navbar .nav li.dropdown.active > .dropdown-toggle .caret .navbar .nav li.dropdown.open.active > .dropdown-toggle .caret") {
+ruleOf(".navbar .nav li.dropdown.open > .dropdown-toggle .caret",
+    ".navbar .nav li.dropdown.active > .dropdown-toggle .caret",
+    ".navbar .nav li.dropdown.open.active > .dropdown-toggle .caret") {
   border-top-color = vars.navbarLinkColorActive
   border-bottom-color = vars.navbarLinkColorActive
 }
 
 // Right aligned menus need alt position
-rule(".navbar .pull-right > li > .dropdown-menu .navbar .nav > li > .dropdown-menu.pull-right") {
+ruleOf(".navbar .pull-right > li > .dropdown-menu", ".navbar .nav > li > .dropdown-menu.pull-right") {
   left = LinearDimension.auto
   right = 0.px
   "&:before" {
@@ -2756,10 +2754,10 @@ rule(".navbar-inner") {
     borderColor =  vars.navbarInverseBorder
   }
 
-rule(".brand .nav > li > a") {
+ruleOf(".brand", ".nav > li > a") {
     color = vars.navbarInverseLinkColor
     declarations["text-shadow"] = "0px -1px 0px rgba(0,0,0,.25)"
-    "&:hover &:focus" {
+    ruleOf("&:hover", "&:focus") {
       color = vars.navbarInverseLinkColorHover
     }
   }
@@ -2772,12 +2770,12 @@ rule(".navbar-text") {
     color = vars.navbarInverseText
   }
 
-rule(".nav > li > a:focus .nav > li > a:hover") {
+ruleOf(".nav > li > a:focus", ".nav > li > a:hover") {
     backgroundColor = vars.navbarInverseLinkBackgroundHover
     color = vars.navbarInverseLinkColorHover
   }
 
-rule(".nav .active > a .nav .active > a:hover .nav .active > a:focus") {
+ruleOf(".nav .active > a", ".nav .active > a:hover", ".nav .active > a:focus") {
     color = vars.navbarInverseLinkColorActive
     backgroundColor = vars.navbarInverseLinkBackgroundActive
   }
@@ -2785,7 +2783,7 @@ rule(".nav .active > a .nav .active > a:hover .nav .active > a:focus") {
   // Inline text links
   ".navbar-link" {
     color = vars.navbarInverseLinkColor
-    "&:hover &:focus" {
+    ruleOf("&:hover", "&:focus") {
       color = vars.navbarInverseLinkColorHover
     }
   }
@@ -2797,11 +2795,13 @@ rule(".nav .active > a .nav .active > a:hover .nav .active > a:focus") {
   }
 
   // Dropdowns
-  ".nav li.dropdown.open > .dropdown-toggle .nav li.dropdown.active > .dropdown-toggle .nav li.dropdown.open.active > .dropdown-toggle" {
+  ruleOf(".nav li.dropdown.open > .dropdown-toggle",
+      ".nav li.dropdown.active > .dropdown-toggle",
+      ".nav li.dropdown.open.active > .dropdown-toggle") {
     backgroundColor = vars.navbarInverseLinkBackgroundActive
     color = vars.navbarInverseLinkColorActive
   }
-  ".nav li.dropdown > a:hover .caret .nav li.dropdown > a:focus .caret" {
+  ruleOf(".nav li.dropdown > a:hover .caret", ".nav li.dropdown > a:focus .caret") {
     border-top-color = vars.navbarInverseLinkColorActive
     border-bottom-color = vars.navbarInverseLinkColorActive
   }
@@ -2809,7 +2809,9 @@ rule(".nav .active > a .nav .active > a:hover .nav .active > a:focus") {
     border-top-color = vars.navbarInverseLinkColor
     border-bottom-color = vars.navbarInverseLinkColor
   }
-  ".nav li.dropdown.open > .dropdown-toggle .caret .nav li.dropdown.active > .dropdown-toggle .caret .nav li.dropdown.open.active > .dropdown-toggle .caret" {
+  ruleOf(".nav li.dropdown.open > .dropdown-toggle .caret",
+      ".nav li.dropdown.active > .dropdown-toggle .caret",
+      ".nav li.dropdown.open.active > .dropdown-toggle .caret") {
     border-top-color = vars.navbarInverseLinkColorActive
     border-bottom-color = vars.navbarInverseLinkColorActive
   }
@@ -2825,7 +2827,7 @@ rule(".nav .active > a .nav .active > a:hover .nav .active > a:focus") {
       with(mixins) { placeholder(vars.navbarInverseSearchPlaceholderColor) }
 
       // Focus states (we use .focused since IE7-8 and down doesn't support :focus)
-      "&:focus &.focused" {
+      ruleOf("&:focus", "&.focused") {
         padding = Padding(5.px, 15.px)
         color = vars.grayDark
         declarations["text-shadow"] = "0px 1px 0px vars.white"
@@ -2859,7 +2861,7 @@ rule(".nav > li > a") {
   display = Display.block
 }
 
-rule(".nav > li > a:hover .nav > li > a:focus") {
+ruleOf(".nav > li > a:hover", ".nav > li > a:focus") {
   textDecoration = TextDecoration.none
   backgroundColor = vars.grayLighter
 }
@@ -2901,7 +2903,7 @@ rule(".nav-list") {
   marginBottom = 0.px
 }
 
-rule(".nav-list > li > a .nav-list .nav-header") {
+ruleOf(".nav-list > li > a", ".nav-list .nav-header") {
   marginLeft = -15.px
   marginRight = -15.px
   declarations["text-shadow"] = "0px 1px 0px rgba(255,255,255,.5)"
@@ -2911,13 +2913,13 @@ rule(".nav-list > li > a") {
   padding = Padding(3.px, 15.px)
 }
 
-rule(".nav-list > .active > a .nav-list > .active > a:hover .nav-list > .active > a:focus") {
+ruleOf(".nav-list > .active > a", ".nav-list > .active > a:hover", ".nav-list > .active > a:focus") {
   color = vars.white
   declarations["text-shadow"] = "0px -1px 0px rgba(0,0,0,.2)"
   backgroundColor = vars.linkColor
 }
 
-rule(".nav-list [class^=\"icon-\"] .nav-list [class*=\" icon-\"]") {
+ruleOf(".nav-list [class^=\"icon-\"]", ".nav-list [class*=\" icon-\"]") {
   marginRight = 2.px
 }
 // Dividers (basically an hr) within the dropdown
@@ -2930,15 +2932,15 @@ rule(".nav-list .divider") {
 // TABS AND PILLS
 
 // Common styles
-rule(".nav-tabs .nav-pills") {
+ruleOf(".nav-tabs", ".nav-pills") {
   with(mixins) { clearfix() }
 }
 
-rule(".nav-tabs > li .nav-pills > li") {
+ruleOf(".nav-tabs > li", ".nav-pills > li") {
   float = Float.left
 }
 
-rule(".nav-tabs > li > a .nav-pills > li > a") {
+ruleOf(".nav-tabs > li > a", ".nav-pills > li > a") {
   paddingRight = 12.px
   paddingLeft = 12.px
   marginRight = 2.px
@@ -2969,7 +2971,7 @@ rule(".nav-tabs > li > a") {
   }
 }
 // Active state, and it's :hover/:focus to override normal :hover/:focus
-rule(".nav-tabs > .active > a .nav-tabs > .active > a:hover .nav-tabs > .active > a:focus") {
+ruleOf(".nav-tabs > .active > a", ".nav-tabs > .active > a:hover", ".nav-tabs > .active > a:focus") {
   color = vars.gray
   backgroundColor = vars.bodyBackground
   border = Border(1.px, BorderStyle.solid, Color("#ddd"))
@@ -2991,7 +2993,7 @@ rule(".nav-pills > li > a") {
 }
 
 // Active state
-rule(".nav-pills > .active > a .nav-pills > .active > a:hover .nav-pills > .active > a:focus") {
+ruleOf(".nav-pills > .active > a", ".nav-pills > .active > a:hover", ".nav-pills > .active > a:focus") {
   color = vars.white
   backgroundColor = vars.linkColor
 }
@@ -3027,7 +3029,7 @@ rule(".nav-tabs.nav-stacked > li:last-child > a") {
   with(mixins) { borderBottomRadius(4px) }
 }
 
-rule(".nav-tabs.nav-stacked > li > a:hover .nav-tabs.nav-stacked > li > a:focus") {
+ruleOf(".nav-tabs.nav-stacked > li > a:hover", ".nav-tabs.nav-stacked > li > a:focus") {
   borderColor = Color("#ddd")
   zIndex = 2
 }
@@ -3063,7 +3065,7 @@ rule(".nav .dropdown-toggle .caret") {
   marginTop = 6.px
 }
 
-rule(".nav .dropdown-toggle:hover .caret .nav .dropdown-toggle:focus .caret") {
+ruleOf(".nav .dropdown-toggle:hover .caret", ".nav .dropdown-toggle:focus .caret") {
   border-top-color = vars.linkColorHover
   border-bottom-color = vars.linkColorHover
 }
@@ -3084,25 +3086,31 @@ rule(".nav-tabs .active .dropdown-toggle .caret") {
 }
 
 // Active:hover/:focus dropdown links
-rule(".nav > .dropdown.active > a:hover .nav > .dropdown.active > a:focus") {
+ruleOf(".nav > .dropdown.active > a:hover", ".nav > .dropdown.active > a:focus") {
   cursor = Cursor.pointer
 }
 
 // Open dropdowns
-rule(".nav-tabs .open .dropdown-toggle .nav-pills .open .dropdown-toggle .nav > li.dropdown.open.active > a:hover .nav > li.dropdown.open.active > a:focus") {
+ruleOf(".nav-tabs .open .dropdown-toggle",
+    ".nav-pills .open .dropdown-toggle",
+    ".nav > li.dropdown.open.active > a:hover",
+    ".nav > li.dropdown.open.active > a:focus") {
   color = vars.white
   backgroundColor = vars.grayLight
   borderColor =  vars.grayLight
 }
 
-rule(".nav li.dropdown.open .caret .nav li.dropdown.open.active .caret .nav li.dropdown.open a:hover .caret .nav li.dropdown.open a:focus .caret") {
+ruleOf(".nav li.dropdown.open .caret",
+    ".nav li.dropdown.open.active .caret",
+    ".nav li.dropdown.open a:hover .caret",
+    ".nav li.dropdown.open a:focus .caret") {
   border-top-color = vars.white
   border-bottom-color = vars.white
   with(mixins) { opacity(100.0) }
 }
 
 // Dropdowns in stacked tabs
-rule(".tabs-stacked .open > a:hover .tabs-stacked .open > a:focus") {
+ruleOf(".tabs-stacked .open > a:hover", ".tabs-stacked .open > a:focus") {
   borderColor =  vars.grayLight
 }
 
@@ -3125,16 +3133,16 @@ rule(".tab-content") {
 }
 
 // Remove border on bottom, left, right
-rule(".tabs-below > .nav-tabs .tabs-right > .nav-tabs .tabs-left > .nav-tabs") {
+ruleOf(".tabs-below > .nav-tabs", ".tabs-right > .nav-tabs", ".tabs-left > .nav-tabs") {
   borderBottom = Border(0.px)
 }
 
 // Show/hide tabbable areas
-rule(".tab-content > .tab-pane .pill-content > .pill-pane") {
+ruleOf(".tab-content > .tab-pane", ".pill-content > .pill-pane") {
   display = Display.none
 }
 
-rule(".tab-content > .active .pill-content > .active") {
+ruleOf(".tab-content > .active", ".pill-content > .active") {
   display = Display.block
 }
 
@@ -3152,24 +3160,26 @@ rule(".tabs-below > .nav-tabs > li") {
 
 rule(".tabs-below > .nav-tabs > li > a") {
   with(mixins) { borderRadius(0.px, 0.px, 4.px, 4.px) }
-  "&:hover &:focus" {
+  ruleOf("&:hover", "&:focus") {
     border-bottom-color: transparent;
     border-topColor = Color("#ddd")
   }
 }
 
-rule(".tabs-below > .nav-tabs > .active > a .tabs-below > .nav-tabs > .active > a:hover .tabs-below > .nav-tabs > .active > a:focus") {
+ruleOf(".tabs-below > .nav-tabs > .active > a",
+    ".tabs-below > .nav-tabs > .active > a:hover",
+    ".tabs-below > .nav-tabs > .active > a:focus") {
   border-color: transparent #ddd #ddd #ddd;
 }
 
 // LEFT & RIGHT
 
 // Common styles
-rule(".tabs-left > .nav-tabs > li .tabs-right > .nav-tabs > li") {
+ruleOf(".tabs-left > .nav-tabs > li", ".tabs-right > .nav-tabs > li") {
   float = Float.none
 }
 
-rule(".tabs-left > .nav-tabs > li > a .tabs-right > .nav-tabs > li > a") {
+ruleOf(".tabs-left > .nav-tabs > li > a", ".tabs-right > .nav-tabs > li > a") {
   minWidth = 74.px
   marginRight = 0.px
   marginBottom = 3.px
@@ -3187,11 +3197,13 @@ rule(".tabs-left > .nav-tabs > li > a") {
   with(mixins) { borderRadius(4.px, 0.px, 0.px, 4.px) }
 }
 
-rule(".tabs-left > .nav-tabs > li > a:hover .tabs-left > .nav-tabs > li > a:focus") {
+ruleOf(".tabs-left > .nav-tabs > li > a:hover", ".tabs-left > .nav-tabs > li > a:focus") {
   borderColor = vars.grayLighter #ddd vars.grayLighter vars.grayLighter
 }
 
-rule(".tabs-left > .nav-tabs .active > a .tabs-left > .nav-tabs .active > a:hover .tabs-left > .nav-tabs .active > a:focus") {
+ruleOf(".tabs-left > .nav-tabs .active > a",
+    ".tabs-left > .nav-tabs .active > a:hover",
+    ".tabs-left > .nav-tabs .active > a:focus") {
   border-color: #ddd transparent #ddd #ddd;
   declarations["*border-right-color"] = vars.white
 }
@@ -3208,11 +3220,14 @@ rule(".tabs-right > .nav-tabs > li > a") {
   with(mixins) { borderRadius(0.px, 4.px, 4.px, 0.px) }
 }
 
-rule(".tabs-right > .nav-tabs > li > a:hover .tabs-right > .nav-tabs > li > a:focus") {
+ruleOf(".tabs-right > .nav-tabs > li > a:hover",
+    ".tabs-right > .nav-tabs > li > a:focus") {
   borderColor = vars.grayLighter vars.grayLighter vars.grayLighter #ddd
 }
 
-rule(".tabs-right > .nav-tabs .active > a .tabs-right > .nav-tabs .active > a:hover .tabs-right > .nav-tabs .active > a:focus") {
+ruleOf(".tabs-right > .nav-tabs .active > a",
+    ".tabs-right > .nav-tabs .active > a:hover",
+    ".tabs-right > .nav-tabs .active > a:focus") {
   border-color: #ddd #ddd #ddd transparent;
   declarations["*border-left-color"] = vars.white
 }
@@ -3226,7 +3241,7 @@ rule(".nav > .disabled > a") {
   color = vars.grayLight
 }
 // Nuke hover/focus effects
-rule(".nav > .disabled > a:hover .nav > .disabled > a:focus") {
+ruleOf(".nav > .disabled > a:hover", ".nav > .disabled > a:focus") {
   textDecoration = TextDecoration.none
   backgroundColor = Color.transparent
   cursor = Cursor.default
@@ -3246,7 +3261,7 @@ rule(".pager li") {
   display = Display.inline
 }
 
-rule(".pager li > a .pager li > span") {
+ruleOf(".pager li > a", ".pager li > span") {
   display = Display.inlineBlock
   padding = Padding(5.px, 14.px)
   backgroundColor = Color("#fff")
@@ -3254,20 +3269,20 @@ rule(".pager li > a .pager li > span") {
   with(mixins) { borderRadius(15px) }
 }
 
-rule(".pager li > a:hover .pager li > a:focus") {
+ruleOf(".pager li > a:hover", ".pager li > a:focus") {
   textDecoration = TextDecoration.none
   backgroundColor = Color("#f5f5f5")
 }
 
-rule(".pager .next > a .pager .next > span") {
+ruleOf(".pager .next > a", ".pager .next > span") {
   float = Float.right
 }
 
-rule(".pager .previous > a .pager .previous > span") {
+ruleOf(".pager .previous > a", ".pager .previous > span") {
   float = Float.left
 }
 
-rule(".pager .disabled > a .pager .disabled > a:hover .pager .disabled > a:focus .pager .disabled > span") {
+ruleOf(".pager .disabled > a", ".pager .disabled > a:hover", ".pager .disabled > a:focus", ".pager .disabled > span") {
   color = vars.grayLight
   backgroundColor = Color("#fff")
   cursor = Cursor.default
@@ -3297,7 +3312,8 @@ rule(".pagination ul > li") {
   display = Display.inline // Remove list-style and block-level defaults
 }
 
-rule(".pagination ul > li > a .pagination ul > li > span") {
+ruleOf(".pagination ul > li > a",
+    ".pagination ul > li > span") {
   float = Float.left
  // Collapse white-space
   padding = Padding(4.px, 12.px)
@@ -3308,27 +3324,36 @@ rule(".pagination ul > li > a .pagination ul > li > span") {
   borderLeftWidth = 0.px
 }
 
-rule(".pagination ul > li > a:hover .pagination ul > li > a:focus .pagination ul > .active > a .pagination ul > .active > span") {
+rule(".pagination ul > li > a:hover",
+    ".pagination ul > li > a:focus",
+    ".pagination ul > .active > a",
+    ".pagination ul > .active > span") {
   backgroundColor = vars.paginationActiveBackground
 }
 
-rule(".pagination ul > .active > a .pagination ul > .active > span") {
+ruleOf(".pagination ul > .active > a",
+    ".pagination ul > .active > span") {
   color = vars.grayLight
   cursor = Cursor.default
 }
 
-rule(".pagination ul > .disabled > span .pagination ul > .disabled > a .pagination ul > .disabled > a:hover .pagination ul > .disabled > a:focus") {
+ruleOf(".pagination ul > .disabled > span",
+    ".pagination ul > .disabled > a",
+    ".pagination ul > .disabled > a:hover",
+    ".pagination ul > .disabled > a:focus") {
   color = vars.grayLight
   backgroundColor = Color.transparent
   cursor = Cursor.default
 }
 
-rule(".pagination ul > li:first-child > a .pagination ul > li:first-child > span") {
+ruleOf(".pagination ul > li:first-child > a",
+    ".pagination ul > li:first-child > span") {
   borderLeftWidth = 1.px
   with(mixins) { borderLeftRadius(vars.baseBorderRadius) }
 }
 
-rule(".pagination ul > li:last-child > a .pagination ul > li:last-child > span") {
+ruleOf(".pagination ul > li:last-child > a",
+    ".pagination ul > li:last-child > span") {
   with(mixins) { borderRightRadius(vars.baseBorderRadius) }
 }
 
@@ -3347,38 +3372,38 @@ rule(".pagination-right") {
 
 // Large
 rule(".pagination-large") {
-  ul > li > a ul > li > span {
+  ruleOf("ul > li > a", "ul > li > span") {
     padding = vars.paddingLarge
     fontSize = vars.fontSizeLarge
   }
-  ul > li:first-child > a ul > li:first-child > span {
+  ruleOf("ul > li:first-child > a", "ul > li:first-child > span") {
     with(mixins) { borderLeftRadius(vars.borderRadiusLarge) }
   }
-  ul > li:last-child > a ul > li:last-child > span {
+  ruleOf("ul > li:last-child > a", "ul > li:last-child > span") {
     with(mixins) { borderRightRadius(vars.borderRadiusLarge) }
   }
 }
 
 // Small and mini
-rule(".pagination-mini .pagination-small") {
-  ul > li:first-child > a ul > li:first-child > span {
+rule(".pagination-mini", ".pagination-small") {
+  ruleOf("ul > li:first-child > a", "ul > li:first-child > span") {
     with(mixins) { borderLeftRadius(vars.borderRadiusSmall) }
   }
-  ul > li:last-child > a ul > li:last-child > span {
+  ruleOf("ul > li:last-child > a", "ul > li:last-child > span") {
     with(mixins) { borderRightRadius(vars.borderRadiusSmall) }
   }
 }
 
 // Small
 rule(".pagination-small") {
-  ul > li > a ul > li > span {
+  ruleOf("ul > li > a", "ul > li > span") {
     padding = vars.paddingSmall
     fontSize = vars.fontSizeSmall
   }
 }
 // Mini
 rule(".pagination-mini") {
-  ul > li > a ul > li > span {
+  ruleOf("ul > li > a", "ul > li > span") {
     padding = vars.paddingMini
     fontSize = vars.fontSizeMini
   }
@@ -3410,12 +3435,10 @@ rule(".popover") {
   whiteSpace = WhiteSpace.normal
 
   // Offset the popover to account for the popover arrow
-  "&.top" { marginTop = -10.px
- }
+  "&.top" { marginTop = -10.px }
   "&.right" { marginLeft = 10.px }
   "&.bottom" { marginTop = 10.px }
-  "&.left" { marginLeft = -10.px
- }
+  "&.left" { marginLeft = -10.px }
 }
 
 rule(".popover-title") {
@@ -3439,7 +3462,7 @@ rule(".popover-content") {
 // Arrows
 //
 // .arrow is outer, .arrow:after is inner
-rule(".popover .arrow .popover .arrow:after") {
+ruleOf(".popover .arrow", ".popover .arrow:after") {
   position = Position.absolute
   display = Display.block
   width = 0.px
@@ -3529,42 +3552,32 @@ rule("&.left .arrow") {
 
 // Webkit
 rule("VAR-webkit-keyframes progress-bar-stripes") {
-  from  { background-position: 40px 0px;
- }
-  to    { background-position: 0px 0px;
- }
+  from  { background-position: 40px 0px; }
+  to    { background-position: 0px 0px; }
 }
 
 // Firefox
 rule("VAR-moz-keyframes progress-bar-stripes") {
-  from  { background-position: 40px 0px;
- }
-  to    { background-position: 0px 0px;
- }
+  from  { background-position: 40px 0px; }
+  to    { background-position: 0px 0px; }
 }
 
 // IE9
 rule("VAR-ms-keyframes progress-bar-stripes") {
-  from  { background-position: 40px 0px;
- }
-  to    { background-position: 0px 0px;
- }
+  from  { background-position: 40px 0px; }
+  to    { background-position: 0px 0px; }
 }
 
 // Opera
 rule("VAR-o-keyframes progress-bar-stripes") {
-  from  { background-position: 0px 0px;
- }
-  to    { background-position: 40px 0px;
- }
+  from  { background-position: 0px 0px; }
+  to    { background-position: 40px 0px; }
 }
 
 // Spec
 rule("vars.keyframes progress-bar-stripes") {
-  from  { background-position: 40px 0px;
- }
-  to    { background-position: 0px 0px;
- }
+  from  { background-position: 40px 0px; }
+  to    { background-position: 0px 0px; }
 }
 
 
@@ -3661,12 +3674,12 @@ rule(".progress-warning.progress-striped .bar, .progress-striped .bar-warning") 
 
     override fun CssBuilder.reset(){/*
 // Display in IE6-9 and FF3
-rule("article aside details figcaption figure footer header hgroup nav section") {
+ruleOf("article", "aside", "details", "figcaption", "figure", "footer", "header", "hgroup", "nav", "section") {
   display = Display.block
 }
 
 // Display block in IE6-9 and FF3
-rule("audio canvas video") {
+rule("audio", "canvas", "video") {
   display = Display.inlineBlock
   declarations["*display"] = Display.inline
   declarations["*zoom"] = "1"
@@ -3689,12 +3702,12 @@ rule("a:focus") {
   with(mixins) { tabFocus() }
 }
 // Hover & Active
-rule("a:hover a:active") {
+ruleOf("a:hover", "a:active") {
   outlineWidth = 0.px
 }
 
 // Prevents sub and sup affecting line-height in all browsers
-rule("sub sup") {
+ruleOf("sub", "sup") {
   position = Position.relative
   fontSize = 75.pct
   lineHeight = 0.px.lh
@@ -3725,38 +3738,45 @@ rule("img") {
 }
 
 // Prevent max-width from affecting Google Maps
-rule("#map_canvas img .google-maps img") {
+ruleOf("#map_canvas img", ".google-maps img") {
   max-width: none;
 }
 
 // Forms
 
 // Font size in all browsers, margin changes, misc consistency
-rule("button input select textarea") {
+ruleOf("button", "input", "select", "textarea") {
   margin = Margin(0.px)
   fontSize = 100.pct
   verticalAlign = VerticalAlign.middle
 }
 
-rule("button input") {
+ruleOf("button", "input") {
   declarations["*overflow"] = "visible"
  // Inner spacing ie IE6/7
   line-height: normal;
  // FF3/4 have !important on line-height in UA stylesheet
 }
 
-rule("button::-moz-focus-inner input::-moz-focus-inner") { // Inner padding and border oddities in FF3/4
+ruleOf("button::-moz-focus-inner", "input::-moz-focus-inner") { // Inner padding and border oddities in FF3/4
   padding = Padding(0.px)
   borderWidth = 0.px
 }
-button html input[type="button"], // Avoid the WebKit bug in Android 4.0.* where (2) destroys native `audio` and `video` controls.
-rule("input[type=\"reset\"] input[type=\"submit\"]") {
-    -webkit-appearance: button;
- // Corrects inability to style clickable `input` types in iOS.
+ruleOf("button", 
+    "html input[type=\"button\"]", // Avoid the WebKit bug in Android 4.0.* where (2) destroys native `audio` and `video` controls.
+    "input[type=\"reset\"] input[type=\"submit\"]") {
+    declarations["-webkit-appearance"] = button;
+    // Corrects inability to style clickable `input` types in iOS.
     cursor = Cursor.pointer // Improves usability and consistency of cursor style between image-type `input` and others.
 }
 
-rule("label select button input[type=\"button\"] input[type=\"reset\"] input[type=\"submit\"] input[type=\"radio\"] input[type=\"checkbox\"]") {
+rule("label",
+    "select",
+    "button",
+    "input[type=\"button\"]",
+    "input[type=\"reset\"]",
+    "input[type=\"submit\"]",
+    "input[type=\"radio\"]", "input[type=\"checkbox\"]") {
     cursor = Cursor.pointer // Improves usability and consistency of cursor style between image-type `input` and others.
 }
 
@@ -3765,7 +3785,7 @@ rule("input[type=\"search\"]") { // Appearance in Safari/Chrome
   -webkit-appearance: textfield;
 }
 
-rule("input[type=\"search\"]::-webkit-search-decoration input[type=\"search\"]::-webkit-search-cancel-button") {
+ruleOf("input[type=\"search\"]::-webkit-search-decoration", "input[type=\"search\"]::-webkit-search-cancel-button") {
   -webkit-appearance: none;
  // Inner-padding issues in Chrome OSX, Safari 5
 }
@@ -3780,16 +3800,15 @@ rule("textarea") {
 
 // Printing
 // Source: https://github.com/h5bp/html5-boilerplate/blob/master/css/main.css
-rule("vars.media print") {
-rule("*") {
-    declarations["text-shadow"] = "none !important"
-    color: #000 !important;
- // Black prints faster: h5bp.com/s
-    background: transparent !important;
-    box-shadow: none !important;
-  }
+rule("@media print") {
+    "*" {
+        declarations["text-shadow"] = "none !important"
+        color: #000 !important; // Black prints faster: h5bp.com/s
+        background: transparent !important;
+        box-shadow: none !important;
+      }
 
-rule("a a:visited") {
+ruleOf("a", "a:visited") {
     textDecoration = TextDecoration.underline
   }
 
@@ -3802,11 +3821,11 @@ rule("abbr[title]:after") {
   }
 
   // Don't show links for images, or javascript/internal links
-  ".ir a:after a[href^="javascript:"]:after a[href^="#"]:after" {
+  ruleOf(".ir a:after", "a[href^=\"javascript:\"]:after", "a[href^=\"#\"]:after") {
     content = QuotedString("")
   }
 
-rule("pre blockquote") {
+ruleOf("pre", "blockquote") {
     border = Border(1.px, BorderStyle.solid, Color("#999"))
     page-break-inside: avoid;
   }
@@ -3816,7 +3835,7 @@ rule("thead") {
  // h5bp.com/t
   }
 
-rule("tr img") {
+ruleOf("tr", "img") {
     page-break-inside: avoid;
   }
 
@@ -3828,12 +3847,12 @@ rule("vars.page") {
     margin: 0.5cm;
   }
 
-rule("p h2 h3") {
+ruleOf("p", "h2", "h3") {
     orphans: 3;
     widows: 3;
   }
 
-rule("h2 h3") {
+ruleOf("h2", "h3") {
     page-break-after: avoid;
   }
 }
@@ -3876,7 +3895,7 @@ vars.media (max-width: 767px) {
     paddingRight = 20.px
   }
   // Negative indent the now static "fixed" navbar
-  ".navbar-fixed-top .navbar-fixed-bottom .navbar-static-top" {
+  ruleOf(".navbar-fixed-top", ".navbar-fixed-bottom", ".navbar-static-top") {
     marginLeft = -20.px
     marginRight = -20.px
   }
@@ -3911,7 +3930,7 @@ vars.media (max-width: 767px) {
     width = 100.pct
   }
   // Undo negative margin on rows and thumbnails
-  ".row .thumbnails" {
+  ruleOf(".row", ".thumbnails") {
     marginLeft = 0.px
   }
   ".thumbnails > li" {
@@ -3919,15 +3938,16 @@ vars.media (max-width: 767px) {
     marginLeft = 0.px // Reset the default margin for all li elements when no .span* classes are present
   }
   // Make all grid-sized elements block level again
-  [class*="span"] .uneditable-input[class*="span"], // Makes uneditable inputs full-width when using grid sizing
-  ".row-fluid [class*="span"]" {
+  ruleOf("[class*=\"span\"]",
+      ".uneditable-input[class*=\"span\"]" // Makes uneditable inputs full-width when using grid sizing
+      ".row-fluid [class*=\"span\"]") {
     float = Float.none
     display = Display.block
     width = 100.pct
     marginLeft = 0.px
     with(mixins) { boxSizing(border-box) }
   }
-  ".span12 .row-fluid .span12" {
+  ruleOf(".span12", ".row-fluid .span12") {
     width = 100.pct
     with(mixins) { boxSizing(border-box) }
   }
@@ -3938,15 +3958,25 @@ vars.media (max-width: 767px) {
   // FORM FIELDS
   // -----------
   // Make span* classes full width
-  ".input-large .input-xlarge .input-xxlarge input[class*="span"] select[class*="span"] textarea[class*="span"] .uneditable-input" {
+  ruleOf(".input-large",
+      ".input-xlarge",
+      ".input-xxlarge",
+      "input[class*="span"]",
+      "select[class*="span"]",
+      "textarea[class*="span"]",
+      ".uneditable-input") {
     with(mixins) { inputBlockLevel() }
   }
+
   // But don't let it screw up prepend/append inputs
-  ".input-prepend input .input-append input .input-prepend input[class*="span"] .input-append input[class*="span"]" {
+  ruleOf(".input-prepend input",
+      ".input-append input",
+      ".input-prepend input[class*=\"span\"]",
+      ".input-append input[class*=\"span\"]") {
     display = Display.inlineBlock // redeclare so they don't wrap to new lines
     width = LinearDimension.auto
   }
-  ".controls-row [class*="span"] + [class*="span"]" {
+  ".controls-row [class*=\"span\"] + [class*=\"span\"]" {
     marginLeft = 0.px
   }
 
@@ -3958,10 +3988,8 @@ vars.media (max-width: 767px) {
     right = 20.px
     width = LinearDimension.auto
     margin = Margin(0.px)
-    "&.fade" { top = -100.px
- }
-    "&.fade.in" { top = 20.px
- }
+    "&.fade" { top = -100.px }
+    "&.fade.in" { top = 20.px }
   }
 
 }
@@ -3985,7 +4013,7 @@ vars.media (max-width: 480px) {
   }
 
   // Update checkboxes for iOS
-  input[type="checkbox"] input[type="radio"] {
+  ruleOf("input[type=\"checkbox\"]", "input[type=\"radio\"]") {
     border = Border(1.px, BorderStyle.solid, Color("#ccc"))
   }
 
@@ -4014,7 +4042,7 @@ vars.media (max-width: 480px) {
 
   // Medias
   // Reset float and spacing to stack
-  ".media .pull-left .media .pull-right" {
+  ruleOf(".media .pull-left", ".media .pull-right") {
     float = Float.none
     display = Display.block
     marginBottom = 10.px
@@ -4074,7 +4102,7 @@ vars.media (max-width: vars.navbarCollapseWidth) {
     paddingTop = 0.px
   }
   // Unfix the navbars
-  ".navbar-fixed-top .navbar-fixed-bottom" {
+  ruleOf(".navbar-fixed-top", ".navbar-fixed-bottom") {
     position = Position.static
   }
   ".navbar-fixed-top" {
@@ -4083,7 +4111,7 @@ vars.media (max-width: vars.navbarCollapseWidth) {
   ".navbar-fixed-bottom" {
     marginTop = vars.baseLineHeight
   }
-  ".navbar-fixed-top .navbar-inner .navbar-fixed-bottom .navbar-inner" {
+  ruleOf(".navbar-fixed-top .navbar-inner", ".navbar-fixed-bottom .navbar-inner") {
     padding = Padding(5.px)
   }
   ".navbar .container" {
@@ -4122,7 +4150,7 @@ vars.media (max-width: vars.navbarCollapseWidth) {
     textShadow = TextShadow.none
   }
   // Nav and dropdown links in navbar
-  ".nav-collapse .nav > li > a .nav-collapse .dropdown-menu a" {
+  ruleOf(".nav-collapse .nav > li > a", ".nav-collapse .dropdown-menu a") {
     padding = Padding(9.px, 15.px)
     fontWeight = FontWeight.bold
     color = vars.navbarLinkColor
@@ -4137,13 +4165,19 @@ vars.media (max-width: vars.navbarCollapseWidth) {
   ".nav-collapse .dropdown-menu li + li a" {
     marginBottom = 2.px
   }
-  ".nav-collapse .nav > li > a:hover .nav-collapse .nav > li > a:focus .nav-collapse .dropdown-menu a:hover .nav-collapse .dropdown-menu a:focus" {
+  ruleOf(".nav-collapse .nav > li > a:hover",
+      ".nav-collapse .nav > li > a:focus",
+      ".nav-collapse .dropdown-menu a:hover",
+      ".nav-collapse .dropdown-menu a:focus") {
     backgroundColor = vars.navbarBackground
   }
-  ".navbar-inverse .nav-collapse .nav > li > a .navbar-inverse .nav-collapse .dropdown-menu a" {
+  ruleOf(".navbar-inverse .nav-collapse .nav > li > a", ".navbar-inverse .nav-collapse .dropdown-menu a") {
     color = vars.navbarInverseLinkColor
   }
-  ".navbar-inverse .nav-collapse .nav > li > a:hover .navbar-inverse .nav-collapse .nav > li > a:focus .navbar-inverse .nav-collapse .dropdown-menu a:hover .navbar-inverse .nav-collapse .dropdown-menu a:focus" {
+  ruleOf(".navbar-inverse .nav-collapse .nav > li > a:hover",
+      ".navbar-inverse .nav-collapse .nav > li > a:focus",
+      ".navbar-inverse .nav-collapse .dropdown-menu a:hover",
+      ".navbar-inverse .nav-collapse .dropdown-menu a:focus") {
     backgroundColor = vars.navbarInverseBackground
   }
   // Buttons in the navbar
@@ -4170,19 +4204,19 @@ vars.media (max-width: vars.navbarCollapseWidth) {
     display = Display.block
   }
 
-rule(".nav-collapse .dropdown-menu:before .nav-collapse .dropdown-menu:after") {
+ruleOf(".nav-collapse .dropdown-menu:before", ".nav-collapse .dropdown-menu:after") {
     display = Display.none
   }
   ".nav-collapse .dropdown-menu .divider" {
     display = Display.none
   }
   ".nav-collapse .nav > li > .dropdown-menu" {
-    "&:before &:after" {
+    ruleOf("&:before", "&:after") {
       display = Display.none
     }
   }
   // Forms in navbar
-  ".nav-collapse .navbar-form .nav-collapse .navbar-search" {
+  ruleOf(".nav-collapse .navbar-form", ".nav-collapse .navbar-search") {
     float = Float.none
     padding: (vars.baseLineHeight / 2) 15px;
     margin: (vars.baseLineHeight / 2) 0px;
@@ -4190,7 +4224,7 @@ rule(".nav-collapse .dropdown-menu:before .nav-collapse .dropdown-menu:after") {
     borderBottom = Border(1.px, BorderStyle.solid, Color.solid)
     with(mixins) { boxShadow(~"inset 0px 1px 0px rgba(255,255,255,.1), 0px 1px 0px rgba(255,255,255,.1)") }
   }
-  ".navbar-inverse .nav-collapse .navbar-form .navbar-inverse .nav-collapse .navbar-search" {
+  ruleOf(".navbar-inverse .nav-collapse .navbar-form", ".navbar-inverse .nav-collapse .navbar-search") {
     border-top-color = vars.navbarInverseBackground
     border-bottom-color = vars.navbarInverseBackground
   }
@@ -4200,7 +4234,7 @@ rule(".nav-collapse .dropdown-menu:before .nav-collapse .dropdown-menu:after") {
     marginLeft = 0.px
   }
   // Hide everything in the navbar save .brand and toggle button
-         rule(".nav-collapse .nav-collapse.collapse") {
+         ruleOf(".nav-collapse", ".nav-collapse.collapse") {
             overflow = Overflow.hidden
             height = 0.px
         }
@@ -4252,63 +4286,48 @@ rule(".hidden") {
 // Visibility utilities
 
 // For desktops
-rule(".visible-phone") { display: none !important;
- }
+rule(".visible-phone") { display: none !important; }
 
-rule(".visible-tablet") { display: none !important;
- }
+rule(".visible-tablet") { display: none !important; }
 
 rule(".hidden-phone") { }
 
 rule(".hidden-tablet") { }
 
-rule(".hidden-desktop") { display: none !important;
- }
+rule(".hidden-desktop") { display: none !important; }
 
-rule(".visible-desktop") { display: inherit !important;
- }
+rule(".visible-desktop") { display: inherit !important; }
 
 // Tablets & small desktops only
 vars.media (min-width: 768px) and (max-width: 979px) {
   // Hide everything else
-  .hidden-desktop    { display: inherit !important;
- }
-  .visible-desktop   { display: none !important ;
- }
+  .hidden-desktop    { display: inherit !important; }
+  .visible-desktop   { display: none !important ; }
   // Show
-  .visible-tablet    { display: inherit !important;
- }
+  .visible-tablet    { display: inherit !important; }
   // Hide
-  .hidden-tablet     { display: none !important;
- }
+  .hidden-tablet     { display: none !important; }
 }
 
 // Phones only
 vars.media (max-width: 767px) {
   // Hide everything else
-  .hidden-desktop    { display: inherit !important;
- }
-  .visible-desktop   { display: none !important;
- }
+  .hidden-desktop    { display: inherit !important; }
+  .visible-desktop   { display: none !important; }
   // Show
-  .visible-phone     { display: inherit !important;
- } // Use inherit to restore previous behavior
+  .visible-phone     { display: inherit !important; } // Use inherit to restore previous behavior
   // Hide
-  .hidden-phone      { display: none !important;
- }
+  .hidden-phone      { display: none !important; }
 }
 
 // Print utilities
-rule(".visible-print") { display: none !important;
- }
+rule(".visible-print") { display: none !important; }
 
 rule(".hidden-print") { }
 
 rule("vars.media print") {
-  .visible-print  { display: inherit !important;
- }
-  .hidden-print   { display: none !important;
- }
+  .visible-print  { display: inherit !important; }
+  .hidden-print   { display: none !important; }
 }
     */}
 
@@ -4331,7 +4350,7 @@ rule("a") {
   textDecoration = TextDecoration.none
 }
 
-rule("a:hover a:focus") {
+ruleOf("a:hover", "a:focus") {
   color = vars.linkColorHover
   textDecoration = TextDecoration.underline
 }
@@ -4371,7 +4390,7 @@ rule(".img-circle") {
 
 // For the white version of the icons, just add the .icon-white class:
 // <i class="icon-inbox icon-white"></i>
-rule("[class^=\"icon-\"] [class*=\" icon-\"]") {
+ruleOf("[class^=\"icon-\"]", "[class*=\" icon-\"]") {
   display = Display.inlineBlock
   width = 14.px
   height = 14.px
@@ -4385,425 +4404,171 @@ rule("[class^=\"icon-\"] [class*=\" icon-\"]") {
 }
 
 /* White icons with optional class, or on hover/focus/active states of certain elements */
-rule(".icon-white .nav-pills > .active > a > [class^=\"icon-\"] .nav-pills > .active > a > [class*=\" icon-\"] .nav-list > .active > a > [class^=\"icon-\"] .nav-list > .active > a > [class*=\" icon-\"] .navbar-inverse .nav > .active > a > [class^=\"icon-\"] .navbar-inverse .nav > .active > a > [class*=\" icon-\"] .dropdown-menu > li > a:hover > [class^=\"icon-\"] .dropdown-menu > li > a:focus > [class^=\"icon-\"] .dropdown-menu > li > a:hover > [class*=\" icon-\"] .dropdown-menu > li > a:focus > [class*=\" icon-\"] .dropdown-menu > .active > a > [class^=\"icon-\"] .dropdown-menu > .active > a > [class*=\" icon-\"] .dropdown-submenu:hover > a > [class^=\"icon-\"] .dropdown-submenu:focus > a > [class^=\"icon-\"] .dropdown-submenu:hover > a > [class*=\" icon-\"] .dropdown-submenu:focus > a > [class*=\" icon-\"]") {
-  background-image: url("@{iconWhiteSpritePath}");
-}
-
-rule(".icon-glass") { background-position: 0px      0px;
- }
-
-rule(".icon-music") { background-position: -24px  0px;
- }
-
-rule(".icon-search") { background-position: -48px  0px;
- }
-
-rule(".icon-envelope") { background-position: -72px  0px;
- }
-
-rule(".icon-heart") { background-position: -96px  0px;
- }
-
-rule(".icon-star") { background-position: -120px 0px;
- }
-
-rule(".icon-star-empty") { background-position: -144px 0px;
- }
-
-rule(".icon-user") { background-position: -168px 0px;
- }
-
-rule(".icon-film") { background-position: -192px 0px;
- }
-
-rule(".icon-th-large") { background-position: -216px 0px;
- }
-
-rule(".icon-th") { background-position: -240px 0px;
- }
-
-rule(".icon-th-list") { background-position: -264px 0px;
- }
-
-rule(".icon-ok") { background-position: -288px 0px;
- }
-
-rule(".icon-remove") { background-position: -312px 0px;
- }
-
-rule(".icon-zoom-in") { background-position: -336px 0px;
- }
-
-rule(".icon-zoom-out") { background-position: -360px 0px;
- }
-
-rule(".icon-off") { background-position: -384px 0px;
- }
-
-rule(".icon-signal") { background-position: -408px 0px;
- }
-
-rule(".icon-cog") { background-position: -432px 0px;
- }
-
-rule(".icon-trash") { background-position: -456px 0px;
- }
-
-rule(".icon-home") { background-position: 0px      -24px;
- }
-
-rule(".icon-file") { background-position: -24px  -24px;
- }
-
-rule(".icon-time") { background-position: -48px  -24px;
- }
-
-rule(".icon-road") { background-position: -72px  -24px;
- }
-
-rule(".icon-download-alt") { background-position: -96px  -24px;
- }
-
-rule(".icon-download") { background-position: -120px -24px;
- }
-
-rule(".icon-upload") { background-position: -144px -24px;
- }
-
-rule(".icon-inbox") { background-position: -168px -24px;
- }
-
-rule(".icon-play-circle") { background-position: -192px -24px;
- }
-
-rule(".icon-repeat") { background-position: -216px -24px;
- }
-
-rule(".icon-refresh") { background-position: -240px -24px;
- }
-
-rule(".icon-list-alt") { background-position: -264px -24px;
- }
-
-rule(".icon-lock") { background-position: -287px -24px;
- } // 1px off
-rule(".icon-flag") { background-position: -312px -24px;
- }
-
-rule(".icon-headphones") { background-position: -336px -24px;
- }
-
-rule(".icon-volume-off") { background-position: -360px -24px;
- }
-
-rule(".icon-volume-down") { background-position: -384px -24px;
- }
-
-rule(".icon-volume-up") { background-position: -408px -24px;
- }
-
-rule(".icon-qrcode") { background-position: -432px -24px;
- }
-
-rule(".icon-barcode") { background-position: -456px -24px;
- }
-
-rule(".icon-tag") { background-position: 0px      -48px;
- }
-
-rule(".icon-tags") { background-position: -25px  -48px;
- } // 1px off
-rule(".icon-book") { background-position: -48px  -48px;
- }
-
-rule(".icon-bookmark") { background-position: -72px  -48px;
- }
-
-rule(".icon-print") { background-position: -96px  -48px;
- }
-
-rule(".icon-camera") { background-position: -120px -48px;
- }
-
-rule(".icon-font") { background-position: -144px -48px;
- }
-
-rule(".icon-bold") { background-position: -167px -48px;
- } // 1px off
-rule(".icon-italic") { background-position: -192px -48px;
- }
-
-rule(".icon-text-height") { background-position: -216px -48px;
- }
-
-rule(".icon-text-width") { background-position: -240px -48px;
- }
-
-rule(".icon-align-left") { background-position: -264px -48px;
- }
-
-rule(".icon-align-center") { background-position: -288px -48px;
- }
-
-rule(".icon-align-right") { background-position: -312px -48px;
- }
-
-rule(".icon-align-justify") { background-position: -336px -48px;
- }
-
-rule(".icon-list") { background-position: -360px -48px;
- }
-
-rule(".icon-indent-left") { background-position: -384px -48px;
- }
-
-rule(".icon-indent-right") { background-position: -408px -48px;
- }
-
-rule(".icon-facetime-video") { background-position: -432px -48px;
- }
-
-rule(".icon-picture") { background-position: -456px -48px;
- }
-
-rule(".icon-pencil") { background-position: 0px      -72px;
- }
-
-rule(".icon-map-marker") { background-position: -24px  -72px;
- }
-
-rule(".icon-adjust") { background-position: -48px  -72px;
- }
-
-rule(".icon-tint") { background-position: -72px  -72px;
- }
-
-rule(".icon-edit") { background-position: -96px  -72px;
- }
-
-rule(".icon-share") { background-position: -120px -72px;
- }
-
-rule(".icon-check") { background-position: -144px -72px;
- }
-
-rule(".icon-move") { background-position: -168px -72px;
- }
-
-rule(".icon-step-backward") { background-position: -192px -72px;
- }
-
-rule(".icon-fast-backward") { background-position: -216px -72px;
- }
-
-rule(".icon-backward") { background-position: -240px -72px;
- }
-
-rule(".icon-play") { background-position: -264px -72px;
- }
-
-rule(".icon-pause") { background-position: -288px -72px;
- }
-
-rule(".icon-stop") { background-position: -312px -72px;
- }
-
-rule(".icon-forward") { background-position: -336px -72px;
- }
-
-rule(".icon-fast-forward") { background-position: -360px -72px;
- }
-
-rule(".icon-step-forward") { background-position: -384px -72px;
- }
-
-rule(".icon-eject") { background-position: -408px -72px;
- }
-
-rule(".icon-chevron-left") { background-position: -432px -72px;
- }
-
-rule(".icon-chevron-right") { background-position: -456px -72px;
- }
-
-rule(".icon-plus-sign") { background-position: 0px      -96px;
- }
-
-rule(".icon-minus-sign") { background-position: -24px  -96px;
- }
-
-rule(".icon-remove-sign") { background-position: -48px  -96px;
- }
-
-rule(".icon-ok-sign") { background-position: -72px  -96px;
- }
-
-rule(".icon-question-sign") { background-position: -96px  -96px;
- }
-
-rule(".icon-info-sign") { background-position: -120px -96px;
- }
-
-rule(".icon-screenshot") { background-position: -144px -96px;
- }
-
-rule(".icon-remove-circle") { background-position: -168px -96px;
- }
-
-rule(".icon-ok-circle") { background-position: -192px -96px;
- }
-
-rule(".icon-ban-circle") { background-position: -216px -96px;
- }
-
-rule(".icon-arrow-left") { background-position: -240px -96px;
- }
-
-rule(".icon-arrow-right") { background-position: -264px -96px;
- }
-
-rule(".icon-arrow-up") { background-position: -289px -96px;
- } // 1px off
-rule(".icon-arrow-down") { background-position: -312px -96px;
- }
-
-rule(".icon-share-alt") { background-position: -336px -96px;
- }
-
-rule(".icon-resize-full") { background-position: -360px -96px;
- }
-
-rule(".icon-resize-small") { background-position: -384px -96px;
- }
-
-rule(".icon-plus") { background-position: -408px -96px;
- }
-
-rule(".icon-minus") { background-position: -433px -96px;
- }
-
-rule(".icon-asterisk") { background-position: -456px -96px;
- }
-
-rule(".icon-exclamation-sign") { background-position: 0px      -120px;
- }
-
-rule(".icon-gift") { background-position: -24px  -120px;
- }
-
-rule(".icon-leaf") { background-position: -48px  -120px;
- }
-
-rule(".icon-fire") { background-position: -72px  -120px;
- }
-
-rule(".icon-eye-open") { background-position: -96px  -120px;
- }
-
-rule(".icon-eye-close") { background-position: -120px -120px;
- }
-
-rule(".icon-warning-sign") { background-position: -144px -120px;
- }
-
-rule(".icon-plane") { background-position: -168px -120px;
- }
-
-rule(".icon-calendar") { background-position: -192px -120px;
- }
-
-rule(".icon-random") { background-position: -216px -120px;
- width = 16.px
- }
-
-rule(".icon-comment") { background-position: -240px -120px;
- }
-
-rule(".icon-magnet") { background-position: -264px -120px;
- }
-
-rule(".icon-chevron-up") { background-position: -288px -120px;
- }
-
-rule(".icon-chevron-down") { background-position: -313px -119px;
- } // 1px, 1px off
-rule(".icon-retweet") { background-position: -336px -120px;
- }
-
-rule(".icon-shopping-cart") { background-position: -360px -120px;
- }
-
-rule(".icon-folder-close") { background-position: -384px -120px;
- width = 16.px
- }
-
-rule(".icon-folder-open") { background-position: -408px -120px;
- width = 16.px
- }
-
-rule(".icon-resize-vertical") { background-position: -432px -119px;
- } // 1px, 1px off
-rule(".icon-resize-horizontal") { background-position: -456px -118px;
- } // 1px, 2px off
-rule(".icon-hdd") { background-position: 0px      -144px;
- }
-
-rule(".icon-bullhorn") { background-position: -24px  -144px;
- }
-
-rule(".icon-bell") { background-position: -48px  -144px;
- }
-
-rule(".icon-certificate") { background-position: -72px  -144px;
- }
-
-rule(".icon-thumbs-up") { background-position: -96px  -144px;
- }
-
-rule(".icon-thumbs-down") { background-position: -120px -144px;
- }
-
-rule(".icon-hand-right") { background-position: -144px -144px;
- }
-
-rule(".icon-hand-left") { background-position: -168px -144px;
- }
-
-rule(".icon-hand-up") { background-position: -192px -144px;
- }
-
-rule(".icon-hand-down") { background-position: -216px -144px;
- }
-
-rule(".icon-circle-arrow-right") { background-position: -240px -144px;
- }
-
-rule(".icon-circle-arrow-left") { background-position: -264px -144px;
- }
-
-rule(".icon-circle-arrow-up") { background-position: -288px -144px;
- }
-
-rule(".icon-circle-arrow-down") { background-position: -312px -144px;
- }
-
-rule(".icon-globe") { background-position: -336px -144px;
- }
-
-rule(".icon-wrench") { background-position: -360px -144px;
- }
-
-rule(".icon-tasks") { background-position: -384px -144px;
- }
-
-rule(".icon-filter") { background-position: -408px -144px;
- }
-
-rule(".icon-briefcase") { background-position: -432px -144px;
- }
-
-rule(".icon-fullscreen") { background-position: -456px -144px;
- }
+ruleOf(".icon-white",
+    ".nav-pills > .active > a > [class^=\"icon-\"]",
+    ".nav-pills > .active > a > [class*=\" icon-\"]",
+    ".nav-list > .active > a > [class^=\"icon-\"]",
+    ".nav-list > .active > a > [class*=\" icon-\"]",
+    ".navbar-inverse .nav > .active > a > [class^=\"icon-\"]",
+    ".navbar-inverse .nav > .active > a > [class*=\" icon-\"]",
+    ".dropdown-menu > li > a:hover > [class^=\"icon-\"]",
+    ".dropdown-menu > li > a:focus > [class^=\"icon-\"]",
+    ".dropdown-menu > li > a:hover > [class*=\" icon-\"]",
+    ".dropdown-menu > li > a:focus > [class*=\" icon-\"]",
+    ".dropdown-menu > .active > a > [class^=\"icon-\"]",
+    ".dropdown-menu > .active > a > [class*=\" icon-\"]",
+    ".dropdown-submenu:hover > a > [class^=\"icon-\"]",
+    ".dropdown-submenu:focus > a > [class^=\"icon-\"]",
+    ".dropdown-submenu:hover > a > [class*=\" icon-\"]",
+    ".dropdown-submenu:focus > a > [class*=\" icon-\"]") {
+  background-image: url("@{iconWhiteSpritePath}"); }
+
+rule(".icon-glass") { background-position: 0px 0px; }
+rule(".icon-music") { background-position: -24px 0px; }
+rule(".icon-search") { background-position: -48px 0px; }
+rule(".icon-envelope") { background-position: -72px 0px; }
+rule(".icon-heart") { background-position: -96px 0px; }
+rule(".icon-star") { background-position: -120px 0px; }
+rule(".icon-star-empty") { background-position: -144px 0px; }
+rule(".icon-user") { background-position: -168px 0px; }
+rule(".icon-film") { background-position: -192px 0px; }
+rule(".icon-th-large") { background-position: -216px 0px; }
+rule(".icon-th") { background-position: -240px 0px; }
+rule(".icon-th-list") { background-position: -264px 0px; }
+rule(".icon-ok") { background-position: -288px 0px; }
+rule(".icon-remove") { background-position: -312px 0px; }
+rule(".icon-zoom-in") { background-position: -336px 0px; }
+rule(".icon-zoom-out") { background-position: -360px 0px; }
+rule(".icon-off") { background-position: -384px 0px; }
+rule(".icon-signal") { background-position: -408px 0px; }
+rule(".icon-cog") { background-position: -432px 0px; }
+rule(".icon-trash") { background-position: -456px 0px; }
+
+rule(".icon-home") { background-position: 0px -24px; }
+rule(".icon-file") { background-position: -24px -24px; }
+rule(".icon-time") { background-position: -48px -24px; }
+rule(".icon-road") { background-position: -72px -24px; }
+rule(".icon-download-alt") { background-position: -96px -24px; }
+rule(".icon-download") { background-position: -120px -24px; }
+rule(".icon-upload") { background-position: -144px -24px; }
+rule(".icon-inbox") { background-position: -168px -24px; }
+rule(".icon-play-circle") { background-position: -192px -24px; }
+rule(".icon-repeat") { background-position: -216px -24px; }
+rule(".icon-refresh") { background-position: -240px -24px; }
+rule(".icon-list-alt") { background-position: -264px -24px; }
+rule(".icon-lock") { background-position: -287px -24px; } // 1px off
+rule(".icon-flag") { background-position: -312px -24px; }
+rule(".icon-headphones") { background-position: -336px -24px; }
+rule(".icon-volume-off") { background-position: -360px -24px; }
+rule(".icon-volume-down") { background-position: -384px -24px; }
+rule(".icon-volume-up") { background-position: -408px -24px; }
+rule(".icon-qrcode") { background-position: -432px -24px; }
+rule(".icon-barcode") { background-position: -456px -24px; }
+
+rule(".icon-tag") { background-position: 0px -48px; }
+rule(".icon-tags") { background-position: -25px -48px; } // 1px off
+rule(".icon-book") { background-position: -48px -48px; }
+rule(".icon-bookmark") { background-position: -72px -48px; }
+rule(".icon-print") { background-position: -96px -48px; }
+rule(".icon-camera") { background-position: -120px -48px; }
+rule(".icon-font") { background-position: -144px -48px; }
+rule(".icon-bold") { background-position: -167px -48px; } // 1px off
+rule(".icon-italic") { background-position: -192px -48px; }
+rule(".icon-text-height") { background-position: -216px -48px; }
+rule(".icon-text-width") { background-position: -240px -48px; }
+rule(".icon-align-left") { background-position: -264px -48px; }
+rule(".icon-align-center") { background-position: -288px -48px; }
+rule(".icon-align-right") { background-position: -312px -48px; }
+rule(".icon-align-justify") { background-position: -336px -48px; }
+rule(".icon-list") { background-position: -360px -48px; }
+rule(".icon-indent-left") { background-position: -384px -48px; }
+rule(".icon-indent-right") { background-position: -408px -48px; }
+rule(".icon-facetime-video") { background-position: -432px -48px; }
+rule(".icon-picture") { background-position: -456px -48px; }
+
+rule(".icon-pencil") { background-position: 0px -72px; }
+rule(".icon-map-marker") { background-position: -24px -72px; }
+rule(".icon-adjust") { background-position: -48px -72px; }
+rule(".icon-tint") { background-position: -72px -72px; }
+rule(".icon-edit") { background-position: -96px -72px; }
+rule(".icon-share") { background-position: -120px -72px; }
+rule(".icon-check") { background-position: -144px -72px; }
+rule(".icon-move") { background-position: -168px -72px; }
+rule(".icon-step-backward") { background-position: -192px -72px; }
+rule(".icon-fast-backward") { background-position: -216px -72px; }
+rule(".icon-backward") { background-position: -240px -72px; }
+rule(".icon-play") { background-position: -264px -72px; }
+rule(".icon-pause") { background-position: -288px -72px; }
+rule(".icon-stop") { background-position: -312px -72px; }
+rule(".icon-forward") { background-position: -336px -72px; }
+rule(".icon-fast-forward") { background-position: -360px -72px; }
+rule(".icon-step-forward") { background-position: -384px -72px; }
+rule(".icon-eject") { background-position: -408px -72px; }
+rule(".icon-chevron-left") { background-position: -432px -72px; }
+rule(".icon-chevron-right") { background-position: -456px -72px; }
+
+rule(".icon-plus-sign") { background-position: 0px -96px; }
+rule(".icon-minus-sign") { background-position: -24px -96px; }
+rule(".icon-remove-sign") { background-position: -48px -96px; }
+rule(".icon-ok-sign") { background-position: -72px -96px; }
+rule(".icon-question-sign") { background-position: -96px -96px; }
+rule(".icon-info-sign") { background-position: -120px -96px; }
+rule(".icon-screenshot") { background-position: -144px -96px; }
+rule(".icon-remove-circle") { background-position: -168px -96px; }
+rule(".icon-ok-circle") { background-position: -192px -96px; }
+rule(".icon-ban-circle") { background-position: -216px -96px; }
+rule(".icon-arrow-left") { background-position: -240px -96px; }
+rule(".icon-arrow-right") { background-position: -264px -96px; }
+rule(".icon-arrow-up") { background-position: -289px -96px; } // 1px off
+rule(".icon-arrow-down") { background-position: -312px -96px; }
+rule(".icon-share-alt") { background-position: -336px -96px; }
+rule(".icon-resize-full") { background-position: -360px -96px; }
+rule(".icon-resize-small") { background-position: -384px -96px; }
+rule(".icon-plus") { background-position: -408px -96px; }
+rule(".icon-minus") { background-position: -433px -96px; }
+rule(".icon-asterisk") { background-position: -456px -96px; }
+
+rule(".icon-exclamation-sign") { background-position: 0px -120px; }
+rule(".icon-gift") { background-position: -24px -120px; }
+rule(".icon-leaf") { background-position: -48px -120px; }
+rule(".icon-fire") { background-position: -72px -120px; }
+rule(".icon-eye-open") { background-position: -96px -120px; }
+rule(".icon-eye-close") { background-position: -120px -120px; }
+rule(".icon-warning-sign") { background-position: -144px -120px; }
+rule(".icon-plane") { background-position: -168px -120px; }
+rule(".icon-calendar") { background-position: -192px -120px; }
+rule(".icon-random") { background-position: -216px -120px; width = 16.px }
+rule(".icon-comment") { background-position: -240px -120px; }
+rule(".icon-magnet") { background-position: -264px -120px; }
+rule(".icon-chevron-up") { background-position: -288px -120px; }
+rule(".icon-chevron-down") { background-position: -313px -119px; } // 1px, 1px off
+rule(".icon-retweet") { background-position: -336px -120px; }
+rule(".icon-shopping-cart") { background-position: -360px -120px; }
+rule(".icon-folder-close") { background-position: -384px -120px; width = 16.px }
+rule(".icon-folder-open") { background-position: -408px -120px; width = 16.px }
+rule(".icon-resize-vertical") { background-position: -432px -119px; } // 1px, 1px off
+rule(".icon-resize-horizontal") { background-position: -456px -118px; } // 1px, 2px off
+
+rule(".icon-hdd") { background-position: 0px -144px; }
+rule(".icon-bullhorn") { background-position: -24px -144px; }
+rule(".icon-bell") { background-position: -48px -144px; }
+rule(".icon-certificate") { background-position: -72px -144px; }
+rule(".icon-thumbs-up") { background-position: -96px -144px; }
+rule(".icon-thumbs-down") { background-position: -120px -144px; }
+rule(".icon-hand-right") { background-position: -144px -144px; }
+rule(".icon-hand-left") { background-position: -168px -144px; }
+rule(".icon-hand-up") { background-position: -192px -144px; }
+rule(".icon-hand-down") { background-position: -216px -144px; }
+rule(".icon-circle-arrow-right") { background-position: -240px -144px; }
+rule(".icon-circle-arrow-left") { background-position: -264px -144px; }
+rule(".icon-circle-arrow-up") { background-position: -288px -144px; }
+rule(".icon-circle-arrow-down") { background-position: -312px -144px; }
+rule(".icon-globe") { background-position: -336px -144px; }
+rule(".icon-wrench") { background-position: -360px -144px; }
+rule(".icon-tasks") { background-position: -384px -144px; }
+rule(".icon-filter") { background-position: -408px -144px; }
+rule(".icon-briefcase") { background-position: -432px -144px; }
+rule(".icon-fullscreen") { background-position: -456px -144px; }
     */}
 
 
@@ -4821,7 +4586,7 @@ rule(".table") {
   width = 100.pct
   marginBottom = vars.baseLineHeight
   // Cells
-  th td {
+  ruleOf("th", "td") {
     padding = Padding(8.px)
     lineHeight = vars.baseLineHeight.lh
     textAlign = TextAlign.left
@@ -4836,7 +4601,12 @@ rule(".table") {
     verticalAlign = VerticalAlign.bottom
   }
   // Remove top border from thead by default
-  caption + thead tr:first-child th caption + thead tr:first-child td colgroup + thead tr:first-child th colgroup + thead tr:first-child td thead:first-child tr:first-child th thead:first-child tr:first-child td {
+  ruleOf("caption + thead tr:first-child th",
+      "caption + thead tr:first-child td",
+      "colgroup + thead tr:first-child th",
+      "colgroup + thead tr:first-child td",
+      "thead:first-child tr:first-child th",
+      "thead:first-child tr:first-child td") {
     borderTop = Border(0.px)
   }
   // Account for multiple tbody instances
@@ -4854,7 +4624,7 @@ rule(".table") {
 
 // CONDENSED TABLE W/ HALF PADDING
 rule(".table-condensed") {
-  th td {
+  ruleOf("th", "td") {
     padding = Padding(4.px, 5.px)
   }
 }
@@ -4869,43 +4639,69 @@ rule(".table-bordered") {
  // IE7 can't round corners anyway
   borderLeft = Border(0.px)
   with(mixins) { borderRadius(vars.baseBorderRadius) }
-  th td {
+  ruleOf("th", "td") {
     borderLeft = Border(1.px, BorderStyle.solid, Color.solid)
   }
   // Prevent a double border
-  caption + thead tr:first-child th caption + tbody tr:first-child th caption + tbody tr:first-child td colgroup + thead tr:first-child th colgroup + tbody tr:first-child th colgroup + tbody tr:first-child td thead:first-child tr:first-child th tbody:first-child tr:first-child th tbody:first-child tr:first-child td {
+  ruleOf("caption + thead tr:first-child th",
+      "caption + tbody tr:first-child th",
+      "caption + tbody tr:first-child td",
+      "colgroup + thead tr:first-child th",
+      "colgroup + tbody tr:first-child th",
+      "colgroup + tbody tr:first-child td",
+      "thead:first-child tr:first-child th",
+      "tbody:first-child tr:first-child th",
+      "tbody:first-child tr:first-child td") {
     borderTop = Border(0.px)
   }
   // For first th/td in the first row in the first thead or tbody
-  thead:first-child tr:first-child > th:first-child tbody:first-child tr:first-child > td:first-child tbody:first-child tr:first-child > th:first-child {
+  ruleOf("thead:first-child tr:first-child > th:first-child",
+      "tbody:first-child tr:first-child > td:first-child",
+      "tbody:first-child tr:first-child > th:first-child") {
     with(mixins) { borderTopLeftRadius(vars.baseBorderRadius) }
   }
   // For last th/td in the first row in the first thead or tbody
-  thead:first-child tr:first-child > th:last-child tbody:first-child tr:first-child > td:last-child tbody:first-child tr:first-child > th:last-child {
+  ruleOf("thead:first-child tr:first-child > th:last-child",
+      "tbody:first-child tr:first-child > td:last-child",
+      "tbody:first-child tr:first-child > th:last-child") {
     with(mixins) { borderTopRightRadius(vars.baseBorderRadius) }
   }
   // For first th/td (can be either) in the last row in the last thead, tbody, and tfoot
-  thead:last-child tr:last-child > th:first-child tbody:last-child tr:last-child > td:first-child tbody:last-child tr:last-child > th:first-child tfoot:last-child tr:last-child > td:first-child tfoot:last-child tr:last-child > th:first-child {
+  ruleOf("thead:last-child tr:last-child > th:first-child",
+      "tbody:last-child tr:last-child > td:first-child",
+      "tbody:last-child tr:last-child > th:first-child",
+      "tfoot:last-child tr:last-child > td:first-child",
+      "tfoot:last-child tr:last-child > th:first-child") {
     with(mixins) { borderBottomLeftRadius(vars.baseBorderRadius) }
   }
   // For last th/td (can be either) in the last row in the last thead, tbody, and tfoot
-  thead:last-child tr:last-child > th:last-child tbody:last-child tr:last-child > td:last-child tbody:last-child tr:last-child > th:last-child tfoot:last-child tr:last-child > td:last-child tfoot:last-child tr:last-child > th:last-child {
+  ruleOf("thead:last-child tr:last-child > th:last-child",
+      "tbody:last-child tr:last-child > td:last-child",
+      "tbody:last-child tr:last-child > th:last-child",
+      "tfoot:last-child tr:last-child > td:last-child",
+      "tfoot:last-child tr:last-child > th:last-child") {
     with(mixins) { borderBottomRightRadius(vars.baseBorderRadius) }
   }
 
   // Clear border-radius for first and last td in the last row in the last tbody for table with tfoot
-  tfoot + tbody:last-child tr:last-child td:first-child {
+  "tfoot + tbody:last-child tr:last-child td:first-child" {
     with(mixins) { borderBottomLeftRadius(0px) }
   }
-  tfoot + tbody:last-child tr:last-child td:last-child {
+  "tfoot + tbody:last-child tr:last-child td:last-child" {
     with(mixins) { borderBottomRightRadius(0px) }
   }
 
   // Special fixes to round the left border on the first td/th
-  caption + thead tr:first-child th:first-child caption + tbody tr:first-child td:first-child colgroup + thead tr:first-child th:first-child colgroup + tbody tr:first-child td:first-child {
+  ruleOf("caption + thead tr:first-child th:first-child",
+      "caption + tbody tr:first-child td:first-child",
+      "colgroup + thead tr:first-child th:first-child",
+      "colgroup + tbody tr:first-child td:first-child") {
     with(mixins) { borderTopLeftRadius(vars.baseBorderRadius) }
   }
-  caption + thead tr:first-child th:last-child caption + tbody tr:first-child td:last-child colgroup + thead tr:first-child th:last-child colgroup + tbody tr:first-child td:last-child {
+  ruleOf("caption + thead tr:first-child th:last-child",
+      "caption + tbody tr:first-child td:last-child",
+      "colgroup + thead tr:first-child th:last-child",
+      "colgroup + tbody tr:first-child td:last-child") {
     with(mixins) { borderTopRightRadius(vars.baseBorderRadius) }
   }
 
@@ -4949,30 +4745,18 @@ rule("table td[class*=\"span\"] table th[class*=\"span\"] .row-fluid table td[cl
 
 // Change the column widths to account for td/th padding
 rule(".table td .table th") {
-  "&.span1" { .tableColumns(1);
- }
-  "&.span2" { .tableColumns(2);
- }
-  "&.span3" { .tableColumns(3);
- }
-  "&.span4" { .tableColumns(4);
- }
-  "&.span5" { .tableColumns(5);
- }
-  "&.span6" { .tableColumns(6);
- }
-  "&.span7" { .tableColumns(7);
- }
-  "&.span8" { .tableColumns(8);
- }
-  "&.span9" { .tableColumns(9);
- }
-  "&.span10" { .tableColumns(10);
- }
-  "&.span11" { .tableColumns(11);
- }
-  "&.span12" { .tableColumns(12);
- }
+  "&.span1" { .tableColumns(1); }
+  "&.span2" { .tableColumns(2); }
+  "&.span3" { .tableColumns(3); }
+  "&.span4" { .tableColumns(4); }
+  "&.span5" { .tableColumns(5); }
+  "&.span6" { .tableColumns(6); }
+  "&.span7" { .tableColumns(7); }
+  "&.span8" { .tableColumns(8); }
+  "&.span9" { .tableColumns(9); }
+  "&.span10" { .tableColumns(10); }
+  "&.span11" { .tableColumns(11); }
+  "&.span12" { .tableColumns(12); }
 }
 
 
@@ -5045,7 +4829,7 @@ rule(".thumbnail") {
   with(mixins) { transition(all .2s ease-in-out) }
 }
 // Add a hover/focus state for linked versions only
-rule("a.thumbnail:hover a.thumbnail:focus") {
+ruleOf("a.thumbnail:hover", "a.thumbnail:focus") {
   borderColor =  vars.linkColor
   with(mixins) { boxShadow(0px 1px 4px rgba(0,105,214,.25)) }
 }
@@ -5075,8 +4859,7 @@ rule(".tooltip") {
   fontSize = 11.px
   lineHeight = 1.4.px.lh
   with(mixins) { opacity(0px) }
-  "&.in" { .opacity(80.0);
- }
+  "&.in" { .opacity(80.0); }
   "&.top" { marginTop = -3.px
  padding = Padding(5.px, 0.px) }
   "&.right" { marginLeft = 3.px
@@ -5157,61 +4940,39 @@ rule(".lead") {
 // Emphasis & misc
 
 // Ex: 14px base font * 85% = about 12px
-rule("small") { fontSize = 85.pct
- }
+rule("small") { fontSize = 85.pct }
 
-rule("strong") { fontWeight = FontWeight.bold
- }
+rule("strong") { fontWeight = FontWeight.bold }
 
-rule("em") { font-style: italic;
- }
+rule("em") { font-style: italic; }
 
-rule("cite") { font-style: normal;
- }
+rule("cite") { font-style: normal; }
 
 // Utility classes
-rule(".muted") { color = vars.grayLight
- }
+rule(".muted") { color = vars.grayLight }
+ruleOf("a.muted:hover", "a.muted:focus") { color: darken(vars.grayLight, 10%); }
 
-rule("a.muted:hover a.muted:focus") { color: darken(vars.grayLight, 10%);
- }
+rule(".text-warning") { color = vars.warningText }
+ruleOf("a.text-warning:hover", "a.text-warning:focus") { color: darken(vars.warningText, 10%); }
 
-rule(".text-warning") { color = vars.warningText
- }
+rule(".text-error") { color = vars.errorText }
+ruleOf("a.text-error:hover", "a.text-error:focus") { color: darken(vars.errorText, 10%); }
 
-rule("a.text-warning:hover a.text-warning:focus") { color: darken(vars.warningText, 10%);
- }
+rule(".text-info") { color = vars.infoText }
+ruleOf("a.text-info:hover", "a.text-info:focus") { color: darken(vars.infoText, 10%); }
 
-rule(".text-error") { color = vars.errorText
- }
+rule(".text-success") { color = vars.successText }
+ruleOf("a.text-success:hover", "a.text-success:focus") { color: darken(vars.successText, 10%); }
 
-rule("a.text-error:hover a.text-error:focus") { color: darken(vars.errorText, 10%);
- }
+rule(".text-left") { textAlign = TextAlign.left }
 
-rule(".text-info") { color = vars.infoText
- }
+rule(".text-right") { textAlign = TextAlign.right }
 
-rule("a.text-info:hover a.text-info:focus") { color: darken(vars.infoText, 10%);
- }
-
-rule(".text-success") { color = vars.successText
- }
-
-rule("a.text-success:hover a.text-success:focus") { color: darken(vars.successText, 10%);
- }
-
-rule(".text-left") { textAlign = TextAlign.left
- }
-
-rule(".text-right") { textAlign = TextAlign.right
- }
-
-rule(".text-center") { textAlign = TextAlign.center
- }
+rule(".text-center") { textAlign = TextAlign.center }
 
 
 // Headings
-rule("h1, h2, h3, h4, h5, h6") {
+ruleOf("h1", "h2", "h3", "h4", "h5", "h6") {
   margin: (vars.baseLineHeight / 2) 0px;
   fontFamily = vars.headingsFontFamily
   fontWeight = vars.headingsFontWeight
@@ -5226,31 +4987,20 @@ rule("h1, h2, h3, h4, h5, h6") {
   }
 }
 
-rule("h1 h2 h3") { lineHeight = vars.baseLineHeight * 2
- }
+ruleOf("h1", "h2", "h3") { lineHeight = vars.baseLineHeight * 2 }
 
-rule("h1") { fontSize = vars.baseFontSize * 2.75
- } // ~38px
-rule("h2") { fontSize = vars.baseFontSize * 2.25
- } // ~32px
-rule("h3") { fontSize = vars.baseFontSize * 1.75
- } // ~24px
-rule("h4") { fontSize = vars.baseFontSize * 1.25
- } // ~18px
-rule("h5") { fontSize = vars.baseFontSize
- }
+rule("h1") { fontSize = vars.baseFontSize * 2.75 } // ~38px
+rule("h2") { fontSize = vars.baseFontSize * 2.25 } // ~32px
+rule("h3") { fontSize = vars.baseFontSize * 1.75 } // ~24px
+rule("h4") { fontSize = vars.baseFontSize * 1.25 } // ~18px
+rule("h5") { fontSize = vars.baseFontSize }
 
-rule("h6") { fontSize = vars.baseFontSize * 0.85
- } // ~12px
-rule("h1 small") { fontSize = vars.baseFontSize * 1.75
- } // ~24px
-rule("h2 small") { fontSize = vars.baseFontSize * 1.25
- } // ~18px
-rule("h3 small") { fontSize = vars.baseFontSize
- }
+rule("h6") { fontSize = vars.baseFontSize * 0.85 } // ~12px
+rule("h1 small") { fontSize = vars.baseFontSize * 1.75 } // ~24px
+rule("h2 small") { fontSize = vars.baseFontSize * 1.25 } // ~18px
+rule("h3 small") { fontSize = vars.baseFontSize }
 
-rule("h4 small") { fontSize = vars.baseFontSize
- }
+rule("h4 small") { fontSize = vars.baseFontSize }
 
 
 // Page header
@@ -5270,7 +5020,7 @@ rule("ul, ol") {
   margin: 0px 0px vars.baseLineHeight / 2 25px;
 }
 
-rule("ul ul ul ol ol ol ol ul") {
+ruleOf("ul ul", "ul ol", "ol ol", "ol ul") {
   marginBottom = 0.px
 }
 
@@ -5279,13 +5029,13 @@ rule("li") {
 }
 
 // Remove default list styles
-rule("ul.unstyled ol.unstyled") {
+ruleOf("ul.unstyled", "ol.unstyled") {
   marginLeft = 0.px
   listStyleType = ListStyleType.none
 }
 
 // Single-line list items
-rule("ul.inline ol.inline") {
+ruleOf("ul.inline", "ol.inline") {
   marginLeft = 0.px
   listStyleType = ListStyleType.none
   child("li") {
@@ -5301,7 +5051,7 @@ rule("dl") {
   marginBottom = vars.baseLineHeight
 }
 
-rule("dt dd") {
+ruleOf("dt", "dd") {
   lineHeight = vars.baseLineHeight.lh
 }
 
@@ -5339,9 +5089,9 @@ rule("hr") {
   borderBottom = Border(1.px, BorderStyle.solid, Color.solid)
 }
 
-// Abbreviations and acronyms
-abbr[title] // Added data-* attribute to help out our tooltip plugin, per https://github.com/twbs/bootstrap/issues/5257
-rule("abbr[data-original-title]") {
+ruleOf("abbr[title]", // Abbreviations and acronyms
+    // Added data-* attribute to help out our tooltip plugin, per https://github.com/twbs/bootstrap/issues/5257
+    "abbr[data-original-title]" ) {
   cursor = Cursor.help
   borderBottom = Border(1.px, BorderStyle.solid, Color.dotted)
 }
@@ -5378,7 +5128,7 @@ rule("blockquote") {
     paddingLeft = 0.px
     borderRight = Border(5.px, BorderStyle.solid, Color.solid)
     borderLeft = Border(0.px)
-    p small {
+    ruleOf("p", "small") {
       textAlign = TextAlign.right
     }
     small {
@@ -5393,7 +5143,7 @@ rule("blockquote") {
 }
 
 // Quotes
-rule("q:before q:after blockquote:before blockquote:after") {
+ruleOf("q:before", "q:after", "blockquote:before", "blockquote:after") {
   content = QuotedString("")
 }
 

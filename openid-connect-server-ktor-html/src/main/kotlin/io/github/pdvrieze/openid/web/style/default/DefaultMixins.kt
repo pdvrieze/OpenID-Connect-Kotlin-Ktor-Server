@@ -2,6 +2,7 @@ package io.github.pdvrieze.openid.web.style.default
 
 import io.github.pdvrieze.openid.web.style.Mixins
 import io.github.pdvrieze.openid.web.style.Styles
+import io.github.pdvrieze.openid.web.style.ruleOf
 import kotlinx.css.*
 import kotlinx.css.Float
 import kotlinx.css.properties.*
@@ -15,7 +16,7 @@ object DefaultMixins: Mixins {
     override fun CssBuilder.clearfix() {
         display = Display.table
 
-        rule("&:before &:after") {
+        ruleOf("&:before", "&:after") {
             display = Display.table
             content = QuotedString("")
             // Fixes Opera/contenteditable bug:
@@ -189,15 +190,15 @@ object DefaultMixins: Mixins {
     ) {
         
         // Set the text color
-        ".control-label.help-block.help-inline" {
+        ruleOf(".control-label", ".help-block", ".help-inline") {
             color = textColor
         }
         // Mixin for form field states
         // Style inputs accordingly
-        ".checkbox .radio input select textarea" {
+        ruleOf(".checkbox", ".radio", "input", "select", "textarea") {
             color = textColor
         }
-        "input select textarea" {
+        ruleOf("input", "select", "textarea") {
             this.borderColor =  borderColor
             boxShadow += BoxShadowInset(
                 color = rgb(0, 0, 0, .075),
@@ -214,7 +215,7 @@ object DefaultMixins: Mixins {
         }
 
         // Give a small background color for input-prepend/-append
-        ".input-prepend .add-on .input-append .add-on" {
+        ruleOf(".input-prepend .add-on", ".input-append .add-on") {
             color = textColor
             this.backgroundColor = backgroundColor
             this.borderColor =  textColor
@@ -646,14 +647,14 @@ object DefaultMixins: Mixins {
 
 
         // in these cases the gradient won't cover the background, so we override
-        "&:hover, &:focus, &:active, &.active, &.disabled, &[disabled]" {
+        ruleOf("&:hover", "&:focus", "&:active", "&.active", "&.disabled", "&[disabled]") {
             color = textColor
             backgroundColor = endColor
             declarations["*background-color"] = endColor.darken(5)
         }
 
         // IE 7 + 8 can't handle box-shadow to show active, so we darken a bit ourselves
-        "&:active &.active" {
+        ruleOf("&:active", "&.active") {
             backgroundColor = Color("${endColor.darken(10)} e(\"\\9\")")
         }
     }
@@ -739,7 +740,12 @@ object DefaultMixins: Mixins {
         }
 
 // set the container width, and override it for fixed navbars in media queries
-        ".container .navbar-static-top .container .navbar-fixed-top .container .navbar-fixed-bottom .container" {
+        ruleOf(
+            ".container",
+            ".navbar-static-top .container",
+            ".navbar-fixed-top .container",
+            ".navbar-fixed-bottom .container"
+        ) {
             with(core) { span(gridColumns) }
         }
 
@@ -873,7 +879,7 @@ object DefaultMixins: Mixins {
         val input = GridInputImpl(gridColumnWidth, gridGutterWidth)
         input.builder()
 
-        "input, textarea, .uneditable-input" {
+        ruleOf("input", "textarea", ".uneditable-input") {
             marginLeft = 0.px
         }
 
@@ -905,36 +911,4 @@ object DefaultMixins: Mixins {
 
     }
     
-
-        /*
-    
-
-        fun CssBuilder.input(gridColumnWidth, gridGutterWidth) {
-    
-        .spanX (index) when (index > 0px) {
-        input.span@{index}, textarea.span@{index}, .uneditable-input.span@{index} { .span(index);
-        }
-        mixins.spanX(index-1)
-        }
-        .spanX (0px) {}
-    
-        fun CssBuilder.span(columns) {
-        width = ((gridColumnWidth) * columns) + (gridGutterWidth * (columns-1))-14
-        }
-    
-        rule("    input textarea .uneditable-input") {
-        marginLeft = 0.px // override margin-left from core grid system
-        }
-    
-        // Space grid-sized controls properly if multiple per line
-        .controls-row [class*="span"] + [class*="span"] {
-        marginLeft = gridGutterWidth
-        }
-    
-        // generate .spanX
-        .spanX (gridColumns);
-    
-        }
-        }
-        */
 }
