@@ -3327,125 +3327,139 @@ object DefaultStyles : Styles {
     }
 
 
-    override fun CssBuilder.pagination(){/*
-// Space out pagination from surrounding content
-rule(".pagination") {
-  margin: vars.baseLineHeight 0px;
-}
+    override fun CssBuilder.pagination() {
+        // Space out pagination from surrounding content
+        rule(".pagination") {
+            margin = Margin(vars.baseLineHeight, 0.px);
+        }
 
-rule(".pagination ul") {
-  // Allow for text-based alignment
-  display = Display.inlineBlock
-  with(mixins) { ie7InlineBlock() }
-  // Reset default ul styles
-  marginLeft = 0.px
-  marginBottom = 0.px
-  // Visuals
-  with(mixins) { borderRadius(vars.baseBorderRadius) }
-  with(mixins) { boxShadow(0px 1px 2px rgb(0,0,0,.05)) }
-}
+        rule(".pagination ul") {
+            // Allow for text-based alignment
+            display = Display.inlineBlock
+            with(mixins) { ie7InlineBlock() }
+            // Reset default ul styles
+            marginLeft = 0.px
+            marginBottom = 0.px
+            // Visuals
+            with(mixins) {
+                borderRadius(vars.baseBorderRadius)
+                boxShadow(0.px, 1.px, 2.px, rgb(0, 0, 0, .05))
+            }
+        }
 
-rule(".pagination ul > li") {
-  display = Display.inline // Remove list-style and block-level defaults
-}
+        rule(".pagination ul > li") {
+            display = Display.inline // Remove list-style and block-level defaults
+        }
 
-ruleOf(".pagination ul > li > a",
-    ".pagination ul > li > span") {
-  float = Float.left
- // Collapse white-space
-  padding = Padding(4.px, 12.px)
-  lineHeight = vars.baseLineHeight.lh
-  textDecoration = TextDecoration.none
-  backgroundColor = vars.paginationBackground
-  border = Border(1.px, BorderStyle.solid, vars.paginationBorder)
-  borderLeftWidth = 0.px
-}
+        ruleOf(
+            ".pagination ul > li > a",
+            ".pagination ul > li > span"
+        ) {
+            float = Float.left
+            // Collapse white-space
+            padding = Padding(4.px, 12.px)
+            lineHeight = vars.baseLineHeight.lh
+            textDecoration = TextDecoration.none
+            backgroundColor = vars.paginationBackground
+            border = Border(1.px, BorderStyle.solid, vars.paginationBorder)
+            borderLeftWidth = 0.px
+        }
 
-rule(".pagination ul > li > a:hover",
-    ".pagination ul > li > a:focus",
-    ".pagination ul > .active > a",
-    ".pagination ul > .active > span") {
-  backgroundColor = vars.paginationActiveBackground
-}
+        ruleOf(
+            ".pagination ul > li > a:hover",
+            ".pagination ul > li > a:focus",
+            ".pagination ul > .active > a",
+            ".pagination ul > .active > span"
+        ) {
+            backgroundColor = vars.paginationActiveBackground
+        }
 
-ruleOf(".pagination ul > .active > a",
-    ".pagination ul > .active > span") {
-  color = vars.grayLight
-  cursor = Cursor.default
-}
+        ruleOf(
+            ".pagination ul > .active > a",
+            ".pagination ul > .active > span"
+        ) {
+            color = vars.grayLight
+            cursor = Cursor.default
+        }
 
-ruleOf(".pagination ul > .disabled > span",
-    ".pagination ul > .disabled > a",
-    ".pagination ul > .disabled > a:hover",
-    ".pagination ul > .disabled > a:focus") {
-  color = vars.grayLight
-  backgroundColor = Color.transparent
-  cursor = Cursor.default
-}
+        ruleOf(
+            ".pagination ul > .disabled > span",
+            ".pagination ul > .disabled > a",
+            ".pagination ul > .disabled > a:hover",
+            ".pagination ul > .disabled > a:focus"
+        ) {
+            color = vars.grayLight
+            backgroundColor = Color.transparent
+            cursor = Cursor.default
+        }
 
-ruleOf(".pagination ul > li:first-child > a",
-    ".pagination ul > li:first-child > span") {
-  borderLeftWidth = 1.px
-  with(mixins) { borderLeftRadius(vars.baseBorderRadius) }
-}
+        ruleOf(
+            ".pagination ul > li:first-child > a",
+            ".pagination ul > li:first-child > span"
+        ) {
+            borderLeftWidth = 1.px
+            with(mixins) { borderLeftRadius(vars.baseBorderRadius) }
+        }
 
-ruleOf(".pagination ul > li:last-child > a",
-    ".pagination ul > li:last-child > span") {
-  with(mixins) { borderRightRadius(vars.baseBorderRadius) }
-}
-
-
-// Alignment
-rule(".pagination-centered") {
-  textAlign = TextAlign.center
-}
-
-rule(".pagination-right") {
-  textAlign = TextAlign.right
-}
+        ruleOf(
+            ".pagination ul > li:last-child > a",
+            ".pagination ul > li:last-child > span"
+        ) {
+            with(mixins) { borderRightRadius(vars.baseBorderRadius) }
+        }
 
 
-// Sizing
+        // Alignment
+        rule(".pagination-centered") {
+            textAlign = TextAlign.center
+        }
 
-// Large
-rule(".pagination-large") {
-  ruleOf("ul > li > a", "ul > li > span") {
-    padding = vars.paddingLarge
-    fontSize = vars.fontSizeLarge
-  }
-  ruleOf("ul > li:first-child > a", "ul > li:first-child > span") {
-    with(mixins) { borderLeftRadius(vars.borderRadiusLarge) }
-  }
-  ruleOf("ul > li:last-child > a", "ul > li:last-child > span") {
-    with(mixins) { borderRightRadius(vars.borderRadiusLarge) }
-  }
-}
+        rule(".pagination-right") {
+            textAlign = TextAlign.right
+        }
 
-// Small and mini
-rule(".pagination-mini", ".pagination-small") {
-  ruleOf("ul > li:first-child > a", "ul > li:first-child > span") {
-    with(mixins) { borderLeftRadius(vars.borderRadiusSmall) }
-  }
-  ruleOf("ul > li:last-child > a", "ul > li:last-child > span") {
-    with(mixins) { borderRightRadius(vars.borderRadiusSmall) }
-  }
-}
 
-// Small
-rule(".pagination-small") {
-  ruleOf("ul > li > a", "ul > li > span") {
-    padding = vars.paddingSmall
-    fontSize = vars.fontSizeSmall
-  }
-}
-// Mini
-rule(".pagination-mini") {
-  ruleOf("ul > li > a", "ul > li > span") {
-    padding = vars.paddingMini
-    fontSize = vars.fontSizeMini
-  }
-}
-    */}
+        // Sizing
+
+        // Large
+        rule(".pagination-large") {
+            ruleOf("ul > li > a", "ul > li > span") {
+                padding = vars.paddingLarge
+                fontSize = vars.fontSizeLarge
+            }
+            ruleOf("ul > li:first-child > a", "ul > li:first-child > span") {
+                with(mixins) { borderLeftRadius(vars.borderRadiusLarge) }
+            }
+            ruleOf("ul > li:last-child > a", "ul > li:last-child > span") {
+                with(mixins) { borderRightRadius(vars.borderRadiusLarge) }
+            }
+        }
+
+        // Small and mini
+        ruleOf(".pagination-mini", ".pagination-small") {
+            ruleOf("ul > li:first-child > a", "ul > li:first-child > span") {
+                with(mixins) { borderLeftRadius(vars.borderRadiusSmall) }
+            }
+            ruleOf("ul > li:last-child > a", "ul > li:last-child > span") {
+                with(mixins) { borderRightRadius(vars.borderRadiusSmall) }
+            }
+        }
+
+        // Small
+        rule(".pagination-small") {
+            ruleOf("ul > li > a", "ul > li > span") {
+                padding = vars.paddingSmall
+                fontSize = vars.fontSizeSmall
+            }
+        }
+        // Mini
+        rule(".pagination-mini") {
+            ruleOf("ul > li > a", "ul > li > span") {
+                padding = vars.paddingMini
+                fontSize = vars.fontSizeMini
+            }
+        }
+    }
 
 
     override fun CssBuilder.popovers(){/*
