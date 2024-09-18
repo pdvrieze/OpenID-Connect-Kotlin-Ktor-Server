@@ -17,6 +17,7 @@ import kotlinx.css.properties.Angle
 import kotlinx.css.properties.BoxShadows
 import kotlinx.css.properties.LineHeight
 import kotlinx.css.properties.Time
+import kotlinx.css.properties.Timing
 import kotlinx.css.properties.deg
 import kotlinx.css.properties.lh
 
@@ -133,7 +134,8 @@ interface Mixins {
     fun CssBuilder.boxShadow(shadow: BoxShadows)
 
     // Transitions
-    fun CssBuilder.transition(transition: Time)
+    fun CssBuilder.transition(transition: String)
+    fun CssBuilder.transition(property: String, duration: Time, timing: Timing)
     fun CssBuilder.transitionDelay(transitionDelay: Time)
     fun CssBuilder.transitionDuration(transitionDuration: Time)
 
@@ -185,7 +187,7 @@ interface Mixins {
     fun CssBuilder.hyphens(mode: Hyphens = Hyphens.auto)
 
     // Opacity
-    fun CssBuilder.opacity(opacity: Double)
+    fun CssBuilder.opacity(opacity: Number)
 
     // Add an alphatransparency value to any background or border color (via Elyse Holladay)
     fun CssBuilder.translucentBackground(color: Color = DefaultStyles.DefaultVars.white, alpha: Double = 1.0)

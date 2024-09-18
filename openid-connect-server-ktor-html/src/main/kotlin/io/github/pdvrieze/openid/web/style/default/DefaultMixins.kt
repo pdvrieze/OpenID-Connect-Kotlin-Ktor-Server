@@ -2,7 +2,6 @@ package io.github.pdvrieze.openid.web.style.default
 
 import io.github.pdvrieze.openid.web.style.Mixins
 import io.github.pdvrieze.openid.web.style.Styles
-import io.github.pdvrieze.openid.web.style.default.DefaultStyles.DefaultVars.baseLineHeight
 import kotlinx.css.*
 import kotlinx.css.Float
 import kotlinx.css.properties.*
@@ -284,11 +283,18 @@ object DefaultMixins: Mixins {
     }
 
     // Transitions
-    override fun CssBuilder.transition(transition: Time) {
+    override fun CssBuilder.transition(transition: String) {
         declarations["-webkit-transition"] = transition
         declarations["-moz-transition"] = transition
         declarations["-o-transition"] = transition
-        transitionDelay= transition
+        declarations["transition"] = transition
+    }
+
+    override fun CssBuilder.transition(property: String, duration: Time, timing: Timing) {
+        declarations["-webkit-transition"] = "$property $duration $timing"
+        declarations["-moz-transition"] = "$property $duration $timing"
+        declarations["-o-transition"] = "$property $duration $timing"
+        declarations["transition"] = "$property $duration $timing"
     }
 
     override fun CssBuilder.transitionDelay(transitionDelay: Time) {
@@ -441,9 +447,9 @@ object DefaultMixins: Mixins {
     }
 
     // Opacity
-    override fun CssBuilder.opacity(opacity: Double) {
-        opacity(opacity / 100.0)
-        filter = "alpha(opacity=$opacity)"
+    override fun CssBuilder.opacity(opacity: Number) {
+        filter = "opacity($opacity%)"
+        filter = "alpha(opacity=$opacity%)"
     }
     //endregion
 
@@ -616,7 +622,7 @@ object DefaultMixins: Mixins {
     // to negative-margin away, but so it goes.
         declarations["*width"] = 100.pct
         height = 1.px
-        margin = Margin((baseLineHeight /2)-1.px, 1.px) // 8px 1px
+        margin = Margin((baselineHeight /2)-1.px, 1.px) // 8px 1px
         declarations["*margin"] = "-5px 0px 5px" // IE
         overflow = Overflow.hidden
         backgroundColor = top
