@@ -3462,140 +3462,136 @@ object DefaultStyles : Styles {
     }
 
 
-    override fun CssBuilder.popovers(){/*
-rule(".popover") {
-  position = Position.absolute
-  top = 0.px
-  left = 0.px
-  zIndex = vars.zindexPopover
-  display = Display.none
-  maxWidth = 276.px
-  padding = Padding(1.px)
-  textAlign = TextAlign.left
- // Reset given new insertion method
-  backgroundColor = vars.popoverBackground
-  -webkit-background-clip: padding-box;
-     -moz-background-clip: padding;
-          background-clip: padding-box;
-  border = Border(1.px, BorderStyle.solid, Color("#ccc"))
-  border = Border(1px, BorderStyle.solid, rgb(0,0,0,.2))
-  with(mixins) { borderRadius(6.px) }
-  with(mixins) { boxShadow(0px 5px 10px rgb(0,0,0,.2)) }
+    override fun CssBuilder.popovers() {
+        rule(".popover") {
+            position = Position.absolute
+            top = 0.px
+            left = 0.px
+            zIndex = vars.zindexPopover
+            display = Display.none
+            maxWidth = 276.px
+            padding = Padding(1.px)
+            textAlign = TextAlign.left
+            // Reset given new insertion method
+            backgroundColor = vars.popoverBackground
 
-  // Overrides for proper insertion
-  whiteSpace = WhiteSpace.normal
+            declarations["-webkit-background-clip"] = BackgroundClip.paddingBox
+            declarations["-moz-background-clip"] = "padding"
+            backgroundClip = BackgroundClip.paddingBox
 
-  // Offset the popover to account for the popover arrow
-  "&.top" { marginTop = -10.px }
-  "&.right" { marginLeft = 10.px }
-  "&.bottom" { marginTop = 10.px }
-  "&.left" { marginLeft = -10.px }
-}
+            border = Border(1.px, BorderStyle.solid, Color("#ccc"))
+            border = Border(1.px, BorderStyle.solid, rgb(0, 0, 0, .2))
+            with(mixins) {
+                borderRadius(6.px)
+                boxShadow(0.px, 5.px, 10.px, rgb(0, 0, 0, .2))
+            }
 
-rule(".popover-title") {
-  margin = Margin(0.px) // reset heading margin
-  padding = Padding(8.px, 14.px)
-  fontSize = 14.px
-  fontWeight = FontWeight.normal
-  lineHeight = 18.px.lh
-  backgroundColor = vars.popoverTitleBackground
-  borderBottom = Border(1.px, BorderStyle.solid, Color.vars).popoverTitleBackground.darken(5);
-  with(mixins) { borderRadius(5.px, 5.px, 0.px, 0.px) }
-rule("&:empty") {
-    display = Display.none
-  }
-}
+            // Overrides for proper insertion
+            whiteSpace = WhiteSpace.normal
 
-rule(".popover-content") {
-  padding = Padding(9.px, 14.px)
-}
+            // Offset the popover to account for the popover arrow
+            "&.top" { marginTop = -10.px }
+            "&.right" { marginLeft = 10.px }
+            "&.bottom" { marginTop = 10.px }
+            "&.left" { marginLeft = -10.px }
+        }
 
-// Arrows
-//
-// .arrow is outer, .arrow:after is inner
-ruleOf(".popover .arrow", ".popover .arrow:after") {
-  position = Position.absolute
-  display = Display.block
-  width = 0.px
-  height = 0.px
-  border-color: transparent;
-  border-style: solid;
-}
+        rule(".popover-title") {
+            margin = Margin(0.px) // reset heading margin
+            padding = Padding(8.px, 14.px)
+            fontSize = 14.px
+            fontWeight = FontWeight.normal
+            lineHeight = 18.px.lh
+            backgroundColor = vars.popoverTitleBackground
+            borderBottom = Border(1.px, BorderStyle.solid, vars.popoverTitleBackground.darken(5))
+            with(mixins) { borderRadius(5.px, 5.px, 0.px, 0.px) }
+            rule("&:empty") { display = Display.none }
+        }
 
-rule(".popover .arrow") {
-  borderWidth = vars.popoverArrowOuterWidth
-}
+        rule(".popover-content") { padding = Padding(9.px, 14.px) }
 
-rule(".popover .arrow:after") {
-  borderWidth = vars.popoverArrowWidth
-  content = QuotedString("")
-}
+        // Arrows
+        //
+        // .arrow is outer, .arrow:after is inner
+        ruleOf(".popover .arrow", ".popover .arrow:after") {
+            position = Position.absolute
+            display = Display.block
+            width = 0.px
+            height = 0.px
+            borderColor = Color.transparent
+            borderStyle = BorderStyle.solid
+        }
 
-rule(".popover") {
-  "&.top .arrow" {
-    left = 50.pct
-    marginLeft = -vars.popoverArrowOuterWidth
-    borderBottomWidth = 0.px
-    border-topColor = Color("#999")
- // IE8 fallback
-    border-top-color = vars.popoverArrowOuterColor
-    bottom: -vars.popoverArrowOuterWidth;
-    "&:after" {
-      bottom = 1.px
-      marginLeft = -vars.popoverArrowWidth
-      borderBottomWidth = 0.px
-      border-top-color = vars.popoverArrowColor
+        rule(".popover .arrow") {
+            borderWidth = vars.popoverArrowOuterWidth
+        }
+
+        rule(".popover .arrow:after") {
+            borderWidth = vars.popoverArrowWidth
+            content = QuotedString("")
+        }
+
+        rule(".popover") {
+            "&.top .arrow" {
+                left = 50.pct
+                marginLeft = -vars.popoverArrowOuterWidth
+                borderBottomWidth = 0.px
+                borderTopColor = Color("#999") // IE8 fallback
+                borderTopColor = vars.popoverArrowOuterColor
+                bottom = -vars.popoverArrowOuterWidth
+                "&:after" {
+                    bottom = 1.px
+                    marginLeft = -vars.popoverArrowWidth
+                    borderBottomWidth = 0.px
+                    borderTopColor = vars.popoverArrowColor
+                }
+            }
+            "&.right .arrow" {
+                top = 50.pct
+                left = -vars.popoverArrowOuterWidth
+                marginTop = -vars.popoverArrowOuterWidth
+                borderLeftWidth = 0.px
+                borderRightColor = Color("#999") // IE8 fallback
+                borderRightColor = vars.popoverArrowOuterColor
+                "&:after" {
+                    left = 1.px
+                    bottom = -vars.popoverArrowWidth
+                    borderLeftWidth = 0.px
+                    borderRightColor = vars.popoverArrowColor
+                }
+            }
+            "&.bottom .arrow" {
+                left = 50.pct
+                marginLeft = -vars.popoverArrowOuterWidth
+                borderTopWidth = 0.px
+                borderBottomColor = Color("#999") // IE8 fallback
+                borderBottomColor = vars.popoverArrowOuterColor
+                top = -vars.popoverArrowOuterWidth
+                "&:after" {
+                    top = 1.px
+                    marginLeft = -vars.popoverArrowWidth
+                    borderTopWidth = 0.px
+                    borderBottomColor = vars.popoverArrowColor
+                }
+            }
+
+            rule("&.left .arrow") {
+                top = 50.pct
+                right = -vars.popoverArrowOuterWidth
+                marginTop = -vars.popoverArrowOuterWidth
+                borderRightWidth = 0.px
+                borderLeftColor = Color("#999") // IE8 fallback
+                borderLeftColor = vars.popoverArrowOuterColor
+                "&:after" {
+                    right = 1.px
+                    borderRightWidth = 0.px
+                    borderLeftColor = vars.popoverArrowColor
+                    bottom = -vars.popoverArrowWidth
+                }
+            }
+
+        }
     }
-  }
-  "&.right .arrow" {
-    top = 50.pct
-    left: -vars.popoverArrowOuterWidth;
-    marginTop = -vars.popoverArrowOuterWidth
-    borderLeftWidth = 0.px
-    border-rightColor = Color("#999")
- // IE8 fallback
-    border-right-color = vars.popoverArrowOuterColor
-    "&:after" {
-      left = 1.px
-      bottom: -vars.popoverArrowWidth;
-      borderLeftWidth = 0.px
-      border-right-color = vars.popoverArrowColor
-    }
-  }
-  "&.bottom .arrow" {
-    left = 50.pct
-    marginLeft = -vars.popoverArrowOuterWidth
-    borderTopWidth = 0.px
-    border-bottomColor = Color("#999")
- // IE8 fallback
-    border-bottom-color = vars.popoverArrowOuterColor
-    top: -vars.popoverArrowOuterWidth;
-    "&:after" {
-      top = 1.px
-      marginLeft = -vars.popoverArrowWidth
-      borderTopWidth = 0.px
-      border-bottom-color = vars.popoverArrowColor
-    }
-  }
-
-rule("&.left .arrow") {
-    top = 50.pct
-    right: -vars.popoverArrowOuterWidth;
-    marginTop = -vars.popoverArrowOuterWidth
-    borderRightWidth = 0.px
-    border-leftColor = Color("#999")
- // IE8 fallback
-    border-left-color = vars.popoverArrowOuterColor
-    "&:after" {
-      right = 1.px
-      borderRightWidth = 0.px
-      border-left-color = vars.popoverArrowColor
-      bottom: -vars.popoverArrowWidth;
-    }
-  }
-
-}
-    */}
 
 
     override fun CssBuilder.progressBars(){/*
