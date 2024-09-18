@@ -266,25 +266,25 @@ object DefaultStyles : Styles {
         override val warningText = Color("c09853")
         override val warningBackground = Color("fcf8e3")
 
-        // darken(spin(vars.warningBackground, -10), 3%);
+        // darken(spin(vars.warningBackground, -10), 3%)
         override val warningBorder = hsl(24, 25, 252).darken(3)
 
         override val errorText = Color("b94a48")
         override val errorBackground = Color("f2dede")
 
-        // darken(spin(vars.errorBackground, -10), 3%);
+        // darken(spin(vars.errorBackground, -10), 3%)
         override val errorBorder = hsl(230, 21, 242).darken(3)
 
         override val successText = Color("468847")
         override val successBackground = Color("dff0d8")
 
-        // darken(spin(vars.successBackground, -10), 5%);
+        // darken(spin(vars.successBackground, -10), 5%)
         override val successBorder = hsl(76, 25, 240).darken(5)
 
         override val infoText = Color("3a87ad")
         override val infoBackground = Color("d9edf7")
 
-        // darken(spin(vars.infoBackground, -10), 7%);
+        // darken(spin(vars.infoBackground, -10), 7%)
         override val infoBorder = hsl(174, 31, 247).darken(7)
 
 
@@ -1011,8 +1011,8 @@ object DefaultStyles : Styles {
             // because webkit cancels the carousel
             // animation if you trip this while
             // in the middle of another animation
-            // ;_;
-            // .transition(opacity .2s linear);
+            // ;_
+            // .transition(opacity .2s linear)
 
             // Reposition the right one
             "&.right" {
@@ -2522,7 +2522,7 @@ object DefaultStyles : Styles {
             ".search-query" {
                 marginBottom = 0.px
                 padding = Padding(4.px, 14.px)
-//            #font > .sans-serif(13px, normal, 1);
+//            #font > .sans-serif(13px, normal, 1)
                 with(mixins) {
                     sansSerif(vars, FontWeight.normal, 13.px, LineHeight("1"))
                     borderRadius(15.px)
@@ -3638,7 +3638,7 @@ object DefaultStyles : Styles {
         // Outer container
         rule(".progress") {
             overflow = Overflow.hidden
-            height = vars.baseLineHeight;
+            height = vars.baseLineHeight
             marginBottom = vars.baseLineHeight
             with(mixins) {
                 gradientVertical(Color("#f5f5f5"), Color("#f9f9f9"))
@@ -3731,204 +3731,208 @@ object DefaultStyles : Styles {
     }
 
 
-    override fun CssBuilder.reset(){/*
-// Display in IE6-9 and FF3
-ruleOf("article", "aside", "details", "figcaption", "figure", "footer", "header", "hgroup", "nav", "section") {
-  display = Display.block
-}
+    override fun CssBuilder.reset() {
+        // Display in IE6-9 and FF3
+        ruleOf("article", "aside", "details", "figcaption", "figure", "footer", "header", "hgroup", "nav", "section") {
+            display = Display.block
+        }
 
-// Display block in IE6-9 and FF3
-rule("audio", "canvas", "video") {
-  display = Display.inlineBlock
-  declarations["*display"] = Display.inline
-  declarations["*zoom"] = "1"
-}
+        // Display block in IE6-9 and FF3
+        ruleOf("audio", "canvas", "video") {
+            display = Display.inlineBlock
+            declarations["*display"] = Display.inline
+            declarations["*zoom"] = "1"
+        }
 
-// Prevents modern browsers from displaying 'audio' without controls
+        // Prevents modern browsers from displaying 'audio' without controls
 
-audio:not([controls]) {
-    display = Display.none
-}
+        "audio:not([controls])" {
+            display = Display.none
+        }
 
-// Base settings
-rule("html") {
-  fontSize = 100.pct
-  -webkit-text-size-adjust: 100%;
-      -ms-text-size-adjust: 100%;
-}
-// Focus states
-rule("a:focus") {
-  with(mixins) { tabFocus() }
-}
-// Hover & Active
-ruleOf("a:hover", "a:active") {
-  outlineWidth = 0.px
-}
+        // Base settings
+        rule("html") {
+            fontSize = 100.pct
+            declarations["-webkit-text-size-adjust"] = 100.pct
+            declarations["-ms-text-size-adjust"] = 100.pct
+        }
+        // Focus states
+        rule("a:focus") {
+            with(mixins) { tabFocus() }
+        }
+        // Hover & Active
+        ruleOf("a:hover", "a:active") {
+            outlineWidth = 0.px
+        }
 
-// Prevents sub and sup affecting line-height in all browsers
-ruleOf("sub", "sup") {
-  position = Position.relative
-  fontSize = 75.pct
-  lineHeight = 0.px.lh
-  verticalAlign = VerticalAlign.baseline
-}
+        // Prevents sub and sup affecting line-height in all browsers
+        ruleOf("sub", "sup") {
+            position = Position.relative
+            fontSize = 75.pct
+            lineHeight = 0.px.lh
+            verticalAlign = VerticalAlign.baseline
+        }
 
-rule("sup") {
-  top: -0.5em;
-}
+        rule("sup") {
+            top = -0.5.em
+        }
 
-rule("sub") {
-  bottom: -0.25em;
-}
+        rule("sub") {
+            bottom = -0.25.em
+        }
 
-// Img border in a's and image quality
-rule("img") {
-  /* Responsive images (ensure images don't scale beyond their parents) */
-  max-width = 100.pct
- /* Part 1: Set a maxium relative to the parent */
-  width: auto\9;
- /* IE7-8 need help adjusting responsive images */
-  height = LinearDimension.auto
- /* Part 2: Scale the height according to the width, otherwise you get stretching */
+        // Img border in a's and image quality
+        rule("img") {
+            // Responsive images (ensure images don't scale beyond their parents)
+            maxWidth = 100.pct // Part 1: Set a maxium relative to the parent
+            declarations["width"] = "auto\\9" // IE7-8 need help adjusting responsive images
+            height =
+                LinearDimension.auto // Part 2: Scale the height according to the width, otherwise you get stretching
 
-  verticalAlign = VerticalAlign.middle
-  borderWidth = 0.px
-  -ms-interpolation-mode: bicubic;
-}
+            verticalAlign = VerticalAlign.middle
+            borderWidth = 0.px
+            declarations["-ms-interpolation-mode"] = "bicubic"
+        }
 
-// Prevent max-width from affecting Google Maps
-ruleOf("#map_canvas img", ".google-maps img") {
-  max-width: none;
-}
+        // Prevent max-width from affecting Google Maps
+        ruleOf("#map_canvas img", ".google-maps img") {
+            maxWidth = LinearDimension.none
+        }
 
-// Forms
+        // Forms
 
-// Font size in all browsers, margin changes, misc consistency
-ruleOf("button", "input", "select", "textarea") {
-  margin = Margin(0.px)
-  fontSize = 100.pct
-  verticalAlign = VerticalAlign.middle
-}
+        // Font size in all browsers, margin changes, misc consistency
+        ruleOf("button", "input", "select", "textarea") {
+            margin = Margin(0.px)
+            fontSize = 100.pct
+            verticalAlign = VerticalAlign.middle
+        }
 
-ruleOf("button", "input") {
-  declarations["*overflow"] = "visible"
- // Inner spacing ie IE6/7
-  line-height: normal;
- // FF3/4 have !important on line-height in UA stylesheet
-}
+        ruleOf("button", "input") {
+            declarations["*overflow"] = "visible" // Inner spacing ie IE6/7
+            lineHeight = LineHeight.normal // FF3/4 have !important on line-height in UA stylesheet
+        }
 
-ruleOf("button::-moz-focus-inner", "input::-moz-focus-inner") { // Inner padding and border oddities in FF3/4
-  padding = Padding(0.px)
-  borderWidth = 0.px
-}
-ruleOf("button", 
-    "html input[type=\"button\"]", // Avoid the WebKit bug in Android 4.0.* where (2) destroys native `audio` and `video` controls.
-    "input[type=\"reset\"] input[type=\"submit\"]") {
-    declarations["-webkit-appearance"] = button;
-    // Corrects inability to style clickable `input` types in iOS.
-    cursor = Cursor.pointer // Improves usability and consistency of cursor style between image-type `input` and others.
-}
+        ruleOf("button::-moz-focus-inner", "input::-moz-focus-inner") { // Inner padding and border oddities in FF3/4
+            padding = Padding(0.px)
+            borderWidth = 0.px
+        }
 
-rule("label",
-    "select",
-    "button",
-    "input[type=\"button\"]",
-    "input[type=\"reset\"]",
-    "input[type=\"submit\"]",
-    "input[type=\"radio\"]", "input[type=\"checkbox\"]") {
-    cursor = Cursor.pointer // Improves usability and consistency of cursor style between image-type `input` and others.
-}
+        ruleOf(
+            "button",
+            "html input[type=\"button\"]", // Avoid the WebKit bug in Android 4.0.* where (2) destroys native `audio` and `video` controls.
+            "input[type=\"reset\"]",
+            "input[type=\"submit\"]"
+        ) {
+            declarations["-webkit-appearance"] = button
+            // Corrects inability to style clickable `input` types in iOS.
+            cursor =
+                Cursor.pointer // Improves usability and consistency of cursor style between image-type `input` and others.
+        }
 
-rule("input[type=\"search\"]") { // Appearance in Safari/Chrome
-  with(mixins) { boxSizing(content-box) }
-  -webkit-appearance: textfield;
-}
+        ruleOf(
+            "label",
+            "select",
+            "button",
+            "input[type=\"button\"]",
+            "input[type=\"reset\"]",
+            "input[type=\"submit\"]",
+            "input[type=\"radio\"]", "input[type=\"checkbox\"]"
+        ) {
+            cursor =
+                Cursor.pointer // Improves usability and consistency of cursor style between image-type `input` and others.
+        }
 
-ruleOf("input[type=\"search\"]::-webkit-search-decoration", "input[type=\"search\"]::-webkit-search-cancel-button") {
-  -webkit-appearance: none;
- // Inner-padding issues in Chrome OSX, Safari 5
-}
+        rule("input[type=\"search\"]") { // Appearance in Safari/Chrome
+            with(mixins) { boxSizing(BoxSizing.contentBox) }
+            declarations["-webkit-appearance"] = "textfield"
+        }
 
-rule("textarea") {
-  overflow = Overflow.auto
- // Remove vertical scrollbar in IE6-9
-  verticalAlign = VerticalAlign.top
- // Readability and alignment cross-browser
-}
+        ruleOf("input[type=\"search\"]::-webkit-search-decoration", "input[type=\"search\"]::-webkit-search-cancel-button") {
+            declarations["-webkit-appearance"] = "none"
+            // Inner-padding issues in Chrome OSX, Safari 5
+        }
+
+        rule("textarea") {
+            overflow = Overflow.auto
+            // Remove vertical scrollbar in IE6-9
+            verticalAlign = VerticalAlign.top
+            // Readability and alignment cross-browser
+        }
 
 
-// Printing
-// Source: https://github.com/h5bp/html5-boilerplate/blob/master/css/main.css
-rule("@media print") {
-    "*" {
-        declarations["text-shadow"] = "none !important"
-        color: #000 !important; // Black prints faster: h5bp.com/s
-        background: transparent !important;
-        box-shadow: none !important;
-      }
+        // Printing
+        // Source: https://github.com/h5bp/html5-boilerplate/blob/master/css/main.css
+        rule("@media print") {
+            "*" {
+                declarations["text-shadow"] = "none !important"
+                color = Color("#000 !important") // Black prints faster: h5bp.com/s
 
-ruleOf("a", "a:visited") {
-    textDecoration = TextDecoration.underline
-  }
+                backgroundColor = Color("transparent !important")
+                declarations["boxShadow"] = "none !important"
+            }
 
-rule("a[href]:after") {
-    content: " (" attr(href) ")";
-  }
+            ruleOf("a", "a:visited") {
+                textDecoration = TextDecoration(setOf(TextDecorationLine.underline))
+            }
 
-rule("abbr[title]:after") {
-    content: " (" attr(title) ")";
-  }
+            rule("a[href]:after") {
+                content = QuotedString("\" (\" attr(href) \")\"")
+            }
 
-  // Don't show links for images, or javascript/internal links
-  ruleOf(".ir a:after", "a[href^=\"javascript:\"]:after", "a[href^=\"#\"]:after") {
-    content = QuotedString("")
-  }
+            rule("abbr[title]:after") {
+                content = QuotedString("\" (\" attr(title) \")\"")
+            }
 
-ruleOf("pre", "blockquote") {
-    border = Border(1.px, BorderStyle.solid, Color("#999"))
-    page-break-inside: avoid;
-  }
+            // Don't show links for images, or javascript/internal links
+            ruleOf(".ir a:after", "a[href^=\"javascript:\"]:after", "a[href^=\"#\"]:after") {
+                content = QuotedString("")
+            }
 
-rule("thead") {
-    display: table-header-group;
- // h5bp.com/t
-  }
+            ruleOf("pre", "blockquote") {
+                border = Border(1.px, BorderStyle.solid, Color("#999"))
+                declarations["page-break-inside"] = "avoid"
+            }
 
-ruleOf("tr", "img") {
-    page-break-inside: avoid;
-  }
+            rule("thead") {
+                display = Display.tableHeaderGroup // h5bp.com/t
+            }
 
-rule("img") {
-    max-width: 100% !important;
-  }
+            ruleOf("tr", "img") {
+                declarations["page-break-inside"] = "avoid"
+            }
 
-rule("vars.page") {
-    margin: 0.5cm;
-  }
+            rule("img") {
+                maxWidth = LinearDimension("100% !important")
+            }
 
-ruleOf("p", "h2", "h3") {
-    orphans: 3;
-    widows: 3;
-  }
+            rule("vars.page") {
+                margin = Margin(0.5.cm)
+            }
 
-ruleOf("h2", "h3") {
-    page-break-after: avoid;
-  }
-}
-    */}
+            ruleOf("p", "h2", "h3") {
+                declarations["orphans"] = 3
+                declarations["widows"] = 3
+            }
+
+            ruleOf("h2", "h3") {
+                declarations["page-break-inside"] = "avoid"
+            }
+        }
+    }
 
 
     override fun CssBuilder.responsive1200pxMin(){/*
 vars.media (min-width: 1200px) {
 
   // Fixed grid
-  #grid > .core(vars.gridColumnWidth1200, vars.gridGutterWidth1200);
+  #grid > .core(vars.gridColumnWidth1200, vars.gridGutterWidth1200)
 
   // Fluid grid
-  #grid > .fluid(vars.fluidGridColumnWidth1200, vars.fluidGridGutterWidth1200);
+  #grid > .fluid(vars.fluidGridColumnWidth1200, vars.fluidGridGutterWidth1200)
 
   // Input grid
-  #grid > .input(vars.gridColumnWidth1200, vars.gridGutterWidth1200);
+  #grid > .input(vars.gridColumnWidth1200, vars.gridGutterWidth1200)
 
   // Thumbnails
   ".thumbnails" {
@@ -4061,7 +4065,7 @@ vars.media (max-width: 480px) {
 
   // Smooth out the collapsing/expanding nav
   ".nav-collapse" {
-    -webkit-transform: translate3d(0, 0, 0px);
+    declarations["-webkit-transform"] = "translate3d(0, 0, 0px)"
  // activate the GPU
   }
 
@@ -4120,7 +4124,7 @@ vars.media (max-width: 480px) {
   }
   ".modal-header .close" {
     padding = Padding(10.px)
-    margin: -10px;
+    margin: -10px
   }
 
   // Carousel
@@ -4136,13 +4140,13 @@ vars.media (max-width: 480px) {
 vars.media (min-width: 768px) and (max-width: 979px) {
 
   // Fixed grid
-  #grid > .core(vars.gridColumnWidth768, vars.gridGutterWidth768);
+  #grid > .core(vars.gridColumnWidth768, vars.gridGutterWidth768)
 
   // Fluid grid
-  #grid > .fluid(vars.fluidGridColumnWidth768, vars.fluidGridGutterWidth768);
+  #grid > .fluid(vars.fluidGridColumnWidth768, vars.fluidGridGutterWidth768)
 
   // Input grid
-  #grid > .input(vars.gridColumnWidth768, vars.gridGutterWidth768);
+  #grid > .input(vars.gridColumnWidth768, vars.gridGutterWidth768)
 
   // No need to reset .thumbnails here since it's the same vars.gridGutterWidth
 
@@ -4181,7 +4185,7 @@ vars.media (max-width: vars.navbarCollapseWidth) {
   ".navbar .brand" {
     paddingLeft = 10.px
     paddingRight = 10.px
-    margin: 0px 0px 0px -5px;
+    margin: 0px 0px 0px -5px
   }
 
   // COLLAPSIBLE NAVBAR
@@ -4193,7 +4197,7 @@ vars.media (max-width: vars.navbarCollapseWidth) {
   // Block-level the nav
   ".nav-collapse .nav" {
     float = Float.none
-    margin: 0px 0px (vars.baseLineHeight / 2);
+    margin: 0px 0px (vars.baseLineHeight / 2)
   }
   ".nav-collapse .nav > li" {
     float = Float.none
@@ -4251,11 +4255,11 @@ vars.media (max-width: vars.navbarCollapseWidth) {
     left = LinearDimension.auto
     float = Float.none
     display = Display.none
-    max-width: none;
+    max-width: none
     margin = Margin(0.px, 15.px)
     padding = Padding(0.px)
     backgroundColor = Color.transparent
-    border: none;
+    border: none
     with(mixins) { borderRadius(0.px) }
     with(mixins) { boxShadow(none) }
   }
@@ -4277,8 +4281,8 @@ ruleOf(".nav-collapse .dropdown-menu:before", ".nav-collapse .dropdown-menu:afte
   // Forms in navbar
   ruleOf(".nav-collapse .navbar-form", ".nav-collapse .navbar-search") {
     float = Float.none
-    padding: (vars.baseLineHeight / 2) 15px;
-    margin: (vars.baseLineHeight / 2) 0px;
+    padding: (vars.baseLineHeight / 2) 15px
+    margin: (vars.baseLineHeight / 2) 0px
     borderTop = Border(1.px, BorderStyle.solid, Color.solid)
     borderBottom = Border(1.px, BorderStyle.solid, Color.solid)
     with(mixins) { boxShadow(~"inset 0px 1px 0px rgb(255,255,255,.1), 0px 1px 0px rgb(255,255,255,.1)") }
@@ -4319,8 +4323,8 @@ ruleOf(".nav-collapse .dropdown-menu:before", ".nav-collapse .dropdown-menu:afte
 
         // Required to make the collapsing navbar work on regular desktops
          rule(".nav-collapse.collapse") {
-            height: auto !important;
-            overflow: visible !important;
+            height: auto !important
+            overflow: visible !important
         }
 
     }
@@ -4332,14 +4336,14 @@ ruleOf(".nav-collapse .dropdown-menu:before", ".nav-collapse .dropdown-menu:afte
 // Required for Windows 8 Metro split-screen snapping with IE10
 // Source: http://timkadlec.com/2012/10/ie10-snap-mode-and-responsive-design/
 rule("VAR-ms-viewport") {
-  width: device-width;
+  width: device-width
 }
 
 // Hide from screenreaders and browsers
 // Credit: HTML5 Boilerplate
 rule(".hidden") {
   display = Display.none
-  visibility: hidden;
+  visibility: hidden
 }
 
 // Visibility utilities
@@ -4455,10 +4459,10 @@ ruleOf("[class^=\"icon-\"]", "[class*=\" icon-\"]") {
   height = 14.px
   with(mixins) { ie7RestoreRightWhitespace() }
   lineHeight = 14.px.lh
-  vertical-align: text-top;
-  background-image: url("@{iconSpritePath}");
-  background-position: 14px 14px;
-  background-repeat: no-repeat;
+  vertical-align: text-top
+  background-image: url("@{iconSpritePath}")
+  background-position: 14px 14px
+  background-repeat: no-repeat
   marginTop = 1.px
 }
 
@@ -4636,8 +4640,8 @@ rule(".icon-fullscreen") { background-position: -456px -144px; }
 rule("table") {
   max-width = 100.pct
   backgroundColor = vars.tableBackground
-  border-collapse: collapse;
-  border-spacing: 0px;
+  border-collapse: collapse
+  border-spacing: 0px
 }
 
 // BASELINE STYLES
@@ -4692,7 +4696,7 @@ rule(".table-condensed") {
 // BORDERED VERSION
 rule(".table-bordered") {
   border = Border(1.px, BorderStyle.solid, vars.tableBorder)
-  border-collapse: separate;
+  border-collapse: separate
  // Done so we can round those corners!
   declarations["*border-collapse"] = "collapse"
  // IE7 can't round corners anyway
@@ -4914,7 +4918,7 @@ rule(".tooltip") {
   position = Position.absolute
   zIndex = vars.zindexTooltip
   display = Display.block
-  visibility: visible;
+  visibility: visible
   fontSize = 11.px
   lineHeight = 1.4.px.lh
   with(mixins) { opacity(0px) }
@@ -4945,8 +4949,8 @@ rule(".tooltip-arrow") {
   position = Position.absolute
   width = 0.px
   height = 0.px
-  border-color: transparent;
-  border-style: solid;
+  border-color: transparent
+  border-style: solid
 }
 
 rule(".tooltip") {
@@ -4975,7 +4979,7 @@ rule(".tooltip") {
     top = 0.px
     left = 50.pct
     marginLeft = -vars.tooltipArrowWidth
-    border-width: 0px vars.tooltipArrowWidth vars.tooltipArrowWidth;
+    border-width: 0px vars.tooltipArrowWidth vars.tooltipArrowWidth
     border-bottom-color = vars.tooltipArrowColor
   }
 }
@@ -4985,7 +4989,7 @@ rule(".tooltip") {
     override fun CssBuilder.type(){/*
 // Body text
 rule("p") {
-  margin: 0px 0px vars.baseLineHeight / 2;
+  margin: 0px 0px vars.baseLineHeight / 2
 }
 
 rule(".lead") {
@@ -5032,7 +5036,7 @@ rule(".text-center") { textAlign = TextAlign.center }
 
 // Headings
 ruleOf("h1", "h2", "h3", "h4", "h5", "h6") {
-  margin: (vars.baseLineHeight / 2) 0px;
+  margin: (vars.baseLineHeight / 2) 0px
   fontFamily = vars.headingsFontFamily
   fontWeight = vars.headingsFontWeight
   lineHeight = vars.baseLineHeight.lh
@@ -5064,8 +5068,8 @@ rule("h4 small") { fontSize = vars.baseFontSize }
 
 // Page header
 rule(".page-header") {
-  padding-bottom: (vars.baseLineHeight / 2)-1;
-  margin: vars.baseLineHeight 0px (vars.baseLineHeight * 1.5);
+  padding-bottom: (vars.baseLineHeight / 2)-1
+  margin: vars.baseLineHeight 0px (vars.baseLineHeight * 1.5)
   borderBottom = Border(1.px, BorderStyle.solid, Color.solid)
 }
 
@@ -5076,7 +5080,7 @@ rule(".page-header") {
 // Unordered and Ordered lists
 rule("ul, ol") {
   padding = Padding(0.px)
-  margin: 0px 0px vars.baseLineHeight / 2 25px;
+  margin: 0px 0px vars.baseLineHeight / 2 25px
 }
 
 ruleOf("ul ul", "ul ol", "ol ol", "ol ul") {
@@ -5127,7 +5131,7 @@ rule(".dl-horizontal") {
  // Ensure dl clears floats if empty dd elements present
   dt {
     float = Float.left
-    width: vars.horizontalComponentOffset-20;
+    width: vars.horizontalComponentOffset-20
     clear = Clear.left
     textAlign = TextAlign.right
     with(mixins) { textOverflow() }
@@ -5142,7 +5146,7 @@ rule(".dl-horizontal") {
 
 // Horizontal rules
 rule("hr") {
-  margin: vars.baseLineHeight 0px;
+  margin: vars.baseLineHeight 0px
   borderWidth = 0.px
   borderTop = Border(1.px, BorderStyle.solid, Color.solid)
   borderBottom = Border(1.px, BorderStyle.solid, Color.solid)
@@ -5163,7 +5167,7 @@ rule("abbr.initialism") {
 // Blockquotes
 rule("blockquote") {
   padding = Padding(0.px, 0.px, 0.px, 15.px)
-  margin: 0px 0px vars.baseLineHeight;
+  margin: 0px 0px vars.baseLineHeight
   borderLeft = Border(5.px, BorderStyle.solid, Color.solid)
   p {
     marginBottom = 0.px
@@ -5176,7 +5180,7 @@ rule("blockquote") {
     lineHeight = vars.baseLineHeight.lh
     color = vars.grayLight
     "&:before" {
-      content: '\2014 \00A0';
+      content: '\2014 \00A0'
     }
   }
 
@@ -5195,7 +5199,7 @@ rule("blockquote") {
         content = QuotedString("")
       }
       "&:after" {
-        content: '\00A0 \2014';
+        content: '\00A0 \2014'
       }
     }
   }
@@ -5210,7 +5214,7 @@ ruleOf("q:before", "q:after", "blockquote:before", "blockquote:after") {
 rule("address") {
   display = Display.block
   marginBottom = vars.baseLineHeight
-  font-style: normal;
+  font-style: normal
   lineHeight = vars.baseLineHeight.lh
 }
     */}
@@ -5237,7 +5241,7 @@ rule(".show") {
 
 // Visibility
 rule(".invisible") {
-  visibility: hidden;
+  visibility: hidden
 }
 
 // For Affix plugin
