@@ -21,7 +21,7 @@ object DefaultStyles : Styles {
 
     override val vars: Styles.Vars
         get() = DefaultVars
-    
+
     override val mixins: Mixins
         get() = DefaultMixins
 
@@ -332,7 +332,7 @@ object DefaultStyles : Styles {
         override val fluidGridColumnWidth768 = percentage(gridColumnWidth768, gridRowWidth768);
         override val fluidGridGutterWidth768 = percentage(gridGutterWidth768, gridRowWidth768);
     }
-    
+
     override fun CssBuilder.accordion() {
         // Parent container
         rule(".accordion") {
@@ -363,7 +363,7 @@ object DefaultStyles : Styles {
         // Inner needs the styles because you can't animate properly with any styles on the element
         rule(".accordion-inner") {
             padding = Padding(9.px, 15.px)
-            borderTop = Border(1.px, BorderStyle.solid, Color("#e5e5e5")) 
+            borderTop = Border(1.px, BorderStyle.solid, Color("#e5e5e5"))
         }
     }
 
@@ -394,7 +394,7 @@ object DefaultStyles : Styles {
             right = -21.px
             lineHeight = vars.baseLineHeight.lh
         }
-        
+
         // Alternate styles
         rule(".alert-success") {
             backgroundColor = vars.successBackground
@@ -425,7 +425,7 @@ object DefaultStyles : Styles {
         rule(".alert-info h4") {
             color = vars.infoText
         }
-        
+
         // Block alerts
         rule(".alert-block") {
             paddingTop = 14.px
@@ -461,8 +461,8 @@ object DefaultStyles : Styles {
                 }
             }
             child(".active") {
-            color = vars.grayLight
-        }
+                color = vars.grayLight
+            }
         }
     }
 
@@ -2386,156 +2386,156 @@ object DefaultStyles : Styles {
 
         // Base class and wrapper
         rule(".navbar") {
-          overflow = Overflow.visible
-          marginBottom = vars.baseLineHeight
+            overflow = Overflow.visible
+            marginBottom = vars.baseLineHeight
 
-          // Fix for IE7's bad z-indexing so dropdowns don't appear below content that follows the navbar
-          declarations["*position"] = "relative"
-          declarations["*z-index"] = "2"
+            // Fix for IE7's bad z-indexing so dropdowns don't appear below content that follows the navbar
+            declarations["*position"] = "relative"
+            declarations["*z-index"] = "2"
         }
 
         // Inner for background effects
         // Gradient is applied to its own element because overflow visible is not honored by IE when filter is present
         rule(".navbar-inner") {
-          minHeight = vars.navbarHeight
-          paddingLeft = 20.px
-          paddingRight = 20.px
+            minHeight = vars.navbarHeight
+            paddingLeft = 20.px
+            paddingRight = 20.px
             with(mixins) {
                 gradientVertical(vars.navbarBackgroundHighlight, vars.navbarBackground)
             }
-          border = Border(1.px, BorderStyle.solid, vars.navbarBorder)
-          with(mixins) {
-              borderRadius(vars.baseBorderRadius)
-              boxShadow(0.px, 1.px, 4.px, rgb(0,0,0,.065))
-          }
+            border = Border(1.px, BorderStyle.solid, vars.navbarBorder)
+            with(mixins) {
+                borderRadius(vars.baseBorderRadius)
+                boxShadow(0.px, 1.px, 4.px, rgb(0,0,0,.065))
+            }
 
-          // Prevent floats from breaking the navbar
-          with(mixins) { clearfix() }
+            // Prevent floats from breaking the navbar
+            with(mixins) { clearfix() }
         }
 
         // Set width to auto for default container
         // We then reset it for fixed navbars in the #gridSystem mixin
         rule(".navbar .container") {
-          width = LinearDimension.auto
+            width = LinearDimension.auto
         }
 
         // Override the default collapsed state
         rule(".nav-collapse.collapse") {
-          height = LinearDimension.auto
-          overflow = Overflow.visible
+            height = LinearDimension.auto
+            overflow = Overflow.visible
         }
 
 
         // Brand: website or project name
         rule(".navbar .brand") {
-          float = Float.left
-          display = Display.block
-          // Vertically center the text given vars.navbarHeight
+            float = Float.left
+            display = Display.block
+            // Vertically center the text given vars.navbarHeight
             padding =
                 Padding(((vars.navbarHeight - vars.baseLineHeight) / 2), 20.px, ((vars.navbarHeight - vars.baseLineHeight) / 2))
-          marginLeft = -20.px
-         // negative indent to left-align the text down the page
-          fontSize = 20.px
-          fontWeight = FontWeight.w200
-          color = vars.navbarBrandColor
-          declarations["text-shadow"] = "0px 1px 0px vars.navbarBackgroundHighlight"
-          ruleOf("&:hover", "&:focus") {
-            textDecoration = TextDecoration.none
-          }
+            marginLeft = -20.px
+            // negative indent to left-align the text down the page
+            fontSize = 20.px
+            fontWeight = FontWeight.w200
+            color = vars.navbarBrandColor
+            declarations["text-shadow"] = "0px 1px 0px vars.navbarBackgroundHighlight"
+            ruleOf("&:hover", "&:focus") {
+                textDecoration = TextDecoration.none
+            }
         }
 
         // Plain text in topbar
         rule(".navbar-text") {
-          marginBottom = 0.px
-          lineHeight = vars.navbarHeight.lh
-          color = vars.navbarText
+            marginBottom = 0.px
+            lineHeight = vars.navbarHeight.lh
+            color = vars.navbarText
         }
 
         // Janky solution for now to account for links outside the .nav
         rule(".navbar-link") {
-          color = vars.navbarLinkColor
-          ruleOf("&:hover", "&:focus") {
-            color = vars.navbarLinkColorHover
-          }
+            color = vars.navbarLinkColor
+            ruleOf("&:hover", "&:focus") {
+                color = vars.navbarLinkColorHover
+            }
         }
 
         // Dividers in navbar
         rule(".navbar .divider-vertical") {
-          height = vars.navbarHeight
-          margin = Margin(0.px, 9.px)
-          borderLeft = Border(1.px, BorderStyle.solid, vars.navbarBackground)
-          borderRight = Border(1.px, BorderStyle.solid, vars.navbarBackgroundHighlight)
+            height = vars.navbarHeight
+            margin = Margin(0.px, 9.px)
+            borderLeft = Border(1.px, BorderStyle.solid, vars.navbarBackground)
+            borderRight = Border(1.px, BorderStyle.solid, vars.navbarBackgroundHighlight)
         }
 
         // Buttons in navbar
         ruleOf(".navbar .btn", ".navbar .btn-group") {
-          with(mixins) { navbarVerticalAlign(30.px) }
-         // Vertically center in navbar
+            with(mixins) { navbarVerticalAlign(30.px) }
+            // Vertically center in navbar
         }
 
         ruleOf(".navbar .btn-group .btn",
-            ".navbar .input-prepend .btn",
-            ".navbar .input-append .btn",
-            ".navbar .input-prepend .btn-group",
-            ".navbar .input-append .btn-group") {
-          marginTop = 0.px // then undo the margin here so we don't accidentally double it
+               ".navbar .input-prepend .btn",
+               ".navbar .input-append .btn",
+               ".navbar .input-prepend .btn-group",
+               ".navbar .input-append .btn-group") {
+            marginTop = 0.px // then undo the margin here so we don't accidentally double it
         }
 
         // Navbar forms
         rule(".navbar-form") {
-          marginBottom = 0.px // remove default bottom margin
-          with(mixins) { clearfix() }
+            marginBottom = 0.px // remove default bottom margin
+            with(mixins) { clearfix() }
 
-          ruleOf("input", "select", ".radio", ".checkbox") {
-            with(mixins) { navbarVerticalAlign(30.px) }
-         // Vertically center in navbar
-          }
-
-          ruleOf("input", "select", ".btn") {
-            display = Display.inlineBlock
-            marginBottom = 0.px
-          }
-          ruleOf("input[type=\"image\"]", "input[type=\"checkbox\"]", "input[type=\"radio\"]") {
-            marginTop = 3.px
-          }
-          ruleOf(".input-append", ".input-prepend") {
-            marginTop = 5.px
-            whiteSpace = WhiteSpace.nowrap
-         // preven two  items from separating within a .navbar-form that has .pull-left
-            input {
-              marginTop = 0.px // remove the margin on top since it's on the parent
+            ruleOf("input", "select", ".radio", ".checkbox") {
+                with(mixins) { navbarVerticalAlign(30.px) }
+                // Vertically center in navbar
             }
-          }
+
+            ruleOf("input", "select", ".btn") {
+                display = Display.inlineBlock
+                marginBottom = 0.px
+            }
+            ruleOf("input[type=\"image\"]", "input[type=\"checkbox\"]", "input[type=\"radio\"]") {
+                marginTop = 3.px
+            }
+            ruleOf(".input-append", ".input-prepend") {
+                marginTop = 5.px
+                whiteSpace = WhiteSpace.nowrap
+                // preven two  items from separating within a .navbar-form that has .pull-left
+                input {
+                    marginTop = 0.px // remove the margin on top since it's on the parent
+                }
+            }
         }
 
         // Navbar search
         rule(".navbar-search") {
-          position = Position.relative
-          float = Float.left
-          with(mixins) { navbarVerticalAlign(30.px) }
-         // Vertically center in navbar
-          marginBottom = 0.px
-          ".search-query" {
+            position = Position.relative
+            float = Float.left
+            with(mixins) { navbarVerticalAlign(30.px) }
+            // Vertically center in navbar
             marginBottom = 0.px
-            padding = Padding(4.px, 14.px)
+            ".search-query" {
+                marginBottom = 0.px
+                padding = Padding(4.px, 14.px)
 //            #font > .sans-serif(13px, normal, 1);
-            with(mixins) {
-                sansSerif(vars, FontWeight.normal, 13.px, LineHeight("1"))
-                borderRadius(15.px)
+                with(mixins) {
+                    sansSerif(vars, FontWeight.normal, 13.px, LineHeight("1"))
+                    borderRadius(15.px)
+                }
+                // redeclare because of specificity of the type attribute
             }
-         // redeclare because of specificity of the type attribute
-          }
         }
 
 
 
         // Static navbar
         rule(".navbar-static-top") {
-          position = Position.static
-          marginBottom = 0.px // remove 18px margin for default navbar
-          ".navbar-inner" {
-            with(mixins) { borderRadius(0.px) }
-          }
+            position = Position.static
+            marginBottom = 0.px // remove 18px margin for default navbar
+            ".navbar-inner" {
+                with(mixins) { borderRadius(0.px) }
+            }
         }
 
 
@@ -2544,25 +2544,25 @@ object DefaultStyles : Styles {
 
         // Shared (top/bottom) styles
         ruleOf(".navbar-fixed-top", ".navbar-fixed-bottom") {
-          position = Position.fixed
-          right = 0.px
-          left = 0.px
-          zIndex = vars.zindexFixedNavbar
-          marginBottom = 0.px // remove 18px margin for default navbar
+            position = Position.fixed
+            right = 0.px
+            left = 0.px
+            zIndex = vars.zindexFixedNavbar
+            marginBottom = 0.px // remove 18px margin for default navbar
         }
 
         ruleOf(".navbar-fixed-top .navbar-inner", ".navbar-static-top .navbar-inner") {
-          borderWidth(0.px, 0.px, 1.px)
+            borderWidth(0.px, 0.px, 1.px)
         }
 
         rule(".navbar-fixed-bottom .navbar-inner") {
-          borderWidth(1.px, 0.px, 0.px)
+            borderWidth(1.px, 0.px, 0.px)
         }
 
         ruleOf(".navbar-fixed-top .navbar-inner", ".navbar-fixed-bottom .navbar-inner") {
-          paddingLeft = 0.px
-          paddingRight = 0.px
-          with(mixins) { borderRadius(0.px) }
+            paddingLeft = 0.px
+            paddingRight = 0.px
+            with(mixins) { borderRadius(0.px) }
         }
 
         // Reset container width
@@ -2574,104 +2574,104 @@ object DefaultStyles : Styles {
 
         // Fixed to top
         rule(".navbar-fixed-top") {
-          top = 0.px
+            top = 0.px
         }
 
         ruleOf(".navbar-fixed-top", ".navbar-static-top") {
-          ".navbar-inner" {
-              with(mixins) { boxShadow(0.px, 1.px, 10.px, rgb(0, 0, 0, .1)) }
-          }
+            ".navbar-inner" {
+                with(mixins) { boxShadow(0.px, 1.px, 10.px, rgb(0, 0, 0, .1)) }
+            }
         }
 
         // Fixed to bottom
         rule(".navbar-fixed-bottom") {
-          bottom = 0.px
-          ".navbar-inner" {
-              with(mixins) { boxShadow(0.px, -1.px, 10.px, rgb(0, 0, 0, .1)) }
-          }
+            bottom = 0.px
+            ".navbar-inner" {
+                with(mixins) { boxShadow(0.px, -1.px, 10.px, rgb(0, 0, 0, .1)) }
+            }
         }
 
 
 
         // NAVIGATION
         rule(".navbar .nav") {
-          position = Position.relative
-          left = 0.px
-          display = Display.block
-          float = Float.left
-          margin = Margin(0.px, 10.px, 0.px, 0.px)
+            position = Position.relative
+            left = 0.px
+            display = Display.block
+            float = Float.left
+            margin = Margin(0.px, 10.px, 0.px, 0.px)
         }
 
         rule(".navbar .nav.pull-right") {
-          float = Float.right
-         // redeclare due to specificity
-          marginRight = 0.px // remove margin on float right nav
+            float = Float.right
+            // redeclare due to specificity
+            marginRight = 0.px // remove margin on float right nav
         }
 
         rule(".navbar .nav > li") {
-          float = Float.left
+            float = Float.left
         }
 
         // Links
         rule(".navbar .nav > li > a") {
-          float = Float.none
-          // Vertically center the text given vars.navbarHeight
-          padding = Padding(((vars.navbarHeight-vars.baseLineHeight) / 2), 15.px, ((vars.navbarHeight-vars.baseLineHeight) / 2));
-          color = vars.navbarLinkColor
-          textDecoration = TextDecoration.none
-          declarations["text-shadow"] = "0px 1px 0px vars.navbarBackgroundHighlight"
+            float = Float.none
+            // Vertically center the text given vars.navbarHeight
+            padding = Padding(((vars.navbarHeight-vars.baseLineHeight) / 2), 15.px, ((vars.navbarHeight-vars.baseLineHeight) / 2));
+            color = vars.navbarLinkColor
+            textDecoration = TextDecoration.none
+            declarations["text-shadow"] = "0px 1px 0px vars.navbarBackgroundHighlight"
         }
 
         rule(".navbar .nav .dropdown-toggle .caret") {
-          marginTop = 8.px
+            marginTop = 8.px
         }
 
         // Hover/focus
         ruleOf(".navbar .nav > li > a:focus", ".navbar .nav > li > a:hover") {
-          backgroundColor = vars.navbarLinkBackgroundHover
-         // "transparent" is default to differentiate :hover/:focus from .active
-          color = vars.navbarLinkColorHover
-          textDecoration = TextDecoration.none
+            backgroundColor = vars.navbarLinkBackgroundHover
+            // "transparent" is default to differentiate :hover/:focus from .active
+            color = vars.navbarLinkColorHover
+            textDecoration = TextDecoration.none
         }
 
         // Active nav items
         ruleOf(".navbar .nav > .active > a", ".navbar .nav > .active > a:hover", ".navbar .nav > .active > a:focus") {
-          color = vars.navbarLinkColorActive
-          textDecoration = TextDecoration.none
-          backgroundColor = vars.navbarLinkBackgroundActive
-          with(mixins) { boxShadowInset( 0.px, 3.px, 8.px, rgb(0,0,0,.125)) }
+            color = vars.navbarLinkColorActive
+            textDecoration = TextDecoration.none
+            backgroundColor = vars.navbarLinkBackgroundActive
+            with(mixins) { boxShadowInset( 0.px, 3.px, 8.px, rgb(0,0,0,.125)) }
         }
 
         // Navbar button for toggling navbar items in responsive layouts
         // These definitions need to come after '.navbar .btn'
         rule(".navbar .btn-navbar") {
-          display = Display.none
-          float = Float.right
-          padding = Padding(7.px, 10.px)
-          marginLeft = 5.px
-          marginRight = 5.px
-          with(mixins) { buttonBackground(vars.navbarBackgroundHighlight.darken(5), vars.navbarBackground.darken(5)) }
-          with(mixins) {
-              boxShadow {
-                  this+=BoxShadowInset(rgb(255,255,255,.1), 0.px, 1.px, 0.px)
-                  this+=BoxShadow(rgb(255,255,255,.075), 0.px, 1.px, 0.px)
-              }
-          }
+            display = Display.none
+            float = Float.right
+            padding = Padding(7.px, 10.px)
+            marginLeft = 5.px
+            marginRight = 5.px
+            with(mixins) { buttonBackground(vars.navbarBackgroundHighlight.darken(5), vars.navbarBackground.darken(5)) }
+            with(mixins) {
+                boxShadow {
+                    this+=BoxShadowInset(rgb(255,255,255,.1), 0.px, 1.px, 0.px)
+                    this+=BoxShadow(rgb(255,255,255,.075), 0.px, 1.px, 0.px)
+                }
+            }
         }
 
         rule(".navbar .btn-navbar .icon-bar") {
-          display = Display.block
-          width = 18.px
-          height = 2.px
-          backgroundColor = Color("#f5f5f5")
-          with(mixins) {
-              borderRadius(1.px)
-              boxShadow(0.px, 1.px, 0.px, rgb(0,0,0,.25))
-          }
+            display = Display.block
+            width = 18.px
+            height = 2.px
+            backgroundColor = Color("#f5f5f5")
+            with(mixins) {
+                borderRadius(1.px)
+                boxShadow(0.px, 1.px, 0.px, rgb(0,0,0,.25))
+            }
         }
 
         rule(".btn-navbar .icon-bar + .icon-bar") {
-          marginTop = 3.px
+            marginTop = 3.px
         }
 
 
@@ -2680,600 +2680,610 @@ object DefaultStyles : Styles {
 
         // Menu position and menu carets
         rule(".navbar .nav > li > .dropdown-menu") {
-          "&:before" {
-            content = QuotedString("")
-            display = Display.inlineBlock
-            borderLeft = Border(7.px, BorderStyle.solid, Color.transparent)
-            borderRight = Border(7.px, BorderStyle.solid, Color.transparent)
-            borderBottom = Border(7.px, BorderStyle.solid, Color("#ccc"))
-            borderBottomColor = vars.dropdownBorder
-            position = Position.absolute
-            top = -7.px
-            left = 9.px
-          }
-          "&:after" {
-            content = QuotedString("")
-            display = Display.inlineBlock
-            borderLeft = Border(6.px, BorderStyle.solid, Color.transparent)
-            borderRight = Border(6.px, BorderStyle.solid, Color.transparent)
-            borderBottom = Border(6.px, BorderStyle.solid, vars.dropdownBackground)
-            position = Position.absolute
-            top = -6.px
-            left = 10.px
-          }
+            "&:before" {
+                content = QuotedString("")
+                display = Display.inlineBlock
+                borderLeft = Border(7.px, BorderStyle.solid, Color.transparent)
+                borderRight = Border(7.px, BorderStyle.solid, Color.transparent)
+                borderBottom = Border(7.px, BorderStyle.solid, Color("#ccc"))
+                borderBottomColor = vars.dropdownBorder
+                position = Position.absolute
+                top = -7.px
+                left = 9.px
+            }
+            "&:after" {
+                content = QuotedString("")
+                display = Display.inlineBlock
+                borderLeft = Border(6.px, BorderStyle.solid, Color.transparent)
+                borderRight = Border(6.px, BorderStyle.solid, Color.transparent)
+                borderBottom = Border(6.px, BorderStyle.solid, vars.dropdownBackground)
+                position = Position.absolute
+                top = -6.px
+                left = 10.px
+            }
         }
         // Menu position and menu caret support for dropups via extra dropup class
         rule(".navbar-fixed-bottom .nav > li > .dropdown-menu") {
-          "&:before" {
-            borderTop = Border(7.px, BorderStyle.solid, Color("#ccc"))
-            borderTopColor = vars.dropdownBorder
-            borderBottomWidth = 0.px
-            bottom = -7.px
-            top = LinearDimension.auto
-          }
-          "&:after" {
-            borderTop = Border(6.px, BorderStyle.solid, vars.dropdownBackground)
-            borderBottomWidth = 0.px
-            bottom = -6.px
-            top = LinearDimension.auto
-          }
+            "&:before" {
+                borderTop = Border(7.px, BorderStyle.solid, Color("#ccc"))
+                borderTopColor = vars.dropdownBorder
+                borderBottomWidth = 0.px
+                bottom = -7.px
+                top = LinearDimension.auto
+            }
+            "&:after" {
+                borderTop = Border(6.px, BorderStyle.solid, vars.dropdownBackground)
+                borderBottomWidth = 0.px
+                bottom = -6.px
+                top = LinearDimension.auto
+            }
         }
 
         // Caret should match text color on hover/focus
         ruleOf(".navbar .nav li.dropdown > a:hover .caret", ".navbar .nav li.dropdown > a:focus .caret") {
-          borderTopColor = vars.navbarLinkColorHover
-          borderBottomColor = vars.navbarLinkColorHover
+            borderTopColor = vars.navbarLinkColorHover
+            borderBottomColor = vars.navbarLinkColorHover
         }
 
         // Remove background color from open dropdown
         ruleOf(".navbar .nav li.dropdown.open > .dropdown-toggle",
-            ".navbar .nav li.dropdown.active > .dropdown-toggle",
-            ".navbar .nav li.dropdown.open.active > .dropdown-toggle") {
-          backgroundColor = vars.navbarLinkBackgroundActive
-          color = vars.navbarLinkColorActive
+               ".navbar .nav li.dropdown.active > .dropdown-toggle",
+               ".navbar .nav li.dropdown.open.active > .dropdown-toggle") {
+            backgroundColor = vars.navbarLinkBackgroundActive
+            color = vars.navbarLinkColorActive
         }
 
         rule(".navbar .nav li.dropdown > .dropdown-toggle .caret") {
-          borderTopColor = vars.navbarLinkColor
-          borderBottomColor = vars.navbarLinkColor
+            borderTopColor = vars.navbarLinkColor
+            borderBottomColor = vars.navbarLinkColor
         }
 
         ruleOf(".navbar .nav li.dropdown.open > .dropdown-toggle .caret",
-            ".navbar .nav li.dropdown.active > .dropdown-toggle .caret",
-            ".navbar .nav li.dropdown.open.active > .dropdown-toggle .caret") {
-          borderTopColor = vars.navbarLinkColorActive
-          borderBottomColor = vars.navbarLinkColorActive
+               ".navbar .nav li.dropdown.active > .dropdown-toggle .caret",
+               ".navbar .nav li.dropdown.open.active > .dropdown-toggle .caret") {
+            borderTopColor = vars.navbarLinkColorActive
+            borderBottomColor = vars.navbarLinkColorActive
         }
 
         // Right aligned menus need alt position
         ruleOf(".navbar .pull-right > li > .dropdown-menu", ".navbar .nav > li > .dropdown-menu.pull-right") {
-          left = LinearDimension.auto
-          right = 0.px
-          "&:before" {
             left = LinearDimension.auto
-            right = 12.px
-          }
-          "&:after" {
-            left = LinearDimension.auto
-            right = 13.px
-          }
-          ".dropdown-menu" {
-            left = LinearDimension.auto
-            right = 100.pct
-            marginLeft = 0.px
-            marginRight = -1.px
-            with(mixins) { borderRadius(6.px, 0.px, 6.px, 6.px) }
-          }
+            right = 0.px
+            "&:before" {
+                left = LinearDimension.auto
+                right = 12.px
+            }
+            "&:after" {
+                left = LinearDimension.auto
+                right = 13.px
+            }
+            ".dropdown-menu" {
+                left = LinearDimension.auto
+                right = 100.pct
+                marginLeft = 0.px
+                marginRight = -1.px
+                with(mixins) { borderRadius(6.px, 0.px, 6.px, 6.px) }
+            }
         }
 
 
         // Inverted navbar
         rule(".navbar-inverse") {
-        rule(".navbar-inner") {
-            with(mixins) {
-                gradientVertical(vars.navbarInverseBackgroundHighlight, vars.navbarInverseBackground)
+            rule(".navbar-inner") {
+                with(mixins) {
+                    gradientVertical(vars.navbarInverseBackgroundHighlight, vars.navbarInverseBackground)
+                }
+                borderColor =  vars.navbarInverseBorder
             }
-            borderColor =  vars.navbarInverseBorder
-          }
 
-        ruleOf(".brand", ".nav > li > a") {
-            color = vars.navbarInverseLinkColor
-            declarations["text-shadow"] = "0px -1px 0px rgb(0,0,0,.25)"
-            ruleOf("&:hover", "&:focus") {
-              color = vars.navbarInverseLinkColorHover
+            ruleOf(".brand", ".nav > li > a") {
+                color = vars.navbarInverseLinkColor
+                declarations["text-shadow"] = "0px -1px 0px rgb(0,0,0,.25)"
+                ruleOf("&:hover", "&:focus") {
+                    color = vars.navbarInverseLinkColorHover
+                }
             }
-          }
 
-        rule(".brand") {
-            color = vars.navbarInverseBrandColor
-          }
-
-        rule(".navbar-text") {
-            color = vars.navbarInverseText
-          }
-
-        ruleOf(".nav > li > a:focus", ".nav > li > a:hover") {
-            backgroundColor = vars.navbarInverseLinkBackgroundHover
-            color = vars.navbarInverseLinkColorHover
-          }
-
-        ruleOf(".nav .active > a", ".nav .active > a:hover", ".nav .active > a:focus") {
-            color = vars.navbarInverseLinkColorActive
-            backgroundColor = vars.navbarInverseLinkBackgroundActive
-          }
-
-          // Inline text links
-          ".navbar-link" {
-            color = vars.navbarInverseLinkColor
-            ruleOf("&:hover", "&:focus") {
-              color = vars.navbarInverseLinkColorHover
+            rule(".brand") {
+                color = vars.navbarInverseBrandColor
             }
-          }
 
-          // Dividers in navbar
-          ".divider-vertical" {
-            borderLeftColor = vars.navbarInverseBackground
-            borderRightColor = vars.navbarInverseBackgroundHighlight
-          }
-
-          // Dropdowns
-          ruleOf(".nav li.dropdown.open > .dropdown-toggle",
-              ".nav li.dropdown.active > .dropdown-toggle",
-              ".nav li.dropdown.open.active > .dropdown-toggle") {
-            backgroundColor = vars.navbarInverseLinkBackgroundActive
-            color = vars.navbarInverseLinkColorActive
-          }
-          ruleOf(".nav li.dropdown > a:hover .caret", ".nav li.dropdown > a:focus .caret") {
-            borderTopColor = vars.navbarInverseLinkColorActive
-            borderBottomColor = vars.navbarInverseLinkColorActive
-          }
-          ".nav li.dropdown > .dropdown-toggle .caret" {
-            borderTopColor = vars.navbarInverseLinkColor
-            borderBottomColor = vars.navbarInverseLinkColor
-          }
-          ruleOf(".nav li.dropdown.open > .dropdown-toggle .caret",
-              ".nav li.dropdown.active > .dropdown-toggle .caret",
-              ".nav li.dropdown.open.active > .dropdown-toggle .caret") {
-            borderTopColor = vars.navbarInverseLinkColorActive
-            borderBottomColor = vars.navbarInverseLinkColorActive
-          }
-
-          // Navbar search
-          ".navbar-search" {
-            ".search-query" {
-              color = vars.white
-              backgroundColor = vars.navbarInverseSearchBackground
-              borderColor =  vars.navbarInverseSearchBorder
-              with(mixins) {
-                  boxShadow {
-                      this+=BoxShadowInset(rgb(0,0,0,.1), 0.px, 1.px, 2.px)
-                      this+=BoxShadow(rgb(255,255,255,.15), 0.px, 1.px, 0.px)
-                  }
-                  transition("none")
-                  placeholder(vars.navbarInverseSearchPlaceholderColor)
-              }
-
-              // Focus states (we use .focused since IE7-8 and down doesn't support :focus)
-              ruleOf("&:focus", "&.focused") {
-                padding = Padding(5.px, 15.px)
-                color = vars.grayDark
-                declarations["text-shadow"] = "0px 1px 0px vars.white"
-                backgroundColor = vars.navbarInverseSearchBackgroundFocus
-                borderWidth = 0.px
-                with(mixins) { boxShadow(0.px, 0.px, 3.px, rgb(0,0,0,.15)) }
-                outlineWidth = 0.px
-              }
+            rule(".navbar-text") {
+                color = vars.navbarInverseText
             }
-          }
 
-          // Navbar collapse button
-          ".btn-navbar" {
-            with(mixins) { buttonBackground(vars.navbarInverseBackgroundHighlight.darken(5), vars.navbarInverseBackground.darken(5)) }
-          }
+            ruleOf(".nav > li > a:focus", ".nav > li > a:hover") {
+                backgroundColor = vars.navbarInverseLinkBackgroundHover
+                color = vars.navbarInverseLinkColorHover
+            }
+
+            ruleOf(".nav .active > a", ".nav .active > a:hover", ".nav .active > a:focus") {
+                color = vars.navbarInverseLinkColorActive
+                backgroundColor = vars.navbarInverseLinkBackgroundActive
+            }
+
+            // Inline text links
+            ".navbar-link" {
+                color = vars.navbarInverseLinkColor
+                ruleOf("&:hover", "&:focus") {
+                    color = vars.navbarInverseLinkColorHover
+                }
+            }
+
+            // Dividers in navbar
+            ".divider-vertical" {
+                borderLeftColor = vars.navbarInverseBackground
+                borderRightColor = vars.navbarInverseBackgroundHighlight
+            }
+
+            // Dropdowns
+            ruleOf(".nav li.dropdown.open > .dropdown-toggle",
+                   ".nav li.dropdown.active > .dropdown-toggle",
+                   ".nav li.dropdown.open.active > .dropdown-toggle") {
+                backgroundColor = vars.navbarInverseLinkBackgroundActive
+                color = vars.navbarInverseLinkColorActive
+            }
+            ruleOf(".nav li.dropdown > a:hover .caret", ".nav li.dropdown > a:focus .caret") {
+                borderTopColor = vars.navbarInverseLinkColorActive
+                borderBottomColor = vars.navbarInverseLinkColorActive
+            }
+            ".nav li.dropdown > .dropdown-toggle .caret" {
+                borderTopColor = vars.navbarInverseLinkColor
+                borderBottomColor = vars.navbarInverseLinkColor
+            }
+            ruleOf(".nav li.dropdown.open > .dropdown-toggle .caret",
+                   ".nav li.dropdown.active > .dropdown-toggle .caret",
+                   ".nav li.dropdown.open.active > .dropdown-toggle .caret") {
+                borderTopColor = vars.navbarInverseLinkColorActive
+                borderBottomColor = vars.navbarInverseLinkColorActive
+            }
+
+            // Navbar search
+            ".navbar-search" {
+                ".search-query" {
+                    color = vars.white
+                    backgroundColor = vars.navbarInverseSearchBackground
+                    borderColor =  vars.navbarInverseSearchBorder
+                    with(mixins) {
+                        boxShadow {
+                            this+=BoxShadowInset(rgb(0,0,0,.1), 0.px, 1.px, 2.px)
+                            this+=BoxShadow(rgb(255,255,255,.15), 0.px, 1.px, 0.px)
+                        }
+                        transition("none")
+                        placeholder(vars.navbarInverseSearchPlaceholderColor)
+                    }
+
+                    // Focus states (we use .focused since IE7-8 and down doesn't support :focus)
+                    ruleOf("&:focus", "&.focused") {
+                        padding = Padding(5.px, 15.px)
+                        color = vars.grayDark
+                        declarations["text-shadow"] = "0px 1px 0px vars.white"
+                        backgroundColor = vars.navbarInverseSearchBackgroundFocus
+                        borderWidth = 0.px
+                        with(mixins) { boxShadow(0.px, 0.px, 3.px, rgb(0,0,0,.15)) }
+                        outlineWidth = 0.px
+                    }
+                }
+            }
+
+            // Navbar collapse button
+            ".btn-navbar" {
+                with(mixins) { buttonBackground(vars.navbarInverseBackgroundHighlight.darken(5), vars.navbarInverseBackground.darken(5)) }
+            }
 
         }
     }
 
 
-    override fun CssBuilder.navs(){/*
-// BASE CLASS
-rule(".nav") {
-  marginLeft = 0.px
-  marginBottom = vars.baseLineHeight
-  listStyleType = ListStyleType.none
-}
-
-// Make links block level
-rule(".nav > li > a") {
-  display = Display.block
-}
-
-ruleOf(".nav > li > a:hover", ".nav > li > a:focus") {
-  textDecoration = TextDecoration.none
-  backgroundColor = vars.grayLighter
-}
-
-// Prevent IE8 from misplacing imgs
-// See https://github.com/h5bp/html5-boilerplate/issues/984#issuecomment-3985989
-rule(".nav > li > a > img") {
-  max-width: none;
-}
-
-// Redeclare pull classes because of specifity
-rule(".nav > .pull-right") {
-  float = Float.right
-}
-
-// Nav headers (for dropdowns and lists)
-rule(".nav-header") {
-  display = Display.block
-  padding = Padding(3.px, 15.px)
-  fontSize = 11.px
-  fontWeight = FontWeight.bold
-  lineHeight = vars.baseLineHeight.lh
-  color = vars.grayLight
-  declarations["text-shadow"] = "0px 1px 0px rgb(255,255,255,.5)"
-  textTransform = TextTransform.uppercase
-}
-// Space them out when they follow another list item (link)
-rule(".nav li + .nav-header") {
-  marginTop = 9.px
-}
-
-
-
-// NAV LIST
-// --------
-rule(".nav-list") {
-  paddingLeft = 15.px
-  paddingRight = 15.px
-  marginBottom = 0.px
-}
-
-ruleOf(".nav-list > li > a", ".nav-list .nav-header") {
-  marginLeft = -15.px
-  marginRight = -15.px
-  declarations["text-shadow"] = "0px 1px 0px rgb(255,255,255,.5)"
-}
-
-rule(".nav-list > li > a") {
-  padding = Padding(3.px, 15.px)
-}
-
-ruleOf(".nav-list > .active > a", ".nav-list > .active > a:hover", ".nav-list > .active > a:focus") {
-  color = vars.white
-  declarations["text-shadow"] = "0px -1px 0px rgb(0,0,0,.2)"
-  backgroundColor = vars.linkColor
-}
-
-ruleOf(".nav-list [class^=\"icon-\"]", ".nav-list [class*=\" icon-\"]") {
-  marginRight = 2.px
-}
-// Dividers (basically an hr) within the dropdown
-rule(".nav-list .divider") {
-  with(mixins) { navDivider() }
-}
-
-
-
-// TABS AND PILLS
-
-// Common styles
-ruleOf(".nav-tabs", ".nav-pills") {
-  with(mixins) { clearfix() }
-}
-
-ruleOf(".nav-tabs > li", ".nav-pills > li") {
-  float = Float.left
-}
-
-ruleOf(".nav-tabs > li > a", ".nav-pills > li > a") {
-  paddingRight = 12.px
-  paddingLeft = 12.px
-  marginRight = 2.px
-  lineHeight = 14.px.lh
- // keeps the overall height an even number
-}
-
-// TABS
-// ----
-
-// Give the tabs something to sit on
-rule(".nav-tabs") {
-  borderBottom = Border(1.px, BorderStyle.solid, Color.solid)
-}
-// Make the list-items overlay the bottom border
-rule(".nav-tabs > li") {
-  marginBottom = -1.px
-}
-// Actual tabs (as links)
-rule(".nav-tabs > li > a") {
-  paddingTop = 8.px
-  paddingBottom = 8.px
-  lineHeight = vars.baseLineHeight.lh
-  border = Border(1.px, BorderStyle.solid, Color.transparent)
-  with(mixins) { borderRadius(4.px, 4.px, 0.px, 0.px) }
-  "&:hover &:focus" {
-    borderColor = vars.grayLighter vars.grayLighter #ddd
-  }
-}
-// Active state, and it's :hover/:focus to override normal :hover/:focus
-ruleOf(".nav-tabs > .active > a", ".nav-tabs > .active > a:hover", ".nav-tabs > .active > a:focus") {
-  color = vars.gray
-  backgroundColor = vars.bodyBackground
-  border = Border(1.px, BorderStyle.solid, Color("#ddd"))
-  border-bottom-color: transparent;
-  cursor = Cursor.default
-}
-
-
-// PILLS
-// -----
-
-// Links rendered as pills
-rule(".nav-pills > li > a") {
-  paddingTop = 8.px
-  paddingBottom = 8.px
-  marginTop = 2.px
-  marginBottom = 2.px
-  with(mixins) { borderRadius(5.px) }
-}
-
-// Active state
-ruleOf(".nav-pills > .active > a", ".nav-pills > .active > a:hover", ".nav-pills > .active > a:focus") {
-  color = vars.white
-  backgroundColor = vars.linkColor
-}
-
-
-
-// STACKED NAV
-
-// Stacked tabs and pills
-rule(".nav-stacked > li") {
-  float = Float.none
-}
-
-rule(".nav-stacked > li > a") {
-  marginRight = 0.px // no need for the gap between nav items
-}
-
-// Tabs
-rule(".nav-tabs.nav-stacked") {
-  borderBottom = Border(0.px)
-}
-
-rule(".nav-tabs.nav-stacked > li > a") {
-  border = Border(1.px, BorderStyle.solid, Color("#ddd"))
-  with(mixins) { borderRadius(0.px) }
-}
-
-rule(".nav-tabs.nav-stacked > li:first-child > a") {
-  with(mixins) { borderTopRadius(4px) }
-}
-
-rule(".nav-tabs.nav-stacked > li:last-child > a") {
-  with(mixins) { borderBottomRadius(4px) }
-}
-
-ruleOf(".nav-tabs.nav-stacked > li > a:hover", ".nav-tabs.nav-stacked > li > a:focus") {
-  borderColor = Color("#ddd")
-  zIndex = 2
-}
-
-// Pills
-rule(".nav-pills.nav-stacked > li > a") {
-  marginBottom = 3.px
-}
-
-rule(".nav-pills.nav-stacked > li:last-child > a") {
-  marginBottom = 1.px // decrease margin to match sizing of stacked tabs
-}
-
-
-
-// DROPDOWNS
-// ---------
-rule(".nav-tabs .dropdown-menu") {
-  with(mixins) { borderRadius(0.px, 0.px, 6.px, 6.px) }
- // remove the top rounded corners here since there is a hard edge above the menu
-}
-
-rule(".nav-pills .dropdown-menu") {
-  with(mixins) { borderRadius(6.px) }
- // make rounded corners match the pills
-}
-
-// Default dropdown links
-// Make carets use linkColor to start
-rule(".nav .dropdown-toggle .caret") {
-  border-top-color = vars.linkColor
-  border-bottom-color = vars.linkColor
-  marginTop = 6.px
-}
-
-ruleOf(".nav .dropdown-toggle:hover .caret", ".nav .dropdown-toggle:focus .caret") {
-  border-top-color = vars.linkColorHover
-  border-bottom-color = vars.linkColorHover
-}
-/* move down carets for tabs */
-rule(".nav-tabs .dropdown-toggle .caret") {
-  marginTop = 8.px
-}
-
-// Active dropdown links
-rule(".nav .active .dropdown-toggle .caret") {
-  border-topColor = Color("#fff")
-  border-bottomColor = Color("#fff")
-}
-
-rule(".nav-tabs .active .dropdown-toggle .caret") {
-  border-top-color = vars.gray
-  border-bottom-color = vars.gray
-}
-
-// Active:hover/:focus dropdown links
-ruleOf(".nav > .dropdown.active > a:hover", ".nav > .dropdown.active > a:focus") {
-  cursor = Cursor.pointer
-}
-
-// Open dropdowns
-ruleOf(".nav-tabs .open .dropdown-toggle",
-    ".nav-pills .open .dropdown-toggle",
-    ".nav > li.dropdown.open.active > a:hover",
-    ".nav > li.dropdown.open.active > a:focus") {
-  color = vars.white
-  backgroundColor = vars.grayLight
-  borderColor =  vars.grayLight
-}
-
-ruleOf(".nav li.dropdown.open .caret",
-    ".nav li.dropdown.open.active .caret",
-    ".nav li.dropdown.open a:hover .caret",
-    ".nav li.dropdown.open a:focus .caret") {
-  border-top-color = vars.white
-  border-bottom-color = vars.white
-  with(mixins) { opacity(100.0) }
-}
-
-// Dropdowns in stacked tabs
-ruleOf(".tabs-stacked .open > a:hover", ".tabs-stacked .open > a:focus") {
-  borderColor =  vars.grayLight
-}
-
-
-
-// TABBABLE
-// --------
-
-
-// COMMON STYLES
-
-// Clear any floats
-rule(".tabbable") {
-  with(mixins) { clearfix() }
-}
-
-rule(".tab-content") {
-  overflow = Overflow.auto
- // prevent content from running below tabs
-}
-
-// Remove border on bottom, left, right
-ruleOf(".tabs-below > .nav-tabs", ".tabs-right > .nav-tabs", ".tabs-left > .nav-tabs") {
-  borderBottom = Border(0.px)
-}
-
-// Show/hide tabbable areas
-ruleOf(".tab-content > .tab-pane", ".pill-content > .pill-pane") {
-  display = Display.none
-}
-
-ruleOf(".tab-content > .active", ".pill-content > .active") {
-  display = Display.block
-}
-
-
-// BOTTOM
-// ------
-rule(".tabs-below > .nav-tabs") {
-  borderTop = Border(1.px, BorderStyle.solid, Color.solid)
-}
-
-rule(".tabs-below > .nav-tabs > li") {
-  marginTop = -1.px
-  marginBottom = 0.px
-}
-
-rule(".tabs-below > .nav-tabs > li > a") {
-  with(mixins) { borderRadius(0.px, 0.px, 4.px, 4.px) }
-  ruleOf("&:hover", "&:focus") {
-    border-bottom-color: transparent;
-    border-topColor = Color("#ddd")
-  }
-}
-
-ruleOf(".tabs-below > .nav-tabs > .active > a",
-    ".tabs-below > .nav-tabs > .active > a:hover",
-    ".tabs-below > .nav-tabs > .active > a:focus") {
-  border-color: transparent #ddd #ddd #ddd;
-}
-
-// LEFT & RIGHT
-
-// Common styles
-ruleOf(".tabs-left > .nav-tabs > li", ".tabs-right > .nav-tabs > li") {
-  float = Float.none
-}
-
-ruleOf(".tabs-left > .nav-tabs > li > a", ".tabs-right > .nav-tabs > li > a") {
-  minWidth = 74.px
-  marginRight = 0.px
-  marginBottom = 3.px
-}
-
-// Tabs on the left
-rule(".tabs-left > .nav-tabs") {
-  float = Float.left
-  marginRight = 19.px
-  borderRight = Border(1.px, BorderStyle.solid, Color.solid)
-}
-
-rule(".tabs-left > .nav-tabs > li > a") {
-  marginRight = -1.px
-  with(mixins) { borderRadius(4.px, 0.px, 0.px, 4.px) }
-}
-
-ruleOf(".tabs-left > .nav-tabs > li > a:hover", ".tabs-left > .nav-tabs > li > a:focus") {
-  borderColor = vars.grayLighter #ddd vars.grayLighter vars.grayLighter
-}
-
-ruleOf(".tabs-left > .nav-tabs .active > a",
-    ".tabs-left > .nav-tabs .active > a:hover",
-    ".tabs-left > .nav-tabs .active > a:focus") {
-  border-color: #ddd transparent #ddd #ddd;
-  declarations["*border-right-color"] = vars.white
-}
-
-// Tabs on the right
-rule(".tabs-right > .nav-tabs") {
-  float = Float.right
-  marginLeft = 19.px
-  borderLeft = Border(1.px, BorderStyle.solid, Color.solid)
-}
-
-rule(".tabs-right > .nav-tabs > li > a") {
-  marginLeft = -1.px
-  with(mixins) { borderRadius(0.px, 4.px, 4.px, 0.px) }
-}
-
-ruleOf(".tabs-right > .nav-tabs > li > a:hover",
-    ".tabs-right > .nav-tabs > li > a:focus") {
-  borderColor = vars.grayLighter vars.grayLighter vars.grayLighter #ddd
-}
-
-ruleOf(".tabs-right > .nav-tabs .active > a",
-    ".tabs-right > .nav-tabs .active > a:hover",
-    ".tabs-right > .nav-tabs .active > a:focus") {
-  border-color: #ddd #ddd #ddd transparent;
-  declarations["*border-left-color"] = vars.white
-}
-
-
-
-// DISABLED STATES
-
-// Gray out text
-rule(".nav > .disabled > a") {
-  color = vars.grayLight
-}
-// Nuke hover/focus effects
-ruleOf(".nav > .disabled > a:hover", ".nav > .disabled > a:focus") {
-  textDecoration = TextDecoration.none
-  backgroundColor = Color.transparent
-  cursor = Cursor.default
-}
-    */}
+    override fun CssBuilder.navs() {
+        // BASE CLASS
+        rule(".nav") {
+            marginLeft = 0.px
+            marginBottom = vars.baseLineHeight
+            listStyleType = ListStyleType.none
+        }
+
+        // Make links block level
+        rule(".nav > li > a") {
+            display = Display.block
+        }
+
+        ruleOf(".nav > li > a:hover", ".nav > li > a:focus") {
+            textDecoration = TextDecoration.none
+            backgroundColor = vars.grayLighter
+        }
+
+        // Prevent IE8 from misplacing imgs
+        // See https://github.com/h5bp/html5-boilerplate/issues/984#issuecomment-3985989
+        rule(".nav > li > a > img") {
+            maxWidth = LinearDimension.none;
+        }
+
+        // Redeclare pull classes because of specifity
+        rule(".nav > .pull-right") {
+            float = Float.right
+        }
+
+        // Nav headers (for dropdowns and lists)
+        rule(".nav-header") {
+            display = Display.block
+            padding = Padding(3.px, 15.px)
+            fontSize = 11.px
+            fontWeight = FontWeight.bold
+            lineHeight = vars.baseLineHeight.lh
+            color = vars.grayLight
+            declarations["text-shadow"] = "0px 1px 0px rgb(255,255,255,.5)"
+            textTransform = TextTransform.uppercase
+        }
+        // Space them out when they follow another list item (link)
+        rule(".nav li + .nav-header") {
+            marginTop = 9.px
+        }
+
+
+        // NAV LIST
+        // --------
+        rule(".nav-list") {
+            paddingLeft = 15.px
+            paddingRight = 15.px
+            marginBottom = 0.px
+        }
+
+        ruleOf(".nav-list > li > a", ".nav-list .nav-header") {
+            marginLeft = -15.px
+            marginRight = -15.px
+            declarations["text-shadow"] = "0px 1px 0px rgb(255,255,255,.5)"
+        }
+
+        rule(".nav-list > li > a") {
+            padding = Padding(3.px, 15.px)
+        }
+
+        ruleOf(".nav-list > .active > a", ".nav-list > .active > a:hover", ".nav-list > .active > a:focus") {
+            color = vars.white
+            declarations["text-shadow"] = "0px -1px 0px rgb(0,0,0,.2)"
+            backgroundColor = vars.linkColor
+        }
+
+        ruleOf(".nav-list [class^=\"icon-\"]", ".nav-list [class*=\" icon-\"]") {
+            marginRight = 2.px
+        }
+        // Dividers (basically an hr) within the dropdown
+        rule(".nav-list .divider") {
+            with(mixins) { navDivider() }
+        }
+
+
+        // TABS AND PILLS
+
+        // Common styles
+        ruleOf(".nav-tabs", ".nav-pills") {
+            with(mixins) { clearfix() }
+        }
+
+        ruleOf(".nav-tabs > li", ".nav-pills > li") {
+            float = Float.left
+        }
+
+        ruleOf(".nav-tabs > li > a", ".nav-pills > li > a") {
+            paddingRight = 12.px
+            paddingLeft = 12.px
+            marginRight = 2.px
+            lineHeight = 14.px.lh
+            // keeps the overall height an even number
+        }
+
+        // TABS
+        // ----
+
+        // Give the tabs something to sit on
+        rule(".nav-tabs") {
+            borderBottom = Border(1.px, BorderStyle.solid, Color("#ddd"))
+        }
+        // Make the list-items overlay the bottom border
+        rule(".nav-tabs > li") {
+            marginBottom = -1.px
+        }
+        // Actual tabs (as links)
+        rule(".nav-tabs > li > a") {
+            paddingTop = 8.px
+            paddingBottom = 8.px
+            lineHeight = vars.baseLineHeight.lh
+            border = Border(1.px, BorderStyle.solid, Color.transparent)
+            with(mixins) { borderRadius(4.px, 4.px, 0.px, 0.px) }
+            "&:hover &:focus" {
+                borderColor = Color("${vars.grayLighter} ${vars.grayLighter} #ddd")
+            }
+        }
+        // Active state, and it's :hover/:focus to override normal :hover/:focus
+        ruleOf(".nav-tabs > .active > a", ".nav-tabs > .active > a:hover", ".nav-tabs > .active > a:focus") {
+            color = vars.gray
+            backgroundColor = vars.bodyBackground
+            border = Border(1.px, BorderStyle.solid, Color("#ddd"))
+            borderBottomColor = Color.transparent;
+            cursor = Cursor.default
+        }
+
+
+        // PILLS
+        // -----
+
+        // Links rendered as pills
+        rule(".nav-pills > li > a") {
+            paddingTop = 8.px
+            paddingBottom = 8.px
+            marginTop = 2.px
+            marginBottom = 2.px
+            with(mixins) { borderRadius(5.px) }
+        }
+
+        // Active state
+        ruleOf(
+            ".nav-pills > .active > a",
+            ".nav-pills > .active > a:hover",
+            ".nav-pills > .active > a:focus"
+        ) {
+            color = vars.white
+            backgroundColor = vars.linkColor
+        }
+
+
+        // STACKED NAV
+
+        // Stacked tabs and pills
+        rule(".nav-stacked > li") {
+            float = Float.none
+        }
+
+        rule(".nav-stacked > li > a") {
+            marginRight = 0.px // no need for the gap between nav items
+        }
+
+        // Tabs
+        rule(".nav-tabs.nav-stacked") {
+            borderBottomWidth = 0.px
+        }
+
+        rule(".nav-tabs.nav-stacked > li > a") {
+            border = Border(1.px, BorderStyle.solid, Color("#ddd"))
+            with(mixins) { borderRadius(0.px) }
+        }
+
+        rule(".nav-tabs.nav-stacked > li:first-child > a") {
+            with(mixins) { borderTopRadius(4.px) }
+        }
+
+        rule(".nav-tabs.nav-stacked > li:last-child > a") {
+            with(mixins) { borderBottomRadius(4.px) }
+        }
+
+        ruleOf(".nav-tabs.nav-stacked > li > a:hover", ".nav-tabs.nav-stacked > li > a:focus") {
+            borderColor = Color("#ddd")
+            zIndex = 2
+        }
+
+        // Pills
+        rule(".nav-pills.nav-stacked > li > a") {
+            marginBottom = 3.px
+        }
+
+        rule(".nav-pills.nav-stacked > li:last-child > a") {
+            marginBottom = 1.px // decrease margin to match sizing of stacked tabs
+        }
+
+
+        // DROPDOWNS
+        // ---------
+        rule(".nav-tabs .dropdown-menu") {
+            with(mixins) { borderRadius(0.px, 0.px, 6.px, 6.px) }
+            // remove the top rounded corners here since there is a hard edge above the menu
+        }
+
+        rule(".nav-pills .dropdown-menu") {
+            with(mixins) { borderRadius(6.px) }
+            // make rounded corners match the pills
+        }
+
+        // Default dropdown links
+        // Make carets use linkColor to start
+        rule(".nav .dropdown-toggle .caret") {
+            borderTopColor = vars.linkColor
+            borderBottomColor = vars.linkColor
+            marginTop = 6.px
+        }
+
+        ruleOf(".nav .dropdown-toggle:hover .caret", ".nav .dropdown-toggle:focus .caret") {
+            borderTopColor = vars.linkColorHover
+            borderBottomColor = vars.linkColorHover
+        }
+        // move down carets for tabs
+        rule(".nav-tabs .dropdown-toggle .caret") {
+            marginTop = 8.px
+        }
+
+        // Active dropdown links
+        rule(".nav .active .dropdown-toggle .caret") {
+            borderTopColor = Color("#fff")
+            borderBottomColor = Color("#fff")
+        }
+
+        rule(".nav-tabs .active .dropdown-toggle .caret") {
+            borderTopColor = vars.gray
+            borderBottomColor = vars.gray
+        }
+
+        // Active:hover/:focus dropdown links
+        ruleOf(".nav > .dropdown.active > a:hover", ".nav > .dropdown.active > a:focus") {
+            cursor = Cursor.pointer
+        }
+
+        // Open dropdowns
+        ruleOf(
+            ".nav-tabs .open .dropdown-toggle",
+            ".nav-pills .open .dropdown-toggle",
+            ".nav > li.dropdown.open.active > a:hover",
+            ".nav > li.dropdown.open.active > a:focus"
+        ) {
+            color = vars.white
+            backgroundColor = vars.grayLight
+            borderColor = vars.grayLight
+        }
+
+        ruleOf(
+            ".nav li.dropdown.open .caret",
+            ".nav li.dropdown.open.active .caret",
+            ".nav li.dropdown.open a:hover .caret",
+            ".nav li.dropdown.open a:focus .caret"
+        ) {
+            borderTopColor = vars.white
+            borderBottomColor = vars.white
+            with(mixins) { opacity(100.0) }
+        }
+
+        // Dropdowns in stacked tabs
+        ruleOf(".tabs-stacked .open > a:hover", ".tabs-stacked .open > a:focus") {
+            borderColor = vars.grayLight
+        }
+
+
+        // TABBABLE
+        // --------
+
+
+        // COMMON STYLES
+
+        // Clear any floats
+        rule(".tabbable") {
+            with(mixins) { clearfix() }
+        }
+
+        rule(".tab-content") {
+            overflow = Overflow.auto
+            // prevent content from running below tabs
+        }
+
+        // Remove border on bottom, left, right
+        ruleOf(".tabs-below > .nav-tabs", ".tabs-right > .nav-tabs", ".tabs-left > .nav-tabs") {
+            borderBottomWidth = 0.px
+        }
+
+        // Show/hide tabbable areas
+        ruleOf(".tab-content > .tab-pane", ".pill-content > .pill-pane") {
+            display = Display.none
+        }
+
+        ruleOf(".tab-content > .active", ".pill-content > .active") {
+            display = Display.block
+        }
+
+
+        // BOTTOM
+        // ------
+        rule(".tabs-below > .nav-tabs") {
+            borderTop = Border(1.px, BorderStyle.solid, Color("#ddd"))
+        }
+
+        rule(".tabs-below > .nav-tabs > li") {
+            marginTop = -1.px
+            marginBottom = 0.px
+        }
+
+        rule(".tabs-below > .nav-tabs > li > a") {
+            with(mixins) { borderRadius(0.px, 0.px, 4.px, 4.px) }
+            ruleOf("&:hover", "&:focus") {
+                borderBottomColor = Color.transparent
+                borderTopColor = Color("#ddd")
+            }
+        }
+
+        ruleOf(
+            ".tabs-below > .nav-tabs > .active > a",
+            ".tabs-below > .nav-tabs > .active > a:hover",
+            ".tabs-below > .nav-tabs > .active > a:focus"
+        ) {
+            borderColor = Color("transparent #ddd #ddd #ddd")
+        }
+
+        // LEFT & RIGHT
+
+        // Common styles
+        ruleOf(".tabs-left > .nav-tabs > li", ".tabs-right > .nav-tabs > li") {
+            float = Float.none
+        }
+
+        ruleOf(".tabs-left > .nav-tabs > li > a", ".tabs-right > .nav-tabs > li > a") {
+            minWidth = 74.px
+            marginRight = 0.px
+            marginBottom = 3.px
+        }
+
+        // Tabs on the left
+        rule(".tabs-left > .nav-tabs") {
+            float = Float.left
+            marginRight = 19.px
+            borderRight = Border(1.px, BorderStyle.solid, Color("#ddd"))
+        }
+
+        rule(".tabs-left > .nav-tabs > li > a") {
+            marginRight = -1.px
+            with(mixins) { borderRadius(4.px, 0.px, 0.px, 4.px) }
+        }
+
+        ruleOf(".tabs-left > .nav-tabs > li > a:hover", ".tabs-left > .nav-tabs > li > a:focus") {
+            borderColor = Color("${vars.grayLighter} #ddd ${vars.grayLighter} ${vars.grayLighter}")
+        }
+
+        ruleOf(
+            ".tabs-left > .nav-tabs .active > a",
+            ".tabs-left > .nav-tabs .active > a:hover",
+            ".tabs-left > .nav-tabs .active > a:focus"
+        ) {
+            borderColor = Color("#ddd transparent #ddd #ddd")
+            declarations["*border-right-color"] = vars.white
+        }
+
+        // Tabs on the right
+        rule(".tabs-right > .nav-tabs") {
+            float = Float.right
+            marginLeft = 19.px
+            borderLeft = Border(1.px, BorderStyle.solid, Color("#ddd"))
+        }
+
+        rule(".tabs-right > .nav-tabs > li > a") {
+            marginLeft = -1.px
+            with(mixins) { borderRadius(0.px, 4.px, 4.px, 0.px) }
+        }
+
+        ruleOf(
+            ".tabs-right > .nav-tabs > li > a:hover",
+            ".tabs-right > .nav-tabs > li > a:focus"
+        ) {
+            borderColor = Color("${vars.grayLighter} ${vars.grayLighter} ${vars.grayLighter} #ddd")
+        }
+
+        ruleOf(
+            ".tabs-right > .nav-tabs .active > a",
+            ".tabs-right > .nav-tabs .active > a:hover",
+            ".tabs-right > .nav-tabs .active > a:focus"
+        ) {
+            borderColor = Color("#ddd #ddd #ddd transparent")
+            declarations["*border-left-color"] = vars.white
+        }
+
+
+        // DISABLED STATES
+
+        // Gray out text
+        rule(".nav > .disabled > a") {
+            color = vars.grayLight
+        }
+        // Nuke hover/focus effects
+        ruleOf(".nav > .disabled > a:hover", ".nav > .disabled > a:focus") {
+            textDecoration = TextDecoration.none
+            backgroundColor = Color.transparent
+            cursor = Cursor.default
+        }
+    }
 
 
     override fun CssBuilder.pager(){/*
