@@ -67,17 +67,17 @@ object DefaultStyles : Styles {
         // Typography
         override val sansFontFamily = "\"Helvetica Neue\", Helvetica, Arial, sans-serif"
         override val serifFontFamily = "Georgia, \"Times New Roman\", Times, serif"
-        override val monoFontFamily = "Monaco, Menlo, Consolas, \"Courier New\", monospace";
+        override val monoFontFamily = "Monaco, Menlo, Consolas, \"Courier New\", monospace"
 
         override val baseFontSize = 14.px
         override val baseFontFamily get() = sansFontFamily
         override val baseLineHeight = 20.px
         override val altFontFamily get() = serifFontFamily
 
-        override val headingsFontFamily = "inherit";
+        override val headingsFontFamily = "inherit"
 
         // empty to use BS default, vars.baseFontFamily
-        override val headingsFontWeight = FontWeight.bold;
+        override val headingsFontWeight = FontWeight.bold
 
         // instead of browser default, bold
         override val headingsColor = Color.inherit
@@ -87,13 +87,13 @@ object DefaultStyles : Styles {
         // Component sizing
         // Based on 14px font-size and 20px line-height
 
-        override val fontSizeLarge get() = baseFontSize * 1.25;
+        override val fontSizeLarge get() = baseFontSize * 1.25
 
         // ~18px
-        override val fontSizeSmall get() = baseFontSize * 0.85;
+        override val fontSizeSmall get() = baseFontSize * 0.85
 
         // ~12px
-        override val fontSizeMini get() = baseFontSize * 0.75;
+        override val fontSizeMini get() = baseFontSize * 0.75
         // ~11px
 
         override val paddingLarge = Padding(11.px, 19.px)
@@ -111,7 +111,7 @@ object DefaultStyles : Styles {
 
 
         // Tables
-        override val tableBackground = Color.transparent;
+        override val tableBackground = Color.transparent
 
         // overall background-color
         override val tableBackgroundAccent = Color("f9f9f9")
@@ -188,8 +188,8 @@ object DefaultStyles : Styles {
 
 
         // Sprite icons path
-        override val iconSpritePath = "../img/glyphicons-halflings.png";
-        override val iconWhiteSpritePath = "../img/glyphicons-halflings-white.png";
+        override val iconSpritePath = "../img/glyphicons-halflings.png"
+        override val iconWhiteSpritePath = "../img/glyphicons-halflings-white.png"
 
 
         // Input placeholder text color
@@ -210,7 +210,7 @@ object DefaultStyles : Styles {
 
         // Navbar
         override val navbarCollapseWidth = 979.px
-        override val navbarCollapseDesktopWidth = navbarCollapseWidth + 1.px;
+        override val navbarCollapseDesktopWidth = navbarCollapseWidth + 1.px
 
         override val navbarHeight = 40.px
         override val navbarBackgroundHighlight = Color("ffffff")
@@ -222,7 +222,7 @@ object DefaultStyles : Styles {
         override val navbarLinkColorHover get() = grayDark
         override val navbarLinkColorActive get() = gray
         override val navbarLinkBackgroundHover = Color.transparent
-        override val navbarLinkBackgroundActive = navbarBackground.darken(5);
+        override val navbarLinkBackgroundActive = navbarBackground.darken(5)
 
         override val navbarBrandColor get() = navbarLinkColor
 
@@ -235,7 +235,7 @@ object DefaultStyles : Styles {
         override val navbarInverseLinkColor get() = grayLight
         override val navbarInverseLinkColorHover get() = white
         override val navbarInverseLinkColorActive get() = navbarInverseLinkColorHover
-        override val navbarInverseLinkBackgroundHover = Color.transparent;
+        override val navbarInverseLinkBackgroundHover = Color.transparent
         override val navbarInverseLinkBackgroundActive get() = navbarInverseBackground
 
         override val navbarInverseSearchBackground = navbarInverseBackground.lighten(25)
@@ -296,7 +296,7 @@ object DefaultStyles : Styles {
         override val popoverTitleBackground = popoverBackground.darken(3)
 
         // Special enhancement for popovers
-        override val popoverArrowOuterWidth = popoverArrowWidth + 1.px;
+        override val popoverArrowOuterWidth = popoverArrowWidth + 1.px
         override val popoverArrowOuterColor = rgb(0, 0, 0, .25)
 
 
@@ -304,33 +304,33 @@ object DefaultStyles : Styles {
 
 
         // Default 940px grid
-        override val gridColumns = 12;
+        override val gridColumns = 12
         override val gridColumnWidth = 60.px
         override val gridGutterWidth = 20.px
-        override val gridRowWidth = (gridColumnWidth * gridColumns) + (gridGutterWidth * (gridColumns-1));
+        override val gridRowWidth = (gridColumnWidth * gridColumns) + (gridGutterWidth * (gridColumns-1))
 
         // 1200px min
         override val gridColumnWidth1200 = 70.px
         override val gridGutterWidth1200 = 30.px
-        override val gridRowWidth1200 = (gridColumnWidth1200 * gridColumns) + (gridGutterWidth1200 * (gridColumns-1));
+        override val gridRowWidth1200 = (gridColumnWidth1200 * gridColumns) + (gridGutterWidth1200 * (gridColumns-1))
 
         // 768px-979px
         override val gridColumnWidth768 = 42.px
         override val gridGutterWidth768 = 20.px
-        override val gridRowWidth768 = (gridColumnWidth768 * gridColumns) + (gridGutterWidth768 * (gridColumns-1));
+        override val gridRowWidth768 = (gridColumnWidth768 * gridColumns) + (gridGutterWidth768 * (gridColumns-1))
 
 
         // Fluid grid
         override val fluidGridColumnWidth = percentage(gridColumnWidth, gridRowWidth)
-        override val fluidGridGutterWidth = percentage(gridGutterWidth, gridRowWidth);
+        override val fluidGridGutterWidth = percentage(gridGutterWidth, gridRowWidth)
 
         // 1200px min
-        override val fluidGridColumnWidth1200 = percentage(gridColumnWidth1200, gridRowWidth1200);
-        override val fluidGridGutterWidth1200 = percentage(gridGutterWidth1200, gridRowWidth1200);
+        override val fluidGridColumnWidth1200 = percentage(gridColumnWidth1200, gridRowWidth1200)
+        override val fluidGridGutterWidth1200 = percentage(gridGutterWidth1200, gridRowWidth1200)
 
         // 768px-979px
-        override val fluidGridColumnWidth768 = percentage(gridColumnWidth768, gridRowWidth768);
-        override val fluidGridGutterWidth768 = percentage(gridGutterWidth768, gridRowWidth768);
+        override val fluidGridColumnWidth768 = percentage(gridColumnWidth768, gridRowWidth768)
+        override val fluidGridGutterWidth768 = percentage(gridGutterWidth768, gridRowWidth768)
     }
 
     override fun CssBuilder.accordion() {
@@ -341,13 +341,13 @@ object DefaultStyles : Styles {
 
         // Group == heading + body
         rule(".accordion-group") {
-            marginBottom = 2.px;
+            marginBottom = 2.px
             border = Border(1.px, BorderStyle.solid, Color("#e5e5e5"))
             borderRadius = vars.baseBorderRadius
         }
 
         rule(".accordion-heading") {
-            borderBottomWidth = 0.px;
+            borderBottomWidth = 0.px
         }
 
         rule(".accordion-heading .accordion-toggle") {
@@ -371,7 +371,7 @@ object DefaultStyles : Styles {
         rule(".alert") {
             padding = Padding(8.px, 35.px, 8.px, 14.px)
             marginBottom = vars.baseLineHeight
-            declarations["text-shadow"] = "0px 1px 0px rgba(255, 255, 255, .5)";
+            declarations["text-shadow"] = "0px 1px 0px rgba(255, 255, 255, .5)"
             backgroundColor = vars.warningBackground
             border = Border(1.px, BorderStyle.solid, vars.warningBorder)
 
@@ -656,7 +656,7 @@ object DefaultStyles : Styles {
         }
         // Upside down carets for .dropup
         rule(".dropup .btn-large .caret") {
-            borderBottomWidth = 5.px;
+            borderBottomWidth = 5.px
         }
 
 
@@ -678,7 +678,7 @@ object DefaultStyles : Styles {
         rule(".btn-group-vertical > .btn") {
             display = Display.block
             float = Float.none
-            maxWidth = 100.pct;
+            maxWidth = 100.pct
             with(mixins) { borderRadius(0.px) }
         }
 
@@ -843,7 +843,7 @@ object DefaultStyles : Styles {
 
         // Provide *some* extra contrast for those who can get it
         rule(".btn-primary.active, .btn-warning.active, .btn-danger.active, .btn-success.active, .btn-info.active, .btn-inverse.active") {
-            color = rgb(255, 255, 255, .75);
+            color = rgb(255, 255, 255, .75)
         }
 
         // Set the backgrounds
@@ -878,7 +878,7 @@ object DefaultStyles : Styles {
             // Firefox 3.6 only I believe
             "&::-moz-focus-inner" {
                 padding = Padding(0.px)
-                borderWidth = 0.px;
+                borderWidth = 0.px
             }
 
             // IE7 has some default padding on button controls
@@ -1041,7 +1041,7 @@ object DefaultStyles : Styles {
                 declarations["textIndent"] = -999.px
                 backgroundColor = Color("#ccc")
                 backgroundColor = rgb(255, 255, 255, .25)
-                borderRadius = 5.px;
+                borderRadius = 5.px
             }
             ".active" {
                 backgroundColor = Color("#fff")
@@ -1134,14 +1134,14 @@ object DefaultStyles : Styles {
             fontSize = vars.baseFontSize-1.px
             // 14px to 13px
             lineHeight = vars.baseLineHeight.lh
-            wordBreak = WordBreak.breakAll;
-            wordWrap = WordWrap.breakWord;
+            wordBreak = WordBreak.breakAll
+            wordWrap = WordWrap.breakWord
             whiteSpace = WhiteSpace.pre
             whiteSpace = WhiteSpace.preWrap
             backgroundColor = Color("#f5f5f5")
             border = Border(1.px, BorderStyle.solid, Color("#ccc"))
             // fallback for IE7-8
-            border = Border(1.px, BorderStyle.solid, rgb(0, 0, 0, .15));
+            border = Border(1.px, BorderStyle.solid, rgb(0, 0, 0, .15))
             with(mixins) { borderRadius(vars.baseBorderRadius) }
 
             // Make prettyprint styles more spaced out for readability
@@ -1156,21 +1156,21 @@ object DefaultStyles : Styles {
                 whiteSpace = WhiteSpace.pre
                 whiteSpace = WhiteSpace.preWrap
                 backgroundColor = Color.transparent
-                borderWidth = 0.px;
+                borderWidth = 0.px
             }
         }
 
         // Enable scrollable blocks of code
         rule(".pre-scrollable") {
             maxHeight = 340.px
-            overflowY = Overflow.scroll;
+            overflowY = Overflow.scroll
         }
     }
 
 
     override fun CssBuilder.componentAnimations() {
         rule(".fade") {
-            opacity = 0;
+            opacity = 0
             with(mixins) { transition("opacity .15s linear") }
             "&.in" {
                 opacity = 1
@@ -1289,7 +1289,7 @@ object DefaultStyles : Styles {
             textDecoration = TextDecoration.none
             outlineWidth = 0.px
             with(mixins) {
-                gradientVertical(vars.dropdownLinkBackgroundActive, vars.dropdownLinkBackgroundActive.darken(5));
+                gradientVertical(vars.dropdownLinkBackgroundActive, vars.dropdownLinkBackgroundActive.darken(5))
             }
         }
 
@@ -1386,8 +1386,8 @@ object DefaultStyles : Styles {
             width = 0.px
             height = 0.px
 
-            borderColor = Color.transparent;
-            borderStyle = BorderStyle.solid;
+            borderColor = Color.transparent
+            borderStyle = BorderStyle.solid
             borderWidth(5.px, 0.px, 5.px, 5.px)
             borderLeftColor = vars.dropdownBackground.darken(20)
             marginTop = 5.px
@@ -1434,7 +1434,7 @@ object DefaultStyles : Styles {
 
         // Make all forms have space below them
         rule("form") {
-            margin = Margin(0.px, 0.px, vars.baseLineHeight);
+            margin = Margin(0.px, 0.px, vars.baseLineHeight)
         }
 
         rule("fieldset") {
@@ -1762,7 +1762,7 @@ object DefaultStyles : Styles {
             "select[readonly]",
             "textarea[readonly]"
         ) {
-            cursor = Cursor.notAllowed;
+            cursor = Cursor.notAllowed
             backgroundColor = vars.inputDisabledBackground
         }
         // Explicitly reset the colors here
@@ -1817,7 +1817,7 @@ object DefaultStyles : Styles {
 
         // FORM ACTIONS
         rule(".form-actions") {
-            padding = Padding((vars.baseLineHeight - 1.px), 20.px, vars.baseLineHeight);
+            padding = Padding((vars.baseLineHeight - 1.px), 20.px, vars.baseLineHeight)
             marginTop = vars.baseLineHeight
             marginBottom = vars.baseLineHeight
             backgroundColor = vars.formActionsBackground
@@ -2048,7 +2048,7 @@ object DefaultStyles : Styles {
         // Legend collapses margin, so next element is responsible for spacing
         rule("legend + .control-group") {
             marginTop = vars.baseLineHeight
-            declarations["-webkit-margin-top-collapse"] = "separate";
+            declarations["-webkit-margin-top-collapse"] = "separate"
         }
 
         // Horizontal-specific styles
@@ -2061,7 +2061,7 @@ object DefaultStyles : Styles {
             // Float the labels left
             ".control-label" {
                 float = Float.left
-                width = vars.horizontalComponentOffset - 20.px;
+                width = vars.horizontalComponentOffset - 20.px
                 paddingTop = 5.px
                 textAlign = TextAlign.right
             }
@@ -2101,7 +2101,7 @@ object DefaultStyles : Styles {
             gridCore(vars.gridColumnWidth, vars.gridGutterWidth)
 
             // Fluid (940px)
-            gridFluid(vars.fluidGridColumnWidth, vars.fluidGridGutterWidth);
+            gridFluid(vars.fluidGridColumnWidth, vars.fluidGridGutterWidth)
         }
 
 
@@ -2131,7 +2131,7 @@ object DefaultStyles : Styles {
                 fontSize = 60.px
                 lineHeight = 1.px.lh
                 color = vars.heroUnitHeadingColor
-                letterSpacing = -1.px;
+                letterSpacing = -1.px
             }
             li {
                 lineHeight = (vars.baseLineHeight * 1.5).lh
@@ -2616,7 +2616,7 @@ object DefaultStyles : Styles {
         rule(".navbar .nav > li > a") {
             float = Float.none
             // Vertically center the text given vars.navbarHeight
-            padding = Padding(((vars.navbarHeight-vars.baseLineHeight) / 2), 15.px, ((vars.navbarHeight-vars.baseLineHeight) / 2));
+            padding = Padding(((vars.navbarHeight-vars.baseLineHeight) / 2), 15.px, ((vars.navbarHeight-vars.baseLineHeight) / 2))
             color = vars.navbarLinkColor
             textDecoration = TextDecoration.none
             declarations["text-shadow"] = "0px 1px 0px vars.navbarBackgroundHighlight"
@@ -2896,7 +2896,7 @@ object DefaultStyles : Styles {
         // Prevent IE8 from misplacing imgs
         // See https://github.com/h5bp/html5-boilerplate/issues/984#issuecomment-3985989
         rule(".nav > li > a > img") {
-            maxWidth = LinearDimension.none;
+            maxWidth = LinearDimension.none
         }
 
         // Redeclare pull classes because of specifity
@@ -3000,7 +3000,7 @@ object DefaultStyles : Styles {
             color = vars.gray
             backgroundColor = vars.bodyBackground
             border = Border(1.px, BorderStyle.solid, Color("#ddd"))
-            borderBottomColor = Color.transparent;
+            borderBottomColor = Color.transparent
             cursor = Cursor.default
         }
 
@@ -3330,7 +3330,7 @@ object DefaultStyles : Styles {
     override fun CssBuilder.pagination() {
         // Space out pagination from surrounding content
         rule(".pagination") {
-            margin = Margin(vars.baseLineHeight, 0.px);
+            margin = Margin(vars.baseLineHeight, 0.px)
         }
 
         rule(".pagination ul") {
