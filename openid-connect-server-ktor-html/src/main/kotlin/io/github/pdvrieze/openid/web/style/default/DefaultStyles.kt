@@ -3,15 +3,19 @@ package io.github.pdvrieze.openid.web.style.default
 import io.github.pdvrieze.openid.web.style.Mixins
 import io.github.pdvrieze.openid.web.style.Styles
 import io.github.pdvrieze.openid.web.style.borderWidth
+import io.github.pdvrieze.openid.web.style.default.DefaultMixins.gradientStriped
 import io.github.pdvrieze.openid.web.style.ruleOf
 import io.github.pdvrieze.openid.web.style.zoom
 import kotlinx.css.*
 import kotlinx.css.Float
+import kotlinx.css.properties.Animation
+import kotlinx.css.properties.Animations
 import kotlinx.css.properties.BoxShadow
 import kotlinx.css.properties.BoxShadowInset
 import kotlinx.css.properties.LineHeight
 import kotlinx.css.properties.TextDecoration
 import kotlinx.css.properties.TextDecorationLine
+import kotlinx.css.properties.Time
 import kotlinx.css.properties.Timing
 import kotlinx.css.properties.lh
 import kotlinx.css.properties.s
@@ -3594,129 +3598,137 @@ object DefaultStyles : Styles {
     }
 
 
-    override fun CssBuilder.progressBars(){/*
-// ANIMATIONS
+    override fun CssBuilder.progressBars() {
+        // ANIMATIONS
 
-// Webkit
-rule("VAR-webkit-keyframes progress-bar-stripes") {
-  from  { background-position: 40px 0px; }
-  to    { background-position: 0px 0px; }
-}
+        // Webkit
+        rule("@-webkit-keyframes progress-bar-stripes") {
+            "from" { backgroundPosition = RelativePosition("40px 0px") }
+            "to" { backgroundPosition = RelativePosition("0px 0px") }
+        }
 
-// Firefox
-rule("VAR-moz-keyframes progress-bar-stripes") {
-  from  { background-position: 40px 0px; }
-  to    { background-position: 0px 0px; }
-}
+        // Firefox
+        rule("@-moz-keyframes progress-bar-stripes") {
+            "from" { backgroundPosition = RelativePosition("40px 0px") }
+            "to" { backgroundPosition = RelativePosition("0px 0px") }
+        }
 
-// IE9
-rule("VAR-ms-keyframes progress-bar-stripes") {
-  from  { background-position: 40px 0px; }
-  to    { background-position: 0px 0px; }
-}
+        // IE9
+        rule("@-ms-keyframes progress-bar-stripes") {
+            "from" { backgroundPosition = RelativePosition("40px 0px") }
+            "to" { backgroundPosition = RelativePosition("0px 0px") }
+        }
 
-// Opera
-rule("VAR-o-keyframes progress-bar-stripes") {
-  from  { background-position: 0px 0px; }
-  to    { background-position: 40px 0px; }
-}
+        // Opera
+        rule("@-o-keyframes progress-bar-stripes") {
+            "from" { backgroundPosition = RelativePosition("0px 0px") }
+            "to" { backgroundPosition = RelativePosition("40px 0px") }
+        }
 
-// Spec
-rule("vars.keyframes progress-bar-stripes") {
-  from  { background-position: 40px 0px; }
-  to    { background-position: 0px 0px; }
-}
-
-
-
-// THE BARS
-// --------
-
-// Outer container
-rule(".progress") {
-  overflow = Overflow.hidden
-  height: vars.baseLineHeight;
-  marginBottom = vars.baseLineHeight
-  #gradient > .vertical(#f5f5f5, #f9f9f9);
-  with(mixins) { boxShadow(inset 0px 1px 2px rgb(0,0,0,.1)) }
-  with(mixins) { borderRadius(vars.baseBorderRadius) }
-}
-
-// Bar of progress
-rule(".progress .bar") {
-  width = 0.pct
-  height = 100.pct
-  color = vars.white
-  float = Float.left
-  fontSize = 12.px
-  textAlign = TextAlign.center
-  declarations["text-shadow"] = "0px -1px 0px rgb(0,0,0,.25)"
-  #gradient > .vertical(#149bdf, #0480be);
-  with(mixins) { boxShadow(inset 0px -1px 0px rgb(0,0,0,.15)) }
-  with(mixins) { boxSizing(border-box) }
-  with(mixins) { transition(width .6s ease) }
-}
-
-rule(".progress .bar + .bar") {
-  with(mixins) { boxShadow(~"inset 1px 0px 0px rgb(0,0,0,.15), inset 0px -1px 0px rgb(0,0,0,.15)") }
-}
-
-// Striped bars
-rule(".progress-striped .bar") {
-  #gradient > .striped(#149bdf);
-  with(mixins) { backgroundSize(40px 40px) }
-}
-
-// Call animation for the active one
-rule(".progress.active .bar") {
-  -webkit-animation: progress-bar-stripes 2s linear infinite;
-     -moz-animation: progress-bar-stripes 2s linear infinite;
-      -ms-animation: progress-bar-stripes 2s linear infinite;
-       -o-animation: progress-bar-stripes 2s linear infinite;
-          animation: progress-bar-stripes 2s linear infinite;
-}
+        // Spec
+        rule("@s.keyframes progress-bar-stripes") {
+            "from" { backgroundPosition = RelativePosition("40px 0px") }
+            "to" { backgroundPosition = RelativePosition("0px 0px") }
+        }
 
 
+        // THE BARS
+        // --------
 
-// COLORS
-// ------
+        // Outer container
+        rule(".progress") {
+            overflow = Overflow.hidden
+            height = vars.baseLineHeight;
+            marginBottom = vars.baseLineHeight
+            with(mixins) {
+                gradientVertical(Color("#f5f5f5"), Color("#f9f9f9"))
+                boxShadowInset(0.px, 1.px, 2.px, rgb(0, 0, 0, .1))
+                borderRadius(vars.baseBorderRadius)
+            }
+        }
 
-// Danger (red)
-rule(".progress-danger .bar, .progress .bar-danger") {
-  #gradient > .vertical(#ee5f5b, #c43c35);
-}
+        // Bar of progress
+        rule(".progress .bar") {
+            width = 0.pct
+            height = 100.pct
+            color = vars.white
+            float = Float.left
+            fontSize = 12.px
+            textAlign = TextAlign.center
+            declarations["text-shadow"] = "0px -1px 0px rgb(0,0,0,.25)"
+            with(mixins) {
+                gradientVertical(Color("#149bdf"), Color("#0480be"))
+                boxShadowInset(0.px, -1.px, 0.px, rgb(0, 0, 0, .15))
+                boxSizing(BoxSizing.borderBox)
+                transition("width .6s ease")
+            }
+        }
 
-rule(".progress-danger.progress-striped .bar, .progress-striped .bar-danger") {
-  #gradient > .striped(#ee5f5b);
-}
+        rule(".progress .bar + .bar") {
+            with(mixins) {
+                boxShadow {
+                    this += BoxShadowInset(rgb(0, 0, 0, .15), 1.px, 0.px, 0.px)
+                    this += BoxShadow(rgb(0, 0, 0, .15), 0.px, -1.px, 0.px)
+                }
+            }
+        }
 
-// Success (green)
-rule(".progress-success .bar, .progress .bar-success") {
-  #gradient > .vertical(#62c462, #57a957);
-}
+        // Striped bars
+        rule(".progress-striped .bar") {
+            gradientStriped(Color("#149bdf"))
 
-rule(".progress-success.progress-striped .bar, .progress-striped .bar-success") {
-  #gradient > .striped(#62c462);
-}
+            with(mixins) { backgroundSize("40px 40px") }
+        }
 
-// Info (teal)
-rule(".progress-info .bar, .progress .bar-info") {
-  #gradient > .vertical(#5bc0de, #339bb9);
-}
+        // Call animation for the active one
+        rule(".progress.active .bar") {
+            declarations["-webkit-animation"] = "progress-bar-stripes 2s linear infinite"
+            declarations["-moz-animation"] = "progress-bar-stripes 2s linear infinite"
+            declarations["-ms-animation"] = "progress-bar-stripes 2s linear infinite"
+            declarations["-o-animation"] = "progress-bar-stripes 2s linear infinite"
+            animation += Animation("progress-bar-stripes", 2.s, Timing.linear, Time("infinite"))
+        }
 
-rule(".progress-info.progress-striped .bar, .progress-striped .bar-info") {
-  #gradient > .striped(#5bc0de);
-}
 
-// Warning (orange)
-rule(".progress-warning .bar, .progress .bar-warning") {
-  #gradient > .vertical(vars.orange.lighten(15), vars.orange);
-}
+        // COLORS
+        // ------
 
-rule(".progress-warning.progress-striped .bar, .progress-striped .bar-warning") {
-  #gradient > .striped(vars.orange.lighten(15));
-}
-    */}
+        // Danger (red)
+        rule(".progress-danger .bar, .progress .bar-danger") {
+            with(mixins) { gradientVertical(Color("#ee5f5b"), Color("#c43c35")) }
+        }
+
+        rule(".progress-danger.progress-striped .bar, .progress-striped .bar-danger") {
+            with(mixins) { gradientVertical(Color("#ee5f5b")) }
+        }
+
+        // Success (green)
+        rule(".progress-success .bar, .progress .bar-success") {
+            with(mixins) { gradientVertical(Color("#62c462"), Color("#57a957")) }
+        }
+
+        rule(".progress-success.progress-striped .bar, .progress-striped .bar-success") {
+            with(mixins) { gradientStriped(Color("#62c462")) }
+        }
+
+        // Info (teal)
+        rule(".progress-info .bar, .progress .bar-info") {
+            with(mixins) { gradientVertical(Color("#5bc0de"), Color("#339bb9")) }
+        }
+
+        rule(".progress-info.progress-striped .bar, .progress-striped .bar-info") {
+            with(mixins) { gradientStriped(Color("#5bc0de")) }
+        }
+
+        // Warning (orange)
+        rule(".progress-warning .bar, .progress .bar-warning") {
+            with(mixins) { gradientVertical(vars.orange.lighten(15), vars.orange) }
+        }
+
+        rule(".progress-warning.progress-striped .bar, .progress-striped .bar-warning") {
+            with(mixins) { gradientStriped(vars.orange.lighten(15)); }
+        }
+    }
 
 
     override fun CssBuilder.reset(){/*
