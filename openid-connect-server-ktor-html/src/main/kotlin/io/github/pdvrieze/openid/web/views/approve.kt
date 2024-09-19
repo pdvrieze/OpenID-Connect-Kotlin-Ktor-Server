@@ -7,6 +7,8 @@ import kotlinx.css.TextAlign
 import kotlinx.css.textAlign
 import kotlinx.html.*
 import org.mitre.oauth2.exception.AuthenticationException
+import org.mitre.oauth2.exception.OAuth2Exception
+import org.mitre.oauth2.exception.UnapprovedClientAuthenticationException
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.OAuthClientDetails.SubjectType
 import org.mitre.oauth2.model.SystemScope
@@ -29,7 +31,7 @@ fun <T, C : TagConsumer<T>> C.approve(
     contacts: String? = null,
     isGras: Boolean,
     consent: Boolean = true,
-    authenticationException: AuthenticationException? = null,
+    authenticationException: OAuth2Exception? = null,
 ): T {
     val title = context.intl.messageText("approve.title")
     val pageName = "Approve"
@@ -39,7 +41,7 @@ fun <T, C : TagConsumer<T>> C.approve(
         with(context.intl) {
             topBar(context, pageName)
             div("container main") {
-                if (authenticationException != null) {
+                if (authenticationException != null && authenticationException !is UnapprovedClientAuthenticationException) {
                     div("alert-message error") {
                         a(href = "#", classes = "close") { +Entities.times }
                         p {
