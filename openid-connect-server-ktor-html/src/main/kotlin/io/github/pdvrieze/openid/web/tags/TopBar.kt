@@ -120,7 +120,7 @@ fun FlowContent.topBar(context: WebContext, pageName: String?) {
                         }
 
                         form(
-                            action = "${context.config.issuer.let { if (it.endsWith('/')) it else "$it/" }}logout",
+                            action = context.issuerUrl("logout"),
                             method = FormMethod.post,
                             classes = "hidden",
                         ) {

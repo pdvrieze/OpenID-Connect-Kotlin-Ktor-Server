@@ -10,6 +10,7 @@ base {
 
 dependencies {
     implementation(projects.openidConnectCommon)
+    implementation(projects.openidConnectServer)
     implementation(projects.openidConnectServerKtor)
 
     implementation(libs.ktor.server.html.builder)

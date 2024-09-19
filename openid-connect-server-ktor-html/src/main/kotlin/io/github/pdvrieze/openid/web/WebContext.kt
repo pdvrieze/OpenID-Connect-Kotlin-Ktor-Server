@@ -6,6 +6,15 @@ import org.mitre.openid.connect.config.UIConfiguration
 import org.mitre.openid.connect.model.UserInfo
 
 interface WebContext {
+    fun issuerUrl(subPath: String): String {
+        val issuer = config.issuer
+        return when {
+            issuer.endsWith('/') -> "$issuer$subPath"
+            else -> "$issuer/$subPath"
+        }
+    }
+
+    val csrf: ICsrf
     val userInfo: UserInfo?
     val authentication: Authentication
     val userAuthorities: String?
@@ -14,4 +23,9 @@ interface WebContext {
     val intl: Intl
     val config: ConfigurationPropertiesBean
     val ui: UIConfiguration
+
+    interface ICsrf {
+        val parameterName: String
+        val token: String
+    }
 }

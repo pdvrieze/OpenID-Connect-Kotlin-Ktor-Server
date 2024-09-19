@@ -7,6 +7,9 @@ import kotlinx.css.Rule
 import kotlinx.css.RuleContainer
 import kotlinx.css.RuleSet
 import kotlinx.css.StyledElement
+import kotlinx.html.CommonAttributeGroupFacade
+import kotlinx.html.attributeStringString
+import kotlinx.html.style
 
 var StyledElement.zoom: Double by CssProperty()
 
@@ -33,3 +36,8 @@ fun RuleContainer.ruleOf(vararg selectors: String, passStaticClassesToParent: Bo
 fun RuleContainer.ruleOf(vararg selectors: String, passStaticClassesToParent: Boolean, repeatable: Boolean = false, css: CssBuilder): Rule {
     return rule(selectors.joinToString(), passStaticClassesToParent, repeatable, css)
 }
+
+fun CommonAttributeGroupFacade.styleAttr (body: StyledElement.() -> Unit) {
+    style = CssBuilder(allowClasses = false).apply(body).toString()
+}
+
