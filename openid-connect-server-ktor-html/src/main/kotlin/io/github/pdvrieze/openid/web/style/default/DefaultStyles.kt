@@ -5029,238 +5029,239 @@ object DefaultStyles : Styles {
     }
 
 
-    override fun CssBuilder.type(){/*
-// Body text
-rule("p") {
-  margin: 0px 0px vars.baseLineHeight / 2
-}
+    override fun CssBuilder.type() {
+        // Body text
+        rule("p") {
+            margin = Margin(0.px, 0.px, vars.baseLineHeight / 2)
+        }
 
-rule(".lead") {
-  marginBottom = vars.baseLineHeight
-  fontSize = vars.baseFontSize * 1.5
-  fontWeight = FontWeight.w200
-  lineHeight = vars.baseLineHeight * 1.5
-}
-
-
-// Emphasis & misc
-
-// Ex: 14px base font * 85% = about 12px
-rule("small") { fontSize = 85.pct }
-
-rule("strong") { fontWeight = FontWeight.bold }
-
-rule("em") { font-style: italic }
-
-rule("cite") { font-style: normal }
-
-// Utility classes
-rule(".muted") { color = vars.grayLight }
-ruleOf("a.muted:hover", "a.muted:focus") { color = vars.grayLight.darken(10) }
-
-rule(".text-warning") { color = vars.warningText }
-ruleOf("a.text-warning:hover", "a.text-warning:focus") { color = vars.warningText.darken(10) }
-
-rule(".text-error") { color = vars.errorText }
-ruleOf("a.text-error:hover", "a.text-error:focus") { color = vars.errorText.darken(10) }
-
-rule(".text-info") { color = vars.infoText }
-ruleOf("a.text-info:hover", "a.text-info:focus") { color = vars.infoText.darken(10) }
-
-rule(".text-success") { color = vars.successText }
-ruleOf("a.text-success:hover", "a.text-success:focus") { color = vars.successText.darken(10) }
-
-rule(".text-left") { textAlign = TextAlign.left }
-
-rule(".text-right") { textAlign = TextAlign.right }
-
-rule(".text-center") { textAlign = TextAlign.center }
+        rule(".lead") {
+            marginBottom = vars.baseLineHeight
+            fontSize = vars.baseFontSize * 1.5
+            fontWeight = FontWeight.w200
+            lineHeight = (vars.baseLineHeight * 1.5).lh
+        }
 
 
-// Headings
-ruleOf("h1", "h2", "h3", "h4", "h5", "h6") {
-  margin: (vars.baseLineHeight / 2) 0px
-  fontFamily = vars.headingsFontFamily
-  fontWeight = vars.headingsFontWeight
-  lineHeight = vars.baseLineHeight.lh
-  color = vars.headingsColor
-  textRendering = TextRendering.optimizelegibility
- // Fix the character spacing for headings
-  small {
-    fontWeight = FontWeight.normal
-    lineHeight = 1.px.lh
-    color = vars.grayLight
-  }
-}
+        // Emphasis & misc
 
-ruleOf("h1", "h2", "h3") { lineHeight = vars.baseLineHeight * 2 }
+        // Ex: 14px base font * 85% = about 12px
+        rule("small") { fontSize = 85.pct }
 
-rule("h1") { fontSize = vars.baseFontSize * 2.75 } // ~38px
-rule("h2") { fontSize = vars.baseFontSize * 2.25 } // ~32px
-rule("h3") { fontSize = vars.baseFontSize * 1.75 } // ~24px
-rule("h4") { fontSize = vars.baseFontSize * 1.25 } // ~18px
-rule("h5") { fontSize = vars.baseFontSize }
+        rule("strong") { fontWeight = FontWeight.bold }
 
-rule("h6") { fontSize = vars.baseFontSize * 0.85 } // ~12px
-rule("h1 small") { fontSize = vars.baseFontSize * 1.75 } // ~24px
-rule("h2 small") { fontSize = vars.baseFontSize * 1.25 } // ~18px
-rule("h3 small") { fontSize = vars.baseFontSize }
+        rule("em") { fontStyle = FontStyle.italic }
 
-rule("h4 small") { fontSize = vars.baseFontSize }
+        rule("cite") { fontStyle = FontStyle.normal }
 
+        // Utility classes
+        rule(".muted") { color = vars.grayLight }
+        ruleOf("a.muted:hover", "a.muted:focus") { color = vars.grayLight.darken(10) }
 
-// Page header
-rule(".page-header") {
-  padding-bottom: (vars.baseLineHeight / 2)-1
-  margin: vars.baseLineHeight 0px (vars.baseLineHeight * 1.5)
-  borderBottom = Border(1.px, BorderStyle.solid, vars.grayLighter)
-}
+        rule(".text-warning") { color = vars.warningText }
+        ruleOf("a.text-warning:hover", "a.text-warning:focus") { color = vars.warningText.darken(10) }
+
+        rule(".text-error") { color = vars.errorText }
+        ruleOf("a.text-error:hover", "a.text-error:focus") { color = vars.errorText.darken(10) }
+
+        rule(".text-info") { color = vars.infoText }
+        ruleOf("a.text-info:hover", "a.text-info:focus") { color = vars.infoText.darken(10) }
+
+        rule(".text-success") { color = vars.successText }
+        ruleOf("a.text-success:hover", "a.text-success:focus") { color = vars.successText.darken(10) }
+
+        rule(".text-left") { textAlign = TextAlign.left }
+
+        rule(".text-right") { textAlign = TextAlign.right }
+
+        rule(".text-center") { textAlign = TextAlign.center }
 
 
+        // Headings
+        ruleOf("h1", "h2", "h3", "h4", "h5", "h6") {
+            margin = Margin((vars.baseLineHeight / 2), 0.px)
+            fontFamily = vars.headingsFontFamily
+            fontWeight = vars.headingsFontWeight
+            lineHeight = vars.baseLineHeight.lh
+            color = vars.headingsColor
+            declarations["textRendering"] = "optimizelegibility"
+            // Fix the character spacing for headings
+            small {
+                fontWeight = FontWeight.normal
+                lineHeight = 1.px.lh
+                color = vars.grayLight
+            }
+        }
 
-// Lists
+        ruleOf("h1", "h2", "h3") { lineHeight = (vars.baseLineHeight * 2).lh }
 
-// Unordered and Ordered lists
-rule("ul, ol") {
-  padding = Padding(0.px)
-  margin: 0px 0px vars.baseLineHeight / 2 25px
-}
+        rule("h1") { fontSize = vars.baseFontSize * 2.75 } // ~38px
+        rule("h2") { fontSize = vars.baseFontSize * 2.25 } // ~32px
+        rule("h3") { fontSize = vars.baseFontSize * 1.75 } // ~24px
+        rule("h4") { fontSize = vars.baseFontSize * 1.25 } // ~18px
+        rule("h5") { fontSize = vars.baseFontSize }
 
-ruleOf("ul ul", "ul ol", "ol ol", "ol ul") {
-  marginBottom = 0.px
-}
+        rule("h6") { fontSize = vars.baseFontSize * 0.85 } // ~12px
+        rule("h1 small") { fontSize = vars.baseFontSize * 1.75 } // ~24px
+        rule("h2 small") { fontSize = vars.baseFontSize * 1.25 } // ~18px
+        rule("h3 small") { fontSize = vars.baseFontSize }
 
-rule("li") {
-  lineHeight = vars.baseLineHeight.lh
-}
+        rule("h4 small") { fontSize = vars.baseFontSize }
 
-// Remove default list styles
-ruleOf("ul.unstyled", "ol.unstyled") {
-  marginLeft = 0.px
-  listStyleType = ListStyleType.none
-}
 
-// Single-line list items
-ruleOf("ul.inline", "ol.inline") {
-  marginLeft = 0.px
-  listStyleType = ListStyleType.none
-  child("li") {
-    display = Display.inlineBlock
-    with(mixins) { ie7InlineBlock() }
-    paddingLeft = 5.px
-    paddingRight = 5.px
-  }
-}
+        // Page header
+        rule(".page-header") {
+            paddingBottom = (vars.baseLineHeight / 2) - 1.px
+            margin = Margin(vars.baseLineHeight, 0.px, (vars.baseLineHeight * 1.5))
+            borderBottom = Border(1.px, BorderStyle.solid, vars.grayLighter)
+        }
 
-// Description Lists
-rule("dl") {
-  marginBottom = vars.baseLineHeight
-}
 
-ruleOf("dt", "dd") {
-  lineHeight = vars.baseLineHeight.lh
-}
+        // Lists
 
-rule("dt") {
-  fontWeight = FontWeight.bold
-}
+        // Unordered and Ordered lists
+        rule("ul, ol") {
+            padding = Padding(0.px)
+            margin = Margin(0.px, 0.px, vars.baseLineHeight / 2, 25.px)
+        }
 
-rule("dd") {
-  marginLeft = vars.baseLineHeight / 2
-}
-// Horizontal layout (like forms)
-rule(".dl-horizontal") {
-  with(mixins) { clearfix() }
- // Ensure dl clears floats if empty dd elements present
-  dt {
-    float = Float.left
-    width: vars.horizontalComponentOffset-20
-    clear = Clear.left
-    textAlign = TextAlign.right
-    with(mixins) { textOverflow() }
-  }
-  dd {
-    marginLeft = vars.horizontalComponentOffset
-  }
-}
+        ruleOf("ul ul", "ul ol", "ol ol", "ol ul") {
+            marginBottom = 0.px
+        }
 
-// MISC
-// ----
+        rule("li") {
+            lineHeight = vars.baseLineHeight.lh
+        }
 
-// Horizontal rules
-rule("hr") {
-  margin: vars.baseLineHeight 0px
-  borderWidth = 0.px
-  borderTop = Border(1.px, BorderStyle.solid, vars.hrBorder)
-  borderBottom = Border(1.px, BorderStyle.solid, vars.white)
-}
+        // Remove default list styles
+        ruleOf("ul.unstyled", "ol.unstyled") {
+            marginLeft = 0.px
+            listStyleType = ListStyleType.none
+        }
 
-ruleOf("abbr[title]", // Abbreviations and acronyms
-    // Added data-* attribute to help out our tooltip plugin, per https://github.com/twbs/bootstrap/issues/5257
-    "abbr[data-original-title]" ) {
-  cursor = Cursor.help
-  borderBottom = Border(1.px, BorderStyle.dotted, vars.grayLight)
-}
+        // Single-line list items
+        ruleOf("ul.inline", "ol.inline") {
+            marginLeft = 0.px
+            listStyleType = ListStyleType.none
+            child("li") {
+                display = Display.inlineBlock
+                with(mixins) { ie7InlineBlock() }
+                paddingLeft = 5.px
+                paddingRight = 5.px
+            }
+        }
 
-rule("abbr.initialism") {
-  fontSize = 90.pct
-  textTransform = TextTransform.uppercase
-}
+        // Description Lists
+        rule("dl") {
+            marginBottom = vars.baseLineHeight
+        }
 
-// Blockquotes
-rule("blockquote") {
-  padding = Padding(0.px, 0.px, 0.px, 15.px)
-  margin: 0px 0px vars.baseLineHeight
-  borderLeft = Border(5.px, BorderStyle.solid, vars.grayLighter)
-  p {
-    marginBottom = 0.px
-    fontSize = vars.baseFontSize * 1.25
-    fontWeight = FontWeight.w300
-    lineHeight = 1.25.px.lh
-  }
-  small {
-    display = Display.block
-    lineHeight = vars.baseLineHeight.lh
-    color = vars.grayLight
-    "&:before" {
-      content = QuotedString("\2014 \00A0")
+        ruleOf("dt", "dd") {
+            lineHeight = vars.baseLineHeight.lh
+        }
+
+        rule("dt") {
+            fontWeight = FontWeight.bold
+        }
+
+        rule("dd") {
+            marginLeft = vars.baseLineHeight / 2
+        }
+        // Horizontal layout (like forms)
+        rule(".dl-horizontal") {
+            with(mixins) { clearfix() }
+            // Ensure dl clears floats if empty dd elements present
+            dt {
+                float = Float.left
+                width = vars.horizontalComponentOffset - 20.px
+                clear = Clear.left
+                textAlign = TextAlign.right
+                with(mixins) { textOverflow() }
+            }
+            dd {
+                marginLeft = vars.horizontalComponentOffset
+            }
+        }
+
+        // MISC
+        // ----
+
+        // Horizontal rules
+        rule("hr") {
+            margin = Margin(vars.baseLineHeight, 0.px)
+            borderWidth = 0.px
+            borderTop = Border(1.px, BorderStyle.solid, vars.hrBorder)
+            borderBottom = Border(1.px, BorderStyle.solid, vars.white)
+        }
+
+        ruleOf(
+            "abbr[title]", // Abbreviations and acronyms
+            // Added data-* attribute to help out our tooltip plugin, per https://github.com/twbs/bootstrap/issues/5257
+            "abbr[data-original-title]"
+        ) {
+            cursor = Cursor.help
+            borderBottom = Border(1.px, BorderStyle.dotted, vars.grayLight)
+        }
+
+        rule("abbr.initialism") {
+            fontSize = 90.pct
+            textTransform = TextTransform.uppercase
+        }
+
+        // Blockquotes
+        rule("blockquote") {
+            padding = Padding(0.px, 0.px, 0.px, 15.px)
+            margin = Margin(0.px, 0.px, vars.baseLineHeight)
+            borderLeft = Border(5.px, BorderStyle.solid, vars.grayLighter)
+            p {
+                marginBottom = 0.px
+                fontSize = vars.baseFontSize * 1.25
+                fontWeight = FontWeight.w300
+                lineHeight = 1.25.px.lh
+            }
+            small {
+                display = Display.block
+                lineHeight = vars.baseLineHeight.lh
+                color = vars.grayLight
+                "&:before" {
+                    content = QuotedString("\u2014 \u00A0")
+                }
+            }
+
+            // Float right with text-align: right
+            "&.pull-right" {
+                float = Float.right
+                paddingRight = 15.px
+                paddingLeft = 0.px
+                borderRight = Border(5.px, BorderStyle.solid, vars.grayLighter)
+                borderLeftWidth = 0.px
+                ruleOf("p", "small") {
+                    textAlign = TextAlign.right
+                }
+                small {
+                    "&:before" {
+                        content = QuotedString("")
+                    }
+                    "&:after" {
+                        content = QuotedString("\u00A0 \u2014")
+                    }
+                }
+            }
+        }
+
+        // Quotes
+        ruleOf("q:before", "q:after", "blockquote:before", "blockquote:after") {
+            content = QuotedString("")
+        }
+
+        // Addresses
+        rule("address") {
+            display = Display.block
+            marginBottom = vars.baseLineHeight
+            fontStyle = FontStyle.normal
+            lineHeight = vars.baseLineHeight.lh
+        }
     }
-  }
-
-  // Float right with text-align: right
-  "&.pull-right" {
-    float = Float.right
-    paddingRight = 15.px
-    paddingLeft = 0.px
-    borderRight = Border(5.px, BorderStyle.solid, vars.grayLighter)
-    borderLeftWidth = 0.px
-    ruleOf("p", "small") {
-      textAlign = TextAlign.right
-    }
-    small {
-      "&:before" {
-        content = QuotedString("")
-      }
-      "&:after" {
-        content: '\00A0 \2014'
-      }
-    }
-  }
-}
-
-// Quotes
-ruleOf("q:before", "q:after", "blockquote:before", "blockquote:after") {
-  content = QuotedString("")
-}
-
-// Addresses
-rule("address") {
-  display = Display.block
-  marginBottom = vars.baseLineHeight
-  font-style: normal
-  lineHeight = vars.baseLineHeight.lh
-}
-    */}
 
 
     override fun CssBuilder.utilities(){/*
