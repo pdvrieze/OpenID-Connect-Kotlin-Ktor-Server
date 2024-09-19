@@ -4654,228 +4654,242 @@ object DefaultStyles : Styles {
     }
 
 
-    override fun CssBuilder.tables(){/*
-// BASE TABLES
-rule("table") {
-  max-width = 100.pct
-  backgroundColor = vars.tableBackground
-  border-collapse: collapse
-  border-spacing: 0px
-}
+    override fun CssBuilder.tables() {
+        // BASE TABLES
+        rule("table") {
+            maxWidth = 100.pct
+            backgroundColor = vars.tableBackground
+            borderCollapse = BorderCollapse.collapse
+            borderSpacing = 0.px
+        }
 
-// BASELINE STYLES
-rule(".table") {
-  width = 100.pct
-  marginBottom = vars.baseLineHeight
-  // Cells
-  ruleOf("th", "td") {
-    padding = Padding(8.px)
-    lineHeight = vars.baseLineHeight.lh
-    textAlign = TextAlign.left
-    verticalAlign = VerticalAlign.top
-    borderTop = Border(1.px, BorderStyle.solid, Color.solid)
-  }
-  th {
-    fontWeight = FontWeight.bold
-  }
-  // Bottom align for column headings
-  thead th {
-    verticalAlign = VerticalAlign.bottom
-  }
-  // Remove top border from thead by default
-  ruleOf("caption + thead tr:first-child th",
-      "caption + thead tr:first-child td",
-      "colgroup + thead tr:first-child th",
-      "colgroup + thead tr:first-child td",
-      "thead:first-child tr:first-child th",
-      "thead:first-child tr:first-child td") {
-    borderTop = Border(0.px)
-  }
-  // Account for multiple tbody instances
-  tbody + tbody {
-    borderTop = Border(2.px, BorderStyle.solid, Color.solid)
-  }
+        // BASELINE STYLES
+        rule(".table") {
+            width = 100.pct
+            marginBottom = vars.baseLineHeight
+            // Cells
+            ruleOf("th", "td") {
+                padding = Padding(8.px)
+                lineHeight = vars.baseLineHeight.lh
+                textAlign = TextAlign.left
+                verticalAlign = VerticalAlign.top
+                borderTop = Border(1.px, BorderStyle.solid, vars.tableBorder)
+            }
+            th {
+                fontWeight = FontWeight.bold
+            }
+            // Bottom align for column headings
+            "thead th" {
+                verticalAlign = VerticalAlign.bottom
+            }
+            // Remove top border from thead by default
+            ruleOf(
+                "caption + thead tr:first-child th",
+                "caption + thead tr:first-child td",
+                "colgroup + thead tr:first-child th",
+                "colgroup + thead tr:first-child td",
+                "thead:first-child tr:first-child th",
+                "thead:first-child tr:first-child td"
+            ) {
+                borderTopWidth = 0.px
+            }
+            // Account for multiple tbody instances
+            "tbody + tbody" {
+                borderTop = Border(2.px, BorderStyle.solid, vars.tableBorder)
+            }
 
-  // Nesting
-  ".table" {
-    backgroundColor = vars.bodyBackground
-  }
-}
-
-
-
-// CONDENSED TABLE W/ HALF PADDING
-rule(".table-condensed") {
-  ruleOf("th", "td") {
-    padding = Padding(4.px, 5.px)
-  }
-}
+            // Nesting
+            ".table" {
+                backgroundColor = vars.bodyBackground
+            }
+        }
 
 
-// BORDERED VERSION
-rule(".table-bordered") {
-  border = Border(1.px, BorderStyle.solid, vars.tableBorder)
-  border-collapse: separate
- // Done so we can round those corners!
-  declarations["*border-collapse"] = "collapse"
- // IE7 can't round corners anyway
-  borderLeft = Border(0.px)
-  with(mixins) { borderRadius(vars.baseBorderRadius) }
-  ruleOf("th", "td") {
-    borderLeft = Border(1.px, BorderStyle.solid, Color.solid)
-  }
-  // Prevent a double border
-  ruleOf("caption + thead tr:first-child th",
-      "caption + tbody tr:first-child th",
-      "caption + tbody tr:first-child td",
-      "colgroup + thead tr:first-child th",
-      "colgroup + tbody tr:first-child th",
-      "colgroup + tbody tr:first-child td",
-      "thead:first-child tr:first-child th",
-      "tbody:first-child tr:first-child th",
-      "tbody:first-child tr:first-child td") {
-    borderTop = Border(0.px)
-  }
-  // For first th/td in the first row in the first thead or tbody
-  ruleOf("thead:first-child tr:first-child > th:first-child",
-      "tbody:first-child tr:first-child > td:first-child",
-      "tbody:first-child tr:first-child > th:first-child") {
-    with(mixins) { borderTopLeftRadius(vars.baseBorderRadius) }
-  }
-  // For last th/td in the first row in the first thead or tbody
-  ruleOf("thead:first-child tr:first-child > th:last-child",
-      "tbody:first-child tr:first-child > td:last-child",
-      "tbody:first-child tr:first-child > th:last-child") {
-    with(mixins) { borderTopRightRadius(vars.baseBorderRadius) }
-  }
-  // For first th/td (can be either) in the last row in the last thead, tbody, and tfoot
-  ruleOf("thead:last-child tr:last-child > th:first-child",
-      "tbody:last-child tr:last-child > td:first-child",
-      "tbody:last-child tr:last-child > th:first-child",
-      "tfoot:last-child tr:last-child > td:first-child",
-      "tfoot:last-child tr:last-child > th:first-child") {
-    with(mixins) { borderBottomLeftRadius(vars.baseBorderRadius) }
-  }
-  // For last th/td (can be either) in the last row in the last thead, tbody, and tfoot
-  ruleOf("thead:last-child tr:last-child > th:last-child",
-      "tbody:last-child tr:last-child > td:last-child",
-      "tbody:last-child tr:last-child > th:last-child",
-      "tfoot:last-child tr:last-child > td:last-child",
-      "tfoot:last-child tr:last-child > th:last-child") {
-    with(mixins) { borderBottomRightRadius(vars.baseBorderRadius) }
-  }
-
-  // Clear border-radius for first and last td in the last row in the last tbody for table with tfoot
-  "tfoot + tbody:last-child tr:last-child td:first-child" {
-    with(mixins) { borderBottomLeftRadius(0px) }
-  }
-  "tfoot + tbody:last-child tr:last-child td:last-child" {
-    with(mixins) { borderBottomRightRadius(0px) }
-  }
-
-  // Special fixes to round the left border on the first td/th
-  ruleOf("caption + thead tr:first-child th:first-child",
-      "caption + tbody tr:first-child td:first-child",
-      "colgroup + thead tr:first-child th:first-child",
-      "colgroup + tbody tr:first-child td:first-child") {
-    with(mixins) { borderTopLeftRadius(vars.baseBorderRadius) }
-  }
-  ruleOf("caption + thead tr:first-child th:last-child",
-      "caption + tbody tr:first-child td:last-child",
-      "colgroup + thead tr:first-child th:last-child",
-      "colgroup + tbody tr:first-child td:last-child") {
-    with(mixins) { borderTopRightRadius(vars.baseBorderRadius) }
-  }
-
-}
+        // CONDENSED TABLE W/ HALF PADDING
+        rule(".table-condensed") {
+            ruleOf("th", "td") {
+                padding = Padding(4.px, 5.px)
+            }
+        }
 
 
+        // BORDERED VERSION
+        rule(".table-bordered") {
+            border = Border(1.px, BorderStyle.solid, vars.tableBorder)
+            borderCollapse = BorderCollapse.separate
+            // Done so we can round those corners!
+            declarations["*border-collapse"] = "collapse"
+            // IE7 can't round corners anyway
+            borderLeftWidth = 0.px
+            with(mixins) { borderRadius(vars.baseBorderRadius) }
+            ruleOf("th", "td") {
+                borderLeft = Border(1.px, BorderStyle.solid, vars.tableBorder)
+            }
+            // Prevent a double border
+            ruleOf(
+                "caption + thead tr:first-child th",
+                "caption + tbody tr:first-child th",
+                "caption + tbody tr:first-child td",
+                "colgroup + thead tr:first-child th",
+                "colgroup + tbody tr:first-child th",
+                "colgroup + tbody tr:first-child td",
+                "thead:first-child tr:first-child th",
+                "tbody:first-child tr:first-child th",
+                "tbody:first-child tr:first-child td"
+            ) {
+                borderTopWidth = 0.px
+            }
+            // For first th/td in the first row in the first thead or tbody
+            ruleOf(
+                "thead:first-child tr:first-child > th:first-child",
+                "tbody:first-child tr:first-child > td:first-child",
+                "tbody:first-child tr:first-child > th:first-child"
+            ) {
+                with(mixins) { borderTopLeftRadius(vars.baseBorderRadius) }
+            }
+            // For last th/td in the first row in the first thead or tbody
+            ruleOf(
+                "thead:first-child tr:first-child > th:last-child",
+                "tbody:first-child tr:first-child > td:last-child",
+                "tbody:first-child tr:first-child > th:last-child"
+            ) {
+                with(mixins) { borderTopRightRadius(vars.baseBorderRadius) }
+            }
+            // For first th/td (can be either) in the last row in the last thead, tbody, and tfoot
+            ruleOf(
+                "thead:last-child tr:last-child > th:first-child",
+                "tbody:last-child tr:last-child > td:first-child",
+                "tbody:last-child tr:last-child > th:first-child",
+                "tfoot:last-child tr:last-child > td:first-child",
+                "tfoot:last-child tr:last-child > th:first-child"
+            ) {
+                with(mixins) { borderBottomLeftRadius(vars.baseBorderRadius) }
+            }
+            // For last th/td (can be either) in the last row in the last thead, tbody, and tfoot
+            ruleOf(
+                "thead:last-child tr:last-child > th:last-child",
+                "tbody:last-child tr:last-child > td:last-child",
+                "tbody:last-child tr:last-child > th:last-child",
+                "tfoot:last-child tr:last-child > td:last-child",
+                "tfoot:last-child tr:last-child > th:last-child"
+            ) {
+                with(mixins) { borderBottomRightRadius(vars.baseBorderRadius) }
+            }
+
+            // Clear border-radius for first and last td in the last row in the last tbody for table with tfoot
+            "tfoot + tbody:last-child tr:last-child td:first-child" {
+                with(mixins) { borderBottomLeftRadius(0.px) }
+            }
+            "tfoot + tbody:last-child tr:last-child td:last-child" {
+                with(mixins) { borderBottomRightRadius(0.px) }
+            }
+
+            // Special fixes to round the left border on the first td/th
+            ruleOf(
+                "caption + thead tr:first-child th:first-child",
+                "caption + tbody tr:first-child td:first-child",
+                "colgroup + thead tr:first-child th:first-child",
+                "colgroup + tbody tr:first-child td:first-child"
+            ) {
+                with(mixins) { borderTopLeftRadius(vars.baseBorderRadius) }
+            }
+            ruleOf(
+                "caption + thead tr:first-child th:last-child",
+                "caption + tbody tr:first-child td:last-child",
+                "colgroup + thead tr:first-child th:last-child",
+                "colgroup + tbody tr:first-child td:last-child"
+            ) {
+                with(mixins) { borderTopRightRadius(vars.baseBorderRadius) }
+            }
+
+        }
 
 
-// ZEBRA-STRIPING
+        // ZEBRA-STRIPING
 
-// Default zebra-stripe styles (alternating gray and transparent backgrounds)
-rule(".table-striped") {
-  tbody {
-    child("tr:nth-child(odd) > td > tr:nth-child(odd) > th") {
-      backgroundColor = vars.tableBackgroundAccent
+        // Default zebra-stripe styles (alternating gray and transparent backgrounds)
+        rule(".table-striped") {
+            tbody {
+                child("tr:nth-child(odd) > td > tr:nth-child(odd) > th") {
+                    backgroundColor = vars.tableBackgroundAccent
+                }
+            }
+        }
+
+
+        // HOVER EFFECT
+        // Placed here since it has to come after the potential zebra striping
+        rule(".table-hover") {
+            tbody {
+                "tr:hover > td tr:hover > th" {
+                    backgroundColor = vars.tableBackgroundHover
+                }
+            }
+        }
+
+
+        // TABLE CELL SIZING
+
+        // Reset default grid behavior
+        rule("table td[class*=\"span\"] table th[class*=\"span\"] .row-fluid table td[class*=\"span\"] .row-fluid table th[class*=\"span\"]") {
+            display = Display.tableCell
+            float = Float.none
+            // undo default grid column styles
+            marginLeft = 0.px // undo default grid column styles
+        }
+
+        // Change the column widths to account for td/th padding
+        rule(".table td .table th") {
+            with(mixins) {
+                "&.span1" { tableColumns(1) }
+                "&.span2" { tableColumns(2) }
+                "&.span3" { tableColumns(3) }
+                "&.span4" { tableColumns(4) }
+                "&.span5" { tableColumns(5) }
+                "&.span6" { tableColumns(6) }
+                "&.span7" { tableColumns(7) }
+                "&.span8" { tableColumns(8) }
+                "&.span9" { tableColumns(9) }
+                "&.span10" { tableColumns(10) }
+                "&.span11" { tableColumns(11) }
+                "&.span12" { tableColumns(12) }
+            }
+        }
+
+
+        // TABLE BACKGROUNDS
+        // Exact selectors below required to override .table-striped
+        rule(".table tbody tr") {
+            "&.success > td" {
+                backgroundColor = vars.successBackground
+            }
+            "&.error > td" {
+                backgroundColor = vars.errorBackground
+            }
+            "&.warning > td" {
+                backgroundColor = vars.warningBackground
+            }
+            "&.info > td" {
+                backgroundColor = vars.infoBackground
+            }
+        }
+
+        // Hover states for .table-hover
+        rule(".table-hover tbody tr") {
+            "&.success:hover > td" {
+                backgroundColor = vars.successBackground.darken(5)
+            }
+            "&.error:hover > td" {
+                backgroundColor = vars.errorBackground.darken(5)
+            }
+            "&.warning:hover > td" {
+                backgroundColor = vars.warningBackground.darken(5)
+            }
+            "&.info:hover > td" {
+                backgroundColor = vars.infoBackground.darken(5)
+            }
+        }
     }
-  }
-}
-
-
-// HOVER EFFECT
-// Placed here since it has to come after the potential zebra striping
-rule(".table-hover") {
-  tbody {
-    tr:hover > td tr:hover > th {
-      backgroundColor = vars.tableBackgroundHover
-    }
-  }
-}
-
-
-// TABLE CELL SIZING
-
-// Reset default grid behavior
-rule("table td[class*=\"span\"] table th[class*=\"span\"] .row-fluid table td[class*=\"span\"] .row-fluid table th[class*=\"span\"]") {
-  display = Display.tableCell
-  float = Float.none
- // undo default grid column styles
-  marginLeft = 0.px // undo default grid column styles
-}
-
-// Change the column widths to account for td/th padding
-rule(".table td .table th") {
-  "&.span1" { .tableColumns(1) }
-  "&.span2" { .tableColumns(2) }
-  "&.span3" { .tableColumns(3) }
-  "&.span4" { .tableColumns(4) }
-  "&.span5" { .tableColumns(5) }
-  "&.span6" { .tableColumns(6) }
-  "&.span7" { .tableColumns(7) }
-  "&.span8" { .tableColumns(8) }
-  "&.span9" { .tableColumns(9) }
-  "&.span10" { .tableColumns(10) }
-  "&.span11" { .tableColumns(11) }
-  "&.span12" { .tableColumns(12) }
-}
-
-
-
-// TABLE BACKGROUNDS
-// Exact selectors below required to override .table-striped
-rule(".table tbody tr") {
-  "&.success > td" {
-    backgroundColor = vars.successBackground
-  }
-  "&.error > td" {
-    backgroundColor = vars.errorBackground
-  }
-  "&.warning > td" {
-    backgroundColor = vars.warningBackground
-  }
-  "&.info > td" {
-    backgroundColor = vars.infoBackground
-  }
-}
-
-// Hover states for .table-hover
-rule(".table-hover tbody tr") {
-  "&.success:hover > td" {
-    backgroundColor = vars.successBackground.darken(5)
-  }
-  "&.error:hover > td" {
-    backgroundColor = vars.errorBackground.darken(5)
-  }
-  "&.warning:hover > td" {
-    backgroundColor = vars.warningBackground.darken(5)
-  }
-  "&.info:hover > td" {
-    backgroundColor = vars.infoBackground.darken(5)
-  }
-}
-    */}
 
 
     override fun CssBuilder.thumbnails(){/*
@@ -5209,7 +5223,7 @@ rule("blockquote") {
     paddingRight = 15.px
     paddingLeft = 0.px
     borderRight = Border(5.px, BorderStyle.solid, Color.solid)
-    borderLeft = Border(0.px)
+    borderLeftWidth = 0.px
     ruleOf("p", "small") {
       textAlign = TextAlign.right
     }
