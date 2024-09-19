@@ -258,7 +258,7 @@ fun <T, C : TagConsumer<T>> C.approve(
 
                                                         attributes["data-content"] = scopeClaims.entries.joinToString(
                                                             separator = "",
-                                                            prefix = "<div style=\"text-align: left\"><ul>",
+                                                            prefix = "<div style='text-align: left'><ul>",
                                                             postfix = "</ul></div>",
                                                         ) { (k, v) ->
                                                             "<li><b>$k</b>: $v</li>"
