@@ -1,9 +1,8 @@
 import io.github.pdvrieze.openid.web.WebContext
 import io.github.pdvrieze.openid.web.tags.formattedPage
 import io.github.pdvrieze.openid.web.tags.topBar
-import org.mitre.oauth2.exception.OAuth2Exception
-import org.mitre.oauth2.exception.UnapprovedClientAuthenticationException
 import kotlinx.html.*
+import org.mitre.oauth2.exception.OAuth2Exception
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.OAuthClientDetails.SubjectType
 import org.mitre.oauth2.model.SystemScope
@@ -37,7 +36,7 @@ fun <T, C : TagConsumer<T>> C.approveDevice(
 
             div(classes="container main") {
 
-                if (exception != null && exception !is UnapprovedClientAuthenticationException) {
+                if (exception != null /*&& exception !is UnapprovedClientAuthenticationException*/) {
                     div(classes="alert-message error") {
                         a(href="#", classes="close") {; +Entities.times;}
 

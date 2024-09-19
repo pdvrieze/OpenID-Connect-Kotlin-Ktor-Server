@@ -10,7 +10,7 @@ import kotlinx.html.script
 import kotlinx.html.unsafe
 
 @HtmlTagMarker
-fun BODY.footer(context: WebContext, js: Boolean = false) {
+fun BODY.footer(context: WebContext, js: Boolean = false, extraJs: String? = null) {
     comment("end #wrap")
 
     div{
@@ -41,7 +41,8 @@ fun BODY.footer(context: WebContext, js: Boolean = false) {
                 |  routes: [], // routes to add to the UI {path: URI to map to, name: unique name for internal use, callback: function to call when route is activated}
                 |  init: [] // functions to call after initialization is complete
                 |};
-                """.trimMargin().prependIndent("    "))
+                """.trimMargin())
+                if(extraJs != null) raw(extraJs)
             }
         }
         for(file in context.ui.jsFiles) {
