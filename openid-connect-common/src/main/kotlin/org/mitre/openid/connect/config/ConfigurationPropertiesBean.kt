@@ -30,6 +30,8 @@ import java.util.*
  * @author AANGANES
  */
 class ConfigurationPropertiesBean {
+    val projectVersion: String = "0.1 - BETA" // TODO("make this more dynamic")
+
     /**
      * the issuer baseUrl
      */
@@ -41,13 +43,15 @@ class ConfigurationPropertiesBean {
         this.issuer = issuer
     }
 
-    var topbarTitle: String? = null
+    lateinit var topbarTitle: String
 
+    private var _shortTopbarTitle: String? = null
     /**
      * @get If [shortTopbarTitle] is undefined, returns [topbarTitle].
      */
-    var shortTopbarTitle: String? = null
-        get() = field ?: topbarTitle
+    var shortTopbarTitle: String
+        get() = _shortTopbarTitle ?: topbarTitle
+        set(value) {_shortTopbarTitle = value }
 
     var logoImageUrl: String? = null
 
