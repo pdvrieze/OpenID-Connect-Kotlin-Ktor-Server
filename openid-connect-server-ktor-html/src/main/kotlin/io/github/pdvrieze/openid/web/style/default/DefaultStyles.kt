@@ -5264,66 +5264,66 @@ object DefaultStyles : Styles {
     }
 
 
-    override fun CssBuilder.utilities(){/*
-// Quick floats
-rule(".pull-right") {
-  float = Float.right
-}
+    override fun CssBuilder.utilities() {
+        // Quick floats
+        rule(".pull-right") {
+            float = Float.right
+        }
 
-rule(".pull-left") {
-  float = Float.left
-}
+        rule(".pull-left") {
+            float = Float.left
+        }
 
-// Toggling content
-rule(".hide") {
-  display = Display.none
-}
+        // Toggling content
+        rule(".hide") {
+            display = Display.none
+        }
 
-rule(".show") {
-  display = Display.block
-}
+        rule(".show") {
+            display = Display.block
+        }
 
-// Visibility
-rule(".invisible") {
-  visibility: hidden
-}
+        // Visibility
+        rule(".invisible") {
+            visibility = Visibility.hidden
+        }
 
-// For Affix plugin
-rule(".affix") {
-  position = Position.fixed
-}
-    */}
+        // For Affix plugin
+        rule(".affix") {
+            position = Position.fixed
+        }
+    }
 
 
     override fun CssBuilder.variables(){/**/}
 
 
-    override fun CssBuilder.wells(){/*
-// Base class
-rule(".well") {
-  minHeight = 20.px
-  padding = Padding(19.px)
-  marginBottom = 20.px
-  backgroundColor = vars.wellBackground
-  border = Border(1px, BorderStyle.solid, vars.wellBackground.darken(7))
-  with(mixins) { borderRadius(vars.baseBorderRadius) }
-  with(mixins) { boxShadow(inset 0px 1px 1px rgb(0,0,0,.05)) }
-  blockquote {
-    borderColor = Color("#ddd")
-    borderColor = rgb(0,0,0,.15)
-  }
-}
+    override fun CssBuilder.wells() {
+        // Base class
+        rule(".well") {
+            minHeight = 20.px
+            padding = Padding(19.px)
+            marginBottom = 20.px
+            backgroundColor = vars.wellBackground
+            border = Border(1.px, BorderStyle.solid, vars.wellBackground.darken(7))
+            with(mixins) { borderRadius(vars.baseBorderRadius) }
+            with(mixins) { boxShadowInset(0.px, 1.px, 1.px, rgb(0, 0, 0, .05)) }
+            blockquote {
+                borderColor = Color("#ddd")
+                borderColor = rgb(0, 0, 0, .15)
+            }
+        }
 
-// Sizes
-rule(".well-large") {
-  padding = Padding(24.px)
-  with(mixins) { borderRadius(vars.borderRadiusLarge) }
-}
+        // Sizes
+        rule(".well-large") {
+            padding = Padding(24.px)
+            with(mixins) { borderRadius(vars.borderRadiusLarge) }
+        }
 
-rule(".well-small") {
-  padding = Padding(9.px)
-  with(mixins) { borderRadius(vars.borderRadiusSmall) }
-}
-    */}
+        rule(".well-small") {
+            padding = Padding(9.px)
+            with(mixins) { borderRadius(vars.borderRadiusSmall) }
+        }
+    }
 
 }
