@@ -3726,7 +3726,7 @@ object DefaultStyles : Styles {
         }
 
         rule(".progress-warning.progress-striped .bar, .progress-striped .bar-warning") {
-            with(mixins) { gradientStriped(vars.orange.lighten(15)); }
+            with(mixins) { gradientStriped(vars.orange.lighten(15)) }
         }
     }
 
@@ -4414,244 +4414,244 @@ object DefaultStyles : Styles {
     }
 
 
-    override fun CssBuilder.scaffolding(){/*
-// Body reset
-rule("body") {
-  margin = Margin(0.px)
-  fontFamily = vars.baseFontFamily
-  fontSize = vars.baseFontSize
-  lineHeight = vars.baseLineHeight.lh
-  color = vars.textColor
-  backgroundColor = vars.bodyBackground
-}
+    override fun CssBuilder.scaffolding(){
+        // Body reset
+        rule("body") {
+          margin = Margin(0.px)
+          fontFamily = vars.baseFontFamily
+          fontSize = vars.baseFontSize
+          lineHeight = vars.baseLineHeight.lh
+          color = vars.textColor
+          backgroundColor = vars.bodyBackground
+        }
 
 
-// Links
-rule("a") {
-  color = vars.linkColor
-  textDecoration = TextDecoration.none
-}
+        // Links
+        rule("a") {
+          color = vars.linkColor
+          textDecoration = TextDecoration.none
+        }
 
-ruleOf("a:hover", "a:focus") {
-  color = vars.linkColorHover
-  textDecoration = TextDecoration.underline
-}
-
-
-// Images
-
-// Rounded corners
-rule(".img-rounded") {
-  with(mixins) { borderRadius(6.px) }
-}
-
-// Add polaroid-esque trim
-rule(".img-polaroid") {
-  padding = Padding(4.px)
-  backgroundColor = Color("#fff")
-  border = Border(1.px, BorderStyle.solid, Color("#ccc"))
-  border = Border(1px, BorderStyle.solid, rgb(0,0,0,.2))
-  with(mixins) { boxShadow(0px 1px 3px rgb(0,0,0,.1)) }
-}
-
-// Perfect circle
-rule(".img-circle") {
-  with(mixins) { borderRadius(500.px) }
- // crank the border-radius so it works with most reasonably sized images
-}
-    */}
+        ruleOf("a:hover", "a:focus") {
+          color = vars.linkColorHover
+          textDecoration = TextDecoration(setOf(TextDecorationLine.underline))
+        }
 
 
-    override fun CssBuilder.sprites(){/*
-// ICONS
-// -----
+        // Images
 
-// All icons receive the styles of the <i> tag with a base class
-// of .i and are then given a unique class to add width, height // and background-position. Your resulting HTML will look like
-// <i class="icon-inbox"></i>.
+        // Rounded corners
+        rule(".img-rounded") {
+          with(mixins) { borderRadius(6.px) }
+        }
 
-// For the white version of the icons, just add the .icon-white class:
-// <i class="icon-inbox icon-white"></i>
-ruleOf("[class^=\"icon-\"]", "[class*=\" icon-\"]") {
-  display = Display.inlineBlock
-  width = 14.px
-  height = 14.px
-  with(mixins) { ie7RestoreRightWhitespace() }
-  lineHeight = 14.px.lh
-  vertical-align: text-top
-  background-image: url("@{iconSpritePath}")
-  background-position: 14px 14px
-  background-repeat: no-repeat
-  marginTop = 1.px
-}
+        // Add polaroid-esque trim
+        rule(".img-polaroid") {
+          padding = Padding(4.px)
+          backgroundColor = Color("#fff")
+          border = Border(1.px, BorderStyle.solid, Color("#ccc"))
+          border = Border(1.px, BorderStyle.solid, rgb(0,0,0,.2))
+          with(mixins) { boxShadow(0.px, 1.px, 3.px, rgb(0,0,0,.1)) }
+        }
 
-/* White icons with optional class, or on hover/focus/active states of certain elements */
-ruleOf(".icon-white",
-    ".nav-pills > .active > a > [class^=\"icon-\"]",
-    ".nav-pills > .active > a > [class*=\" icon-\"]",
-    ".nav-list > .active > a > [class^=\"icon-\"]",
-    ".nav-list > .active > a > [class*=\" icon-\"]",
-    ".navbar-inverse .nav > .active > a > [class^=\"icon-\"]",
-    ".navbar-inverse .nav > .active > a > [class*=\" icon-\"]",
-    ".dropdown-menu > li > a:hover > [class^=\"icon-\"]",
-    ".dropdown-menu > li > a:focus > [class^=\"icon-\"]",
-    ".dropdown-menu > li > a:hover > [class*=\" icon-\"]",
-    ".dropdown-menu > li > a:focus > [class*=\" icon-\"]",
-    ".dropdown-menu > .active > a > [class^=\"icon-\"]",
-    ".dropdown-menu > .active > a > [class*=\" icon-\"]",
-    ".dropdown-submenu:hover > a > [class^=\"icon-\"]",
-    ".dropdown-submenu:focus > a > [class^=\"icon-\"]",
-    ".dropdown-submenu:hover > a > [class*=\" icon-\"]",
-    ".dropdown-submenu:focus > a > [class*=\" icon-\"]") {
-  background-image: url("@{iconWhiteSpritePath}"); }
+        // Perfect circle
+        rule(".img-circle") {
+          with(mixins) { borderRadius(500.px) }
+         // crank the border-radius so it works with most reasonably sized images
+        }
+    }
 
-rule(".icon-glass") { background-position: 0px 0px; }
-rule(".icon-music") { background-position: -24px 0px; }
-rule(".icon-search") { background-position: -48px 0px; }
-rule(".icon-envelope") { background-position: -72px 0px; }
-rule(".icon-heart") { background-position: -96px 0px; }
-rule(".icon-star") { background-position: -120px 0px; }
-rule(".icon-star-empty") { background-position: -144px 0px; }
-rule(".icon-user") { background-position: -168px 0px; }
-rule(".icon-film") { background-position: -192px 0px; }
-rule(".icon-th-large") { background-position: -216px 0px; }
-rule(".icon-th") { background-position: -240px 0px; }
-rule(".icon-th-list") { background-position: -264px 0px; }
-rule(".icon-ok") { background-position: -288px 0px; }
-rule(".icon-remove") { background-position: -312px 0px; }
-rule(".icon-zoom-in") { background-position: -336px 0px; }
-rule(".icon-zoom-out") { background-position: -360px 0px; }
-rule(".icon-off") { background-position: -384px 0px; }
-rule(".icon-signal") { background-position: -408px 0px; }
-rule(".icon-cog") { background-position: -432px 0px; }
-rule(".icon-trash") { background-position: -456px 0px; }
 
-rule(".icon-home") { background-position: 0px -24px; }
-rule(".icon-file") { background-position: -24px -24px; }
-rule(".icon-time") { background-position: -48px -24px; }
-rule(".icon-road") { background-position: -72px -24px; }
-rule(".icon-download-alt") { background-position: -96px -24px; }
-rule(".icon-download") { background-position: -120px -24px; }
-rule(".icon-upload") { background-position: -144px -24px; }
-rule(".icon-inbox") { background-position: -168px -24px; }
-rule(".icon-play-circle") { background-position: -192px -24px; }
-rule(".icon-repeat") { background-position: -216px -24px; }
-rule(".icon-refresh") { background-position: -240px -24px; }
-rule(".icon-list-alt") { background-position: -264px -24px; }
-rule(".icon-lock") { background-position: -287px -24px; } // 1px off
-rule(".icon-flag") { background-position: -312px -24px; }
-rule(".icon-headphones") { background-position: -336px -24px; }
-rule(".icon-volume-off") { background-position: -360px -24px; }
-rule(".icon-volume-down") { background-position: -384px -24px; }
-rule(".icon-volume-up") { background-position: -408px -24px; }
-rule(".icon-qrcode") { background-position: -432px -24px; }
-rule(".icon-barcode") { background-position: -456px -24px; }
+    override fun CssBuilder.sprites(){
+        // ICONS
+        // -----
 
-rule(".icon-tag") { background-position: 0px -48px; }
-rule(".icon-tags") { background-position: -25px -48px; } // 1px off
-rule(".icon-book") { background-position: -48px -48px; }
-rule(".icon-bookmark") { background-position: -72px -48px; }
-rule(".icon-print") { background-position: -96px -48px; }
-rule(".icon-camera") { background-position: -120px -48px; }
-rule(".icon-font") { background-position: -144px -48px; }
-rule(".icon-bold") { background-position: -167px -48px; } // 1px off
-rule(".icon-italic") { background-position: -192px -48px; }
-rule(".icon-text-height") { background-position: -216px -48px; }
-rule(".icon-text-width") { background-position: -240px -48px; }
-rule(".icon-align-left") { background-position: -264px -48px; }
-rule(".icon-align-center") { background-position: -288px -48px; }
-rule(".icon-align-right") { background-position: -312px -48px; }
-rule(".icon-align-justify") { background-position: -336px -48px; }
-rule(".icon-list") { background-position: -360px -48px; }
-rule(".icon-indent-left") { background-position: -384px -48px; }
-rule(".icon-indent-right") { background-position: -408px -48px; }
-rule(".icon-facetime-video") { background-position: -432px -48px; }
-rule(".icon-picture") { background-position: -456px -48px; }
+        // All icons receive the styles of the <i> tag with a base class
+        // of .i and are then given a unique class to add width, height // and background-position. Your resulting HTML will look like
+        // <i class="icon-inbox"></i>.
 
-rule(".icon-pencil") { background-position: 0px -72px; }
-rule(".icon-map-marker") { background-position: -24px -72px; }
-rule(".icon-adjust") { background-position: -48px -72px; }
-rule(".icon-tint") { background-position: -72px -72px; }
-rule(".icon-edit") { background-position: -96px -72px; }
-rule(".icon-share") { background-position: -120px -72px; }
-rule(".icon-check") { background-position: -144px -72px; }
-rule(".icon-move") { background-position: -168px -72px; }
-rule(".icon-step-backward") { background-position: -192px -72px; }
-rule(".icon-fast-backward") { background-position: -216px -72px; }
-rule(".icon-backward") { background-position: -240px -72px; }
-rule(".icon-play") { background-position: -264px -72px; }
-rule(".icon-pause") { background-position: -288px -72px; }
-rule(".icon-stop") { background-position: -312px -72px; }
-rule(".icon-forward") { background-position: -336px -72px; }
-rule(".icon-fast-forward") { background-position: -360px -72px; }
-rule(".icon-step-forward") { background-position: -384px -72px; }
-rule(".icon-eject") { background-position: -408px -72px; }
-rule(".icon-chevron-left") { background-position: -432px -72px; }
-rule(".icon-chevron-right") { background-position: -456px -72px; }
+        // For the white version of the icons, just add the .icon-white class:
+        // <i class="icon-inbox icon-white"></i>
+        ruleOf("[class^=\"icon-\"]", "[class*=\" icon-\"]") {
+          display = Display.inlineBlock
+          width = 14.px
+          height = 14.px
+          with(mixins) { ie7RestoreRightWhitespace() }
+          lineHeight = 14.px.lh
+          verticalAlign = VerticalAlign.textTop
+          backgroundImage = Image("url(\"@{iconSpritePath}\")")
+          backgroundPosition = RelativePosition("14px 14px")
+          backgroundRepeat = BackgroundRepeat.noRepeat
+          marginTop = 1.px
+        }
 
-rule(".icon-plus-sign") { background-position: 0px -96px; }
-rule(".icon-minus-sign") { background-position: -24px -96px; }
-rule(".icon-remove-sign") { background-position: -48px -96px; }
-rule(".icon-ok-sign") { background-position: -72px -96px; }
-rule(".icon-question-sign") { background-position: -96px -96px; }
-rule(".icon-info-sign") { background-position: -120px -96px; }
-rule(".icon-screenshot") { background-position: -144px -96px; }
-rule(".icon-remove-circle") { background-position: -168px -96px; }
-rule(".icon-ok-circle") { background-position: -192px -96px; }
-rule(".icon-ban-circle") { background-position: -216px -96px; }
-rule(".icon-arrow-left") { background-position: -240px -96px; }
-rule(".icon-arrow-right") { background-position: -264px -96px; }
-rule(".icon-arrow-up") { background-position: -289px -96px; } // 1px off
-rule(".icon-arrow-down") { background-position: -312px -96px; }
-rule(".icon-share-alt") { background-position: -336px -96px; }
-rule(".icon-resize-full") { background-position: -360px -96px; }
-rule(".icon-resize-small") { background-position: -384px -96px; }
-rule(".icon-plus") { background-position: -408px -96px; }
-rule(".icon-minus") { background-position: -433px -96px; }
-rule(".icon-asterisk") { background-position: -456px -96px; }
+        // White icons with optional class, or on hover/focus/active states of certain elements
+        ruleOf(".icon-white",
+            ".nav-pills > .active > a > [class^=\"icon-\"]",
+            ".nav-pills > .active > a > [class*=\" icon-\"]",
+            ".nav-list > .active > a > [class^=\"icon-\"]",
+            ".nav-list > .active > a > [class*=\" icon-\"]",
+            ".navbar-inverse .nav > .active > a > [class^=\"icon-\"]",
+            ".navbar-inverse .nav > .active > a > [class*=\" icon-\"]",
+            ".dropdown-menu > li > a:hover > [class^=\"icon-\"]",
+            ".dropdown-menu > li > a:focus > [class^=\"icon-\"]",
+            ".dropdown-menu > li > a:hover > [class*=\" icon-\"]",
+            ".dropdown-menu > li > a:focus > [class*=\" icon-\"]",
+            ".dropdown-menu > .active > a > [class^=\"icon-\"]",
+            ".dropdown-menu > .active > a > [class*=\" icon-\"]",
+            ".dropdown-submenu:hover > a > [class^=\"icon-\"]",
+            ".dropdown-submenu:focus > a > [class^=\"icon-\"]",
+            ".dropdown-submenu:hover > a > [class*=\" icon-\"]",
+            ".dropdown-submenu:focus > a > [class*=\" icon-\"]") {
+          backgroundImage= Image("url(\"@{iconWhiteSpritePath}\")") }
 
-rule(".icon-exclamation-sign") { background-position: 0px -120px; }
-rule(".icon-gift") { background-position: -24px -120px; }
-rule(".icon-leaf") { background-position: -48px -120px; }
-rule(".icon-fire") { background-position: -72px -120px; }
-rule(".icon-eye-open") { background-position: -96px -120px; }
-rule(".icon-eye-close") { background-position: -120px -120px; }
-rule(".icon-warning-sign") { background-position: -144px -120px; }
-rule(".icon-plane") { background-position: -168px -120px; }
-rule(".icon-calendar") { background-position: -192px -120px; }
-rule(".icon-random") { background-position: -216px -120px; width = 16.px }
-rule(".icon-comment") { background-position: -240px -120px; }
-rule(".icon-magnet") { background-position: -264px -120px; }
-rule(".icon-chevron-up") { background-position: -288px -120px; }
-rule(".icon-chevron-down") { background-position: -313px -119px; } // 1px, 1px off
-rule(".icon-retweet") { background-position: -336px -120px; }
-rule(".icon-shopping-cart") { background-position: -360px -120px; }
-rule(".icon-folder-close") { background-position: -384px -120px; width = 16.px }
-rule(".icon-folder-open") { background-position: -408px -120px; width = 16.px }
-rule(".icon-resize-vertical") { background-position: -432px -119px; } // 1px, 1px off
-rule(".icon-resize-horizontal") { background-position: -456px -118px; } // 1px, 2px off
+        rule(".icon-glass") { backgroundPosition = RelativePosition("0px 0px") }
+        rule(".icon-music") { backgroundPosition = RelativePosition("-24px 0px") }
+        rule(".icon-search") { backgroundPosition = RelativePosition("-48px 0px") }
+        rule(".icon-envelope") { backgroundPosition = RelativePosition("-72px 0px") }
+        rule(".icon-heart") { backgroundPosition = RelativePosition("-96px 0px") }
+        rule(".icon-star") { backgroundPosition = RelativePosition("-120px 0px") }
+        rule(".icon-star-empty") { backgroundPosition = RelativePosition("-144px 0px") }
+        rule(".icon-user") { backgroundPosition = RelativePosition("-168px 0px") }
+        rule(".icon-film") { backgroundPosition = RelativePosition("-192px 0px") }
+        rule(".icon-th-large") { backgroundPosition = RelativePosition("-216px 0px") }
+        rule(".icon-th") { backgroundPosition = RelativePosition("-240px 0px") }
+        rule(".icon-th-list") { backgroundPosition = RelativePosition("-264px 0px") }
+        rule(".icon-ok") { backgroundPosition = RelativePosition("-288px 0px") }
+        rule(".icon-remove") { backgroundPosition = RelativePosition("-312px 0px") }
+        rule(".icon-zoom-in") { backgroundPosition = RelativePosition("-336px 0px") }
+        rule(".icon-zoom-out") { backgroundPosition = RelativePosition("-360px 0px") }
+        rule(".icon-off") { backgroundPosition = RelativePosition("-384px 0px") }
+        rule(".icon-signal") { backgroundPosition = RelativePosition("-408px 0px") }
+        rule(".icon-cog") { backgroundPosition = RelativePosition("-432px 0px") }
+        rule(".icon-trash") { backgroundPosition = RelativePosition("-456px 0px") }
 
-rule(".icon-hdd") { background-position: 0px -144px; }
-rule(".icon-bullhorn") { background-position: -24px -144px; }
-rule(".icon-bell") { background-position: -48px -144px; }
-rule(".icon-certificate") { background-position: -72px -144px; }
-rule(".icon-thumbs-up") { background-position: -96px -144px; }
-rule(".icon-thumbs-down") { background-position: -120px -144px; }
-rule(".icon-hand-right") { background-position: -144px -144px; }
-rule(".icon-hand-left") { background-position: -168px -144px; }
-rule(".icon-hand-up") { background-position: -192px -144px; }
-rule(".icon-hand-down") { background-position: -216px -144px; }
-rule(".icon-circle-arrow-right") { background-position: -240px -144px; }
-rule(".icon-circle-arrow-left") { background-position: -264px -144px; }
-rule(".icon-circle-arrow-up") { background-position: -288px -144px; }
-rule(".icon-circle-arrow-down") { background-position: -312px -144px; }
-rule(".icon-globe") { background-position: -336px -144px; }
-rule(".icon-wrench") { background-position: -360px -144px; }
-rule(".icon-tasks") { background-position: -384px -144px; }
-rule(".icon-filter") { background-position: -408px -144px; }
-rule(".icon-briefcase") { background-position: -432px -144px; }
-rule(".icon-fullscreen") { background-position: -456px -144px; }
-    */}
+        rule(".icon-home") { backgroundPosition = RelativePosition("0px -24px") }
+        rule(".icon-file") { backgroundPosition = RelativePosition("-24px -24px") }
+        rule(".icon-time") { backgroundPosition = RelativePosition("-48px -24px") }
+        rule(".icon-road") { backgroundPosition = RelativePosition("-72px -24px") }
+        rule(".icon-download-alt") { backgroundPosition = RelativePosition("-96px -24px") }
+        rule(".icon-download") { backgroundPosition = RelativePosition("-120px -24px") }
+        rule(".icon-upload") { backgroundPosition = RelativePosition("-144px -24px") }
+        rule(".icon-inbox") { backgroundPosition = RelativePosition("-168px -24px") }
+        rule(".icon-play-circle") { backgroundPosition = RelativePosition("-192px -24px") }
+        rule(".icon-repeat") { backgroundPosition = RelativePosition("-216px -24px") }
+        rule(".icon-refresh") { backgroundPosition = RelativePosition("-240px -24px") }
+        rule(".icon-list-alt") { backgroundPosition = RelativePosition("-264px -24px") }
+        rule(".icon-lock") { backgroundPosition = RelativePosition("-287px -24px") } // 1px off
+        rule(".icon-flag") { backgroundPosition = RelativePosition("-312px -24px") }
+        rule(".icon-headphones") { backgroundPosition = RelativePosition("-336px -24px") }
+        rule(".icon-volume-off") { backgroundPosition = RelativePosition("-360px -24px") }
+        rule(".icon-volume-down") { backgroundPosition = RelativePosition("-384px -24px") }
+        rule(".icon-volume-up") { backgroundPosition = RelativePosition("-408px -24px") }
+        rule(".icon-qrcode") { backgroundPosition = RelativePosition("-432px -24px") }
+        rule(".icon-barcode") { backgroundPosition = RelativePosition("-456px -24px") }
+
+        rule(".icon-tag") { backgroundPosition = RelativePosition("0px -48px") }
+        rule(".icon-tags") { backgroundPosition = RelativePosition("-25px -48px") } // 1px off
+        rule(".icon-book") { backgroundPosition = RelativePosition("-48px -48px") }
+        rule(".icon-bookmark") { backgroundPosition = RelativePosition("-72px -48px") }
+        rule(".icon-print") { backgroundPosition = RelativePosition("-96px -48px") }
+        rule(".icon-camera") { backgroundPosition = RelativePosition("-120px -48px") }
+        rule(".icon-font") { backgroundPosition = RelativePosition("-144px -48px") }
+        rule(".icon-bold") { backgroundPosition = RelativePosition("-167px -48px") } // 1px off
+        rule(".icon-italic") { backgroundPosition = RelativePosition("-192px -48px") }
+        rule(".icon-text-height") { backgroundPosition = RelativePosition("-216px -48px") }
+        rule(".icon-text-width") { backgroundPosition = RelativePosition("-240px -48px") }
+        rule(".icon-align-left") { backgroundPosition = RelativePosition("-264px -48px") }
+        rule(".icon-align-center") { backgroundPosition = RelativePosition("-288px -48px") }
+        rule(".icon-align-right") { backgroundPosition = RelativePosition("-312px -48px") }
+        rule(".icon-align-justify") { backgroundPosition = RelativePosition("-336px -48px") }
+        rule(".icon-list") { backgroundPosition = RelativePosition("-360px -48px") }
+        rule(".icon-indent-left") { backgroundPosition = RelativePosition("-384px -48px") }
+        rule(".icon-indent-right") { backgroundPosition = RelativePosition("-408px -48px") }
+        rule(".icon-facetime-video") { backgroundPosition = RelativePosition("-432px -48px") }
+        rule(".icon-picture") { backgroundPosition = RelativePosition("-456px -48px") }
+
+        rule(".icon-pencil") { backgroundPosition = RelativePosition("0px -72px") }
+        rule(".icon-map-marker") { backgroundPosition = RelativePosition("-24px -72px") }
+        rule(".icon-adjust") { backgroundPosition = RelativePosition("-48px -72px") }
+        rule(".icon-tint") { backgroundPosition = RelativePosition("-72px -72px") }
+        rule(".icon-edit") { backgroundPosition = RelativePosition("-96px -72px") }
+        rule(".icon-share") { backgroundPosition = RelativePosition("-120px -72px") }
+        rule(".icon-check") { backgroundPosition = RelativePosition("-144px -72px") }
+        rule(".icon-move") { backgroundPosition = RelativePosition("-168px -72px") }
+        rule(".icon-step-backward") { backgroundPosition = RelativePosition("-192px -72px") }
+        rule(".icon-fast-backward") { backgroundPosition = RelativePosition("-216px -72px") }
+        rule(".icon-backward") { backgroundPosition = RelativePosition("-240px -72px") }
+        rule(".icon-play") { backgroundPosition = RelativePosition("-264px -72px") }
+        rule(".icon-pause") { backgroundPosition = RelativePosition("-288px -72px") }
+        rule(".icon-stop") { backgroundPosition = RelativePosition("-312px -72px") }
+        rule(".icon-forward") { backgroundPosition = RelativePosition("-336px -72px") }
+        rule(".icon-fast-forward") { backgroundPosition = RelativePosition("-360px -72px") }
+        rule(".icon-step-forward") { backgroundPosition = RelativePosition("-384px -72px") }
+        rule(".icon-eject") { backgroundPosition = RelativePosition("-408px -72px") }
+        rule(".icon-chevron-left") { backgroundPosition = RelativePosition("-432px -72px") }
+        rule(".icon-chevron-right") { backgroundPosition = RelativePosition("-456px -72px") }
+
+        rule(".icon-plus-sign") { backgroundPosition = RelativePosition("0px -96px") }
+        rule(".icon-minus-sign") { backgroundPosition = RelativePosition("-24px -96px") }
+        rule(".icon-remove-sign") { backgroundPosition = RelativePosition("-48px -96px") }
+        rule(".icon-ok-sign") { backgroundPosition = RelativePosition("-72px -96px") }
+        rule(".icon-question-sign") { backgroundPosition = RelativePosition("-96px -96px") }
+        rule(".icon-info-sign") { backgroundPosition = RelativePosition("-120px -96px") }
+        rule(".icon-screenshot") { backgroundPosition = RelativePosition("-144px -96px") }
+        rule(".icon-remove-circle") { backgroundPosition = RelativePosition("-168px -96px") }
+        rule(".icon-ok-circle") { backgroundPosition = RelativePosition("-192px -96px") }
+        rule(".icon-ban-circle") { backgroundPosition = RelativePosition("-216px -96px") }
+        rule(".icon-arrow-left") { backgroundPosition = RelativePosition("-240px -96px") }
+        rule(".icon-arrow-right") { backgroundPosition = RelativePosition("-264px -96px") }
+        rule(".icon-arrow-up") { backgroundPosition = RelativePosition("-289px -96px") } // 1px off
+        rule(".icon-arrow-down") { backgroundPosition = RelativePosition("-312px -96px") }
+        rule(".icon-share-alt") { backgroundPosition = RelativePosition("-336px -96px") }
+        rule(".icon-resize-full") { backgroundPosition = RelativePosition("-360px -96px") }
+        rule(".icon-resize-small") { backgroundPosition = RelativePosition("-384px -96px") }
+        rule(".icon-plus") { backgroundPosition = RelativePosition("-408px -96px") }
+        rule(".icon-minus") { backgroundPosition = RelativePosition("-433px -96px") }
+        rule(".icon-asterisk") { backgroundPosition = RelativePosition("-456px -96px") }
+
+        rule(".icon-exclamation-sign") { backgroundPosition = RelativePosition("0px -120px") }
+        rule(".icon-gift") { backgroundPosition = RelativePosition("-24px -120px") }
+        rule(".icon-leaf") { backgroundPosition = RelativePosition("-48px -120px") }
+        rule(".icon-fire") { backgroundPosition = RelativePosition("-72px -120px") }
+        rule(".icon-eye-open") { backgroundPosition = RelativePosition("-96px -120px") }
+        rule(".icon-eye-close") { backgroundPosition = RelativePosition("-120px -120px") }
+        rule(".icon-warning-sign") { backgroundPosition = RelativePosition("-144px -120px") }
+        rule(".icon-plane") { backgroundPosition = RelativePosition("-168px -120px") }
+        rule(".icon-calendar") { backgroundPosition = RelativePosition("-192px -120px") }
+        rule(".icon-random") { backgroundPosition = RelativePosition("-216px -120px"); width = 16.px }
+        rule(".icon-comment") { backgroundPosition = RelativePosition("-240px -120px") }
+        rule(".icon-magnet") { backgroundPosition = RelativePosition("-264px -120px") }
+        rule(".icon-chevron-up") { backgroundPosition = RelativePosition("-288px -120px") }
+        rule(".icon-chevron-down") { backgroundPosition = RelativePosition("-313px -119px") } // 1px, 1px off
+        rule(".icon-retweet") { backgroundPosition = RelativePosition("-336px -120px") }
+        rule(".icon-shopping-cart") { backgroundPosition = RelativePosition("-360px -120px") }
+        rule(".icon-folder-close") { backgroundPosition = RelativePosition("-384px -120px"); width = 16.px }
+        rule(".icon-folder-open") { backgroundPosition = RelativePosition("-408px -120px"); width = 16.px }
+        rule(".icon-resize-vertical") { backgroundPosition = RelativePosition("-432px -119px") } // 1px, 1px off
+        rule(".icon-resize-horizontal") { backgroundPosition = RelativePosition("-456px -118px") } // 1px, 2px off
+
+        rule(".icon-hdd") { backgroundPosition = RelativePosition("0px -144px") }
+        rule(".icon-bullhorn") { backgroundPosition = RelativePosition("-24px -144px") }
+        rule(".icon-bell") { backgroundPosition = RelativePosition("-48px -144px") }
+        rule(".icon-certificate") { backgroundPosition = RelativePosition("-72px -144px") }
+        rule(".icon-thumbs-up") { backgroundPosition = RelativePosition("-96px -144px") }
+        rule(".icon-thumbs-down") { backgroundPosition = RelativePosition("-120px -144px") }
+        rule(".icon-hand-right") { backgroundPosition = RelativePosition("-144px -144px") }
+        rule(".icon-hand-left") { backgroundPosition = RelativePosition("-168px -144px") }
+        rule(".icon-hand-up") { backgroundPosition = RelativePosition("-192px -144px") }
+        rule(".icon-hand-down") { backgroundPosition = RelativePosition("-216px -144px") }
+        rule(".icon-circle-arrow-right") { backgroundPosition = RelativePosition("-240px -144px") }
+        rule(".icon-circle-arrow-left") { backgroundPosition = RelativePosition("-264px -144px") }
+        rule(".icon-circle-arrow-up") { backgroundPosition = RelativePosition("-288px -144px") }
+        rule(".icon-circle-arrow-down") { backgroundPosition = RelativePosition("-312px -144px") }
+        rule(".icon-globe") { backgroundPosition = RelativePosition("-336px -144px") }
+        rule(".icon-wrench") { backgroundPosition = RelativePosition("-360px -144px") }
+        rule(".icon-tasks") { backgroundPosition = RelativePosition("-384px -144px") }
+        rule(".icon-filter") { backgroundPosition = RelativePosition("-408px -144px") }
+        rule(".icon-briefcase") { backgroundPosition = RelativePosition("-432px -144px") }
+        rule(".icon-fullscreen") { backgroundPosition = RelativePosition("-456px -144px") }
+    }
 
 
     override fun CssBuilder.tables(){/*
@@ -4827,18 +4827,18 @@ rule("table td[class*=\"span\"] table th[class*=\"span\"] .row-fluid table td[cl
 
 // Change the column widths to account for td/th padding
 rule(".table td .table th") {
-  "&.span1" { .tableColumns(1); }
-  "&.span2" { .tableColumns(2); }
-  "&.span3" { .tableColumns(3); }
-  "&.span4" { .tableColumns(4); }
-  "&.span5" { .tableColumns(5); }
-  "&.span6" { .tableColumns(6); }
-  "&.span7" { .tableColumns(7); }
-  "&.span8" { .tableColumns(8); }
-  "&.span9" { .tableColumns(9); }
-  "&.span10" { .tableColumns(10); }
-  "&.span11" { .tableColumns(11); }
-  "&.span12" { .tableColumns(12); }
+  "&.span1" { .tableColumns(1) }
+  "&.span2" { .tableColumns(2) }
+  "&.span3" { .tableColumns(3) }
+  "&.span4" { .tableColumns(4) }
+  "&.span5" { .tableColumns(5) }
+  "&.span6" { .tableColumns(6) }
+  "&.span7" { .tableColumns(7) }
+  "&.span8" { .tableColumns(8) }
+  "&.span9" { .tableColumns(9) }
+  "&.span10" { .tableColumns(10) }
+  "&.span11" { .tableColumns(11) }
+  "&.span12" { .tableColumns(12) }
 }
 
 
@@ -4941,7 +4941,7 @@ rule(".tooltip") {
   fontSize = 11.px
   lineHeight = 1.4.px.lh
   with(mixins) { opacity(0px) }
-  "&.in" { .opacity(80.0); }
+  "&.in" { .opacity(80.0) }
   "&.top" { marginTop = -3.px
  padding = Padding(5.px, 0.px) }
   "&.right" { marginLeft = 3.px
@@ -5026,9 +5026,9 @@ rule("small") { fontSize = 85.pct }
 
 rule("strong") { fontWeight = FontWeight.bold }
 
-rule("em") { font-style: italic; }
+rule("em") { font-style: italic }
 
-rule("cite") { font-style: normal; }
+rule("cite") { font-style: normal }
 
 // Utility classes
 rule(".muted") { color = vars.grayLight }
