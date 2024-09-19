@@ -1,13 +1,13 @@
 package org.mitre.oauth2.exception
 
-class InvalidTokenException: AuthenticationException {
-    constructor(message: String? = null, cause: Throwable? = null) : super(message, cause)
-    constructor(cause: Throwable?) : super(cause)
+class InvalidTokenException: OpenConnectException {
+    constructor(message: String? = null, cause: Throwable? = null) : super(ErrorCodes.INVALID_TOKEN, message, cause)
+    constructor(cause: Throwable?) : super(ErrorCodes.INVALID_TOKEN, cause)
     constructor(
         message: String?,
         cause: Throwable?,
         enableSuppression: Boolean,
         writableStackTrace: Boolean
-    ) : super(message, cause, enableSuppression, writableStackTrace)
+    ) : super(ErrorCodes.INVALID_TOKEN, message, cause, enableSuppression, writableStackTrace)
 }
 

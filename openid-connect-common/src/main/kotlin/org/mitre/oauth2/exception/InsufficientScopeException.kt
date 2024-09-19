@@ -1,15 +1,13 @@
 package org.mitre.oauth2.exception
 
 class InsufficientScopeException: OAuth2Exception {
-    constructor() : super()
-    constructor(message: String?) : super(message)
-    constructor(message: String?, cause: Throwable?) : super(message, cause)
-    constructor(cause: Throwable?) : super(cause)
+    constructor(message: String? = null, cause: Throwable? = null) : super(ErrorCodes.INSUFFICIENT_SCOPE, message, cause)
+    constructor(cause: Throwable?) : super(ErrorCodes.INSUFFICIENT_SCOPE, cause)
     constructor(
         message: String?,
         cause: Throwable?,
         enableSuppression: Boolean,
         writableStackTrace: Boolean
-    ) : super(message, cause, enableSuppression, writableStackTrace)
+    ) : super(ErrorCodes.INSUFFICIENT_SCOPE, message, cause, enableSuppression, writableStackTrace)
 
 }

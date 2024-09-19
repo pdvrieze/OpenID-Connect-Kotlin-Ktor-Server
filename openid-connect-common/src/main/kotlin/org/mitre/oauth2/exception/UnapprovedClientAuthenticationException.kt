@@ -1,6 +1,6 @@
 package org.mitre.oauth2.exception
 
-class UnapprovedClientAuthenticationException: OAuth2Exception {
+class UnapprovedClientAuthenticationException: AuthenticationException {
     constructor(message: String? = null, cause: Throwable? = null) : super(message, cause)
     constructor(cause: Throwable?) : super(cause)
     constructor(

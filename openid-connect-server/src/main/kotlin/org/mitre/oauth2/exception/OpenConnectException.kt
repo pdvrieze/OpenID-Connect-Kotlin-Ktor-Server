@@ -1,14 +1,15 @@
 package org.mitre.oauth2.exception
 
 open class OpenConnectException : OAuth2Exception {
-    constructor(message: String? = null, cause: Throwable? = null) : super(message, cause)
+    constructor(oauth2ErrorCode: ErrorCodes, message: String? = null, cause: Throwable? = null) : super(oauth2ErrorCode, message, cause)
 
-    constructor(cause: Throwable?) : super(cause)
+    constructor(oauth2ErrorCode: ErrorCodes, cause: Throwable?) : super(oauth2ErrorCode, cause)
 
     constructor(
+        oauth2ErrorCode: ErrorCodes,
         message: String?,
         cause: Throwable?,
         enableSuppression: Boolean,
         writableStackTrace: Boolean
-    ) : super(message, cause, enableSuppression, writableStackTrace)
+    ) : super(oauth2ErrorCode, message, cause, enableSuppression, writableStackTrace)
 }

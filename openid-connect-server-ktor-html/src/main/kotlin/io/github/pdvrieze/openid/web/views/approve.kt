@@ -6,7 +6,6 @@ import io.github.pdvrieze.openid.web.tags.topBar
 import kotlinx.css.TextAlign
 import kotlinx.css.textAlign
 import kotlinx.html.*
-import org.mitre.oauth2.exception.AuthenticationException
 import org.mitre.oauth2.exception.OAuth2Exception
 import org.mitre.oauth2.exception.UnapprovedClientAuthenticationException
 import org.mitre.oauth2.model.OAuthClientDetails
