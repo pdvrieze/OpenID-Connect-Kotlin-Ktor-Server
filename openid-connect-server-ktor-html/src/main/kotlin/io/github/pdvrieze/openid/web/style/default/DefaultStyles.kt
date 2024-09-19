@@ -4892,57 +4892,57 @@ object DefaultStyles : Styles {
     }
 
 
-    override fun CssBuilder.thumbnails(){/*
-// Note: `.thumbnails` and `.thumbnails > li` are overriden in responsive files
+    override fun CssBuilder.thumbnails() {
+        // Note: `.thumbnails` and `.thumbnails > li` are overriden in responsive files
 
-// Make wrapper ul behave like the grid
-rule(".thumbnails") {
-  marginLeft = -vars.gridGutterWidth
-  listStyleType = ListStyleType.none
-  with(mixins) { clearfix() }
-}
-// Fluid rows have no left margin
-rule(".row-fluid .thumbnails") {
-  marginLeft = 0.px
-}
+        // Make wrapper ul behave like the grid
+        rule(".thumbnails") {
+            marginLeft = -vars.gridGutterWidth
+            listStyleType = ListStyleType.none
+            with(mixins) { clearfix() }
+        }
+        // Fluid rows have no left margin
+        rule(".row-fluid .thumbnails") {
+            marginLeft = 0.px
+        }
 
-// Float li to make thumbnails appear in a row
-rule(".thumbnails > li") {
-  float = Float.left
- // Explicity set the float since we don't require .span* classes
-  marginBottom = vars.baseLineHeight
-  marginLeft = vars.gridGutterWidth
-}
+        // Float li to make thumbnails appear in a row
+        rule(".thumbnails > li") {
+            float = Float.left
+            // Explicity set the float since we don't require .span* classes
+            marginBottom = vars.baseLineHeight
+            marginLeft = vars.gridGutterWidth
+        }
 
-// The actual thumbnail (can be `a` or `div`)
-rule(".thumbnail") {
-  display = Display.block
-  padding = Padding(4.px)
-  lineHeight = vars.baseLineHeight.lh
-  border = Border(1.px, BorderStyle.solid, Color("#ddd"))
-  with(mixins) { borderRadius(vars.baseBorderRadius) }
-  with(mixins) { boxShadow(0px 1px 3px rgb(0,0,0,.055)) }
-  with(mixins) { transition(all .2s ease-in-out) }
-}
-// Add a hover/focus state for linked versions only
-ruleOf("a.thumbnail:hover", "a.thumbnail:focus") {
-  borderColor =  vars.linkColor
-  with(mixins) { boxShadow(0px 1px 4px rgb(0,105,214,.25)) }
-}
+        // The actual thumbnail (can be `a` or `div`)
+        rule(".thumbnail") {
+            display = Display.block
+            padding = Padding(4.px)
+            lineHeight = vars.baseLineHeight.lh
+            border = Border(1.px, BorderStyle.solid, Color("#ddd"))
+            with(mixins) { borderRadius(vars.baseBorderRadius) }
+            with(mixins) { boxShadow(0.px, 1.px, 3.px, rgb(0, 0, 0, .055)) }
+            with(mixins) { transition("all .2s ease-in-out") }
+        }
+        // Add a hover/focus state for linked versions only
+        ruleOf("a.thumbnail:hover", "a.thumbnail:focus") {
+            borderColor = vars.linkColor
+            with(mixins) { boxShadow(0.px, 1.px, 4.px, rgb(0, 105, 214, .25)) }
+        }
 
-// Images and captions
-rule(".thumbnail > img") {
-  display = Display.block
-  max-width = 100.pct
-  marginLeft = LinearDimension.auto
-  marginRight = LinearDimension.auto
-}
+        // Images and captions
+        rule(".thumbnail > img") {
+            display = Display.block
+            maxWidth = 100.pct
+            marginLeft = LinearDimension.auto
+            marginRight = LinearDimension.auto
+        }
 
-rule(".thumbnail .caption") {
-  padding = Padding(9.px)
-  color = vars.gray
-}
-    */}
+        rule(".thumbnail .caption") {
+            padding = Padding(9.px)
+            color = vars.gray
+        }
+    }
 
 
     override fun CssBuilder.tooltip(){/*
