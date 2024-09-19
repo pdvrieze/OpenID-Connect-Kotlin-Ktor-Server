@@ -292,7 +292,7 @@ object DefaultStyles : Styles {
         override val tooltipColor = Color("fff")
         override val tooltipBackground = Color("000")
         override val tooltipArrowWidth = 5.px
-        override val tooltipArrowcolor get() = tooltipBackground
+        override val tooltipArrowColor get() = tooltipBackground
 
         override val popoverBackground = Color("fff")
         override val popoverArrowWidth = 10.px
@@ -4945,78 +4945,88 @@ object DefaultStyles : Styles {
     }
 
 
-    override fun CssBuilder.tooltip(){/*
-// Base class
-rule(".tooltip") {
-  position = Position.absolute
-  zIndex = vars.zindexTooltip
-  display = Display.block
-  visibility: visible
-  fontSize = 11.px
-  lineHeight = 1.4.px.lh
-  with(mixins) { opacity(0px) }
-  "&.in" { .opacity(80.0) }
-  "&.top" { marginTop = -3.px
- padding = Padding(5.px, 0.px) }
-  "&.right" { marginLeft = 3.px
- padding = Padding(0.px, 5.px) }
-  "&.bottom" { marginTop = 3.px
- padding = Padding(5.px, 0.px) }
-  "&.left" { marginLeft = -3.px
- padding = Padding(0.px, 5.px) }
-}
+    override fun CssBuilder.tooltip() {
+        // Base class
+        rule(".tooltip") {
+            position = Position.absolute
+            zIndex = vars.zindexTooltip
+            display = Display.block
+            visibility = Visibility.visible
+            fontSize = 11.px
+            lineHeight = 1.4.px.lh
+            with(mixins) { opacity(0) }
+            "&.in" { with(mixins) { opacity(80.0) } }
+            "&.top" {
+                marginTop = -3.px
+                padding = Padding(5.px, 0.px)
+            }
+            "&.right" {
+                marginLeft = 3.px
+                padding = Padding(0.px, 5.px)
+            }
+            "&.bottom" {
+                marginTop = 3.px
+                padding = Padding(5.px, 0.px)
+            }
+            "&.left" {
+                marginLeft = -3.px
+                padding = Padding(0.px, 5.px)
+            }
+        }
 
-// Wrapper for the tooltip content
-rule(".tooltip-inner") {
-  maxWidth = 200.px
-  padding = Padding(8.px)
-  color = vars.tooltipColor
-  textAlign = TextAlign.center
-  textDecoration = TextDecoration.none
-  backgroundColor = vars.tooltipBackground
-  with(mixins) { borderRadius(vars.baseBorderRadius) }
-}
+        // Wrapper for the tooltip content
+        rule(".tooltip-inner") {
+            maxWidth = 200.px
+            padding = Padding(8.px)
+            color = vars.tooltipColor
+            textAlign = TextAlign.center
+            textDecoration = TextDecoration.none
+            backgroundColor = vars.tooltipBackground
+            with(mixins) { borderRadius(vars.baseBorderRadius) }
+        }
 
-// Arrows
-rule(".tooltip-arrow") {
-  position = Position.absolute
-  width = 0.px
-  height = 0.px
-  border-color: transparent
-  border-style: solid
-}
+        // Arrows
+        rule(".tooltip-arrow") {
+            position = Position.absolute
+            width = 0.px
+            height = 0.px
+            borderColor = Color.transparent
+            borderStyle = BorderStyle.solid
+        }
 
-rule(".tooltip") {
-  "&.top .tooltip-arrow" {
-    bottom = 0.px
-    left = 50.pct
-    marginLeft = -vars.tooltipArrowWidth
-    borderWidth = vars.tooltipArrowWidth vars.tooltipArrowWidth 0px
-    border-top-color = vars.tooltipArrowColor
-  }
-  "&.right .tooltip-arrow" {
-    top = 50.pct
-    left = 0.px
-    marginTop = -vars.tooltipArrowWidth
-    borderWidth = vars.tooltipArrowWidth vars.tooltipArrowWidth vars.tooltipArrowWidth 0px
-    border-right-color = vars.tooltipArrowColor
-  }
-  "&.left .tooltip-arrow" {
-    top = 50.pct
-    right = 0.px
-    marginTop = -vars.tooltipArrowWidth
-    borderWidth = vars.tooltipArrowWidth 0px vars.tooltipArrowWidth vars.tooltipArrowWidth
-    border-left-color = vars.tooltipArrowColor
-  }
-  "&.bottom .tooltip-arrow" {
-    top = 0.px
-    left = 50.pct
-    marginLeft = -vars.tooltipArrowWidth
-    border-width: 0px vars.tooltipArrowWidth vars.tooltipArrowWidth
-    border-bottom-color = vars.tooltipArrowColor
-  }
-}
-    */}
+        rule(".tooltip") {
+            "&.top .tooltip-arrow" {
+                bottom = 0.px
+                left = 50.pct
+                marginLeft = -vars.tooltipArrowWidth
+                borderWidth = LinearDimension("${vars.tooltipArrowWidth} ${vars.tooltipArrowWidth} 0px")
+                borderTopColor = vars.tooltipArrowColor
+            }
+            "&.right .tooltip-arrow" {
+                top = 50.pct
+                left = 0.px
+                marginTop = -vars.tooltipArrowWidth
+                borderWidth =
+                    LinearDimension("${vars.tooltipArrowWidth} ${vars.tooltipArrowWidth} ${vars.tooltipArrowWidth} 0px")
+                borderRightColor = vars.tooltipArrowColor
+            }
+            "&.left .tooltip-arrow" {
+                top = 50.pct
+                right = 0.px
+                marginTop = -vars.tooltipArrowWidth
+                borderWidth =
+                    LinearDimension("${vars.tooltipArrowWidth} 0px ${vars.tooltipArrowWidth} ${vars.tooltipArrowWidth}")
+                borderLeftColor = vars.tooltipArrowColor
+            }
+            "&.bottom .tooltip-arrow" {
+                top = 0.px
+                left = 50.pct
+                marginLeft = -vars.tooltipArrowWidth
+                borderWidth = LinearDimension(" 0px ${vars.tooltipArrowWidth} ${vars.tooltipArrowWidth}")
+                borderBottomColor = vars.tooltipArrowColor
+            }
+        }
+    }
 
 
     override fun CssBuilder.type(){/*

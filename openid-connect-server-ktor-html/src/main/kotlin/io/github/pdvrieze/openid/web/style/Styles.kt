@@ -236,7 +236,7 @@ interface Styles {
                 val tooltipColor: Color
         val tooltipBackground: Color
         val tooltipArrowWidth: LinearDimension
-        val tooltipArrowcolor: Color
+        val tooltipArrowColor: Color
         val popoverBackground: Color
         val popoverArrowWidth: LinearDimension
         val popoverArrowColor: Color
