@@ -5103,7 +5103,7 @@ rule("h4 small") { fontSize = vars.baseFontSize }
 rule(".page-header") {
   padding-bottom: (vars.baseLineHeight / 2)-1
   margin: vars.baseLineHeight 0px (vars.baseLineHeight * 1.5)
-  borderBottom = Border(1.px, BorderStyle.solid, Color.solid)
+  borderBottom = Border(1.px, BorderStyle.solid, vars.grayLighter)
 }
 
 
@@ -5181,15 +5181,15 @@ rule(".dl-horizontal") {
 rule("hr") {
   margin: vars.baseLineHeight 0px
   borderWidth = 0.px
-  borderTop = Border(1.px, BorderStyle.solid, Color.solid)
-  borderBottom = Border(1.px, BorderStyle.solid, Color.solid)
+  borderTop = Border(1.px, BorderStyle.solid, vars.hrBorder)
+  borderBottom = Border(1.px, BorderStyle.solid, vars.white)
 }
 
 ruleOf("abbr[title]", // Abbreviations and acronyms
     // Added data-* attribute to help out our tooltip plugin, per https://github.com/twbs/bootstrap/issues/5257
     "abbr[data-original-title]" ) {
   cursor = Cursor.help
-  borderBottom = Border(1.px, BorderStyle.solid, Color.dotted)
+  borderBottom = Border(1.px, BorderStyle.dotted, vars.grayLight)
 }
 
 rule("abbr.initialism") {
@@ -5201,7 +5201,7 @@ rule("abbr.initialism") {
 rule("blockquote") {
   padding = Padding(0.px, 0.px, 0.px, 15.px)
   margin: 0px 0px vars.baseLineHeight
-  borderLeft = Border(5.px, BorderStyle.solid, Color.solid)
+  borderLeft = Border(5.px, BorderStyle.solid, vars.grayLighter)
   p {
     marginBottom = 0.px
     fontSize = vars.baseFontSize * 1.25
@@ -5213,7 +5213,7 @@ rule("blockquote") {
     lineHeight = vars.baseLineHeight.lh
     color = vars.grayLight
     "&:before" {
-      content: '\2014 \00A0'
+      content = QuotedString("\2014 \00A0")
     }
   }
 
@@ -5222,7 +5222,7 @@ rule("blockquote") {
     float = Float.right
     paddingRight = 15.px
     paddingLeft = 0.px
-    borderRight = Border(5.px, BorderStyle.solid, Color.solid)
+    borderRight = Border(5.px, BorderStyle.solid, vars.grayLighter)
     borderLeftWidth = 0.px
     ruleOf("p", "small") {
       textAlign = TextAlign.right
