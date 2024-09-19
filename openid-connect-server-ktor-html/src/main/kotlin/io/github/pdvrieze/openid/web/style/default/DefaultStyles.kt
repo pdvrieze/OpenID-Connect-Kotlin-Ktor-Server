@@ -9,9 +9,9 @@ import io.github.pdvrieze.openid.web.style.zoom
 import kotlinx.css.*
 import kotlinx.css.Float
 import kotlinx.css.properties.Animation
-import kotlinx.css.properties.Animations
 import kotlinx.css.properties.BoxShadow
 import kotlinx.css.properties.BoxShadowInset
+import kotlinx.css.properties.BoxShadows
 import kotlinx.css.properties.LineHeight
 import kotlinx.css.properties.TextDecoration
 import kotlinx.css.properties.TextDecorationLine
@@ -3923,7 +3923,7 @@ object DefaultStyles : Styles {
 
 
     override fun CssBuilder.responsive1200pxMin() {
-        "@media(min-width: 1200px)" {
+        media("(min-width: 1200px)") {
 
             with(mixins) {
 
@@ -3953,7 +3953,7 @@ object DefaultStyles : Styles {
 
 
     override fun CssBuilder.responsive767pxMax() {
-        "@media(max-width: 767px)" {
+        media("(max-width: 767px)") {
 
             // Padding to set content in a bit
             body {
@@ -4069,7 +4069,7 @@ object DefaultStyles : Styles {
 
         // UP TO LANDSCAPE PHONE
 
-        media("max-width: 480px") {
+        media("(max-width: 480px)") {
 
             // Smooth out the collapsing/expanding nav
             ".nav-collapse" {
@@ -4164,245 +4164,254 @@ object DefaultStyles : Styles {
     }
 
 
-    override fun CssBuilder.responsiveNavbar(){/*
-// TABLETS AND BELOW
-@media(max-width: vars.navbarCollapseWidth) {
+    override fun CssBuilder.responsiveNavbar(){
+        // TABLETS AND BELOW
+        media("(max-width: vars.navbarCollapseWidth)") {
 
-  // UNFIX THE TOPBAR
-  // ----------------
-  // Remove any padding from the body
-  body {
-    paddingTop = 0.px
-  }
-  // Unfix the navbars
-  ruleOf(".navbar-fixed-top", ".navbar-fixed-bottom") {
-    position = Position.static
-  }
-  ".navbar-fixed-top" {
-    marginBottom = vars.baseLineHeight
-  }
-  ".navbar-fixed-bottom" {
-    marginTop = vars.baseLineHeight
-  }
-  ruleOf(".navbar-fixed-top .navbar-inner", ".navbar-fixed-bottom .navbar-inner") {
-    padding = Padding(5.px)
-  }
-  ".navbar .container" {
-    width = LinearDimension.auto
-    padding = Padding(0.px)
-  }
-  // Account for brand name
-  ".navbar .brand" {
-    paddingLeft = 10.px
-    paddingRight = 10.px
-    margin: 0px 0px 0px -5px
-  }
-
-  // COLLAPSIBLE NAVBAR
-  // ------------------
-  // Nav collapse clears brand
-  ".nav-collapse" {
-    clear = Clear.both
-  }
-  // Block-level the nav
-  ".nav-collapse .nav" {
-    float = Float.none
-    margin: 0px 0px (vars.baseLineHeight / 2)
-  }
-  ".nav-collapse .nav > li" {
-    float = Float.none
-  }
-  ".nav-collapse .nav > li > a" {
-    marginBottom = 2.px
-  }
-  ".nav-collapse .nav > .divider-vertical" {
-    display = Display.none
-  }
-  ".nav-collapse .nav .nav-header" {
-    color = vars.navbarText
-    textShadow = TextShadow.none
-  }
-  // Nav and dropdown links in navbar
-  ruleOf(".nav-collapse .nav > li > a", ".nav-collapse .dropdown-menu a") {
-    padding = Padding(9.px, 15.px)
-    fontWeight = FontWeight.bold
-    color = vars.navbarLinkColor
-    with(mixins) { borderRadius(3.px) }
-  }
-  // Buttons
-  ".nav-collapse .btn" {
-    padding = Padding(4.px, 10.px, 4.px)
-    fontWeight = FontWeight.normal
-    with(mixins) { borderRadius(vars.baseBorderRadius) }
-  }
-  ".nav-collapse .dropdown-menu li + li a" {
-    marginBottom = 2.px
-  }
-  ruleOf(".nav-collapse .nav > li > a:hover",
-      ".nav-collapse .nav > li > a:focus",
-      ".nav-collapse .dropdown-menu a:hover",
-      ".nav-collapse .dropdown-menu a:focus") {
-    backgroundColor = vars.navbarBackground
-  }
-  ruleOf(".navbar-inverse .nav-collapse .nav > li > a", ".navbar-inverse .nav-collapse .dropdown-menu a") {
-    color = vars.navbarInverseLinkColor
-  }
-  ruleOf(".navbar-inverse .nav-collapse .nav > li > a:hover",
-      ".navbar-inverse .nav-collapse .nav > li > a:focus",
-      ".navbar-inverse .nav-collapse .dropdown-menu a:hover",
-      ".navbar-inverse .nav-collapse .dropdown-menu a:focus") {
-    backgroundColor = vars.navbarInverseBackground
-  }
-  // Buttons in the navbar
-  ".nav-collapse.in .btn-group" {
-    marginTop = 5.px
-    padding = Padding(0.px)
-  }
-  // Dropdowns in the navbar
-  ".nav-collapse .dropdown-menu" {
-    position = Position.static
-    top = LinearDimension.auto
-    left = LinearDimension.auto
-    float = Float.none
-    display = Display.none
-    max-width: none
-    margin = Margin(0.px, 15.px)
-    padding = Padding(0.px)
-    backgroundColor = Color.transparent
-    border: none
-    with(mixins) { borderRadius(0.px) }
-    with(mixins) { boxShadow(none) }
-  }
-  ".nav-collapse .open > .dropdown-menu" {
-    display = Display.block
-  }
-
-ruleOf(".nav-collapse .dropdown-menu:before", ".nav-collapse .dropdown-menu:after") {
-    display = Display.none
-  }
-  ".nav-collapse .dropdown-menu .divider" {
-    display = Display.none
-  }
-  ".nav-collapse .nav > li > .dropdown-menu" {
-    ruleOf("&:before", "&:after") {
-      display = Display.none
-    }
-  }
-  // Forms in navbar
-  ruleOf(".nav-collapse .navbar-form", ".nav-collapse .navbar-search") {
-    float = Float.none
-    padding: (vars.baseLineHeight / 2) 15px
-    margin: (vars.baseLineHeight / 2) 0px
-    borderTop = Border(1.px, BorderStyle.solid, Color.solid)
-    borderBottom = Border(1.px, BorderStyle.solid, Color.solid)
-    with(mixins) { boxShadow(~"inset 0px 1px 0px rgb(255,255,255,.1), 0px 1px 0px rgb(255,255,255,.1)") }
-  }
-  ruleOf(".navbar-inverse .nav-collapse .navbar-form", ".navbar-inverse .nav-collapse .navbar-search") {
-    border-top-color = vars.navbarInverseBackground
-    border-bottom-color = vars.navbarInverseBackground
-  }
-  // Pull right (secondary) nav content
-  ".navbar .nav-collapse .nav.pull-right" {
-    float = Float.none
-    marginLeft = 0.px
-  }
-  // Hide everything in the navbar save .brand and toggle button
-         ruleOf(".nav-collapse", ".nav-collapse.collapse") {
-            overflow = Overflow.hidden
-            height = 0.px
-        }
-            // Navbar button
-             rule(".navbar .btn-navbar") {
-            display = Display.block
-        }
-
-            // STATIC NAVBAR
-            // -------------
-             rule(".navbar-static .navbar-inner") {
+          // UNFIX THE TOPBAR
+          // ----------------
+          // Remove any padding from the body
+          body {
+            paddingTop = 0.px
+          }
+          // Unfix the navbars
+          ruleOf(".navbar-fixed-top", ".navbar-fixed-bottom") {
+            position = Position.static
+          }
+          ".navbar-fixed-top" {
+            marginBottom = vars.baseLineHeight
+          }
+          ".navbar-fixed-bottom" {
+            marginTop = vars.baseLineHeight
+          }
+          ruleOf(".navbar-fixed-top .navbar-inner", ".navbar-fixed-bottom .navbar-inner") {
+            padding = Padding(5.px)
+          }
+          ".navbar .container" {
+            width = LinearDimension.auto
+            padding = Padding(0.px)
+          }
+          // Account for brand name
+          ".navbar .brand" {
             paddingLeft = 10.px
             paddingRight = 10.px
-        }
+            margin = Margin(0.px, 0.px, 0.px, -5.px)
+          }
+
+          // COLLAPSIBLE NAVBAR
+          // ------------------
+          // Nav collapse clears brand
+          ".nav-collapse" {
+            clear = Clear.both
+          }
+          // Block-level the nav
+          ".nav-collapse .nav" {
+            float = Float.none
+            margin = Margin(0.px, 0.px, (vars.baseLineHeight / 2))
+          }
+          ".nav-collapse .nav > li" {
+            float = Float.none
+          }
+          ".nav-collapse .nav > li > a" {
+            marginBottom = 2.px
+          }
+          ".nav-collapse .nav > .divider-vertical" {
+            display = Display.none
+          }
+          ".nav-collapse .nav .nav-header" {
+            color = vars.navbarText
+            declarations["textShadow"] = "none"
+          }
+          // Nav and dropdown links in navbar
+          ruleOf(".nav-collapse .nav > li > a", ".nav-collapse .dropdown-menu a") {
+            padding = Padding(9.px, 15.px)
+            fontWeight = FontWeight.bold
+            color = vars.navbarLinkColor
+            with(mixins) { borderRadius(3.px) }
+          }
+          // Buttons
+          ".nav-collapse .btn" {
+            padding = Padding(4.px, 10.px, 4.px)
+            fontWeight = FontWeight.normal
+            with(mixins) { borderRadius(vars.baseBorderRadius) }
+          }
+          ".nav-collapse .dropdown-menu li + li a" {
+            marginBottom = 2.px
+          }
+          ruleOf(".nav-collapse .nav > li > a:hover",
+              ".nav-collapse .nav > li > a:focus",
+              ".nav-collapse .dropdown-menu a:hover",
+              ".nav-collapse .dropdown-menu a:focus") {
+            backgroundColor = vars.navbarBackground
+          }
+          ruleOf(".navbar-inverse .nav-collapse .nav > li > a", ".navbar-inverse .nav-collapse .dropdown-menu a") {
+            color = vars.navbarInverseLinkColor
+          }
+          ruleOf(".navbar-inverse .nav-collapse .nav > li > a:hover",
+              ".navbar-inverse .nav-collapse .nav > li > a:focus",
+              ".navbar-inverse .nav-collapse .dropdown-menu a:hover",
+              ".navbar-inverse .nav-collapse .dropdown-menu a:focus") {
+            backgroundColor = vars.navbarInverseBackground
+          }
+          // Buttons in the navbar
+          ".nav-collapse.in .btn-group" {
+            marginTop = 5.px
+            padding = Padding(0.px)
+          }
+          // Dropdowns in the navbar
+          ".nav-collapse .dropdown-menu" {
+            position = Position.static
+            top = LinearDimension.auto
+            left = LinearDimension.auto
+            float = Float.none
+            display = Display.none
+            maxWidth = LinearDimension.none
+            margin = Margin(0.px, 15.px)
+            padding = Padding(0.px)
+            backgroundColor = Color.transparent
+            borderStyle = BorderStyle.none
+            with(mixins) {
+                borderRadius(0.px)
+                boxShadow(BoxShadows.none)
+            }
+          }
+          ".nav-collapse .open > .dropdown-menu" {
+            display = Display.block
+          }
+
+        ruleOf(".nav-collapse .dropdown-menu:before", ".nav-collapse .dropdown-menu:after") {
+            display = Display.none
+          }
+          ".nav-collapse .dropdown-menu .divider" {
+            display = Display.none
+          }
+          ".nav-collapse .nav > li > .dropdown-menu" {
+            ruleOf("&:before", "&:after") {
+              display = Display.none
+            }
+          }
+          // Forms in navbar
+          ruleOf(".nav-collapse .navbar-form", ".nav-collapse .navbar-search") {
+            float = Float.none
+            padding = Padding((vars.baseLineHeight / 2), 15.px)
+            margin = Margin((vars.baseLineHeight / 2), 0.px)
+            borderTop = Border(1.px, BorderStyle.solid, vars.navbarBackground)
+            borderBottom = Border(1.px, BorderStyle.solid, vars.navbarBackground)
+            with(mixins) {
+                boxShadow {
+                    this+=BoxShadowInset(rgb(255,255,255,.1), 0.px, 1.px, 0.px)
+                    this+=BoxShadow(rgb(255,255,255,.1), 0.px, 1.px, 0.px)
+                }
+            }
+          }
+          ruleOf(".navbar-inverse .nav-collapse .navbar-form", ".navbar-inverse .nav-collapse .navbar-search") {
+            borderTopColor = vars.navbarInverseBackground
+            borderBottomColor = vars.navbarInverseBackground
+          }
+          // Pull right (secondary) nav content
+          ".navbar .nav-collapse .nav.pull-right" {
+            float = Float.none
+            marginLeft = 0.px
+          }
+          // Hide everything in the navbar save .brand and toggle button
+                 ruleOf(".nav-collapse", ".nav-collapse.collapse") {
+                    overflow = Overflow.hidden
+                    height = 0.px
+                }
+                    // Navbar button
+                     rule(".navbar .btn-navbar") {
+                    display = Display.block
+                }
+
+                    // STATIC NAVBAR
+                    // -------------
+                     rule(".navbar-static .navbar-inner") {
+                    paddingLeft = 10.px
+                    paddingRight = 10.px
+                }
 
 
+            }
+
+
+        // DEFAULT DESKTOP
+
+            media("(min-width: ${vars.navbarCollapseDesktopWidth})") {
+
+                // Required to make the collapsing navbar work on regular desktops
+                 rule(".nav-collapse.collapse") {
+                    height = LinearDimension("auto !important")
+                    declarations["overflow"] = "visible !important"
+                }
+
+            }
     }
 
 
-// DEFAULT DESKTOP
-
-    @media(min-width: vars.navbarCollapseDesktopWidth) {
-
-        // Required to make the collapsing navbar work on regular desktops
-         rule(".nav-collapse.collapse") {
-            height: auto !important
-            overflow: visible !important
+    override fun CssBuilder.responsiveUtilities() {
+        // IE10 Metro responsive
+        // Required for Windows 8 Metro split-screen snapping with IE10
+        // Source: http://timkadlec.com/2012/10/ie10-snap-mode-and-responsive-design/
+        rule("@-ms-viewport") {
+            width = LinearDimension("device-width")
         }
 
+        // Hide from screenreaders and browsers
+        // Credit: HTML5 Boilerplate
+        rule(".hidden") {
+            display = Display.none
+            visibility = Visibility.hidden
+        }
+
+        // Visibility utilities
+
+        // For desktops
+        rule(".visible-phone") { declarations["display"] = "none !important" }
+
+        rule(".visible-tablet") { declarations["display"] = "none !important" }
+
+        rule(".hidden-phone") { }
+
+        rule(".hidden-tablet") { }
+
+        rule(".hidden-desktop") { declarations["display"] = "none !important" }
+
+        rule(".visible-desktop") { declarations["display"] = "inherit !important" }
+
+        // Tablets & small desktops only
+        media("(min-width: 768px) and (max-width: 979px)") {
+            // Hide everything else
+            ".hidden-desktop" { declarations["display"] = "inherit !important" }
+            ".visible-desktop" { declarations["display"] = "none !important " }
+            // Show
+            ".visible-tablet" { declarations["display"] = "inherit !important" }
+            // Hide
+            ".hidden-tablet" { declarations["display"] = "none !important" }
+        }
+
+        // Phones only
+        media("(max-width: 767px)") {
+            // Hide everything else
+            ".hidden-desktop" { declarations["display"] = "inherit !important" }
+            ".visible-desktop" { declarations["display"] = "none !important" }
+            // Show
+            ".visible-phone" {
+                declarations["display"] = "inherit !important"
+            } // Use inherit to restore previous behavior
+            // Hide
+            ".hidden-phone" { declarations["display"] = "none !important" }
+        }
+
+        // Print utilities
+        rule(".visible-print") { declarations["display"] = "none !important" }
+
+        rule(".hidden-print") { }
+
+        rule("@media print") {
+            ".visible-print" { declarations["display"] = "inherit !important" }
+            ".hidden-print" { declarations["display"] = "none !important" }
+        }
     }
-    */}
-
-
-    override fun CssBuilder.responsiveUtilities(){/*
-// IE10 Metro responsive
-// Required for Windows 8 Metro split-screen snapping with IE10
-// Source: http://timkadlec.com/2012/10/ie10-snap-mode-and-responsive-design/
-rule("VAR-ms-viewport") {
-  width: device-width
-}
-
-// Hide from screenreaders and browsers
-// Credit: HTML5 Boilerplate
-rule(".hidden") {
-  display = Display.none
-  visibility: hidden
-}
-
-// Visibility utilities
-
-// For desktops
-rule(".visible-phone") { display: none !important; }
-
-rule(".visible-tablet") { display: none !important; }
-
-rule(".hidden-phone") { }
-
-rule(".hidden-tablet") { }
-
-rule(".hidden-desktop") { display: none !important; }
-
-rule(".visible-desktop") { display: inherit !important; }
-
-// Tablets & small desktops only
-@media(min-width: 768px) and (max-width: 979px) {
-  // Hide everything else
-  .hidden-desktop    { display: inherit !important; }
-  .visible-desktop   { display: none !important ; }
-  // Show
-  .visible-tablet    { display: inherit !important; }
-  // Hide
-  .hidden-tablet     { display: none !important; }
-}
-
-// Phones only
-@media(max-width: 767px) {
-  // Hide everything else
-  .hidden-desktop    { display: inherit !important; }
-  .visible-desktop   { display: none !important; }
-  // Show
-  .visible-phone     { display: inherit !important; } // Use inherit to restore previous behavior
-  // Hide
-  .hidden-phone      { display: none !important; }
-}
-
-// Print utilities
-rule(".visible-print") { display: none !important; }
-
-rule(".hidden-print") { }
-
-rule("@media print") {
-  .visible-print  { display: inherit !important; }
-  .hidden-print   { display: none !important; }
-}
-    */}
 
 
     override fun CssBuilder.scaffolding(){/*
