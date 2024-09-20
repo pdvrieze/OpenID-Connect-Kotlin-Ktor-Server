@@ -28,7 +28,7 @@ import org.mitre.oauth2.resolver.OAuth2TokenResolver
 interface OAuth2TokenEntityService : OAuth2TokenResolver {
 
     //region Custom functions
-    fun getRefreshToken(refreshTokenValue: String): OAuth2RefreshTokenEntity?
+    fun getRefreshToken(refreshTokenValue: String): OAuth2RefreshTokenEntity
 
     fun revokeRefreshToken(refreshToken: OAuth2RefreshTokenEntity)
 

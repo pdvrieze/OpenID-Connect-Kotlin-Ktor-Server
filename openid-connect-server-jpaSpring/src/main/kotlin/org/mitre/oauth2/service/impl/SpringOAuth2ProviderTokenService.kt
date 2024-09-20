@@ -401,7 +401,7 @@ class SpringOAuth2ProviderTokenService : OAuth2TokenEntityService {
      * Get a refresh token by its token value.
      */
     @Throws(AuthenticationException::class)
-    override fun getRefreshToken(refreshTokenValue: String): OAuth2RefreshTokenEntity? {
+    override fun getRefreshToken(refreshTokenValue: String): OAuth2RefreshTokenEntity {
         val refreshToken = tokenRepository.getRefreshTokenByValue(refreshTokenValue)
             ?: throw InvalidTokenException("Refresh token for value $refreshTokenValue was not found")
         return refreshToken

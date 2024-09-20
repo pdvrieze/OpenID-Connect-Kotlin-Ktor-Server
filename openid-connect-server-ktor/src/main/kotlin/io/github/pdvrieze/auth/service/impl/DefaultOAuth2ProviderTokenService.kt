@@ -375,7 +375,7 @@ class DefaultOAuth2ProviderTokenService(
     /**
      * Get a refresh token by its token value.
      */
-    override fun getRefreshToken(refreshTokenValue: String): OAuth2RefreshTokenEntity? {
+    override fun getRefreshToken(refreshTokenValue: String): OAuth2RefreshTokenEntity {
         val refreshToken = tokenRepository.getRefreshTokenByValue(refreshTokenValue)
             ?: throw InvalidTokenException("Refresh token for value $refreshTokenValue was not found")
         return refreshToken

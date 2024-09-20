@@ -56,7 +56,7 @@ class OAuthConfirmationController: KtorEndpoint {
     private fun Route.confirmAccess() {
         authenticate {
             get("/oauth/confirm_access") {
-                val authentication = resolveAuthenticatedUser() ?: return@get
+                val authentication = resolveAuthenticatedUser() ?: return@get call.respond(HttpStatusCode.Unauthorized)
 
                 if(!AuthenticationUtilities.hasRole(authentication, "ROLE_USER")) {
                     return@get call.respond(HttpStatusCode.Forbidden)
