@@ -5,7 +5,7 @@ import kotlinx.html.*
 import org.mitre.oauth2.web.AuthenticationUtilities
 
 @HtmlTagMarker
-fun FlowContent.topBar(context: WebContext, pageName: String?) {
+fun FlowContent.topBar(context: WebContext, pageName: String? = null) {
     val userInfo = context.userInfo
     val shortName = userInfo?.preferredUsername
         ?: userInfo?.subject

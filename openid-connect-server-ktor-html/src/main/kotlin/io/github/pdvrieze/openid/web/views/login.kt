@@ -28,7 +28,7 @@ fun <T, C : TagConsumer<T>> C.login(
             div {
                 id = "wrap"
 
-                topBar(context, "Login")
+                topBar(context)
                 div("container-fluid main") {
                     with(context.intl) {
 

@@ -24,7 +24,7 @@ fun <T, C : TagConsumer<T>> C.logoutConfirmation(
     val _csrf = context.csrf
 
     return formattedPage(context, title ) {
-        topBar(context, "LogoutConfirmation")
+        topBar(context, )
         div("container main") {
             with(context.intl) {
                 div(classes="well") {

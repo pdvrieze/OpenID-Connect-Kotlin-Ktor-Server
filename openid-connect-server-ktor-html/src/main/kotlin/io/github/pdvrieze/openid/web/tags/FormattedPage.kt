@@ -13,7 +13,7 @@ import kotlinx.html.lang
 
 @HtmlTagMarker
 @PublishedApi
-internal inline fun <T, C : TagConsumer<T>> C.formattedPage(context: WebContext, title: String, extraJs: String? = null, crossinline content: DIV.(WebContext) -> Unit): T {
+internal inline fun <T, C : TagConsumer<T>> C.formattedPage(context: WebContext, title: String, js: Boolean = false, extraJs: String? = null, crossinline content: DIV.(WebContext) -> Unit): T {
     return html {
         lang = context.lang
         head {
@@ -27,7 +27,7 @@ internal inline fun <T, C : TagConsumer<T>> C.formattedPage(context: WebContext,
 
                 div { id="push" }
             }
-            footer(context, extraJs = extraJs)
+            footer(context, js = js, extraJs = extraJs)
         }
     }
 }
