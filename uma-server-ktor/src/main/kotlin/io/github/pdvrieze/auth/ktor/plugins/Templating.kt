@@ -5,8 +5,20 @@ import io.ktor.server.application.*
 import io.ktor.server.html.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.css.*
-import kotlinx.html.*
+import kotlinx.css.Color
+import kotlinx.css.CssBuilder
+import kotlinx.css.Margin
+import kotlinx.css.backgroundColor
+import kotlinx.css.body
+import kotlinx.css.color
+import kotlinx.css.margin
+import kotlinx.css.px
+import kotlinx.html.body
+import kotlinx.html.h1
+import kotlinx.html.head
+import kotlinx.html.li
+import kotlinx.html.link
+import kotlinx.html.ul
 
 fun Application.configureTemplating() {
     routing {
@@ -27,7 +39,7 @@ fun Application.configureTemplating() {
                 body {
                     val t = this
                     backgroundColor = Color.darkBlue
-                    margin(0.px)
+                    margin = Margin(0.px)
                 }
                 rule("h1.page-title") {
                     color = Color.white
@@ -50,6 +62,6 @@ fun Application.configureTemplating() {
     }
 }
 
-suspend inline fun ApplicationCall.respondCss(builder: CSSBuilder.() -> Unit) {
-    this.respondText(CSSBuilder().apply(builder).toString(), ContentType.Text.CSS)
+suspend inline fun ApplicationCall.respondCss(builder: CssBuilder.() -> Unit) {
+    this.respondText(CssBuilder().apply(builder).toString(), ContentType.Text.CSS)
 }

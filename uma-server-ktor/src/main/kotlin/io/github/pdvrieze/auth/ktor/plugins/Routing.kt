@@ -1,21 +1,31 @@
 package io.github.pdvrieze.auth.ktor.plugins
 
-import io.ktor.resources.*
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
 import io.ktor.server.resources.*
-import io.ktor.server.resources.Resources
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.serialization.Serializable
+import org.mitre.web.util.OpenIdContext
+import org.mitre.web.util.OpenIdRouting
 
-fun Application.configureRouting() {
+fun Application.configureRouting(configuration: OpenIdContext) {
     install(Resources)
     routing {
+        staticResources("/bootstrap2", "bootstrap2")
+        staticResources("/css", "css")
+        staticResources("/images", "images")
+        staticResources("/images", "images")
+        staticResources("/js", "js")
+        staticResources("/template", "template")
+
+        val openIdRouting = OpenIdRouting(this, configuration)
+
+        with(openIdRouting) {
+
+        }
+
         get("/") {
             call.respondText("Hello World!")
         }
-        // Static plugin. Try to access `/static/index.html`
-        staticResources("/static", "static")
     }
 }

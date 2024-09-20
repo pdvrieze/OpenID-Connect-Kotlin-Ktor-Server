@@ -6,8 +6,9 @@ import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.service.UserInfoService
+import org.mitre.web.util.OpenIdContext
 
-fun Application.openIdContext(issuer: String, config: OpenIdConfig = OpenIdConfig(issuer), configure: OpenIdContext.() -> Unit = {}) {
+fun Application.openIdContext(issuer: String, config: OpenIdConfigurator = OpenIdConfigurator(issuer), configure: OpenIdContext.() -> Unit = {}) {
     OpenIdContextImpl(this, config).configure()
 }
 
@@ -43,12 +44,12 @@ private class OpenIdContextImpl(
 
     constructor(
         application: Application,
-        config: OpenIdConfig
+        config: OpenIdConfigurator
     ): this(application, config.resolveDefault())
 
     constructor(
         application: Application,
-        r: OpenIdConfig.Resolved,
+        r: OpenIdContext,
     ) : this(
         application,
         config = r.config,

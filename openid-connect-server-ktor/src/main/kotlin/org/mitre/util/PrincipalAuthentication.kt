@@ -15,12 +15,13 @@ interface PrincipalAuthentication: Authentication {
     val principal: Principal
 }
 
-class UserIdPrincipalAuthentication(override val principal: UserIdPrincipal) : PrincipalAuthentication {
+class UserIdPrincipalAuthentication(
+    override val principal: UserIdPrincipal,
+    override val authorities: Collection<GrantedAuthority> = emptyList(),
+) : PrincipalAuthentication {
     override val name: String get() = principal.name
 
     override val isAuthenticated: Boolean get() = true
-
-    override val authorities: Collection<GrantedAuthority> get() = emptyList()
 }
 
 class OAuth2PrincipalAuthentication(override val principal: OAuthAccessTokenResponse): PrincipalAuthentication {

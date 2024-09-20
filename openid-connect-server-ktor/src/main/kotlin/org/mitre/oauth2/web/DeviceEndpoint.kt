@@ -28,16 +28,17 @@ import org.mitre.oauth2.exception.DeviceCodeCreationException
 import org.mitre.oauth2.exception.InvalidClientException
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.SystemScope
-import org.mitre.oauth2.service.ClientDetailsEntityService
-import org.mitre.oauth2.service.DeviceCodeService
-import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.oauth2.token.DeviceTokenGranter
-import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.view.jsonEntityView
 import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.util.getLogger
 import org.mitre.util.toAuth
 import org.mitre.web.util.KtorEndpoint
+import org.mitre.web.util.OpenIdRouting
+import org.mitre.web.util.clientService
+import org.mitre.web.util.deviceCodeService
+import org.mitre.web.util.openIdContext
+import org.mitre.web.util.scopeService
 import java.net.URISyntaxException
 import java.util.*
 
@@ -50,11 +51,6 @@ import java.util.*
  * @author jricher
  */
 class DeviceEndpoint(
-    private val clientService: ClientDetailsEntityService,
-    private val scopeService: SystemScopeService,
-    private val config: ConfigurationPropertiesBean,
-    private val deviceCodeService: DeviceCodeService,
-    private val oAuth2RequestFactory: Nothing? = null,
 ) : KtorEndpoint {
 
     override fun Route.addRoutes() {
@@ -66,6 +62,7 @@ class DeviceEndpoint(
 
     private fun Route.requestDeviceCode() {
         post("/devicecode") {
+            val config = openIdContext.config
             require(call.request.contentType() == ContentType.Application.FormUrlEncoded) {
                 "Only Form url-encoded is supported"
             }
@@ -150,7 +147,7 @@ class DeviceEndpoint(
                     return@get call.respond(HttpStatusCode.Forbidden)
                 }
                 val userCode = call.parameters["user_code"]
-                if (!config.isAllowCompleteDeviceCodeUri || userCode == null) {
+                if (!openIdContext.config.isAllowCompleteDeviceCodeUri || userCode == null) {
                     // if we don't allow the complete URI or we didn't get a user code on the way in,
                     // print out a page that asks the user to enter their user code
                     // user must be logged in
@@ -233,7 +230,7 @@ class DeviceEndpoint(
 
     }
 
-    private fun Route.approveDevice() {
+    private fun OpenIdRouting.approveDevice() {
         authenticate {
             post("/device/approve") {
                 val userCode: String = call.request.queryParameters["user_code"]

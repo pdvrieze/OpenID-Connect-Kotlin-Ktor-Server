@@ -23,6 +23,7 @@ import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.service.UserInfoService
 import org.mitre.util.getLogger
 import org.mitre.web.util.KtorEndpoint
+import org.mitre.web.util.OpenIdRouting
 
 /**
  *
@@ -42,7 +43,7 @@ class DiscoveryEndpoint(
     private val toAlgorithmName: ((Algorithm) -> String) = { alg -> alg.name }
 
 
-    override fun Route.addRoutes() {
+    override fun OpenIdRouting.addRoutes() {
         getWebfinger()
     }
 

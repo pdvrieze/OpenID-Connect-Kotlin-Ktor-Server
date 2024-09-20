@@ -1,12 +1,12 @@
 package io.github.pdvrieze.auth.ktor.plugins
 
 import com.nimbusds.jose.jwk.JWK
-import io.github.pdvrieze.auth.uma.repository.exposed.ExposedApprovedSiteRepository
 import io.github.pdvrieze.auth.repository.exposed.ExposedAuthenticationHolderRepository
-import io.github.pdvrieze.auth.uma.repository.exposed.ExposedBlacklistedSiteRepository
 import io.github.pdvrieze.auth.repository.exposed.ExposedOauth2ClientRepository
 import io.github.pdvrieze.auth.repository.exposed.ExposedOauth2TokenRepository
 import io.github.pdvrieze.auth.repository.exposed.ExposedSystemScopeRepository
+import io.github.pdvrieze.auth.uma.repository.exposed.ExposedApprovedSiteRepository
+import io.github.pdvrieze.auth.uma.repository.exposed.ExposedBlacklistedSiteRepository
 import io.github.pdvrieze.auth.uma.repository.exposed.ExposedPairwiseIdentifierRepository
 import io.github.pdvrieze.auth.uma.repository.exposed.ExposedPermissionRepository
 import io.github.pdvrieze.auth.uma.repository.exposed.ExposedResourceSetRepository
@@ -46,8 +46,9 @@ import org.mitre.uma.repository.PermissionRepository
 import org.mitre.uma.repository.ResourceSetRepository
 import org.mitre.uma.service.ResourceSetService
 import org.mitre.uma.service.impl.DefaultResourceSetService
+import org.mitre.web.util.OpenIdContext
 
-data class OpenIdConfig(
+data class OpenIdConfigurator(
     var issuer: String,
     var database: Database = Database.connect(
         url = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1",
@@ -59,24 +60,12 @@ data class OpenIdConfig(
     private var encryptionKeySet: Map<String, JWK> = emptyMap()
     private var signingKeySet: Map<String, JWK> = emptyMap()
 
-    fun resolveDefault(): Resolved = ResolvedImpl(this)
+    fun resolveDefault(): OpenIdContext = ResolvedImpl(this)
 
-    interface Resolved {
-        val config: ConfigurationPropertiesBean
-        val scopeRepository: SystemScopeRepository
-        val scopeService: SystemScopeService
-        val signService: JWTSigningAndValidationService
-        val encryptionService: JWTEncryptionAndDecryptionService
-        val userInfoRepository: UserInfoRepository
-        val clientService: ClientDetailsEntityService
-        val pairwiseIdentifierService: PairwiseIdentifierService
-        val userService: UserInfoService
-        val clientRepository: OAuth2ClientRepository
-        val tokenRepository: OAuth2TokenRepository
-        val approvedSiteService: ApprovedSiteService
-    }
+    private class ResolvedImpl(config: OpenIdConfigurator) : OpenIdContext {
+        @Deprecated("Hopefully not needed")
+        override val database = config.database
 
-    private class ResolvedImpl(config: OpenIdConfig) : Resolved {
         override val config: ConfigurationPropertiesBean = ConfigurationPropertiesBean(config.issuer)
 
         override val scopeRepository: SystemScopeRepository = ExposedSystemScopeRepository(config.database)
