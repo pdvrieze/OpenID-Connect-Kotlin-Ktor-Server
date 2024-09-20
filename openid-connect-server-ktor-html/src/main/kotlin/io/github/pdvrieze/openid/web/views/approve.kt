@@ -1,3 +1,5 @@
+package io.github.pdvrieze.openid.web.views
+
 import io.github.pdvrieze.openid.web.WebContext
 import io.github.pdvrieze.openid.web.style.styleAttr
 import io.github.pdvrieze.openid.web.tags.a_data

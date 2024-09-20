@@ -1,5 +1,6 @@
+package io.github.pdvrieze.openid.web.views
+
 import io.github.pdvrieze.openid.web.WebContext
-import io.github.pdvrieze.openid.web.views.baseView
 import kotlinx.html.TagConsumer
 import kotlinx.html.div
 import kotlinx.html.h2

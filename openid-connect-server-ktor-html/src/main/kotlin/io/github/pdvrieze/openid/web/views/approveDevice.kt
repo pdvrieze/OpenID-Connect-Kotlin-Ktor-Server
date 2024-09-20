@@ -1,3 +1,5 @@
+package io.github.pdvrieze.openid.web.views
+
 import io.github.pdvrieze.openid.web.WebContext
 import io.github.pdvrieze.openid.web.tags.formattedPage
 import io.github.pdvrieze.openid.web.tags.topBar

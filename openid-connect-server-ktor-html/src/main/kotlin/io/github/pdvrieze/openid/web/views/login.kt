@@ -1,3 +1,5 @@
+package io.github.pdvrieze.openid.web.views
+
 import io.github.pdvrieze.openid.web.WebContext
 import io.github.pdvrieze.openid.web.tags.footer
 import io.github.pdvrieze.openid.web.tags.header
