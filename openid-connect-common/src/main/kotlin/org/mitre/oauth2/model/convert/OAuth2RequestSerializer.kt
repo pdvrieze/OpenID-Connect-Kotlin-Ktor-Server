@@ -52,8 +52,3 @@ class OAuth2Request(
         )
     }
 }
-
-
-
-typealias KXS_OAuth2Request = OAuth2Request
-

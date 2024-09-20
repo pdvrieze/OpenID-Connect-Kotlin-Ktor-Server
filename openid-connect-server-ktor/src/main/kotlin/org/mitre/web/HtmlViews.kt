@@ -79,10 +79,10 @@ suspend fun PipelineContext<Unit, ApplicationCall>.htmlAboutView() {
 suspend fun PipelineContext<Unit, ApplicationCall>.htmlApproveView(
     authRequest: OAuth2Request?,
     client: OAuthClientDetails,
-    redirectUri: URI,
+    redirectUri: String,
     scopes: Set<SystemScope>,
     claims:  Map<String?, Map<String, String>>,
-    count: Int,
+    approvedSiteCount: Int,
     contacts: String? = null,
     isGras: Boolean,
     consent: Boolean = true,
@@ -90,7 +90,7 @@ suspend fun PipelineContext<Unit, ApplicationCall>.htmlApproveView(
 ) {
     with(openIdContext.htmlViews) {
         approve(
-            authRequest, client, redirectUri, scopes, claims, count,
+            authRequest, client, redirectUri, scopes, claims, approvedSiteCount,
             contacts, isGras, consent, authenticationException
         )
     }
