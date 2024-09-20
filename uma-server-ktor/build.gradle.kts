@@ -25,6 +25,7 @@ dependencies {
     implementation(projects.openidConnectServer)
     implementation(projects.openidConnectServerExposed)
     implementation(projects.openidConnectServerKtor)
+    implementation(projects.openidConnectServerKtorHtml)
     implementation(projects.umaServer.exposed)
 
     implementation(libs.ktor.server.core)
