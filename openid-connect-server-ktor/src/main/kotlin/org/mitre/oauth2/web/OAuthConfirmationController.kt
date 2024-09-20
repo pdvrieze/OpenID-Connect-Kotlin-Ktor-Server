@@ -88,7 +88,8 @@ class OAuthConfirmationController: KtorEndpoint {
                 if (prompts.contains("none")) {
                     // if we've got a redirect URI then we'll send it
                     // TODO no longer use spring, remove cast
-                    val url = redirectResolver.resolveRedirect(authRequest.redirectUri, client)
+                    val url = authRequest.redirectUri?.let{ redirectResolver.resolveRedirect(it, client) }
+                        ?:return@get call.respond(HttpStatusCode.Forbidden)
 
                     try {
                         val uriBuilder = URLBuilder(url)

@@ -8,14 +8,13 @@ import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.convert.OAuth2Request
 import org.mitre.web.util.openIdContext
-import java.net.URI
 
 interface HtmlViews {
     suspend fun PipelineContext<*, ApplicationCall>.about()
     suspend fun PipelineContext<*, ApplicationCall>.approve(
         authRequest: OAuth2Request?,
         client: OAuthClientDetails,
-        redirectUri: URI,
+        redirectUri: String?,
         scopes: Set<SystemScope>,
         claims:  Map<String?, Map<String, String>>,
         count: Int,
@@ -79,7 +78,7 @@ suspend fun PipelineContext<Unit, ApplicationCall>.htmlAboutView() {
 suspend fun PipelineContext<Unit, ApplicationCall>.htmlApproveView(
     authRequest: OAuth2Request?,
     client: OAuthClientDetails,
-    redirectUri: String,
+    redirectUri: String?,
     scopes: Set<SystemScope>,
     claims:  Map<String?, Map<String, String>>,
     approvedSiteCount: Int,

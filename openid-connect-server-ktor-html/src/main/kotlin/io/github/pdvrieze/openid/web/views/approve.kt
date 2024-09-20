@@ -13,7 +13,6 @@ import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.OAuthClientDetails.SubjectType
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.convert.OAuth2Request
-import java.net.URI
 
 // TODO limit exception to unnapproved authentication
 /**
@@ -25,7 +24,7 @@ fun HTML.approve(
     context: WebContext,
     authRequest: OAuth2Request?,
     client: OAuthClientDetails,
-    redirectUri: URI,
+    redirectUri: String?,
     scopes: Set<SystemScope>,
     claims:  Map<String?, Map<String, String>>,
     count: Int,
@@ -130,7 +129,7 @@ fun HTML.approve(
                                     div(classes = "modal-body") {
                                         img(src = "api/clients/${client.id}/logo")
                                         if ((!clientUri.isNullOrBlank())) {
-                                            a(href = "${clientUri}") { +clientUri!! }
+                                            a(href = "${clientUri}") { +clientUri }
                                         }
                                     }
                                     div(classes = "modal-footer") {

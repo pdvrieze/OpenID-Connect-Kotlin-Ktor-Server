@@ -19,7 +19,6 @@ import org.mitre.openid.connect.model.UserInfo
 import org.mitre.web.HtmlViews
 import org.mitre.web.util.OpenIdContext
 import org.mitre.web.util.openIdContext
-import java.net.URI
 import java.util.*
 
 class DefaultHtmlViews(): HtmlViews {
@@ -37,7 +36,7 @@ class DefaultHtmlViews(): HtmlViews {
     override suspend fun PipelineContext<*, ApplicationCall>.approve(
         authRequest: OAuth2Request?,
         client: OAuthClientDetails,
-        redirectUri: URI,
+        redirectUri: String?,
         scopes: Set<SystemScope>,
         claims:  Map<String?, Map<String, String>>,
         count: Int,

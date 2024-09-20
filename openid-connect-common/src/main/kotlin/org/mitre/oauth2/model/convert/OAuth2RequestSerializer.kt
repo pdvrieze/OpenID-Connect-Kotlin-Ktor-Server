@@ -15,7 +15,7 @@ class OAuth2Request(
     val isApproved: Boolean = false,
     val scope: Set<String> = emptySet(),
     val resourceIds: Set<String>? = null,
-    val redirectUri: String/*? = null*/,
+    val redirectUri: String? = null,
     val responseTypes: Set<String>? = null,
     @SerialName("extensionStrings")
     val extensionStrings: Map<String, String>? = null,
