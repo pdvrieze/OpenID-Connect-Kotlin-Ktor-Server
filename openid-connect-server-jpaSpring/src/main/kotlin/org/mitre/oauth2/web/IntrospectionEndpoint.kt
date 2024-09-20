@@ -27,7 +27,6 @@ import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.openid.connect.model.UserInfo
 import org.mitre.openid.connect.service.UserInfoService
 import org.mitre.openid.connect.view.HttpCodeView
-import org.mitre.openid.connect.view.JsonEntityView
 import org.mitre.uma.service.ResourceSetService
 import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
@@ -63,7 +62,7 @@ class IntrospectionEndpoint {
         this.tokenServices = tokenServices
     }
 
-    @RequestMapping("/" + URL)
+    @RequestMapping("/introspect")
     fun verify(
         @RequestParam("token") tokenValue: String?,
         @RequestParam(value = "token_type_hint", required = false) tokenType: String?,
@@ -74,7 +73,7 @@ class IntrospectionEndpoint {
 
         if (auth is OAuth2Authentication) {
             // the client authenticated with OAuth, do our UMA checks
-            org.mitre.oauth2.web.AuthenticationUtilities.ensureOAuthScope(auth, SystemScopeService.UMA_PROTECTION_SCOPE)
+            AuthenticationUtilities.ensureOAuthScope(auth, SystemScopeService.UMA_PROTECTION_SCOPE)
 
             // get out the client that was issued the access token (not the token being introspected)
             val o2a = auth
