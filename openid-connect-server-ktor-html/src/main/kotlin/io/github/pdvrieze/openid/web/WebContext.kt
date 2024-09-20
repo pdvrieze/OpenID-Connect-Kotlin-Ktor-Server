@@ -16,7 +16,7 @@ interface WebContext {
 
     val csrf: ICsrf
     val userInfo: UserInfo?
-    val authentication: Authentication
+    val authentication: Authentication?
     val userAuthorities: String?
     val userInfoJson: String? get() = userInfo?.toJson()?.toString()
     val lang: String

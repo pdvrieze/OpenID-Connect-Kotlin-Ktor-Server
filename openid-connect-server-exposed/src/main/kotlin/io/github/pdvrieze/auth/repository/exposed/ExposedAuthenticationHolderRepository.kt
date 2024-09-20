@@ -153,7 +153,7 @@ private fun ResultRow.toAuthenticationHolder(): AuthenticationHolderEntity {
     val authorities = with(AuthenticationHolderAuthorities) {
         AuthenticationHolderAuthorities.select(authority)
             .where { ownerId eq authHolderId }
-            .map { GrantedAuthority(it[authority]!!) }
+            .map { GrantedAuthority(it[authority]) }
     }
 
     val resourceIds = with(AuthenticationHolderResourceIds) {

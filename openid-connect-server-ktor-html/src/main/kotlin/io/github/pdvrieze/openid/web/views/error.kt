@@ -1,7 +1,7 @@
 package io.github.pdvrieze.openid.web.views
 
 import io.github.pdvrieze.openid.web.WebContext
-import kotlinx.html.TagConsumer
+import kotlinx.html.HTML
 import kotlinx.html.b
 import kotlinx.html.blockQuote
 import kotlinx.html.div
@@ -11,26 +11,26 @@ import kotlinx.html.span
 import org.mitre.oauth2.exception.ErrorCodes
 import org.mitre.oauth2.exception.OAuth2Exception
 
-fun <T, C : TagConsumer<T>> C.error(
+fun HTML.error(
     context: WebContext,
-): T = error(context, ErrorCodes.SERVER_ERROR, "See the logs for details")
+) = error(context, ErrorCodes.SERVER_ERROR, "See the logs for details")
 
-fun <T, C : TagConsumer<T>> C.error(
+fun HTML.error(
     context: WebContext,
     error: OAuth2Exception
-): T = error(context, error.oauth2ErrorCode, error.message ?: error.javaClass.simpleName)
+) = error(context, error.oauth2ErrorCode, error.message ?: error.javaClass.simpleName)
 
-fun <T, C : TagConsumer<T>> C.error(
+fun HTML.error(
     context: WebContext,
     errorCode: ErrorCodes,
     errorMessage: String,
-): T = error(context, errorCode.code, errorMessage)
+) = error(context, errorCode.code, errorMessage)
 
-fun <T, C : TagConsumer<T>> C.error(
+fun HTML.error(
     context: WebContext,
     errorCodeString: String,
     errorMessage: String,
-): T {
+) {
 
     val title = context.intl.messageText("error.title")
     return baseView(context, title, "Error", false) {

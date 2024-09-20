@@ -71,6 +71,6 @@ class DefaultClientUserDetailsService {
     }
 
     companion object {
-        private val ROLE_CLIENT: GrantedAuthority = GrantedAuthority("ROLE_CLIENT")
+        private val ROLE_CLIENT: GrantedAuthority = GrantedAuthority.ROLE_CLIENT
     }
 }

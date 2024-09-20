@@ -5,6 +5,7 @@ import io.github.pdvrieze.auth.repository.exposed.ExposedAuthenticationHolderRep
 import io.github.pdvrieze.auth.repository.exposed.ExposedOauth2ClientRepository
 import io.github.pdvrieze.auth.repository.exposed.ExposedOauth2TokenRepository
 import io.github.pdvrieze.auth.repository.exposed.ExposedSystemScopeRepository
+import io.github.pdvrieze.auth.service.impl.BlacklistAwareRedirectResolver
 import io.github.pdvrieze.auth.service.impl.DefaultIntrospectionResultAssembler
 import io.github.pdvrieze.auth.uma.repository.exposed.ExposedApprovedSiteRepository
 import io.github.pdvrieze.auth.uma.repository.exposed.ExposedBlacklistedSiteRepository
@@ -13,12 +14,18 @@ import io.github.pdvrieze.auth.uma.repository.exposed.ExposedPermissionRepositor
 import io.github.pdvrieze.auth.uma.repository.exposed.ExposedResourceSetRepository
 import io.github.pdvrieze.auth.uma.repository.exposed.ExposedUserInfoRepository
 import io.github.pdvrieze.auth.uma.repository.exposed.ExposedWhitelistedSiteRepository
+import io.github.pdvrieze.openid.web.views.DefaultHtmlViews
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.util.*
 import org.jetbrains.exposed.sql.Database
 import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
 import org.mitre.jwt.encryption.service.impl.DefaultJWTEncryptionAndDecryptionService
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.jwt.signer.service.impl.DefaultJWTSigningAndValidationService
 import org.mitre.oauth2.TokenEnhancer
+import org.mitre.oauth2.model.Authentication
+import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2ClientRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
@@ -27,12 +34,14 @@ import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.DeviceCodeService
 import org.mitre.oauth2.service.JsonIntrospectionResultAssembler
 import org.mitre.oauth2.service.OAuth2TokenEntityService
+import org.mitre.oauth2.service.RedirectResolver
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.oauth2.service.impl.DefaultDeviceCodeService
 import org.mitre.oauth2.service.impl.DefaultOAuth2ClientDetailsEntityService
 import org.mitre.oauth2.service.impl.DefaultOAuth2ProviderTokenService
 import org.mitre.oauth2.service.impl.DefaultSystemScopeService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
+import org.mitre.openid.connect.config.JsonMessageSource
 import org.mitre.openid.connect.repository.ApprovedSiteRepository
 import org.mitre.openid.connect.repository.BlacklistedSiteRepository
 import org.mitre.openid.connect.repository.PairwiseIdentifierRepository
@@ -42,12 +51,14 @@ import org.mitre.openid.connect.service.ApprovedSiteService
 import org.mitre.openid.connect.service.BlacklistedSiteService
 import org.mitre.openid.connect.service.OIDCTokenService
 import org.mitre.openid.connect.service.PairwiseIdentifierService
+import org.mitre.openid.connect.service.ScopeClaimTranslationService
 import org.mitre.openid.connect.service.StatsService
 import org.mitre.openid.connect.service.UserInfoService
 import org.mitre.openid.connect.service.WhitelistedSiteService
 import org.mitre.openid.connect.service.impl.DefaultApprovedSiteService
 import org.mitre.openid.connect.service.impl.DefaultBlacklistedSiteService
 import org.mitre.openid.connect.service.impl.DefaultOIDCTokenService
+import org.mitre.openid.connect.service.impl.DefaultScopeClaimTranslationService
 import org.mitre.openid.connect.service.impl.DefaultUserInfoService
 import org.mitre.openid.connect.service.impl.DefaultWhitelistedSiteService
 import org.mitre.openid.connect.service.impl.UUIDPairwiseIdentiferService
@@ -56,6 +67,8 @@ import org.mitre.uma.repository.PermissionRepository
 import org.mitre.uma.repository.ResourceSetRepository
 import org.mitre.uma.service.ResourceSetService
 import org.mitre.uma.service.impl.DefaultResourceSetService
+import org.mitre.util.UserIdPrincipalAuthentication
+import org.mitre.web.HtmlViews
 import org.mitre.web.util.OpenIdContext
 
 data class OpenIdConfigurator(
@@ -96,7 +109,7 @@ data class OpenIdConfigurator(
 
         override val clientRepository: OAuth2ClientRepository = ExposedOauth2ClientRepository(configurator.database)
 
-        val authenticationHolderRepository: AuthenticationHolderRepository = ExposedAuthenticationHolderRepository(configurator.database)
+        override val authenticationHolderRepository: AuthenticationHolderRepository = ExposedAuthenticationHolderRepository(configurator.database)
 
         override val tokenRepository: OAuth2TokenRepository = ExposedOauth2TokenRepository(
             database = configurator.database,
@@ -104,26 +117,28 @@ data class OpenIdConfigurator(
             clientRepository = clientRepository
         )
 
-        val approvedSiteRepository: ApprovedSiteRepository = ExposedApprovedSiteRepository(configurator.database)
+        override val approvedSiteRepository: ApprovedSiteRepository = ExposedApprovedSiteRepository(configurator.database)
 
         override val approvedSiteService : ApprovedSiteService = DefaultApprovedSiteService(
             approvedSiteRepository = approvedSiteRepository,
             tokenRepository = tokenRepository,
         )
 
-        val statsService: StatsService = (approvedSiteService as DefaultApprovedSiteService).getStatsService()
+        override val statsService: StatsService = (approvedSiteService as DefaultApprovedSiteService).getStatsService()
 
-        val whitelistedSiteRepository: WhitelistedSiteRepository = ExposedWhitelistedSiteRepository(configurator.database)
+        override val whitelistedSiteRepository: WhitelistedSiteRepository = ExposedWhitelistedSiteRepository(configurator.database)
 
-        val whitelistedSiteService: WhitelistedSiteService = DefaultWhitelistedSiteService(whitelistedSiteRepository)
+        override val whitelistedSiteService: WhitelistedSiteService = DefaultWhitelistedSiteService(whitelistedSiteRepository)
 
-        val blacklistedSiteRepository: BlacklistedSiteRepository = ExposedBlacklistedSiteRepository(configurator.database)
+        override val blacklistedSiteRepository: BlacklistedSiteRepository = ExposedBlacklistedSiteRepository(configurator.database)
 
-        val blacklistedSiteService: BlacklistedSiteService = DefaultBlacklistedSiteService(blacklistedSiteRepository)
+        override val blacklistedSiteService: BlacklistedSiteService = DefaultBlacklistedSiteService(blacklistedSiteRepository)
 
-        val resourceSetRepository: ResourceSetRepository = ExposedResourceSetRepository(configurator.database)
+        override val redirectResolver: RedirectResolver = BlacklistAwareRedirectResolver(blacklistedSiteService, config)
 
-        val ticketRepository: PermissionRepository = ExposedPermissionRepository(configurator.database, resourceSetRepository)
+        override val resourceSetRepository: ResourceSetRepository = ExposedResourceSetRepository(configurator.database)
+
+        override val ticketRepository: PermissionRepository = ExposedPermissionRepository(configurator.database, resourceSetRepository)
 
         override val resourceSetService: ResourceSetService = DefaultResourceSetService(
             repository = resourceSetRepository,
@@ -150,9 +165,9 @@ data class OpenIdConfigurator(
             userInfoRepository, clientService, pairwiseIdentifierService
         )
 
-        val routeSetService: ResourceSetService = DefaultResourceSetService(resourceSetRepository, tokenRepository, ticketRepository)
+        override val routeSetService: ResourceSetService = DefaultResourceSetService(resourceSetRepository, tokenRepository, ticketRepository)
 
-        val clientDetailsService: ClientDetailsEntityService = DefaultOAuth2ClientDetailsEntityService(
+        override val clientDetailsService: ClientDetailsEntityService = DefaultOAuth2ClientDetailsEntityService(
             clientRepository,
             tokenRepository,
             approvedSiteService,
@@ -164,21 +179,47 @@ data class OpenIdConfigurator(
             this.config
         )
 
-        val jwtService: JWTSigningAndValidationService = DefaultJWTSigningAndValidationService(configurator.signingKeySet)
+        override val jwtService: JWTSigningAndValidationService = DefaultJWTSigningAndValidationService(configurator.signingKeySet)
 
-        val oidTokenService: OIDCTokenService = DefaultOIDCTokenService()
-
+        override val oidTokenService: OIDCTokenService = DefaultOIDCTokenService()
 
         override val deviceCodeService: DeviceCodeService = DefaultDeviceCodeService()
 
-        override val userService: UserInfoService =
-            DefaultUserInfoService(userInfoRepository, clientService, pairwiseIdentifierService)
-
-        val tokenEnhancer: TokenEnhancer  = ConnectTokenEnhancerImpl(clientDetailsService, config, jwtService, userService, oidTokenService)
+        override val tokenEnhancer: TokenEnhancer  =
+            ConnectTokenEnhancerImpl(clientDetailsService, config, jwtService, userInfoService, oidTokenService)
 
         override val tokenService: OAuth2TokenEntityService = DefaultOAuth2ProviderTokenService(
             tokenRepository, authenticationHolderRepository, clientDetailsService, tokenEnhancer, scopeService, approvedSiteService
         )
 
+        override val scopeClaimTranslationService: ScopeClaimTranslationService =
+            DefaultScopeClaimTranslationService()
+
+
+        override val htmlViews: HtmlViews = DefaultHtmlViews()
+
+        override val messageSource: JsonMessageSource = JsonMessageSource("js/locale/", config)
+
+        override fun resolveAuthenticatedUser(applicationCall: ApplicationCall): Authentication? {
+            applicationCall.attributes.getOrNull(KEY_AUTHENTICATION)?.let { return it }
+
+            val result = applicationCall.principal<UserIdPrincipal>()
+                ?.let { UserIdPrincipalAuthentication(it, resolveAuthServiceAuthorities(it.name)) }
+                ?: return null
+
+            applicationCall.attributes.put(KEY_AUTHENTICATION, result)
+
+            return result
+        }
+
+        // TODO Do something more sane
+        private fun resolveAuthServiceAuthorities(name: String): Collection<GrantedAuthority> = when(name) {
+            "admin" -> listOf(GrantedAuthority.ROLE_ADMIN, GrantedAuthority.ROLE_CLIENT)
+            else -> listOf(GrantedAuthority.ROLE_CLIENT)
+        }
+    }
+
+    companion object {
+        private val  KEY_AUTHENTICATION: AttributeKey<Authentication> = AttributeKey("authentication")
     }
 }

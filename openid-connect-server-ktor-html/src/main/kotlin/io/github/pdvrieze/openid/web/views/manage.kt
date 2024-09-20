@@ -6,7 +6,7 @@ import io.github.pdvrieze.openid.web.tags.sidebar
 import io.github.pdvrieze.openid.web.tags.topBar
 import kotlinx.html.ButtonType
 import kotlinx.html.Entities
-import kotlinx.html.TagConsumer
+import kotlinx.html.HTML
 import kotlinx.html.button
 import kotlinx.html.div
 import kotlinx.html.h3
@@ -17,7 +17,7 @@ import kotlinx.html.span
 import kotlinx.html.style
 import kotlinx.html.tabIndex
 
-fun <T, C : TagConsumer<T>> C.manage(context: WebContext): T {
+fun HTML.manage(context: WebContext) {
     val title = context.intl.messageText("manage.title")
     return formattedPage(context, title, js = true) {
         topBar(context, "Home")

@@ -4,18 +4,18 @@ import io.github.pdvrieze.openid.web.WebContext
 import io.github.pdvrieze.openid.web.tags.formattedPage
 import io.github.pdvrieze.openid.web.tags.topBar
 import kotlinx.html.FormMethod
+import kotlinx.html.HTML
 import kotlinx.html.InputType
-import kotlinx.html.TagConsumer
 import kotlinx.html.div
 import kotlinx.html.form
 import kotlinx.html.h1
 import kotlinx.html.input
 import kotlinx.html.style
 
-fun <T, C : TagConsumer<T>> C.requestUserCode(
+fun HTML.requestUserCode(
     context: WebContext,
-    error: String?
-): T {
+    error: String? = null
+) {
     val _csrf = context.csrf
     with(context.intl) {
         val title = messageText("device.request_code.title")

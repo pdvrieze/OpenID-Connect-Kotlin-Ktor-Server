@@ -5,8 +5,8 @@ import io.github.pdvrieze.openid.web.tags.formattedPage
 import io.github.pdvrieze.openid.web.tags.topBar
 import kotlinx.html.Entities
 import kotlinx.html.FormMethod
+import kotlinx.html.HTML
 import kotlinx.html.InputType
-import kotlinx.html.TagConsumer
 import kotlinx.html.div
 import kotlinx.html.form
 import kotlinx.html.h1
@@ -14,16 +14,16 @@ import kotlinx.html.input
 import kotlinx.html.style
 import org.mitre.oauth2.model.OAuthClientDetails
 
-fun <T, C : TagConsumer<T>> C.logoutConfirmation(
+fun HTML.logoutConfirmation(
     context: WebContext,
     client: OAuthClientDetails?,
-): T {
+) {
     val title = context.intl.messageText("logout.confirmation.title")
     val clientName = client?.clientName?.takeUnless { it.isBlank() }
     val clientId = client?.clientId
     val _csrf = context.csrf
 
-    return formattedPage(context, title ) {
+    formattedPage(context, title ) {
         topBar(context, )
         div("container main") {
             with(context.intl) {

@@ -15,7 +15,7 @@ import java.util.*
 @ExtendWith(MockitoExtension::class)
 class TestJsonMessageSource {
     @InjectMocks
-    private lateinit var jsonMessageSource: JsonMessageSource
+    private lateinit var jsonMessageSource: org.mitre.openid.connect.config.JsonMessageSource
 
     @Spy
     private lateinit var config: ConfigurationPropertiesBean

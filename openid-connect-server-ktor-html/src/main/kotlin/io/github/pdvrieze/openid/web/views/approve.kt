@@ -12,6 +12,7 @@ import org.mitre.oauth2.exception.OAuth2Exception
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.OAuthClientDetails.SubjectType
 import org.mitre.oauth2.model.SystemScope
+import org.mitre.oauth2.model.convert.OAuth2Request
 import java.net.URI
 
 // TODO limit exception to unnapproved authentication
@@ -20,9 +21,9 @@ import java.net.URI
  * @param isGras Is "Generally Recognised As Safe"
  * @param authenticationException An exception to display the message for
  */
-fun <T, C : TagConsumer<T>> C.approve(
+fun HTML.approve(
     context: WebContext,
-    authRequest: Nothing?,
+    authRequest: OAuth2Request?,
     client: OAuthClientDetails,
     redirectUri: URI,
     scopes: Set<SystemScope>,
@@ -32,7 +33,7 @@ fun <T, C : TagConsumer<T>> C.approve(
     isGras: Boolean,
     consent: Boolean = true,
     authenticationException: OAuth2Exception? = null,
-): T {
+) {
     val title = context.intl.messageText("approve.title")
     val pageName = "Approve"
     val clientUri = client.clientUri

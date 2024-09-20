@@ -4,4 +4,9 @@ import kotlinx.serialization.Serializable
 
 @JvmInline
 @Serializable
-value class GrantedAuthority(val authority: String)
+value class GrantedAuthority(val authority: String) {
+    companion object {
+        val ROLE_ADMIN: GrantedAuthority = GrantedAuthority("ROLE_ADMIN")
+        val ROLE_CLIENT: GrantedAuthority = GrantedAuthority("ROLE_CLIENT")
+    }
+}

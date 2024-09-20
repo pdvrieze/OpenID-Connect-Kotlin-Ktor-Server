@@ -1,7 +1,7 @@
 package io.github.pdvrieze.openid.web.views
 
 import io.github.pdvrieze.openid.web.WebContext
-import kotlinx.html.TagConsumer
+import kotlinx.html.HTML
 import kotlinx.html.div
 import kotlinx.html.h2
 import kotlinx.html.p
@@ -9,10 +9,10 @@ import kotlinx.html.p
 
 //comment("TODO: highlight proper section of topbar; what is the right way to do this?")
 
-fun <T, C : TagConsumer<T>> C.stats(
+fun HTML.stats(
     context: WebContext,
     statsSummary: Map<String, String>
-): T {
+) {
     with(context.intl) {
         val title = messageText("statistics.title")
         return baseView(context, title, "Statistics", true) {

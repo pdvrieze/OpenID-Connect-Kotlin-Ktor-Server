@@ -2,7 +2,7 @@ package io.github.pdvrieze.openid.web.views
 
 import io.github.pdvrieze.openid.web.WebContext
 import kotlinx.html.Entities
-import kotlinx.html.TagConsumer
+import kotlinx.html.HTML
 import kotlinx.html.a
 import kotlinx.html.div
 import kotlinx.html.h1
@@ -12,7 +12,7 @@ import kotlinx.html.id
 import kotlinx.html.img
 import kotlinx.html.p
 
-fun <T, C : TagConsumer<T>> C.home(context: WebContext): T {
+fun HTML.home(context: WebContext) {
     val title = context.intl.messageText("home.title")
     return baseView(context, title, "Home", true, extraJs = EXTRA_JS) {
         with(context.intl) {

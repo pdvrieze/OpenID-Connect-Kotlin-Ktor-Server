@@ -10,17 +10,16 @@ import org.mitre.oauth2.model.OAuthClientDetails.SubjectType
 import org.mitre.oauth2.model.SystemScope
 
 
-fun <T, C : TagConsumer<T>> C.approveDevice(
+fun HTML.approveDevice(
     context: WebContext,
     client: OAuthClientDetails,
     scopes: Set<SystemScope>,
     claims:  Map<String?, Map<String, String>>,
-    isApproved: Boolean,
     exception: OAuth2Exception?,
     count:Int = 0,
-    gras: Boolean = false,
+    isGras: Boolean = false,
     contacts: String? = null,
-): T {
+) {
     val title = context.intl.messageText("approve.title")
     val clientId = client.clientId
     val clientName = client.clientName?.takeUnless { it.isBlank() }
@@ -67,7 +66,7 @@ fun <T, C : TagConsumer<T>> C.approveDevice(
                                 style="text-align: left"
                                 if (client.isDynamicallyRegistered) {
                                     when {
-                                        gras  -> {
+                                        isGras -> {
                                             comment("client is \"generally recognized as safe, display a more muted block")
                                             div {
                                                 p(classes = "alert alert-info") {

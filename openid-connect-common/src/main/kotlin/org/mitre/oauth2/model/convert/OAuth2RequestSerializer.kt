@@ -15,7 +15,7 @@ class OAuth2Request(
     val isApproved: Boolean = false,
     val scope: Set<String> = emptySet(),
     val resourceIds: Set<String>? = null,
-    val redirectUri: String? = null,
+    val redirectUri: String/*? = null*/,
     val responseTypes: Set<String>? = null,
     @SerialName("extensionStrings")
     val extensionStrings: Map<String, String>? = null,
@@ -24,6 +24,8 @@ class OAuth2Request(
     val denied: Boolean get() = ! isApproved
     val extensions: Map<String, String> get() = extensionStrings ?: emptyMap()
 
+    val state by extensions
+
     fun copy(
         requestParameters: Map<String, String> = this.requestParameters,
         clientId: String = this.clientId,
@@ -31,7 +33,7 @@ class OAuth2Request(
         isApproved: Boolean = this.isApproved,
         scope: Set<String> = emptySet(),
         resourceIds: Set<String>? = null,
-        redirectUri: String? = null,
+        redirectUri: String/*? = null*/,
         responseTypes: Set<String>? = null,
         extensionStrings: Map<String, String>? = null,
         approvalParameters: JsonElement? = null,
