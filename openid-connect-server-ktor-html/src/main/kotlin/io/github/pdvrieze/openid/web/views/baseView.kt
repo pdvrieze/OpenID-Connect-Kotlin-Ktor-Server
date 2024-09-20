@@ -8,8 +8,8 @@ import kotlinx.html.DIV
 import kotlinx.html.TagConsumer
 import kotlinx.html.div
 
-inline fun <T, C : TagConsumer<T>> C.baseView(context: WebContext, title: String, pageName: String, hasSideBar: Boolean = false, extraJs: String? = null, crossinline content: DIV.(WebContext) -> Unit): T {
-    return formattedPage(context, title, extraJs) {
+inline fun <T, C : TagConsumer<T>> C.baseView(context: WebContext, title: String, pageName: String?, hasSideBar: Boolean = false, extraJs: String? = null, crossinline content: DIV.(WebContext) -> Unit): T {
+    return formattedPage(context, title, extraJs = extraJs) {
         topBar(context, pageName)
         div("container-fluid main") {
             div("row-fluid") {
