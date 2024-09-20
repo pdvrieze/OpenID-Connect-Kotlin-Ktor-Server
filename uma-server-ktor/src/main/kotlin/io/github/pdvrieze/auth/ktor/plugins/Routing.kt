@@ -6,7 +6,6 @@ import io.ktor.server.resources.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.mitre.web.util.OpenIdContext
-import org.mitre.web.util.OpenIdRouting
 
 fun Application.configureRouting(configuration: OpenIdContext) {
     install(Resources)
@@ -18,11 +17,6 @@ fun Application.configureRouting(configuration: OpenIdContext) {
         staticResources("/js", "js")
         staticResources("/template", "template")
 
-        val openIdRouting = OpenIdRouting(this, configuration)
-
-        with(openIdRouting) {
-
-        }
 
         get("/") {
             call.respondText("Hello World!")

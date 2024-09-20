@@ -15,47 +15,58 @@
  */
 package io.github.pdvrieze.auth.service.impl
 
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.addAll
+import kotlinx.serialization.json.addJsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.service.IntrospectionResultAssembler
+import org.mitre.oauth2.service.JsonIntrospectionResultAssembler
 import org.mitre.openid.connect.model.UserInfo
 import org.mitre.util.getLogger
 import java.text.ParseException
+import java.time.Instant
 
 /**
  * Default implementation of the [IntrospectionResultAssembler] interface.
  */
-class DefaultIntrospectionResultAssembler : IntrospectionResultAssembler {
+class DefaultIntrospectionResultAssembler : JsonIntrospectionResultAssembler {
     override fun assembleFrom(
         accessToken: OAuth2AccessTokenEntity,
         userInfo: UserInfo?,
         authScopes: Set<String>
-    ): Map<String, Any> {
-        val result: MutableMap<String, Any> = mutableMapOf()
-        val authentication = accessToken.authenticationHolder.authentication
+    ): JsonObject {
+        val result = buildJsonObject {
+            val result = this
+            val authentication = accessToken.authenticationHolder.authentication
 
-        result[IntrospectionResultAssembler.ACTIVE] = true
+
+        put(IntrospectionResultAssembler.ACTIVE, true)
 
         val accessPermissions = accessToken.permissions
         if (!accessPermissions.isNullOrEmpty()) {
-            result["permissions"] = accessPermissions.mapTo(HashSet<Map<String, Any>>()) { perm ->
-                hashMapOf(
-                    "resource_set_id" to perm.resourceSet!!.id.toString(),
-                    "scopes" to (perm.scopes?.toHashSet() ?: emptySet()),
-                )
+            putJsonArray("permissions") {
+                for (perm in accessPermissions) {
+                    addJsonObject {
+                        put("resource_set_id", perm.resourceSet.id.toString())
+                        putJsonArray("scopes") { addAll(perm.scopes) }
+                    }
+                }
             }
         } else {
-            val scopes = accessToken.scope?.let { authScopes.intersect(it) } ?: emptySet()
+            val scopes = authScopes.intersect(accessToken.scope)
 
-            result[IntrospectionResultAssembler.SCOPE] = scopes.joinToString(IntrospectionResultAssembler.SCOPE_SEPARATOR)
+            put(IntrospectionResultAssembler.SCOPE, scopes.joinToString(IntrospectionResultAssembler.SCOPE_SEPARATOR))
         }
 
-        val expiration = accessToken.expiration
-        if (expiration != null) {
+        val expiration = accessToken.expirationInstant
+        if (expiration > Instant.MIN) {
             try {
-                result[IntrospectionResultAssembler.EXPIRES_AT] =
-                    IntrospectionResultAssembler.dateFormat.valueToString(expiration)
-                result[IntrospectionResultAssembler.EXP] = expiration.time / 1000L
+                put(IntrospectionResultAssembler.EXPIRES_AT, IntrospectionResultAssembler.dateFormat.valueToString(expiration))
+                put(IntrospectionResultAssembler.EXP, expiration.epochSecond)
             } catch (e: ParseException) {
                 logger.error("Parse exception in token introspection", e)
             }
@@ -63,19 +74,20 @@ class DefaultIntrospectionResultAssembler : IntrospectionResultAssembler {
 
         if (userInfo != null) {
             // if we have a UserInfo, use that for the subject
-            result[IntrospectionResultAssembler.SUB] = userInfo.subject!!
+            put(IntrospectionResultAssembler.SUB, userInfo.subject)
         } else {
             // otherwise, use the authentication's username
-            result[IntrospectionResultAssembler.SUB] = authentication.name
+            put(IntrospectionResultAssembler.SUB, authentication.name)
         }
 
         authentication.userAuthentication?.let {
-            result[IntrospectionResultAssembler.USER_ID] = it.name
+            put(IntrospectionResultAssembler.USER_ID, it.name)
         }
 
-        result[IntrospectionResultAssembler.CLIENT_ID] = authentication.oAuth2Request.clientId
+        put(IntrospectionResultAssembler.CLIENT_ID, authentication.oAuth2Request.clientId)
 
-        result[IntrospectionResultAssembler.TOKEN_TYPE] = accessToken.tokenType
+        put(IntrospectionResultAssembler.TOKEN_TYPE, accessToken.tokenType)
+        }
 
         return result
     }
@@ -84,43 +96,41 @@ class DefaultIntrospectionResultAssembler : IntrospectionResultAssembler {
         refreshToken: OAuth2RefreshTokenEntity,
         userInfo: UserInfo?,
         authScopes: Set<String>
-    ): Map<String, Any> {
-        val result: MutableMap<String, Any> = mutableMapOf()
-        val authentication = refreshToken.authenticationHolder!!.authentication
+    ): JsonObject {
+        val result = buildJsonObject {
+            val authentication = refreshToken.authenticationHolder.authentication
 
-        result[IntrospectionResultAssembler.ACTIVE] = true
+            put(IntrospectionResultAssembler.ACTIVE, true)
 
-        val scopes: Set<String> = authScopes.intersect(authentication.oAuth2Request.scope)
+            val scopes: Set<String> = authScopes.intersect(authentication.oAuth2Request.scope)
 
-        result[IntrospectionResultAssembler.SCOPE] =
-            scopes.joinToString(IntrospectionResultAssembler.SCOPE_SEPARATOR)
+            put(IntrospectionResultAssembler.SCOPE, scopes.joinToString(IntrospectionResultAssembler.SCOPE_SEPARATOR))
 
-        val expiration = refreshToken.expiration
-        if (expiration != null) {
-            try {
-                result[IntrospectionResultAssembler.EXPIRES_AT] =
-                    IntrospectionResultAssembler.dateFormat.valueToString(expiration)
-                result[IntrospectionResultAssembler.EXP] = expiration.time / 1000L
-            } catch (e: ParseException) {
-                logger.error("Parse exception in token introspection", e)
+            val expiration = refreshToken.expirationInstant
+            if (expiration> Instant.MIN) {
+                try {
+                    put(IntrospectionResultAssembler.EXPIRES_AT, IntrospectionResultAssembler.dateFormat.valueToString(expiration))
+                    put(IntrospectionResultAssembler.EXP, expiration.epochSecond)
+                } catch (e: ParseException) {
+                    logger.error("Parse exception in token introspection", e)
+                }
             }
+
+
+            if (userInfo != null) {
+                // if we have a UserInfo, use that for the subject
+                put(IntrospectionResultAssembler.SUB, userInfo.subject)
+            } else {
+                // otherwise, use the authentication's username
+                put(IntrospectionResultAssembler.SUB, authentication.name)
+            }
+
+            authentication.userAuthentication?.let {
+                put(IntrospectionResultAssembler.USER_ID, it.name)
+            }
+
+            put(IntrospectionResultAssembler.CLIENT_ID, authentication.oAuth2Request.clientId)
         }
-
-
-        if (userInfo != null) {
-            // if we have a UserInfo, use that for the subject
-            result[IntrospectionResultAssembler.SUB] = userInfo.subject!!
-        } else {
-            // otherwise, use the authentication's username
-            result[IntrospectionResultAssembler.SUB] = authentication.name
-        }
-
-        authentication.userAuthentication?.let {
-            result[IntrospectionResultAssembler.USER_ID] = it.name
-        }
-
-        result[IntrospectionResultAssembler.CLIENT_ID] = authentication.oAuth2Request.clientId
-
         return result
     }
 
