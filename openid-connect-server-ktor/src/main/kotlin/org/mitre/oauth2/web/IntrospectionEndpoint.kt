@@ -24,17 +24,15 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
 import org.mitre.oauth2.exception.InvalidTokenException
-import org.mitre.oauth2.model.Authentication
-import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2Authentication
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.service.JsonIntrospectionResultAssembler
 import org.mitre.oauth2.service.SystemScopeService
+import org.mitre.oauth2.view.respondJson
 import org.mitre.openid.connect.model.UserInfo
 import org.mitre.openid.connect.view.jsonEntityView
-import org.mitre.util.UserIdPrincipalAuthentication
 import org.mitre.util.getLogger
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.OpenIdContextPlugin
@@ -154,11 +152,9 @@ class IntrospectionEndpoint: KtorEndpoint {
 
         // if it's a valid token, we'll print out information on it
         if (accessToken != null) {
-            val entity = introspectionResultAssembler.assembleFrom(accessToken, user, authScopes)
-            return jsonEntityView(entity)
+            return call.respondJson(introspectionResultAssembler.assembleFrom(accessToken, user, authScopes))
         } else if (refreshToken != null) {
-            val entity = introspectionResultAssembler.assembleFrom(refreshToken, user, authScopes)
-            return jsonEntityView(entity)
+            return call.respondJson(introspectionResultAssembler.assembleFrom(refreshToken, user, authScopes))
         }
 
         logger.error("Verify failed; Invalid access/refresh token")

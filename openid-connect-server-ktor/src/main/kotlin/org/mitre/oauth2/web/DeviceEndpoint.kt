@@ -22,6 +22,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import org.mitre.oauth2.exception.DeviceCodeCreationException
@@ -30,10 +31,9 @@ import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.token.DeviceTokenGranter
-import org.mitre.openid.connect.view.jsonEntityView
+import org.mitre.oauth2.view.respondJson
 import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.util.getLogger
-import org.mitre.util.toAuth
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.OpenIdRouting
 import org.mitre.web.util.clientService
@@ -80,7 +80,7 @@ class DeviceEndpoint(
                 }
 
                 // make sure this client can do the device flow
-                val authorizedGrantTypes= client.authorizedGrantTypes
+                val authorizedGrantTypes = client.authorizedGrantTypes
                 if (authorizedGrantTypes.isNotEmpty()
                     && DeviceTokenGranter.GRANT_TYPE !in authorizedGrantTypes
                 ) {
@@ -107,7 +107,8 @@ class DeviceEndpoint(
             // if we got here the request is legit
             try {
                 // TODO this looks bonkers and is a big security gap
-                val requestParamMap: Map<String, String> = parameters.entries().associate { it.key to it.value.joinToString(" ") }
+                val requestParamMap: Map<String, String> =
+                    parameters.entries().associate { it.key to it.value.joinToString(" ") }
                 val dc = deviceCodeService.createNewDeviceCode(requestedScopes, client, requestParamMap)
 
                 val response = buildJsonObject {
@@ -129,7 +130,7 @@ class DeviceEndpoint(
                     }
                 }
 
-                jsonEntityView(response)
+                call.respondJson(response)
             } catch (dcce: DeviceCodeCreationException) {
                 return@post jsonErrorView(dcce.error, dcce.message, code = HttpStatusCode.BadRequest)
             } catch (use: URISyntaxException) {

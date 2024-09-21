@@ -26,8 +26,8 @@ import io.ktor.util.pipeline.*
 import kotlinx.serialization.json.encodeToJsonElement
 import org.mitre.oauth2.exception.OAuthErrorCodes.*
 import org.mitre.oauth2.model.GrantedAuthority
+import org.mitre.oauth2.view.respondJson
 import org.mitre.oauth2.view.tokenApiView
-import org.mitre.openid.connect.view.jsonEntityView
 import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.util.getLogger
 import org.mitre.web.util.KtorEndpoint
@@ -66,8 +66,7 @@ class TokenAPI : KtorEndpoint {
     suspend fun PipelineContext<Unit, ApplicationCall>.getAllAccessTokens() {
         val p = requireRole(GrantedAuthority.ROLE_USER) { return }
 
-        val allTokens = tokenService.getAllAccessTokensForUser(p.name)
-        return jsonEntityView(json.encodeToJsonElement(allTokens))
+        return call.respondJson(tokenService.getAllAccessTokensForUser(p.name))
     }
 
     //    @RequestMapping(value = ["/access/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -129,7 +128,7 @@ class TokenAPI : KtorEndpoint {
         val token = tokenService.getRegistrationAccessTokenForClient(client)
             ?: return jsonErrorView(INVALID_REQUEST, HttpStatusCode.NotFound, "No registration token could be found.")
 
-        return jsonEntityView(json.encodeToJsonElement(token))
+        return call.respondJson(token)
     }
 
     //    @PreAuthorize("hasRole('ROLE_ADMIN')")

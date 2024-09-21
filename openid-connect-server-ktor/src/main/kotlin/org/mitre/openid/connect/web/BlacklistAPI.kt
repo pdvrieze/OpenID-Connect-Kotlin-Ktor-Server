@@ -26,12 +26,12 @@ import io.ktor.util.pipeline.*
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
-import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
-import org.mitre.oauth2.exception.OAuthErrorCodes.*
+import org.mitre.oauth2.exception.OAuthErrorCodes.INVALID_REQUEST
+import org.mitre.oauth2.exception.OAuthErrorCodes.SERVER_ERROR
 import org.mitre.oauth2.model.GrantedAuthority
+import org.mitre.oauth2.view.respondJson
 import org.mitre.openid.connect.model.BlacklistedSite
-import org.mitre.openid.connect.view.jsonEntityView
 import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.util.getLogger
 import org.mitre.web.util.KtorEndpoint
@@ -63,7 +63,7 @@ class BlacklistAPI : KtorEndpoint {
     private suspend fun PipelineContext<Unit, ApplicationCall>.getAllBlacklistedSites() {
         val p = requireRole(GrantedAuthority.ROLE_ADMIN) { return }
 
-        return jsonEntityView(json.encodeToJsonElement(blacklistedSiteService.all))
+        return call.respondJson(blacklistedSiteService.all)
     }
 
     /**
@@ -76,7 +76,7 @@ class BlacklistAPI : KtorEndpoint {
         try {
             val blacklist = Json.decodeFromString<BlacklistedSite>(call.receiveText())
             val newBlacklist = blacklistedSiteService.saveNew(blacklist)
-            return jsonEntityView(json.encodeToJsonElement(newBlacklist))
+            return call.respondJson(newBlacklist)
 
         } catch (e: SerializationException) {
             logger.error("addNewBlacklistedSite failed due to SerializationException: ", e)
@@ -101,19 +101,20 @@ class BlacklistAPI : KtorEndpoint {
         val p = requireRole(GrantedAuthority.ROLE_ADMIN) { return }
         val id = call.parameters["id"]!!.toLong()
 
-
         val blacklist: BlacklistedSite
 
         try {
             blacklist = Json.decodeFromJsonElement(Json.parseToJsonElement(call.receiveText()).jsonObject)
         } catch (e: SerializationException) {
             logger.error("updateBlacklistedSite failed due to SerializationException", e)
-            return jsonErrorView(INVALID_REQUEST,
+            return jsonErrorView(
+                INVALID_REQUEST,
                 "Could not update blacklisted site. The server encountered a JSON syntax exception. Contact a system administrator for assistance."
             )
         } catch (e: IllegalStateException) {
             logger.error("updateBlacklistedSite failed due to IllegalStateException", e)
-            return jsonErrorView(SERVER_ERROR, HttpStatusCode.BadRequest,
+            return jsonErrorView(
+                SERVER_ERROR, HttpStatusCode.BadRequest,
                 "Could not update blacklisted site. The server encountered an IllegalStateException. Refresh and try again - if the problem persists, contact a system administrator for assistance."
             )
         }
@@ -129,7 +130,7 @@ class BlacklistAPI : KtorEndpoint {
         }
 
         val newBlacklist = blacklistService.update(oldBlacklist, blacklist)
-        return jsonEntityView(this@BlacklistAPI.json.encodeToJsonElement(newBlacklist))
+        return call.respondJson(newBlacklist)
     }
 
     /**
@@ -166,15 +167,12 @@ class BlacklistAPI : KtorEndpoint {
             return jsonErrorView(INVALID_REQUEST, "Could not get blacklist. The requested blacklist with id $id could not be found.")
         }
 
-        return jsonEntityView(json.encodeToJsonElement(blacklist))
+        return call.respondJson(blacklist)
     }
 
     companion object {
         const val URL: String = "api/blacklist"
 
-        /**
-         * Logger for this class
-         */
         private val logger = getLogger<BlacklistAPI>()
     }
 }

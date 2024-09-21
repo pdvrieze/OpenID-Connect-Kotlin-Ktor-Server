@@ -6,12 +6,18 @@ import io.ktor.server.response.*
 import io.ktor.util.pipeline.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.serializer
 
 suspend inline fun <reified T> PipelineContext<Unit, ApplicationCall>.tokenApiView(
     jsonEntity: T,
     code:HttpStatusCode = HttpStatusCode.OK,
 ) = call.respondJson(serializer<T>(), jsonEntity, code)
+
+suspend fun ApplicationCall.respondJson(
+    jsonEntity: JsonElement,
+    code:HttpStatusCode = HttpStatusCode.OK,
+) = respondText(jsonEntity.toString(), ContentType.Application.Json, code)
 
 suspend inline fun <reified T> ApplicationCall.respondJson(
     jsonEntity: T,

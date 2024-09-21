@@ -24,12 +24,10 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.encodeToJsonElement
 import org.mitre.oauth2.exception.OAuthErrorCodes
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.SystemScope
-import org.mitre.openid.connect.view.jsonEntityView
+import org.mitre.oauth2.view.respondJson
 import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.openid.connect.web.RootController
 import org.mitre.util.getLogger
@@ -62,7 +60,7 @@ class ScopeAPI : KtorEndpoint {
     suspend fun PipelineContext<Unit, ApplicationCall>.getAll() {
         requireRole(GrantedAuthority.ROLE_CLIENT) { return@getAll }
 
-        return jsonEntityView(json.encodeToJsonElement(scopeService.all))
+        return call.respondJson(scopeService.all)
     }
 
     //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -73,7 +71,7 @@ class ScopeAPI : KtorEndpoint {
         val scope = scopeService.getById(id)
 
         if (scope != null) {
-            return jsonEntityView(json.encodeToJsonElement(scope))
+            return call.respondJson(scope)
         } else {
             logger.error("getScope failed; scope not found: $id", )
             return jsonErrorView(OAuthErrorCodes.INVALID_SCOPE, errorMessage = "The requested scope with id $id could not be found.")
@@ -102,7 +100,7 @@ class ScopeAPI : KtorEndpoint {
             }
             existing.id == scope.id -> {
                 // sanity check
-                return jsonEntityView(json.encodeToJsonElement(scopeService.save(scope)))
+                return call.respondJson(scopeService.save(scope))
             }
             else -> {
                 logger.error("updateScope failed; scope ids to not match: got ${existing.id} and ${scope.id}")
@@ -138,7 +136,7 @@ class ScopeAPI : KtorEndpoint {
         val savedScope = scopeService.save(inputScope)
 
         if (savedScope?.id != null) {
-            return jsonEntityView(json.encodeToJsonElement(savedScope))
+            return call.respondJson(savedScope)
         } else {
             logger.error("createScope failed; JSON was invalid: $json")
             return jsonErrorView(
