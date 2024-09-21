@@ -25,18 +25,16 @@ import com.nimbusds.jose.util.JSONObjectUtils
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.server.routing.contentType
 import io.ktor.util.pipeline.*
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
-import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
 import org.mitre.jwt.assertion.AssertionValidator
-import org.mitre.oauth2.exception.OAuthErrorCodes
+import org.mitre.oauth2.exception.OAuthErrorCodes.*
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.ClientDetailsEntity.*
 import org.mitre.oauth2.model.GrantedAuthority
@@ -79,10 +77,8 @@ import org.mitre.oauth2.model.RegisteredClientFields.TOS_URI
 import org.mitre.oauth2.model.RegisteredClientFields.USERINFO_ENCRYPTED_RESPONSE_ALG
 import org.mitre.oauth2.model.RegisteredClientFields.USERINFO_ENCRYPTED_RESPONSE_ENC
 import org.mitre.oauth2.model.RegisteredClientFields.USERINFO_SIGNED_RESPONSE_ALG
-import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.exception.ValidationException
 import org.mitre.openid.connect.service.ClientLogoLoadingService
-import org.mitre.openid.connect.service.MITREidDataService
 import org.mitre.openid.connect.view.clientEntityViewForAdmins
 import org.mitre.openid.connect.view.clientEntityViewForUsers
 import org.mitre.openid.connect.view.jsonErrorView
@@ -100,12 +96,18 @@ import java.text.ParseException
 //@Controller
 //@RequestMapping("/api/clients")
 //@PreAuthorize("hasRole('ROLE_USER')")
-class ClientAPI: KtorEndpoint {
+class ClientAPI(
+    val assertionValidator: AssertionValidator,
+    val clientLogoLoadingService: ClientLogoLoadingService,
+): KtorEndpoint {
 
     override fun Route.addRoutes() {
         authenticate {
             route("/api/clients") {
-                get() { apiGetAllClients() }
+                get { apiGetAllClients() }
+                post { apiAddClient() }
+                put("/{id}") { apiUpdateClient() }
+                get("/{id}") { apiShowClient()}
             }
         }
     }
@@ -117,7 +119,7 @@ class ClientAPI: KtorEndpoint {
     /**
      * Get a list of all clients
      */
-    @RequestMapping(method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
+//    @RequestMapping(method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun PipelineContext<Unit, ApplicationCall>.apiGetAllClients() {
         val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
         val clients = clientService.allClients
@@ -134,28 +136,30 @@ class ClientAPI: KtorEndpoint {
      */
 //    @PreAuthorize("hasRole('ROLE_ADMIN')")
 //    @RequestMapping(method = [RequestMethod.POST], consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.apiAddClient(@RequestBody jsonString: String, m: Model, auth: Authentication) {
+    suspend fun PipelineContext<Unit, ApplicationCall>.apiAddClient() {
         val auth = requireRole(GrantedAuthority.ROLE_ADMIN) { return }
-        val json: JsonObject = MITREidDataService.json.parseToJsonElement(jsonString).jsonObject
         val clientBuilder: OAuthClientDetails.Builder
 
+        val rawJson: JsonObject
+
         try {
-            clientBuilder = MITREidDataService.json.decodeFromJsonElement<ClientDetailsEntity>(json).builder()
+            rawJson = json.parseToJsonElement(call.receiveText()).jsonObject
+            clientBuilder = json.decodeFromJsonElement<ClientDetailsEntity>(rawJson).builder()
         } catch (e: SerializationException) {
             logger.error("apiAddClient failed due to SerializationException", e)
-            m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
-            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "Could not save new client. The server encountered a JSON syntax exception. Contact a system administrator for assistance.")
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            return jsonErrorView(INVALID_REQUEST, "Could not save new client. The server encountered a JSON syntax exception. Contact a system administrator for assistance.")
         } catch (e: IllegalStateException) {
             logger.error("apiAddClient failed due to IllegalStateException", e)
-            m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
-            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "Could not save new client. The server encountered an IllegalStateException. Refresh and try again - if the problem persists, contact a system administrator for assistance.")
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            return jsonErrorView(
+                SERVER_ERROR, HttpStatusCode.BadRequest,
+                "Could not save new client. The server encountered an IllegalStateException. Refresh and try again - if the problem persists, contact a system administrator for assistance."
+            )
         } catch (e: ValidationException) {
             logger.error("apiUpdateClient failed due to ValidationException", e)
-            m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
-            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "Could not update client. The server encountered a ValidationException.")
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            return jsonErrorView(
+                INVALID_REQUEST,
+                "Could not update client. The server encountered a ValidationException."
+            )
         }
 
         // if they leave the client identifier empty, force it to be generated
@@ -168,7 +172,7 @@ class ClientAPI: KtorEndpoint {
         } else if (clientBuilder.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_BASIC || clientBuilder.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_POST || clientBuilder.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_JWT) {
             // if they've asked for us to generate a client secret (or they left it blank but require one), do so here
 
-            if (json["generateClientSecret"]?.asBooleanOrNull() == true
+            if (rawJson["generateClientSecret"]?.asBooleanOrNull() == true
                 || clientBuilder.clientSecret.isNullOrEmpty()
             ) {
                 clientBuilder.clientSecret = clientService.generateClientSecret(clientBuilder)
@@ -176,92 +180,80 @@ class ClientAPI: KtorEndpoint {
         } else if (clientBuilder.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.PRIVATE_KEY) {
             if (clientBuilder.jwksUri.isNullOrEmpty() && clientBuilder.jwks == null) {
                 logger.error("tried to create client with private key auth but no private key")
-                m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
-                m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "Can not create a client with private key authentication without registering a key via the JWK Set URI or JWK Set Value.")
-                return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+                return jsonErrorView(
+                    INVALID_REQUEST,
+                    "Can not create a client with private key authentication without registering a key via the JWK Set URI or JWK Set Value."
+                )
             }
 
             // otherwise we shouldn't have a secret for this client
             clientBuilder.clientSecret = null
         } else {
             logger.error("unknown auth method")
-            m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
-            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "Unknown auth method requested")
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            return jsonErrorView(SERVER_ERROR, HttpStatusCode.BadRequest, "Unknown auth method requested")
         }
 
         clientBuilder.isDynamicallyRegistered = false
 
         try {
             val newClient = clientService.saveNewClient(clientBuilder.build())
-            m.addAttribute(org.mitre.openid.connect.view.JsonEntityView.ENTITY, newClient)
 
-            return if (org.mitre.oauth2.web.AuthenticationUtilities.isAdmin(auth)) {
-                org.mitre.openid.connect.view.ClientEntityViewForAdmins.VIEWNAME
+            if (GrantedAuthority.ROLE_ADMIN in auth.authorities) {
+                return clientEntityViewForAdmins(newClient)
             } else {
-                org.mitre.openid.connect.view.ClientEntityViewForUsers.VIEWNAME
+                return clientEntityViewForUsers(newClient)
             }
         } catch (e: IllegalArgumentException) {
             logger.error("Unable to save client: {}", e.message)
-            m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
-            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "Unable to save client: " + e.message)
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
-        } catch (e: PersistenceException) {
-            val cause = e.cause
-            if (cause is DatabaseException) {
-                val databaseExceptionCause = cause.cause
-                if (databaseExceptionCause is SQLIntegrityConstraintViolationException) {
-                    logger.error("apiAddClient failed; duplicate client id entry found: {}", clientBuilder.clientId)
-                    m.addAttribute(HttpCodeView.CODE, HttpStatus.CONFLICT)
-                    m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "Unable to save client. Duplicate client id entry found: " + clientBuilder.clientId)
-                    return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
-                }
-            }
-            throw e
+            return jsonErrorView(SERVER_ERROR, HttpStatusCode.BadRequest, "Unable to save client: ${e.message}")
         }
     }
 
     /**
      * Update an existing client
      */
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @RequestMapping(value = ["/{id}"], method = [RequestMethod.PUT], consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
+//    @PreAuthorize("hasRole('ROLE_ADMIN')")
+//    @RequestMapping(value = ["/{id}"], method = [RequestMethod.PUT], consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun PipelineContext<Unit, ApplicationCall>.apiUpdateClient(
-        @PathVariable("id") id: Long,
-        @RequestBody jsonString: String,
     ) {
         val auth = requireRole(GrantedAuthority.ROLE_ADMIN) { return }
+        val id = call.parameters["id"]!!.toLong()
 
         val clientBuilder: ClientDetailsEntity.Builder
 
+        val rawJson:  JsonObject
+
         try {
+            rawJson = json.parseToJsonElement(call.receiveText()).jsonObject
             // parse the client passed in (from JSON) and fetch the old client from the store
-            clientBuilder = Json.decodeFromString<ClientDetailsEntity>(jsonString).builder()
-            validateSoftwareStatement(clientBuilder)
+            clientBuilder = json.decodeFromJsonElement<ClientDetailsEntity>(rawJson).builder()
+            validateSoftwareStatement(assertionValidator, clientBuilder)
         } catch (e: SerializationException) {
             logger.error("apiUpdateClient failed due to SerializationException", e)
-            m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
-            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "Could not update client. The server encountered a JSON syntax exception. Contact a system administrator for assistance.")
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            return jsonErrorView(
+                SERVER_ERROR, HttpStatusCode.BadRequest,
+                "Could not update client. The server encountered a JSON syntax exception. Contact a system administrator for assistance."
+            )
         } catch (e: IllegalStateException) {
             logger.error("apiUpdateClient failed due to IllegalStateException", e)
-            m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
-            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "Could not update client. The server encountered an IllegalStateException. Refresh and try again - if the problem persists, contact a system administrator for assistance.")
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            return jsonErrorView(
+                SERVER_ERROR, HttpStatusCode.BadRequest,
+                "Could not update client. The server encountered an IllegalStateException. Refresh and try again - if the problem persists, contact a system administrator for assistance."
+            )
         } catch (e: ValidationException) {
             logger.error("apiUpdateClient failed due to ValidationException", e)
-            m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
-            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "Could not update client. The server encountered a ValidationException.")
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            return jsonErrorView(
+                INVALID_REQUEST,
+                "Could not update client. The server encountered a ValidationException."
+            )
         }
 
-        val oldClient = clientService.getClientById(id)
-
-        if (oldClient == null) {
+        val oldClient = clientService.getClientById(id) ?: run {
             logger.error("apiUpdateClient failed; client with id $id could not be found.")
-            m.addAttribute(HttpCodeView.CODE, HttpStatus.NOT_FOUND)
-            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "Could not update client. The requested client with id " + id + "could not be found.")
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            return jsonErrorView(
+                INVALID_REQUEST,
+                "Could not update client. The requested client with id " + id + "could not be found."
+            )
         }
 
         // if they leave the client identifier empty, force it to be generated
@@ -276,40 +268,36 @@ class ClientAPI: KtorEndpoint {
         } else if (clientBuilder.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_BASIC || clientBuilder.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_POST || clientBuilder.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.SECRET_JWT) {
             // if they've asked for us to generate a client secret (or they left it blank but require one), do so here
 
-            if (json["generateClientSecret"]?.asBoolean() == true || clientBuilder.clientSecret.isNullOrEmpty()) {
+            if (rawJson["generateClientSecret"]?.asBoolean() == true || clientBuilder.clientSecret.isNullOrEmpty()) {
                 clientBuilder.clientSecret = clientService.generateClientSecret(clientBuilder)
             }
         } else if (clientBuilder.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.PRIVATE_KEY) {
             if (clientBuilder.jwksUri.isNullOrEmpty() && clientBuilder.jwks == null) {
                 logger.error("tried to create client with private key auth but no private key")
-                m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
-                m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "Can not create a client with private key authentication without registering a key via the JWK Set URI or JWK Set Value.")
-                return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+                return jsonErrorView(
+                    INVALID_REQUEST,
+                    "Can not create a client with private key authentication without registering a key via the JWK Set URI or JWK Set Value."
+                )
             }
 
             // otherwise we shouldn't have a secret for this client
             clientBuilder.clientSecret = null
         } else {
             logger.error("unknown auth method")
-            m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
-            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "Unknown auth method requested")
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            return jsonErrorView(INVALID_REQUEST, HttpStatusCode.BadRequest, "Unknown auth method requested")
         }
 
         try {
             val newClient = clientService.updateClient(oldClient, clientBuilder.build())
-            m.addAttribute(org.mitre.openid.connect.view.JsonEntityView.ENTITY, newClient)
 
-            return if (org.mitre.oauth2.web.AuthenticationUtilities.isAdmin(auth)) {
-                org.mitre.openid.connect.view.ClientEntityViewForAdmins.VIEWNAME
+            if (GrantedAuthority.ROLE_ADMIN in auth.authorities) {
+                return clientEntityViewForAdmins(newClient)
             } else {
-                org.mitre.openid.connect.view.ClientEntityViewForUsers.VIEWNAME
+                return clientEntityViewForUsers(newClient)
             }
         } catch (e: IllegalArgumentException) {
             logger.error("Unable to save client: {}", e.message)
-            m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
-            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "Unable to save client: " + e.message)
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            return jsonErrorView(SERVER_ERROR, HttpStatusCode.BadRequest, "Unable to save client: ${e.message}")
         }
     }
 
@@ -325,8 +313,8 @@ class ClientAPI: KtorEndpoint {
         val client = clientService.getClientById(id) ?: run {
             logger.error("apiDeleteClient failed; client with id $id could not be found.")
             return jsonErrorView(
-                OAuthErrorCodes.INVALID_REQUEST, HttpStatusCode.NotFound,
-                "Could not delete client. The requested client with id ${id}could not be found."
+                INVALID_REQUEST, HttpStatusCode.NotFound,
+                "Could not delete client. The requested client with id $id could not be found."
             )
         }
 
@@ -339,24 +327,22 @@ class ClientAPI: KtorEndpoint {
     /**
      * Get an individual client
      */
-    @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.apiShowClient(@PathVariable("id") id: Long) {
+//    @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
+    suspend fun PipelineContext<Unit, ApplicationCall>.apiShowClient() {
         val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
-        val client = clientService.getClientById(id)
-
-        if (client == null) {
+        val id = call.parameters["id"]!!.toLong()
+        val client = clientService.getClientById(id) ?: run {
             logger.error("apiShowClient failed; client with id $id could not be found.")
-            model.addAttribute(HttpCodeView.CODE, HttpStatus.NOT_FOUND)
-            model.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "The requested client with id $id could not be found.")
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            return jsonErrorView(
+                INVALID_REQUEST, HttpStatusCode.NotFound,
+                "The requested client with id $id could not be found."
+            )
         }
 
-        model.addAttribute(org.mitre.openid.connect.view.JsonEntityView.ENTITY, client)
-
-        return if (org.mitre.oauth2.web.AuthenticationUtilities.isAdmin(auth)) {
-            org.mitre.openid.connect.view.ClientEntityViewForAdmins.VIEWNAME
+        if (GrantedAuthority.ROLE_ADMIN in auth.authorities) {
+            return clientEntityViewForAdmins(client)
         } else {
-            org.mitre.openid.connect.view.ClientEntityViewForUsers.VIEWNAME
+            return clientEntityViewForUsers(client)
         }
     }
 
@@ -364,29 +350,20 @@ class ClientAPI: KtorEndpoint {
      * Get the logo image for a client
      */
 //    @RequestMapping(value = ["/{id}/logo"], method = [RequestMethod.GET], produces = [MediaType.IMAGE_GIF_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.getClientLogo(@PathVariable("id") id: Long) {
+    suspend fun PipelineContext<Unit, ApplicationCall>.getClientLogo() {
         val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
-        val client = clientService.getClientById(id)
+        val id = call.parameters["id"]!!.toLong()
+        val client = clientService.getClientById(id) ?: return call.respond(HttpStatusCode.NotFound)
+        val logoUri = client.logoUri?.takeUnless { it.isBlank() } ?: return call.respond(HttpStatusCode.NotFound)
 
-        if (client == null) {
-            return ResponseEntity(HttpStatus.NOT_FOUND)
-        } else if (client.logoUri.isNullOrEmpty()) {
-            return ResponseEntity(HttpStatus.NOT_FOUND)
-        } else {
-            // get the image from cache
-            val image = clientLogoLoadingService.getLogo(client)
-                ?: return ResponseEntity(HttpStatus.NOT_FOUND)
+        // get the image from cache
+        val image = clientLogoLoadingService.getLogo(client) ?: return call.respond(HttpStatusCode.NotFound)
 
-            val headers = io.ktor.http.HttpHeaders()
-            headers.contentType = MediaType.parseMediaType(image.contentType!!)
-            headers.contentLength = image.length
-
-            return ResponseEntity(image.data, headers, HttpStatus.OK)
-        }
+        call.respondBytes(image.data, ContentType.parse(image.contentType))
     }
 
     @Throws(ValidationException::class)
-    private fun validateSoftwareStatement(assertionValidator: AssertionValidator, clientBuilder: OAuthClientDetails.Builder) {
+    private suspend fun PipelineContext<Unit, ApplicationCall>.validateSoftwareStatement(assertionValidator: AssertionValidator, clientBuilder: OAuthClientDetails.Builder) {
         val softwareStatement = clientBuilder.softwareStatement
         if (softwareStatement == null) {
             // nothing to see here, carry on
@@ -402,14 +379,24 @@ class ClientAPI: KtorEndpoint {
 
                     for (claim in claimSet.claims.keys) {
                         when (claim) {
-                            SOFTWARE_STATEMENT -> throw ValidationException("invalid_client_metadata", "Software statement can't include another software statement", HttpStatus.BAD_REQUEST)
+                            SOFTWARE_STATEMENT -> {
+                                return jsonErrorView(INVALID_CLIENT_METADATA, "Software statement can't include another software statement")
+                            }
                             CLAIMS_REDIRECT_URIS ->
                                 clientBuilder.claimsRedirectUris = claimSet.getStringListClaim(claim).toHashSet()
 
-                            CLIENT_SECRET_EXPIRES_AT -> throw ValidationException("invalid_client_metadata", "Software statement can't include a client secret expiration time", HttpStatus.BAD_REQUEST)
-                            CLIENT_ID_ISSUED_AT -> throw ValidationException("invalid_client_metadata", "Software statement can't include a client ID issuance time", HttpStatus.BAD_REQUEST)
-                            REGISTRATION_CLIENT_URI -> throw ValidationException("invalid_client_metadata", "Software statement can't include a client configuration endpoint", HttpStatus.BAD_REQUEST)
-                            REGISTRATION_ACCESS_TOKEN -> throw ValidationException("invalid_client_metadata", "Software statement can't include a client registration access token", HttpStatus.BAD_REQUEST)
+                            CLIENT_SECRET_EXPIRES_AT -> {
+                                return jsonErrorView(INVALID_CLIENT_METADATA, "Software statement can't include a client secret expiration time")
+                            }
+                            CLIENT_ID_ISSUED_AT -> {
+                                return jsonErrorView(INVALID_CLIENT_METADATA, "Software statement can't include a client ID issuance time")
+                            }
+                            REGISTRATION_CLIENT_URI -> {
+                                return jsonErrorView(INVALID_CLIENT_METADATA, "Software statement can't include a client configuration endpoint")
+                            }
+                            REGISTRATION_ACCESS_TOKEN -> {
+                                return jsonErrorView(INVALID_CLIENT_METADATA, "Software statement can't include a client registration access token")
+                            }
                             REQUEST_URIS -> clientBuilder.requestUris = claimSet.getStringListClaim(claim).toHashSet()
                             POST_LOGOUT_REDIRECT_URIS -> clientBuilder.postLogoutRedirectUris =
                                 claimSet.getStringListClaim(claim).toHashSet()
@@ -459,7 +446,7 @@ class ClientAPI: KtorEndpoint {
                                 claimSet.getStringListClaim(claim).toHashSet()
 
                             GRANT_TYPES -> clientBuilder.authorizedGrantTypes = claimSet.getStringListClaim(claim).toHashSet()
-                            SCOPE -> clientBuilder.scope = OAuth2Utils.parseParameterList(claimSet.getStringClaim(claim))
+                            SCOPE -> clientBuilder.scope = claimSet.getStringClaim(claim).split(' ').filterNotTo(HashSet()) { it.isBlank() }
                             TOKEN_ENDPOINT_AUTH_METHOD -> clientBuilder.tokenEndpointAuthMethod =
                                 OAuthClientDetails.AuthMethod.getByValue(claimSet.getStringClaim(claim))
 
@@ -470,17 +457,21 @@ class ClientAPI: KtorEndpoint {
                             CLIENT_NAME -> clientBuilder.clientName = claimSet.getStringClaim(claim)
                             REDIRECT_URIS -> clientBuilder.redirectUris = claimSet.getStringListClaim(claim).toHashSet()
 
-                            CLIENT_SECRET -> throw ValidationException("invalid_client_metadata", "Software statement can't contain client secret", HttpStatus.BAD_REQUEST)
-                            CLIENT_ID -> throw ValidationException("invalid_client_metadata", "Software statement can't contain client ID", HttpStatus.BAD_REQUEST)
+                            CLIENT_SECRET -> {
+                                return jsonErrorView(INVALID_CLIENT_METADATA, "Software statement can't contain client secret")
+                            }
+                            CLIENT_ID -> {
+                                return jsonErrorView(INVALID_CLIENT_METADATA, "Software statement can't contain client ID")
+                            }
 
                             else -> logger.warn("Software statement contained unknown field: " + claim + " with value " + claimSet.getClaim(claim))
                         }
                     }
                 } catch (e: ParseException) {
-                    throw ValidationException("invalid_client_metadata", "Software statement claims didn't parse", HttpStatus.BAD_REQUEST)
+                    return jsonErrorView(INVALID_CLIENT_METADATA, "Software statement claims didn't parse")
                 }
             } else {
-                throw ValidationException("invalid_client_metadata", "Software statement rejected by validator", HttpStatus.BAD_REQUEST)
+                return jsonErrorView(INVALID_CLIENT_METADATA, "Software statement rejected by validator")
             }
         }
     }
