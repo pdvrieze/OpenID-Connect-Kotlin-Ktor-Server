@@ -32,6 +32,11 @@ suspend fun PipelineContext<Unit, ApplicationCall>.jsonErrorView(
     code
 )
 
+suspend fun PipelineContext<Unit, ApplicationCall>.jsonErrorView(
+    errorCode: OAuthErrorCodes,
+    errorMessage: String? = null,
+) = jsonErrorView(errorCode, errorCode.httpCode ?: HttpStatusCode.BadRequest, errorMessage)
+
 /**
  * @author aanganes, jricher
  */

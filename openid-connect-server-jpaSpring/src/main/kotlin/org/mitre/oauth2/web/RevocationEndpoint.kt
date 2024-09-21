@@ -102,7 +102,7 @@ class RevocationEndpoint {
             try {
                 val refreshToken = tokenServices.getRefreshToken(tokenValue)
                 // client acting on its own, make sure it owns the token
-                if (refreshToken!!.client!!.clientId != authClient!!.clientId) {
+                if (refreshToken.client!!.clientId != authClient!!.clientId) {
                     // trying to revoke a token we don't own, throw a 403
 
                     logger.info("Client ${authClient.clientId} tried to revoke a token owned by ${refreshToken.client!!.clientId}")

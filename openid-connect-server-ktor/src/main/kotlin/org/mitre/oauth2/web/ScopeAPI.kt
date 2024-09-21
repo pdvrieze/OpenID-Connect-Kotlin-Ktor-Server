@@ -45,8 +45,6 @@ import org.mitre.web.util.scopeService
 // @PreAuthorize("hasRole('ROLE_USER')")
 class ScopeAPI : KtorEndpoint {
 
-    val json: Json = Json.Default
-
     override fun Route.addRoutes() {
         route("/api/scopes") {
             authenticate {
@@ -67,12 +65,12 @@ class ScopeAPI : KtorEndpoint {
         return jsonEntityView(json.encodeToJsonElement(scopeService.all))
     }
 
-//    @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
+    //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun PipelineContext<Unit, ApplicationCall>.getScope() {
         requireRole(GrantedAuthority.ROLE_CLIENT) { return@getScope }
-    val id = call.parameters["id"]!!.toLong()
+        val id = call.parameters["id"]!!.toLong()
 
-    val scope = scopeService.getById(id)
+        val scope = scopeService.getById(id)
 
         if (scope != null) {
             return jsonEntityView(json.encodeToJsonElement(scope))
@@ -82,7 +80,7 @@ class ScopeAPI : KtorEndpoint {
         }
     }
 
-//    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    //    @PreAuthorize("hasRole('ROLE_ADMIN')")
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.PUT], produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun PipelineContext<Unit, ApplicationCall>.updateScope() {
         requireRole(GrantedAuthority.ROLE_ADMIN) { return@updateScope }
@@ -117,7 +115,7 @@ class ScopeAPI : KtorEndpoint {
         }
     }
 
-//    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    //    @PreAuthorize("hasRole('ROLE_ADMIN')")
 //    @RequestMapping(value = [""], method = [RequestMethod.POST], produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun PipelineContext<Unit, ApplicationCall>.createScope() {
         requireRole(GrantedAuthority.ROLE_ADMIN) { return }
@@ -151,7 +149,7 @@ class ScopeAPI : KtorEndpoint {
         }
     }
 
-//    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    //    @PreAuthorize("hasRole('ROLE_ADMIN')")
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.DELETE])
     suspend fun PipelineContext<Unit, ApplicationCall>.deleteScope() {
         requireRole(GrantedAuthority.ROLE_ADMIN) { return }

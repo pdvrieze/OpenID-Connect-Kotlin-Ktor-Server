@@ -45,7 +45,7 @@ class RevocationEndpoint : KtorEndpoint {
     private fun Route.revoke() {
         authenticate {
             get("/revoke") {
-                val auth = requireRoleOf(GrantedAuthority.ROLE_USER, GrantedAuthority.ROLE_CLIENT) { return@get }
+                val auth = requireRoleOf(GrantedAuthority.ROLE_ADMIN, GrantedAuthority.ROLE_CLIENT) { return@get }
 
                 val tokenValue = call.request.queryParameters["token"]
                     ?: return@get call.respond(HttpStatusCode.BadRequest)
