@@ -1,18 +1,18 @@
 package org.mitre.oauth2.exception
 
 open class OAuth2Exception: AuthenticationException {
-    val oauth2ErrorCode: ErrorCodes
+    val oauth2ErrorCode: OAuthErrorCodes
 
-    constructor(oauthErrorCode: ErrorCodes, message: String? = null, cause: Throwable? = null) : super(message, cause) {
+    constructor(oauthErrorCode: OAuthErrorCodes, message: String? = null, cause: Throwable? = null) : super(message, cause) {
         this.oauth2ErrorCode = oauthErrorCode
     }
 
-    constructor(oauthErrorCode: ErrorCodes, cause: Throwable?) : super(cause) {
+    constructor(oauthErrorCode: OAuthErrorCodes, cause: Throwable?) : super(cause) {
         this.oauth2ErrorCode = oauthErrorCode
     }
 
     constructor(
-        oauthErrorCode: ErrorCodes,
+        oauthErrorCode: OAuthErrorCodes,
         message: String?,
         cause: Throwable?,
         enableSuppression: Boolean,

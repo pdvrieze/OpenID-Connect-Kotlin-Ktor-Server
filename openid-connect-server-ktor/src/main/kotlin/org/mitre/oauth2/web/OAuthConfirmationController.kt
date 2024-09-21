@@ -24,6 +24,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import kotlinx.serialization.json.JsonPrimitive
+import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.convert.OAuth2Request
@@ -34,6 +35,7 @@ import org.mitre.web.htmlApproveView
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.clientService
 import org.mitre.web.util.redirectResolver
+import org.mitre.web.util.requireRole
 import org.mitre.web.util.resolveAuthenticatedUser
 import org.mitre.web.util.scopeClaimTranslationService
 import org.mitre.web.util.scopeService
@@ -56,11 +58,7 @@ class OAuthConfirmationController: KtorEndpoint {
     private fun Route.confirmAccess() {
         authenticate {
             get("/oauth/confirm_access") {
-                val authentication = resolveAuthenticatedUser() ?: return@get call.respond(HttpStatusCode.Unauthorized)
-
-                if(!AuthenticationUtilities.hasRole(authentication, "ROLE_USER")) {
-                    return@get call.respond(HttpStatusCode.Forbidden)
-                }
+                val authentication = requireRole(GrantedAuthority.ROLE_USER) { return@get }
 
                 val authRequest: OAuth2Request = call.sessions.get<OpenIdSessionStorage>()?.authorizationRequest
                     ?: return@get call.respond(HttpStatusCode.BadRequest)

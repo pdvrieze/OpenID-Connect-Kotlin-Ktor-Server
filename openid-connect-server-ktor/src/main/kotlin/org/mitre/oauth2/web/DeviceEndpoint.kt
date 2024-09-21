@@ -26,6 +26,7 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import org.mitre.oauth2.exception.DeviceCodeCreationException
 import org.mitre.oauth2.exception.InvalidClientException
+import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.token.DeviceTokenGranter
@@ -38,6 +39,7 @@ import org.mitre.web.util.OpenIdRouting
 import org.mitre.web.util.clientService
 import org.mitre.web.util.deviceCodeService
 import org.mitre.web.util.openIdContext
+import org.mitre.web.util.requireRole
 import org.mitre.web.util.scopeService
 import java.net.URISyntaxException
 import java.util.*
@@ -143,9 +145,8 @@ class DeviceEndpoint(
     private fun Route.requestUserCode() {
         authenticate {
             get("/device") {
-                if (!AuthenticationUtilities.hasRole(call.principal<Principal>().toAuth(), "ROLE_USER")) {
-                    return@get call.respond(HttpStatusCode.Forbidden)
-                }
+                requireRole(GrantedAuthority.ROLE_USER) { return@get }
+
                 val userCode = call.parameters["user_code"]
                 if (!openIdContext.config.isAllowCompleteDeviceCodeUri || userCode == null) {
                     // if we don't allow the complete URI or we didn't get a user code on the way in,
@@ -170,9 +171,8 @@ class DeviceEndpoint(
     private fun Route.readUserCode() {
         authenticate {
             post("/$USER_URL/verify") {
-                if (!AuthenticationUtilities.hasRole(call.principal<Principal>().toAuth(), "ROLE_USER")) {
-                    return@post call.respond(HttpStatusCode.Forbidden)
-                }
+                requireRole(GrantedAuthority.ROLE_USER) { return@post }
+
                 val userCode = call.receiveParameters()["user_code"]
                     ?: return@post call.respond(HttpStatusCode.BadRequest)
 
@@ -239,6 +239,8 @@ class DeviceEndpoint(
 
                 val approve = call.request.queryParameters["user_oauth_approval"]
                     ?: call.receiveParameters()["user_oauth_approval"]
+
+
 
                 TODO("Implement this")
 /*

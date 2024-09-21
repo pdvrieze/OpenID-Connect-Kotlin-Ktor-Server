@@ -8,12 +8,12 @@ import kotlinx.html.div
 import kotlinx.html.h1
 import kotlinx.html.p
 import kotlinx.html.span
-import org.mitre.oauth2.exception.ErrorCodes
+import org.mitre.oauth2.exception.OAuthErrorCodes
 import org.mitre.oauth2.exception.OAuth2Exception
 
 fun HTML.error(
     context: WebContext,
-) = error(context, ErrorCodes.SERVER_ERROR, "See the logs for details")
+) = error(context, OAuthErrorCodes.SERVER_ERROR, "See the logs for details")
 
 fun HTML.error(
     context: WebContext,
@@ -22,7 +22,7 @@ fun HTML.error(
 
 fun HTML.error(
     context: WebContext,
-    errorCode: ErrorCodes,
+    errorCode: OAuthErrorCodes,
     errorMessage: String,
 ) = error(context, errorCode.code, errorMessage)
 

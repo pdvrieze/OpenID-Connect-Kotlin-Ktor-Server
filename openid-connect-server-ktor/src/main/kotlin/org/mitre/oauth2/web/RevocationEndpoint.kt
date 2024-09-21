@@ -23,6 +23,7 @@ import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.mitre.oauth2.exception.InvalidTokenException
+import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuth2Authentication
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.service.SystemScopeService
@@ -30,6 +31,8 @@ import org.mitre.oauth2.web.AuthenticationUtilities.hasRole
 import org.mitre.util.getLogger
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.clientService
+import org.mitre.web.util.requireRole
+import org.mitre.web.util.requireRoleOf
 import org.mitre.web.util.resolveAuthenticatedUser
 import org.mitre.web.util.tokenService
 
@@ -42,11 +45,7 @@ class RevocationEndpoint : KtorEndpoint {
     private fun Route.revoke() {
         authenticate {
             get("/revoke") {
-                val auth = resolveAuthenticatedUser() ?: return@get call.respond(HttpStatusCode.Unauthorized)
-
-                if(!(hasRole(auth, "ROLE_USER") || hasRole(auth, "ROLE_CLIENT"))) {
-                    return@get call.respond(HttpStatusCode.Forbidden)
-                }
+                val auth = requireRoleOf(GrantedAuthority.ROLE_USER, GrantedAuthority.ROLE_CLIENT) { return@get }
 
                 val tokenValue = call.request.queryParameters["token"]
                     ?: return@get call.respond(HttpStatusCode.BadRequest)

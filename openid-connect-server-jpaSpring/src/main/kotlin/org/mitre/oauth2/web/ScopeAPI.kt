@@ -50,9 +50,9 @@ class ScopeAPI {
     fun getAll(m: ModelMap): String {
         val allScopes = scopeService.all
 
-        m[org.mitre.openid.connect.view.JsonEntityView.ENTITY] = allScopes
+        m[JsonEntityView.ENTITY] = allScopes
 
-        return org.mitre.openid.connect.view.JsonEntityView.VIEWNAME
+        return JsonEntityView.VIEWNAME
     }
 
     @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -60,15 +60,15 @@ class ScopeAPI {
         val scope = scopeService.getById(id)
 
         if (scope != null) {
-            m[org.mitre.openid.connect.view.JsonEntityView.ENTITY] = scope
+            m[JsonEntityView.ENTITY] = scope
 
-            return org.mitre.openid.connect.view.JsonEntityView.VIEWNAME
+            return JsonEntityView.VIEWNAME
         } else {
             logger.error("getScope failed; scope not found: $id")
 
             m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
-            m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] = "The requested scope with id $id could not be found."
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            m[JsonErrorView.ERROR_MESSAGE] = "The requested scope with id $id could not be found."
+            return JsonErrorView.VIEWNAME
         }
     }
 
@@ -83,22 +83,22 @@ class ScopeAPI {
             existing == null || scope == null -> {
                 logger.error("updateScope failed; scope with id $id not found.")
                 m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
-                m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] = "Could not update scope. The scope with id $id could not be found."
-                return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+                m[JsonErrorView.ERROR_MESSAGE] = "Could not update scope. The scope with id $id could not be found."
+                return JsonErrorView.VIEWNAME
             }
             existing.id == scope.id -> {
                 // sanity check
-                m[org.mitre.openid.connect.view.JsonEntityView.ENTITY] = scopeService.save(scope) // ?: error("Unexpected reserved scope")
+                m[JsonEntityView.ENTITY] = scopeService.save(scope) // ?: error("Unexpected reserved scope")
 
-                return org.mitre.openid.connect.view.JsonEntityView.VIEWNAME
+                return JsonEntityView.VIEWNAME
             }
             else -> {
                 logger.error("updateScope failed; scope ids to not match: got ${existing.id} and ${scope.id}")
 
                 m[HttpCodeView.CODE] = HttpStatus.BAD_REQUEST
-                m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] = ("Could not update scope. Scope ids to not match: got ${existing.id} and ${scope.id}")
+                m[JsonErrorView.ERROR_MESSAGE] = ("Could not update scope. Scope ids to not match: got ${existing.id} and ${scope.id}")
 
-                return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+                return JsonErrorView.VIEWNAME
             }
         }
     }
@@ -113,22 +113,22 @@ class ScopeAPI {
             //Error, cannot save a scope with the same value as an existing one
             logger.error("Error: attempting to save a scope with a value that already exists: ${inputScope.value}")
             m[HttpCodeView.CODE] = HttpStatus.CONFLICT
-            m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] = "A scope with value ${inputScope.value} already exists, please choose a different value."
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            m[JsonErrorView.ERROR_MESSAGE] = "A scope with value ${inputScope.value} already exists, please choose a different value."
+            return JsonErrorView.VIEWNAME
         }
 
         val savedScope = scopeService.save(inputScope)
 
         if (savedScope?.id != null) {
-            m[org.mitre.openid.connect.view.JsonEntityView.ENTITY] = savedScope
+            m[JsonEntityView.ENTITY] = savedScope
 
-            return org.mitre.openid.connect.view.JsonEntityView.VIEWNAME
+            return JsonEntityView.VIEWNAME
         } else {
             logger.error("createScope failed; JSON was invalid: $json")
             m[HttpCodeView.CODE] = HttpStatus.BAD_REQUEST
-            m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] =
+            m[JsonErrorView.ERROR_MESSAGE] =
                 "Could not save new scope $savedScope. The scope service failed to return a saved entity."
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            return JsonErrorView.VIEWNAME
         }
     }
 
@@ -144,8 +144,8 @@ class ScopeAPI {
         } else {
             logger.error("deleteScope failed; scope with id $id not found.")
             m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
-            m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] = "Could not delete scope. The requested scope with id $id could not be found."
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            m[JsonErrorView.ERROR_MESSAGE] = "Could not delete scope. The requested scope with id $id could not be found."
+            return JsonErrorView.VIEWNAME
         }
     }
 

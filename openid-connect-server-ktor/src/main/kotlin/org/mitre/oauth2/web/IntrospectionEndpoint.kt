@@ -39,6 +39,7 @@ import org.mitre.util.getLogger
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.OpenIdContextPlugin
 import org.mitre.web.util.clientService
+import org.mitre.web.util.resolveAuthenticatedUser
 import org.mitre.web.util.resourceSetService
 import org.mitre.web.util.tokenService
 import org.mitre.web.util.userInfoService
@@ -50,11 +51,7 @@ class IntrospectionEndpoint: KtorEndpoint {
             get("/introspection") {
                 val tokenValue = call.request.queryParameters["token"]
                 val tokenType = call.request.queryParameters["token_type_hint"]
-                val authentication = UserIdPrincipalAuthentication(call.principal<UserIdPrincipal>()!!, setOf(
-                    GrantedAuthority("ROLE_ADMIN"),
-                    GrantedAuthority("ROLE_USER"),
-                ))
-                verify(tokenType, tokenValue, authentication)
+                verify(tokenType, tokenValue)
             }
 
         }
@@ -66,10 +63,10 @@ class IntrospectionEndpoint: KtorEndpoint {
     suspend fun PipelineContext<Unit, ApplicationCall>.verify(
         tokenValue: String?,
         tokenType: String?,
-        auth: Authentication
     ) {
+        val auth  = resolveAuthenticatedUser() ?: return call.respond(HttpStatusCode.Unauthorized)
         val introspectionResultAssembler: JsonIntrospectionResultAssembler = openIdContext.introspectionResultAssembler
-        var authClient: OAuthClientDetails
+        val authClient: OAuthClientDetails
         val authScopes: MutableSet<String> = HashSet()
 
         if (auth is OAuth2Authentication) {

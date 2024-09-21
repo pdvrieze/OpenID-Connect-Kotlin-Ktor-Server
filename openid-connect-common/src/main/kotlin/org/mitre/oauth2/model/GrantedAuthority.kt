@@ -8,5 +8,6 @@ value class GrantedAuthority(val authority: String) {
     companion object {
         val ROLE_ADMIN: GrantedAuthority = GrantedAuthority("ROLE_ADMIN")
         val ROLE_CLIENT: GrantedAuthority = GrantedAuthority("ROLE_CLIENT")
+        val ROLE_USER: GrantedAuthority = GrantedAuthority("ROLE_USER")
     }
 }

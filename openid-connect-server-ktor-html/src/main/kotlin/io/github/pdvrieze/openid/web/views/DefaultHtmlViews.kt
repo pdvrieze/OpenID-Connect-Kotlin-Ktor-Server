@@ -6,7 +6,7 @@ import io.ktor.server.application.*
 import io.ktor.server.html.*
 import io.ktor.server.request.*
 import io.ktor.util.pipeline.*
-import org.mitre.oauth2.exception.ErrorCodes
+import org.mitre.oauth2.exception.OAuthErrorCodes
 import org.mitre.oauth2.exception.OAuth2Exception
 import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.OAuthClientDetails
@@ -93,7 +93,7 @@ class DefaultHtmlViews(): HtmlViews {
         }
     }
 
-    override suspend fun PipelineContext<*, ApplicationCall>.error(errorCode: ErrorCodes, errorMessage: String) {
+    override suspend fun PipelineContext<*, ApplicationCall>.error(errorCode: OAuthErrorCodes, errorMessage: String) {
         call.respondHtml {
             error(createContext(), errorCode, errorMessage)
         }

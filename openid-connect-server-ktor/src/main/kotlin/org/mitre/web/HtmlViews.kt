@@ -2,7 +2,7 @@ package org.mitre.web
 
 import io.ktor.server.application.*
 import io.ktor.util.pipeline.*
-import org.mitre.oauth2.exception.ErrorCodes
+import org.mitre.oauth2.exception.OAuthErrorCodes
 import org.mitre.oauth2.exception.OAuth2Exception
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.SystemScope
@@ -48,7 +48,7 @@ interface HtmlViews {
     )
 
     suspend fun PipelineContext<*, ApplicationCall>.error(
-        errorCode: ErrorCodes,
+        errorCode: OAuthErrorCodes,
         errorMessage: String,
     )
 
@@ -133,8 +133,8 @@ suspend fun PipelineContext<Unit, ApplicationCall>.htmlErrorView(
 }
 
 suspend fun PipelineContext<Unit, ApplicationCall>.htmlErrorView(
-        errorCode: ErrorCodes,
-        errorMessage: String,
+    errorCode: OAuthErrorCodes,
+    errorMessage: String,
 ) {
     with(openIdContext.htmlViews) { error(errorCode, errorMessage) }
 }
