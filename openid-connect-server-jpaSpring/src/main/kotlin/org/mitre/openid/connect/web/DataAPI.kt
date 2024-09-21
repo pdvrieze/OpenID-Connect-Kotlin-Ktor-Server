@@ -159,7 +159,7 @@ class DataAPI {
             "exported-at" to dateFormat.format(Date()),
             "exported-from" to config.issuer,
             "exported-by" to prin.name,
-            MITREidDataService_1_3.THIS_VERSION to exporter.toSerialConfig()
+            MITREidDataService.MITREID_CONNECT_1_3 to exporter.toSerialConfig()
         )
 
         try {
