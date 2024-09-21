@@ -6,8 +6,9 @@ import io.ktor.server.response.*
 import io.ktor.util.pipeline.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.serializer
 
@@ -38,11 +39,16 @@ suspend fun <T> PipelineContext<Unit, ApplicationCall>.clientEntitityViewForUser
     entity: T,
     code: HttpStatusCode = HttpStatusCode.OK,
 ) {
-    val jsonObj = Json.encodeToJsonElement(serializer, entity).jsonObject
-    val filtered = JsonObject(jsonObj.filterKeys { it in whitelistedFields })
+    val filtered = when(val jsonElement = Json.encodeToJsonElement(serializer, entity)) {
+        is JsonArray -> JsonArray(jsonElement.map(::filterObject))
+        else -> filterObject(jsonElement)
+    }
 
     call.respondText(filtered.toString(), ContentType.Application.Json, code)
 }
+
+private fun filterObject(e: JsonElement) =
+    JsonObject(e.jsonObject.filterKeys { it in whitelistedFields })
 
 private val whitelistedFields: Set<String> =
     hashSetOf("clientName", "clientId", "id", "clientDescription", "scope", "logoUri")
