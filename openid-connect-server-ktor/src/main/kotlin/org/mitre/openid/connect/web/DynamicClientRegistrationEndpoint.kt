@@ -207,7 +207,7 @@ class DynamicClientRegistrationEndpoint(
             token = tokenService.saveAccessToken(token)
 
             // send it all out to the view
-            val registered = RegisteredClient(savedClient, token.value, getRegUri(savedClient))
+            val registered = RegisteredClient(savedClient, token.value, clientRegistrationUri(savedClient))
             return clientInformationResponseView(registered, HttpStatusCode.Created)
         } catch (e: IllegalArgumentException) {
             logger.error("Couldn't save client", e)
@@ -229,7 +229,7 @@ class DynamicClientRegistrationEndpoint(
 
         if (client != null && client.clientId == auth.oAuth2Request.clientId) {
             val token = rotateRegistrationTokenIfNecessary(auth, client)
-            val registered = RegisteredClient(client, token.value, getRegUri(client))
+            val registered = RegisteredClient(client, token.value, clientRegistrationUri(client))
 
             return clientInformationResponseView(registered, HttpStatusCode.OK)
         } else {
@@ -302,7 +302,7 @@ class DynamicClientRegistrationEndpoint(
 
             val token = rotateRegistrationTokenIfNecessary(auth, savedClient)
 
-            val registered = RegisteredClient(savedClient, token.value, getRegUri(savedClient))
+            val registered = RegisteredClient(savedClient, token.value, clientRegistrationUri(savedClient))
             return clientInformationResponseView(registered)
         } catch (e: IllegalArgumentException) {
             logger.error("Couldn't save client", e)
@@ -332,9 +332,6 @@ class DynamicClientRegistrationEndpoint(
             return call.respond(HttpStatusCode.Forbidden)
         }
     }
-
-    private fun PipelineContext<Unit, ApplicationCall>.getRegUri(client: OAuthClientDetails) =
-        URLBuilder(openIdContext.config.issuer).apply { path("register", client.clientId!!) }.buildString()
 
     @Throws(ValidationException::class)
     private fun PipelineContext<Unit, ApplicationCall>.validateScopes(newClient: ClientDetailsEntity.Builder) {
@@ -662,3 +659,5 @@ class DynamicClientRegistrationEndpoint(
         private val logger = getLogger<DynamicClientRegistrationEndpoint>()
     }
 }
+
+
