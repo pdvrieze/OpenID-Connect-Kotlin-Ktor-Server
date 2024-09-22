@@ -30,6 +30,7 @@ import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.repository.OAuth2ClientRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
+import org.mitre.oauth2.service.SpringClientDetailsEntity
 import org.mitre.oauth2.service.SpringClientDetailsEntityService
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.oauth2.util.requireId
@@ -298,11 +299,11 @@ class SpringOAuth2ClientDetailsEntityService : SpringClientDetailsEntityService 
      * Get the client for the given ClientID
      */
     @Throws(OAuth2Exception::class, InvalidClientException::class, IllegalArgumentException::class)
-    override fun loadClientByClientId(clientId: String): ClientDetailsEntity? {
+    override fun loadClientByClientId(clientId: String): SpringClientDetailsEntity? {
         require(clientId.isNotEmpty()) { "Client id must not be empty!" }
 
         return clientRepository.getClientByClientId(clientId)
-            ?.let(ClientDetailsEntity::from)
+            ?.let(::SpringClientDetailsEntity)
             ?: throw InvalidClientException("Client with id $clientId was not found")
     }
 
