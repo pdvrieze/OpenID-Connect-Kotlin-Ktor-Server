@@ -32,7 +32,7 @@ import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.util.getLogger
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.clientService
-import org.mitre.web.util.oidTokenService
+import org.mitre.web.util.oidcTokenService
 import org.mitre.web.util.requireRole
 import org.mitre.web.util.tokenService
 
@@ -140,7 +140,7 @@ class TokenAPI : KtorEndpoint {
         val client = clientService.loadClientByClientId(clientId)
             ?: return jsonErrorView(INVALID_REQUEST, HttpStatusCode.NotFound, "The requested client with id $clientId could not be found.")
 
-        val token = oidTokenService.rotateRegistrationAccessTokenForClient(client)
+        val token = oidcTokenService.rotateRegistrationAccessTokenForClient(client)
             ?.let { tokenService.saveAccessToken(it) }
             ?: jsonErrorView(INVALID_REQUEST, HttpStatusCode.NotFound, "No registration token could be found.")
 
