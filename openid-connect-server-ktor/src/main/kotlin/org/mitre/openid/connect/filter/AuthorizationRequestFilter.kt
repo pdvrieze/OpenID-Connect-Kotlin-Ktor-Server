@@ -1,23 +1,6 @@
-/*******************************************************************************
- * Copyright 2018 The MIT Internet Trust Consortium
- *
- * Portions copyright 2011-2013 The MITRE Corporation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package org.mitre.openid.connect.filter
 
-import org.apache.http.client.utils.URIBuilder
+import org.mitre.oauth2.exception.InvalidClientException
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.request.ConnectRequestParameters
@@ -25,45 +8,27 @@ import org.mitre.openid.connect.service.LoginHintExtracter
 import org.mitre.openid.connect.service.impl.RemoveLoginHintsWithHTTP
 import org.mitre.openid.connect.web.AuthenticationTimeStamper
 import org.mitre.util.getLogger
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.oauth2.common.exceptions.InvalidClientException
-import org.springframework.security.oauth2.provider.AuthorizationRequest
-import org.springframework.security.oauth2.provider.ClientDetails
-import org.springframework.security.oauth2.provider.OAuth2RequestFactory
-import org.springframework.security.oauth2.provider.endpoint.RedirectResolver
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher
-import org.springframework.security.web.util.matcher.RequestMatcher
-import org.springframework.stereotype.Component
-import org.springframework.web.filter.GenericFilterBean
 import java.io.IOException
 import java.net.URISyntaxException
 import java.util.*
-import javax.servlet.FilterChain
-import javax.servlet.ServletException
-import javax.servlet.ServletRequest
-import javax.servlet.ServletResponse
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 
 /**
  * @author jricher
  */
-@Component("authRequestFilter")
-class AuthorizationRequestFilter : GenericFilterBean() {
-    @Autowired
-    private lateinit var authRequestFactory: OAuth2RequestFactory
+class AuthorizationRequestFilter {
+//    @Autowired
+//    private lateinit var authRequestFactory: OAuth2RequestFactory
 
-    @Autowired
-    private lateinit var clientService: ClientDetailsEntityService
+//    @Autowired
+//    private lateinit var clientService: ClientDetailsEntityService
 
-    @Autowired
-    private lateinit var redirectResolver: RedirectResolver
+//    @Autowired
+//    private lateinit var redirectResolver: RedirectResolver
 
-    @Autowired(required = false)
-    private val loginHintExtracter: LoginHintExtracter = RemoveLoginHintsWithHTTP()
+//    @Autowired(required = false)
+//    private val loginHintExtracter: LoginHintExtracter = RemoveLoginHintsWithHTTP()
 
-    var requestMatcher: RequestMatcher = AntPathRequestMatcher("/authorize")
+//    var requestMatcher: RequestMatcher = AntPathRequestMatcher("/authorize")
 
 
     @Throws(IOException::class, ServletException::class)
@@ -101,10 +66,9 @@ class AuthorizationRequestFilter : GenericFilterBean() {
                 session.removeAttribute(ConnectRequestParameters.LOGIN_HINT)
             }
 
-            val extPrompt = authRequest.extensions[ConnectRequestParameters.PROMPT] as? String
-            if (extPrompt != null) {
+            if (authRequest.extensions[ConnectRequestParameters.PROMPT] != null) {
                 // we have a "prompt" parameter
-                val prompt = extPrompt
+                val prompt = authRequest.extensions[ConnectRequestParameters.PROMPT] as String? ?: ""
                 val prompts = prompt.split(ConnectRequestParameters.PROMPT_SEPARATOR)
 
                 if (ConnectRequestParameters.PROMPT_NONE in prompts) {
