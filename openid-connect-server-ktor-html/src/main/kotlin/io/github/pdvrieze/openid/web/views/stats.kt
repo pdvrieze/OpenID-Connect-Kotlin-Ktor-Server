@@ -11,7 +11,7 @@ import kotlinx.html.p
 
 fun HTML.stats(
     context: WebContext,
-    statsSummary: Map<String, String>
+    statsSummary: Map<String, Int>
 ) {
     with(context.intl) {
         val title = messageText("statistics.title")

@@ -145,7 +145,7 @@ class DefaultHtmlViews(): HtmlViews {
         }
     }
 
-    override suspend fun PipelineContext<*, ApplicationCall>.stats(statsSummary: Map<String, String>) {
+    override suspend fun PipelineContext<*, ApplicationCall>.stats(statsSummary: Map<String, Int>) {
         call.respondHtml {
             stats(createContext(), statsSummary)
         }

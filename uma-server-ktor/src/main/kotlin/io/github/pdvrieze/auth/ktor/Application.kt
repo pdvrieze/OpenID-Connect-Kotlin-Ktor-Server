@@ -7,6 +7,7 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import org.mitre.web.OpenIdSessionStorage
 import org.mitre.web.util.OpenIdContextPlugin
@@ -18,6 +19,7 @@ fun main() {
 
 fun Application.module() {
     val configuration = OpenIdConfigurator("http://localhost:8080")
+    install(IgnoreTrailingSlash)
     install(Sessions) {
         cookie<OpenIdSessionStorage>(OpenIdSessionStorage.COOKIE_NAME, SessionStorageMemory())
     }
