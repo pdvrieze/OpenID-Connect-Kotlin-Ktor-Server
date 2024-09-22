@@ -154,7 +154,7 @@ class ClientAPI(
                 SERVER_ERROR, HttpStatusCode.BadRequest,
                 "Could not save new client. The server encountered an IllegalStateException. Refresh and try again - if the problem persists, contact a system administrator for assistance."
             )
-        } catch (e: ValidationException) {
+        } catch (e: org.mitre.openid.connect.exception.ValidationException) {
             logger.error("apiUpdateClient failed due to ValidationException", e)
             return jsonErrorView(
                 INVALID_REQUEST,
@@ -240,7 +240,7 @@ class ClientAPI(
                 SERVER_ERROR, HttpStatusCode.BadRequest,
                 "Could not update client. The server encountered an IllegalStateException. Refresh and try again - if the problem persists, contact a system administrator for assistance."
             )
-        } catch (e: ValidationException) {
+        } catch (e: org.mitre.openid.connect.exception.ValidationException) {
             logger.error("apiUpdateClient failed due to ValidationException", e)
             return jsonErrorView(
                 INVALID_REQUEST,
@@ -362,7 +362,7 @@ class ClientAPI(
         call.respondBytes(image.data, ContentType.parse(image.contentType))
     }
 
-    @Throws(ValidationException::class)
+    @Throws(org.mitre.openid.connect.exception.ValidationException::class)
     private suspend fun PipelineContext<Unit, ApplicationCall>.validateSoftwareStatement(assertionValidator: AssertionValidator, clientBuilder: OAuthClientDetails.Builder) {
         val softwareStatement = clientBuilder.softwareStatement
         if (softwareStatement == null) {

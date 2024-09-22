@@ -6,6 +6,7 @@ import io.ktor.server.response.*
 import io.ktor.util.pipeline.*
 import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.GrantedAuthority
+import org.mitre.oauth2.model.OAuth2Authentication
 
 inline suspend fun PipelineContext<Unit, ApplicationCall>.requireRole(requiredRole: GrantedAuthority, onMissing: (Authentication?) -> Nothing): Authentication {
     val authentication = resolveAuthenticatedUser() ?: run {
@@ -16,6 +17,30 @@ inline suspend fun PipelineContext<Unit, ApplicationCall>.requireRole(requiredRo
         call.respond(HttpStatusCode.Forbidden)
         return onMissing(authentication)
     }
+    return authentication
+}
+
+/**
+ * Variant that also requires scopes to be present
+ */
+inline suspend fun PipelineContext<Unit, ApplicationCall>.requireRole(requiredRole: GrantedAuthority, vararg scopes: String, onMissing: (Authentication?) -> Nothing): OAuth2Authentication {
+    val authentication = resolveAuthenticatedUser() ?: run {
+        call.respond(HttpStatusCode.Unauthorized)
+        return onMissing(null)
+    }
+    if (authentication !is OAuth2Authentication) {
+        call.respond(HttpStatusCode.Unauthorized)
+        return onMissing(authentication)
+    }
+    if (requiredRole!in authentication.authorities) {
+        call.respond(HttpStatusCode.Forbidden)
+        return onMissing(authentication)
+    }
+    if (scopes.any { it !in authentication.oAuth2Request.scope }) {
+        call.respond(HttpStatusCode.Forbidden)
+        return onMissing(authentication)
+    }
+
     return authentication
 }
 

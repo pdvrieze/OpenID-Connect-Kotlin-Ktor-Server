@@ -36,6 +36,16 @@ class SelfAssertionValidator : AssertionValidator {
 //    @Autowired
     private lateinit var jwtService: JWTSigningAndValidationService
 
+    constructor()
+
+    constructor(
+        config: ConfigurationPropertiesBean,
+        jwtService: JWTSigningAndValidationService,
+    ) {
+        this.config = config
+        this.jwtService = jwtService
+    }
+
     override fun isValid(assertion: JWT): Boolean {
         if (assertion !is SignedJWT) {
             // unsigned assertion

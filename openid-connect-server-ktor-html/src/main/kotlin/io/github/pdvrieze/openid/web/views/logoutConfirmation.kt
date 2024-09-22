@@ -46,6 +46,7 @@ fun HTML.logoutConfirmation(
                                     }
                                 }
                                 div { message("logout.confirmation.explanation") }
+                                clientId?.let { input(InputType.hidden, name="clientId") { value = it } }
                                 input(InputType.hidden, name = _csrf.parameterName) {
                                     value= _csrf.token
                                 }

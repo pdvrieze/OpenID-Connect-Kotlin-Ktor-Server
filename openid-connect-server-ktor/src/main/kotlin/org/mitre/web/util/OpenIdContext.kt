@@ -49,7 +49,7 @@ interface OpenIdContext {
     val introspectionResultAssembler: JsonIntrospectionResultAssembler
     val messageSource: JsonMessageSource
     val jwtService: JWTSigningAndValidationService
-    val oidTokenService: OIDCTokenService
+    val oidcTokenService: OIDCTokenService
     val pairwiseIdentifierService: PairwiseIdentifierService
     val redirectResolver: RedirectResolver
     val resourceSetService: ResourceSetService
@@ -110,8 +110,8 @@ val PipelineContext<*, ApplicationCall>.introspectionResultAssembler: JsonIntros
     get() = openIdContext.introspectionResultAssembler
 val PipelineContext<*, ApplicationCall>.jwtService: JWTSigningAndValidationService
     get() = openIdContext.jwtService
-val PipelineContext<*, ApplicationCall>.oidTokenService: OIDCTokenService
-    get() = openIdContext.oidTokenService
+val PipelineContext<*, ApplicationCall>.oidcTokenService: OIDCTokenService
+    get() = openIdContext.oidcTokenService
 val PipelineContext<*, ApplicationCall>.pairwiseIdentifierService: PairwiseIdentifierService
     get() = openIdContext.pairwiseIdentifierService
 val PipelineContext<*, ApplicationCall>.redirectResolver: RedirectResolver

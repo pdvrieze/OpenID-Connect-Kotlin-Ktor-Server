@@ -1,5 +1,6 @@
 package org.mitre.util
 
+import com.nimbusds.jwt.JWTParser
 import io.ktor.server.auth.*
 import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.GrantedAuthority
@@ -24,12 +25,21 @@ class UserIdPrincipalAuthentication(
     override val isAuthenticated: Boolean get() = true
 }
 
-class OAuth2PrincipalAuthentication(override val principal: OAuthAccessTokenResponse): PrincipalAuthentication {
+class OAuth2PrincipalAuthentication(
+    override val principal: OAuthAccessTokenResponse.OAuth2,
+): PrincipalAuthentication {
 
-    override val name: String get() = throw UnsupportedOperationException("No name")
+    val jwt = JWTParser.parse(principal.accessToken)
+    init {
+        TODO("Check jwt is signed with the correct key")
+    }
+
+
+    override val name: String get() = jwt.jwtClaimsSet.subject
 
     override val authorities: Collection<GrantedAuthority> get() = emptyList()
 
     override val isAuthenticated: Boolean
         get() = true
 }
+

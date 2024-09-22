@@ -181,12 +181,12 @@ data class OpenIdConfigurator(
 
         override val jwtService: JWTSigningAndValidationService = DefaultJWTSigningAndValidationService(configurator.signingKeySet)
 
-        override val oidTokenService: OIDCTokenService = DefaultOIDCTokenService()
+        override val oidcTokenService: OIDCTokenService = DefaultOIDCTokenService()
 
         override val deviceCodeService: DeviceCodeService = DefaultDeviceCodeService()
 
         override val tokenEnhancer: TokenEnhancer  =
-            ConnectTokenEnhancerImpl(clientDetailsService, config, jwtService, userInfoService, oidTokenService)
+            ConnectTokenEnhancerImpl(clientDetailsService, config, jwtService, userInfoService, oidcTokenService)
 
         override val tokenService: OAuth2TokenEntityService = DefaultOAuth2ProviderTokenService(
             tokenRepository, authenticationHolderRepository, clientDetailsService, tokenEnhancer, scopeService, approvedSiteService
