@@ -68,7 +68,7 @@ interface HtmlViews {
     suspend fun PipelineContext<*, ApplicationCall>.manage()
     suspend fun PipelineContext<*, ApplicationCall>.postLogout()
     suspend fun PipelineContext<*, ApplicationCall>.requestUserCode(error: String? = null)
-    suspend fun PipelineContext<*, ApplicationCall>.stats(statsSummary: Map<String, String>)
+    suspend fun PipelineContext<*, ApplicationCall>.stats(statsSummary: Map<String, Int>)
 }
 
 suspend fun PipelineContext<Unit, ApplicationCall>.htmlAboutView() {
@@ -173,6 +173,6 @@ suspend fun PipelineContext<Unit, ApplicationCall>.htmlRequestUserCodeView(error
     with(openIdContext.htmlViews) { requestUserCode(error) }
 }
 
-suspend fun PipelineContext<Unit, ApplicationCall>.htmlStatsView(statsSummary: Map<String, String>) {
+suspend fun PipelineContext<Unit, ApplicationCall>.htmlStatsView(statsSummary: Map<String, Int>) {
     with(openIdContext.htmlViews) { stats(statsSummary) }
 }

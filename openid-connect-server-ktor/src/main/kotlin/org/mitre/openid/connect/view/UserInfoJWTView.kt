@@ -14,23 +14,25 @@ import io.ktor.util.pipeline.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
-import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.jwt.signer.service.impl.ClientKeyCacheService
 import org.mitre.jwt.signer.service.impl.SymmetricKeyJWTValidatorCacheService
-import org.mitre.oauth2.model.ClientDetailsEntity
-import org.mitre.openid.connect.config.ConfigurationPropertiesBean
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.util.getLogger
+import org.mitre.web.util.openIdContext
 import java.util.*
 
 suspend fun PipelineContext<Unit, ApplicationCall>.userInfoJWTView(
-    jwtService: JWTSigningAndValidationService,
-    config: ConfigurationPropertiesBean,
     encrypters: ClientKeyCacheService,
     symmetricCacheService: SymmetricKeyJWTValidatorCacheService,
     userInfo: JsonObject,
-    client: ClientDetailsEntity,
+    client: OAuthClientDetails,
     code: HttpStatusCode = HttpStatusCode.OK,
 ) {
+    val openIdContext = openIdContext
+
+    val jwtService = openIdContext.jwtService
+    val config = openIdContext.config
+
     val encodedJson = Json.encodeToString(userInfo)
 
     val claims = JWTClaimsSet.Builder(JWTClaimsSet.parse(encodedJson))

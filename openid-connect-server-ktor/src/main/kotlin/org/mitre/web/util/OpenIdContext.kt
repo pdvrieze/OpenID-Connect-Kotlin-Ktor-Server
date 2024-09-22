@@ -5,6 +5,8 @@ import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
+import org.mitre.jwt.signer.service.impl.ClientKeyCacheService
+import org.mitre.jwt.signer.service.impl.SymmetricKeyJWTValidatorCacheService
 import org.mitre.oauth2.TokenEnhancer
 import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
@@ -64,6 +66,9 @@ interface OpenIdContext {
     val tokenServices: OAuth2TokenEntityService get() = tokenService
     val userInfoService: UserInfoService
     val whitelistedSiteService: WhitelistedSiteService
+
+    val symetricCacheService: SymmetricKeyJWTValidatorCacheService
+    val encyptersService: ClientKeyCacheService
 
     val approvedSiteRepository: ApprovedSiteRepository
     val authenticationHolderRepository: AuthenticationHolderRepository
@@ -137,7 +142,10 @@ val PipelineContext<*, ApplicationCall>.userInfoService: UserInfoService
 val PipelineContext<*, ApplicationCall>.whitelistedSiteService: WhitelistedSiteService
     get() = openIdContext.whitelistedSiteService
 
-
+val PipelineContext<*, ApplicationCall>.symetricCacheService: SymmetricKeyJWTValidatorCacheService
+    get() = openIdContext.symetricCacheService
+val PipelineContext<*, ApplicationCall>.encryptersService: ClientKeyCacheService
+    get() = openIdContext.encyptersService
 
 val PipelineContext<*, ApplicationCall>.approvedSiteRepository: ApprovedSiteRepository
     get() = openIdContext.approvedSiteRepository

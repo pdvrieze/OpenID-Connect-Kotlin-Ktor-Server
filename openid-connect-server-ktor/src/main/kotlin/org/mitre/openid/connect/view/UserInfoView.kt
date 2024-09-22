@@ -10,6 +10,7 @@ import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.jwt.signer.service.impl.ClientKeyCacheService
 import org.mitre.jwt.signer.service.impl.SymmetricKeyJWTValidatorCacheService
 import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.model.UserInfo
 import org.mitre.openid.connect.service.ScopeClaimTranslationService
@@ -23,7 +24,7 @@ suspend fun PipelineContext<Unit, ApplicationCall>.userInfoView(
     translator: ScopeClaimTranslationService,
     userInfo: UserInfo,
     scope: Set<String>,
-    client: ClientDetailsEntity,
+    client: OAuthClientDetails,
     authorizedClaims: String? = null,
     requestedClaims: String? = null,
     code: HttpStatusCode = HttpStatusCode.OK,
@@ -32,7 +33,7 @@ suspend fun PipelineContext<Unit, ApplicationCall>.userInfoView(
     val requestedClaims: JsonObject? = requestedClaims?.let { Json.parseToJsonElement(it) as? JsonObject }
 
     val json = UserInfoView.toJsonFromRequestObj(userInfo, scope, authorizedClaims, requestedClaims, translator)
-    userInfoJWTView(jwtService, config, encrypters, symmetricCacheService, json, client, code)
+    userInfoJWTView(encrypters, symmetricCacheService, json, client, code)
 }
 
 object UserInfoView {
