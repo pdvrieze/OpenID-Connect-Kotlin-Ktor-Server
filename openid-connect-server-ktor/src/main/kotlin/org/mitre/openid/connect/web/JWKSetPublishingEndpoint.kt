@@ -18,21 +18,16 @@
 package org.mitre.openid.connect.web
 
 import io.ktor.server.routing.*
-import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.openid.connect.ktor.views.jwkView
 import org.mitre.web.util.KtorEndpoint
-import org.mitre.web.util.OpenIdRouting
+import org.mitre.web.util.jwtService
 
-class JWKSetPublishingEndpoint(val jwtService: JWTSigningAndValidationService): KtorEndpoint {
-
-    override fun OpenIdRouting.addRoutes() {
-        addJWKSetPublishingEndpoint(jwtService)
-    }
-
-    fun Route.addJWKSetPublishingEndpoint(jwtService: JWTSigningAndValidationService) {
+class JWKSetPublishingEndpoint(): KtorEndpoint {
+    override fun Route.addRoutes() {
         get("/jwk") {
             val keys = jwtService.allPublicKeys
             jwkView(keys = keys)
         }
     }
+
 }
