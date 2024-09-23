@@ -8,7 +8,6 @@ import kotlinx.css.RuleContainer
 import kotlinx.css.RuleSet
 import kotlinx.css.StyledElement
 import kotlinx.html.CommonAttributeGroupFacade
-import kotlinx.html.attributeStringString
 import kotlinx.html.style
 
 var StyledElement.zoom: Double by CssProperty()

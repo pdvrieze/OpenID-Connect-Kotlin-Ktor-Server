@@ -69,7 +69,7 @@ class JpaDeviceCodeRepository : DeviceCodeRepository {
 	 * @see org.mitre.oauth2.repository.SystemScopeRepository#save(org.mitre.oauth2.model.SystemScope)
 	 */
     @Transactional(value = "defaultTransactionManager")
-    override fun save(code: DeviceCode): DeviceCode? {
+    override fun save(code: DeviceCode): DeviceCode {
         val id = requireNotNull(code.id) { "Null id in scope" }
         return saveOrUpdate(id, em, code)
     }

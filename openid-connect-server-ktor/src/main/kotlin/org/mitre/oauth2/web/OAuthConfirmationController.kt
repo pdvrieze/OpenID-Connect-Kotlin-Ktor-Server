@@ -93,8 +93,9 @@ class OAuthConfirmationController: KtorEndpoint {
                         val uriBuilder = URLBuilder(url)
 
                         uriBuilder.parameters["error"] = "interaction_required"
-                        if (authRequest.state.isNotEmpty()) {
-                            uriBuilder.parameters["state"] = authRequest.state // copy the state parameter if one was given
+                        val state = authRequest.state
+                        if (! state.isNullOrEmpty()) {
+                            uriBuilder.parameters["state"] = state // copy the state parameter if one was given
                         }
                         return@get call.respondRedirect(uriBuilder.build())
                     } catch (e: URISyntaxException) {

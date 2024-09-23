@@ -29,7 +29,7 @@ interface DeviceCodeRepository {
 
     fun remove(code: DeviceCode)
 
-    fun save(code: DeviceCode): DeviceCode?
+    fun save(code: DeviceCode): DeviceCode
 
     fun getByUserCode(userCode: String): DeviceCode?
 }

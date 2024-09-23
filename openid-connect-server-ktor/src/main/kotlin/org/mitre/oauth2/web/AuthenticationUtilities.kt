@@ -32,12 +32,12 @@ object AuthenticationUtilities {
     /**
      * Check to see if the given auth object has ROLE_ADMIN assigned to it or not
      */
-    fun isAdmin(auth: Authentication): Boolean {
-        return auth.authorities.any { it.authority == "ROLE_ADMIN" }
+    fun isAdmin(auth: Authentication?): Boolean {
+        return (auth ?: return false).authorities.any { it.authority == "ROLE_ADMIN" }
     }
 
 
-    fun hasRole(auth: Authentication, role: String): Boolean {
-        return auth.authorities.any { it.authority == role }
+    fun hasRole(auth: Authentication?, role: String): Boolean {
+        return (auth ?: return false).authorities.any { it.authority == role }
     }
 }

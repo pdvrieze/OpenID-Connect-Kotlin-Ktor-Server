@@ -42,8 +42,7 @@ class DiscoveryEndpoint(
     // used to map JWA algorithms objects to strings
     private val toAlgorithmName: ((Algorithm) -> String) = { alg -> alg.name }
 
-
-    override fun OpenIdRouting.addRoutes() {
+    override fun Route.addRoutes() {
         getWebfinger()
     }
 

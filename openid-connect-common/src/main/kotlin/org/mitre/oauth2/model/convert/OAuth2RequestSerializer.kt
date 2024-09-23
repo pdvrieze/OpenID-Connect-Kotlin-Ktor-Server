@@ -2,7 +2,6 @@ package org.mitre.oauth2.model.convert
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import org.mitre.oauth2.model.GrantedAuthority
 
@@ -36,7 +35,7 @@ class OAuth2Request(
         redirectUri: String? = this.redirectUri,
         responseTypes: Set<String>? = this.responseTypes?.toSet(),
         state: String? = this.state,
-        approvalParameters: JsonElement? = this.approvalParameters,
+        approvalParameters: JsonObject? = this.approvalParameters,
         extensionStrings: Map<String, String>? = this.extensionStrings?.toMap(),
     ) : OAuth2Request {
         return OAuth2Request(

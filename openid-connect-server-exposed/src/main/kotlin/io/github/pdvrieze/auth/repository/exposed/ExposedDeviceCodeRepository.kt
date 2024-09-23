@@ -57,7 +57,7 @@ class ExposedDeviceCodeRepository(
     /* (non-Javadoc)
      * @see org.mitre.oauth2.repository.SystemScopeRepository#save(org.mitre.oauth2.model.SystemScope)
      */
-    override fun save(code: DeviceCode): DeviceCode? {
+    override fun save(code: DeviceCode): DeviceCode {
         val oldId = code.id
         var newId: Long
         transaction {
