@@ -187,7 +187,7 @@ fun SpringOAuth2Request.fromSpring(): OAuth2Request {
         resourceIds = resourceIds,
         redirectUri = redirectUri,
         responseTypes = responseTypes,
-        extensionStrings = extensions?.mapValues { it.toString() },
-        approvalParameters = null
+        approvalParameters = null,
+        extensionStrings = extensions?.mapValues { it.toString() }
     )
 }

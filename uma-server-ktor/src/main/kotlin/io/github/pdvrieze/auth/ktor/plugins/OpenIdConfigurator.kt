@@ -22,7 +22,9 @@ import org.jetbrains.exposed.sql.Database
 import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
 import org.mitre.jwt.encryption.service.impl.DefaultJWTEncryptionAndDecryptionService
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
+import org.mitre.jwt.signer.service.impl.ClientKeyCacheService
 import org.mitre.jwt.signer.service.impl.DefaultJWTSigningAndValidationService
+import org.mitre.jwt.signer.service.impl.SymmetricKeyJWTValidatorCacheService
 import org.mitre.oauth2.TokenEnhancer
 import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.GrantedAuthority
@@ -47,6 +49,8 @@ import org.mitre.openid.connect.repository.BlacklistedSiteRepository
 import org.mitre.openid.connect.repository.PairwiseIdentifierRepository
 import org.mitre.openid.connect.repository.UserInfoRepository
 import org.mitre.openid.connect.repository.WhitelistedSiteRepository
+import org.mitre.openid.connect.request.KtorConnectOAuth2RequestFactory
+import org.mitre.openid.connect.request.KtorOAuth2RequestFactory
 import org.mitre.openid.connect.service.ApprovedSiteService
 import org.mitre.openid.connect.service.BlacklistedSiteService
 import org.mitre.openid.connect.service.OIDCTokenService
@@ -57,10 +61,10 @@ import org.mitre.openid.connect.service.UserInfoService
 import org.mitre.openid.connect.service.WhitelistedSiteService
 import org.mitre.openid.connect.service.impl.DefaultApprovedSiteService
 import org.mitre.openid.connect.service.impl.DefaultBlacklistedSiteService
-import org.mitre.openid.connect.service.impl.DefaultOIDCTokenService
 import org.mitre.openid.connect.service.impl.DefaultScopeClaimTranslationService
 import org.mitre.openid.connect.service.impl.DefaultUserInfoService
 import org.mitre.openid.connect.service.impl.DefaultWhitelistedSiteService
+import org.mitre.openid.connect.service.impl.KtorOIDCTokenService
 import org.mitre.openid.connect.service.impl.UUIDPairwiseIdentiferService
 import org.mitre.openid.connect.token.ConnectTokenEnhancerImpl
 import org.mitre.uma.repository.PermissionRepository
@@ -181,20 +185,30 @@ data class OpenIdConfigurator(
 
         override val jwtService: JWTSigningAndValidationService = DefaultJWTSigningAndValidationService(configurator.signingKeySet)
 
-        override val oidcTokenService: OIDCTokenService = DefaultOIDCTokenService()
-
         override val deviceCodeService: DeviceCodeService = DefaultDeviceCodeService()
 
         override val tokenEnhancer: TokenEnhancer  =
-            ConnectTokenEnhancerImpl(clientDetailsService, config, jwtService, userInfoService, oidcTokenService)
+            ConnectTokenEnhancerImpl(clientDetailsService, config, jwtService, userInfoService, { oidcTokenService })
 
         override val tokenService: OAuth2TokenEntityService = DefaultOAuth2ProviderTokenService(
             tokenRepository, authenticationHolderRepository, clientDetailsService, tokenEnhancer, scopeService, approvedSiteService
         )
 
+        override val symetricCacheService: SymmetricKeyJWTValidatorCacheService =
+            SymmetricKeyJWTValidatorCacheService()
+
+        override val encyptersService: ClientKeyCacheService =
+            ClientKeyCacheService()
+
+        override val oidcTokenService: OIDCTokenService = KtorOIDCTokenService(
+            jwtService, authenticationHolderRepository, config, encyptersService, symetricCacheService, tokenService
+        )
+
         override val scopeClaimTranslationService: ScopeClaimTranslationService =
             DefaultScopeClaimTranslationService()
 
+        override val authRequestFactory: KtorOAuth2RequestFactory =
+            KtorConnectOAuth2RequestFactory(clientDetailsService, encyptersService, encryptionService)
 
         override val htmlViews: HtmlViews = DefaultHtmlViews()
 

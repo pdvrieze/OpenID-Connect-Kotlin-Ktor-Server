@@ -11,6 +11,8 @@ open class ConnectTokenEnhancerImpl(
     override val configBean: ConfigurationPropertiesBean,
     override val jwtService: JWTSigningAndValidationService,
     override val userInfoService: UserInfoService,
-    override val connectTokenService: OIDCTokenService
+    connectTokenServiceProvider: () -> OIDCTokenService
 ) : ConnectTokenEnhancer() {
+
+    override val connectTokenService: OIDCTokenService by lazy(connectTokenServiceProvider)
 }

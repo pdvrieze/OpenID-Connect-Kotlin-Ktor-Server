@@ -3,6 +3,7 @@ package org.mitre.oauth2.model.convert
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 import org.mitre.oauth2.model.GrantedAuthority
 
 @Serializable
@@ -17,26 +18,26 @@ class OAuth2Request(
     val resourceIds: Set<String>? = null,
     val redirectUri: String? = null,
     val responseTypes: Set<String>? = null,
+    val state: String? = null,
+    val approvalParameters: JsonObject? = null,
     @SerialName("extensionStrings")
     val extensionStrings: Map<String, String>? = null,
-    val approvalParameters: JsonElement? = null,
 ) {
     val denied: Boolean get() = ! isApproved
     val extensions: Map<String, String> get() = extensionStrings ?: emptyMap()
-
-    val state by extensions
 
     fun copy(
         requestParameters: Map<String, String> = this.requestParameters,
         clientId: String = this.clientId,
         authorities: Set<GrantedAuthority> = this.authorities,
         isApproved: Boolean = this.isApproved,
-        scope: Set<String> = emptySet(),
-        resourceIds: Set<String>? = null,
-        redirectUri: String/*? = null*/,
-        responseTypes: Set<String>? = null,
-        extensionStrings: Map<String, String>? = null,
-        approvalParameters: JsonElement? = null,
+        scope: Set<String> = this.scope.toSet(),
+        resourceIds: Set<String>? = this.resourceIds?.toSet(),
+        redirectUri: String? = this.redirectUri,
+        responseTypes: Set<String>? = this.responseTypes?.toSet(),
+        state: String? = this.state,
+        approvalParameters: JsonElement? = this.approvalParameters,
+        extensionStrings: Map<String, String>? = this.extensionStrings?.toMap(),
     ) : OAuth2Request {
         return OAuth2Request(
             requestParameters = requestParameters,
@@ -47,8 +48,8 @@ class OAuth2Request(
             resourceIds = resourceIds,
             redirectUri = redirectUri,
             responseTypes = responseTypes,
-            extensionStrings = extensionStrings,
             approvalParameters = approvalParameters,
+            extensionStrings = extensionStrings,
         )
     }
 }

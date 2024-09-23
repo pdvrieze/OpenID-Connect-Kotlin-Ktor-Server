@@ -25,6 +25,7 @@ import org.mitre.openid.connect.repository.ApprovedSiteRepository
 import org.mitre.openid.connect.repository.BlacklistedSiteRepository
 import org.mitre.openid.connect.repository.UserInfoRepository
 import org.mitre.openid.connect.repository.WhitelistedSiteRepository
+import org.mitre.openid.connect.request.KtorOAuth2RequestFactory
 import org.mitre.openid.connect.service.ApprovedSiteService
 import org.mitre.openid.connect.service.BlacklistedSiteService
 import org.mitre.openid.connect.service.OIDCTokenService
@@ -41,6 +42,7 @@ import org.mitre.web.HtmlViews
 interface OpenIdContext {
     fun resolveAuthenticatedUser(authenticationContext: ApplicationCall): Authentication?
 
+    val authRequestFactory: KtorOAuth2RequestFactory
     val approvedSiteService: ApprovedSiteService
     val blacklistedSiteService: BlacklistedSiteService
     val clientDetailsService: ClientDetailsEntityService

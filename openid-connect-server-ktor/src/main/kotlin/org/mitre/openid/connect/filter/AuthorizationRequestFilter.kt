@@ -1,14 +1,15 @@
 package org.mitre.openid.connect.filter
 
+import io.ktor.server.application.*
+import io.ktor.server.request.*
+import io.ktor.util.*
+import io.ktor.util.pipeline.*
 import org.mitre.oauth2.exception.InvalidClientException
 import org.mitre.oauth2.model.OAuthClientDetails
-import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.request.ConnectRequestParameters
-import org.mitre.openid.connect.service.LoginHintExtracter
-import org.mitre.openid.connect.service.impl.RemoveLoginHintsWithHTTP
 import org.mitre.openid.connect.web.AuthenticationTimeStamper
 import org.mitre.util.getLogger
-import java.io.IOException
+import org.mitre.web.util.openIdContext
 import java.net.URISyntaxException
 import java.util.*
 
@@ -30,18 +31,11 @@ class AuthorizationRequestFilter {
 
 //    var requestMatcher: RequestMatcher = AntPathRequestMatcher("/authorize")
 
-
-    @Throws(IOException::class, ServletException::class)
-    override fun doFilter(req: ServletRequest, res: ServletResponse, chain: FilterChain) {
-        val request = req as HttpServletRequest
-        val response = res as HttpServletResponse
-        val session = request.session
-
+//    override fun doFilter(req: ServletRequest, res: ServletResponse, chain: FilterChain) {
+    private fun PipelineContext<Any, ApplicationCall>.doIntercept(subject: Any) {
         // skip everything that's not an authorize URL
-        if (!requestMatcher.matches(request)) {
-            chain.doFilter(req, res)
-            return
-        }
+        if (!call.request.path().startsWith("/authorize")) return // skip intercept
+
 
         try {
             // we have to create our own auth request in order to get at all the parmeters appropriately
@@ -49,8 +43,8 @@ class AuthorizationRequestFilter {
 
             var client: OAuthClientDetails? = null
 
-            authRequest = authRequestFactory
-                .createAuthorizationRequest(createRequestMap(request.parameterMap as Map<String, Array<String>?>))
+            authRequest = openIdContext.authRequestFactory
+                .createAuthorizationRequest()
 
             if (!authRequest.clientId.isNullOrEmpty()) {
                 client = clientService.loadClientByClientId(authRequest.clientId)
@@ -66,9 +60,9 @@ class AuthorizationRequestFilter {
                 session.removeAttribute(ConnectRequestParameters.LOGIN_HINT)
             }
 
-            if (authRequest.extensions[ConnectRequestParameters.PROMPT] != null) {
+            val prompt = authRequest.extensions[ConnectRequestParameters.PROMPT] as? String?
+            if (prompt != null) {
                 // we have a "prompt" parameter
-                val prompt = authRequest.extensions[ConnectRequestParameters.PROMPT] as String? ?: ""
                 val prompts = prompt.split(ConnectRequestParameters.PROMPT_SEPARATOR)
 
                 if (ConnectRequestParameters.PROMPT_NONE in prompts) {
@@ -185,7 +179,7 @@ class AuthorizationRequestFilter {
         return requestMap
     }
 
-    companion object {
+    companion object Plugin: BaseApplicationPlugin<ApplicationCallPipeline, Unit, AuthorizationRequestFilter> {
         /**
          * Logger for this class
          */
@@ -193,5 +187,18 @@ class AuthorizationRequestFilter {
 
         const val PROMPTED: String = "PROMPT_FILTER_PROMPTED"
         const val PROMPT_REQUESTED: String = "PROMPT_FILTER_REQUESTED"
+
+        override val key = AttributeKey<AuthorizationRequestFilter>("authorizationRequestFilter")
+
+        override fun install(
+            pipeline: ApplicationCallPipeline,
+            configure: Unit.() -> Unit,
+        ): AuthorizationRequestFilter {
+            val plugin = AuthorizationRequestFilter()
+            pipeline.receivePipeline.intercept(ApplicationReceivePipeline.Before) { subject ->
+                with(plugin) {  doIntercept(subject) }
+            }
+            return plugin
+        }
     }
 }

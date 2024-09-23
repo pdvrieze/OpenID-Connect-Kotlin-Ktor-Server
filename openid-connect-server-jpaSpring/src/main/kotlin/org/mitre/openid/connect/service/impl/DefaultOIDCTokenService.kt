@@ -225,7 +225,7 @@ class DefaultOIDCTokenService : OIDCTokenService {
         val clientAuth = OAuth2Request(
             authorizationParameters, client.clientId!!,
             hashSetOf(GrantedAuthority("ROLE_CLIENT")), true,
-            scope ?: emptySet(), null, null, null, null
+            scope ?: emptySet(), null, null, null, extensionStrings = null
         )
         val authentication = OAuth2Authentication(clientAuth, null)
 
