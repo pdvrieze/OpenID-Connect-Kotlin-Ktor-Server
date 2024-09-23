@@ -1,9 +1,7 @@
 package org.mitre.openid.connect.filter
 
-import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
@@ -14,7 +12,6 @@ import org.mitre.oauth2.model.convert.OAuth2Request
 import org.mitre.openid.connect.request.ConnectRequestParameters
 import org.mitre.openid.connect.service.LoginHintExtracter
 import org.mitre.openid.connect.service.impl.RemoveLoginHintsWithHTTP
-import org.mitre.openid.connect.web.AuthenticationTimeStamper
 import org.mitre.util.getLogger
 import org.mitre.web.util.clientService
 import org.mitre.web.util.openIdContext

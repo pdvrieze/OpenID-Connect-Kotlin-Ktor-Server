@@ -161,7 +161,7 @@ class ProtectedResourceRegistrationEndpoint: KtorEndpoint {
             return clientInformationResponseView(registered, HttpStatusCode.Created)
         } catch (e: IllegalArgumentException) {
             logger.error("Couldn't save client", e)
-            return jsonErrorView(OAuthErrorCodes.INVALID_CLIENT_METADATA,  "Unable to save client due to invalid or inconsistent metadata.")
+            return jsonErrorView(OAuthErrorCodes.INVALID_CLIENT_METADATA, "Unable to save client due to invalid or inconsistent metadata.")
         }
     }
 
@@ -293,7 +293,7 @@ class ProtectedResourceRegistrationEndpoint: KtorEndpoint {
             return clientInformationResponseView(registered)
         } catch (e: IllegalArgumentException) {
             logger.error("Couldn't save client", e)
-            return jsonErrorView(OAuthErrorCodes.INVALID_CLIENT_METADATA,  "Unable to save client due to invalid or inconsistent metadata.")
+            return jsonErrorView(OAuthErrorCodes.INVALID_CLIENT_METADATA, "Unable to save client due to invalid or inconsistent metadata.")
         }
     }
 

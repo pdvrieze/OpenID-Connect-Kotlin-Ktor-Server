@@ -26,7 +26,6 @@ import com.nimbusds.jwt.JWTParser
 import com.nimbusds.jwt.PlainJWT
 import com.nimbusds.jwt.SignedJWT
 import io.ktor.http.*
-import io.ktor.server.auth.*
 import kotlinx.serialization.json.JsonObject
 import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
 import org.mitre.jwt.signer.service.impl.ClientKeyCacheService

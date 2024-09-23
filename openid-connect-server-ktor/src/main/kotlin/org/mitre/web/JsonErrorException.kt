@@ -1,12 +1,13 @@
 package org.mitre.web
 
 import io.ktor.http.*
-import org.mitre.oauth2.exception.OAuthErrorCodes
+import org.mitre.oauth2.exception.OAuthErrorCode
+import org.mitre.oauth2.exception.httpCode
 
 open class JsonErrorException private constructor (
     errorCode: String?,
     val errorMessage: String?,
-    val oAuthErrorCode: OAuthErrorCodes?,
+    val oAuthErrorCode: OAuthErrorCode?,
     val httpStatus: HttpStatusCode,
 ) : Exception("${errorCode?:oAuthErrorCode?.code}: $errorMessage") {
 
@@ -14,7 +15,7 @@ open class JsonErrorException private constructor (
     val errorCode: String = _errorCode ?: oAuthErrorCode?.code ?: "server_error"
 
     constructor(
-        error: OAuthErrorCodes,
+        error: OAuthErrorCode,
         message: String?,
         httpStatus: HttpStatusCode = error.httpCode ?: HttpStatusCode.InternalServerError,
     ) : this(null, message, error, httpStatus)

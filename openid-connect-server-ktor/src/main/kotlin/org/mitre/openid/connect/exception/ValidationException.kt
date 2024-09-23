@@ -1,12 +1,13 @@
 package org.mitre.openid.connect.exception
 
 import io.ktor.http.*
-import org.mitre.oauth2.exception.OAuthErrorCodes
+import org.mitre.oauth2.exception.OAuthErrorCode
+import org.mitre.oauth2.exception.httpCode
 import org.mitre.web.JsonErrorException
 
 class ValidationException: JsonErrorException {
     constructor(
-        error: OAuthErrorCodes,
+        error: OAuthErrorCode,
         message: String?,
         httpStatus: HttpStatusCode = error.httpCode ?: HttpStatusCode.BadRequest,
     ) : super(error, message, httpStatus)

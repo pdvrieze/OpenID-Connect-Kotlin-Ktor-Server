@@ -77,7 +77,6 @@ import org.mitre.oauth2.model.RegisteredClientFields.TOS_URI
 import org.mitre.oauth2.model.RegisteredClientFields.USERINFO_ENCRYPTED_RESPONSE_ALG
 import org.mitre.oauth2.model.RegisteredClientFields.USERINFO_ENCRYPTED_RESPONSE_ENC
 import org.mitre.oauth2.model.RegisteredClientFields.USERINFO_SIGNED_RESPONSE_ALG
-import org.mitre.openid.connect.exception.ValidationException
 import org.mitre.openid.connect.service.ClientLogoLoadingService
 import org.mitre.openid.connect.view.clientEntityViewForAdmins
 import org.mitre.openid.connect.view.clientEntityViewForUsers

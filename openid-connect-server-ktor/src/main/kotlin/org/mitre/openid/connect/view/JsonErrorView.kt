@@ -5,7 +5,8 @@ import io.ktor.server.application.*
 import io.ktor.util.pipeline.*
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import org.mitre.oauth2.exception.OAuthErrorCodes
+import org.mitre.oauth2.exception.OAuthErrorCode
+import org.mitre.oauth2.exception.httpCode
 import org.mitre.oauth2.view.respondJson
 import org.mitre.web.JsonErrorException
 
@@ -34,7 +35,7 @@ suspend fun PipelineContext<Unit, ApplicationCall>.jsonErrorView(
 )
 
 suspend fun PipelineContext<Unit, ApplicationCall>.jsonErrorView(
-    errorCode: OAuthErrorCodes,
+    errorCode: OAuthErrorCode,
     code: HttpStatusCode = errorCode.httpCode ?: HttpStatusCode.BadRequest,
     errorMessage: String? = null,
 ) = call.respondJson(
@@ -46,7 +47,7 @@ suspend fun PipelineContext<Unit, ApplicationCall>.jsonErrorView(
 )
 
 suspend fun PipelineContext<Unit, ApplicationCall>.jsonErrorView(
-    errorCode: OAuthErrorCodes,
+    errorCode: OAuthErrorCode,
     errorMessage: String? = null,
 ) = jsonErrorView(errorCode, errorCode.httpCode ?: HttpStatusCode.BadRequest, errorMessage)
 

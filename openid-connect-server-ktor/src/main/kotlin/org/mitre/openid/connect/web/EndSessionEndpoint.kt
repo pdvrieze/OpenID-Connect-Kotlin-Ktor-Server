@@ -27,7 +27,6 @@ import io.ktor.server.sessions.*
 import io.ktor.util.pipeline.*
 import org.mitre.jwt.assertion.impl.SelfAssertionValidator
 import org.mitre.oauth2.exception.InvalidClientException
-import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.util.getLogger

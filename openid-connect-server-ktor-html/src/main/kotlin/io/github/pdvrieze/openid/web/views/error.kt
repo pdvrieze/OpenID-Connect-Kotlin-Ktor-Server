@@ -10,6 +10,7 @@ import kotlinx.html.p
 import kotlinx.html.span
 import org.mitre.oauth2.exception.OAuthErrorCodes
 import org.mitre.oauth2.exception.OAuth2Exception
+import org.mitre.oauth2.exception.OAuthErrorCode
 
 fun HTML.error(
     context: WebContext,
@@ -22,7 +23,7 @@ fun HTML.error(
 
 fun HTML.error(
     context: WebContext,
-    errorCode: OAuthErrorCodes,
+    errorCode: OAuthErrorCode,
     errorMessage: String,
 ) = error(context, errorCode.code, errorMessage)
 
