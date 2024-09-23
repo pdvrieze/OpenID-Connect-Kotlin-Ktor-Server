@@ -13,7 +13,7 @@ import org.springframework.core.io.Resource
 import java.util.*
 
 @ExtendWith(MockitoExtension::class)
-class TestJsonMessageSource {
+class TestSpringJsonMessageSource {
     @InjectMocks
     private lateinit var jsonMessageSource: JsonMessageSource
 
