@@ -1,6 +1,7 @@
 package org.mitre.openid.connect.config
 
 import java.util.*
+import javax.servlet.http.HttpServletRequest
 
 /**
  *

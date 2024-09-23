@@ -95,7 +95,7 @@ class JsonMessageSource(private val baseResource: String, private val config: Co
                     if (input == null) {
                         // fallback to language only
                         myLogger.debug("Fallback locale to language only.")
-                        filename = locale.language + File.separator + namespace + ".json"
+                        filename = "${locale.language}/$namespace.json"
                         input = javaClass.getResourceAsStream("$baseResource/$filename")
 
                         if (input == null) {

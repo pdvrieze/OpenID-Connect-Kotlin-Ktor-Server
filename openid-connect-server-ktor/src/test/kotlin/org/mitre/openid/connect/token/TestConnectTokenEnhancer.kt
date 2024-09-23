@@ -55,7 +55,7 @@ class TestConnectTokenEnhancer {
             configBean = configBean,
             jwtService = jwtService,
             userInfoService = userInfoService,
-            connectTokenService = connectTokenService
+            connectTokenServiceProvider = { connectTokenService }
         )
 
         val client = ClientDetailsEntity(
@@ -71,7 +71,7 @@ class TestConnectTokenEnhancer {
     @Throws(ParseException::class)
     fun invokesCustomClaimsHook() {
         enhancer = object : ConnectTokenEnhancerImpl(
-            clientService, configBean, jwtService, userInfoService, connectTokenService
+            clientService, configBean, jwtService, userInfoService, { connectTokenService }
         ) {
             override fun addCustomAccessTokenClaims(
                 builder: JWTClaimsSet.Builder,

@@ -24,7 +24,7 @@ class TestJsonMessageSource {
 
     @Test
     fun verifyWhenLocaleExists_canResolveCode() {
-        val mf = jsonMessageSource.resolveCode("testAttribute", localeThatHasAFile)!!
+        val mf = checkNotNull(jsonMessageSource.resolveCode("testAttribute", localeThatHasAFile))
         Assertions.assertEquals(mf.locale.language, "en")
         Assertions.assertEquals(mf.toPattern(), "testValue")
     }
