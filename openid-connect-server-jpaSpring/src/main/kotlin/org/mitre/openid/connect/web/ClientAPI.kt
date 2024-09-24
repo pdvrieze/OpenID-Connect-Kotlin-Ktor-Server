@@ -27,6 +27,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonObject
+import org.eclipse.persistence.exceptions.DatabaseException
 import org.mitre.jwt.assertion.AssertionValidator
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.ClientDetailsEntity.*
@@ -125,12 +126,12 @@ class ClientAPI {
     @RequestMapping(method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun apiGetAllClients(model: Model, auth: Authentication): String {
         val clients = clientService.allClients
-        model.addAttribute(org.mitre.openid.connect.view.JsonEntityView.ENTITY, clients)
+        model.addAttribute(JsonEntityView.ENTITY, clients)
 
-        return if (org.mitre.oauth2.web.AuthenticationUtilities.isAdmin(auth)) {
-            org.mitre.openid.connect.view.ClientEntityViewForAdmins.VIEWNAME
+        return if (AuthenticationUtilities.isAdmin(auth)) {
+            ClientEntityViewForAdmins.VIEWNAME
         } else {
-            org.mitre.openid.connect.view.ClientEntityViewForUsers.VIEWNAME
+            ClientEntityViewForUsers.VIEWNAME
         }
     }
 
@@ -148,18 +149,18 @@ class ClientAPI {
         } catch (e: SerializationException) {
             logger.error("apiAddClient failed due to SerializationException", e)
             m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
-            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "Could not save new client. The server encountered a JSON syntax exception. Contact a system administrator for assistance.")
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Could not save new client. The server encountered a JSON syntax exception. Contact a system administrator for assistance.")
+            return JsonErrorView.VIEWNAME
         } catch (e: IllegalStateException) {
             logger.error("apiAddClient failed due to IllegalStateException", e)
             m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
-            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "Could not save new client. The server encountered an IllegalStateException. Refresh and try again - if the problem persists, contact a system administrator for assistance.")
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Could not save new client. The server encountered an IllegalStateException. Refresh and try again - if the problem persists, contact a system administrator for assistance.")
+            return JsonErrorView.VIEWNAME
         } catch (e: ValidationException) {
             logger.error("apiUpdateClient failed due to ValidationException", e)
             m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
-            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "Could not update client. The server encountered a ValidationException.")
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Could not update client. The server encountered a ValidationException.")
+            return JsonErrorView.VIEWNAME
         }
 
         // if they leave the client identifier empty, force it to be generated
@@ -181,8 +182,8 @@ class ClientAPI {
             if (clientBuilder.jwksUri.isNullOrEmpty() && clientBuilder.jwks == null) {
                 logger.error("tried to create client with private key auth but no private key")
                 m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
-                m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "Can not create a client with private key authentication without registering a key via the JWK Set URI or JWK Set Value.")
-                return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+                m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Can not create a client with private key authentication without registering a key via the JWK Set URI or JWK Set Value.")
+                return JsonErrorView.VIEWNAME
             }
 
             // otherwise we shouldn't have a secret for this client
@@ -190,26 +191,26 @@ class ClientAPI {
         } else {
             logger.error("unknown auth method")
             m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
-            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "Unknown auth method requested")
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Unknown auth method requested")
+            return JsonErrorView.VIEWNAME
         }
 
         clientBuilder.isDynamicallyRegistered = false
 
         try {
             val newClient = clientService.saveNewClient(clientBuilder.build())
-            m.addAttribute(org.mitre.openid.connect.view.JsonEntityView.ENTITY, newClient)
+            m.addAttribute(JsonEntityView.ENTITY, newClient)
 
-            return if (org.mitre.oauth2.web.AuthenticationUtilities.isAdmin(auth)) {
-                org.mitre.openid.connect.view.ClientEntityViewForAdmins.VIEWNAME
+            return if (AuthenticationUtilities.isAdmin(auth)) {
+                ClientEntityViewForAdmins.VIEWNAME
             } else {
-                org.mitre.openid.connect.view.ClientEntityViewForUsers.VIEWNAME
+                ClientEntityViewForUsers.VIEWNAME
             }
         } catch (e: IllegalArgumentException) {
             logger.error("Unable to save client: {}", e.message)
             m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
-            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "Unable to save client: " + e.message)
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Unable to save client: " + e.message)
+            return JsonErrorView.VIEWNAME
         } catch (e: PersistenceException) {
             val cause = e.cause
             if (cause is DatabaseException) {
@@ -217,8 +218,8 @@ class ClientAPI {
                 if (databaseExceptionCause is SQLIntegrityConstraintViolationException) {
                     logger.error("apiAddClient failed; duplicate client id entry found: {}", clientBuilder.clientId)
                     m.addAttribute(HttpCodeView.CODE, HttpStatus.CONFLICT)
-                    m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "Unable to save client. Duplicate client id entry found: " + clientBuilder.clientId)
-                    return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+                    m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Unable to save client. Duplicate client id entry found: " + clientBuilder.clientId)
+                    return JsonErrorView.VIEWNAME
                 }
             }
             throw e
@@ -237,7 +238,7 @@ class ClientAPI {
         auth: Authentication
     ): String {
         val json: JsonObject
-        val clientBuilder: ClientDetailsEntity.Builder
+        val clientBuilder: Builder
 
         try {
             json = Json.parseToJsonElement(jsonString).jsonObject
@@ -247,18 +248,18 @@ class ClientAPI {
         } catch (e: SerializationException) {
             logger.error("apiUpdateClient failed due to SerializationException", e)
             m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
-            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "Could not update client. The server encountered a JSON syntax exception. Contact a system administrator for assistance.")
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Could not update client. The server encountered a JSON syntax exception. Contact a system administrator for assistance.")
+            return JsonErrorView.VIEWNAME
         } catch (e: IllegalStateException) {
             logger.error("apiUpdateClient failed due to IllegalStateException", e)
             m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
-            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "Could not update client. The server encountered an IllegalStateException. Refresh and try again - if the problem persists, contact a system administrator for assistance.")
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Could not update client. The server encountered an IllegalStateException. Refresh and try again - if the problem persists, contact a system administrator for assistance.")
+            return JsonErrorView.VIEWNAME
         } catch (e: ValidationException) {
             logger.error("apiUpdateClient failed due to ValidationException", e)
             m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
-            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "Could not update client. The server encountered a ValidationException.")
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Could not update client. The server encountered a ValidationException.")
+            return JsonErrorView.VIEWNAME
         }
 
         val oldClient = clientService.getClientById(id)
@@ -266,8 +267,8 @@ class ClientAPI {
         if (oldClient == null) {
             logger.error("apiUpdateClient failed; client with id $id could not be found.")
             m.addAttribute(HttpCodeView.CODE, HttpStatus.NOT_FOUND)
-            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "Could not update client. The requested client with id " + id + "could not be found.")
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Could not update client. The requested client with id " + id + "could not be found.")
+            return JsonErrorView.VIEWNAME
         }
 
         // if they leave the client identifier empty, force it to be generated
@@ -289,8 +290,8 @@ class ClientAPI {
             if (clientBuilder.jwksUri.isNullOrEmpty() && clientBuilder.jwks == null) {
                 logger.error("tried to create client with private key auth but no private key")
                 m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
-                m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "Can not create a client with private key authentication without registering a key via the JWK Set URI or JWK Set Value.")
-                return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+                m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Can not create a client with private key authentication without registering a key via the JWK Set URI or JWK Set Value.")
+                return JsonErrorView.VIEWNAME
             }
 
             // otherwise we shouldn't have a secret for this client
@@ -298,24 +299,24 @@ class ClientAPI {
         } else {
             logger.error("unknown auth method")
             m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
-            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "Unknown auth method requested")
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Unknown auth method requested")
+            return JsonErrorView.VIEWNAME
         }
 
         try {
             val newClient = clientService.updateClient(oldClient, clientBuilder.build())
-            m.addAttribute(org.mitre.openid.connect.view.JsonEntityView.ENTITY, newClient)
+            m.addAttribute(JsonEntityView.ENTITY, newClient)
 
-            return if (org.mitre.oauth2.web.AuthenticationUtilities.isAdmin(auth)) {
-                org.mitre.openid.connect.view.ClientEntityViewForAdmins.VIEWNAME
+            return if (AuthenticationUtilities.isAdmin(auth)) {
+                ClientEntityViewForAdmins.VIEWNAME
             } else {
-                org.mitre.openid.connect.view.ClientEntityViewForUsers.VIEWNAME
+                ClientEntityViewForUsers.VIEWNAME
             }
         } catch (e: IllegalArgumentException) {
             logger.error("Unable to save client: {}", e.message)
             m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
-            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "Unable to save client: " + e.message)
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Unable to save client: " + e.message)
+            return JsonErrorView.VIEWNAME
         }
     }
 
@@ -330,9 +331,9 @@ class ClientAPI {
         if (client == null) {
             logger.error("apiDeleteClient failed; client with id $id could not be found.")
             modelAndView.modelMap[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
-            modelAndView.modelMap[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] =
+            modelAndView.modelMap[JsonErrorView.ERROR_MESSAGE] =
                 "Could not delete client. The requested client with id " + id + "could not be found."
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            return JsonErrorView.VIEWNAME
         } else {
             modelAndView.modelMap[HttpCodeView.CODE] = HttpStatus.OK
             clientService.deleteClient(client)
@@ -352,16 +353,16 @@ class ClientAPI {
         if (client == null) {
             logger.error("apiShowClient failed; client with id $id could not be found.")
             model.addAttribute(HttpCodeView.CODE, HttpStatus.NOT_FOUND)
-            model.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "The requested client with id $id could not be found.")
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            model.addAttribute(JsonErrorView.ERROR_MESSAGE, "The requested client with id $id could not be found.")
+            return JsonErrorView.VIEWNAME
         }
 
-        model.addAttribute(org.mitre.openid.connect.view.JsonEntityView.ENTITY, client)
+        model.addAttribute(JsonEntityView.ENTITY, client)
 
-        return if (org.mitre.oauth2.web.AuthenticationUtilities.isAdmin(auth)) {
-            org.mitre.openid.connect.view.ClientEntityViewForAdmins.VIEWNAME
+        return if (AuthenticationUtilities.isAdmin(auth)) {
+            ClientEntityViewForAdmins.VIEWNAME
         } else {
-            org.mitre.openid.connect.view.ClientEntityViewForUsers.VIEWNAME
+            ClientEntityViewForUsers.VIEWNAME
         }
     }
 
@@ -382,7 +383,7 @@ class ClientAPI {
                 ?: return ResponseEntity(HttpStatus.NOT_FOUND)
 
             val headers = HttpHeaders()
-            headers.contentType = MediaType.parseMediaType(image.contentType!!)
+            headers.contentType = MediaType.parseMediaType(image.contentType)
             headers.contentLength = image.length
 
             return ResponseEntity(image.data, headers, HttpStatus.OK)

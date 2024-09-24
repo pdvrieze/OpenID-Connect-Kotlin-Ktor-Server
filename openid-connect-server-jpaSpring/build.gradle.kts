@@ -20,7 +20,8 @@ dependencies {
     implementation(libs.commons.httpclient)
     implementation(libs.servlet.api)
 
-//    implementation(libs.persistence)
+    implementation(libs.eclipse.persistence.core)
+    implementation(libs.eclipse.persistence.jpa)
     implementation(libs.javax.persistence)
     implementation(libs.javax.ann)
 
