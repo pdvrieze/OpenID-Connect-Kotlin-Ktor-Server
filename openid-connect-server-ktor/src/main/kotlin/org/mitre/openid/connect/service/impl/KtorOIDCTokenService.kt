@@ -34,7 +34,7 @@ import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
-import org.mitre.oauth2.model.OAuth2Authentication
+import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.convert.OAuth2Request
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
@@ -211,7 +211,7 @@ class KtorOIDCTokenService(
             hashSetOf(GrantedAuthority("ROLE_CLIENT")), true,
             scope ?: emptySet(), null, null, null, extensionStrings = null
         )
-        val authentication = OAuth2Authentication(clientAuth, null)
+        val authentication = OAuth2RequestAuthentication(clientAuth, null)
 
         val tokenBuilder = OAuth2AccessTokenEntity.Builder()
         tokenBuilder.setClient(client)

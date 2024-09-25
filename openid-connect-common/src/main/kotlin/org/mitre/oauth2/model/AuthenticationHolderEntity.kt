@@ -58,9 +58,9 @@ class AuthenticationHolderEntity(
     var scope: Set<String>? = null,
     var requestParameters: Map<String, String>? = null,
 ) {
-    var authentication: OAuth2Authentication
+    var authentication: OAuth2RequestAuthentication
         get() =// TODO: memoize this
-            OAuth2Authentication(createOAuth2Request(), userAuth)
+            OAuth2RequestAuthentication(createOAuth2Request(), userAuth)
         set(authentication) {
             // pull apart the request and save its bits
 

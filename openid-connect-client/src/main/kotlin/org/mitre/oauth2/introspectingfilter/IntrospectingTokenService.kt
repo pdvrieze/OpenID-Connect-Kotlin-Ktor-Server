@@ -30,7 +30,7 @@ import org.mitre.oauth2.introspectingfilter.service.impl.SimpleIntrospectionAuth
 import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuth2AccessToken
-import org.mitre.oauth2.model.OAuth2Authentication
+import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.oauth2.model.SavedUserAuthentication
@@ -87,7 +87,7 @@ class IntrospectingTokenService(
     private val requestFactory = HttpComponentsClientHttpRequestFactory(httpClient)
 
     // Inner class to store in the hash map
-    private inner class TokenCacheObject(var token: OAuth2AccessToken, var auth: OAuth2Authentication) {
+    private inner class TokenCacheObject(var token: OAuth2AccessToken, var auth: OAuth2RequestAuthentication) {
         var cacheExpire: Date? = null
 
         init {
@@ -219,7 +219,7 @@ class IntrospectingTokenService(
             }
             // create an OAuth2Authentication
             val userAuth = createUserAuthentication(tokenResponse)?.let { it as? SavedUserAuthentication ?: SavedUserAuthentication(it) }
-            val auth = OAuth2Authentication(createStoredRequest(tokenResponse), userAuth)
+            val auth = OAuth2RequestAuthentication(createStoredRequest(tokenResponse), userAuth)
             // create an OAuth2AccessToken
             val token = createAccessToken(tokenResponse, accessToken)
 
@@ -237,7 +237,7 @@ class IntrospectingTokenService(
         return null
     }
 
-    private fun nonSpringLoadAuthentication(accessToken: String): OAuth2Authentication? {
+    private fun nonSpringLoadAuthentication(accessToken: String): OAuth2RequestAuthentication? {
         // First check if the in memory cache has an Authentication object, and
         // that it is still valid
         // If Valid, return it

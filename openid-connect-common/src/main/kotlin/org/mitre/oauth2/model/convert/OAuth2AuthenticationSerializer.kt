@@ -11,11 +11,11 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.decodeStructure
 import kotlinx.serialization.encoding.encodeStructure
 import org.mitre.oauth2.model.Authentication
-import org.mitre.oauth2.model.OAuth2Authentication
+import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.SavedUserAuthentication
 
 
-object OAuth2AuthenticationSerializer : KSerializer<OAuth2Authentication> {
+object OAuth2AuthenticationSerializer : KSerializer<OAuth2RequestAuthentication> {
     private val oAuth2RequestSerializer: KSerializer<OAuth2Request> = OAuth2Request.serializer()
     private val savedUserAuthenticationSerializer: KSerializer<Authentication> = AuthenticationSerializer
 
@@ -24,14 +24,14 @@ object OAuth2AuthenticationSerializer : KSerializer<OAuth2Authentication> {
         element("savedUserAuthentication", savedUserAuthenticationSerializer.descriptor)
     }
 
-    override fun serialize(encoder: Encoder, value: OAuth2Authentication) {
+    override fun serialize(encoder: Encoder, value: OAuth2RequestAuthentication) {
         encoder.encodeStructure(descriptor) {
             encodeSerializableElement(descriptor, 0, oAuth2RequestSerializer.nullable, value.oAuth2Request)
             encodeSerializableElement(descriptor, 1, savedUserAuthenticationSerializer.nullable, value.userAuthentication)
         }
     }
 
-    override fun deserialize(decoder: Decoder): OAuth2Authentication {
+    override fun deserialize(decoder: Decoder): OAuth2RequestAuthentication {
         return decoder.decodeStructure(descriptor) {
             var storedRequest: OAuth2Request? = null
             var userAuthentication: SavedUserAuthentication? = null
@@ -45,10 +45,10 @@ object OAuth2AuthenticationSerializer : KSerializer<OAuth2Authentication> {
                 }
             }
             requireNotNull(storedRequest)
-            OAuth2Authentication(storedRequest, userAuthentication)
+            OAuth2RequestAuthentication(storedRequest, userAuthentication)
         }
     }
 
 }
 
-typealias KXS_OAuth2Authentication = @Serializable(OAuth2AuthenticationSerializer::class) OAuth2Authentication
+typealias KXS_OAuth2Authentication = @Serializable(OAuth2AuthenticationSerializer::class) OAuth2RequestAuthentication

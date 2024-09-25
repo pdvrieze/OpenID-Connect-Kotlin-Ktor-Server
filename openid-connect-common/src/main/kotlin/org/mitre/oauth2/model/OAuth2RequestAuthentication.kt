@@ -2,7 +2,7 @@ package org.mitre.oauth2.model
 
 import org.mitre.oauth2.model.convert.OAuth2Request
 
-class OAuth2Authentication(
+class OAuth2RequestAuthentication(
     val oAuth2Request: OAuth2Request,
     val userAuthentication: SavedUserAuthentication?
 ) : Authentication {

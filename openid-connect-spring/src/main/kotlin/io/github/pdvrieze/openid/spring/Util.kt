@@ -2,7 +2,7 @@ package io.github.pdvrieze.openid.spring
 
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuth2AccessToken
-import org.mitre.oauth2.model.OAuth2Authentication
+import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuth2RefreshToken
 import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.convert.OAuth2Request
@@ -82,7 +82,7 @@ fun SavedUserAuthentication.toSpring(): SpringAuthentication {
 }
 
 
-fun OAuth2Authentication.toSpring(): SpringOAuth2Authentication =
+fun OAuth2RequestAuthentication.toSpring(): SpringOAuth2Authentication =
     SpringOAuth2Authentication(oAuth2Request.toSpring(), userAuthentication?.toSpring())
 
 fun OAuth2Request.toSpring(): SpringOAuth2Request =
@@ -160,8 +160,8 @@ fun OIDCAuthenticationToken.toSpring(): SpringAuthentication {
     }
 }
 
-fun SpringOAuth2Authentication.fromSpring(): OAuth2Authentication {
-    return OAuth2Authentication(
+fun SpringOAuth2Authentication.fromSpring(): OAuth2RequestAuthentication {
+    return OAuth2RequestAuthentication(
         oAuth2Request = oAuth2Request.fromSpring(),
         userAuthentication = userAuthentication?.fromSpring(),
     )

@@ -49,7 +49,7 @@ dependencies {
     implementation(libs.jwt)
 
     // DEPRECATED
-    implementation(libs.spring.oauth)
+//    implementation(libs.spring.oauth)
 
 
     testImplementation(libs.ktor.server.tests)

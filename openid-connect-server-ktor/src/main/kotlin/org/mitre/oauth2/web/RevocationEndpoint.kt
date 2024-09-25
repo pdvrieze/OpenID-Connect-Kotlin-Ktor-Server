@@ -24,7 +24,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.mitre.oauth2.exception.InvalidTokenException
 import org.mitre.oauth2.model.GrantedAuthority
-import org.mitre.oauth2.model.OAuth2Authentication
+import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.util.getLogger
@@ -52,7 +52,7 @@ class RevocationEndpoint : KtorEndpoint {
 
                 val clientService = clientService
 
-                if (auth is OAuth2Authentication) {
+                if (auth is OAuth2RequestAuthentication) {
                     // the client authenticated with OAuth, do our UMA checks
                     AuthenticationUtilities.ensureOAuthScope(auth, SystemScopeService.UMA_PROTECTION_SCOPE)
                     // get out the client that was issued the access token (not the token being revoked)

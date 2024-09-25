@@ -15,29 +15,41 @@
  */
 package org.mitre.uma.web
 
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import io.ktor.util.pipeline.*
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.long
+import org.mitre.oauth2.exception.OAuthErrorCodes
+import org.mitre.oauth2.exception.OAuthErrorCodes.INVALID_REQUEST
+import org.mitre.oauth2.model.Authentication
+import org.mitre.oauth2.model.GrantedAuthority
+import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.oauth2.web.AuthenticationUtilities.ensureOAuthScope
-import org.mitre.openid.connect.config.ConfigurationPropertiesBean
-import org.mitre.openid.connect.view.HttpCodeView
 import org.mitre.openid.connect.view.JsonEntityView
 import org.mitre.openid.connect.view.JsonErrorView
+import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.uma.model.ResourceSet
-import org.mitre.uma.service.ResourceSetService
-import org.mitre.uma.view.ResourceSetEntityAbbreviatedView
 import org.mitre.uma.view.ResourceSetEntityView
+import org.mitre.uma.view.resourceSetEntityAbbreviatedView
+import org.mitre.util.OAuth2PrincipalJwtAuthentication
 import org.mitre.util.asString
 import org.mitre.util.asStringSet
 import org.mitre.util.getLogger
-import org.springframework.beans.factory.annotation.Autowired
+import org.mitre.web.util.KtorEndpoint
+import org.mitre.web.util.config
+import org.mitre.web.util.requireRole
+import org.mitre.web.util.resourceSetService
+import org.mitre.web.util.scopeService
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.security.core.Authentication
-import org.springframework.security.oauth2.provider.OAuth2Authentication
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.util.MimeTypeUtils
@@ -50,95 +62,75 @@ import org.springframework.web.bind.annotation.RequestMethod
 @Controller
 @RequestMapping("/" + ResourceSetRegistrationEndpoint.URL)
 @PreAuthorize("hasRole('ROLE_USER')")
-class ResourceSetRegistrationEndpoint {
-    @Autowired
-    private lateinit var resourceSetService: ResourceSetService
+class ResourceSetRegistrationEndpoint: KtorEndpoint {
 
-    @Autowired
-    private lateinit var config: ConfigurationPropertiesBean
+    override fun Route.addRoutes() {
+        route("/resource_set/resource_set") {
+            post { createResourceSet() }
+            get("/{id}") { readResourceSet() }
+        }
+    }
 
-    @Autowired
-    private lateinit var scopeService: SystemScopeService
-
-    @RequestMapping(method = [RequestMethod.POST], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE], consumes = [MimeTypeUtils.APPLICATION_JSON_VALUE])
-    fun createResourceSet(@RequestBody jsonString: String, m: Model, auth: Authentication): String {
+//    @RequestMapping(method = [RequestMethod.POST], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE], consumes = [MimeTypeUtils.APPLICATION_JSON_VALUE])
+    suspend fun PipelineContext<Unit, ApplicationCall>.createResourceSet() {
+        val auth: Authentication = requireRole(GrantedAuthority.ROLE_USER) { return }
+        val jsonString = call.receiveText()
         ensureOAuthScope(auth, SystemScopeService.UMA_PROTECTION_SCOPE)
 
-        var rs = parseResourceSet(jsonString)
-
-        if (rs == null) { // there was no resource set in the body
+        var rs = parseResourceSet(jsonString) ?: run {
             logger.warn("Resource set registration missing body.")
-
-            m.addAttribute("code", HttpStatus.BAD_REQUEST)
-            m.addAttribute("error_description", "Resource request was missing body.")
-            return JsonErrorView.VIEWNAME
+            return jsonErrorView(INVALID_REQUEST, "Resource request was missing body.")
         }
 
-        if (auth is OAuth2Authentication) {
-            // if it's an OAuth mediated call, it's on behalf of a client, so store that
-            rs.clientId = auth.oAuth2Request.clientId
-            rs.owner = auth.getName() // the username is going to be in the auth object
-        } else {
-            // this one shouldn't be called if it's not OAuth
-            m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
-            m.addAttribute(JsonErrorView.ERROR_MESSAGE, "This call must be made with an OAuth token")
-            return JsonErrorView.VIEWNAME
+        if (auth !is OAuth2PrincipalJwtAuthentication) {
+            return jsonErrorView(INVALID_REQUEST, "This call must be made with an OAuth token")
         }
 
-        rs = validateScopes(rs)
+        // if it's an OAuth mediated call, it's on behalf of a client, so store that
+        rs.clientId = auth.oAuth2Request.clientId
+        rs.owner = auth.getName() // the username is going to be in the auth object
+
+        rs = validateScopes(scopeService, rs)
 
         if (rs.name.isNullOrEmpty() // there was no name (required)
-            || rs.scopes == null // there were no scopes (required)
+            || rs.scopes.isNullOrEmpty() // there were no scopes (required)
         ) {
             logger.warn("Resource set registration missing one or more required fields.")
-
-            m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
-            m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Resource request was missing one or more required fields.")
-            return JsonErrorView.VIEWNAME
+            return jsonErrorView(INVALID_REQUEST, "Resource request was missing one or more required fields.")
         }
 
         val saved = resourceSetService.saveNew(rs)
 
-        m.addAttribute(HttpCodeView.CODE, HttpStatus.CREATED)
-        m.addAttribute(JsonEntityView.ENTITY, saved)
-        m.addAttribute(ResourceSetEntityAbbreviatedView.LOCATION, config.issuer + URL + "/" + saved.id)
-
-        return ResourceSetEntityAbbreviatedView.VIEWNAME
+        return resourceSetEntityAbbreviatedView(saved, "${config.safeIssuer}$URL/${saved.id}", HttpStatusCode.Created)
     }
 
-    @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
-    fun readResourceSet(@PathVariable("id") id: Long, m: Model, auth: Authentication): String {
-        ensureOAuthScope(auth, SystemScopeService.UMA_PROTECTION_SCOPE)
+//    @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
+    suspend fun PipelineContext<Unit, ApplicationCall>.readResourceSet() {
+        val auth = requireRole(GrantedAuthority.ROLE_USER, SystemScopeService.UMA_PROTECTION_SCOPE) { return }
+        val id = call.request.queryParameters["id"]!!.toLong()
 
         var rs = resourceSetService.getById(id)
+            ?: return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST, HttpStatusCode.NotFound, "Resource not found")
 
-        if (rs == null) {
-            m.addAttribute("code", HttpStatus.NOT_FOUND)
-            m.addAttribute("error", "not_found")
-            return JsonErrorView.VIEWNAME
-        } else {
-            rs = validateScopes(rs)
+    rs = validateScopes(scopeService, rs)
 
-            if (auth.name != rs.owner) {
-                logger.warn("Unauthorized resource set request from wrong user; expected " + rs.owner + " got " + auth.name)
-
-                // it wasn't issued to this user
-                m.addAttribute(HttpCodeView.CODE, HttpStatus.FORBIDDEN)
-                return JsonErrorView.VIEWNAME
-            } else {
-                m.addAttribute(JsonEntityView.ENTITY, rs)
-                return ResourceSetEntityView.VIEWNAME
-            }
-        }
+    if (auth.name != rs.owner) {
+        logger.warn("Unauthorized resource set request from wrong user; expected " + rs.owner + " got " + auth.name)
+        return jsonErrorView(OAuthErrorCodes.ACCESS_DENIED)
+    } else {
+        return
+        m.addAttribute(JsonEntityView.ENTITY, rs)
+        return ResourceSetEntityView.VIEWNAME
     }
+}
 
     @RequestMapping(value = ["/{id}"], method = [RequestMethod.PUT], consumes = [MimeTypeUtils.APPLICATION_JSON_VALUE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
-    fun updateResourceSet(
+    suspend fun PipelineContext<Unit, ApplicationCall>.updateResourceSet(
         @PathVariable("id") id: Long,
         @RequestBody jsonString: String,
         m: Model,
         auth: Authentication
-    ): String {
+    ) {
         ensureOAuthScope(auth, SystemScopeService.UMA_PROTECTION_SCOPE)
 
         val newRs = parseResourceSet(jsonString)
@@ -171,14 +163,14 @@ class ResourceSetRegistrationEndpoint {
                 val saved = resourceSetService.update(rs, newRs)
 
                 m.addAttribute(JsonEntityView.ENTITY, saved)
-                m.addAttribute(ResourceSetEntityAbbreviatedView.LOCATION, config.issuer + URL + "/" + rs.id)
-                return ResourceSetEntityAbbreviatedView.VIEWNAME
+                m.addAttribute(org.mitre.uma.view.ResourceSetEntityAbbreviatedView.LOCATION, config.issuer + URL + "/" + rs.id)
+                return org.mitre.uma.view.ResourceSetEntityAbbreviatedView.VIEWNAME
             }
         }
     }
 
     @RequestMapping(value = ["/{id}"], method = [RequestMethod.DELETE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
-    fun deleteResourceSet(@PathVariable("id") id: Long, m: Model, auth: Authentication): String {
+    suspend fun PipelineContext<Unit, ApplicationCall>.deleteResourceSet(@PathVariable("id") id: Long, m: Model, auth: Authentication): String {
         ensureOAuthScope(auth, SystemScopeService.UMA_PROTECTION_SCOPE)
 
         val rs = resourceSetService.getById(id)
@@ -194,7 +186,7 @@ class ResourceSetRegistrationEndpoint {
                 // it wasn't issued to this user
                 m.addAttribute(HttpCodeView.CODE, HttpStatus.FORBIDDEN)
                 return JsonErrorView.VIEWNAME
-            } else if (auth is OAuth2Authentication &&
+            } else if (auth is OAuth2RequestAuthentication &&
                 auth.oAuth2Request.clientId != rs.clientId
             ) {
                 logger.warn("Unauthorized resource set request from bad client; expected " + rs.clientId + " got " + auth.oAuth2Request.clientId)
@@ -214,13 +206,13 @@ class ResourceSetRegistrationEndpoint {
     }
 
     @RequestMapping(method = [RequestMethod.GET], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
-    fun listResourceSets(m: Model, auth: Authentication): String {
+    suspend fun PipelineContext<Unit, ApplicationCall>.listResourceSets(m: Model, auth: Authentication) {
         ensureOAuthScope(auth, SystemScopeService.UMA_PROTECTION_SCOPE)
 
         val owner = auth.name
 
         val resourceSets: Collection<ResourceSet>
-        if (auth is OAuth2Authentication) {
+        if (auth is OAuth2RequestAuthentication) {
             // if it's an OAuth mediated call, it's on behalf of a client, so look that up too
             resourceSets = resourceSetService.getAllForOwnerAndClient(owner, auth.oAuth2Request.clientId)
         } else {
@@ -259,7 +251,7 @@ class ResourceSetRegistrationEndpoint {
     /**
      * Make sure the resource set doesn't have any restricted or reserved scopes.
      */
-    private fun validateScopes(rs: ResourceSet): ResourceSet {
+    private fun validateScopes(scopeService: SystemScopeService, rs: ResourceSet): ResourceSet {
         // scopes that the client is asking for
         val requestedScopes = scopeService.fromStrings(rs.scopes)
 

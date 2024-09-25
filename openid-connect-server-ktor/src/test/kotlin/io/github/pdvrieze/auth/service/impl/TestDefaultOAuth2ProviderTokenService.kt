@@ -30,7 +30,7 @@ import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
-import org.mitre.oauth2.model.OAuth2Authentication
+import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.convert.OAuth2Request
@@ -71,7 +71,7 @@ import kotlin.collections.HashSet
 @MockitoSettings(strictness = Strictness.WARN)
 class TestDefaultOAuth2ProviderTokenService {
     // Test Fixture:
-    private lateinit var authentication: OAuth2Authentication
+    private lateinit var authentication: OAuth2RequestAuthentication
     private lateinit var client: ClientDetailsEntity
     private lateinit var badClient: ClientDetailsEntity
     private lateinit var refreshToken: OAuth2RefreshTokenEntity
@@ -80,7 +80,7 @@ class TestDefaultOAuth2ProviderTokenService {
 
     // for use when refreshing access tokens
     private lateinit var storedAuthRequest: OAuth2Request
-    private lateinit var storedAuthentication: OAuth2Authentication
+    private lateinit var storedAuthentication: OAuth2RequestAuthentication
     private lateinit var storedAuthHolder: AuthenticationHolderEntity
     private lateinit var storedScope: Set<String>
 
@@ -120,7 +120,7 @@ class TestDefaultOAuth2ProviderTokenService {
             approvedSiteService = approvedSiteService,
         )
 
-        authentication = mock<OAuth2Authentication>()
+        authentication = mock<OAuth2RequestAuthentication>()
         val clientAuth = OAuth2Request(
             clientId = clientId,
             isApproved = true,
@@ -183,7 +183,7 @@ class TestDefaultOAuth2ProviderTokenService {
 
         // unused by mockito (causs unnecessary stubbing exception
 //		when(scopeService.removeRestrictedAndReservedScopes(anySet())).then(returnsFirstArg());
-        whenever(tokenEnhancer.enhance(isA<OAuth2AccessTokenEntity.Builder>(), isA<OAuth2Authentication>()))
+        whenever(tokenEnhancer.enhance(isA<OAuth2AccessTokenEntity.Builder>(), isA<OAuth2RequestAuthentication>()))
             .thenAnswer { invocation ->
                 Unit
 //                val args = invocation.arguments

@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
-import org.mitre.oauth2.model.OAuth2Authentication
+import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.convert.OAuth2Request
@@ -310,7 +310,7 @@ class TestDefaultIntrospectionResultAssembler {
         scopes: Set<String>,
         permissions: Set<Permission>?,
         tokenType: String,
-        authentication: OAuth2Authentication
+        authentication: OAuth2RequestAuthentication
     ): OAuth2AccessTokenEntity {
         return org.mockito.kotlin.mock<OAuth2AccessTokenEntity>(defaultAnswer = org.mockito.Mockito.RETURNS_DEEP_STUBS).also {
             org.mockito.kotlin.given(it.expiration).willReturn(exp)
@@ -321,7 +321,7 @@ class TestDefaultIntrospectionResultAssembler {
         }
     }
 
-    private fun refreshToken(exp: Date?, authentication: OAuth2Authentication): OAuth2RefreshTokenEntity {
+    private fun refreshToken(exp: Date?, authentication: OAuth2RequestAuthentication): OAuth2RefreshTokenEntity {
         org.mockito.kotlin.mock<OAuth2AccessTokenEntity>(defaultAnswer = org.mockito.Mockito.RETURNS_DEEP_STUBS)
         return org.mockito.kotlin.mock<OAuth2RefreshTokenEntity>(defaultAnswer = org.mockito.Mockito.RETURNS_DEEP_STUBS)
             .apply {
@@ -330,7 +330,7 @@ class TestDefaultIntrospectionResultAssembler {
         }
     }
 
-    private fun oauth2AuthenticationWithUser(request: OAuth2Request, username: String): OAuth2Authentication {
+    private fun oauth2AuthenticationWithUser(request: OAuth2Request, username: String): OAuth2RequestAuthentication {
         val userAuthentication = object : Authentication {
             override val name: String get() = username
             override val authorities: Collection<GrantedAuthority> get() = emptySet()
@@ -342,8 +342,8 @@ class TestDefaultIntrospectionResultAssembler {
     private fun oauth2Authentication(
         request: OAuth2Request,
         userAuthentication: Authentication?
-    ): OAuth2Authentication {
-        return OAuth2Authentication(request, userAuthentication?.let { SavedUserAuthentication.from(it) })
+    ): OAuth2RequestAuthentication {
+        return OAuth2RequestAuthentication(request, userAuthentication?.let { SavedUserAuthentication.from(it) })
     }
 
     private fun oauth2Request(clientId: String, scopes: Set<String>? = null): OAuth2Request {

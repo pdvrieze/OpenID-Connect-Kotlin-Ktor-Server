@@ -37,6 +37,11 @@ class ConfigurationPropertiesBean {
      */
     lateinit var issuer: String
 
+    val safeIssuer: String get() = when (issuer.last()) {
+        '/' -> issuer
+        else -> "$issuer/"
+    }
+
     @Deprecated("Doesn't initialize issuer")
     constructor()
     constructor(issuer: String) {

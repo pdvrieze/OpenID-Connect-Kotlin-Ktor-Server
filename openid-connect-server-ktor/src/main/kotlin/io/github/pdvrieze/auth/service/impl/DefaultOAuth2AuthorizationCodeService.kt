@@ -21,7 +21,7 @@ import org.mitre.data.AbstractPageOperationTemplate
 import org.mitre.oauth2.exception.InvalidGrantException
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.AuthorizationCodeEntity
-import org.mitre.oauth2.model.OAuth2Authentication
+import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.AuthorizationCodeRepository
 import org.mitre.oauth2.util.RandomStringGenerator
@@ -50,7 +50,7 @@ class DefaultOAuth2AuthorizationCodeService {
      * code is consumed
      * @return                    the authorization code
      */
-    fun createAuthorizationCode(authentication: OAuth2Authentication): String {
+    fun createAuthorizationCode(authentication: OAuth2RequestAuthentication): String {
         val code = generator.generate()
 
         // attach the authorization so that we can look it up later
@@ -77,7 +77,7 @@ class DefaultOAuth2AuthorizationCodeService {
      * @return            the authentication that made the original request
      * @throws            InvalidGrantException, if an AuthorizationCodeEntity is not found with the given value
      */
-    fun consumeAuthorizationCode(code: String): OAuth2Authentication {
+    fun consumeAuthorizationCode(code: String): OAuth2RequestAuthentication {
         val result = repository.getByCode(code)
             ?: throw InvalidGrantException("JpaAuthorizationCodeRepository: no authorization code found for value $code")
 

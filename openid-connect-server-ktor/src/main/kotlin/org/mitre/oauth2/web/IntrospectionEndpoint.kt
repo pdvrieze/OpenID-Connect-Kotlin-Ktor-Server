@@ -25,7 +25,7 @@ import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
 import org.mitre.oauth2.exception.InvalidTokenException
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
-import org.mitre.oauth2.model.OAuth2Authentication
+import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.service.JsonIntrospectionResultAssembler
@@ -67,7 +67,7 @@ class IntrospectionEndpoint: KtorEndpoint {
         val authClient: OAuthClientDetails
         val authScopes: MutableSet<String> = HashSet()
 
-        if (auth is OAuth2Authentication) {
+        if (auth is OAuth2RequestAuthentication) {
             // the client authenticated with OAuth, do our UMA checks
             AuthenticationUtilities.ensureOAuthScope(auth, SystemScopeService.UMA_PROTECTION_SCOPE)
 

@@ -10,7 +10,7 @@ import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
-import org.mitre.oauth2.model.OAuth2Authentication
+import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.convert.OAuth2Request
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
@@ -39,7 +39,7 @@ class TestConnectTokenEnhancer {
     private lateinit var connectTokenService: OIDCTokenService
 
     @Mock
-    private lateinit var authentication: OAuth2Authentication
+    private lateinit var authentication: OAuth2RequestAuthentication
 
     private val request: OAuth2Request = OAuth2Request(clientId = CLIENT_ID)
 
@@ -76,7 +76,7 @@ class TestConnectTokenEnhancer {
             override fun addCustomAccessTokenClaims(
                 builder: JWTClaimsSet.Builder,
                 token: OAuth2AccessToken.Builder,
-                authentication: OAuth2Authentication?
+                authentication: OAuth2RequestAuthentication?
             ) {
                 builder.claim("test", "foo")
             }

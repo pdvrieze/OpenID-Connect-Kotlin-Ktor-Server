@@ -1,6 +1,6 @@
 package org.mitre.uma.service
 
-import org.mitre.oauth2.model.OAuth2Authentication
+import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.uma.model.PermissionTicket
 import org.mitre.uma.model.Policy
 
@@ -14,7 +14,7 @@ interface UmaTokenService {
      * Create the RPT from the given authentication and ticket.
      */
     fun createRequestingPartyToken(
-        o2auth: OAuth2Authentication,
+        o2auth: OAuth2RequestAuthentication,
         ticket: PermissionTicket,
         policy: Policy
     ): org.mitre.oauth2.model.OAuth2AccessTokenEntity

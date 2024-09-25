@@ -27,6 +27,8 @@ interface OAuth2AccessToken {
     val authenticationHolder: AuthenticationHolderEntity
     val client: OAuthClientDetails?
 
+    val issuer get() = jwt.jwtClaimsSet.issuer
+
     companion object {
         val BEARER_TYPE = "Bearer"
         val OAUTH2_TYPE = "OAuth2"

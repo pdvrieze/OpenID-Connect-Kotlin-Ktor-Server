@@ -23,7 +23,7 @@ import com.nimbusds.jwt.SignedJWT
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.oauth2.TokenEnhancer
 import org.mitre.oauth2.model.OAuth2AccessToken
-import org.mitre.oauth2.model.OAuth2Authentication
+import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
@@ -40,7 +40,7 @@ abstract class ConnectTokenEnhancer: TokenEnhancer {
     abstract val userInfoService: UserInfoService
     abstract val connectTokenService: OIDCTokenService
 
-    override fun enhance(accessToken: OAuth2AccessToken.Builder, authentication: OAuth2Authentication) {
+    override fun enhance(accessToken: OAuth2AccessToken.Builder, authentication: OAuth2RequestAuthentication) {
         val originalAuthRequest = authentication.oAuth2Request
 
         val clientId = originalAuthRequest.clientId
@@ -116,7 +116,7 @@ abstract class ConnectTokenEnhancer: TokenEnhancer {
      */
     protected open fun addCustomAccessTokenClaims(
         builder: JWTClaimsSet.Builder, token: OAuth2AccessToken.Builder,
-        authentication: OAuth2Authentication?
+        authentication: OAuth2RequestAuthentication?
     ) {
     }
 

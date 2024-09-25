@@ -21,7 +21,7 @@ import com.nimbusds.jwt.SignedJWT
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
-import org.mitre.oauth2.model.OAuth2Authentication
+import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.OAuth2TokenEntityService
@@ -55,7 +55,7 @@ class DefaultUmaTokenService : UmaTokenService {
     private lateinit var jwtService: JWTSigningAndValidationService
 
     override fun createRequestingPartyToken(
-        o2auth: OAuth2Authentication,
+        o2auth: OAuth2RequestAuthentication,
         ticket: PermissionTicket,
         policy: Policy
     ): OAuth2AccessTokenEntity {

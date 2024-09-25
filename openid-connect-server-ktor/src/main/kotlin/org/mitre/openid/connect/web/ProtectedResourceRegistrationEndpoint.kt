@@ -27,7 +27,7 @@ import org.mitre.oauth2.exception.OAuthErrorCodes
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
-import org.mitre.oauth2.model.OAuth2Authentication
+import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.model.RegisteredClient
@@ -353,7 +353,7 @@ class ProtectedResourceRegistrationEndpoint: KtorEndpoint {
     }
 
     private suspend fun PipelineContext<Unit, ApplicationCall>.fetchValidRegistrationToken(
-        auth: OAuth2Authentication,
+        auth: OAuth2RequestAuthentication,
         client: OAuthClientDetails
     ): OAuth2AccessTokenEntity {
         val config = openIdContext.config

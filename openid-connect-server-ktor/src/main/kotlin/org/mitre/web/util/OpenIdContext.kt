@@ -28,6 +28,7 @@ import org.mitre.openid.connect.repository.WhitelistedSiteRepository
 import org.mitre.openid.connect.request.KtorOAuth2RequestFactory
 import org.mitre.openid.connect.service.ApprovedSiteService
 import org.mitre.openid.connect.service.BlacklistedSiteService
+import org.mitre.openid.connect.service.MITREidDataServiceExtension
 import org.mitre.openid.connect.service.OIDCTokenService
 import org.mitre.openid.connect.service.PairwiseIdentifierService
 import org.mitre.openid.connect.service.ScopeClaimTranslationService
@@ -36,12 +37,17 @@ import org.mitre.openid.connect.service.UserInfoService
 import org.mitre.openid.connect.service.WhitelistedSiteService
 import org.mitre.uma.repository.PermissionRepository
 import org.mitre.uma.repository.ResourceSetRepository
+import org.mitre.uma.service.ClaimsProcessingService
+import org.mitre.uma.service.PermissionService
 import org.mitre.uma.service.ResourceSetService
+import org.mitre.uma.service.SavedRegisteredClientService
+import org.mitre.uma.service.UmaTokenService
 import org.mitre.web.HtmlViews
 
 interface OpenIdContext {
     fun resolveAuthenticatedUser(authenticationContext: ApplicationCall): Authentication?
 
+    //region Regular services
     val authRequestFactory: KtorOAuth2RequestFactory
     val approvedSiteService: ApprovedSiteService
     val blacklistedSiteService: BlacklistedSiteService
@@ -56,7 +62,6 @@ interface OpenIdContext {
     val oidcTokenService: OIDCTokenService
     val pairwiseIdentifierService: PairwiseIdentifierService
     val redirectResolver: RedirectResolver
-    val resourceSetService: ResourceSetService
     val routeSetService: ResourceSetService
     val scopeClaimTranslationService: ScopeClaimTranslationService
     val scopeService: SystemScopeService
@@ -71,7 +76,9 @@ interface OpenIdContext {
 
     val symetricCacheService: SymmetricKeyJWTValidatorCacheService
     val encyptersService: ClientKeyCacheService
+    //endregion
 
+    //region Regular repositories
     val approvedSiteRepository: ApprovedSiteRepository
     val authenticationHolderRepository: AuthenticationHolderRepository
     val blacklistedSiteRepository: BlacklistedSiteRepository
@@ -82,8 +89,19 @@ interface OpenIdContext {
     val tokenRepository: OAuth2TokenRepository
     val userInfoRepository: UserInfoRepository
     val whitelistedSiteRepository: WhitelistedSiteRepository
+    //endregion
 
+    //region Uma Services
+    val claimsProcessingService: ClaimsProcessingService
+    val permissionService: PermissionService
+    val resourceSetService: ResourceSetService
+    val savedRegisteredClientService: SavedRegisteredClientService
+    val umaTokenService: UmaTokenService
+    //endregion
+
+    //region Access to the html views
     val htmlViews: HtmlViews
+    //endregion
 }
 
 
@@ -98,7 +116,7 @@ fun PipelineContext<*, ApplicationCall>.resolveAuthenticatedUser(): Authenticati
     return openIdContext.resolveAuthenticatedUser(call)
 }
 
-
+//region Direct accessors to regular services
 val PipelineContext<*, ApplicationCall>.approvedSiteService: ApprovedSiteService
     get() = openIdContext.approvedSiteService
 val PipelineContext<*, ApplicationCall>.blacklistedSiteService: BlacklistedSiteService
@@ -123,8 +141,6 @@ val PipelineContext<*, ApplicationCall>.pairwiseIdentifierService: PairwiseIdent
     get() = openIdContext.pairwiseIdentifierService
 val PipelineContext<*, ApplicationCall>.redirectResolver: RedirectResolver
     get() = openIdContext.redirectResolver
-val PipelineContext<*, ApplicationCall>.resourceSetService: ResourceSetService
-    get() = openIdContext.resourceSetService
 val PipelineContext<*, ApplicationCall>.routeSetService: ResourceSetService
     get() = openIdContext.routeSetService
 val PipelineContext<*, ApplicationCall>.scopeClaimTranslationService: ScopeClaimTranslationService
@@ -148,7 +164,22 @@ val PipelineContext<*, ApplicationCall>.symetricCacheService: SymmetricKeyJWTVal
     get() = openIdContext.symetricCacheService
 val PipelineContext<*, ApplicationCall>.encryptersService: ClientKeyCacheService
     get() = openIdContext.encyptersService
+//endregion
 
+//region Direct access to UMA services
+val PipelineContext<*, ApplicationCall>.claimsProcessingService: ClaimsProcessingService
+    get() = openIdContext.claimsProcessingService
+val PipelineContext<*, ApplicationCall>.permissionService: PermissionService
+    get() = openIdContext.permissionService
+val PipelineContext<*, ApplicationCall>.resourceSetService: ResourceSetService
+    get() = openIdContext.resourceSetService
+val PipelineContext<*, ApplicationCall>.savedRegisteredClientService: SavedRegisteredClientService
+    get() = openIdContext.savedRegisteredClientService
+val PipelineContext<*, ApplicationCall>.umaTokenService: UmaTokenService
+    get() = openIdContext.umaTokenService
+//endregion
+
+//region direct access to regular repositories
 val PipelineContext<*, ApplicationCall>.approvedSiteRepository: ApprovedSiteRepository
     get() = openIdContext.approvedSiteRepository
 val PipelineContext<*, ApplicationCall>.authenticationHolderRepository: AuthenticationHolderRepository
@@ -169,7 +200,7 @@ val PipelineContext<*, ApplicationCall>.userInfoRepository: UserInfoRepository
     get() = openIdContext.userInfoRepository
 val PipelineContext<*, ApplicationCall>.whitelistedSiteRepository: WhitelistedSiteRepository
     get() = openIdContext.whitelistedSiteRepository
-
+//endregion
 
 class OpenIdContextPlugin(val context: OpenIdContext) {
 

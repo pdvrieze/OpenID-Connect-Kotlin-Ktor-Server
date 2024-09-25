@@ -31,7 +31,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
-import org.mitre.oauth2.model.OAuth2Authentication
+import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.PKCEAlgorithm
 import org.mitre.oauth2.model.PKCEAlgorithm.Companion.parse
@@ -1344,7 +1344,7 @@ class TestMITREidDataService_1_3 {
         )
         val mockAuth1: SavedUserAuthentication =  SavedUserAuthentication(name = "mockAuth1")
 //            UsernamePasswordAuthenticationToken("user1", "pass1", AuthorityUtils.commaSeparatedStringToAuthorityList("ROLE_USER"))
-        val auth1 = OAuth2Authentication(req1, mockAuth1)
+        val auth1 = OAuth2RequestAuthentication(req1, mockAuth1)
 
         val holder1 = AuthenticationHolderEntity()
         holder1.id = 1L
@@ -1355,7 +1355,7 @@ class TestMITREidDataService_1_3 {
             isApproved = true,
             redirectUri = "http://bar.com",
         )
-        val auth2 = OAuth2Authentication(req2, null)
+        val auth2 = OAuth2RequestAuthentication(req2, null)
 
         val holder2 = AuthenticationHolderEntity()
         holder2.id = 2L
@@ -1455,7 +1455,7 @@ class TestMITREidDataService_1_3 {
             redirectUri = "http://foo.com",
         )
         val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
-        val auth1 = OAuth2Authentication(req1, mockAuth1)
+        val auth1 = OAuth2RequestAuthentication(req1, mockAuth1)
 
         val holder1 = AuthenticationHolderEntity()
         holder1.id = 1L
@@ -1467,7 +1467,7 @@ class TestMITREidDataService_1_3 {
             redirectUri = "http://bar.com",
         )
         val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
-        val auth2 = OAuth2Authentication(req2, mockAuth2)
+        val auth2 = OAuth2RequestAuthentication(req2, mockAuth2)
 
         val holder2 = AuthenticationHolderEntity()
         holder2.id = 2L
@@ -1712,7 +1712,7 @@ class TestMITREidDataService_1_3 {
             redirectUri = "http://foo.com",
         )
         val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
-        val auth1 = OAuth2Authentication(req1, mockAuth1)
+        val auth1 = OAuth2RequestAuthentication(req1, mockAuth1)
 
         val holder1 = AuthenticationHolderEntity()
         holder1.id = 1L
@@ -1738,7 +1738,7 @@ class TestMITREidDataService_1_3 {
             redirectUri = "http://bar.com",
         )
         val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
-        val auth2 = OAuth2Authentication(req2, mockAuth2)
+        val auth2 = OAuth2RequestAuthentication(req2, mockAuth2)
 
         val holder2 = AuthenticationHolderEntity()
         holder2.id = 2L

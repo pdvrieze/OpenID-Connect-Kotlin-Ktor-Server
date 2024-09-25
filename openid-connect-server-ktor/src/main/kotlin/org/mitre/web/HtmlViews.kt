@@ -98,8 +98,8 @@ suspend fun PipelineContext<Unit, ApplicationCall>.htmlApproveView(
 suspend fun PipelineContext<Unit, ApplicationCall>.htmlApproveDeviceView(
     client: OAuthClientDetails,
     scopes: Set<SystemScope>,
-    claims:  Map<String?, Map<String, String>>,
-    exception: OAuth2Exception?,
+    claims:  Map<String?, Map<String, String>> = emptyMap(),
+    exception: OAuth2Exception? = null,
     count:Int = 0,
     gras: Boolean = false,
     contacts: String? = null,

@@ -30,7 +30,7 @@ import org.mitre.oauth2.exception.InvalidTokenException
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
-import org.mitre.oauth2.model.OAuth2Authentication
+import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.PKCEAlgorithm
@@ -115,7 +115,7 @@ class DefaultOAuth2ProviderTokenService(
     }
 
 
-    override fun createAccessToken(authentication: OAuth2Authentication): OAuth2AccessToken {
+    override fun createAccessToken(authentication: OAuth2RequestAuthentication): OAuth2AccessToken {
         // look up our client
         val request = authentication.oAuth2Request
 
@@ -343,7 +343,7 @@ class DefaultOAuth2ProviderTokenService(
         return token
     }
 
-    override fun loadAuthentication(accessTokenValue: String): OAuth2Authentication {
+    override fun loadAuthentication(accessTokenValue: String): OAuth2RequestAuthentication {
         val accessToken = clearExpiredAccessToken(tokenRepository.getAccessTokenByValue(accessTokenValue))
 
         if (accessToken == null) {
@@ -367,7 +367,7 @@ class DefaultOAuth2ProviderTokenService(
     /**
      * Get an access token by its authentication object.
      */
-    override fun getAccessToken(authentication: OAuth2Authentication): OAuth2AccessToken {
+    override fun getAccessToken(authentication: OAuth2RequestAuthentication): OAuth2AccessToken {
         // TODO: implement this against the new service (#825)
         throw UnsupportedOperationException("Unable to look up access token from authentication object.")
     }

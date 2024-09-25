@@ -129,7 +129,7 @@ class TestSignedAuthRequestUrlBuilder {
         assertEquals(responseType, claims!!.getClaim("response_type"))
         assertEquals(clientConfig.clientId, claims.getClaim("client_id"))
 
-        val scopeList = (claims.getClaim("scope") as String)
+        val scopeList = (claims.getStringClaim("scope") as String)
                 .split(" ".toRegex())
                 .dropLastWhile { it.isEmpty() }
                 .toList()

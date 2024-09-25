@@ -62,7 +62,7 @@ class SpringClientDetailsEntity(base: OAuthClientDetails) : ClientDetailsEntity(
     codeChallengeMethod = base.codeChallengeMethod,
     accessTokenValiditySeconds = base.accessTokenValiditySeconds
 ), ClientDetails {
-    override fun getClientId(): String? = super.clientId
+    override var clientId: String? = super.clientId
 
     override fun getResourceIds(): Set<String> = super.resourceIds
 
