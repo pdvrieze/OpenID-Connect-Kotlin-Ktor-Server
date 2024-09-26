@@ -17,6 +17,7 @@ package org.mitre.uma.web
 
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -32,14 +33,13 @@ import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.service.SystemScopeService
+import org.mitre.oauth2.view.respondJson
 import org.mitre.oauth2.web.AuthenticationUtilities.ensureOAuthScope
 import org.mitre.openid.connect.view.JsonEntityView
 import org.mitre.openid.connect.view.JsonErrorView
 import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.uma.model.ResourceSet
-import org.mitre.uma.view.ResourceSetEntityView
 import org.mitre.uma.view.resourceSetEntityAbbreviatedView
-import org.mitre.util.OAuth2PrincipalJwtAuthentication
 import org.mitre.util.asString
 import org.mitre.util.asStringSet
 import org.mitre.util.getLogger
@@ -48,26 +48,20 @@ import org.mitre.web.util.config
 import org.mitre.web.util.requireRole
 import org.mitre.web.util.resourceSetService
 import org.mitre.web.util.scopeService
-import org.springframework.http.HttpStatus
-import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.stereotype.Controller
-import org.springframework.ui.Model
-import org.springframework.util.MimeTypeUtils
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
 
-
-@Controller
-@RequestMapping("/" + ResourceSetRegistrationEndpoint.URL)
-@PreAuthorize("hasRole('ROLE_USER')")
+//@RequestMapping("/resource_set/resource_set")
+//@PreAuthorize("hasRole('ROLE_USER')")
 class ResourceSetRegistrationEndpoint: KtorEndpoint {
 
     override fun Route.addRoutes() {
         route("/resource_set/resource_set") {
-            post { createResourceSet() }
-            get("/{id}") { readResourceSet() }
+            authenticate {
+                post { createResourceSet() }
+                get("/{id}") { readResourceSet() }
+                put("/{id}") { updateResourceSet() }
+                delete("/{id}") { deleteResourceSet() }
+                get { listResourceSets() }
+            }
         }
     }
 
@@ -82,19 +76,18 @@ class ResourceSetRegistrationEndpoint: KtorEndpoint {
             return jsonErrorView(INVALID_REQUEST, "Resource request was missing body.")
         }
 
-        if (auth !is OAuth2PrincipalJwtAuthentication) {
+        if (auth !is OAuth2RequestAuthentication) {
             return jsonErrorView(INVALID_REQUEST, "This call must be made with an OAuth token")
         }
 
         // if it's an OAuth mediated call, it's on behalf of a client, so store that
         rs.clientId = auth.oAuth2Request.clientId
-        rs.owner = auth.getName() // the username is going to be in the auth object
+        rs.owner = auth.name // the username is going to be in the auth object
 
         rs = validateScopes(scopeService, rs)
 
-        if (rs.name.isNullOrEmpty() // there was no name (required)
-            || rs.scopes.isNullOrEmpty() // there were no scopes (required)
-        ) {
+        // there was no name (required) or there were no scopes (required)
+        if (rs.name.isEmpty() || rs.scopes.isEmpty()) {
             logger.warn("Resource set registration missing one or more required fields.")
             return jsonErrorView(INVALID_REQUEST, "Resource request was missing one or more required fields.")
         }
@@ -110,7 +103,7 @@ class ResourceSetRegistrationEndpoint: KtorEndpoint {
         val id = call.request.queryParameters["id"]!!.toLong()
 
         var rs = resourceSetService.getById(id)
-            ?: return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST, HttpStatusCode.NotFound, "Resource not found")
+            ?: return jsonErrorView(INVALID_REQUEST, HttpStatusCode.NotFound, "Resource not found")
 
     rs = validateScopes(scopeService, rs)
 
@@ -118,96 +111,66 @@ class ResourceSetRegistrationEndpoint: KtorEndpoint {
         logger.warn("Unauthorized resource set request from wrong user; expected " + rs.owner + " got " + auth.name)
         return jsonErrorView(OAuthErrorCodes.ACCESS_DENIED)
     } else {
-        return
-        m.addAttribute(JsonEntityView.ENTITY, rs)
-        return ResourceSetEntityView.VIEWNAME
+        return call.respondJson(rs)
     }
 }
 
-    @RequestMapping(value = ["/{id}"], method = [RequestMethod.PUT], consumes = [MimeTypeUtils.APPLICATION_JSON_VALUE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.updateResourceSet(
-        @PathVariable("id") id: Long,
-        @RequestBody jsonString: String,
-        m: Model,
-        auth: Authentication
-    ) {
-        ensureOAuthScope(auth, SystemScopeService.UMA_PROTECTION_SCOPE)
+//    @RequestMapping(value = ["/{id}"], method = [RequestMethod.PUT], consumes = [MimeTypeUtils.APPLICATION_JSON_VALUE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
+    suspend fun PipelineContext<Unit, ApplicationCall>.updateResourceSet() {
+        val auth = requireRole(GrantedAuthority.ROLE_USER, SystemScopeService.UMA_PROTECTION_SCOPE) { return }
+        val id = call.request.queryParameters["id"]!!.toLong()
 
-        val newRs = parseResourceSet(jsonString)
+        val newRs = parseResourceSet(call.receiveText())
 
         if (// there were no scopes (required)
             (newRs == null // there was no resource set in the body
-                    || newRs.name.isNullOrEmpty()) || newRs.scopes == null || newRs.id == null || newRs.id != id // the IDs didn't match
+                    || newRs.name.isEmpty()) || newRs.scopes.isEmpty() || newRs.id == null || newRs.id != id // the IDs didn't match
         ) {
             logger.warn("Resource set registration missing one or more required fields.")
-
-            m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
-            m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Resource request was missing one or more required fields.")
-            return JsonErrorView.VIEWNAME
+            return jsonErrorView(INVALID_REQUEST, "Resource request was missing one or more required fields.")
         }
 
-        val rs = resourceSetService.getById(id)
+        val rs = resourceSetService.getById(id) ?: return jsonErrorView(INVALID_REQUEST, HttpStatusCode.NotFound)
 
-        if (rs == null) {
-            m.addAttribute(HttpCodeView.CODE, HttpStatus.NOT_FOUND)
-            m.addAttribute(JsonErrorView.ERROR, "not_found")
-            return JsonErrorView.VIEWNAME
-        } else {
-            if (auth.name != rs.owner) {
-                logger.warn("Unauthorized resource set request from bad user; expected " + rs.owner + " got " + auth.name)
-
-                // it wasn't issued to this user
-                m.addAttribute(HttpCodeView.CODE, HttpStatus.FORBIDDEN)
-                return JsonErrorView.VIEWNAME
-            } else {
-                val saved = resourceSetService.update(rs, newRs)
-
-                m.addAttribute(JsonEntityView.ENTITY, saved)
-                m.addAttribute(org.mitre.uma.view.ResourceSetEntityAbbreviatedView.LOCATION, config.issuer + URL + "/" + rs.id)
-                return org.mitre.uma.view.ResourceSetEntityAbbreviatedView.VIEWNAME
-            }
+        if (auth.name != rs.owner) {
+            logger.warn("Unauthorized resource set request from bad user; expected " + rs.owner + " got " + auth.name)
+            return jsonErrorView(OAuthErrorCodes.ACCESS_DENIED)
         }
+
+        val saved = resourceSetService.update(rs, newRs)
+
+        val location = "${config.issuer}$URL/${rs.id}"
+        return resourceSetEntityAbbreviatedView(saved, location)
     }
 
-    @RequestMapping(value = ["/{id}"], method = [RequestMethod.DELETE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.deleteResourceSet(@PathVariable("id") id: Long, m: Model, auth: Authentication): String {
-        ensureOAuthScope(auth, SystemScopeService.UMA_PROTECTION_SCOPE)
+//    @RequestMapping(value = ["/{id}"], method = [RequestMethod.DELETE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
+    suspend fun PipelineContext<Unit, ApplicationCall>.deleteResourceSet() {
+        val auth = requireRole(GrantedAuthority.ROLE_USER, SystemScopeService.UMA_PROTECTION_SCOPE) { return }
+        val id = call.request.queryParameters["id"]!!.toLong()
 
         val rs = resourceSetService.getById(id)
+            ?: return jsonErrorView(INVALID_REQUEST, HttpStatusCode.NotFound, "Resource not found")
 
-        if (rs == null) {
-            m.addAttribute(HttpCodeView.CODE, HttpStatus.NOT_FOUND)
-            m.addAttribute(JsonErrorView.ERROR, "not_found")
-            return JsonErrorView.VIEWNAME
-        } else {
-            if (auth.name != rs.owner) {
-                logger.warn("Unauthorized resource set request from bad user; expected " + rs.owner + " got " + auth.name)
-
-                // it wasn't issued to this user
-                m.addAttribute(HttpCodeView.CODE, HttpStatus.FORBIDDEN)
-                return JsonErrorView.VIEWNAME
-            } else if (auth is OAuth2RequestAuthentication &&
-                auth.oAuth2Request.clientId != rs.clientId
-            ) {
-                logger.warn("Unauthorized resource set request from bad client; expected " + rs.clientId + " got " + auth.oAuth2Request.clientId)
-
-                // it wasn't issued to this client
-                m.addAttribute(HttpCodeView.CODE, HttpStatus.FORBIDDEN)
-                return JsonErrorView.VIEWNAME
-            } else {
-                // user and client matched
-
-                resourceSetService.remove(rs)
-
-                m.addAttribute(HttpCodeView.CODE, HttpStatus.NO_CONTENT)
-                return HttpCodeView.VIEWNAME
-            }
-        }
+    if (auth.name != rs.owner) {
+        logger.warn("Unauthorized resource set request from bad user; expected ${rs.owner} got ${auth.name}")
+        return jsonErrorView(OAuthErrorCodes.ACCESS_DENIED)
     }
 
-    @RequestMapping(method = [RequestMethod.GET], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.listResourceSets(m: Model, auth: Authentication) {
-        ensureOAuthScope(auth, SystemScopeService.UMA_PROTECTION_SCOPE)
+    if (auth is OAuth2RequestAuthentication &&
+        auth.oAuth2Request.clientId != rs.clientId
+    ) {
+        logger.warn("Unauthorized resource set request from bad client; expected ${rs.clientId} got ${auth.oAuth2Request.clientId}")
+        return jsonErrorView(OAuthErrorCodes.ACCESS_DENIED)
+    }
+
+    // user and client matched
+    resourceSetService.remove(rs)
+    return call.respond(HttpStatusCode.NoContent)
+}
+
+//    @RequestMapping(method = [RequestMethod.GET], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
+    suspend fun PipelineContext<Unit, ApplicationCall>.listResourceSets() {
+        val auth = requireRole(GrantedAuthority.ROLE_USER,  SystemScopeService.UMA_PROTECTION_SCOPE) { return }
 
         val owner = auth.name
 
@@ -226,8 +189,7 @@ class ResourceSetRegistrationEndpoint: KtorEndpoint {
             ids.add(resourceSet.id.toString()) // add them all as strings so that gson renders them properly
         }
 
-        m.addAttribute(JsonEntityView.ENTITY, ids)
-        return JsonEntityView.VIEWNAME
+        return call.respondJson(ids)
     }
 
     private fun parseResourceSet(jsonString: String): ResourceSet? {

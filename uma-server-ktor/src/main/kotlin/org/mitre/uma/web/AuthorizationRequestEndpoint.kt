@@ -1,8 +1,10 @@
 package org.mitre.uma.web
 
-import io.github.pdvrieze.openid.spring.fromSpring
+import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.request.*
 import io.ktor.server.routing.*
+import io.ktor.util.pipeline.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.addAll
@@ -11,61 +13,63 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
-import org.mitre.oauth2.service.OAuth2TokenEntityService
+import org.mitre.oauth2.exception.OAuthErrorCodes
 import org.mitre.oauth2.service.SystemScopeService
+import org.mitre.oauth2.view.respondJson
 import org.mitre.oauth2.web.AuthenticationUtilities
 import org.mitre.openid.connect.view.JsonEntityView
 import org.mitre.openid.connect.view.JsonErrorView
-import org.mitre.uma.service.ClaimsProcessingService
-import org.mitre.uma.service.PermissionService
-import org.mitre.uma.service.UmaTokenService
+import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.util.asString
 import org.mitre.util.getLogger
 import org.mitre.web.util.KtorEndpoint
+import org.mitre.web.util.claimsProcessingService
+import org.mitre.web.util.permissionService
+import org.mitre.web.util.requireScope
+import org.mitre.web.util.tokenService
+import org.mitre.web.util.umaTokenService
 
 /**
  * @author jricher
  */
 //@Controller
 //@RequestMapping("/authz_request")
-class AuthorizationRequestEndpoint(): KtorEndpoint {
+class AuthorizationRequestEndpoint() : KtorEndpoint {
     override fun Route.addRoutes() {
         route("/authz_request") {
-            post { authorizationRequest()}
+            authenticate {
+                post { authorizationRequest() }
+            }
         }
     }
 
-/*
-    @Autowired
-    private lateinit var permissionService: PermissionService
+    /*
+        @Autowired
+        private lateinit var permissionService: PermissionService
 
-    @Autowired
-    private lateinit var tokenService: OAuth2TokenEntityService
+        @Autowired
+        private lateinit var tokenService: OAuth2TokenEntityService
 
-    @Autowired
-    private lateinit var claimsProcessingService: ClaimsProcessingService
+        @Autowired
+        private lateinit var claimsProcessingService: ClaimsProcessingService
 
-    @Autowired
-    private lateinit var umaTokenService: UmaTokenService
-*/
+        @Autowired
+        private lateinit var umaTokenService: UmaTokenService
+    */
 
-    @RequestMapping(method = [RequestMethod.POST], consumes = [MimeTypeUtils.APPLICATION_JSON_VALUE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
-    fun authorizationRequest(@RequestBody jsonString: String, m: Model, auth: Authentication?): String {
-        val auth =
+    //    @RequestMapping(method = [RequestMethod.POST], consumes = [MimeTypeUtils.APPLICATION_JSON_VALUE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
+    private suspend fun PipelineContext<Unit, ApplicationCall>.authorizationRequest() {
+        val auth = requireScope(SystemScopeService.UMA_AUTHORIZATION_SCOPE) { return }
         AuthenticationUtilities.ensureOAuthScope(auth, SystemScopeService.UMA_AUTHORIZATION_SCOPE)
 
-        val obj = Json.parseToJsonElement(jsonString)
+        val obj = Json.parseToJsonElement(call.receiveText())
         if (obj !is JsonObject) {
-            m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
-            m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Malformed JSON request.")
-            return JsonErrorView.VIEWNAME
+            return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST, "Malformed JSON request.")
         }
 
         val rawTicket = obj[TICKET]?.asString()
-        if(rawTicket == null) {
-            m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
-            m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Missing JSON elements.")
-            return JsonErrorView.VIEWNAME
+        if (rawTicket == null) {
+            return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST, "Missing JSON elements.")
         }
 
         val incomingRpt = obj[RPT]?.let {
@@ -74,20 +78,13 @@ class AuthorizationRequestEndpoint(): KtorEndpoint {
 
         val ticket = permissionService.getByTicket(rawTicket)
         if (ticket == null) {
-            // ticket wasn't found, return an error
-            m.addAttribute(HttpStatus.BAD_REQUEST)
-            m.addAttribute(JsonErrorView.ERROR, "invalid_ticket")
-            return JsonErrorView.VIEWNAME
+            return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST, "invalid_ticket")
         }
 
         val rs = ticket.permission.resourceSet
         if (rs.policies.isNullOrEmpty()) {
             // the required claims are empty, this resource has no way to be authorized
-
-            m.addAttribute(JsonErrorView.ERROR, "not_authorized")
-            m.addAttribute(JsonErrorView.ERROR_MESSAGE, "This resource set can not be accessed.")
-            m.addAttribute(HttpCodeView.CODE, HttpStatus.FORBIDDEN)
-            return JsonErrorView.VIEWNAME
+            return jsonErrorView(OAuthErrorCodes.ACCESS_DENIED, "This resource set can not be accessed.")
         }
 
         // claims weren't empty or missing, we need to check against what we have
@@ -100,49 +97,39 @@ class AuthorizationRequestEndpoint(): KtorEndpoint {
 
             // we need to downscope this based on the required set that was matched if it was matched
 
-            val o2auth = (auth as OAuth2Authentication).fromSpring()
-
-            val token = umaTokenService.createRequestingPartyToken(o2auth, ticket, result.matched!!)
+            val token = umaTokenService.createRequestingPartyToken(auth, ticket, result.matched!!)
 
             // if we have an inbound RPT, throw it out because we're replacing it
             if (incomingRpt != null) {
                 tokenService.revokeAccessToken(incomingRpt)
             }
 
-            val entity: Map<String, String> = mapOf("rpt" to token.value)
+            return call.respondJson(buildJsonObject { put("rpt", token.value) })
+        }
+        // if we got here, the claim didn't match, forward the user to the claim gathering endpoint
 
-            m.addAttribute(JsonEntityView.ENTITY, entity)
-
-            return JsonEntityView.VIEWNAME
-        } else {
-            // if we got here, the claim didn't match, forward the user to the claim gathering endpoint
-
-            val entity = buildJsonObject {
-                put(JsonErrorView.ERROR, "need_info")
-                put("redirect_user", true)
-                put("ticket", rawTicket)
-                putJsonObject("error_details") {
-                    putJsonObject("requesting_party_claims") {
-                        putJsonArray("required_claims") {
-                            for (claim in result.unmatched) {
-                                addJsonObject {
-                                    put("name", claim.name)
-                                    put("friendly_name", claim.friendlyName)
-                                    put("claim_type", claim.claimType)
-                                    putJsonArray("claim_token_format") { addAll(claim.claimTokenFormat) }
-                                    putJsonArray("issuer") { addAll(claim.issuer) }
-                                }
+        val entity = buildJsonObject {
+            put(JsonErrorView.ERROR, "need_info")
+            put("redirect_user", true)
+            put("ticket", rawTicket)
+            putJsonObject("error_details") {
+                putJsonObject("requesting_party_claims") {
+                    putJsonArray("required_claims") {
+                        for (claim in result.unmatched) {
+                            addJsonObject {
+                                put("name", claim.name)
+                                put("friendly_name", claim.friendlyName)
+                                put("claim_type", claim.claimType)
+                                putJsonArray("claim_token_format") { addAll(claim.claimTokenFormat) }
+                                putJsonArray("issuer") { addAll(claim.issuer) }
                             }
                         }
-
                     }
+
                 }
             }
-
-            m.addAttribute(JsonEntityView.ENTITY, entity)
-            return JsonEntityView.VIEWNAME
         }
-
+        return call.respondJson(entity)
     }
 
     companion object {

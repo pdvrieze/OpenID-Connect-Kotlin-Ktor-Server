@@ -24,11 +24,9 @@ import io.ktor.util.pipeline.*
 import kotlinx.serialization.json.JsonPrimitive
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuth2AccessToken
-import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.service.RedirectResolver
 import org.mitre.openid.connect.model.DefaultUserInfo
 import org.mitre.uma.model.Claim
-import org.mitre.util.OAuth2PrincipalJwtAuthentication
 import org.mitre.util.getLogger
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.clientService
