@@ -15,6 +15,12 @@
  */
 package org.mitre.uma.web
 
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.request.*
+import io.ktor.server.routing.*
+import io.ktor.util.pipeline.*
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -22,116 +28,85 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.long
 import kotlinx.serialization.json.put
+import org.mitre.oauth2.exception.OAuthErrorCodes
+import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.service.SystemScopeService
-import org.mitre.oauth2.web.AuthenticationUtilities.ensureOAuthScope
-import org.mitre.openid.connect.view.JsonEntityView
-import org.mitre.openid.connect.view.JsonErrorView
-import org.mitre.uma.service.PermissionService
-import org.mitre.uma.service.ResourceSetService
+import org.mitre.oauth2.view.respondJson
+import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.util.asStringSet
 import org.mitre.util.getLogger
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
-import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.security.core.Authentication
-import org.springframework.stereotype.Controller
-import org.springframework.ui.Model
-import org.springframework.util.MimeTypeUtils
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
+import org.mitre.web.util.KtorEndpoint
+import org.mitre.web.util.permissionService
+import org.mitre.web.util.requireRole
+import org.mitre.web.util.resourceSetService
+import org.mitre.web.util.scopeService
 
 /**
  * @author jricher
  */
-@Controller
-@RequestMapping("/" + PermissionRegistrationEndpoint.URL)
-@PreAuthorize("hasRole('ROLE_USER')")
-class PermissionRegistrationEndpoint {
-    @Autowired
-    private lateinit var permissionService: PermissionService
+//@RequestMapping("/permission")
+//@PreAuthorize("hasRole('ROLE_USER')")
+class PermissionRegistrationEndpoint: KtorEndpoint {
 
-    @Autowired
-    private lateinit var resourceSetService: ResourceSetService
+    override fun Route.addRoutes() {
+        route("/permission") {
+            authenticate {
+                post { getPermissionTicket() }
+            }
+        }
+    }
 
-    @Autowired
-    private lateinit var scopeService: SystemScopeService
-
-    @RequestMapping(method = [RequestMethod.POST], consumes = [MimeTypeUtils.APPLICATION_JSON_VALUE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
-    fun getPermissionTicket(@RequestBody jsonString: String, m: Model, auth: Authentication): String {
-        ensureOAuthScope(auth, SystemScopeService.UMA_PROTECTION_SCOPE)
+//    @RequestMapping(method = [RequestMethod.POST], consumes = [MimeTypeUtils.APPLICATION_JSON_VALUE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
+    private suspend fun PipelineContext<Unit, ApplicationCall>.getPermissionTicket() {
+        val auth = requireRole(GrantedAuthority.ROLE_USER, SystemScopeService.UMA_PROTECTION_SCOPE) { return }
 
         try {
             // parse the permission request
 
-            val obj = Json.parseToJsonElement(jsonString)
-
-            if (obj !is JsonObject) {
-                // malformed request
-                m.addAttribute("code", HttpStatus.BAD_REQUEST)
-                m.addAttribute("errorMessage", "Malformed JSON request.")
-                return JsonErrorView.VIEWNAME
-            }
+            val obj = Json.parseToJsonElement(call.receiveText()) as? JsonObject
+                ?: return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST, "Malformed JSON request.")
 
             val rsid = obj["resource_set_id"]?.jsonPrimitive?.long
             var scopes: Set<String>? = obj["scopes"].asStringSet()
 
             if (rsid == null || scopes.isNullOrEmpty()) {
-                // missing information
-                m.addAttribute("code", HttpStatus.BAD_REQUEST)
-                m.addAttribute("errorMessage", "Missing required component of permission registration request.")
-                return JsonErrorView.VIEWNAME
+                return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST, "Missing required component of permission registration request.")
             }
 
             // trim any restricted scopes
-            val scopesRequested: Set<SystemScope>? =
-                scopeService.removeRestrictedAndReservedScopes(scopeService.fromStrings(scopes)!!)
+            val scopeService = scopeService
 
-            scopes = scopeService.toStrings(scopesRequested)
+            val scopesRequested: Set<SystemScope>? =
+                scopeService.removeRestrictedAndReservedScopes(scopeService.fromStrings(scopes))
+
+            scopes = scopeService.toStrings(scopesRequested) ?: emptySet()
 
             val resourceSet = resourceSetService.getById(rsid)
-
-            // requested resource set doesn't exist
-            if (resourceSet == null) {
-                m.addAttribute("code", HttpStatus.NOT_FOUND)
-                m.addAttribute("errorMessage", "Requested resource set not found: $rsid")
-                return JsonErrorView.VIEWNAME
-            }
+                ?: return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST, HttpStatusCode.NotFound, "Requested resource set not found: $rsid") // requested resource set doesn't exist
 
             // authorized user of the token doesn't match owner of the resource set
             if (resourceSet.owner != auth.name) {
-                m.addAttribute("code", HttpStatus.FORBIDDEN)
-                m.addAttribute("errorMessage", "Party requesting permission is not owner of resource set, expected " + resourceSet.owner + " got " + auth.name)
-                return JsonErrorView.VIEWNAME
+                return jsonErrorView(
+                    OAuthErrorCodes.ACCESS_DENIED,
+                    "Party requesting permission is not owner of resource set, expected ${resourceSet.owner} got ${auth.name}"
+                )
             }
 
             // create the permission
-            val permission = permissionService.createTicket(resourceSet, scopes!!)
+            val permission = permissionService.createTicket(resourceSet, scopes)
 
             if (permission != null) {
                 // we've created the permission, return the ticket
-                val out = buildJsonObject {
+                return call.respondJson(buildJsonObject {
                     put("ticket", permission.ticket)
-                }
-                m.addAttribute("entity", out)
-
-                m.addAttribute("code", HttpStatus.CREATED)
-
-                return JsonEntityView.VIEWNAME
-            } else {
-                // there was a failure creating the permission object
-
-                m.addAttribute("code", HttpStatus.INTERNAL_SERVER_ERROR)
-                m.addAttribute("errorMessage", "Unable to save permission and generate ticket.")
-
-                return JsonErrorView.VIEWNAME
+                })
             }
+            // there was a failure creating the permission object
+
+            return jsonErrorView(OAuthErrorCodes.SERVER_ERROR, "Unable to save permission and generate ticket.")
         } catch (e: SerializationException) {
-            // malformed request
-            m.addAttribute("code", HttpStatus.BAD_REQUEST)
-            m.addAttribute("errorMessage", "Malformed JSON request.")
-            return JsonErrorView.VIEWNAME
+            return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST, "Malformed JSON request.")
         }
     }
 
