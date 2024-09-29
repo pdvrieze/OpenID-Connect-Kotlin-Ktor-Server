@@ -10,9 +10,6 @@ base {
 }
 
 dependencies {
-    implementation(libs.spring.core) {
-        exclude("commons-logging:commons-logging")
-    }
     implementation(libs.guava)
     api(libs.jwt) // needed for base class of PKCEAlgorithm
     implementation(libs.slf4j.api)

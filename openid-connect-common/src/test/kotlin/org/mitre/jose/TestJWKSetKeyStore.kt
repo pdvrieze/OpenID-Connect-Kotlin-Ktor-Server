@@ -28,8 +28,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mitre.jose.keystore.JWKSetKeyStore
-import org.springframework.core.io.FileSystemResource
-import org.springframework.core.io.Resource
 import java.io.File
 import java.io.FileOutputStream
 import java.util.*
@@ -132,11 +130,11 @@ class TestJWKSetKeyStore {
             out.write(jwtbyte)
             out.close()
 
-            val loc: Resource = FileSystemResource(ks_file_badJWK)
+            val loc: File = File(ks_file_badJWK)
             assertTrue(loc.exists())
             val ks_badJWK = JWKSetKeyStore(loc)
 
-            assertEquals(loc.filename, ks_file_badJWK)
+            assertEquals(loc.name, ks_file_badJWK)
             assertEquals(loc, ks_badJWK.location)
         }
     }
@@ -144,15 +142,14 @@ class TestJWKSetKeyStore {
     /* Empty constructor with valid Resource */
     @Test
     fun ksEmptyConstructorkLoc() {
-        val file = File(ks_file)
 
-        val loc: Resource = FileSystemResource(file)
+        val loc: File = File(ks_file)
         assertTrue(loc.exists())
-        assertTrue(loc.isReadable)
+        assertTrue(loc.canRead())
 
         val ks = JWKSetKeyStore(loc)
 
-        assertEquals(loc.filename, ks.location!!.filename)
+        assertEquals(loc.name, ks.location!!.name)
     }
 
 }

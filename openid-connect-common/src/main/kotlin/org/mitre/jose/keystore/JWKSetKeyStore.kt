@@ -19,7 +19,7 @@ package org.mitre.jose.keystore
 
 import com.nimbusds.jose.jwk.JWK
 import com.nimbusds.jose.jwk.JWKSet
-import org.springframework.core.io.Resource
+import java.io.File
 import java.io.IOException
 import java.io.InputStreamReader
 import java.text.ParseException
@@ -27,11 +27,11 @@ import java.text.ParseException
 /**
  * @author jricher
  */
-class JWKSetKeyStore private constructor(val jwkSet: JWKSet, val location: Resource?) {
+class JWKSetKeyStore private constructor(val jwkSet: JWKSet, val location: File?) {
 
     constructor(jwkSet: JWKSet) : this(jwkSet, null)
 
-    constructor(location: Resource) : this(retrieveJwkSet(location), location)
+    constructor(location: File) : this(retrieveJwkSet(location), location)
 
     /**
      * Get the list of keys in this keystore. This is a passthrough to the underlying JWK Set
@@ -40,11 +40,11 @@ class JWKSetKeyStore private constructor(val jwkSet: JWKSet, val location: Resou
         get() = jwkSet.keys
 
     companion object {
-        private fun retrieveJwkSet(location: Resource): JWKSet {
-            require(location.exists() && location.isReadable) { "Key Set resource could not be read: $location" }
+        private fun retrieveJwkSet(location: File): JWKSet {
+            require(location.exists() && location.canRead()) { "Key Set resource could not be read: $location" }
             return try {
                 // read in the file from disk
-                val s = location.inputStream.use { inStream ->
+                val s = location.inputStream().use { inStream ->
                     InputStreamReader(inStream, Charsets.UTF_8).readText()
                 }
                 // parse it into a jwkSet object
