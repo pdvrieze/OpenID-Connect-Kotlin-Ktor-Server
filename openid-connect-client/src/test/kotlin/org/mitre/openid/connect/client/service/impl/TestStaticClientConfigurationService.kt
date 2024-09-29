@@ -45,12 +45,10 @@ class TestStaticClientConfigurationService {
 
     @BeforeEach
     fun prepare() {
-        service = StaticClientConfigurationService()
-
         val clients: MutableMap<String?, RegisteredClient> = HashMap()
         clients[issuer] = mockClient
 
-        service.clients = clients
+        service = StaticClientConfigurationService(clients)
 
         whenever(mockServerConfig.issuer).thenReturn(issuer)
     }

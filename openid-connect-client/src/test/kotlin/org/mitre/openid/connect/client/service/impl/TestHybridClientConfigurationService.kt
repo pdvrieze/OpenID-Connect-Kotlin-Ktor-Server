@@ -44,6 +44,7 @@ class TestHybridClientConfigurationService {
     fun prepare() {
         reset(mockDynamicService, mockStaticService)
 
+
         // unused by mockito (causs unnecessary stubbing exception
 //		whenever(mockServerConfig.getIssuer()).thenReturn(issuer);
     }

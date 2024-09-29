@@ -31,12 +31,10 @@ import org.mitre.openid.connect.config.ServerConfiguration
  *
  * @author jricher
  */
-class HybridServerConfigurationService : ServerConfigurationService {
-    /** var for mocking */
-    private var staticServerService = StaticServerConfigurationService()
-
-    private var dynamicServerService = DynamicServerConfigurationService()
-
+class HybridServerConfigurationService(
+    private val staticServerService: StaticServerConfigurationService,
+    private val dynamicServerService: DynamicServerConfigurationService
+) : ServerConfigurationService {
 
     /* (non-Javadoc)
 	 * @see org.mitre.openid.connect.client.service.ServerConfigurationService#getServerConfiguration(java.lang.String)
@@ -54,12 +52,9 @@ class HybridServerConfigurationService : ServerConfigurationService {
         get() = staticServerService.servers
 
 
-    /**
-     * @see org.mitre.openid.connect.client.service.impl.StaticServerConfigurationService.setServers
-     */
-    fun setServers(servers: Map<String, ServerConfiguration>) {
-        staticServerService.servers = servers
-    }
+//    fun setServers(servers: Map<String, ServerConfiguration>) {
+//        staticServerService.servers = servers
+//    }
 
 
     var whitelist: Set<String?>?

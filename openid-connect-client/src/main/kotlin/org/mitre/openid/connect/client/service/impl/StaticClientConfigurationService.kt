@@ -20,7 +20,6 @@ package org.mitre.openid.connect.client.service.impl
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.openid.connect.client.service.ClientConfigurationService
 import org.mitre.openid.connect.config.ServerConfiguration
-import javax.annotation.PostConstruct
 
 /**
  * Client configuration service that holds a static map from issuer URL to a ClientDetails object to use at that issuer.
@@ -29,9 +28,15 @@ import javax.annotation.PostConstruct
  *
  * @author jricher
  */
-class StaticClientConfigurationService : ClientConfigurationService {
+class StaticClientConfigurationService(val clients: Map<String?, RegisteredClient>) : ClientConfigurationService {
     // Map of issuer URL -> client configuration information
-    lateinit var clients: Map<String?, RegisteredClient>
+
+    init {
+        require(clients.isNotEmpty()) {
+            "Clients map cannot be null or empty"
+        }
+    }
+
 
     /**
      * Get the client configured for this issuer
@@ -40,12 +45,5 @@ class StaticClientConfigurationService : ClientConfigurationService {
      */
     override fun getClientConfiguration(issuer: ServerConfiguration): RegisteredClient? {
         return clients[issuer.issuer]
-    }
-
-    @PostConstruct
-    fun afterPropertiesSet() {
-        require(::clients.isInitialized && clients.isNotEmpty()) {
-            "Clients map cannot be null or empty"
-        }
     }
 }

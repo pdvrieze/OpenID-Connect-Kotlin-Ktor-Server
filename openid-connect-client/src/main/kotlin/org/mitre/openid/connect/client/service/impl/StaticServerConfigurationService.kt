@@ -19,16 +19,16 @@ package org.mitre.openid.connect.client.service.impl
 
 import org.mitre.openid.connect.client.service.ServerConfigurationService
 import org.mitre.openid.connect.config.ServerConfiguration
-import javax.annotation.PostConstruct
 
 /**
  * Statically configured server configuration service that maps issuer URLs to server configurations to use at that issuer.
  *
  * @author jricher
  */
-class StaticServerConfigurationService : ServerConfigurationService {
+class StaticServerConfigurationService(
+    val servers: Map<String, ServerConfiguration>
+) : ServerConfigurationService {
     // map of issuer url -> server configuration information
-    lateinit var servers: Map<String, ServerConfiguration>
 
     /* (non-Javadoc)
 	 * @see org.mitre.openid.connect.client.service.ServerConfigurationService#getServerConfiguration(java.lang.String)
@@ -38,8 +38,7 @@ class StaticServerConfigurationService : ServerConfigurationService {
         return servers[issuer]
     }
 
-    @PostConstruct
-    fun afterPropertiesSet() {
-        require(::servers.isInitialized && servers.isNotEmpty()) { "Servers map cannot be null or empty." }
+    init {
+        require(servers.isNotEmpty()) { "Servers map cannot be null or empty." }
     }
 }

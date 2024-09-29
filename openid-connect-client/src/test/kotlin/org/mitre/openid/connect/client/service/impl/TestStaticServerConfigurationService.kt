@@ -39,12 +39,11 @@ class TestStaticServerConfigurationService {
 
     @BeforeEach
     fun prepare() {
-        service = StaticServerConfigurationService()
 
         val servers: MutableMap<String, ServerConfiguration> = HashMap()
         servers[issuer] = mockServerConfig
 
-        service.servers = servers
+        service = StaticServerConfigurationService(servers)
     }
 
     @Test

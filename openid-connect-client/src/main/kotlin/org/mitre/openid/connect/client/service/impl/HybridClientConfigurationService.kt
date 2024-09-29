@@ -32,30 +32,21 @@ import org.mitre.openid.connect.config.ServerConfiguration
  *
  * @author jricher
  */
-class HybridClientConfigurationService : ClientConfigurationService {
-    private var staticClientService = StaticClientConfigurationService()
+class HybridClientConfigurationService(
+    private var staticClientService: StaticClientConfigurationService,
+    private var dynamicClientService: DynamicRegistrationClientConfigurationService,
+) : ClientConfigurationService {
 
-    private var dynamicClientService = DynamicRegistrationClientConfigurationService()
-
-    /* (non-Javadoc)
-	 * @see org.mitre.openid.connect.client.service.ClientConfigurationService#getClientConfiguration(org.mitre.openid.connect.config.ServerConfiguration)
-	 */
     override fun getClientConfiguration(issuer: ServerConfiguration): RegisteredClient? {
         val client = staticClientService.getClientConfiguration(issuer)
         return client ?: dynamicClientService.getClientConfiguration(issuer)
     }
 
-    var clients: Map<String?, RegisteredClient>
-        /**
-         * @see org.mitre.openid.connect.client.service.impl.StaticClientConfigurationService.getClients
-         */
+    val clients: Map<String?, RegisteredClient>
         get() = staticClientService.clients
-        /**
-         * @see org.mitre.openid.connect.client.service.impl.StaticClientConfigurationService.setClients
-         */
-        set(clients) {
-            staticClientService.clients = clients
-        }
+//        set(clients) {
+//            staticClientService.clients = clients
+//        }
 
     var template: RegisteredClient?
         /**
