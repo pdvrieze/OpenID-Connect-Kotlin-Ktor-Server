@@ -1,8 +1,7 @@
 package io.github.pdvrieze.auth.ktor
 
+import io.github.pdvrieze.auth.ktor.plugins.OpenIdConfigurator
 import io.github.pdvrieze.auth.ktor.plugins.configureRouting
-import io.github.pdvrieze.auth.ktor.plugins.openIdContext
-import io.github.pdvrieze.auth.ktor.plugins.wellKnown
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -12,8 +11,9 @@ import kotlin.test.*
 class ApplicationTest {
     @Test
     fun testRoot() = testApplication {
+        val configurator = OpenIdConfigurator("http://localhost:8080")
         application {
-            configureRouting(configuration.resolveDefault())
+            configureRouting(configurator.resolveDefault())
         }
         client.get("/").apply {
             assertEquals(HttpStatusCode.OK, status)
@@ -25,12 +25,9 @@ class ApplicationTest {
 class WebFingerTest {
     @Test
     fun testWellKnown() = testApplication {
+        val configurator = OpenIdConfigurator("http://localhost:8080")
         application {
-            openIdContext("io.github.pdvrieze") {
-                wellKnown {
-
-                }
-            }
+            configureRouting(configurator.resolveDefault())
         }
     }
 }

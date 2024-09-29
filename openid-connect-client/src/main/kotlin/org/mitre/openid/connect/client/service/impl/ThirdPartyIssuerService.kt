@@ -17,13 +17,12 @@
  */
 package org.mitre.openid.connect.client.service.impl
 
+import io.ktor.http.*
 import org.apache.http.client.utils.URIBuilder
 import org.mitre.openid.connect.client.model.IssuerServiceResponse
 import org.mitre.openid.connect.client.service.IssuerService
 import org.springframework.security.authentication.AuthenticationServiceException
 import java.net.URISyntaxException
-import javax.annotation.PostConstruct
-import javax.servlet.http.HttpServletRequest
 
 /**
  *
@@ -31,19 +30,15 @@ import javax.servlet.http.HttpServletRequest
  *
  * @author jricher
  */
-class ThirdPartyIssuerService : IssuerService {
-    lateinit var accountChooserUrl: String
+class ThirdPartyIssuerService(var accountChooserUrl: String) : IssuerService {
 
     var whitelist: Set<String> = HashSet()
     var blacklist: Set<String> = HashSet()
 
-    /* (non-Javadoc)
-	 * @see org.mitre.openid.connect.client.service.IssuerService#getIssuer(javax.servlet.http.HttpServletRequest)
-	 */
-    override fun getIssuer(request: HttpServletRequest): IssuerServiceResponse {
+    override fun getIssuer(requestParams: Parameters, requestUrl: String): IssuerServiceResponse {
         // if the issuer is passed in, return that
 
-        val iss = request.getParameter("iss")
+        val iss = requestParams["iss"]
         if (! iss.isNullOrEmpty()) {
             if (whitelist.isNotEmpty() && iss !in whitelist) {
                 throw AuthenticationServiceException("Whitelist was nonempty, issuer was not in whitelist: $iss")
@@ -53,14 +48,13 @@ class ThirdPartyIssuerService : IssuerService {
                 throw AuthenticationServiceException("Issuer was in blacklist: $iss")
             }
 
-            return IssuerServiceResponse(iss, request.getParameter("login_hint"), request.getParameter("target_link_uri"))
+            return IssuerServiceResponse(iss, requestParams["login_hint"], requestParams["target_link_uri"])
         } else {
             try {
                 // otherwise, need to forward to the account chooser
-                val redirectUri = request.requestURL.toString()
                 val builder = URIBuilder(accountChooserUrl)
 
-                builder.addParameter("redirect_uri", redirectUri)
+                builder.addParameter("redirect_uri", requestUrl)
 
                 return IssuerServiceResponse(builder.build().toString())
             } catch (e: URISyntaxException) {
@@ -69,8 +63,7 @@ class ThirdPartyIssuerService : IssuerService {
         }
     }
 
-    @PostConstruct
-    fun afterPropertiesSet() {
-        require(::accountChooserUrl.isInitialized && accountChooserUrl.isNotEmpty()) { "Account Chooser URL cannot be null or empty" }
+    init {
+        require(accountChooserUrl.isNotEmpty()) { "Account Chooser URL cannot be null or empty" }
     }
 }

@@ -17,9 +17,9 @@
  */
 package org.mitre.openid.connect.client.service.impl
 
+import io.ktor.http.*
 import org.mitre.openid.connect.client.model.IssuerServiceResponse
 import org.mitre.openid.connect.client.service.IssuerService
-import javax.servlet.http.HttpServletRequest
 
 /**
  *
@@ -29,33 +29,30 @@ import javax.servlet.http.HttpServletRequest
  *
  * @author jricher
  */
-class HybridIssuerService : IssuerService {
-    var accountChooserUrl: String?
+class HybridIssuerService(accountChooserUrl: String) : IssuerService {
+    var accountChooserUrl: String
         get() = thirdPartyIssuerService.accountChooserUrl
         set(accountChooserUrl) {
-            thirdPartyIssuerService.accountChooserUrl = accountChooserUrl!!
+            thirdPartyIssuerService.accountChooserUrl = accountChooserUrl
         }
 
+    /**
+     * @see org.mitre.openid.connect.client.service.impl.WebfingerIssuerService.isForceHttps
+     */
     var isForceHttps: Boolean
-        /**
-         * @see org.mitre.openid.connect.client.service.impl.WebfingerIssuerService.isForceHttps
-         */
         get() = webfingerIssuerService.isForceHttps
-        /**
-         * @see org.mitre.openid.connect.client.service.impl.WebfingerIssuerService.setForceHttps
-         */
         set(forceHttps) {
             webfingerIssuerService.isForceHttps = forceHttps
         }
 
-    private val thirdPartyIssuerService = ThirdPartyIssuerService()
+    private val thirdPartyIssuerService = ThirdPartyIssuerService(accountChooserUrl)
     private val webfingerIssuerService = WebfingerIssuerService()
 
-    override fun getIssuer(request: HttpServletRequest): IssuerServiceResponse? {
-        val resp = thirdPartyIssuerService.getIssuer(request)
-        return if (resp.shouldRedirect()) {
+    override fun getIssuer(requestParams: Parameters, requestUrl: String): IssuerServiceResponse? {
+        val resp = thirdPartyIssuerService.getIssuer(requestParams, requestUrl)
             // if it wants us to redirect, try the webfinger approach first
-            webfingerIssuerService.getIssuer(request)
+        return if (resp?.shouldRedirect() == true) {
+            webfingerIssuerService.getIssuer(requestParams, requestUrl)
         } else {
             resp
         }

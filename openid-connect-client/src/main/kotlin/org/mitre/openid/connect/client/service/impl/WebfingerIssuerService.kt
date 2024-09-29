@@ -21,6 +21,7 @@ import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
 import com.google.common.util.concurrent.UncheckedExecutionException
+import io.ktor.http.*
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -38,7 +39,6 @@ import org.springframework.security.authentication.AuthenticationServiceExceptio
 import org.springframework.web.client.RestClientException
 import org.springframework.web.client.RestTemplate
 import java.util.concurrent.ExecutionException
-import javax.servlet.http.HttpServletRequest
 
 /**
  * Use Webfinger to discover the appropriate issuer for a user-given input string.
@@ -77,11 +77,10 @@ class WebfingerIssuerService(
         issuers = CacheBuilder.newBuilder().build(WebfingerIssuerFetcher(httpClient))
     }
 
-    /* (non-Javadoc)
-	 * @see org.mitre.openid.connect.client.service.IssuerService#getIssuer(javax.servlet.http.HttpServletRequest)
-	 */
-    override fun getIssuer(request: HttpServletRequest): IssuerServiceResponse? {
-        val identifier = request.getParameter(parameterName)
+    override fun getIssuer(requestParams: Parameters, requestUrl: String): IssuerServiceResponse? {
+        val identifier: String? = requestParams[parameterName]
+        val targetLinkUri: String? = requestParams["target_link_uri"]
+
         if (!identifier.isNullOrEmpty()) {
             try {
                 val lr = issuers[identifier]
@@ -93,7 +92,7 @@ class WebfingerIssuerService(
                     throw AuthenticationServiceException("Issuer was in blacklist: " + lr.issuer)
                 }
 
-                return IssuerServiceResponse(lr.issuer, lr.loginHint, request.getParameter("target_link_uri"))
+                return IssuerServiceResponse(lr.issuer, lr.loginHint, targetLinkUri)
             } catch (e: UncheckedExecutionException) {
                 logger.warn("Issue fetching issuer for user input: " + identifier + ": " + e.message)
                 return null

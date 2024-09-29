@@ -17,28 +17,24 @@
  */
 package org.mitre.openid.connect.client.service.impl
 
+import io.ktor.http.*
 import org.mitre.openid.connect.client.model.IssuerServiceResponse
 import org.mitre.openid.connect.client.service.IssuerService
-import javax.annotation.PostConstruct
-import javax.servlet.http.HttpServletRequest
 
 /**
  * @author jricher
  */
-class StaticSingleIssuerService : IssuerService {
-    lateinit var issuer: String
-
+class StaticSingleIssuerService(val issuer: String) : IssuerService {
     /**
      * Always returns the configured issuer URL
      *
      * @see org.mitre.openid.connect.client.service.IssuerService.getIssuer
      */
-    override fun getIssuer(request: HttpServletRequest): IssuerServiceResponse {
+    override fun getIssuer(requestParams: Parameters, requestUrl: String): IssuerServiceResponse {
         return IssuerServiceResponse(issuer, null, null)
     }
 
-    @PostConstruct
-    fun afterPropertiesSet() {
-        require(::issuer.isInitialized && issuer.isNotEmpty()) { "Issuer must not be null or empty." }
+    init {
+        require(issuer.isNotEmpty()) { "Issuer must not be null or empty." }
     }
 }

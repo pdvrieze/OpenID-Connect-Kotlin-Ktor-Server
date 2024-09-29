@@ -21,6 +21,7 @@ application {
 
 
 dependencies {
+    implementation(projects.openidConnectClient)
     implementation(projects.openidConnectCommon)
     implementation(projects.openidConnectServer)
     implementation(projects.openidConnectServerExposed)

@@ -16,6 +16,7 @@ dependencies {
     implementation(libs.slf4j.api)
     implementation(libs.servlet.api)
     implementation(libs.javax.ann)
+    implementation(libs.ktor.http)
 
     testImplementation(libs.mockito.jupiter)
     testImplementation(libs.mockito.kotlin)

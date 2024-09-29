@@ -17,6 +17,8 @@
  */
 package org.mitre.openid.connect.client.service.impl
 
+import io.ktor.http.*
+import io.ktor.util.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
@@ -32,7 +34,9 @@ import javax.servlet.http.HttpServletRequest
  */
 class TestThirdPartyIssuerService {
     // Test fixture:
-    private lateinit var request: HttpServletRequest
+//    private lateinit var request: HttpServletRequest
+    private lateinit var requestParams: Parameters
+    private lateinit var requestUri: String
 
     private val iss = "https://server.example.org"
     private val login_hint = "I'm not telling you nothin!"
@@ -41,22 +45,23 @@ class TestThirdPartyIssuerService {
 
     private val accountChooserUrl = "https://www.example.com/account"
 
-    private val service = ThirdPartyIssuerService()
+    private val service = ThirdPartyIssuerService(accountChooserUrl)
 
     @BeforeEach
     fun prepare() {
         service.accountChooserUrl = accountChooserUrl
 
-        request = mock<HttpServletRequest>()
-        whenever(request.getParameter("iss")).thenReturn(iss)
-        whenever(request.getParameter("login_hint")).thenReturn(login_hint)
-        whenever(request.getParameter("target_link_uri")).thenReturn(target_link_uri)
-        whenever(request.requestURL).thenReturn(StringBuffer(redirect_uri))
+        requestParams = parameters {
+            append("iss", iss)
+            append("login_hint", login_hint)
+            append("target_link_uri", target_link_uri)
+        }
+        requestUri = redirect_uri
     }
 
     @Test
     fun getIssuer_hasIssuer() {
-        val response = service.getIssuer(request)
+        val response = service.getIssuer(requestParams, requestUri)
 
         assertEquals(iss, response.issuer)
         assertEquals(login_hint, response.loginHint)
@@ -67,9 +72,9 @@ class TestThirdPartyIssuerService {
 
     @Test
     fun getIssuer_noIssuer() {
-        whenever(request.getParameter("iss")).thenReturn(null)
+        requestParams = parameters { appendAll(requestParams.filter { k, _ -> k != "iss" }) }
 
-        val response = service.getIssuer(request)
+        val response = service.getIssuer(requestParams, requestUri)
 
         assertNull(response.issuer)
         assertNull(response.loginHint)
@@ -85,7 +90,7 @@ class TestThirdPartyIssuerService {
     fun getIssuer_isWhitelisted() {
         service.whitelist = hashSetOf(iss)
 
-        val response = service.getIssuer(request)
+        val response = service.getIssuer(requestParams, requestUri)
 
         assertEquals(iss, response.issuer)
         assertEquals(login_hint, response.loginHint)
@@ -99,7 +104,7 @@ class TestThirdPartyIssuerService {
         service.whitelist = hashSetOf("some.other.site")
 
         assertThrows<AuthenticationServiceException> {
-            service.getIssuer(request)
+            service.getIssuer(requestParams, requestUri)
         }
     }
 
@@ -108,17 +113,17 @@ class TestThirdPartyIssuerService {
         service.blacklist = hashSetOf(iss)
 
         assertThrows<AuthenticationServiceException> {
-            service.getIssuer(request)
+            service.getIssuer(requestParams, requestUri)
         }
     }
 
     @Test
     fun getIssuer_badUri() {
-        whenever(request.getParameter("iss")).thenReturn(null)
+        requestParams = parameters { appendAll(requestParams.filter { k, _ -> k != "iss" }) }
         service.accountChooserUrl = "e=mc^2"
 
         assertThrows<AuthenticationServiceException> {
-            service.getIssuer(request)
+            service.getIssuer(requestParams, requestUri)
         }
     }
 }

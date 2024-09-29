@@ -84,9 +84,11 @@ object PermissionTickets : LongIdTable("permission_ticket") {
     val expiration = timestamp("expiration").nullable().default(null)
 }
 
-object Permissions : LongIdTable("permission") {
+/*
+object UmaPermissions : LongIdTable("permission") {
     val resourceSetId = long("resource_set_id").references(ResourceSets.id).nullable()
 }
+*/
 
 object PermissionScopes : Table("permission_scope") {
     val ownerId = long("owner_id").references(Permissions.id)

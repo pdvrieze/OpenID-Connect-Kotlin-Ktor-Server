@@ -69,8 +69,15 @@ import org.mitre.openid.connect.service.impl.UUIDPairwiseIdentiferService
 import org.mitre.openid.connect.token.ConnectTokenEnhancerImpl
 import org.mitre.uma.repository.PermissionRepository
 import org.mitre.uma.repository.ResourceSetRepository
+import org.mitre.uma.service.ClaimsProcessingService
+import org.mitre.uma.service.PermissionService
 import org.mitre.uma.service.ResourceSetService
+import org.mitre.uma.service.SavedRegisteredClientService
+import org.mitre.uma.service.UmaTokenService
+import org.mitre.uma.service.impl.DefaultPermissionService
 import org.mitre.uma.service.impl.DefaultResourceSetService
+import org.mitre.uma.service.impl.MatchAllClaimsOnAnyPolicy
+import org.mitre.uma.service.impl.ktor.KtorRegisteredClientService
 import org.mitre.util.UserIdPrincipalAuthentication
 import org.mitre.web.HtmlViews
 import org.mitre.web.util.OpenIdContext
@@ -90,7 +97,7 @@ data class OpenIdConfigurator(
     fun resolveDefault(): OpenIdContext = ResolvedImpl(this)
 
     private class ResolvedImpl(configurator: OpenIdConfigurator) : OpenIdContext {
-        @Deprecated("Hopefully not needed")
+        @Deprecated("Hopefully not needed. Use configurator.database")
         val database = configurator.database
 
         override val config: ConfigurationPropertiesBean = ConfigurationPropertiesBean(configurator.issuer)
@@ -210,6 +217,16 @@ data class OpenIdConfigurator(
         override val authRequestFactory: KtorOAuth2RequestFactory =
             KtorConnectOAuth2RequestFactory(clientDetailsService, encyptersService, encryptionService)
 
+        // TODO (make this configurable, and not use the insane policy)
+        override val claimsProcessingService: ClaimsProcessingService = MatchAllClaimsOnAnyPolicy()
+
+        override val permissionService: PermissionService = DefaultPermissionService()
+
+        override val savedRegisteredClientService: SavedRegisteredClientService =
+            KtorRegisteredClientService(configurator.database)
+
+        override val umaTokenService: UmaTokenService
+            get() = TODO("not implemented")
         override val htmlViews: HtmlViews = DefaultHtmlViews()
 
         override val messageSource: JsonMessageSource = JsonMessageSource("js/locale/", config)

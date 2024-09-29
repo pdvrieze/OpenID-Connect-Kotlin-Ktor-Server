@@ -15,99 +15,96 @@
  */
 package org.mitre.uma.web
 
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import io.ktor.util.pipeline.*
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.addJsonObject
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
+import org.mitre.oauth2.model.GrantedAuthority
+import org.mitre.oauth2.view.respondJson
 import org.mitre.openid.connect.client.service.impl.WebfingerIssuerService
-import org.mitre.openid.connect.config.ConfigurationPropertiesBean
-import org.mitre.openid.connect.service.UserInfoService
-import org.mitre.openid.connect.view.HttpCodeView
-import org.mitre.openid.connect.view.JsonEntityView
-import org.mitre.openid.connect.view.JsonErrorView
 import org.mitre.openid.connect.web.RootController
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
-import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.security.core.Authentication
-import org.springframework.stereotype.Controller
-import org.springframework.ui.Model
-import org.springframework.util.MimeTypeUtils
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.RequestParam
-import javax.servlet.http.HttpServletRequest
+import org.mitre.web.util.KtorEndpoint
+import org.mitre.web.util.config
+import org.mitre.web.util.requireRole
+import org.mitre.web.util.userInfoService
 
 /**
  * @author jricher
  */
-@Controller
-@RequestMapping("/" + UserClaimSearchHelper.URL)
-@PreAuthorize("hasRole('ROLE_USER')")
-class UserClaimSearchHelper {
+//@Controller
+//@RequestMapping("/" + UserClaimSearchHelper.URL)
+//@PreAuthorize("hasRole('ROLE_USER')")
+class UserClaimSearchHelper: KtorEndpoint {
+    override fun Route.addRoutes() {
+        route("/api/emailsearch") {
+            authenticate {
+                get { search() }
+            }
+        }
+    }
+
     private val webfingerIssuerService = WebfingerIssuerService()
 
-    @Autowired
-    private lateinit var userInfoService: UserInfoService
 
-    @Autowired
-    private lateinit var config: ConfigurationPropertiesBean
-
-
-    @RequestMapping(method = [RequestMethod.GET], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
-    fun search(
-        @RequestParam(value = "identifier") email: String,
-        m: Model,
-        auth: Authentication?,
-        req: HttpServletRequest?
-    ): String {
+    //    @RequestMapping(method = [RequestMethod.GET], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
+    suspend fun PipelineContext<Unit, ApplicationCall>.search() {
+        val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
         // check locally first
+        val email = call.request.queryParameters["email"] ?: return call.respond(HttpStatusCode.BadRequest)
 
         val localUser = userInfoService.getByEmailAddress(email)
 
         if (localUser != null) {
-            val e = mapOf(
-                "issuer" to setOf(config.issuer),
-                "name" to "email",
-                "value" to localUser.email,
-            )
 
-            val ev = mapOf(
-                "issuer" to setOf(config.issuer),
-                "name" to "email_verified",
-                "value" to localUser.emailVerified,
-            )
+            val e = buildJsonArray {
+                addJsonObject {
+                    putJsonArray("issuer") { add(config.issuer) }
+                    put("name", "email")
+                    put("value", localUser.email)
+                }
+                addJsonObject {
+                    putJsonArray("issuer") { add(config.issuer) }
+                    put("name", "email_verified")
+                    put("value", localUser.emailVerified)
+                }
+                addJsonObject {
+                    putJsonArray("issuer") { add(config.issuer) }
+                    put("name", "sub")
+                    put("value", localUser.subject)
+                }
+            }
+            return call.respondJson(e)
+        }
+        // otherwise do a webfinger lookup
 
-            val s = mapOf(
-                "issuer" to setOf(config.issuer),
-                "name" to "sub",
-                "value" to localUser.subject,
-            )
+        val resp = webfingerIssuerService.getIssuer(call.request.queryParameters, call.request.uri)
 
-            m.addAttribute(JsonEntityView.ENTITY, setOf(e, ev, s))
-            return JsonEntityView.VIEWNAME
-        } else {
-            // otherwise do a webfinger lookup
+        if (resp?.issuer == null) {
+            return call.respond(HttpStatusCode.NotFound)
+        }
 
-            val resp = webfingerIssuerService.getIssuer(req!!)
-
-            if (resp?.issuer != null) {
-                // we found an issuer, return that
-                val e = mapOf(
-                    "issuer" to setOf(resp.issuer),
-                    "name" to "email",
-                    "value" to email,
-                )
-
-                val ev = mapOf(
-                    "issuer" to setOf(resp.issuer),
-                    "name" to "email_verified",
-                    "value" to true,
-                )
-
-                m.addAttribute(JsonEntityView.ENTITY, setOf(e, ev))
-                return JsonEntityView.VIEWNAME
-            } else {
-                m.addAttribute(HttpCodeView.CODE, HttpStatus.NOT_FOUND)
-                return JsonErrorView.VIEWNAME
+        // we found an issuer, return that
+        val res = buildJsonArray {
+            addJsonObject {
+                putJsonArray("issuer") { add(resp.issuer) }
+                put("name", "email")
+                put("value", email)
+            }
+            addJsonObject {
+                putJsonArray("issuer") { add(resp.issuer) }
+                put("name", "email_verified")
+                put("value", true)
             }
         }
+        return call.respondJson(res)
     }
 
     companion object {
