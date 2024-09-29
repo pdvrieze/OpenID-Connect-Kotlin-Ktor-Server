@@ -1,21 +1,28 @@
 package io.github.pdvrieze.auth.service.impl
 
-import org.junit.jupiter.api.Assertions
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.addJsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
-import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
+import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.convert.OAuth2Request
 import org.mitre.oauth2.service.IntrospectionResultAssembler
 import org.mitre.openid.connect.model.UserInfo
 import org.mitre.uma.model.Permission
 import java.text.ParseException
-import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import java.util.*
-import javax.swing.text.DateFormatter
 
 class TestDefaultIntrospectionResultAssembler {
     private val assembler: IntrospectionResultAssembler = DefaultIntrospectionResultAssembler()
@@ -26,7 +33,8 @@ class TestDefaultIntrospectionResultAssembler {
         // given
 
         val accessToken = accessToken(
-            Date(123 * 1000L), scopes("foo", "bar"), null, "Bearer",
+            Instant.ofEpochSecond(123),
+            scopes("foo", "bar"), null, "Bearer",
             oauth2AuthenticationWithUser(oauth2Request("clientId"), "name")
         )
 
@@ -39,17 +47,18 @@ class TestDefaultIntrospectionResultAssembler {
 
 
         // then
-        val expected = mapOf(
-            "sub" to "sub",
-            "exp" to 123L,
-            "expires_at" to dateFormat.valueToString(Date(123 * 1000L)),
-            "scope" to "bar foo",
-            "active" to true,
-            "user_id" to "name",
-            "client_id" to "clientId",
-            "token_type" to "Bearer",
-        )
-        Assertions.assertEquals(expected, result)
+        val expected: JsonObject = buildJsonObject {
+            put("sub", "sub")
+            put("exp", 123L)
+            put("expires_at", dateFormat.format(Instant.ofEpochSecond(123)))
+            put("scope", "bar foo")
+            put("active", true)
+            put("user_id", "name")
+            put("client_id", "clientId")
+            put("token_type", "Bearer")
+        }
+
+        assertEquals(expected.toSortedMap(), result.toSortedMap())
     }
 
     @Test
@@ -58,7 +67,8 @@ class TestDefaultIntrospectionResultAssembler {
         // given
 
         val accessToken = accessToken(
-            Date(123 * 1000L), scopes("foo", "bar"),
+            Instant.ofEpochSecond(123),
+            scopes("foo", "bar"),
             permissions(permission(1L, "foo", "bar")),
             "Bearer", oauth2AuthenticationWithUser(oauth2Request("clientId"), "name")
         )
@@ -72,22 +82,24 @@ class TestDefaultIntrospectionResultAssembler {
 
 
         // then
-        val expected: Map<String, Any> = hashMapOf(
-            ("sub" to "sub"),
-            ("exp" to 123L),
-            ("expires_at" to dateFormat.valueToString(Date(123 * 1000L))),
-            ("permissions" to hashSetOf(
-                mapOf(
-                    "resource_set_id" to "1", // note that the resource ID comes out as a string
-                    "scopes" to hashSetOf("bar", "foo")
-                )
-            )), // note that scopes are not included if permissions are included
-            "active" to true,
-            "user_id" to "name",
-            "client_id" to "clientId",
-            "token_type" to "Bearer",
-        )
-        Assertions.assertEquals(expected, result)
+        val expected: JsonObject = buildJsonObject {
+            put("sub", "sub")
+            put("exp", 123L)
+            put("expires_at", dateFormat.format(Instant.ofEpochSecond(123)))
+            putJsonArray("permissions") {
+                addJsonObject {
+                    put("resource_set_id", "1")// note that the resource ID comes out as a string
+                    putJsonArray("scopes") { add("bar"); add("foo") }
+                } // note that scopes are not included if permissions are included
+            }
+            put("active", true)
+            put("user_id", "name")
+            put("client_id", "clientId")
+            put("token_type", "Bearer")
+        }
+
+
+        assertEquals(expected.toSortedMap(), result.toSortedMap())
     }
 
     @Test
@@ -96,7 +108,8 @@ class TestDefaultIntrospectionResultAssembler {
         // given
 
         val accessToken = accessToken(
-            Date(123 * 1000L), scopes("foo", "bar"), null, "Bearer",
+            Instant.ofEpochSecond(123),
+            scopes("foo", "bar"), null, "Bearer",
             oauth2AuthenticationWithUser(oauth2Request("clientId"), "name")
         )
 
@@ -107,18 +120,18 @@ class TestDefaultIntrospectionResultAssembler {
 
 
         // then
-        val expected: Map<String, Any> = mapOf(
-            "sub" to "name",
-            "exp" to 123L,
-            "expires_at" to dateFormat.valueToString(Date(123 * 1000L)),
-            "scope" to "bar foo",
-            "active" to true,
-            "user_id" to "name",
-            "client_id" to "clientId",
-            "token_type" to "Bearer",
-        )
+        val expected: JsonObject = buildJsonObject {
+            put("sub", "name")
+            put("exp", 123L)
+            put("expires_at", dateFormat.format(Instant.ofEpochSecond(123)))
+            put("scope", "bar foo")
+            put("active", true)
+            put("user_id", "name")
+            put("client_id", "clientId")
+            put("token_type", "Bearer")
+        }
 
-        Assertions.assertEquals(expected, result)
+        assertEquals(expected.toSortedMap(), result.toSortedMap())
     }
 
     @Test
@@ -139,17 +152,16 @@ class TestDefaultIntrospectionResultAssembler {
 
 
         // then
-        val expected: Map<String, Any> = mapOf(
-            "sub" to "sub",
-            "scope" to "bar foo",
-            "active" to true,
-            "user_id" to "name",
-            "client_id" to "clientId",
-            "token_type" to "Bearer",
+        val expected: JsonObject = buildJsonObject {
+            put("sub", "sub")
+            put("scope", "bar foo")
+            put("active", true)
+            put("user_id", "name")
+            put("client_id", "clientId")
+            put("token_type", "Bearer")
+        }
 
-        )
-
-        Assertions.assertEquals(expected, result)
+        assertEquals(expected.toSortedMap(), result.toSortedMap())
     }
 
     @Test
@@ -157,7 +169,8 @@ class TestDefaultIntrospectionResultAssembler {
     fun shouldAssembleExpectedResultForAccessTokenWithoutUserAuthentication() {
         // given
         val accessToken = accessToken(
-            Date(123 * 1000L), scopes("foo", "bar"), null, "Bearer",
+            Instant.ofEpochSecond(123),
+            scopes("foo", "bar"), null, "Bearer",
             oauth2Authentication(oauth2Request("clientId"), null)
         )
 
@@ -168,17 +181,18 @@ class TestDefaultIntrospectionResultAssembler {
 
 
         // then `user_id` should not be present
-        val expected: Map<String, Any> = mapOf(
-            "sub" to "clientId",
-            "exp" to 123L,
-            "expires_at" to dateFormat.valueToString(Date(123 * 1000L)),
-            "scope" to "bar foo",
-            "active" to true,
-            "client_id" to "clientId",
-            "token_type" to "Bearer",
-        )
+        val expected: JsonObject = buildJsonObject {
+            put("sub", "clientId")
+            put("exp", 123L)
+            put("expires_at", dateFormat.format(Instant.ofEpochSecond(123)))
+            put("scope", "bar foo")
+            put("active", true)
+            put("client_id", "clientId")
+            put("token_type", "Bearer")
+        }
 
-        Assertions.assertEquals(expected, result)
+
+        assertEquals(expected.toSortedMap(), result.toSortedMap())
     }
 
     @Test
@@ -187,7 +201,7 @@ class TestDefaultIntrospectionResultAssembler {
         // given
 
         val refreshToken = refreshToken(
-            Date(123 * 1000L),
+            Instant.ofEpochSecond(123),
             oauth2AuthenticationWithUser(oauth2Request("clientId", scopes("foo", "bar")), "name")
         )
 
@@ -200,18 +214,17 @@ class TestDefaultIntrospectionResultAssembler {
 
 
         // then
-        val expected: Map<String, Any> = mapOf(
-            "sub" to "sub",
-            "exp" to 123L,
-            "expires_at" to dateFormat.valueToString(Date(123 * 1000L)),
-            "scope" to "bar foo",
-            "active" to true,
-            "user_id" to "name",
-            "client_id" to "clientId",
+        val expected: JsonObject = buildJsonObject {
+            put("sub", "sub")
+            put("exp", 123L)
+            put("expires_at", dateFormat.format(Instant.ofEpochSecond(123)))
+            put("scope", "bar foo")
+            put("active", true)
+            put("user_id", "name")
+            put("client_id", "clientId")
+        }
 
-            )
-
-        Assertions.assertEquals(expected, result)
+        assertEquals(expected.toSortedMap(), result.toSortedMap())
     }
 
     @Test
@@ -220,7 +233,7 @@ class TestDefaultIntrospectionResultAssembler {
         // given
 
         val refreshToken = refreshToken(
-            Date(123 * 1000L),
+            Instant.ofEpochSecond(123),
             oauth2AuthenticationWithUser(oauth2Request("clientId", scopes("foo", "bar")), "name")
         )
 
@@ -230,17 +243,17 @@ class TestDefaultIntrospectionResultAssembler {
         val result = assembler.assembleFrom(refreshToken, null, authScopes)
 
         // then
-        val expected: Map<String, Any> = mapOf(
-            "sub" to "name",
-            "exp" to 123L,
-            "expires_at" to dateFormat.valueToString(Date(123 * 1000L)),
-            "scope" to "bar foo",
-            "active" to true,
-            "user_id" to "name",
-            "client_id" to "clientId",
-        )
+        val expected: JsonObject = buildJsonObject {
+            put("sub", "name")
+            put("exp", 123L)
+            put("expires_at", dateFormat.format(Instant.ofEpochSecond(123)))
+            put("scope", "bar foo")
+            put("active", true)
+            put("user_id", "name")
+            put("client_id", "clientId")
+        }
 
-        Assertions.assertEquals(expected, result)
+        assertEquals(expected.toSortedMap(), result.toSortedMap())
     }
 
     @Test
@@ -261,15 +274,15 @@ class TestDefaultIntrospectionResultAssembler {
 
 
         // then
-        val expected: Map<String, Any> = mapOf(
-            "sub" to "sub",
-            "scope" to "bar foo",
-            "active" to true,
-            "user_id" to "name",
-            "client_id" to "clientId",
-        )
+        val expected: JsonObject = buildJsonObject {
+            put("sub", "sub")
+            put("scope", "bar foo")
+            put("active", true)
+            put("user_id", "name")
+            put("client_id", "clientId")
+        }
 
-        Assertions.assertEquals(expected, result)
+        assertEquals(expected.toSortedMap(), result.toSortedMap())
     }
 
     @Test
@@ -288,14 +301,14 @@ class TestDefaultIntrospectionResultAssembler {
 
 
         // then `user_id` should not be present
-        val expected: Map<String, Any> = mapOf(
-            "sub" to "clientId",
-            "scope" to "bar foo",
-            "active" to true,
-            "client_id" to "clientId",
-        )
+        val expected: JsonObject = buildJsonObject {
+            put("sub", "clientId")
+            put("scope", "bar foo")
+            put("active", true)
+            put("client_id", "clientId")
+        }
 
-        Assertions.assertEquals(expected, result)
+        assertEquals(expected.toSortedMap(), result.toSortedMap())
     }
 
 
@@ -306,14 +319,14 @@ class TestDefaultIntrospectionResultAssembler {
     }
 
     private fun accessToken(
-        exp: Date?,
+        exp: Instant?,
         scopes: Set<String>,
         permissions: Set<Permission>?,
         tokenType: String,
         authentication: OAuth2RequestAuthentication
     ): OAuth2AccessTokenEntity {
         return org.mockito.kotlin.mock<OAuth2AccessTokenEntity>(defaultAnswer = org.mockito.Mockito.RETURNS_DEEP_STUBS).also {
-            org.mockito.kotlin.given(it.expiration).willReturn(exp)
+            org.mockito.kotlin.given(it.expirationInstant).willReturn(exp ?: Instant.MIN)
             org.mockito.kotlin.given(it.scope).willReturn(scopes)
             org.mockito.kotlin.given(it.permissions).willReturn(permissions)
             org.mockito.kotlin.given(it.tokenType).willReturn(tokenType)
@@ -321,11 +334,11 @@ class TestDefaultIntrospectionResultAssembler {
         }
     }
 
-    private fun refreshToken(exp: Date?, authentication: OAuth2RequestAuthentication): OAuth2RefreshTokenEntity {
+    private fun refreshToken(exp: Instant?, authentication: OAuth2RequestAuthentication): OAuth2RefreshTokenEntity {
         org.mockito.kotlin.mock<OAuth2AccessTokenEntity>(defaultAnswer = org.mockito.Mockito.RETURNS_DEEP_STUBS)
         return org.mockito.kotlin.mock<OAuth2RefreshTokenEntity>(defaultAnswer = org.mockito.Mockito.RETURNS_DEEP_STUBS)
             .apply {
-            org.mockito.kotlin.given(expiration).willReturn(exp)
+            org.mockito.kotlin.given(expirationInstant).willReturn(exp ?: Instant.MIN)
             org.mockito.kotlin.given(authenticationHolder.authentication).willReturn(authentication)
         }
     }
@@ -376,6 +389,6 @@ class TestDefaultIntrospectionResultAssembler {
     }
 
     companion object {
-        private val dateFormat = DateFormatter(SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ"))
+        val dateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ").withZone(ZoneOffset.UTC)
     }
 }

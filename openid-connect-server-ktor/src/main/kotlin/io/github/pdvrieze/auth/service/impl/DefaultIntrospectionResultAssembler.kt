@@ -29,6 +29,7 @@ import org.mitre.openid.connect.model.UserInfo
 import org.mitre.util.getLogger
 import java.text.ParseException
 import java.time.Instant
+import java.util.*
 
 /**
  * Default implementation of the [IntrospectionResultAssembler] interface.
@@ -65,7 +66,7 @@ class DefaultIntrospectionResultAssembler : JsonIntrospectionResultAssembler {
         val expiration = accessToken.expirationInstant
         if (expiration > Instant.MIN) {
             try {
-                put(IntrospectionResultAssembler.EXPIRES_AT, IntrospectionResultAssembler.dateFormat.valueToString(expiration))
+                put(IntrospectionResultAssembler.EXPIRES_AT, IntrospectionResultAssembler.dateFormat.format(expiration))
                 put(IntrospectionResultAssembler.EXP, expiration.epochSecond)
             } catch (e: ParseException) {
                 logger.error("Parse exception in token introspection", e)
@@ -109,7 +110,8 @@ class DefaultIntrospectionResultAssembler : JsonIntrospectionResultAssembler {
             val expiration = refreshToken.expirationInstant
             if (expiration> Instant.MIN) {
                 try {
-                    put(IntrospectionResultAssembler.EXPIRES_AT, IntrospectionResultAssembler.dateFormat.valueToString(expiration))
+                    val d = Date.from(expiration)
+                    put(IntrospectionResultAssembler.EXPIRES_AT, IntrospectionResultAssembler.dateFormat.format(expiration))
                     put(IntrospectionResultAssembler.EXP, expiration.epochSecond)
                 } catch (e: ParseException) {
                     logger.error("Parse exception in token introspection", e)

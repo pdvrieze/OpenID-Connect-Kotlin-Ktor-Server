@@ -19,8 +19,8 @@ import kotlinx.serialization.json.JsonObject
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.openid.connect.model.UserInfo
-import java.text.SimpleDateFormat
-import javax.swing.text.DateFormatter
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 
 interface JsonIntrospectionResultAssembler : IntrospectionResultAssembler {
     override fun assembleFrom(
@@ -92,7 +92,10 @@ interface IntrospectionResultAssembler {
         @JvmField
         val ACTIVE: String = "active"
 
+//        @JvmField
+//        val dateFormat: DateFormatter = DateFormatter(SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ"))
+
         @JvmField
-        val dateFormat: DateFormatter = DateFormatter(SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ"))
+        val dateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ").withZone(ZoneOffset.UTC)
     }
 }
