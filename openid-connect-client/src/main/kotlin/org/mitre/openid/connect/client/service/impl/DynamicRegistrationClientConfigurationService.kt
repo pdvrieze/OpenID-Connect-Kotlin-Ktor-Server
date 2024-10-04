@@ -17,40 +17,36 @@
  */
 package org.mitre.openid.connect.client.service.impl
 
-import com.google.common.cache.CacheBuilder
-import com.google.common.cache.CacheLoader
-import com.google.common.cache.LoadingCache
 import com.google.common.util.concurrent.UncheckedExecutionException
+import io.github.pdvrieze.client.CoroutineCache
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.utils.io.errors.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.apache.http.client.HttpClient
-import org.apache.http.impl.client.HttpClientBuilder
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.openid.connect.ClientDetailsEntityJsonProcessor.parseRegistered
 import org.mitre.openid.connect.client.service.ClientConfigurationService
 import org.mitre.openid.connect.client.service.RegisteredClientService
 import org.mitre.openid.connect.config.ServerConfiguration
 import org.mitre.util.getLogger
-import org.springframework.http.HttpEntity
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpMethod
-import org.springframework.http.MediaType
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.security.authentication.AuthenticationServiceException
-import org.springframework.security.oauth2.common.OAuth2AccessToken
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException
-import org.springframework.web.client.RestClientException
-import org.springframework.web.client.RestTemplate
 import java.util.concurrent.ExecutionException
 
 /**
  * @author jricher
  */
 class DynamicRegistrationClientConfigurationService(
-    httpClient: HttpClient? = HttpClientBuilder.create().useSystemProperties().build()
+    private val httpClient: HttpClient = HttpClient(CIO)
 ) : ClientConfigurationService {
-    private val clients: LoadingCache<ServerConfiguration, RegisteredClient?> =
-        CacheBuilder.newBuilder().build(DynamicClientRegistrationLoader(httpClient))
+
+    private val clients = CoroutineCache(::loadImpl) {
+        maximumSize(50)
+    }
 
     var registeredClientService: RegisteredClientService = InMemoryRegisteredClientService()
 
@@ -59,7 +55,7 @@ class DynamicRegistrationClientConfigurationService(
     var whitelist: Set<String?> = HashSet()
     var blacklist: Set<String?> = HashSet()
 
-    override fun getClientConfiguration(issuer: ServerConfiguration): RegisteredClient? {
+    override suspend fun getClientConfiguration(issuer: ServerConfiguration): RegisteredClient? {
         try {
             if (!whitelist.isEmpty() && !whitelist.contains(issuer.issuer)) {
                 throw AuthenticationServiceException("Whitelist was nonempty, issuer was not in whitelist: $issuer")
@@ -69,7 +65,7 @@ class DynamicRegistrationClientConfigurationService(
                 throw AuthenticationServiceException("Issuer was in blacklist: $issuer")
             }
 
-            return clients[issuer]
+            return clients.load(issuer)
         } catch (e: UncheckedExecutionException) {
             logger.warn("Unable to get client configuration", e)
             return null
@@ -95,79 +91,54 @@ class DynamicRegistrationClientConfigurationService(
         )
     }
 
-
-    /**
-     * Loader class that fetches the client information.
-     *
-     * If a client has been registered (ie, it's known to the RegisteredClientService), then this
-     * will fetch the client's configuration from the server.
-     *
-     * @author jricher
-     */
-    inner class DynamicClientRegistrationLoader(
-        httpClient: HttpClient? = HttpClientBuilder.create().useSystemProperties().build()
-    ) : CacheLoader<ServerConfiguration, RegisteredClient?>() {
-        private val httpFactory = HttpComponentsClientHttpRequestFactory(httpClient)
-
-        @Throws(Exception::class)
-        override fun load(serverConfig: ServerConfiguration): RegisteredClient? {
-            val restTemplate = RestTemplate(httpFactory)
+    @Throws(Exception::class)
+    suspend fun loadImpl(serverConfig: ServerConfiguration): RegisteredClient? {
 
 
-            val knownClient = registeredClientService.getByIssuer(serverConfig.issuer!!)
-            if (knownClient == null) {
-                // dynamically register this client
+        val knownClient = registeredClientService.getByIssuer(serverConfig.issuer!!)
+        if (knownClient == null) {
+            // dynamically register this client
 
-                val serializedClient = Json.encodeToString(template!!)
+            val serializedClient = Json.encodeToString(template!!)
 
-                val headers = HttpHeaders()
-                headers.contentType = MediaType.APPLICATION_JSON
-                headers.accept = listOf(MediaType.APPLICATION_JSON)
+            val response = httpClient.post(serverConfig.registrationEndpointUri!!) {
+                contentType(ContentType.Application.Json)
+                accept(ContentType.Application.Json)
 
-                val entity = HttpEntity(serializedClient, headers)
+                setBody(serializedClient)
+            }
+            if (! response.status.isSuccess()) {
+                throw IOException("Error registering client ${response.status}")
+            }
 
-                try {
-                    val registered =
-                        restTemplate.postForObject(serverConfig.registrationEndpointUri, entity, String::class.java)
+            val client = parseRegistered(response.bodyAsText())
 
-                    val client = parseRegistered(registered)
+            // save this client for later
+            registeredClientService.save(serverConfig.issuer!!, client)
 
-                    // save this client for later
-                    registeredClientService.save(serverConfig.issuer!!, client!!)
-
-                    return client
-                } catch (rce: RestClientException) {
-                    throw InvalidClientException("Error registering client with server")
-                }
+            return client
+        } else {
+            if (knownClient.clientId != null) {
+                // it's got a client ID from the store, don't bother trying to load it
+                return knownClient
             } else {
-                if (knownClient.clientId != null) {
-                    // it's got a client ID from the store, don't bother trying to load it
-                    return knownClient
-                } else {
-                    // load this client's information from the server
+                // load this client's information from the server
 
-                    val headers = HttpHeaders()
-                    headers["Authorization"] =
-                        String.format("%s %s", OAuth2AccessToken.BEARER_TYPE, knownClient.registrationAccessToken)
-                    headers.accept = listOf(MediaType.APPLICATION_JSON)
-
-                    val entity = HttpEntity<String>(headers)
-
-                    try {
-                        val registered =
-                            restTemplate.exchange(knownClient.registrationClientUri, HttpMethod.GET, entity, String::class.java).body
-
-                        // TODO: handle HTTP errors
-                        val client = parseRegistered(registered)
-
-                        return client
-                    } catch (rce: RestClientException) {
-                        throw InvalidClientException("Error loading previously registered client information from server")
-                    }
+                val resp = httpClient.get(knownClient.registrationClientUri!!) {
+                    bearerAuth(knownClient.registrationAccessToken!!)
+                    accept(ContentType.Application.Json)
                 }
+                if (!resp.status.isSuccess()) {
+                    throw InvalidClientException("Error loading previously registered client information from server")
+                }
+
+                // TODO: handle HTTP errors
+
+                return parseRegistered(resp.bodyAsText())
             }
         }
     }
+
 
     companion object {
         /**

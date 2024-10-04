@@ -18,8 +18,8 @@
 package org.mitre.openid.connect.client.service
 
 import io.ktor.http.*
+import io.ktor.server.request.*
 import org.mitre.openid.connect.client.model.IssuerServiceResponse
-import javax.servlet.http.HttpServletRequest
 
 /**
  *
@@ -28,10 +28,9 @@ import javax.servlet.http.HttpServletRequest
  * @author jricher
  */
 interface IssuerService {
-    fun getIssuer(request: HttpServletRequest): IssuerServiceResponse? {
-        val parameterMap: MutableMap<String, Array<String>> = request.parameterMap as MutableMap<String, Array<String>>
-        return getIssuer(parametersOf(parameterMap.mapValues { (_, v) -> v.toList() }), request.requestURI)
+    suspend fun getIssuer(request: ApplicationRequest): IssuerServiceResponse? {
+        return getIssuer(request.queryParameters, request.uri)
     }
 
-    fun getIssuer(requestParams: Parameters, requestUrl: String): IssuerServiceResponse?
+    suspend fun getIssuer(requestParams: Parameters, requestUrl: String): IssuerServiceResponse?
 }

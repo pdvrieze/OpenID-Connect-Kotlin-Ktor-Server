@@ -30,7 +30,7 @@ class StaticSingleIssuerService(val issuer: String) : IssuerService {
      *
      * @see org.mitre.openid.connect.client.service.IssuerService.getIssuer
      */
-    override fun getIssuer(requestParams: Parameters, requestUrl: String): IssuerServiceResponse {
+    override suspend fun getIssuer(requestParams: Parameters, requestUrl: String): IssuerServiceResponse {
         return IssuerServiceResponse(issuer, null, null)
     }
 

@@ -5,6 +5,7 @@ import io.github.pdvrieze.auth.ktor.plugins.configureRouting
 import io.github.pdvrieze.auth.ktor.plugins.configureSerialization
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.routing.*
@@ -37,6 +38,9 @@ fun Application.module() {
                     null
                 }
             }
+        }
+        jwt {
+
         }
     }
     configureSerialization()

@@ -51,7 +51,7 @@ class DefaultJWTSigningAndValidationService : JWTSigningAndValidationService {
      */
     override var defaultSignerKeyId: String? = null
 
-    override var defaultSigningAlgorithm: JWSAlgorithm? = null
+    override var defaultSigningAlgorithm: JWSAlgorithm = JWSAlgorithm.RS256 // required
         private set
 
     // map of identifier to key

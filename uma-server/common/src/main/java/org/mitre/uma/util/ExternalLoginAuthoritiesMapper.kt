@@ -16,10 +16,9 @@
 package org.mitre.uma.util
 
 import com.nimbusds.jwt.JWT
+import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.openid.connect.client.OIDCAuthoritiesMapper
 import org.mitre.openid.connect.model.UserInfo
-import org.springframework.security.core.GrantedAuthority
-import org.springframework.security.core.authority.SimpleGrantedAuthority
 
 /**
  * Utility class to map all external logins to the ROLE_EXTERNAL_USER authority
@@ -33,6 +32,6 @@ class ExternalLoginAuthoritiesMapper : OIDCAuthoritiesMapper {
     }
 
     companion object {
-        private val ROLE_EXTERNAL_USER: GrantedAuthority = SimpleGrantedAuthority("ROLE_EXTERNAL_USER")
+        private val ROLE_EXTERNAL_USER: GrantedAuthority = GrantedAuthority.ROLE_EXTERNAL_USER
     }
 }

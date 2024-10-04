@@ -1,9 +1,9 @@
 package io.github.pdvrieze.openid.spring
 
-import org.mitre.oauth2.model.GrantedAuthority
+import org.mitre.oauth2.model.LocalGrantedAuthority
 import org.mitre.oauth2.model.OAuth2AccessToken
-import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuth2RefreshToken
+import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.convert.OAuth2Request
 import org.mitre.openid.connect.model.OIDCAuthenticationToken
@@ -171,7 +171,7 @@ fun Authentication.fromSpring(): SavedUserAuthentication? {
     return SavedUserAuthentication(
         name = name,
         id = null,
-        authorities = authorities.map { GrantedAuthority(it.authority) },
+        authorities = authorities.map { LocalGrantedAuthority(it.authority) },
         authenticated = isAuthenticated,
         sourceClass = this.javaClass.name
     )
@@ -181,7 +181,7 @@ fun SpringOAuth2Request.fromSpring(): OAuth2Request {
     return OAuth2Request(
         requestParameters = requestParameters,
         clientId = clientId,
-        authorities = authorities.mapTo(HashSet()) { GrantedAuthority(it.authority) },
+        authorities = authorities.mapTo(HashSet()) { LocalGrantedAuthority(it.authority) },
         isApproved = isApproved,
         scope = scope,
         resourceIds = resourceIds,

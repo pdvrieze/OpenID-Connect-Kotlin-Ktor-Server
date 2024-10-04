@@ -8,11 +8,13 @@ import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.jwk.JWKSet
 import org.mitre.jose.keystore.JWKSetKeyStore
 import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
+import org.mitre.jwt.signer.service.ClientKeyCacheService
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.util.getLogger
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
+
 
 /**
  *
@@ -21,7 +23,7 @@ import java.util.concurrent.TimeUnit
  *
  * @author jricher
  */
-class ClientKeyCacheService {
+class DefaultClientKeyCacheService : ClientKeyCacheService {
 //    @Autowired
     private val jwksUriCache = JWKSetCacheServiceImpl()
 
@@ -40,7 +42,7 @@ class ClientKeyCacheService {
         .maximumSize(100)
         .build(JWKSetEncryptorBuilder())
 
-    fun getValidator(client: OAuthClientDetails, alg: JWSAlgorithm): JWTSigningAndValidationService? {
+    override suspend fun getValidator(client: OAuthClientDetails, alg: JWSAlgorithm): JWTSigningAndValidationService? {
         try {
             return when (alg) {
                 JWSAlgorithm.RS256, JWSAlgorithm.RS384, JWSAlgorithm.RS512,
@@ -68,7 +70,7 @@ class ClientKeyCacheService {
         }
     }
 
-    fun getEncrypter(client: OAuthClientDetails): JWTEncryptionAndDecryptionService? {
+    override suspend fun getEncrypter(client: OAuthClientDetails): JWTEncryptionAndDecryptionService? {
         try {
             return client.jwks?.let { jwksEncrypters[it] }
                 ?: client.jwksUri?.takeIf { it.isNotEmpty() }?.let { jwksUriCache.getEncrypter(it) }
@@ -98,6 +100,6 @@ class ClientKeyCacheService {
 
 
     companion object {
-        private val logger = getLogger<ClientKeyCacheService>()
+        private val logger = getLogger<DefaultClientKeyCacheService>()
     }
 }

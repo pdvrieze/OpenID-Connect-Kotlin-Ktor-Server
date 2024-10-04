@@ -21,8 +21,9 @@ import io.ktor.util.*
 import org.jetbrains.exposed.sql.Database
 import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
 import org.mitre.jwt.encryption.service.impl.DefaultJWTEncryptionAndDecryptionService
+import org.mitre.jwt.signer.service.ClientKeyCacheService
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
-import org.mitre.jwt.signer.service.impl.ClientKeyCacheService
+import org.mitre.jwt.signer.service.impl.DefaultClientKeyCacheService
 import org.mitre.jwt.signer.service.impl.DefaultJWTSigningAndValidationService
 import org.mitre.jwt.signer.service.impl.SymmetricKeyJWTValidatorCacheService
 import org.mitre.oauth2.TokenEnhancer
@@ -194,7 +195,7 @@ data class OpenIdConfigurator(
 
         override val deviceCodeService: DeviceCodeService = DefaultDeviceCodeService()
 
-        override val tokenEnhancer: TokenEnhancer  =
+        override val tokenEnhancer: TokenEnhancer =
             ConnectTokenEnhancerImpl(clientDetailsService, config, jwtService, userInfoService, { oidcTokenService })
 
         override val tokenService: OAuth2TokenEntityService = DefaultOAuth2ProviderTokenService(
@@ -205,7 +206,7 @@ data class OpenIdConfigurator(
             SymmetricKeyJWTValidatorCacheService()
 
         override val encyptersService: ClientKeyCacheService =
-            ClientKeyCacheService()
+            DefaultClientKeyCacheService()
 
         override val oidcTokenService: OIDCTokenService = KtorOIDCTokenService(
             jwtService, authenticationHolderRepository, config, encyptersService, symetricCacheService, tokenService

@@ -14,10 +14,11 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mitre.jwt.signer.service.ClientKeyCacheService
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
-import org.mitre.jwt.signer.service.impl.ClientKeyCacheService
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.GrantedAuthority
+import org.mitre.oauth2.model.LocalGrantedAuthority
 import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
@@ -320,7 +321,7 @@ class TestJWTBearerAuthenticationProvider {
         val token = authentication as JWTBearerAssertionAuthenticationToken
         assertEquals(SUBJECT, token.name)
         assertEquals(jwt, token.jwt)
-        assertTrue(token.authorities.map { GrantedAuthority(it.authority) }.containsAll(listOf(authority1, authority2, authority3)))
+        assertTrue(token.authorities.map { LocalGrantedAuthority(it.authority) }.containsAll(listOf(authority1, authority2, authority3)))
         assertEquals(4, token.authorities.size)
     }
 
@@ -342,7 +343,7 @@ class TestJWTBearerAuthenticationProvider {
         val token = authentication as JWTBearerAssertionAuthenticationToken
         assertEquals(SUBJECT, token.name)
         assertEquals(jwt, token.jwt)
-        assertTrue(token.authorities.map { GrantedAuthority(it.authority) }.containsAll(listOf(authority1, authority2, authority3)))
+        assertTrue(token.authorities.map { LocalGrantedAuthority(it.authority) }.containsAll(listOf(authority1, authority2, authority3)))
         assertEquals(4, token.authorities.size)
     }
 
@@ -398,8 +399,8 @@ class TestJWTBearerAuthenticationProvider {
     companion object {
         private const val CLIENT_ID = "client"
         private const val SUBJECT = "subject"
-        private val authority1: GrantedAuthority = GrantedAuthority("1")
-        private val authority2: GrantedAuthority = GrantedAuthority("2")
-        private val authority3: GrantedAuthority = GrantedAuthority("3")
+        private val authority1: GrantedAuthority = LocalGrantedAuthority("1")
+        private val authority2: GrantedAuthority = LocalGrantedAuthority("2")
+        private val authority3: GrantedAuthority = LocalGrantedAuthority("3")
     }
 }

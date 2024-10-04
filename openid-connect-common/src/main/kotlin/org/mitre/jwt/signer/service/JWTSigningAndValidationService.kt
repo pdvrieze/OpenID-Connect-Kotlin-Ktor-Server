@@ -50,7 +50,7 @@ interface JWTSigningAndValidationService {
     /**
      * Get the default signing algorithm for use when nothing else has been specified.
      */
-    val defaultSigningAlgorithm: JWSAlgorithm?
+    val defaultSigningAlgorithm: JWSAlgorithm
 
     /**
      * Get the list of all signing algorithms supported by this service.

@@ -18,17 +18,20 @@
 package org.mitre.oauth2.introspectingfilter
 
 import com.nimbusds.jose.util.Base64
-import io.github.pdvrieze.openid.spring.toSpring
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import org.apache.http.client.HttpClient
-import org.apache.http.impl.client.HttpClientBuilder
 import org.mitre.oauth2.introspectingfilter.service.IntrospectionAuthorityGranter
 import org.mitre.oauth2.introspectingfilter.service.IntrospectionConfigurationService
 import org.mitre.oauth2.introspectingfilter.service.impl.SimpleIntrospectionAuthorityGranter
 import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.GrantedAuthority
+import org.mitre.oauth2.model.LocalGrantedAuthority
 import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
@@ -37,20 +40,9 @@ import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.convert.OAuth2Request
 import org.mitre.util.asBoolean
 import org.mitre.util.getLogger
-import org.springframework.http.HttpMethod
-import org.springframework.http.client.ClientHttpRequest
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
-import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices
-import org.springframework.util.LinkedMultiValueMap
-import org.springframework.util.MultiValueMap
-import org.springframework.web.client.RestClientException
-import org.springframework.web.client.RestTemplate
-import java.io.IOException
-import java.net.URI
 import java.time.Instant
-import java.util.*
-import org.springframework.security.oauth2.common.OAuth2AccessToken as SpringOAuth2AccessToken
-import org.springframework.security.oauth2.provider.OAuth2Authentication as SpringOAuth2Authentication
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.toJavaDuration
 
 /**
  * This ResourceServerTokenServices implementation introspects incoming tokens at a
@@ -59,15 +51,17 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication as Spri
  * @author jricher
  */
 class IntrospectingTokenService(
-    httpClient: HttpClient? = HttpClientBuilder.create().useSystemProperties().build()
-) : ResourceServerTokenServices {
-    var introspectionConfigurationService: IntrospectionConfigurationService? = null
-    var introspectionAuthorityGranter: IntrospectionAuthorityGranter = SimpleIntrospectionAuthorityGranter()
+    private var introspectionConfigurationService: IntrospectionConfigurationService,
+    private val httpClient: HttpClient = HttpClient(CIO),
+    private var introspectionAuthorityGranter: IntrospectionAuthorityGranter = SimpleIntrospectionAuthorityGranter(),
+
+) {
 
     /**
      * The default cache expire time in milliseconds. Defaults to 5 minutes.
      */
-    var defaultExpireTime: Int = 300000 // 5 minutes in milliseconds
+    var defaultExpireTime: java.time.Duration = 5.minutes.toJavaDuration()
+
     /**
      * Force removal of cached tokens based on default expire time
      */
@@ -84,22 +78,20 @@ class IntrospectingTokenService(
      */
     var isCacheTokens: Boolean = true
 
-    private val requestFactory = HttpComponentsClientHttpRequestFactory(httpClient)
-
     // Inner class to store in the hash map
     private inner class TokenCacheObject(var token: OAuth2AccessToken, var auth: OAuth2RequestAuthentication) {
-        var cacheExpire: Date? = null
+        var cacheExpire: Instant? = null
 
         init {
             // we don't need to check the cacheTokens values, because this won't actually be added to the cache if cacheTokens is false
             // if the token isn't null we use the token expire time
             // if forceCacheExpireTime is also true, we also make sure that the token expire time is shorter than the default expire time
-            if ((token.expiration != null) && (!isForceCacheExpireTime || (token.expiration.time - System.currentTimeMillis() <= defaultExpireTime))) {
-                this.cacheExpire = token.expiration
+            val now = Instant.now()
+
+            if ((token.expirationInstant>Instant.MIN) && (!isForceCacheExpireTime || (token.expirationInstant < (now + defaultExpireTime)))) {
+                this.cacheExpire = token.expirationInstant
             } else { // if the token doesn't have an expire time, or if the using forceCacheExpireTime the token expire time is longer than the default, then use the default expire time
-                val cal = Calendar.getInstance()
-                cal.add(Calendar.MILLISECOND, defaultExpireTime)
-                this.cacheExpire = cal.time
+                this.cacheExpire = now + defaultExpireTime
             }
         }
     }
@@ -116,14 +108,16 @@ class IntrospectingTokenService(
      * @return the cached TokenCacheObject or null
      */
     private fun checkCache(key: String): TokenCacheObject? {
-        if (isCacheTokens && authCache.containsKey(key)) {
+        if (isCacheTokens) {
             val tco = authCache[key]
-
-            if (tco?.cacheExpire != null && tco.cacheExpire!!.after(Date())) {
-                return tco
-            } else {
-                // if the token is expired, don't keep things around.
-                authCache.remove(key)
+            if (tco != null) {
+                val cacheExpire = tco.cacheExpire
+                if (cacheExpire != null && cacheExpire.isAfter(Instant.now())) {
+                    return tco
+                } else {
+                    // if the token is expired, don't keep things around.
+                    authCache.remove(key)
+                }
             }
         }
         return null
@@ -135,8 +129,8 @@ class IntrospectingTokenService(
 
     private fun createUserAuthentication(token: JsonObject): Authentication? {
         val userId = (token["user_id"] ?: token["sub"] ?: return null).jsonPrimitive
-        if (! userId.isString) return null
-        val authorities = introspectionAuthorityGranter.getAuthorities(token).map { GrantedAuthority(it.authority) }
+        if (!userId.isString) return null
+        val authorities = introspectionAuthorityGranter.getAuthorities(token).map { LocalGrantedAuthority(it.authority) }
         return PreAuthenticatedAuthenticationToken(userId.content, token, authorities)
     }
 
@@ -152,7 +146,7 @@ class IntrospectingTokenService(
      * @param accessToken Token to pass to the introspection endpoint
      * @return TokenCacheObject containing authentication and token if the token was valid, otherwise null
      */
-    private fun parseToken(accessToken: String): TokenCacheObject? {
+    private suspend fun parseToken(accessToken: String): TokenCacheObject? {
         // find out which URL to ask
 
         val introspectionUrl: String
@@ -166,78 +160,70 @@ class IntrospectingTokenService(
         }
         // Use the SpringFramework RestTemplate to send the request to the
         // endpoint
-        var validatedToken: String? = null
 
-        val restTemplate: RestTemplate
-        val form: MultiValueMap<String, String?> = LinkedMultiValueMap()
+        val requestBuilder = HttpRequestBuilder(introspectionUrl)
+        val form = ParametersBuilder()
 
-        val clientId = client.clientId
-        val clientSecret = client.clientSecret
+        val clientId = client.clientId!!
+        val clientSecret = client.clientSecret!!
 
         if (AuthMethod.SECRET_BASIC == client.tokenEndpointAuthMethod) {
             // use BASIC auth if configured to do so
-            restTemplate = object : RestTemplate(requestFactory) {
-                @Throws(IOException::class)
-                override fun createRequest(url: URI, method: HttpMethod): ClientHttpRequest {
-                    val httpRequest = super.createRequest(url, method)
-                    httpRequest.headers.add(
-                        "Authorization",
-                        String.format("Basic %s", Base64.encode(String.format("%s:%s", clientId, clientSecret)))
-                    )
-                    return httpRequest
-                }
-            }
+            requestBuilder.header(
+                HttpHeaders.Authorization,
+                String.format("Basic %s", Base64.encode(String.format("%s:%s", clientId, clientSecret)))
+            )
         } else {  //Alternatively use form based auth
-            restTemplate = RestTemplate(requestFactory)
-
-            form.add("client_id", clientId)
-            form.add("client_secret", clientSecret)
+            form.append("client_id", clientId)
+            form.append("client_secret", clientSecret)
         }
 
-        form.add("token", accessToken)
+        form.append("token", accessToken)
 
-        try {
-            validatedToken = restTemplate.postForObject(introspectionUrl, form, String::class.java)
-        } catch (rce: RestClientException) {
-            logger.error("validateToken", rce)
+        val response = httpClient.request(requestBuilder)
+        if (! response.status.isSuccess()) {
+            logger.error("Could not look up the token")
             return null
         }
-        if (validatedToken != null) {
-            // parse the json
-            val tokenResponse = (json.parseToJsonElement(validatedToken) as? JsonObject) ?: return null
 
-            if (tokenResponse["error"] != null) {
-                // report an error?
-                logger.error("Got an error back: " + tokenResponse["error"] + ", " + tokenResponse["error_description"])
-                return null
-            }
+        val validatedToken = response.bodyAsText()
 
-            if (!tokenResponse["active"].asBoolean()) {
-                // non-valid token
-                logger.info("Server returned non-active token")
-                return null
-            }
-            // create an OAuth2Authentication
-            val userAuth = createUserAuthentication(tokenResponse)?.let { it as? SavedUserAuthentication ?: SavedUserAuthentication(it) }
-            val auth = OAuth2RequestAuthentication(createStoredRequest(tokenResponse), userAuth)
-            // create an OAuth2AccessToken
-            val token = createAccessToken(tokenResponse, accessToken)
+        // parse the json
+        val tokenResponse = (json.parseToJsonElement(validatedToken) as? JsonObject) ?: return null
 
-            if (token.expirationInstant.isAfter(Instant.now())) {
-                // Store them in the cache
-                val tco = TokenCacheObject(token, auth)
-                if (isCacheTokens && (isCacheNonExpiringTokens || token.expirationInstant.isAfter(Instant.MIN))) {
-                    authCache[accessToken] = tco
-                }
-                return tco
+        if (tokenResponse["error"] != null) {
+            // report an error?
+            logger.error("Got an error back: ${tokenResponse["error"]}, ${tokenResponse["error_description"]}")
+            return null
+        }
+
+        if (!tokenResponse["active"].asBoolean()) {
+            // non-valid token
+            logger.info("Server returned non-active token")
+            return null
+        }
+        // create an OAuth2Authentication
+        val userAuth = createUserAuthentication(tokenResponse)?.let {
+            it as? SavedUserAuthentication ?: SavedUserAuthentication(it)
+        }
+        val auth = OAuth2RequestAuthentication(createStoredRequest(tokenResponse), userAuth)
+        // create an OAuth2AccessToken
+        val token = createAccessToken(tokenResponse, accessToken)
+
+        if (token.expirationInstant.isAfter(Instant.now())) {
+            // Store them in the cache
+            val tco = TokenCacheObject(token, auth)
+            if (isCacheTokens && (isCacheNonExpiringTokens || token.expirationInstant.isAfter(Instant.MIN))) {
+                authCache[accessToken] = tco
             }
+            return tco
         }
 
         // when the token is invalid for whatever reason
         return null
     }
 
-    private fun nonSpringLoadAuthentication(accessToken: String): OAuth2RequestAuthentication? {
+    private suspend fun loadAuthentication(accessToken: String): OAuth2RequestAuthentication? {
         // First check if the in memory cache has an Authentication object, and
         // that it is still valid
         // If Valid, return it
@@ -250,20 +236,16 @@ class IntrospectingTokenService(
         }
     }
 
-    override fun loadAuthentication(accessToken: String): SpringOAuth2Authentication? {
-        return (nonSpringLoadAuthentication(accessToken) ?: return null).toSpring()
-    }
-
-    override fun readAccessToken(accessToken: String): SpringOAuth2AccessToken? {
+    suspend fun readAccessToken(accessToken: String): OAuth2AccessToken? {
         // First check if the in memory cache has a Token object, and that it is
         // still valid
         // If Valid, return it
         var cacheAuth = checkCache(accessToken)
         if (cacheAuth != null) {
-            return cacheAuth.token.toSpring()
+            return cacheAuth.token
         } else {
             cacheAuth = parseToken(accessToken)
-            return cacheAuth?.token?.toSpring()
+            return cacheAuth?.token
         }
     }
 
@@ -271,7 +253,7 @@ class IntrospectingTokenService(
         override val name: String,
         val credentials: Any,
         override val authorities: Collection<GrantedAuthority>,
-    ): Authentication {
+    ) : Authentication {
         override val isAuthenticated: Boolean get() = true
     }
 
@@ -280,7 +262,7 @@ class IntrospectingTokenService(
          * Logger for this class
          */
         private val logger = getLogger<IntrospectingTokenService>()
-        
+
         val json: Json = Json {
             ignoreUnknownKeys = true
             prettyPrint = true

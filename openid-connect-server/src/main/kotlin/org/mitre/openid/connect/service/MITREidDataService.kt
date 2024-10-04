@@ -45,6 +45,7 @@ import kotlinx.serialization.json.jsonObject
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.GrantedAuthority
+import org.mitre.oauth2.model.LocalGrantedAuthority
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.OAuthClientDetails
@@ -56,6 +57,7 @@ import org.mitre.oauth2.model.convert.JWKSetStringConverter
 import org.mitre.oauth2.model.convert.JWSAlgorithmStringConverter
 import org.mitre.oauth2.model.convert.JWTStringConverter
 import org.mitre.oauth2.model.convert.SimpleGrantedAuthorityStringConverter
+import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2ClientRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.oauth2.repository.SystemScopeRepository
@@ -393,7 +395,7 @@ interface MITREidDataService {
             secret = s.clientSecret,
             scope = s.scope,
             authorities = s.authorities.mapTo(HashSet()) {
-                it as? GrantedAuthority ?: GrantedAuthority(it.authority)
+                it as? GrantedAuthority ?: LocalGrantedAuthority(it.authority)
             },
             accessTokenValiditySeconds = s.accessTokenValiditySeconds,
             refreshTokenValiditySeconds = s.refreshTokenValiditySeconds,
@@ -912,7 +914,7 @@ class DataServiceContext(
     val approvedSiteRepository: ApprovedSiteRepository,
     val wlSiteRepository: WhitelistedSiteRepository,
     val blSiteRepository: BlacklistedSiteRepository,
-    val authHolderRepository: org.mitre.oauth2.repository.AuthenticationHolderRepository,
+    val authHolderRepository: AuthenticationHolderRepository,
     val tokenRepository: OAuth2TokenRepository,
     val sysScopeRepository: SystemScopeRepository,
     val extensions: List<MITREidDataServiceExtension>,

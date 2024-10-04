@@ -27,6 +27,7 @@ dependencyResolutionManagement {
 rootProject.name = "OpenID-Connect-Kotlin-Ktor-Server"
 
 include("openid-connect-common")
+include("openid-connect-common-ktor")
 include("openid-connect-spring")
 include("openid-connect-server")
 include("openid-connect-client")

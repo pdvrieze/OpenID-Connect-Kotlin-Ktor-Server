@@ -18,10 +18,9 @@
 package org.mitre.openid.connect.client
 
 import com.nimbusds.jwt.JWT
+import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.openid.connect.model.UserInfo
 import org.mitre.util.getLogger
-import org.springframework.security.core.GrantedAuthority
-import org.springframework.security.core.authority.SimpleGrantedAuthority
 import java.text.ParseException
 
 /**
@@ -44,11 +43,11 @@ class NamedAdminAuthoritiesMapper : OIDCAuthoritiesMapper {
             out.add(authority)
 
             if (admins.contains(authority)) {
-                out.add(ROLE_ADMIN)
+                out.add(GrantedAuthority.ROLE_ADMIN)
             }
 
             // everybody's a user by default
-            out.add(ROLE_USER)
+            out.add(GrantedAuthority.ROLE_USER)
         } catch (e: ParseException) {
             logger.error("Unable to parse ID Token inside of authorities mapper (huh?)")
         }
@@ -58,7 +57,5 @@ class NamedAdminAuthoritiesMapper : OIDCAuthoritiesMapper {
     companion object {
         private val logger = getLogger<NamedAdminAuthoritiesMapper>()
 
-        private val ROLE_ADMIN = SimpleGrantedAuthority("ROLE_ADMIN")
-        private val ROLE_USER = SimpleGrantedAuthority("ROLE_USER")
     }
 }

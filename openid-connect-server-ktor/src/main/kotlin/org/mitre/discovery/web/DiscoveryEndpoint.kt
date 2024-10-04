@@ -23,7 +23,6 @@ import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.service.UserInfoService
 import org.mitre.util.getLogger
 import org.mitre.web.util.KtorEndpoint
-import org.mitre.web.util.OpenIdRouting
 
 /**
  *

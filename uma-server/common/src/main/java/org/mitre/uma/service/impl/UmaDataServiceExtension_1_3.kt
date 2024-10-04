@@ -15,11 +15,13 @@
  */
 package org.mitre.uma.service.impl
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.builtins.SetSerializer
 import kotlinx.serialization.json.*
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.oauth2.util.requireId
+import org.mitre.openid.connect.service.IMITREidDataServiceMaps
 import org.mitre.openid.connect.service.MITREidDataService
 import org.mitre.openid.connect.service.MITREidDataService.Companion.toUTCString
 import org.mitre.openid.connect.service.MITREidDataService.Companion.utcToDate
@@ -41,6 +43,7 @@ import java.io.IOException
 /**
  * @author jricher
  */
+@OptIn(ExperimentalSerializationApi::class)
 @Service("umaDataExtension_1_3")
 class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
     @Autowired
@@ -57,16 +60,10 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
 
     private val tokenToPermissionRefs: MutableMap<Long, Set<Long>> = HashMap()
 
-    /* (non-Javadoc)
-	 * @see org.mitre.openid.connect.service.MITREidDataServiceExtension#supportsVersion(java.lang.String)
-	 */
     override fun supportsVersion(version: String): Boolean {
         return THIS_VERSION == version
     }
 
-    /* (non-Javadoc)
-	 * @see org.mitre.openid.connect.service.MITREidDataServiceExtension#exportExtensionData(com.google.gson.stream.JsonWriter)
-	 */
     @Throws(IOException::class)
     override fun exportExtensionData(): JsonObject {
         return buildJsonObject {
@@ -88,10 +85,6 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
         }
     }
 
-    /**
-     * @throws IOException
-     */
-    @Throws(IOException::class)
     private fun writeTokenPermissions(builder: JsonArrayBuilder) {
         for (token in tokenRepository.allAccessTokens) {
             if (token.permissions!!.isNotEmpty()) { // skip tokens that don't have the permissions structure attached
@@ -100,7 +93,7 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
                     putJsonArray(PERMISSIONS) {
                         for (perm in token.permissions!!) {
                             addJsonObject {
-                                put(RESOURCE_SET, perm.resourceSet!!.id)
+                                put(RESOURCE_SET, perm.resourceSet.id)
                                 putJsonArray(SCOPES) {
                                     addAll(perm.scopes)
                                 }
@@ -112,10 +105,6 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
         }
     }
 
-    /**
-     * @throws IOException
-     */
-    @Throws(IOException::class)
     private fun writePermissionTickets(builder: JsonArrayBuilder) {
         for (ticket in permissionRepository.all!!) {
             builder.addJsonObject {
@@ -136,10 +125,10 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
                     }
                 }
 
-                put(EXPIRATION, toUTCString(ticket?.expiration))
+                put(EXPIRATION, toUTCString(ticket.expiration))
                 putJsonObject(PERMISSION) {
                     val perm = ticket.permission
-                    put(RESOURCE_SET, perm.resourceSet!!.id)
+                    put(RESOURCE_SET, perm.resourceSet.id)
                     putJsonArray(SCOPES) {
                         addAll(perm.scopes)
                     }
@@ -149,10 +138,6 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
         }
     }
 
-    /**
-     * @throws IOException
-     */
-    @Throws(IOException::class)
     private fun writeResourceSets(builder: JsonArrayBuilder) {
         for (rs in resourceSetRepository.all) {
             builder.addJsonObject {
@@ -169,7 +154,7 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
                             put(NAME, policy.name)
                             putJsonArray(SCOPES) { addAll(policy.scopes) }
                             putJsonArray(CLAIMS_REQUIRED) {
-                                for (claim in policy.claimsRequired!!) {
+                                for (claim in policy.claimsRequired) {
                                     addJsonObject {
                                         putJsonArray(ISSUER) { addAll(claim.issuer) }
                                         putJsonArray(CLAIM_TOKEN_FORMAT) { addAll(claim.claimTokenFormat) }
@@ -190,7 +175,6 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
     }
 
 
-    @Throws(IOException::class)
     private fun writeSavedRegisteredClients(builder: JsonArrayBuilder) {
         for (src in registeredClientService.all) {
             builder.addJsonObject {
@@ -202,10 +186,6 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
         logger.info("Done writing saved registered clients")
     }
 
-    /* (non-Javadoc)
-	 * @see org.mitre.openid.connect.service.MITREidDataServiceExtension#importExtensionData(com.google.gson.stream.JsonReader)
-	 */
-    @Throws(IOException::class)
     override fun importExtensionData(name: String?, data: JsonElement): Boolean {
         val extData = pendingExtensionData?: PendingExtensionData().also { pendingExtensionData = it }
 
@@ -221,7 +201,6 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
     }
 
 
-    @Throws(IOException::class)
     private fun readTokenPermissions(data: JsonElement, resourceSets: Map<Long, ResourceSet>) {
         check(data is JsonArray)
         for(o in data) {
@@ -244,15 +223,13 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
 
     private var pendingExtensionData: PendingExtensionData? = null
 
-
-    @Throws(IOException::class)
     private fun readPermissionTickets(reader: JsonElement, resourceSets: Map<Long, ResourceSet>) {
         require(reader is JsonArray)
 
         for(ticketObj in reader) {
             require(ticketObj is JsonObject)
             val ticketExpiration = ticketObj[EXPIRATION]?.let { utcToDate(it.asString()) }
-            val ticketString = ticketObj[TICKET]?.let { it.asString() }
+            val ticketString = ticketObj[TICKET]?.asString()
             val permission = requireNotNull(ticketObj[PERMISSIONS]).jsonObject.let { p ->
                 val scopes = requireNotNull(p[SCOPES]).jsonArray.mapTo(HashSet()) { it.asString() }
                 val rsId = requireNotNull(p[RESOURCE_SET]).jsonPrimitive.long
@@ -297,7 +274,6 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
     }
 
 
-    @Throws(IOException::class)
     private fun readSavedRegisteredClients(data: JsonElement) {
         require(data is JsonArray)
         for (o in data) {
@@ -310,10 +286,8 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
         logger.info("Done reading saved registered clients")
     }
 
-    /* (non-Javadoc)
-	 * @see org.mitre.openid.connect.service.MITREidDataServiceExtension#fixExtensionObjectReferences()
-	 */
-    override fun fixExtensionObjectReferences(maps: MITREidDataServiceMaps) {
+    override fun fixExtensionObjectReferences(maps: IMITREidDataServiceMaps) {
+        require(maps is MITREidDataServiceMaps) { "Invalid map data type" }
         val extData = pendingExtensionData ?: return
         val cData = extData.registeredClients
         val rsData = extData.resourceSets
@@ -349,7 +323,7 @@ class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
         tokenToPermissionRefs.clear()
     }
 
-    private class PendingExtensionData() {
+    private class PendingExtensionData {
         var permissions: JsonElement? = null
         var permissionTickets: JsonElement? = null
         var registeredClients: JsonElement? = null

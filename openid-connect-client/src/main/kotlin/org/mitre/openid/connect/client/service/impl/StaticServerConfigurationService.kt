@@ -33,7 +33,7 @@ class StaticServerConfigurationService(
     /* (non-Javadoc)
 	 * @see org.mitre.openid.connect.client.service.ServerConfigurationService#getServerConfiguration(java.lang.String)
 	 */
-    override fun getServerConfiguration(issuer: String): ServerConfiguration? {
+    override suspend fun getServerConfiguration(issuer: String): ServerConfiguration? {
 //        if (!::servers.isInitialized) return null
         return servers[issuer]
     }

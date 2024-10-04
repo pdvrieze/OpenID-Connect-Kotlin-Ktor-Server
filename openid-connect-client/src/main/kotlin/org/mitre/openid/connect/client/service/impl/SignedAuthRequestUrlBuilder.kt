@@ -20,13 +20,12 @@ package org.mitre.openid.connect.client.service.impl
 import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
-import org.apache.http.client.utils.URIBuilder
+import io.ktor.http.*
+import io.ktor.server.util.*
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.openid.connect.client.service.AuthRequestUrlBuilder
 import org.mitre.openid.connect.config.ServerConfiguration
-import org.springframework.security.authentication.AuthenticationServiceException
-import java.net.URISyntaxException
 
 /**
  * @author jricher
@@ -34,12 +33,12 @@ import java.net.URISyntaxException
 class SignedAuthRequestUrlBuilder : AuthRequestUrlBuilder {
     lateinit var signingAndValidationService: JWTSigningAndValidationService
 
-    override fun buildAuthRequestUrl(
+    override suspend fun buildAuthRequestUrl(
         serverConfig: ServerConfiguration,
         clientConfig: RegisteredClient,
-        redirectUri: String?,
-        nonce: String?,
-        state: String?,
+        redirectUri: String,
+        nonce: String,
+        state: String,
         options: Map<String, String>,
         loginHint: String?
     ): String {
@@ -74,20 +73,15 @@ class SignedAuthRequestUrlBuilder : AuthRequestUrlBuilder {
 
 
         val alg = clientConfig.requestObjectSigningAlg
-            ?: signingAndValidationService.defaultSigningAlgorithm
+            ?: signingAndValidationService.defaultSigningAlgorithm!!
 
         val jwt = SignedJWT(JWSHeader(alg), claims)
 
-        signingAndValidationService.signJwt(jwt, alg!!)
+        signingAndValidationService.signJwt(jwt, alg)
 
-        try {
-            val uriBuilder = URIBuilder(serverConfig.authorizationEndpointUri)
-            uriBuilder.addParameter("request", jwt.serialize())
-
-            // build out the URI
-            return uriBuilder.build().toString()
-        } catch (e: URISyntaxException) {
-            throw AuthenticationServiceException("Malformed Authorization Endpoint Uri", e)
+        return url {
+            takeFrom(serverConfig.authorizationEndpointUri!!)
+            parameters.append("request", jwt.serialize())
         }
     }
 }

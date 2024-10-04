@@ -43,7 +43,7 @@ class StaticClientConfigurationService(val clients: Map<String?, RegisteredClien
      *
      * @see org.mitre.openid.connect.client.service.ClientConfigurationService.getClientConfiguration
      */
-    override fun getClientConfiguration(issuer: ServerConfiguration): RegisteredClient? {
+    override suspend fun getClientConfiguration(issuer: ServerConfiguration): RegisteredClient? {
         return clients[issuer.issuer]
     }
 }

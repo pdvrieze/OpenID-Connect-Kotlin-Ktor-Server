@@ -26,13 +26,13 @@ import org.mitre.openid.connect.config.ServerConfiguration
  * @author jricher
  */
 interface AuthRequestUrlBuilder {
-    fun buildAuthRequestUrl(
+    suspend fun buildAuthRequestUrl(
         serverConfig: ServerConfiguration,
         clientConfig: RegisteredClient,
-        redirectUri: String?,
-        nonce: String?,
-        state: String?,
+        redirectUri: String,
+        nonce: String,
+        state: String,
         options: Map<String, String>,
         loginHint: String?
-    ): String?
+    ): String
 }

@@ -17,118 +17,85 @@
  */
 package org.mitre.openid.connect.client
 
-import com.google.common.cache.CacheBuilder
-import com.google.common.cache.CacheLoader
-import com.google.common.cache.LoadingCache
-import com.google.common.util.concurrent.UncheckedExecutionException
+import io.github.pdvrieze.client.CoroutineCache
+import io.github.pdvrieze.client.onError
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.request.*
+import io.ktor.client.request.forms.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
-import org.apache.http.client.HttpClient
-import org.apache.http.client.utils.URIBuilder
-import org.apache.http.impl.client.HttpClientBuilder
 import org.mitre.openid.connect.config.ServerConfiguration.UserInfoTokenMethod
 import org.mitre.openid.connect.model.DefaultUserInfo
 import org.mitre.openid.connect.model.PendingOIDCAuthenticationToken
 import org.mitre.openid.connect.model.UserInfo
 import org.mitre.util.getLogger
-import org.springframework.http.HttpMethod
-import org.springframework.http.client.ClientHttpRequest
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
-import org.springframework.util.LinkedMultiValueMap
-import org.springframework.util.MultiValueMap
-import org.springframework.web.client.RestTemplate
-import java.io.IOException
-import java.net.URI
-import java.net.URISyntaxException
-import java.util.concurrent.ExecutionException
-import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.toJavaDuration
 
 /**
  * Utility class to fetch userinfo from the userinfo endpoint, if available. Caches the results.
  * @author jricher
  */
 class UserInfoFetcher(
-    httpClient: HttpClient = HttpClientBuilder.create().useSystemProperties().build()
+    private val httpClient: HttpClient = HttpClient(CIO)
 ) {
-    private val cache: LoadingCache<PendingOIDCAuthenticationToken, UserInfo?> =
-        CacheBuilder.newBuilder()
-            .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
-            .maximumSize(100)
-            .build(UserInfoLoader(httpClient))
 
-    fun loadUserInfo(token: PendingOIDCAuthenticationToken): UserInfo? {
-        try {
-            return cache[token]
-        } catch (e: UncheckedExecutionException) {
-            logger.warn("Couldn't load User Info from token: " + e.message)
-        } catch (e: ExecutionException) {
-            logger.warn("Couldn't load User Info from token: " + e.message)
-        }
-        return null
+    private val cache = CoroutineCache<PendingOIDCAuthenticationToken, UserInfo?>(::loadUserInfoImpl) {
+        expireAfterWrite(1.seconds.toJavaDuration())
+        maximumSize(100)
     }
 
+    suspend fun loadUserInfo(token: PendingOIDCAuthenticationToken): UserInfo? {
+        return cache.load(token)
+    }
 
-    private inner class UserInfoLoader(httpClient: HttpClient) :
-        CacheLoader<PendingOIDCAuthenticationToken, UserInfo?>() {
-        private val factory = HttpComponentsClientHttpRequestFactory(httpClient)
+    suspend fun loadUserInfoImpl(token: PendingOIDCAuthenticationToken): UserInfo? {
+        val serverConfiguration = token.serverConfiguration
 
-        @Throws(URISyntaxException::class)
-        override fun load(token: PendingOIDCAuthenticationToken): UserInfo? {
-            val serverConfiguration = token.serverConfiguration
+        if (serverConfiguration == null) {
+            logger.warn("No server configuration found.")
+            return null
+        }
 
-            if (serverConfiguration == null) {
-                logger.warn("No server configuration found.")
-                return null
+        val userInfoUri = serverConfiguration.userInfoUri
+        if (userInfoUri.isNullOrEmpty()) {
+            logger.warn("No userinfo endpoint, not fetching.")
+            return null
+        }
+
+
+        val tokenMethod = serverConfiguration.userInfoTokenMethod
+        val response: HttpResponse = when (tokenMethod) {
+            null, UserInfoTokenMethod.HEADER -> {
+                httpClient.get(userInfoUri) {
+                    bearerAuth(token.accessTokenValue)
+                }
             }
 
-            if (serverConfiguration.userInfoUri.isNullOrEmpty()) {
-                logger.warn("No userinfo endpoint, not fetching.")
-                return null
-            }
-
-            var userInfoString: String? = null
-
-            if (serverConfiguration.userInfoTokenMethod == null || serverConfiguration.userInfoTokenMethod == UserInfoTokenMethod.HEADER) {
-                val restTemplate: RestTemplate = object : RestTemplate(factory) {
-                    @Throws(IOException::class)
-                    override fun createRequest(url: URI, method: HttpMethod): ClientHttpRequest {
-                        val httpRequest = super.createRequest(url, method)
-                        httpRequest.headers.add("Authorization", String.format("Bearer %s", token.accessTokenValue))
-                        return httpRequest
+            UserInfoTokenMethod.FORM -> {
+                httpClient.post(userInfoUri) {
+                    formData {
+                        append("access_token", token.accessTokenValue)
                     }
                 }
-
-                userInfoString = restTemplate.getForObject(serverConfiguration.userInfoUri, String::class.java)
-            } else if (serverConfiguration.userInfoTokenMethod == UserInfoTokenMethod.FORM) {
-                val form: MultiValueMap<String, String> = LinkedMultiValueMap()
-                form.add("access_token", token.accessTokenValue)
-
-                val restTemplate = RestTemplate(factory)
-                userInfoString = restTemplate.postForObject(serverConfiguration.userInfoUri, form, String::class.java)
-            } else if (serverConfiguration.userInfoTokenMethod == UserInfoTokenMethod.QUERY) {
-                val builder = URIBuilder(serverConfiguration.userInfoUri)
-                builder.setParameter("access_token", token.accessTokenValue)
-
-                val restTemplate = RestTemplate(factory)
-                userInfoString = restTemplate.getForObject(builder.toString(), String::class.java)
             }
+            UserInfoTokenMethod.QUERY -> {
+                val builder = URLBuilder(userInfoUri).apply { parametersOf("access_token", token.accessTokenValue) }
 
-
-            if (!userInfoString.isNullOrEmpty()) {
-                val userInfoJson = Json.parseToJsonElement(userInfoString) as JsonObject
-
-                val userInfo = fromJson(userInfoJson)
-
-                return userInfo
-            } else {
-                // didn't get anything throw exception
-                throw IllegalArgumentException("Unable to load user info")
+                httpClient.get(builder.build())
             }
         }
-    }
+        response.onError { throw IllegalArgumentException("Unable to load user info: $it") }
 
-    protected fun fromJson(userInfoJson: JsonObject): UserInfo {
-        return DefaultUserInfo.fromJson(userInfoJson)
+        val userInfoString = response.bodyAsText()
+
+        if (userInfoString.isEmpty()) { // didn't get anything throw exception
+            throw IllegalArgumentException("Unable to load user info")
+        }
+
+        return Json.decodeFromString<DefaultUserInfo>(userInfoString)
     }
 
     companion object {

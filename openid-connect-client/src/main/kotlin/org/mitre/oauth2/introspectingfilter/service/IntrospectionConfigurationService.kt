@@ -26,7 +26,7 @@ interface IntrospectionConfigurationService {
     /**
      * Get the introspection URL based on the access token.
      */
-    fun getIntrospectionUrl(accessToken: String): String
+    suspend fun getIntrospectionUrl(accessToken: String): String
 
 
     /**
@@ -35,5 +35,5 @@ interface IntrospectionConfigurationService {
      * the clientId, clientSecret, and tokenEndpointAuthMethod
      * fields.
      */
-    fun getClientConfiguration(accessToken: String): RegisteredClient
+    suspend fun getClientConfiguration(accessToken: String): RegisteredClient
 }

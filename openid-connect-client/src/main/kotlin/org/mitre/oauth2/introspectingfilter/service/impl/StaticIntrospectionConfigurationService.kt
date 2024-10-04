@@ -32,11 +32,11 @@ class StaticIntrospectionConfigurationService : IntrospectionConfigurationServic
 
     var clientConfiguration: RegisteredClient? = null
 
-    override fun getIntrospectionUrl(accessToken: String): String {
+    override suspend fun getIntrospectionUrl(accessToken: String): String {
         return checkNotNull(introspectionUrl) { "No introspection url set" }
     }
 
-    override fun getClientConfiguration(accessToken: String): RegisteredClient {
+    override suspend fun getClientConfiguration(accessToken: String): RegisteredClient {
         return checkNotNull(clientConfiguration) { "No client configuration set" }
     }
 }

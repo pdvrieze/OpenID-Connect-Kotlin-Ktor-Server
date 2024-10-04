@@ -44,7 +44,7 @@ class JWKSetCacheServiceImpl : JWKSetCacheService {
      * @throws ExecutionException
      * @see com.google.common.cache.Cache.get
      */
-    override fun getValidator(jwksUri: String): JWTSigningAndValidationService? {
+    override suspend fun getValidator(jwksUri: String): JWTSigningAndValidationService? {
         try {
             return validators.get(jwksUri)
         } catch (e: UncheckedExecutionException) {
@@ -56,7 +56,7 @@ class JWKSetCacheServiceImpl : JWKSetCacheService {
         }
     }
 
-    override fun getEncrypter(jwksUri: String): JWTEncryptionAndDecryptionService? {
+    override suspend fun getEncrypter(jwksUri: String): JWTEncryptionAndDecryptionService? {
         try {
             return encrypters[jwksUri]
         } catch (e: UncheckedExecutionException) {

@@ -17,12 +17,11 @@
  */
 package org.mitre.openid.connect.client.service.impl
 
-import org.apache.http.client.utils.URIBuilder
+import io.ktor.http.*
+import io.ktor.server.util.*
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.openid.connect.client.service.AuthRequestUrlBuilder
 import org.mitre.openid.connect.config.ServerConfiguration
-import org.springframework.security.authentication.AuthenticationServiceException
-import java.net.URISyntaxException
 
 /**
  *
@@ -31,39 +30,38 @@ import java.net.URISyntaxException
  * @author jricher
  */
 class PlainAuthRequestUrlBuilder : AuthRequestUrlBuilder {
-    override fun buildAuthRequestUrl(
+    override suspend fun buildAuthRequestUrl(
         serverConfig: ServerConfiguration,
         clientConfig: RegisteredClient,
-        redirectUri: String?,
-        nonce: String?,
-        state: String?,
+        redirectUri: String,
+        nonce: String,
+        state: String,
         options: Map<String, String>,
         loginHint: String?
     ): String {
-        try {
-            return URIBuilder(serverConfig.authorizationEndpointUri).apply {
-                addParameter("response_type", "code")
-                addParameter("client_id", clientConfig.clientId)
-                addParameter("scope", clientConfig.scope?.joinToString(" "))
+        return url {
+            takeFrom(serverConfig.authorizationEndpointUri!!)
+            parameters {
+                append("response_type", "code")
+                append("client_id", clientConfig.clientId!!)
+                append("scope", clientConfig.scope?.joinToString(" ")?:"")
 
-                addParameter("redirect_uri", redirectUri)
+                append("redirect_uri", redirectUri)
 
-                addParameter("nonce", nonce)
+                append("nonce", nonce)
 
-                addParameter("state", state)
+                append("state", state)
 
                 // Optional parameters:
                 for ((key, value) in options) {
-                    addParameter(key, value)
+                    append(key, value)
                 }
 
                 // if there's a login hint, send it
                 if (!loginHint.isNullOrEmpty()) {
-                    addParameter("login_hint", loginHint)
+                    append("login_hint", loginHint)
                 }
-            }.build().toString()
-        } catch (e: URISyntaxException) {
-            throw AuthenticationServiceException("Malformed Authorization Endpoint Uri", e)
+            }
         }
     }
 }

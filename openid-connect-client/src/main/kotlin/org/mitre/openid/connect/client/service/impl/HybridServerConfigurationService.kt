@@ -39,7 +39,7 @@ class HybridServerConfigurationService(
     /* (non-Javadoc)
 	 * @see org.mitre.openid.connect.client.service.ServerConfigurationService#getServerConfiguration(java.lang.String)
 	 */
-    override fun getServerConfiguration(issuer: String): ServerConfiguration? {
+    override suspend fun getServerConfiguration(issuer: String): ServerConfiguration? {
         val server = staticServerService.getServerConfiguration(issuer)
         return server ?: dynamicServerService.getServerConfiguration(issuer)
     }

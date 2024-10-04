@@ -22,7 +22,8 @@ import com.nimbusds.jose.JWEAlgorithm
 import com.nimbusds.jose.JWEHeader
 import com.nimbusds.jwt.EncryptedJWT
 import com.nimbusds.jwt.JWTClaimsSet
-import org.apache.http.client.utils.URIBuilder
+import io.ktor.http.*
+import io.ktor.server.util.*
 import org.mitre.jwt.signer.service.JWKSetCacheService
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.openid.connect.client.service.AuthRequestUrlBuilder
@@ -43,12 +44,12 @@ class EncryptedAuthRequestUrlBuilder : AuthRequestUrlBuilder {
     /* (non-Javadoc)
 	 * @see org.mitre.openid.connect.client.service.AuthRequestUrlBuilder#buildAuthRequestUrl(org.mitre.openid.connect.config.ServerConfiguration, org.mitre.oauth2.model.RegisteredClient, java.lang.String, java.lang.String, java.lang.String, java.util.Map)
 	 */
-    override fun buildAuthRequestUrl(
+    override suspend fun buildAuthRequestUrl(
         serverConfig: ServerConfiguration,
         clientConfig: RegisteredClient,
-        redirectUri: String?,
-        nonce: String?,
-        state: String?,
+        redirectUri: String,
+        nonce: String,
+        state: String,
         options: Map<String, String>,
         loginHint: String?
     ): String {
@@ -87,11 +88,12 @@ class EncryptedAuthRequestUrlBuilder : AuthRequestUrlBuilder {
         encryptor.encryptJwt(jwt)
 
         try {
-            val uriBuilder = URIBuilder(serverConfig.authorizationEndpointUri)
-            uriBuilder.addParameter("request", jwt.serialize())
 
             // build out the URI
-            return uriBuilder.build().toString()
+            return url {
+                takeFrom(serverConfig.authorizationEndpointUri!!)
+                parameters.append("request", jwt.serialize())
+            }
         } catch (e: URISyntaxException) {
             throw AuthenticationServiceException("Malformed Authorization Endpoint Uri", e)
         }

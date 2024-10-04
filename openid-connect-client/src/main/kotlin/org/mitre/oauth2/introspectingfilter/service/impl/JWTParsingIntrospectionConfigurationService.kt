@@ -53,7 +53,7 @@ class JWTParsingIntrospectionConfigurationService : IntrospectionConfigurationSe
     /* (non-Javadoc)
 	 * @see org.mitre.oauth2.introspectingfilter.IntrospectionConfigurationService#getIntrospectionUrl(java.lang.String)
 	 */
-    override fun getIntrospectionUrl(accessToken: String): String {
+    override suspend fun getIntrospectionUrl(accessToken: String): String {
         val issuer = getIssuer(accessToken)?.takeIf { it.isNotEmpty() }
             ?: throw IllegalArgumentException("No issuer claim found in JWT")
 
@@ -67,7 +67,7 @@ class JWTParsingIntrospectionConfigurationService : IntrospectionConfigurationSe
     /* (non-Javadoc)
 	 * @see org.mitre.oauth2.introspectingfilter.service.IntrospectionConfigurationService#getClientConfiguration(java.lang.String)
 	 */
-    override fun getClientConfiguration(accessToken: String): RegisteredClient {
+    override suspend fun getClientConfiguration(accessToken: String): RegisteredClient {
         val issuer = getIssuer(accessToken)?.takeIf { it.isNotEmpty() }
             ?: throw IllegalArgumentException("No issuer claim found in JWT")
 

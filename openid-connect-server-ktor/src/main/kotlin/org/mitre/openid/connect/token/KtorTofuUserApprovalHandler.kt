@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.token
 
-import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import org.mitre.oauth2.model.Authentication
@@ -31,9 +30,7 @@ import org.mitre.openid.connect.web.AuthenticationTimeStamper
 import org.mitre.util.asBoolean
 import org.mitre.util.asString
 import org.mitre.util.asStringSet
-import java.time.Instant
 import java.util.*
-import kotlin.collections.HashMap
 
 /**
  * Custom User Approval Handler implementation which uses a concept of a whitelist,

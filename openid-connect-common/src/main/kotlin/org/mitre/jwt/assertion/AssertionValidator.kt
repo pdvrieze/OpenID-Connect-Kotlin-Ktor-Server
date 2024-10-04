@@ -21,5 +21,5 @@ import com.nimbusds.jwt.JWT
  * @author jricher
  */
 interface AssertionValidator {
-    fun isValid(assertion: JWT): Boolean
+    suspend fun isValid(assertion: JWT): Boolean
 }

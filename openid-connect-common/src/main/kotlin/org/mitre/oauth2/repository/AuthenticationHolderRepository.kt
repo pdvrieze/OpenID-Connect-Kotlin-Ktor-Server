@@ -15,4 +15,3 @@ interface AuthenticationHolderRepository : AuthenticationHolderResolver {
 
     fun getOrphanedAuthenticationHolders(pageCriteria: PageCriteria): List<AuthenticationHolderEntity>
 }
-

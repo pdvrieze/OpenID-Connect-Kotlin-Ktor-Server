@@ -18,7 +18,7 @@
 package org.mitre.openid.connect.client.service.impl
 
 import io.ktor.http.*
-import org.apache.http.client.utils.URIBuilder
+import io.ktor.server.util.*
 import org.mitre.openid.connect.client.model.IssuerServiceResponse
 import org.mitre.openid.connect.client.service.IssuerService
 import org.springframework.security.authentication.AuthenticationServiceException
@@ -35,7 +35,7 @@ class ThirdPartyIssuerService(var accountChooserUrl: String) : IssuerService {
     var whitelist: Set<String> = HashSet()
     var blacklist: Set<String> = HashSet()
 
-    override fun getIssuer(requestParams: Parameters, requestUrl: String): IssuerServiceResponse {
+    override suspend fun getIssuer(requestParams: Parameters, requestUrl: String): IssuerServiceResponse {
         // if the issuer is passed in, return that
 
         val iss = requestParams["iss"]
@@ -52,11 +52,12 @@ class ThirdPartyIssuerService(var accountChooserUrl: String) : IssuerService {
         } else {
             try {
                 // otherwise, need to forward to the account chooser
-                val builder = URIBuilder(accountChooserUrl)
+                val uri = url {
+                    takeFrom(accountChooserUrl)
+                    parameters.append("redirect_uri", requestUrl)
+                }
 
-                builder.addParameter("redirect_uri", requestUrl)
-
-                return IssuerServiceResponse(builder.build().toString())
+                return IssuerServiceResponse(uri)
             } catch (e: URISyntaxException) {
                 throw AuthenticationServiceException("Account Chooser URL is not valid", e)
             }

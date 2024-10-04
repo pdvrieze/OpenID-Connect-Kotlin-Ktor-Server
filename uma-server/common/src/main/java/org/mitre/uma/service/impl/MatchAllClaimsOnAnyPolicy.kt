@@ -19,7 +19,6 @@ import org.mitre.uma.model.Claim
 import org.mitre.uma.model.ClaimProcessingResult
 import org.mitre.uma.model.PermissionTicket
 import org.mitre.uma.model.ResourceSet
-import org.mitre.uma.service.ClaimsProcessingService
 import org.springframework.stereotype.Service
 
 /**
@@ -29,7 +28,7 @@ import org.springframework.stereotype.Service
  * @author jricher
  */
 @Service("matchAllClaimsOnAnyPolicy")
-class MatchAllClaimsOnAnyPolicy : ClaimsProcessingService {
+class MatchAllClaimsOnAnyPolicy : org.mitre.uma.service.ClaimsProcessingService {
     /* (non-Javadoc)
 	 * @see org.mitre.uma.service.ClaimsProcessingService#claimsAreSatisfied(java.util.Collection, java.util.Collection)
 	 */

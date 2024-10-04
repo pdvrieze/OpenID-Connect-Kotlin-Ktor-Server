@@ -49,7 +49,7 @@ interface MITREidDataServiceExtension {
     /**
      * Signal the extension to wrap up all object processing and finalize its
      */
-    fun fixExtensionObjectReferences(maps: MITREidDataServiceMaps)
+    fun fixExtensionObjectReferences(maps: IMITREidDataServiceMaps)
 
     /**
      * Return

@@ -15,10 +15,11 @@
  */
 package org.mitre.openid.connect.service
 
+
 /**
  * @author jricher
  */
-class MITREidDataServiceMaps {
+class MITREidDataServiceMaps: IMITREidDataServiceMaps {
     val accessTokenOldToNewIdMap: MutableMap<Long, Long> = HashMap()
 
     val accessTokenToAuthHolderRefs: MutableMap<Long, Long> = HashMap()

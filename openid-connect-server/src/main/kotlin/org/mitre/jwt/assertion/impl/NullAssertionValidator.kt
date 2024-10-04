@@ -27,5 +27,5 @@ class NullAssertionValidator : AssertionValidator {
     /**
      * Reject all assertions passed in, always returns false.
      */
-    override fun isValid(assertion: JWT): Boolean = false
+    override suspend fun isValid(assertion: JWT): Boolean = false
 }

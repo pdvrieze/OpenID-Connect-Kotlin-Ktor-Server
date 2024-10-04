@@ -22,6 +22,7 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import org.mitre.oauth2.model.GrantedAuthority
+import org.mitre.oauth2.model.LocalGrantedAuthority
 
 /**
  * @author jricher
@@ -35,6 +36,6 @@ class SimpleGrantedAuthorityStringConverter : KSerializer<GrantedAuthority> {
     }
 
     override fun deserialize(decoder: Decoder): GrantedAuthority {
-        return GrantedAuthority(decoder.decodeString())
+        return LocalGrantedAuthority(decoder.decodeString())
     }
 }

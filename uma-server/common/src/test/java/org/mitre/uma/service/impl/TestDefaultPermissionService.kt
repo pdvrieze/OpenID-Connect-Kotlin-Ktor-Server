@@ -21,10 +21,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.uma.model.PermissionTicket
 import org.mitre.uma.model.ResourceSet
-import org.mitre.uma.repository.PermissionRepository
 import org.mockito.AdditionalAnswers.returnsFirstArg
 import org.mockito.ArgumentMatchers.anySet
 import org.mockito.InjectMocks
@@ -41,10 +39,10 @@ import java.util.*
 @ExtendWith(MockitoExtension::class)
 class TestDefaultPermissionService {
     @Mock
-    private lateinit var permissionRepository: PermissionRepository
+    private lateinit var permissionRepository: org.mitre.uma.repository.PermissionRepository
 
     @Mock
-    private lateinit var scopeService: SystemScopeService
+    private lateinit var scopeService: org.mitre.oauth2.service.SystemScopeService
 
     @InjectMocks
     private lateinit var permissionService: DefaultPermissionService

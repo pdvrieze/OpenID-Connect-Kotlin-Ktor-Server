@@ -5,7 +5,7 @@ import io.github.pdvrieze.openid.spring.fromSpring
 import io.github.pdvrieze.openid.spring.toSpring
 import org.mitre.jwt.assertion.AssertionValidator
 import org.mitre.oauth2.assertion.AssertionOAuth2RequestFactory
-import org.mitre.oauth2.model.GrantedAuthority
+import org.mitre.oauth2.model.LocalGrantedAuthority
 import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.OAuth2TokenEntityService
@@ -57,7 +57,7 @@ class JWTAssertionTokenGranter @Autowired constructor(
 
                 return SpringOAuth2Authentication(
                     assertionFactory.createOAuth2Request(client, tokenRequest, assertion),
-                    JWTBearerAssertionAuthenticationToken(assertion, client.authorities?.map { GrantedAuthority(it.authority) })
+                    JWTBearerAssertionAuthenticationToken(assertion, client.authorities?.map { LocalGrantedAuthority(it.authority) })
                 )
             } else {
                 logger.warn("Incoming assertion did not pass validator, rejecting")

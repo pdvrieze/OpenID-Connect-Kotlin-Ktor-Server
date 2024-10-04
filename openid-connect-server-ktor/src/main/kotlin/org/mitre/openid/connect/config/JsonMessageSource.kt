@@ -8,7 +8,6 @@ import kotlinx.serialization.json.jsonObject
 import org.mitre.openid.connect.service.MITREidDataService
 import org.mitre.util.asString
 import org.mitre.util.getLogger
-import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.InputStreamReader
@@ -18,13 +17,14 @@ import java.util.*
 /**
  * @author jricher
  */
-class JsonMessageSource(private val baseResource: String, private val config: ConfigurationPropertiesBean) {
+class JsonMessageSource(private val baseResource: String, private val config: ConfigurationPropertiesBean) :
+    MessageSource {
 
     private val fallbackLocale = Locale("en") // US English is the fallback language
 
     private val languageMaps: MutableMap<Locale, List<JsonObject>?> = HashMap()
 
-    public fun resolveCode(code: String, locale: Locale): MessageFormat? {
+    override fun resolveCode(code: String, locale: Locale): MessageFormat? {
         val value = getValue(code, getLanguageMap(locale))
                 // if we haven't found anything, try the default locale
             ?: getValue(code, getLanguageMap(fallbackLocale))

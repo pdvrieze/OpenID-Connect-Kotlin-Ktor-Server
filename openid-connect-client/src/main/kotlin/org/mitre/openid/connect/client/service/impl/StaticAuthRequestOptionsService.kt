@@ -20,7 +20,6 @@ package org.mitre.openid.connect.client.service.impl
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.openid.connect.client.service.AuthRequestOptionsService
 import org.mitre.openid.connect.config.ServerConfiguration
-import javax.servlet.http.HttpServletRequest
 
 /**
  *
@@ -48,7 +47,7 @@ class StaticAuthRequestOptionsService : AuthRequestOptionsService {
     override fun getOptions(
         server: ServerConfiguration,
         client: RegisteredClient,
-        request: HttpServletRequest
+        request: Any
     ): MutableMap<String, String> {
         return _options
     }
@@ -59,7 +58,7 @@ class StaticAuthRequestOptionsService : AuthRequestOptionsService {
     override fun getTokenOptions(
         server: ServerConfiguration,
         client: RegisteredClient,
-        request: HttpServletRequest
+        request: Any
     ): Map<String, String> {
         return tokenOptions
     }

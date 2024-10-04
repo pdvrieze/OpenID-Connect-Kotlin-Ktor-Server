@@ -16,8 +16,8 @@
 package org.mitre.openid.connect.client
 
 import com.nimbusds.jwt.JWT
+import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.openid.connect.model.UserInfo
-import org.springframework.security.core.GrantedAuthority
 
 /**
  * @author jricher

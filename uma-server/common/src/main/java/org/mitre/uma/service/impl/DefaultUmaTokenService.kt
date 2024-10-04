@@ -22,14 +22,10 @@ import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RequestAuthentication
-import org.mitre.oauth2.repository.AuthenticationHolderRepository
-import org.mitre.oauth2.service.ClientDetailsEntityService
-import org.mitre.oauth2.service.OAuth2TokenEntityService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.uma.model.Permission
 import org.mitre.uma.model.PermissionTicket
 import org.mitre.uma.model.Policy
-import org.mitre.uma.service.UmaTokenService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.*
@@ -38,15 +34,15 @@ import java.util.*
  * @author jricher
  */
 @Service("defaultUmaTokenService")
-class DefaultUmaTokenService : UmaTokenService {
+class DefaultUmaTokenService : org.mitre.uma.service.UmaTokenService {
     @Autowired
-    private lateinit var authenticationHolderRepository: AuthenticationHolderRepository
+    private lateinit var authenticationHolderRepository: org.mitre.oauth2.repository.AuthenticationHolderRepository
 
     @Autowired
-    private lateinit var tokenService: OAuth2TokenEntityService
+    private lateinit var tokenService: org.mitre.oauth2.service.OAuth2TokenEntityService
 
     @Autowired
-    private lateinit var clientService: ClientDetailsEntityService
+    private lateinit var clientService: org.mitre.oauth2.service.ClientDetailsEntityService
 
     @Autowired
     private lateinit var config: ConfigurationPropertiesBean

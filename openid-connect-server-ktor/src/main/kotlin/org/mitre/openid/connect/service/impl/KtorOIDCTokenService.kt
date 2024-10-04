@@ -27,11 +27,12 @@ import com.nimbusds.jwt.JWT
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.PlainJWT
 import com.nimbusds.jwt.SignedJWT
+import org.mitre.jwt.signer.service.ClientKeyCacheService
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.jwt.signer.service.impl.SymmetricKeyJWTValidatorCacheService
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
-import org.mitre.oauth2.model.GrantedAuthority
+import org.mitre.oauth2.model.LocalGrantedAuthority
 import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RequestAuthentication
@@ -57,7 +58,7 @@ class KtorOIDCTokenService(
     val jwtService: JWTSigningAndValidationService,
     val authenticationHolderRepository: AuthenticationHolderRepository,
     val configBean: ConfigurationPropertiesBean,
-    val encrypters: org.mitre.jwt.signer.service.impl.ClientKeyCacheService,
+    val encrypters: ClientKeyCacheService,
     val symmetricCacheService: SymmetricKeyJWTValidatorCacheService,
     val tokenService: OAuth2TokenEntityService,
 ) : OIDCTokenService {
@@ -208,7 +209,7 @@ class KtorOIDCTokenService(
         val authorizationParameters: Map<String, String> = hashMapOf()
         val clientAuth = OAuth2Request(
             authorizationParameters, client.clientId!!,
-            hashSetOf(GrantedAuthority("ROLE_CLIENT")), true,
+            hashSetOf(LocalGrantedAuthority("ROLE_CLIENT")), true,
             scope ?: emptySet(), null, null, null, extensionStrings = null
         )
         val authentication = OAuth2RequestAuthentication(clientAuth, null)

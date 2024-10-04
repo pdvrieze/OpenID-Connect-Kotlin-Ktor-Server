@@ -5,12 +5,11 @@ import org.mitre.oauth2.model.convert.OAuth2Request
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.util.getLogger
 
-// TODO Spring specific
 open class KtorOAuth2RequestFactory constructor(
     protected val clientDetailsService: ClientDetailsEntityService,
-) {
+) : OAuth2RequestFactory {
 
-    open fun createAuthorizationRequest(inputParams: Parameters): OAuth2Request {
+    override fun createAuthorizationRequest(inputParams: Parameters): OAuth2Request {
         val scopes: Set<String> = inputParams.getAll("scope")?.flatMapTo(HashSet()) { str ->
             str.splitToSequence(' ').filterNot { it.isBlank() }
         } ?: emptySet()

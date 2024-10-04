@@ -16,6 +16,7 @@
 package org.mitre.oauth2.service.impl
 
 import org.mitre.oauth2.model.GrantedAuthority
+import org.mitre.oauth2.model.LocalGrantedAuthority
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 
@@ -68,6 +69,6 @@ class UriEncodedClientUserDetailsService {
     }
 
     companion object {
-        private val ROLE_CLIENT: GrantedAuthority = GrantedAuthority("ROLE_CLIENT")
+        private val ROLE_CLIENT: GrantedAuthority = LocalGrantedAuthority("ROLE_CLIENT")
     }
 }

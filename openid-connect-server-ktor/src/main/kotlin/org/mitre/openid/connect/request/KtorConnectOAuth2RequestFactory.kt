@@ -28,7 +28,7 @@ import com.nimbusds.jwt.SignedJWT
 import io.ktor.http.*
 import kotlinx.serialization.json.JsonObject
 import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
-import org.mitre.jwt.signer.service.impl.ClientKeyCacheService
+import org.mitre.jwt.signer.service.ClientKeyCacheService
 import org.mitre.oauth2.exception.InvalidClientException
 import org.mitre.oauth2.model.PKCEAlgorithm
 import org.mitre.oauth2.model.convert.OAuth2Request

@@ -15,7 +15,7 @@
  */
 package org.mitre.openid.connect.client
 
-import org.springframework.security.core.GrantedAuthority
+import org.mitre.oauth2.model.GrantedAuthority
 
 /**
  *
@@ -42,9 +42,7 @@ class SubjectIssuerGrantedAuthority(subject: String?, issuer: String?) : Granted
      *
      * OIDC_bob_http://id.example.com/
      */
-    override fun getAuthority(): String {
-        return "OIDC_" + subject + "_" + issuer
-    }
+    override val authority: String get() = "OIDC_${subject}_$issuer"
 
     override fun toString(): String {
         return authority

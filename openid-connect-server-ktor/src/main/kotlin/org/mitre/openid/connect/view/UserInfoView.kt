@@ -6,10 +6,9 @@ import io.ktor.util.pipeline.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import org.mitre.jwt.signer.service.ClientKeyCacheService
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
-import org.mitre.jwt.signer.service.impl.ClientKeyCacheService
 import org.mitre.jwt.signer.service.impl.SymmetricKeyJWTValidatorCacheService
-import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.model.UserInfo

@@ -48,10 +48,10 @@ class HybridIssuerService(accountChooserUrl: String) : IssuerService {
     private val thirdPartyIssuerService = ThirdPartyIssuerService(accountChooserUrl)
     private val webfingerIssuerService = WebfingerIssuerService()
 
-    override fun getIssuer(requestParams: Parameters, requestUrl: String): IssuerServiceResponse? {
+    override suspend fun getIssuer(requestParams: Parameters, requestUrl: String): IssuerServiceResponse? {
         val resp = thirdPartyIssuerService.getIssuer(requestParams, requestUrl)
             // if it wants us to redirect, try the webfinger approach first
-        return if (resp?.shouldRedirect() == true) {
+        return if (resp.shouldRedirect()) {
             webfingerIssuerService.getIssuer(requestParams, requestUrl)
         } else {
             resp

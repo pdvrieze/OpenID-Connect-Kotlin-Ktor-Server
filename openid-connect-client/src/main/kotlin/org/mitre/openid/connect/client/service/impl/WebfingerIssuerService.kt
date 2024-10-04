@@ -17,27 +17,27 @@
  */
 package org.mitre.openid.connect.client.service.impl
 
-import com.google.common.cache.CacheBuilder
-import com.google.common.cache.CacheLoader
-import com.google.common.cache.LoadingCache
 import com.google.common.util.concurrent.UncheckedExecutionException
+import io.github.pdvrieze.client.CoroutineCache
+import io.github.pdvrieze.client.onError
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.server.util.*
+import io.ktor.utils.io.errors.*
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonArray
-import org.apache.http.client.HttpClient
-import org.apache.http.client.utils.URIBuilder
-import org.apache.http.impl.client.HttpClientBuilder
 import org.mitre.discovery.util.WebfingerURLNormalizer.normalizeResource
 import org.mitre.openid.connect.client.model.IssuerServiceResponse
 import org.mitre.openid.connect.client.service.IssuerService
 import org.mitre.util.asString
 import org.mitre.util.getLogger
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.security.authentication.AuthenticationServiceException
 import org.springframework.web.client.RestClientException
-import org.springframework.web.client.RestTemplate
 import java.util.concurrent.ExecutionException
 
 /**
@@ -45,12 +45,11 @@ import java.util.concurrent.ExecutionException
  * @author jricher
  */
 class WebfingerIssuerService(
-    httpClient: HttpClient?
+    private val httpClient: HttpClient = HttpClient(CIO)
 ) : IssuerService {
-    constructor() : this(HttpClientBuilder.create().useSystemProperties().build())
 
     // map of user input -> issuer, loaded dynamically from webfinger discover
-    private val issuers: LoadingCache<String, LoadingResult>
+    private val issuers = CoroutineCache<String, LoadingResult>(::fetch)
 
     // private data shuttle class to get back two bits of info from the cache loader
     private inner class LoadingResult(var loginHint: String?, var issuer: String)
@@ -73,17 +72,13 @@ class WebfingerIssuerService(
      */
     var isForceHttps: Boolean = true
 
-    init {
-        issuers = CacheBuilder.newBuilder().build(WebfingerIssuerFetcher(httpClient))
-    }
-
-    override fun getIssuer(requestParams: Parameters, requestUrl: String): IssuerServiceResponse? {
+    override suspend fun getIssuer(requestParams: Parameters, requestUrl: String): IssuerServiceResponse? {
         val identifier: String? = requestParams[parameterName]
         val targetLinkUri: String? = requestParams["target_link_uri"]
 
         if (!identifier.isNullOrEmpty()) {
             try {
-                val lr = issuers[identifier]
+                val lr = issuers.load(identifier)
                 if (!whitelist.isEmpty() && !whitelist.contains(lr.issuer)) {
                     throw AuthenticationServiceException("Whitelist was nonempty, issuer was not in whitelist: " + lr.issuer)
                 }
@@ -106,94 +101,96 @@ class WebfingerIssuerService(
         }
     }
 
+    @Throws(Exception::class)
+    private suspend fun fetch(identifier: String): LoadingResult {
+        val key = normalizeResource(identifier)
 
-    /**
-     * @author jricher
-     */
-    private inner class WebfingerIssuerFetcher(httpClient: HttpClient?) : CacheLoader<String, LoadingResult>() {
-        private val httpFactory = HttpComponentsClientHttpRequestFactory(httpClient)
+        // construct the URL to go to
+        val rawScheme = key!!.scheme
 
-        @Throws(Exception::class)
-        override fun load(identifier: String): LoadingResult {
-            val key = normalizeResource(identifier)
+        val scheme: URLProtocol
 
-            val restTemplate = RestTemplate(httpFactory)
+        // preserving http scheme is strictly for demo system use only.
+        if (!rawScheme.isNullOrEmpty() && rawScheme == "http") {
+            // add on colon and slashes.
+            require(!isForceHttps) { "Scheme must not be 'http'" }
+            logger.warn("Webfinger endpoint MUST use the https URI scheme, overriding by configuration")
+            scheme = URLProtocol.HTTP // add on colon and slashes.
+        } else {
+            // otherwise we don't know the scheme, assume HTTPS
+            scheme = URLProtocol.HTTPS
+        }
 
-            // construct the URL to go to
-            var scheme = key!!.scheme
+        // do a webfinger lookup
+        val url = url {
+            protocol = scheme
+            host = key.host
+            if (key.port >=0) port = key.port
+            path(key.path?:"")
 
-            // preserving http scheme is strictly for demo system use only.
-            if (!scheme.isNullOrEmpty() && scheme == "http") {
-                // add on colon and slashes.
-                require(!isForceHttps) { "Scheme must not be 'http'" }
-                logger.warn("Webfinger endpoint MUST use the https URI scheme, overriding by configuration")
-                scheme = "http://" // add on colon and slashes.
-            } else {
-                // otherwise we don't know the scheme, assume HTTPS
-                scheme = "https://"
+            parameters {
+                val q = key.query
+                if (!q.isNullOrEmpty()) {
+                    appendAll(parseQueryString(q))
+                }
+
+                append("resource", identifier)
+                append("rel", "http://openid.net/specs/connect/1.0/issuer")
             }
+        }
 
-            // do a webfinger lookup
-            val builder = URIBuilder(
-                scheme
-                        + key.host
-                        + (if (key.port >= 0) ":" + key.port else "")
-                        + (key.path ?: "")
-                        + "/.well-known/webfinger"
-                        + (if (key.query.isNullOrEmpty()) "" else "?" + key.query)
-            )
-            builder.addParameter("resource", identifier)
-            builder.addParameter("rel", "http://openid.net/specs/connect/1.0/issuer")
 
-            try {
-                // do the fetch
 
-                logger.info("Loading: $builder")
-                val webfingerResponse = restTemplate.getForObject(builder.build(), String::class.java)
+        try {
+            // do the fetch
 
-                val json = Json.parseToJsonElement(webfingerResponse)
+            logger.info("Loading: $url")
 
-                if (json is JsonObject) {
-                    // find the issuer
-                    val links = json["links"]!!.jsonArray
-                    for (link in links) {
-                        if (link is JsonObject) {
+            val webfingerResponse = httpClient.get(url).onError { throw IOException("Could not load $url, $it") }
 
-                            if (("href" in link && "rel" in link) && link["rel"].asString() == "http://openid.net/specs/connect/1.0/issuer"
-                            ) {
-                                // we found the issuer, return it
+            val json = Json.parseToJsonElement(webfingerResponse.bodyAsText())
 
-                                val href = link["href"].asString()
+            if (json is JsonObject) {
+                // find the issuer
+                val links = json["links"]!!.jsonArray
+                for (link in links) {
+                    if (link is JsonObject) {
 
-                                return if (identifier == href || identifier.startsWith("http")) {
-                                    // try to avoid sending a URL as the login hint
-                                    LoadingResult(null, href)
-                                } else {
-                                    // otherwise pass back whatever the user typed as a login hint
-                                    LoadingResult(identifier, href)
-                                }
+                        if (("href" in link && "rel" in link) && link["rel"].asString() == "http://openid.net/specs/connect/1.0/issuer"
+                        ) {
+                            // we found the issuer, return it
+
+                            val href = link["href"].asString()
+
+                            return if (identifier == href || identifier.startsWith("http")) {
+                                // try to avoid sending a URL as the login hint
+                                LoadingResult(null, href)
+                            } else {
+                                // otherwise pass back whatever the user typed as a login hint
+                                LoadingResult(identifier, href)
                             }
                         }
                     }
                 }
-            } catch (e: SerializationException) {
-                logger.warn("Failure in fetching webfinger input", e.message)
-            } catch (e: RestClientException) {
-                logger.warn("Failure in fetching webfinger input", e.message)
             }
+        } catch (e: SerializationException) {
+            logger.warn("Failure in fetching webfinger input", e.message)
+        } catch (e: RestClientException) {
+            logger.warn("Failure in fetching webfinger input", e.message)
+        }
 
-            // we couldn't find it!
-            if (key.scheme == "http" || key.scheme == "https") {
-                // if it looks like HTTP then punt: return the input, hope for the best
-                logger.warn("Returning normalized input string as issuer, hoping for the best: $identifier")
-                return LoadingResult(null, identifier)
-            } else {
-                // if it's not HTTP, give up
-                logger.warn("Couldn't find issuer: $identifier")
-                throw IllegalArgumentException()
-            }
+        // we couldn't find it!
+        if (key.scheme == "http" || key.scheme == "https") {
+            // if it looks like HTTP then punt: return the input, hope for the best
+            logger.warn("Returning normalized input string as issuer, hoping for the best: $identifier")
+            return LoadingResult(null, identifier)
+        } else {
+            // if it's not HTTP, give up
+            logger.warn("Couldn't find issuer: $identifier")
+            throw IllegalArgumentException()
         }
     }
+
 
     companion object {
         /**

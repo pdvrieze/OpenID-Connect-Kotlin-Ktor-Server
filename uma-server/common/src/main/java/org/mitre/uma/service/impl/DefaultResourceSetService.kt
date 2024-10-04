@@ -17,11 +17,7 @@ package org.mitre.uma.service.impl
 
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuthClientDetails
-import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.uma.model.ResourceSet
-import org.mitre.uma.repository.PermissionRepository
-import org.mitre.uma.repository.ResourceSetRepository
-import org.mitre.uma.service.ResourceSetService
 import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Primary
@@ -32,23 +28,23 @@ import org.springframework.stereotype.Service
  */
 @Service
 @Primary
-class DefaultResourceSetService : ResourceSetService {
+class DefaultResourceSetService : org.mitre.uma.service.ResourceSetService {
     @Autowired
-    private lateinit var repository: ResourceSetRepository
+    private lateinit var repository: org.mitre.uma.repository.ResourceSetRepository
 
     @Autowired
-    private lateinit var tokenRepository: OAuth2TokenRepository
+    private lateinit var tokenRepository: org.mitre.oauth2.repository.OAuth2TokenRepository
 
     @Autowired
-    private lateinit var ticketRepository: PermissionRepository
+    private lateinit var ticketRepository: org.mitre.uma.repository.PermissionRepository
 
     @Deprecated("JPA only")
     constructor()
 
     constructor(
-        repository: ResourceSetRepository,
-        tokenRepository: OAuth2TokenRepository,
-        ticketRepository: PermissionRepository,
+        repository: org.mitre.uma.repository.ResourceSetRepository,
+        tokenRepository: org.mitre.oauth2.repository.OAuth2TokenRepository,
+        ticketRepository: org.mitre.uma.repository.PermissionRepository,
     ) {
         this.repository = repository
         this.tokenRepository = tokenRepository

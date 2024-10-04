@@ -41,10 +41,10 @@ import java.util.*
 @ExtendWith(MockitoExtension::class)
 class TestDefaultPermissionService {
     @Mock
-    private lateinit var permissionRepository: PermissionRepository
+    private lateinit var permissionRepository: org.mitre.uma.repository.PermissionRepository
 
     @Mock
-    private lateinit var scopeService: SystemScopeService
+    private lateinit var scopeService: org.mitre.oauth2.service.SystemScopeService
 
     @InjectMocks
     private lateinit var permissionService: DefaultPermissionService

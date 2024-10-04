@@ -33,13 +33,13 @@ import org.mockito.junit.jupiter.MockitoExtension
 @ExtendWith(MockitoExtension::class)
 class TestDefaultResourceSetService {
     @Mock
-    private lateinit var repository: ResourceSetRepository
+    private lateinit var repository: org.mitre.uma.repository.ResourceSetRepository
 
     @Mock
-    private lateinit var tokenRepository: OAuth2TokenRepository
+    private lateinit var tokenRepository: org.mitre.oauth2.repository.OAuth2TokenRepository
 
     @Mock
-    private lateinit var ticketRepository: PermissionRepository
+    private lateinit var ticketRepository: org.mitre.uma.repository.PermissionRepository
 
     @InjectMocks
     private lateinit var resourceSetService: DefaultResourceSetService

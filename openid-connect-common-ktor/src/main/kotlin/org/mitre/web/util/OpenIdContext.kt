@@ -4,8 +4,8 @@ import io.ktor.server.application.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
+import org.mitre.jwt.signer.service.ClientKeyCacheService
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
-import org.mitre.jwt.signer.service.impl.ClientKeyCacheService
 import org.mitre.jwt.signer.service.impl.SymmetricKeyJWTValidatorCacheService
 import org.mitre.oauth2.TokenEnhancer
 import org.mitre.oauth2.model.Authentication
@@ -20,15 +20,14 @@ import org.mitre.oauth2.service.OAuth2TokenEntityService
 import org.mitre.oauth2.service.RedirectResolver
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
-import org.mitre.openid.connect.config.JsonMessageSource
+import org.mitre.openid.connect.config.MessageSource
 import org.mitre.openid.connect.repository.ApprovedSiteRepository
 import org.mitre.openid.connect.repository.BlacklistedSiteRepository
 import org.mitre.openid.connect.repository.UserInfoRepository
 import org.mitre.openid.connect.repository.WhitelistedSiteRepository
-import org.mitre.openid.connect.request.KtorOAuth2RequestFactory
+import org.mitre.openid.connect.request.OAuth2RequestFactory
 import org.mitre.openid.connect.service.ApprovedSiteService
 import org.mitre.openid.connect.service.BlacklistedSiteService
-import org.mitre.openid.connect.service.MITREidDataServiceExtension
 import org.mitre.openid.connect.service.OIDCTokenService
 import org.mitre.openid.connect.service.PairwiseIdentifierService
 import org.mitre.openid.connect.service.ScopeClaimTranslationService
@@ -48,7 +47,7 @@ interface OpenIdContext {
     fun resolveAuthenticatedUser(authenticationContext: ApplicationCall): Authentication?
 
     //region Regular services
-    val authRequestFactory: KtorOAuth2RequestFactory
+    val authRequestFactory: OAuth2RequestFactory
     val approvedSiteService: ApprovedSiteService
     val blacklistedSiteService: BlacklistedSiteService
     val clientDetailsService: ClientDetailsEntityService
@@ -57,7 +56,7 @@ interface OpenIdContext {
     val deviceCodeService: DeviceCodeService
     val encryptionService: JWTEncryptionAndDecryptionService
     val introspectionResultAssembler: JsonIntrospectionResultAssembler
-    val messageSource: JsonMessageSource
+    val messageSource: MessageSource
     val jwtService: JWTSigningAndValidationService
     val oidcTokenService: OIDCTokenService
     val pairwiseIdentifierService: PairwiseIdentifierService

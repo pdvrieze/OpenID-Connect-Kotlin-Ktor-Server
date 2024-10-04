@@ -21,7 +21,7 @@ class WhitelistedIssuerAssertionValidator : AssertionValidator {
 //    @Autowired
     private lateinit var jwkCache: JWKSetCacheService
 
-    override fun isValid(assertion: JWT): Boolean {
+    override suspend fun isValid(assertion: JWT): Boolean {
         if (assertion !is SignedJWT) {
             // unsigned assertion
             return false

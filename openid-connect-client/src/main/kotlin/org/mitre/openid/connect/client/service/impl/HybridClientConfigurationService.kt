@@ -37,7 +37,7 @@ class HybridClientConfigurationService(
     private var dynamicClientService: DynamicRegistrationClientConfigurationService,
 ) : ClientConfigurationService {
 
-    override fun getClientConfiguration(issuer: ServerConfiguration): RegisteredClient? {
+    override suspend fun getClientConfiguration(issuer: ServerConfiguration): RegisteredClient? {
         val client = staticClientService.getClientConfiguration(issuer)
         return client ?: dynamicClientService.getClientConfiguration(issuer)
     }

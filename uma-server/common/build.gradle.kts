@@ -7,6 +7,8 @@ base {
 }
 
 dependencies {
+    implementation(projects.openidConnectCommon)
+    implementation(projects.openidConnectCommonKtor)
     implementation(projects.openidConnectServerKtor)
     implementation(projects.openidConnectClient)
 //    implementation(projects.openidConnectServerWebapp)

@@ -14,7 +14,7 @@ import io.ktor.util.pipeline.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
-import org.mitre.jwt.signer.service.impl.ClientKeyCacheService
+import org.mitre.jwt.signer.service.ClientKeyCacheService
 import org.mitre.jwt.signer.service.impl.SymmetricKeyJWTValidatorCacheService
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.util.getLogger

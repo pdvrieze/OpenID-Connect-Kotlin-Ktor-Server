@@ -23,5 +23,5 @@ import org.mitre.openid.connect.config.ServerConfiguration
  * @author jricher
  */
 interface ServerConfigurationService {
-    fun getServerConfiguration(issuer: String): ServerConfiguration?
+    suspend fun getServerConfiguration(issuer: String): ServerConfiguration?
 }

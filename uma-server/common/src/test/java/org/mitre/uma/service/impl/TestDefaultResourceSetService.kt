@@ -19,10 +19,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.uma.model.ResourceSet
-import org.mitre.uma.repository.PermissionRepository
-import org.mitre.uma.repository.ResourceSetRepository
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
@@ -33,13 +30,13 @@ import org.mockito.junit.jupiter.MockitoExtension
 @ExtendWith(MockitoExtension::class)
 class TestDefaultResourceSetService {
     @Mock
-    private lateinit var repository: ResourceSetRepository
+    private lateinit var repository: org.mitre.uma.repository.ResourceSetRepository
 
     @Mock
-    private lateinit var tokenRepository: OAuth2TokenRepository
+    private lateinit var tokenRepository: org.mitre.oauth2.repository.OAuth2TokenRepository
 
     @Mock
-    private lateinit var ticketRepository: PermissionRepository
+    private lateinit var ticketRepository: org.mitre.uma.repository.PermissionRepository
 
     @InjectMocks
     private lateinit var resourceSetService: DefaultResourceSetService
