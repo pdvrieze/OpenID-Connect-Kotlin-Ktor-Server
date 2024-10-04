@@ -1,12 +1,13 @@
-package io.github.pdvrieze.auth.service.impl
+package io.github.pdvrieze.auth.service.impl.ktor
 
+import io.github.pdvrieze.auth.service.impl.DefaultIntrospectionResultAssembler
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.addJsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.GrantedAuthority
@@ -22,9 +23,8 @@ import java.text.ParseException
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
-import java.util.*
 
-class TestDefaultIntrospectionResultAssembler {
+class TestKtorDefaultIntrospectionResultAssembler {
     private val assembler: IntrospectionResultAssembler = DefaultIntrospectionResultAssembler()
 
     @Test
@@ -58,7 +58,7 @@ class TestDefaultIntrospectionResultAssembler {
             put("token_type", "Bearer")
         }
 
-        assertEquals(expected.toSortedMap(), result.toSortedMap())
+        Assertions.assertEquals(expected.toSortedMap(), result.toSortedMap())
     }
 
     @Test
@@ -99,7 +99,7 @@ class TestDefaultIntrospectionResultAssembler {
         }
 
 
-        assertEquals(expected.toSortedMap(), result.toSortedMap())
+        Assertions.assertEquals(expected.toSortedMap(), result.toSortedMap())
     }
 
     @Test
@@ -131,7 +131,7 @@ class TestDefaultIntrospectionResultAssembler {
             put("token_type", "Bearer")
         }
 
-        assertEquals(expected.toSortedMap(), result.toSortedMap())
+        Assertions.assertEquals(expected.toSortedMap(), result.toSortedMap())
     }
 
     @Test
@@ -161,7 +161,7 @@ class TestDefaultIntrospectionResultAssembler {
             put("token_type", "Bearer")
         }
 
-        assertEquals(expected.toSortedMap(), result.toSortedMap())
+        Assertions.assertEquals(expected.toSortedMap(), result.toSortedMap())
     }
 
     @Test
@@ -192,7 +192,7 @@ class TestDefaultIntrospectionResultAssembler {
         }
 
 
-        assertEquals(expected.toSortedMap(), result.toSortedMap())
+        Assertions.assertEquals(expected.toSortedMap(), result.toSortedMap())
     }
 
     @Test
@@ -224,7 +224,7 @@ class TestDefaultIntrospectionResultAssembler {
             put("client_id", "clientId")
         }
 
-        assertEquals(expected.toSortedMap(), result.toSortedMap())
+        Assertions.assertEquals(expected.toSortedMap(), result.toSortedMap())
     }
 
     @Test
@@ -253,7 +253,7 @@ class TestDefaultIntrospectionResultAssembler {
             put("client_id", "clientId")
         }
 
-        assertEquals(expected.toSortedMap(), result.toSortedMap())
+        Assertions.assertEquals(expected.toSortedMap(), result.toSortedMap())
     }
 
     @Test
@@ -282,7 +282,7 @@ class TestDefaultIntrospectionResultAssembler {
             put("client_id", "clientId")
         }
 
-        assertEquals(expected.toSortedMap(), result.toSortedMap())
+        Assertions.assertEquals(expected.toSortedMap(), result.toSortedMap())
     }
 
     @Test
@@ -308,7 +308,7 @@ class TestDefaultIntrospectionResultAssembler {
             put("client_id", "clientId")
         }
 
-        assertEquals(expected.toSortedMap(), result.toSortedMap())
+        Assertions.assertEquals(expected.toSortedMap(), result.toSortedMap())
     }
 
 
@@ -389,6 +389,7 @@ class TestDefaultIntrospectionResultAssembler {
     }
 
     companion object {
-        val dateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ").withZone(ZoneOffset.UTC)
+        val dateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ")
+            .withZone(ZoneOffset.UTC)
     }
 }

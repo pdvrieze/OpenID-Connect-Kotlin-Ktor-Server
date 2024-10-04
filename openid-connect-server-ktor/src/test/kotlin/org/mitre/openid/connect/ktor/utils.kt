@@ -1,4 +1,4 @@
-package org.mitre.openid.connect
+package org.mitre.openid.connect.ktor
 
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 

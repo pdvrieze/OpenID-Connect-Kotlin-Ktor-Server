@@ -1,4 +1,4 @@
-package org.mitre.openid.connect.token
+package org.mitre.openid.connect.ktor.token
 
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jwt.JWTClaimsSet
@@ -17,6 +17,8 @@ import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.service.OIDCTokenService
 import org.mitre.openid.connect.service.UserInfoService
+import org.mitre.openid.connect.token.ConnectTokenEnhancer
+import org.mitre.openid.connect.token.ConnectTokenEnhancerImpl
 import org.mockito.ArgumentMatchers
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
@@ -24,7 +26,7 @@ import org.mockito.kotlin.whenever
 import java.text.ParseException
 
 @ExtendWith(MockitoExtension::class)
-class TestConnectTokenEnhancer {
+class TestKtorConnectTokenEnhancer {
     private val configBean = ConfigurationPropertiesBean()
 
     @Mock

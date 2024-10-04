@@ -1,5 +1,6 @@
-package io.github.pdvrieze.auth.service.impl
+package io.github.pdvrieze.auth.service.impl.ktor
 
+import io.github.pdvrieze.auth.service.impl.BlacklistAwareRedirectResolver
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows

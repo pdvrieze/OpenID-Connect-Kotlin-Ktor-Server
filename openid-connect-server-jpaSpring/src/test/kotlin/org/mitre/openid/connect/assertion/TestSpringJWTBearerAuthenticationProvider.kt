@@ -38,7 +38,7 @@ import java.util.concurrent.TimeUnit
 
 @ExtendWith(MockitoExtension::class)
 @MockitoSettings(strictness = Strictness.WARN)
-class TestJWTBearerAuthenticationProvider {
+class TestSpringJWTBearerAuthenticationProvider {
     @Mock
     private lateinit var validators: ClientKeyCacheService
 

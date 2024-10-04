@@ -18,7 +18,6 @@
 package org.mitre.openid.connect.client.service.impl
 
 import io.ktor.http.*
-import io.ktor.server.util.*
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.openid.connect.client.service.AuthRequestUrlBuilder
 import org.mitre.openid.connect.config.ServerConfiguration
@@ -38,9 +37,8 @@ class PlainAuthRequestUrlBuilder : AuthRequestUrlBuilder {
         state: String,
         options: Map<String, String>,
         loginHint: String?
-    ): String {
-        return url {
-            takeFrom(serverConfig.authorizationEndpointUri!!)
+    ): Url {
+        return URLBuilder(serverConfig.authorizationEndpointUri!!).apply {
             with(parameters) {
                 append("response_type", "code")
                 append("client_id", clientConfig.clientId!!)
@@ -62,6 +60,6 @@ class PlainAuthRequestUrlBuilder : AuthRequestUrlBuilder {
                     append("login_hint", loginHint)
                 }
             }
-        }
+        }.build().also { it.toURI() } // This should validate the URI
     }
 }

@@ -17,6 +17,7 @@
  */
 package org.mitre.openid.connect.client.service
 
+import io.ktor.http.*
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.openid.connect.config.ServerConfiguration
 
@@ -34,5 +35,5 @@ interface AuthRequestUrlBuilder {
         state: String,
         options: Map<String, String>,
         loginHint: String?
-    ): String
+    ): Url
 }

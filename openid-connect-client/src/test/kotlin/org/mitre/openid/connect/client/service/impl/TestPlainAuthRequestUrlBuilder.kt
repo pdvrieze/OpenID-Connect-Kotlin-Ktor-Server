@@ -26,7 +26,7 @@ import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.openid.connect.config.ServerConfiguration
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import org.springframework.security.authentication.AuthenticationServiceException
+import java.net.URISyntaxException
 
 /**
  * @author wkim
@@ -64,7 +64,7 @@ class TestPlainAuthRequestUrlBuilder {
         val actualUrl =
             urlBuilder.buildAuthRequestUrl(serverConfig, clientConfig, "https://client.example.org/", "34fasf3ds", "af0ifjsldkj", options, null)
 
-        assertEquals(expectedUrl, actualUrl)
+        assertEquals(expectedUrl, actualUrl.toString())
     }
 
     @Test
@@ -84,7 +84,7 @@ class TestPlainAuthRequestUrlBuilder {
         val actualUrl =
             urlBuilder.buildAuthRequestUrl(serverConfig, clientConfig, "https://client.example.org/", "34fasf3ds", "af0ifjsldkj", options, "bob")
 
-        assertEquals(expectedUrl, actualUrl)
+        assertEquals(expectedUrl, actualUrl.toString())
     }
 
     @Test
@@ -93,7 +93,7 @@ class TestPlainAuthRequestUrlBuilder {
 
         val options: Map<String, String> = mapOf("foo" to "bar")
 
-        assertThrows<AuthenticationServiceException> {
+        assertThrows<URISyntaxException> {
             urlBuilder.buildAuthRequestUrl(serverConfig, clientConfig, "example.com", "", "", options, null)
         }
     }

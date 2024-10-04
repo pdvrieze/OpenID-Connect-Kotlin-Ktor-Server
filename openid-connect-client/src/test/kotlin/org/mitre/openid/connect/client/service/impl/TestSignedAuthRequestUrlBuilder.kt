@@ -24,20 +24,20 @@ import com.nimbusds.jose.jwk.RSAKey
 import com.nimbusds.jose.util.Base64URL
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
+import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.fail
 import org.mitre.jwt.signer.service.impl.DefaultJWTSigningAndValidationService
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.openid.connect.config.ServerConfiguration
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import org.springframework.security.authentication.AuthenticationServiceException
 import org.springframework.web.util.UriComponentsBuilder
-import java.net.URI
 import java.net.URISyntaxException
 import java.security.NoSuchAlgorithmException
 import java.security.spec.InvalidKeySpecException
@@ -112,7 +112,7 @@ class TestSignedAuthRequestUrlBuilder {
 
         // parsing the result
         val builder: UriComponentsBuilder = try {
-            UriComponentsBuilder.fromUri(URI(requestUri))
+            UriComponentsBuilder.fromUri(requestUri.toURI())
         } catch (e1: URISyntaxException) {
             fail("URISyntaxException was thrown.")
         }
@@ -152,7 +152,7 @@ class TestSignedAuthRequestUrlBuilder {
 
         // parsing the result
         val builder: UriComponentsBuilder= try {
-            UriComponentsBuilder.fromUri(URI(requestUri))
+            UriComponentsBuilder.fromUri(requestUri.toURI())
         } catch (e1: URISyntaxException) {
             fail("URISyntaxException was thrown.")
         }
@@ -187,7 +187,7 @@ class TestSignedAuthRequestUrlBuilder {
     fun buildAuthRequestUrl_badUri(): Unit = runBlocking {
         whenever(serverConfig.authorizationEndpointUri).thenReturn("e=mc^2")
 
-        org.junit.jupiter.api.assertThrows<AuthenticationServiceException> {
+        assertThrows<URISyntaxException> {
             urlBuilder.buildAuthRequestUrl(serverConfig, clientConfig, "example.com", "", "", options, null)
         }
     }

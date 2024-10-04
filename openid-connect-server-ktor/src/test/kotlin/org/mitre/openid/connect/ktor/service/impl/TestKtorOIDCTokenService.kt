@@ -1,10 +1,10 @@
-package org.mitre.openid.connect.service.impl
+package org.mitre.openid.connect.ktor.service.impl
 
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.PlainJWT
 import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -18,6 +18,7 @@ import org.mitre.oauth2.model.convert.OAuth2Request
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.service.OAuth2TokenEntityService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
+import org.mitre.openid.connect.service.impl.KtorOIDCTokenService
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
@@ -78,9 +79,9 @@ class TestKtorOIDCTokenService {
         val token = s.createIdToken(client, request, issueTime, "sub", accessToken.builder())!!
 
         // TODO: Check this is tested in other tests
-        assertEquals("foo", token.jwtClaimsSet.getClaim("test"))
-        assertEquals("sub", token.jwtClaimsSet.subject)
-        assertEquals(issueTime, token.jwtClaimsSet.issueTime)
+        Assertions.assertEquals("foo", token.jwtClaimsSet.getClaim("test"))
+        Assertions.assertEquals("sub", token.jwtClaimsSet.subject)
+        Assertions.assertEquals(issueTime, token.jwtClaimsSet.issueTime)
     }
 
 

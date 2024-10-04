@@ -1,11 +1,13 @@
-package org.mitre.openid.connect.config
+package org.mitre.openid.connect.ktor.config
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mitre.openid.connect.config.ConfigurationPropertiesBean
+import org.mitre.openid.connect.config.JsonMessageSource
 import java.util.*
 
-class TestJsonMessageSource {
+class TestKtorJsonMessageSource {
 
     private lateinit var config: ConfigurationPropertiesBean
 

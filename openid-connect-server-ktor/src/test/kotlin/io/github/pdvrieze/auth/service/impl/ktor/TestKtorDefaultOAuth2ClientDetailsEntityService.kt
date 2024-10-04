@@ -1,23 +1,6 @@
-/*******************************************************************************
- * Copyright 2018 The MIT Internet Trust Consortium
- *
- * Portions copyright 2011-2013 The MITRE Corporation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-package io.github.pdvrieze.auth.service.impl
+package io.github.pdvrieze.auth.service.impl.ktor
 
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -25,7 +8,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.oauth2.exception.InvalidClientException
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuthClientDetails
-import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.repository.OAuth2ClientRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
@@ -57,7 +39,7 @@ import org.mockito.quality.Strictness
  */
 @ExtendWith(MockitoExtension::class)
 @MockitoSettings(strictness = Strictness.WARN)
-class TestDefaultOAuth2ClientDetailsEntityService {
+class TestKtorDefaultOAuth2ClientDetailsEntityService {
     @Mock
     private lateinit var clientRepository: OAuth2ClientRepository
 
@@ -178,7 +160,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
 
         service.saveNewClient(client)
 
-        assertFalse(client.clientId.isNullOrBlank()) { "Client id not set: ${client.clientId}" }
+        Assertions.assertFalse(client.clientId.isNullOrBlank()) { "Client id not set: ${client.clientId}" }
     }
 
     /**
@@ -190,7 +172,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
             authorizedGrantTypes = hashSetOf("refresh_token")
         }.let { service.saveNewClient(it) }
 
-        assertTrue(client.scope.let { it != null && SystemScopeService.OFFLINE_ACCESS in it })
+        Assertions.assertTrue(client.scope.let { it != null && SystemScopeService.OFFLINE_ACCESS in it })
     }
 
     /**
@@ -203,7 +185,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
 
         verify(scopeService, atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
 
-        assertFalse(SystemScopeService.OFFLINE_ACCESS in checkNotNull(client.scope))
+        Assertions.assertFalse(SystemScopeService.OFFLINE_ACCESS in checkNotNull(client.scope))
     }
 
     @Test
@@ -283,7 +265,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
 
         verify(scopeService, atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
 
-        assertTrue(SystemScopeService.OFFLINE_ACCESS in checkNotNull(client.scope))
+        Assertions.assertTrue(SystemScopeService.OFFLINE_ACCESS in checkNotNull(client.scope))
     }
 
     @Test
@@ -297,7 +279,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
 
         verify(scopeService, atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
 
-        assertFalse(SystemScopeService.OFFLINE_ACCESS in checkNotNull(client.scope))
+        Assertions.assertFalse(SystemScopeService.OFFLINE_ACCESS in checkNotNull(client.scope))
     }
 
     @Test
@@ -311,7 +293,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
                 "client_credentials",
             )
 
-            tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
+            tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.PRIVATE_KEY
 
             redirectUris = hashSetOf("https://foo.bar/")
 
@@ -335,7 +317,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
                 "client_credentials",
             )
 
-            tokenEndpointAuthMethod = AuthMethod.NONE
+            tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.NONE
 
             redirectUris = hashSetOf("https://foo.bar/")
 
@@ -358,7 +340,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
                 "implicit",
             )
 
-            tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
+            tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.PRIVATE_KEY
 
             jwksUri = "https://foo.bar/jwks"
         }
@@ -375,7 +357,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         val client = ClientDetailsEntity().apply {
             authorizedGrantTypes = hashSetOf("authorization_code")
 
-            tokenEndpointAuthMethod = AuthMethod.SECRET_POST
+            tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.SECRET_POST
 
             redirectUris = hashSetOf("https://foo.bar/")
 
@@ -394,7 +376,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         val client = ClientDetailsEntity().apply {
             authorizedGrantTypes = mutableSetOf("implicit")
 
-            tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
+            tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.PRIVATE_KEY
 
             redirectUris = hashSetOf("https://foo.bar/")
 
@@ -413,7 +395,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         val client = ClientDetailsEntity().apply {
             authorizedGrantTypes = hashSetOf("client_credentials")
 
-            tokenEndpointAuthMethod = AuthMethod.SECRET_BASIC
+            tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.SECRET_BASIC
 
             redirectUris = hashSetOf("https://foo.bar/")
 
@@ -432,7 +414,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         val client = ClientDetailsEntity().apply {
             authorizedGrantTypes = hashSetOf("authorization_code")
 
-            tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
+            tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.PRIVATE_KEY
         }
 
         assertThrows<IllegalArgumentException> {
@@ -447,7 +429,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         val client = ClientDetailsEntity().apply {
             authorizedGrantTypes = mutableSetOf("implicit")
 
-            tokenEndpointAuthMethod = AuthMethod.NONE
+            tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.NONE
         }
 
         assertThrows<IllegalArgumentException> {
@@ -462,7 +444,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         val client = ClientDetailsEntity().apply {
             authorizedGrantTypes = hashSetOf("client_credentials")
 
-            tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
+            tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.PRIVATE_KEY
 
             redirectUris = hashSetOf("http://foo.bar/")
         }
@@ -479,7 +461,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         val client = ClientDetailsEntity()
         client.authorizedGrantTypes = hashSetOf("authorization_code")
 
-        client.tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
+        client.tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.PRIVATE_KEY
 
         client.redirectUris = hashSetOf("http://foo.bar/")
 
@@ -498,7 +480,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         val grantTypes: MutableSet<String> = hashSetOf("authorization_code")
         client.authorizedGrantTypes = grantTypes
 
-        client.tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
+        client.tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.PRIVATE_KEY
 
         client.redirectUris = hashSetOf("https://foo.bar/")
 
@@ -520,7 +502,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
                 "refresh_token",
             )
 
-            tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
+            tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.PRIVATE_KEY
 
             redirectUris = hashSetOf("https://foo.bar/")
 
@@ -529,8 +511,8 @@ class TestDefaultOAuth2ClientDetailsEntityService {
 
         val savedClient = service.saveNewClient(client)
 
-        assertNotNull(savedClient.clientId)
-        assertNull(savedClient.clientSecret)
+        Assertions.assertNotNull(savedClient.clientId)
+        Assertions.assertNull(savedClient.clientSecret)
     }
 
     @Test
@@ -543,7 +525,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         grantTypes.add("refresh_token")
         client.authorizedGrantTypes = grantTypes
 
-        client.tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
+        client.tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.PRIVATE_KEY
 
         client.redirectUris = hashSetOf("http://foo.bar/")
 
@@ -564,7 +546,7 @@ class TestDefaultOAuth2ClientDetailsEntityService {
         grantTypes.add("refresh_token")
         client.authorizedGrantTypes = grantTypes
 
-        client.tokenEndpointAuthMethod = AuthMethod.PRIVATE_KEY
+        client.tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.PRIVATE_KEY
 
         client.redirectUris = hashSetOf("http://localhost/", "https://foo.bar", "foo://bar")
 

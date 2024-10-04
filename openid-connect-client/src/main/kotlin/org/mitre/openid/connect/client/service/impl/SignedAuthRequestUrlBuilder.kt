@@ -21,7 +21,6 @@ import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
 import io.ktor.http.*
-import io.ktor.server.util.*
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.openid.connect.client.service.AuthRequestUrlBuilder
@@ -41,7 +40,7 @@ class SignedAuthRequestUrlBuilder : AuthRequestUrlBuilder {
         state: String,
         options: Map<String, String>,
         loginHint: String?
-    ): String {
+    ): Url {
         // create our signed JWT for the request object
 
         val claims = JWTClaimsSet.Builder().apply {
@@ -79,9 +78,8 @@ class SignedAuthRequestUrlBuilder : AuthRequestUrlBuilder {
 
         signingAndValidationService.signJwt(jwt, alg)
 
-        return url {
-            takeFrom(serverConfig.authorizationEndpointUri!!)
+        return URLBuilder(serverConfig.authorizationEndpointUri!!).apply {
             parameters.append("request", jwt.serialize())
-        }
+        }.build().also { it.toURI() }
     }
 }

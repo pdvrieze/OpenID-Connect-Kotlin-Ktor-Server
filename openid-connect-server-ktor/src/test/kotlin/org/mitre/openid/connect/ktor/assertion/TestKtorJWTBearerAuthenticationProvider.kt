@@ -1,4 +1,4 @@
-package org.mitre.openid.connect.assertion
+package org.mitre.openid.connect.ktor.assertion
 
 import com.nimbusds.jose.EncryptionMethod
 import com.nimbusds.jose.JWEAlgorithm
@@ -11,7 +11,7 @@ import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.PlainJWT
 import com.nimbusds.jwt.SignedJWT
 import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -25,8 +25,10 @@ import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.LocalGrantedAuthority
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.service.ClientDetailsEntityService
-import org.mitre.openid.connect.assertIs
+import org.mitre.openid.connect.assertion.JWTBearerAssertionAuthenticationToken
+import org.mitre.openid.connect.assertion.JWTBearerAuthenticationProvider
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
+import org.mitre.openid.connect.ktor.assertIs
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
@@ -39,7 +41,7 @@ import java.util.concurrent.TimeUnit
 
 @ExtendWith(MockitoExtension::class)
 @MockitoSettings(strictness = Strictness.WARN)
-class TestJWTBearerAuthenticationProvider {
+class TestKtorJWTBearerAuthenticationProvider {
     @Mock
     private lateinit var validators: ClientKeyCacheService
 
@@ -87,7 +89,7 @@ class TestJWTBearerAuthenticationProvider {
 
     @Test
     fun should_support_JWTBearerAssertionAuthenticationToken() {
-        assertTrue(jwtBearerAuthenticationProvider.supports(JWTBearerAssertionAuthenticationToken::class.java))
+        Assertions.assertTrue(jwtBearerAuthenticationProvider.supports(JWTBearerAssertionAuthenticationToken::class.java))
     }
 
     @Test
@@ -97,8 +99,8 @@ class TestJWTBearerAuthenticationProvider {
 
         val thrown = authenticateAndReturnThrownException()
 
-        assertInstanceOf(AssertionError::class.java, thrown) // check concrete type
-        assertEquals("Could not find client: $CLIENT_ID", thrown.message)
+        Assertions.assertInstanceOf(AssertionError::class.java, thrown) // check concrete type
+        Assertions.assertEquals("Could not find client: $CLIENT_ID", thrown.message)
     }
 
     @Test
@@ -108,7 +110,7 @@ class TestJWTBearerAuthenticationProvider {
         val thrown = authenticateAndReturnThrownException()
 
         assertIs<AuthenticationException>(thrown)
-        assertEquals("Unsupported JWT type: " + PlainJWT::class.java.name, thrown.message)
+        Assertions.assertEquals("Unsupported JWT type: " + PlainJWT::class.java.name, thrown.message)
     }
 
     @Test
@@ -118,7 +120,7 @@ class TestJWTBearerAuthenticationProvider {
         val thrown = authenticateAndReturnThrownException()
 
         assertIs<AuthenticationException>(thrown)
-        assertEquals("Unsupported JWT type: " + EncryptedJWT::class.java.name, thrown.message)
+        Assertions.assertEquals("Unsupported JWT type: " + EncryptedJWT::class.java.name, thrown.message)
     }
 
     @Test
@@ -130,7 +132,7 @@ class TestJWTBearerAuthenticationProvider {
         val thrown = authenticateAndReturnThrownException()
 
         assertIs<AuthenticationException>(thrown)
-        assertEquals("Client's registered token endpoint signing algorithm (RS256) does not match token's actual algorithm (ES384)", thrown.message)
+        Assertions.assertEquals("Client's registered token endpoint signing algorithm (RS256) does not match token's actual algorithm (ES384)", thrown.message)
     }
 
     @Test
@@ -146,7 +148,7 @@ class TestJWTBearerAuthenticationProvider {
             val thrown = authenticateAndReturnThrownException()
 
             assertIs<AuthenticationException>(thrown)
-            assertEquals("Client does not support this authentication method.", thrown.message)
+            Assertions.assertEquals("Client does not support this authentication method.", thrown.message)
         }
     }
 
@@ -163,7 +165,7 @@ class TestJWTBearerAuthenticationProvider {
             val thrown = authenticateAndReturnThrownException()
 
             assertIs<AuthenticationException>(thrown)
-            assertEquals(true, thrown.message?.startsWith("Unable to create signature validator for method"))
+            Assertions.assertEquals(true, thrown.message?.startsWith("Unable to create signature validator for method"))
         }
     }
 
@@ -184,7 +186,7 @@ class TestJWTBearerAuthenticationProvider {
             val thrown = authenticateAndReturnThrownException()
 
             assertIs<AuthenticationException>(thrown)
-            assertEquals(true, thrown.message?.startsWith("Unable to create signature validator for method"))
+            Assertions.assertEquals(true, thrown.message?.startsWith("Unable to create signature validator for method"))
         }
     }
 
@@ -199,7 +201,7 @@ class TestJWTBearerAuthenticationProvider {
         val thrown = authenticateAndReturnThrownException()
 
         assertIs<AuthenticationException>(thrown)
-        assertEquals("[HEART mode] Invalid authentication method", thrown.message)
+        Assertions.assertEquals("[HEART mode] Invalid authentication method", thrown.message)
     }
 
     @Test
@@ -212,7 +214,7 @@ class TestJWTBearerAuthenticationProvider {
             val thrown = authenticateAndReturnThrownException()
 
             assertIs<AuthenticationException>(thrown)
-            assertEquals(true, thrown.message?.startsWith("Unable to create signature validator for client"))
+            Assertions.assertEquals(true, thrown.message?.startsWith("Unable to create signature validator for client"))
         }
 
     }
@@ -225,7 +227,7 @@ class TestJWTBearerAuthenticationProvider {
         val thrown = authenticateAndReturnThrownException()
 
         assertIs<AuthenticationException>(thrown)
-        assertEquals("Signature did not validate for presented JWT authentication.", thrown.message)
+        Assertions.assertEquals("Signature did not validate for presented JWT authentication.", thrown.message)
     }
 
     @Test
@@ -236,7 +238,7 @@ class TestJWTBearerAuthenticationProvider {
         val thrown = authenticateAndReturnThrownException()
 
         assertIs<AuthenticationException>(thrown)
-        assertEquals("Assertion Token Issuer is null", thrown.message)
+        Assertions.assertEquals("Assertion Token Issuer is null", thrown.message)
     }
 
     @Test
@@ -247,7 +249,7 @@ class TestJWTBearerAuthenticationProvider {
         val thrown = authenticateAndReturnThrownException()
 
         assertIs<AuthenticationException>(thrown)
-        assertEquals(true, thrown.message?.startsWith("Issuers do not match"))
+        Assertions.assertEquals(true, thrown.message?.startsWith("Issuers do not match"))
     }
 
     @Test
@@ -258,7 +260,7 @@ class TestJWTBearerAuthenticationProvider {
         val thrown = authenticateAndReturnThrownException()
 
         assertIs<AuthenticationException>(thrown)
-        assertEquals("Assertion Token does not have required expiration claim", thrown.message)
+        Assertions.assertEquals("Assertion Token does not have required expiration claim", thrown.message)
     }
 
     @Test
@@ -270,7 +272,7 @@ class TestJWTBearerAuthenticationProvider {
         val thrown = authenticateAndReturnThrownException()
 
         assertIs<AuthenticationException>(thrown)
-        assertEquals(true, thrown.message?.startsWith("Assertion Token is expired"))
+        Assertions.assertEquals(true, thrown.message?.startsWith("Assertion Token is expired"))
     }
 
     @Test
@@ -283,7 +285,7 @@ class TestJWTBearerAuthenticationProvider {
         val thrown = authenticateAndReturnThrownException()
 
         assertIs<AuthenticationException>(thrown)
-        assertEquals(true, thrown.message?.startsWith("Assertion Token not valid until"))
+        Assertions.assertEquals(true, thrown.message?.startsWith("Assertion Token not valid until"))
     }
 
     @Test
@@ -296,7 +298,7 @@ class TestJWTBearerAuthenticationProvider {
         val thrown = authenticateAndReturnThrownException()
 
         assertIs<AuthenticationException>(thrown)
-        assertEquals(true, thrown.message?.startsWith("Assertion Token was issued in the future"))
+        Assertions.assertEquals(true, thrown.message?.startsWith("Assertion Token was issued in the future"))
     }
 
     @Test
@@ -307,7 +309,7 @@ class TestJWTBearerAuthenticationProvider {
         val thrown = authenticateAndReturnThrownException()
 
         assertIs<AuthenticationException>(thrown)
-        assertEquals(true, thrown.message?.startsWith("Audience does not match"))
+        Assertions.assertEquals(true, thrown.message?.startsWith("Audience does not match"))
     }
 
     @Test
@@ -325,33 +327,36 @@ class TestJWTBearerAuthenticationProvider {
         assertIs<JWTBearerAssertionAuthenticationToken>(authentication)
 
         val token = authentication as JWTBearerAssertionAuthenticationToken
-        assertEquals(SUBJECT, token.name)
-        assertEquals(jwt, token.jwt)
-        assertTrue(token.authorities.map { LocalGrantedAuthority(it.authority) }.containsAll(listOf(authority1, authority2, authority3)))
-        assertEquals(4, token.authorities.size)
+        Assertions.assertEquals(SUBJECT, token.name)
+        Assertions.assertEquals(jwt, token.jwt)
+        Assertions.assertTrue(token.authorities.map { LocalGrantedAuthority(it.authority) }
+                                  .containsAll(listOf(authority1, authority2, authority3)))
+        Assertions.assertEquals(4, token.authorities.size)
     }
 
     @Test
-    fun should_return_valid_token_when_issuer_does_not_end_with_slash_and_audience_contains_token_endpoint(): Unit = runBlocking {
-        val jwtClaimsSet = JWTClaimsSet.Builder()
-            .issuer(CLIENT_ID)
-            .subject(SUBJECT)
-            .expirationTime(Date())
-            .audience(listOf("http://issuer.com/token"))
-            .build()
-        val jwt: JWT = mockSignedJWTAuthAttempt(jwtClaimsSet)
-        whenever(config.issuer).thenReturn("http://issuer.com/")
+    fun should_return_valid_token_when_issuer_does_not_end_with_slash_and_audience_contains_token_endpoint(): Unit =
+        runBlocking {
+            val jwtClaimsSet = JWTClaimsSet.Builder()
+                .issuer(CLIENT_ID)
+                .subject(SUBJECT)
+                .expirationTime(Date())
+                .audience(listOf("http://issuer.com/token"))
+                .build()
+            val jwt: JWT = mockSignedJWTAuthAttempt(jwtClaimsSet)
+            whenever(config.issuer).thenReturn("http://issuer.com/")
 
-        val authentication = jwtBearerAuthenticationProvider.authenticate(token)
+            val authentication = jwtBearerAuthenticationProvider.authenticate(token)
 
-        assertIs<JWTBearerAssertionAuthenticationToken>(authentication)
+            assertIs<JWTBearerAssertionAuthenticationToken>(authentication)
 
-        val token = authentication as JWTBearerAssertionAuthenticationToken
-        assertEquals(SUBJECT, token.name)
-        assertEquals(jwt, token.jwt)
-        assertTrue(token.authorities.map { LocalGrantedAuthority(it.authority) }.containsAll(listOf(authority1, authority2, authority3)))
-        assertEquals(4, token.authorities.size)
-    }
+            val token = authentication as JWTBearerAssertionAuthenticationToken
+            Assertions.assertEquals(SUBJECT, token.name)
+            Assertions.assertEquals(jwt, token.jwt)
+            Assertions.assertTrue(token.authorities.map { LocalGrantedAuthority(it.authority) }
+                                      .containsAll(listOf(authority1, authority2, authority3)))
+            Assertions.assertEquals(4, token.authorities.size)
+        }
 
     private fun mockPlainJWTAuthAttempt() {
         val plainJWT = PlainJWT(createJwtClaimsSet())

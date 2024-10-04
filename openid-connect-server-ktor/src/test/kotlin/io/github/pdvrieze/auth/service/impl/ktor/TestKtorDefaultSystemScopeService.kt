@@ -1,23 +1,6 @@
-/*******************************************************************************
- * Copyright 2018 The MIT Internet Trust Consortium
- *
- * Portions copyright 2011-2013 The MITRE Corporation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-package io.github.pdvrieze.auth.service.impl
+package io.github.pdvrieze.auth.service.impl.ktor
 
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -38,7 +21,7 @@ import org.mockito.quality.Strictness
  */
 @ExtendWith(MockitoExtension::class)
 @MockitoSettings(strictness = Strictness.WARN)
-class TestDefaultSystemScopeService {
+class TestKtorDefaultSystemScopeService {
     // test fixture
     private lateinit var defaultDynScope1: SystemScope
     private lateinit var defaultDynScope2: SystemScope
@@ -109,7 +92,7 @@ class TestDefaultSystemScopeService {
 
     @Test
     fun getAll(): Unit {
-        assertEquals(allScopes, service.all)
+        Assertions.assertEquals(allScopes, service.all)
     }
 
     @Test
@@ -117,43 +100,43 @@ class TestDefaultSystemScopeService {
         val defaults: Set<SystemScope?> =
             hashSetOf(defaultDynScope1, defaultDynScope2, defaultScope1, defaultScope2)
 
-        assertEquals(defaults, service.defaults)
+        Assertions.assertEquals(defaults, service.defaults)
     }
 
     @Test
     fun getUnrestricted() {
         val unrestricted: Set<SystemScope?> = hashSetOf(defaultDynScope1, defaultDynScope2, dynScope1)
 
-        assertEquals(unrestricted, service.unrestricted)
+        Assertions.assertEquals(unrestricted, service.unrestricted)
     }
 
     @Test
     fun getRestricted() {
         val restricted: Set<SystemScope?> = hashSetOf(defaultScope1, defaultScope2, restrictedScope1)
 
-        assertEquals(restricted, service.restricted)
+        Assertions.assertEquals(restricted, service.restricted)
     }
 
     @Test
     fun fromStrings() {
         // check null condition
 
-        assertNull(service.fromStrings(null))
+        Assertions.assertNull(service.fromStrings(null))
 
-        assertEquals(allScopes, service.fromStrings(allScopeStrings))
+        Assertions.assertEquals(allScopes, service.fromStrings(allScopeStrings))
 
-        assertEquals(allScopesWithValue, service.fromStrings(allScopeStringsWithValue))
+        Assertions.assertEquals(allScopesWithValue, service.fromStrings(allScopeStringsWithValue))
     }
 
     @Test
     fun toStrings() {
         // check null condition
 
-        assertNull(service.toStrings(null))
+        Assertions.assertNull(service.toStrings(null))
 
-        assertEquals(allScopeStrings, service.toStrings(allScopes))
+        Assertions.assertEquals(allScopeStrings, service.toStrings(allScopes))
 
-        assertEquals(allScopeStringsWithValue, service.toStrings(allScopesWithValue))
+        Assertions.assertEquals(allScopeStringsWithValue, service.toStrings(allScopesWithValue))
     }
 
     @Test
@@ -164,13 +147,13 @@ class TestDefaultSystemScopeService {
         val actualBad: Set<String> = hashSetOf("foo", "bob", "bar")
 
         // same scopes, different order
-        assertTrue(service.scopesMatch(expected, actualGood))
+        Assertions.assertTrue(service.scopesMatch(expected, actualGood))
 
         // subset
-        assertTrue(service.scopesMatch(expected, actualGood2))
+        Assertions.assertTrue(service.scopesMatch(expected, actualGood2))
 
         // extra scope (fail)
-        assertFalse(service.scopesMatch(expected, actualBad))
+        Assertions.assertFalse(service.scopesMatch(expected, actualBad))
     }
 
     companion object {
