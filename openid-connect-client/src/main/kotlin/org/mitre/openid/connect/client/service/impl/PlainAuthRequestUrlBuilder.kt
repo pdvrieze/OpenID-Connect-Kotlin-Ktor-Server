@@ -41,7 +41,7 @@ class PlainAuthRequestUrlBuilder : AuthRequestUrlBuilder {
     ): String {
         return url {
             takeFrom(serverConfig.authorizationEndpointUri!!)
-            parameters {
+            with(parameters) {
                 append("response_type", "code")
                 append("client_id", clientConfig.clientId!!)
                 append("scope", clientConfig.scope?.joinToString(" ")?:"")
