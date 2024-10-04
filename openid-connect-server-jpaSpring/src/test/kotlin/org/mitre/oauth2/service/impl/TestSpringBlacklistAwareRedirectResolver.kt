@@ -26,14 +26,17 @@ import org.mockito.ArgumentMatchers
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
+import org.mockito.junit.jupiter.MockitoSettings
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.whenever
+import org.mockito.quality.Strictness
 import org.springframework.security.oauth2.common.exceptions.InvalidRequestException
 
 /**
  * @author jricher
  */
 @ExtendWith(MockitoExtension::class)
+@MockitoSettings(strictness = Strictness.WARN)
 class TestSpringBlacklistAwareRedirectResolver {
     @Mock
     private lateinit var blacklistService: BlacklistedSiteService
