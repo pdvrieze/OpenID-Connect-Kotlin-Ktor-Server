@@ -52,7 +52,7 @@ class KtorConnectOAuth2RequestFactory constructor(
 ) : KtorOAuth2RequestFactory(
     clientDetailsService,
 ) {
-    override fun createAuthorizationRequest(inputParams: Parameters): OAuth2Request {
+    override suspend fun createAuthorizationRequest(inputParams: Parameters): OAuth2Request {
         val baseRequest =  super.createAuthorizationRequest(inputParams)
 
         val jwt = inputParams[REQUEST]?.let { parseToJwt(it, baseRequest) }
@@ -112,7 +112,7 @@ class KtorConnectOAuth2RequestFactory constructor(
         )
     }
 
-    private fun parseToJwt(jwtString: String, request: OAuth2Request): JWT {
+    private suspend fun parseToJwt(jwtString: String, request: OAuth2Request): JWT {
         val jwt = JWTParser.parse(jwtString)
 
         when (jwt) {

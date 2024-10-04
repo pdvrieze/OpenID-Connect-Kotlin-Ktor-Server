@@ -30,8 +30,8 @@ import org.mitre.oauth2.exception.InvalidTokenException
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
-import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
+import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.PKCEAlgorithm
 import org.mitre.oauth2.model.PKCEAlgorithm.Companion.parse
@@ -115,7 +115,7 @@ class DefaultOAuth2ProviderTokenService(
     }
 
 
-    override fun createAccessToken(authentication: OAuth2RequestAuthentication): OAuth2AccessToken {
+    override suspend fun createAccessToken(authentication: OAuth2RequestAuthentication): OAuth2AccessToken {
         // look up our client
         val request = authentication.oAuth2Request
 
@@ -245,7 +245,7 @@ class DefaultOAuth2ProviderTokenService(
         return savedRefreshToken
     }
 
-    override fun refreshAccessToken(refreshTokenValue: String, authRequest: OAuth2Request): OAuth2AccessToken {
+    override suspend fun refreshAccessToken(refreshTokenValue: String, tokenRequest: OAuth2Request): OAuth2AccessToken {
         // throw an invalid token exception if there's no refresh token value at all
         require(refreshTokenValue.isNotBlank()) { "Invalid refresh token: $refreshTokenValue" }
 
@@ -259,7 +259,7 @@ class DefaultOAuth2ProviderTokenService(
         val authHolder = refreshToken.authenticationHolder
 
         // make sure that the client requesting the token is the one who owns the refresh token
-        val requestingClient = clientDetailsService.loadClientByClientId(authRequest.clientId)!!
+        val requestingClient = clientDetailsService.loadClientByClientId(tokenRequest.clientId)!!
         if (client!!.clientId != requestingClient.clientId) {
             tokenRepository.removeRefreshToken(refreshToken)
             throw InvalidClientException("Client does not own the presented refresh token")
@@ -290,7 +290,7 @@ class DefaultOAuth2ProviderTokenService(
             scopeService.removeReservedScopes(it)
         }
 
-        val scopeRequested: Set<String> = if (authRequest.scope == null) HashSet() else HashSet(authRequest.scope)
+        val scopeRequested: Set<String> = if (tokenRequest.scope == null) HashSet() else HashSet(tokenRequest.scope)
         val scope: Set<SystemScope>? = scopeService.fromStrings(scopeRequested)?.let {
             // remove any of the special system scopes
             scopeService.removeReservedScopes(it)

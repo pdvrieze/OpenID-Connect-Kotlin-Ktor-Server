@@ -22,6 +22,7 @@ import com.nimbusds.jose.JWEAlgorithm
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jose.util.JSONObjectUtils
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerializationException
 import org.mitre.jwt.assertion.AssertionValidator
 import org.mitre.oauth2.model.ClientDetailsEntity
@@ -76,9 +77,7 @@ import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.exception.ValidationException
 import org.mitre.openid.connect.service.BlacklistedSiteService
 import org.mitre.openid.connect.service.OIDCTokenService
-import org.mitre.openid.connect.view.ClientInformationResponseView
 import org.mitre.openid.connect.view.HttpCodeView
-import org.mitre.openid.connect.view.JsonErrorView
 import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -580,7 +579,7 @@ class DynamicClientRegistrationEndpoint {
     private fun validateSoftwareStatement(newClient: ClientDetailsEntity.Builder) {
         if (newClient.softwareStatement == null) return
 
-        if (!assertionValidator.isValid(newClient.softwareStatement!!)) {
+        if (! runBlocking { assertionValidator.isValid(newClient.softwareStatement!!)}) {
             throw ValidationException("invalid_client_metadata", "Software statement rejected by validator", HttpStatus.BAD_REQUEST)
         }
 

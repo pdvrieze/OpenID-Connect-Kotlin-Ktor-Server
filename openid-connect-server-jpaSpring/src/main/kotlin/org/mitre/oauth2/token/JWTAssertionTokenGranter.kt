@@ -3,6 +3,7 @@ package org.mitre.oauth2.token
 import com.nimbusds.jwt.JWTParser
 import io.github.pdvrieze.openid.spring.fromSpring
 import io.github.pdvrieze.openid.spring.toSpring
+import kotlinx.coroutines.runBlocking
 import org.mitre.jwt.assertion.AssertionValidator
 import org.mitre.oauth2.assertion.AssertionOAuth2RequestFactory
 import org.mitre.oauth2.model.LocalGrantedAuthority
@@ -51,29 +52,31 @@ class JWTAssertionTokenGranter @Autowired constructor(
             val incomingAssertionValue = tokenRequest.requestParameters["assertion"]
             val assertion = JWTParser.parse(incomingAssertionValue)
 
-            if (validator.isValid(assertion)) {
-                // our validator says it's OK, time to make a token from it
-                // the real work happens in the assertion factory and the token services
+            return runBlocking {
+                if (validator.isValid(assertion)) {
+                    // our validator says it's OK, time to make a token from it
+                    // the real work happens in the assertion factory and the token services
 
-                return SpringOAuth2Authentication(
-                    assertionFactory.createOAuth2Request(client, tokenRequest, assertion),
-                    JWTBearerAssertionAuthenticationToken(assertion, client.authorities?.map { LocalGrantedAuthority(it.authority) })
-                )
-            } else {
-                logger.warn("Incoming assertion did not pass validator, rejecting")
-                return null
+                    SpringOAuth2Authentication(
+                        assertionFactory.createOAuth2Request(client, tokenRequest, assertion),
+                        JWTBearerAssertionAuthenticationToken(assertion, client.authorities?.map { LocalGrantedAuthority(it.authority) })
+                    )
+                } else {
+                    logger.warn("Incoming assertion did not pass validator, rejecting")
+                    null
+                }
             }
         } catch (e: ParseException) {
             logger.warn("Unable to parse incoming assertion")
+            return null
+        // if we had made a token, we'd have returned it by now, so return null here to close out with no created token
         }
 
-        // if we had made a token, we'd have returned it by now, so return null here to close out with no created token
-        return null
     }
 
     override fun getAccessToken(client: ClientDetails, tokenRequest: TokenRequest): SpringOAuth2AccessToken {
         val auth: OAuth2RequestAuthentication = getOAuth2Authentication(client, tokenRequest)!!.fromSpring()
-        return tokenServices.createAccessToken(auth).toSpring()
+        return runBlocking { tokenServices.createAccessToken(auth).toSpring() }
     }
 
 

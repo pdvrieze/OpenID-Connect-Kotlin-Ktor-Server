@@ -516,7 +516,7 @@ class DynamicClientRegistrationEndpoint(
      * @throws ValidationException
      */
     @Throws(ValidationException::class)
-    private fun PipelineContext<Unit, ApplicationCall>.validateSoftwareStatement(newClient: ClientDetailsEntity.Builder) {
+    private suspend fun PipelineContext<Unit, ApplicationCall>.validateSoftwareStatement(newClient: ClientDetailsEntity.Builder) {
         if (newClient.softwareStatement == null) return
 
         if (!assertionValidator.isValid(newClient.softwareStatement!!)) {
@@ -593,7 +593,7 @@ class DynamicClientRegistrationEndpoint(
                     }
 
                     TOKEN_ENDPOINT_AUTH_METHOD -> newClient.tokenEndpointAuthMethod =
-                        OAuthClientDetails.AuthMethod.getByValue(claimSet.getStringClaim(claim))
+                        AuthMethod.getByValue(claimSet.getStringClaim(claim))
 
                     TOS_URI -> newClient.tosUri = claimSet.getStringClaim(claim)
                     CONTACTS -> newClient.contacts = claimSet.getStringListClaim(claim).toHashSet()
@@ -630,7 +630,7 @@ class DynamicClientRegistrationEndpoint(
             try {
                 // Re-issue the token if it has been issued before [currentTime - validity]
                 val validToDate = Date(System.currentTimeMillis() - config.regTokenLifeTime!! * 1000)
-                if (token.jwt!!.jwtClaimsSet.issueTime.before(validToDate)) {
+                if (token.jwt.jwtClaimsSet.issueTime.before(validToDate)) {
                     logger.info("Rotating the registration access token for " + client.clientId)
                     tokenService.revokeAccessToken(token)
                     val newToken = oidcTokenService.createRegistrationAccessToken(client)

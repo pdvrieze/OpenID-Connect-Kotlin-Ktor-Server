@@ -15,17 +15,19 @@
  */
 package org.mitre.oauth2.exception
 
-import org.springframework.security.oauth2.common.exceptions.OAuth2Exception
-
 /**
  * @author jricher
  */
-class DeviceCodeExpiredException(msg: String?) : OAuth2Exception(msg) {
-    override fun getOAuth2ErrorCode(): String {
-        return "expired_token"
-    }
+class DeviceCodeExpiredException(msg: String?) : OAuth2Exception(code, msg) {
 
     companion object {
+        private val code = object: OAuthErrorCode {
+            override val code: String
+                get() = "expired_token"
+            override val rawHttpCode: Int get() = 401
+            override val scopes: Array<out OAuthErrorCode.Scope>
+                get() = emptyArray()
+        }
         private const val serialVersionUID = -7078098692596870940L
     }
 }

@@ -24,6 +24,7 @@ import com.nimbusds.jose.jwk.RSAKey
 import com.nimbusds.jose.util.Base64URL
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -105,7 +106,7 @@ class TestSignedAuthRequestUrlBuilder {
      * with the expected claim values.
      */
     @Test
-    fun buildAuthRequestUrl() {
+    fun buildAuthRequestUrl(): Unit = runBlocking {
         val requestUri =
             urlBuilder.buildAuthRequestUrl(serverConfig, clientConfig, redirectUri, nonce, state, options, null)
 
@@ -145,7 +146,7 @@ class TestSignedAuthRequestUrlBuilder {
     }
 
     @Test
-    fun buildAuthRequestUrl_withLoginHint() {
+    fun buildAuthRequestUrl_withLoginHint(): Unit = runBlocking {
         val requestUri =
             urlBuilder.buildAuthRequestUrl(serverConfig, clientConfig, redirectUri, nonce, state, options, loginHint)
 
@@ -183,7 +184,7 @@ class TestSignedAuthRequestUrlBuilder {
     }
 
     @Test
-    fun buildAuthRequestUrl_badUri() {
+    fun buildAuthRequestUrl_badUri(): Unit = runBlocking {
         whenever(serverConfig.authorizationEndpointUri).thenReturn("e=mc^2")
 
         org.junit.jupiter.api.assertThrows<AuthenticationServiceException> {

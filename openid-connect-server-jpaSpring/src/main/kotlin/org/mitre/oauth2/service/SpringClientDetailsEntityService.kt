@@ -1,5 +1,6 @@
 package org.mitre.oauth2.service
 
+import com.nimbusds.jose.JWSAlgorithm
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.springframework.security.core.GrantedAuthority
@@ -7,9 +8,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.oauth2.provider.ClientDetails
 import org.springframework.security.oauth2.provider.ClientDetailsService
 
-interface SpringClientDetailsEntityService : ClientDetailsEntityService, ClientDetailsService {
+interface SpringClientDetailsEntityService : /*ClientDetailsEntityService, */ClientDetailsService {
 
-    override fun loadClientByClientId(clientId: String): SpringClientDetailsEntity?
+    override fun loadClientByClientId(clientId: String): SpringClientDetailsEntity.OIDClientDetails?
 
 }
 
@@ -61,30 +62,41 @@ class SpringClientDetailsEntity(base: OAuthClientDetails) : ClientDetailsEntity(
     softwareStatement = base.softwareStatement,
     codeChallengeMethod = base.codeChallengeMethod,
     accessTokenValiditySeconds = base.accessTokenValiditySeconds
-), ClientDetails {
+) {
     override var clientId: String? = super.clientId
 
-    override fun getResourceIds(): Set<String> = super.resourceIds
+    val clientDetails: OIDClientDetails = OIDClientDetails()
 
-    override fun isSecretRequired(): Boolean = super.isSecretRequired
+    inner class OIDClientDetails : ClientDetails {
+        val requestObjectSigningAlg: JWSAlgorithm? get() = this@SpringClientDetailsEntity.requestObjectSigningAlg
 
-    override fun getClientSecret(): String? = super.clientSecret
+        fun fromSpring(): SpringClientDetailsEntity = this@SpringClientDetailsEntity
 
-    override fun isScoped(): Boolean = super.isScoped
+        override fun getClientId(): String? = this@SpringClientDetailsEntity.clientId
 
-    override fun getScope(): Set<String>? = super.scope
+        override fun getResourceIds(): Set<String> = this@SpringClientDetailsEntity.resourceIds
 
-    override fun getAuthorizedGrantTypes(): Set<String> = super.authorizedGrantTypes
+        override fun isSecretRequired(): Boolean = this@SpringClientDetailsEntity.isSecretRequired
 
-    override fun getRegisteredRedirectUri(): Set<String> = super.redirectUris
+        override fun getClientSecret(): String? = this@SpringClientDetailsEntity.clientSecret
 
-    override fun getAuthorities(): Collection<GrantedAuthority> = super.authorities.map { SimpleGrantedAuthority(it.authority)}
+        override fun isScoped(): Boolean = this@SpringClientDetailsEntity.isScoped
 
-    override fun getAccessTokenValiditySeconds(): Int? = super.accessTokenValiditySeconds
+        override fun getScope(): Set<String>? = this@SpringClientDetailsEntity.scope
 
-    override fun getRefreshTokenValiditySeconds(): Int? = super.refreshTokenValiditySeconds
+        override fun getAuthorizedGrantTypes(): Set<String> = this@SpringClientDetailsEntity.authorizedGrantTypes
 
-    override fun isAutoApprove(scope: String?): Boolean = false
+        override fun getRegisteredRedirectUri(): Set<String> = this@SpringClientDetailsEntity.redirectUris
 
-    override fun getAdditionalInformation(): Map<String, Any> = super.additionalInformation
+        override fun getAuthorities(): Collection<GrantedAuthority> = this@SpringClientDetailsEntity.authorities.map { SimpleGrantedAuthority(it.authority)}
+
+        override fun getAccessTokenValiditySeconds(): Int? = this@SpringClientDetailsEntity.accessTokenValiditySeconds
+
+        override fun getRefreshTokenValiditySeconds(): Int? = this@SpringClientDetailsEntity.refreshTokenValiditySeconds
+
+        override fun isAutoApprove(scope: String?): Boolean = false
+
+        override fun getAdditionalInformation(): Map<String, Any> = this@SpringClientDetailsEntity.additionalInformation
+    }
+
 }

@@ -17,6 +17,7 @@
  */
 package org.mitre.openid.connect.client.service.impl
 
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -47,7 +48,7 @@ class TestStaticServerConfigurationService {
     }
 
     @Test
-    fun getServerConfiguration_success() {
+    fun getServerConfiguration_success(): Unit = runBlocking {
         val result = service.getServerConfiguration(issuer)
 
         assertNotNull(mockServerConfig)
@@ -55,7 +56,7 @@ class TestStaticServerConfigurationService {
     }
 
     @Test
-    fun getClientConfiguration_noIssuer() {
+    fun getClientConfiguration_noIssuer(): Unit = runBlocking {
         val result = service.getServerConfiguration("www.badexample.net")
         assertNull(result)
     }

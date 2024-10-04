@@ -22,9 +22,11 @@ import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jwt.EncryptedJWT
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
+import org.mitre.jwt.signer.service.ClientKeyCacheService
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.jwt.signer.service.impl.SymmetricKeyJWTValidatorCacheService
 import org.mitre.oauth2.model.ClientDetailsEntity
@@ -52,7 +54,7 @@ class UserInfoJWTView : UserInfoView() {
     private lateinit var config: ConfigurationPropertiesBean
 
     @Autowired
-    private lateinit var encrypters: org.mitre.jwt.signer.service.impl.ClientKeyCacheService
+    private lateinit var encrypters: ClientKeyCacheService
 
     @Autowired
     private lateinit var symmetricCacheService: SymmetricKeyJWTValidatorCacheService
@@ -84,7 +86,7 @@ class UserInfoJWTView : UserInfoView() {
             ) {
                 // encrypt it to the client's key
 
-                val encrypter = encrypters.getEncrypter(client)
+                val encrypter = runBlocking { encrypters.getEncrypter(client) }
 
                 if (encrypter != null) {
                     val encrypted =
@@ -100,17 +102,15 @@ class UserInfoJWTView : UserInfoView() {
                 }
             } else {
                 var signingAlg = jwtService.defaultSigningAlgorithm // default to the server's preference
-                if (client.userInfoSignedResponseAlg != null) {
-                    signingAlg = client.userInfoSignedResponseAlg // override with the client's preference if available
-                }
-                val header = JWSHeader(
-                    signingAlg, null, null, null, null, null, null, null, null, null,
-                    jwtService.defaultSignerKeyId,
-                    null, null
-                )
+                val userInfoSignedResponseAlg = client.userInfoSignedResponseAlg?.let { signingAlg = it }
+
+                val header = JWSHeader.Builder(signingAlg)
+                    .keyID(jwtService.defaultSignerKeyId)
+                    .build()
+
                 val signed = SignedJWT(header, claims)
 
-                if (signingAlg == JWSAlgorithm.HS256 || signingAlg == JWSAlgorithm.HS384 || signingAlg == JWSAlgorithm.HS512) {
+                if (signingAlg in JWSAlgorithm.Family.HMAC_SHA) {
                     // sign it with the client's secret
 
                     val signer = symmetricCacheService.getSymmetricValidator(client)

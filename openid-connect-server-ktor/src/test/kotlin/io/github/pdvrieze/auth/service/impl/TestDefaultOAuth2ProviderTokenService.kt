@@ -17,6 +17,7 @@
  */
 package io.github.pdvrieze.auth.service.impl
 
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
@@ -30,8 +31,8 @@ import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
-import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
+import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.convert.OAuth2Request
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
@@ -62,7 +63,6 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
 import java.util.*
-import kotlin.collections.HashSet
 
 /**
  * @author wkim
@@ -108,7 +108,7 @@ class TestDefaultOAuth2ProviderTokenService {
      * Set up a mock authentication and mock client to work with.
      */
     @BeforeEach
-    fun prepare() {
+    fun prepare(): Unit = runBlocking {
         reset(tokenRepository, authenticationHolderRepository, clientDetailsService, tokenEnhancer)
 
         service = DefaultOAuth2ProviderTokenService(
@@ -227,7 +227,7 @@ class TestDefaultOAuth2ProviderTokenService {
      * Tests exception handling for clients not found.
      */
     @Test
-    fun createAccessToken_nullClient() {
+    fun createAccessToken_nullClient(): Unit = runBlocking {
         whenever(clientDetailsService.loadClientByClientId(ArgumentMatchers.anyString())) doReturn (null)
 
         assertThrows<InvalidClientException> {
@@ -239,7 +239,7 @@ class TestDefaultOAuth2ProviderTokenService {
      * Tests the creation of access tokens for clients that are not allowed to have refresh tokens.
      */
     @Test
-    fun createAccessToken_noRefresh() {
+    fun createAccessToken_noRefresh(): Unit = runBlocking {
         whenever(client.isAllowRefresh) doReturn (false)
 
         val token = service.createAccessToken(authentication)
@@ -259,7 +259,7 @@ class TestDefaultOAuth2ProviderTokenService {
      * Tests the creation of access tokens for clients that are allowed to have refresh tokens.
      */
     @Test
-    fun createAccessToken_yesRefresh() {
+    fun createAccessToken_yesRefresh(): Unit = runBlocking {
         val clientAuth = OAuth2Request(
             clientId = clientId,
             isApproved = true,
@@ -295,7 +295,7 @@ class TestDefaultOAuth2ProviderTokenService {
      * Checks to see that the expiration date of new tokens is being set accurately to within some delta for time skew.
      */
     @Test
-    fun createAccessToken_expiration() {
+    fun createAccessToken_expiration(): Unit = runBlocking {
         val accessTokenValiditySeconds = 3600
         val refreshTokenValiditySeconds = 6000
 
@@ -325,7 +325,7 @@ class TestDefaultOAuth2ProviderTokenService {
     }
 
     @Test
-    fun createAccessToken_checkClient() {
+    fun createAccessToken_checkClient(): Unit = runBlocking {
         val token: OAuth2AccessToken = service.createAccessToken(authentication)
 
         verify(scopeService, atLeastOnce()).removeReservedScopes(anySet())
@@ -334,7 +334,7 @@ class TestDefaultOAuth2ProviderTokenService {
     }
 
     @Test
-    fun createAccessToken_checkScopes() {
+    fun createAccessToken_checkScopes(): Unit = runBlocking {
         val token = service.createAccessToken(authentication)
 
         verify(scopeService, atLeastOnce()).removeReservedScopes(anySet())
@@ -343,7 +343,7 @@ class TestDefaultOAuth2ProviderTokenService {
     }
 
     @Test
-    fun createAccessToken_checkAttachedAuthentication() {
+    fun createAccessToken_checkAttachedAuthentication(): Unit = runBlocking {
         val authHolder = mock<AuthenticationHolderEntity>()
         whenever(authHolder.authentication) doReturn (authentication)
 
@@ -357,7 +357,7 @@ class TestDefaultOAuth2ProviderTokenService {
     }
 
     @Test
-    fun refreshAccessToken_noRefreshToken() {
+    fun refreshAccessToken_noRefreshToken(): Unit = runBlocking {
         whenever(tokenRepository.getRefreshTokenByValue(ArgumentMatchers.anyString())) doReturn (null)
 
         assertThrows<InvalidTokenException> {
@@ -366,7 +366,7 @@ class TestDefaultOAuth2ProviderTokenService {
     }
 
     @Test
-    fun refreshAccessToken_notAllowRefresh() {
+    fun refreshAccessToken_notAllowRefresh(): Unit = runBlocking {
         whenever(client.isAllowRefresh) doReturn (false)
 
         assertThrows<InvalidClientException> {
@@ -375,7 +375,7 @@ class TestDefaultOAuth2ProviderTokenService {
     }
 
     @Test
-    fun refreshAccessToken_clientMismatch() {
+    fun refreshAccessToken_clientMismatch(): Unit = runBlocking {
         tokenRequest = OAuth2Request(clientId= badClientId)
 
         assertThrows<InvalidClientException> {
@@ -384,7 +384,7 @@ class TestDefaultOAuth2ProviderTokenService {
     }
 
     @Test
-    fun refreshAccessToken_expired() {
+    fun refreshAccessToken_expired(): Unit = runBlocking {
         whenever(refreshToken.isExpired) doReturn (true)
 
         assertThrows<InvalidTokenException> {
@@ -393,7 +393,7 @@ class TestDefaultOAuth2ProviderTokenService {
     }
 
     @Test
-    fun refreshAccessToken_verifyAccessToken() {
+    fun refreshAccessToken_verifyAccessToken(): Unit = runBlocking {
         val token = service.refreshAccessToken(refreshTokenValue, tokenRequest)
 
         verify(tokenRepository).clearAccessTokensForRefreshToken(refreshToken)
@@ -408,7 +408,7 @@ class TestDefaultOAuth2ProviderTokenService {
     }
 
     @Test
-    fun refreshAccessToken_rotateRefreshToken() {
+    fun refreshAccessToken_rotateRefreshToken(): Unit = runBlocking {
         whenever(client.isReuseRefreshToken) doReturn (false)
 
         val token = service.refreshAccessToken(refreshTokenValue, tokenRequest)
@@ -426,7 +426,7 @@ class TestDefaultOAuth2ProviderTokenService {
     }
 
     @Test
-    fun refreshAccessToken_keepAccessTokens() {
+    fun refreshAccessToken_keepAccessTokens(): Unit = runBlocking {
         whenever(client.isClearAccessTokensOnRefresh) doReturn (false)
 
         val token = service.refreshAccessToken(refreshTokenValue, tokenRequest)
@@ -443,7 +443,7 @@ class TestDefaultOAuth2ProviderTokenService {
     }
 
     @Test
-    fun refreshAccessToken_requestingSameScope() {
+    fun refreshAccessToken_requestingSameScope(): Unit = runBlocking {
         val token = service.refreshAccessToken(refreshTokenValue, tokenRequest)
 
         verify(scopeService, atLeastOnce()).removeReservedScopes(anySet())
@@ -452,7 +452,7 @@ class TestDefaultOAuth2ProviderTokenService {
     }
 
     @Test
-    fun refreshAccessToken_requestingLessScope() {
+    fun refreshAccessToken_requestingLessScope(): Unit = runBlocking {
         val lessScope: Set<String> = hashSetOf("openid", "profile")
 
         tokenRequest = tokenRequest.copy(scope = lessScope)
@@ -465,7 +465,7 @@ class TestDefaultOAuth2ProviderTokenService {
     }
 
     @Test
-    fun refreshAccessToken_requestingMoreScope() {
+    fun refreshAccessToken_requestingMoreScope(): Unit = runBlocking {
         val moreScope = storedScope + setOf("address", "phone")
 
         tokenRequest = tokenRequest.copy(scope=moreScope)
@@ -480,7 +480,7 @@ class TestDefaultOAuth2ProviderTokenService {
      * other extra unauthorized scope values.
      */
     @Test
-    fun refreshAccessToken_requestingMixedScope() {
+    fun refreshAccessToken_requestingMixedScope(): Unit = runBlocking {
         val mixedScope: Set<String> =
             setOf("openid", "profile", "address", "phone") // no email or offline_access
 
@@ -492,7 +492,7 @@ class TestDefaultOAuth2ProviderTokenService {
     }
 
     @Test
-    fun refreshAccessToken_requestingEmptyScope() {
+    fun refreshAccessToken_requestingEmptyScope(): Unit = runBlocking {
         val emptyScope: Set<String> = hashSetOf()
 
         tokenRequest = tokenRequest.copy(scope = emptyScope)
@@ -521,7 +521,7 @@ class TestDefaultOAuth2ProviderTokenService {
      * Checks to see that the expiration date of refreshed tokens is being set accurately to within some delta for time skew.
      */
     @Test
-    fun refreshAccessToken_expiration() {
+    fun refreshAccessToken_expiration(): Unit = runBlocking {
         val accessTokenValiditySeconds = 3600
 
         whenever(client.accessTokenValiditySeconds) doReturn (accessTokenValiditySeconds)

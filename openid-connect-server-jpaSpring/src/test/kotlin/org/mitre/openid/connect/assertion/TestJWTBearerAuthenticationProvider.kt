@@ -10,6 +10,7 @@ import com.nimbusds.jwt.JWT
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.PlainJWT
 import com.nimbusds.jwt.SignedJWT
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -22,7 +23,6 @@ import org.mitre.oauth2.model.LocalGrantedAuthority
 import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
-import org.mitre.openid.connect.util.assertIs
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
@@ -53,7 +53,7 @@ class TestJWTBearerAuthenticationProvider {
     private lateinit var jwtBearerAuthenticationProvider: JWTBearerAuthenticationProvider
 
     @Mock
-    private lateinit var token: JWTBearerAssertionAuthenticationToken
+    private lateinit var token: org.mitre.openid.connect.assertion.JWTBearerAssertionAuthenticationToken
 
     @Mock
     private lateinit var client: ClientDetailsEntity
@@ -63,18 +63,20 @@ class TestJWTBearerAuthenticationProvider {
 
     @BeforeEach
     fun setup() {
-        whenever(clientService.loadClientByClientId(CLIENT_ID)).thenReturn(client)
+        runBlocking {
+            whenever(clientService.loadClientByClientId(CLIENT_ID)).thenReturn(client)
 
-        whenever(token.name).thenReturn(CLIENT_ID)
+            whenever(token.name).thenReturn(CLIENT_ID)
 
-        whenever(client.clientId).thenReturn(CLIENT_ID)
-        whenever(client.tokenEndpointAuthMethod).thenReturn(AuthMethod.NONE)
-        whenever(client.authorities).thenReturn(setOf(authority1, authority2, authority3))
+            whenever(client.clientId).thenReturn(CLIENT_ID)
+            whenever(client.tokenEndpointAuthMethod).thenReturn(AuthMethod.NONE)
+            whenever(client.authorities).thenReturn(setOf(authority1, authority2, authority3))
 
-        whenever(validators.getValidator(client, JWSAlgorithm.RS256)).thenReturn(validator)
-        whenever(validator.validateSignature(isA<SignedJWT>())).thenReturn(true)
+            whenever(validators.getValidator(client, JWSAlgorithm.RS256)).thenReturn(validator)
+            whenever(validator.validateSignature(isA<SignedJWT>())).thenReturn(true)
 
-        whenever(config.issuer).thenReturn("http://issuer.com/")
+            whenever(config.issuer).thenReturn("http://issuer.com/")
+        }
     }
 
     @Test
@@ -84,7 +86,7 @@ class TestJWTBearerAuthenticationProvider {
 
     @Test
     fun should_support_JWTBearerAssertionAuthenticationToken() {
-        assertTrue(jwtBearerAuthenticationProvider.supports(JWTBearerAssertionAuthenticationToken::class.java))
+        assertTrue(jwtBearerAuthenticationProvider.supports(org.mitre.openid.connect.assertion.JWTBearerAssertionAuthenticationToken::class.java))
     }
 
     @Test
@@ -200,7 +202,7 @@ class TestJWTBearerAuthenticationProvider {
     }
 
     @Test
-    fun should_throw_AuthenticationServiceException_for_SignedJWT_when_null_validator() {
+    fun should_throw_AuthenticationServiceException_for_SignedJWT_when_null_validator(): Unit = runBlocking {
         mockSignedJWTAuthAttempt()
         whenever(validators.getValidator(isA<ClientDetailsEntity>(), isA<JWSAlgorithm>()))
             .thenReturn(null)
@@ -305,7 +307,7 @@ class TestJWTBearerAuthenticationProvider {
     }
 
     @Test
-    fun should_return_valid_token_when_audience_contains_token_endpoint() {
+    fun should_return_valid_token_when_audience_contains_token_endpoint(): Unit = runBlocking {
         val jwtClaimsSet = JWTClaimsSet.Builder()
             .issuer(CLIENT_ID)
             .subject(SUBJECT)
@@ -316,9 +318,9 @@ class TestJWTBearerAuthenticationProvider {
 
         val authentication = jwtBearerAuthenticationProvider.authenticate(token)
 
-        assertIs<JWTBearerAssertionAuthenticationToken>(authentication)
+        assertIs<org.mitre.openid.connect.assertion.JWTBearerAssertionAuthenticationToken>(authentication)
 
-        val token = authentication as JWTBearerAssertionAuthenticationToken
+        val token = authentication as org.mitre.openid.connect.assertion.JWTBearerAssertionAuthenticationToken
         assertEquals(SUBJECT, token.name)
         assertEquals(jwt, token.jwt)
         assertTrue(token.authorities.map { LocalGrantedAuthority(it.authority) }.containsAll(listOf(authority1, authority2, authority3)))
@@ -326,7 +328,7 @@ class TestJWTBearerAuthenticationProvider {
     }
 
     @Test
-    fun should_return_valid_token_when_issuer_does_not_end_with_slash_and_audience_contains_token_endpoint() {
+    fun should_return_valid_token_when_issuer_does_not_end_with_slash_and_audience_contains_token_endpoint(): Unit = runBlocking {
         val jwtClaimsSet = JWTClaimsSet.Builder()
             .issuer(CLIENT_ID)
             .subject(SUBJECT)
@@ -338,9 +340,9 @@ class TestJWTBearerAuthenticationProvider {
 
         val authentication = jwtBearerAuthenticationProvider.authenticate(token)
 
-        assertIs<JWTBearerAssertionAuthenticationToken>(authentication)
+        assertIs<org.mitre.openid.connect.assertion.JWTBearerAssertionAuthenticationToken>(authentication)
 
-        val token = authentication as JWTBearerAssertionAuthenticationToken
+        val token = authentication as org.mitre.openid.connect.assertion.JWTBearerAssertionAuthenticationToken
         assertEquals(SUBJECT, token.name)
         assertEquals(jwt, token.jwt)
         assertTrue(token.authorities.map { LocalGrantedAuthority(it.authority) }.containsAll(listOf(authority1, authority2, authority3)))
@@ -366,11 +368,11 @@ class TestJWTBearerAuthenticationProvider {
         return signedJWT
     }
 
-    private fun authenticateAndReturnThrownException(): Throwable {
+    private fun authenticateAndReturnThrownException(): Throwable = runBlocking {
         try {
             jwtBearerAuthenticationProvider.authenticate(token)
         } catch (throwable: Throwable) {
-            return throwable
+            return@runBlocking throwable
         }
         throw AssertionError("No exception thrown when expected")
     }
@@ -403,4 +405,8 @@ class TestJWTBearerAuthenticationProvider {
         private val authority2: GrantedAuthority = LocalGrantedAuthority("2")
         private val authority3: GrantedAuthority = LocalGrantedAuthority("3")
     }
+}
+
+internal inline fun <reified T> assertIs(value: Any?): T {
+    return assertInstanceOf(T::class.java, value)
 }

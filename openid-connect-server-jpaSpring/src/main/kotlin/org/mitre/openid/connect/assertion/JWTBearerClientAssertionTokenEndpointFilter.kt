@@ -76,7 +76,8 @@ class JWTBearerClientAssertionTokenEndpointFilter(additionalMatcher: RequestMatc
 
             val clientId = jwt.jwtClaimsSet.subject
 
-            val authRequest: Authentication = JWTBearerAssertionAuthenticationToken(jwt)
+            val authRequest: Authentication =
+                JWTBearerAssertionAuthenticationToken(jwt)
 
             return authenticationManager.authenticate(authRequest)
         } catch (e: ParseException) {

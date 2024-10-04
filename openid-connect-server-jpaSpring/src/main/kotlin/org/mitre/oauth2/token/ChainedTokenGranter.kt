@@ -19,6 +19,7 @@ package org.mitre.oauth2.token
 
 import io.github.pdvrieze.openid.spring.fromSpring
 import io.github.pdvrieze.openid.spring.toSpring
+import kotlinx.coroutines.runBlocking
 import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.resolver.ClientResolver
 import org.mitre.oauth2.service.OAuth2TokenEntityService
@@ -84,8 +85,8 @@ class ChainedTokenGranter @Autowired constructor(// keep down-cast versions so w
         }
     }
 
-    override fun getAccessToken(client: ClientDetails, tokenRequest: TokenRequest): SpringOAuth2AccessToken {
-        return tokenServices.createAccessToken(getOAuth2Authentication(client, tokenRequest).fromSpring()).toSpring()
+    override fun getAccessToken(client: ClientDetails, tokenRequest: TokenRequest): SpringOAuth2AccessToken = runBlocking {
+        tokenServices.createAccessToken(getOAuth2Authentication(client, tokenRequest).fromSpring()).toSpring()
     }
 
     companion object {

@@ -22,3 +22,4 @@ class OAuth2RequestAuthentication(
     val isClientOnly: Boolean
         get() = userAuthentication == null
 }
+

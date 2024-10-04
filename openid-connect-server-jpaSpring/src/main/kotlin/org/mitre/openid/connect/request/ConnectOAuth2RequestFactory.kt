@@ -23,10 +23,11 @@ import com.nimbusds.jwt.EncryptedJWT
 import com.nimbusds.jwt.JWTParser
 import com.nimbusds.jwt.PlainJWT
 import com.nimbusds.jwt.SignedJWT
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonObject
 import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
+import org.mitre.jwt.signer.service.ClientKeyCacheService
 import org.mitre.oauth2.model.PKCEAlgorithm
-import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.SpringClientDetailsEntityService
 import org.mitre.openid.connect.service.MITREidDataService
 import org.mitre.util.getLogger
@@ -47,7 +48,7 @@ class ConnectOAuth2RequestFactory @Autowired constructor(
 ) : DefaultOAuth2RequestFactory(clientDetailsService) {
 
     @Autowired
-    private lateinit var validators: org.mitre.jwt.signer.service.impl.ClientKeyCacheService
+    private lateinit var validators: ClientKeyCacheService
 
     @Autowired
     private lateinit var encryptionService: JWTEncryptionAndDecryptionService
@@ -115,8 +116,11 @@ class ConnectOAuth2RequestFactory @Autowired constructor(
                     request.setScope(clientScopes)
                 }
 
-                if (request.extensions[ConnectRequestParameters.MAX_AGE] == null && client!!.defaultMaxAge != null) {
-                    request.extensions[ConnectRequestParameters.MAX_AGE] = client.defaultMaxAge.toString()
+                if (request.extensions[ConnectRequestParameters.MAX_AGE] == null) {
+                    val defaultMaxAge = client!!.fromSpring().defaultMaxAge
+                    if (defaultMaxAge != null) {
+                        request.extensions[ConnectRequestParameters.MAX_AGE] = defaultMaxAge.toString()
+                    }
                 }
             } catch (e: OAuth2Exception) {
                 logger.error("Caught OAuth2 exception trying to test client scopes and max age:", e)
@@ -155,7 +159,7 @@ class ConnectOAuth2RequestFactory @Autowired constructor(
                     throw InvalidClientException("Client's registered request object signing algorithm (" + client.requestObjectSigningAlg + ") does not match request object's actual algorithm (" + alg.name + ")")
                 }
 
-                val validator = validators.getValidator(client, alg)
+                val validator = runBlocking { validators.getValidator(client.fromSpring(), alg) }
                     ?: throw InvalidClientException("Unable to create signature validator for client $client and algorithm $alg")
 
                 if (!validator.validateSignature(signedJwt)) {

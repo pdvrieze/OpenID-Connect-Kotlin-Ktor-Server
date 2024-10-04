@@ -22,7 +22,6 @@ import org.mitre.oauth2.model.GrantedAuthority
 import org.springframework.security.authentication.AbstractAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import java.text.ParseException
-import org.springframework.security.core.GrantedAuthority as SpringGrantedAuthority
 
 /**
  * @author jricher

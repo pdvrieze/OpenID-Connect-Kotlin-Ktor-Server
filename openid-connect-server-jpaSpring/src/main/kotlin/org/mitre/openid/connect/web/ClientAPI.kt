@@ -22,6 +22,7 @@ import com.nimbusds.jose.JWEAlgorithm
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jose.util.JSONObjectUtils
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -397,7 +398,7 @@ class ClientAPI {
             // nothing to see here, carry on
             return
         } else {
-            if (assertionValidator.isValid(softwareStatement)) {
+            if (runBlocking { assertionValidator.isValid(softwareStatement) }) {
                 // we have a software statement and its envelope passed all the checks from our validator
 
                 // swap out all of the client's fields for the associated parts of the software statement

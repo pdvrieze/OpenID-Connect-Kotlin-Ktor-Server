@@ -33,7 +33,7 @@ interface OIDCTokenService {
     /**
      * Create an id token with the information provided.
      */
-    fun createIdToken(
+    suspend fun createIdToken(
         client: OAuthClientDetails, request: OAuth2Request, issueTime: Date?,
         sub: String?, accessToken: OAuth2AccessToken.Builder
     ): JWT?

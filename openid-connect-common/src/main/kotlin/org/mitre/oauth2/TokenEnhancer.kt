@@ -4,5 +4,5 @@ import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2RequestAuthentication
 
 interface TokenEnhancer {
-    fun enhance(accessToken: OAuth2AccessToken.Builder, authentication: OAuth2RequestAuthentication)
+    suspend fun enhance(accessToken: OAuth2AccessToken.Builder, authentication: OAuth2RequestAuthentication)
 }

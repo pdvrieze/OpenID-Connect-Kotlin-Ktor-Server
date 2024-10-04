@@ -9,7 +9,7 @@ open class KtorOAuth2RequestFactory constructor(
     protected val clientDetailsService: ClientDetailsEntityService,
 ) : OAuth2RequestFactory {
 
-    override fun createAuthorizationRequest(inputParams: Parameters): OAuth2Request {
+    override suspend fun createAuthorizationRequest(inputParams: Parameters): OAuth2Request {
         val scopes: Set<String> = inputParams.getAll("scope")?.flatMapTo(HashSet()) { str ->
             str.splitToSequence(' ').filterNot { it.isBlank() }
         } ?: emptySet()

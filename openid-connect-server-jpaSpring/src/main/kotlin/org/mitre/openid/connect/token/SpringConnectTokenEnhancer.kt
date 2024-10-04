@@ -5,6 +5,7 @@ import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
 import io.github.pdvrieze.openid.spring.fromSpring
 import io.github.pdvrieze.openid.spring.toSpring
+import kotlinx.coroutines.runBlocking
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.service.ClientDetailsEntityService
@@ -90,11 +91,13 @@ class SpringConnectTokenEnhancer : ConnectTokenEnhancer(), TokenEnhancer {
             val userInfo = userInfoService.getByUsernameAndClientId(username, clientId)
 
             if (userInfo != null) {
-                val idToken = connectTokenService.createIdToken(
-                    client,
-                    originalAuthRequest.fromSpring(), claims.issueTime,
-                    userInfo.subject, token.builder()
-                )
+                val idToken = runBlocking {
+                    connectTokenService.createIdToken(
+                        client,
+                        originalAuthRequest.fromSpring(), claims.issueTime,
+                        userInfo.subject, token.builder()
+                    )
+                }
 
                 // attach the id token to the parent access token
                 token.setIdToken(idToken)

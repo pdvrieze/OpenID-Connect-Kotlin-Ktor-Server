@@ -18,6 +18,7 @@ package org.mitre.openid.connect.service.impl
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.PlainJWT
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -76,7 +77,7 @@ class TestDefaultOIDCTokenService {
         }
         configure(s)
 
-        val token = s.createIdToken(client, request, Date(), "sub", accessToken.builder())!!
+        val token = runBlocking { s.createIdToken(client, request, Date(), "sub", accessToken.builder())!! }
         assertEquals("foo", token.jwtClaimsSet.getClaim("test"))
     }
 

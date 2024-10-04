@@ -6,7 +6,7 @@ plugins {
 }
 
 base {
-    archivesName = "openid-connect-common"
+    archivesName = "openid-connect-common-ktor"
 }
 
 dependencies {

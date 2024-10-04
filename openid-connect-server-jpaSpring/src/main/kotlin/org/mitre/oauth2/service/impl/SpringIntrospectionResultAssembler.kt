@@ -22,6 +22,7 @@ import org.mitre.openid.connect.model.UserInfo
 import org.mitre.util.getLogger
 import org.springframework.stereotype.Service
 import java.text.ParseException
+import java.time.Instant
 
 /**
  * Default implementation of the [IntrospectionResultAssembler] interface.
@@ -42,22 +43,22 @@ class SpringIntrospectionResultAssembler : IntrospectionResultAssembler {
         if (!accessPermissions.isNullOrEmpty()) {
             result["permissions"] = accessPermissions.mapTo(HashSet<Map<String, Any>>()) { perm ->
                 hashMapOf(
-                    "resource_set_id" to perm.resourceSet!!.id.toString(),
-                    "scopes" to (perm.scopes?.toHashSet() ?: emptySet()),
+                    "resource_set_id" to perm.resourceSet.id.toString(),
+                    "scopes" to perm.scopes.toHashSet(),
                 )
             }
         } else {
-            val scopes = accessToken.scope?.let { authScopes.intersect(it) } ?: emptySet()
+            val scopes = accessToken.scope.let { authScopes.intersect(it) }
 
             result[IntrospectionResultAssembler.SCOPE] = scopes.joinToString(IntrospectionResultAssembler.SCOPE_SEPARATOR)
         }
 
-        val expiration = accessToken.expiration
-        if (expiration != null) {
+        val expiration = accessToken.expirationInstant
+        if (expiration > Instant.MIN) {
             try {
                 result[IntrospectionResultAssembler.EXPIRES_AT] =
-                    IntrospectionResultAssembler.dateFormat.valueToString(expiration)
-                result[IntrospectionResultAssembler.EXP] = expiration.time / 1000L
+                    IntrospectionResultAssembler.dateFormat.format(expiration)
+                result[IntrospectionResultAssembler.EXP] = expiration.epochSecond
             } catch (e: ParseException) {
                 logger.error("Parse exception in token introspection", e)
             }
@@ -65,7 +66,7 @@ class SpringIntrospectionResultAssembler : IntrospectionResultAssembler {
 
         if (userInfo != null) {
             // if we have a UserInfo, use that for the subject
-            result[IntrospectionResultAssembler.SUB] = userInfo.subject!!
+            result[IntrospectionResultAssembler.SUB] = userInfo.subject
         } else {
             // otherwise, use the authentication's username
             result[IntrospectionResultAssembler.SUB] = authentication.name
@@ -88,7 +89,7 @@ class SpringIntrospectionResultAssembler : IntrospectionResultAssembler {
         authScopes: Set<String>
     ): Map<String, Any> {
         val result: MutableMap<String, Any> = mutableMapOf()
-        val authentication = refreshToken.authenticationHolder!!.authentication
+        val authentication = refreshToken.authenticationHolder.authentication
 
         result[IntrospectionResultAssembler.ACTIVE] = true
 
@@ -97,12 +98,12 @@ class SpringIntrospectionResultAssembler : IntrospectionResultAssembler {
         result[IntrospectionResultAssembler.SCOPE] =
             scopes.joinToString(IntrospectionResultAssembler.SCOPE_SEPARATOR)
 
-        val expiration = refreshToken.expiration
-        if (expiration != null) {
+        val expiration = refreshToken.expirationInstant
+        if (expiration > Instant.MIN) {
             try {
                 result[IntrospectionResultAssembler.EXPIRES_AT] =
-                    IntrospectionResultAssembler.dateFormat.valueToString(expiration)
-                result[IntrospectionResultAssembler.EXP] = expiration.time / 1000L
+                    IntrospectionResultAssembler.dateFormat.format(expiration)
+                result[IntrospectionResultAssembler.EXP] = expiration.epochSecond
             } catch (e: ParseException) {
                 logger.error("Parse exception in token introspection", e)
             }
@@ -111,7 +112,7 @@ class SpringIntrospectionResultAssembler : IntrospectionResultAssembler {
 
         if (userInfo != null) {
             // if we have a UserInfo, use that for the subject
-            result[IntrospectionResultAssembler.SUB] = userInfo.subject!!
+            result[IntrospectionResultAssembler.SUB] = userInfo.subject
         } else {
             // otherwise, use the authentication's username
             result[IntrospectionResultAssembler.SUB] = authentication.name

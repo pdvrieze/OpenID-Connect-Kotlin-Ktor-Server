@@ -26,8 +26,8 @@ import org.mitre.oauth2.TokenEnhancer
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
-import org.mitre.oauth2.model.OAuth2Authentication
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
+import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.PKCEAlgorithm
 import org.mitre.oauth2.model.PKCEAlgorithm.Companion.parse
@@ -42,7 +42,6 @@ import org.mitre.openid.connect.request.ConnectRequestParameters
 import org.mitre.openid.connect.service.ApprovedSiteService
 import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException
 import org.springframework.security.oauth2.common.exceptions.InvalidRequestException
@@ -133,10 +132,7 @@ class SpringOAuth2ProviderTokenService : OAuth2TokenEntityService {
 
     @Transactional(value = "defaultTransactionManager")
     @Throws(AuthenticationException::class, InvalidClientException::class)
-    override fun createAccessToken(authentication: OAuth2Authentication): OAuth2AccessToken {
-        if (authentication?.oAuth2Request == null) {
-            throw AuthenticationCredentialsNotFoundException("No authentication credentials found")
-        }
+    override suspend fun createAccessToken(authentication: OAuth2RequestAuthentication): OAuth2AccessToken {
 
         // look up our client
         val request = authentication.oAuth2Request
@@ -267,7 +263,7 @@ class SpringOAuth2ProviderTokenService : OAuth2TokenEntityService {
 
     @Transactional(value = "defaultTransactionManager")
     @Throws(AuthenticationException::class)
-    override fun refreshAccessToken(refreshTokenValue: String, authRequest: OAuth2Request): OAuth2AccessToken {
+    override suspend fun refreshAccessToken(refreshTokenValue: String, authRequest: OAuth2Request): OAuth2AccessToken {
         if (refreshTokenValue.isNullOrEmpty()) {
             // throw an invalid token exception if there's no refresh token value at all
             throw InvalidTokenException("Invalid refresh token: $refreshTokenValue")
@@ -367,7 +363,7 @@ class SpringOAuth2ProviderTokenService : OAuth2TokenEntityService {
     }
 
     @Throws(AuthenticationException::class)
-    override fun loadAuthentication(accessTokenValue: String): OAuth2Authentication {
+    override fun loadAuthentication(accessTokenValue: String): OAuth2RequestAuthentication {
         val accessToken = clearExpiredAccessToken(tokenRepository.getAccessTokenByValue(accessTokenValue))
 
         if (accessToken == null) {
@@ -392,7 +388,7 @@ class SpringOAuth2ProviderTokenService : OAuth2TokenEntityService {
     /**
      * Get an access token by its authentication object.
      */
-    override fun getAccessToken(authentication: OAuth2Authentication): OAuth2AccessToken {
+    override fun getAccessToken(authentication: OAuth2RequestAuthentication): OAuth2AccessToken {
         // TODO: implement this against the new service (#825)
         throw UnsupportedOperationException("Unable to look up access token from authentication object.")
     }

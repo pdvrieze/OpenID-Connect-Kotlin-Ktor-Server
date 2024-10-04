@@ -17,6 +17,7 @@ package org.mitre.openid.connect.web
 
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.JWTParser
+import kotlinx.coroutines.runBlocking
 import org.mitre.jwt.assertion.impl.SelfAssertionValidator
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuthClientDetails
@@ -83,7 +84,7 @@ class EndSessionEndpoint {
             try {
                 val idToken = JWTParser.parse(idTokenHint)
 
-                if (validator.isValid(idToken)) {
+                if (runBlocking { validator.isValid(idToken) }) {
                     // we issued this ID token, figure out who it's for
                     idTokenClaims = idToken.jwtClaimsSet
 

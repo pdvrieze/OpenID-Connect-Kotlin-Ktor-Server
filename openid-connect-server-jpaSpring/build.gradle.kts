@@ -30,6 +30,8 @@ dependencies {
         exclude("commons-logging:commons-logging")
     }
 
+    implementation(libs.kotlinx.coroutines)
+
     implementation(libs.spring.webmvc)
     implementation(libs.spring.oauth)
 

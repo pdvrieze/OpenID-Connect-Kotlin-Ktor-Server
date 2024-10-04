@@ -1,5 +1,6 @@
 package org.mitre.openid.connect.client.service.impl
 
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
@@ -50,7 +51,7 @@ class TestHybridClientConfigurationService {
     }
 
     @Test
-    fun getClientConfiguration_useStatic() {
+    fun getClientConfiguration_useStatic() = runBlocking {
         whenever(mockStaticService.getClientConfiguration(mockServerConfig)).thenReturn(mockClient)
 
         val result = hybridService.getClientConfiguration(mockServerConfig)
@@ -61,7 +62,7 @@ class TestHybridClientConfigurationService {
     }
 
     @Test
-    fun getClientConfiguration_useDynamic() {
+    fun getClientConfiguration_useDynamic() = runBlocking {
         whenever(mockStaticService.getClientConfiguration(mockServerConfig)).thenReturn(null)
         whenever(mockDynamicService.getClientConfiguration(mockServerConfig)).thenReturn(mockClient)
 
@@ -73,7 +74,7 @@ class TestHybridClientConfigurationService {
     }
 
     @Test
-    fun getClientConfiguration_noIssuer() {
+    fun getClientConfiguration_noIssuer() = runBlocking {
         // The mockServerConfig is known to both services
         // unused by mockito (causs unnecessary stubbing exception
 //		whenever(mockStaticService.getClientConfiguration(mockServerConfig)).thenReturn(mockClient);

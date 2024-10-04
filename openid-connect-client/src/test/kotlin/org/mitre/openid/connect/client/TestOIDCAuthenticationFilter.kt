@@ -1,27 +1,30 @@
 package org.mitre.openid.connect.client
 
+import io.ktor.server.auth.*
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 
 class TestOIDCAuthenticationFilter {
-    private val filter = OIDCAuthenticationFilter()
+    private val config: OIDCAuthenticationProvider.Config = mock {  }
+    private val filter = OIDCAuthenticationProvider(config)
 
     @Test
     @Throws(Exception::class)
     fun attemptAuthentication_error() {
-        val request = mock<HttpServletRequest>()
-        whenever(request.getParameter("error")).thenReturn("Error")
-        whenever(request.getParameter("error_description")).thenReturn("Description")
-        whenever(request.getParameter("error_uri")).thenReturn("http://example.com")
+        val context = mock<AuthenticationContext>()
+//        val request = mock<HttpServletRequest>()
+//        whenever(request.getParameter("error")).thenReturn("Error")
+//        whenever(request.getParameter("error_description")).thenReturn("Description")
+//        whenever(request.getParameter("error_uri")).thenReturn("http://example.com")
 
         val exception = assertThrows<AuthorizationEndpointException> {
-            filter.attemptAuthentication(request, mock<HttpServletResponse>())
+            runBlocking {
+                filter.onAuthenticate(context)
+            }
 
             Assertions.fail("AuthorizationEndpointException expected.")
         }

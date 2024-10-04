@@ -19,15 +19,13 @@ package org.mitre.openid.connect.client.service.impl
 
 import io.ktor.http.*
 import io.ktor.util.*
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 import org.springframework.security.authentication.AuthenticationServiceException
-import javax.servlet.http.HttpServletRequest
 
 /**
  * @author wkim
@@ -60,7 +58,7 @@ class TestThirdPartyIssuerService {
     }
 
     @Test
-    fun getIssuer_hasIssuer() {
+    fun getIssuer_hasIssuer(): Unit = runBlocking {
         val response = service.getIssuer(requestParams, requestUri)
 
         assertEquals(iss, response.issuer)
@@ -71,7 +69,7 @@ class TestThirdPartyIssuerService {
     }
 
     @Test
-    fun getIssuer_noIssuer() {
+    fun getIssuer_noIssuer(): Unit = runBlocking {
         requestParams = parameters { appendAll(requestParams.filter { k, _ -> k != "iss" }) }
 
         val response = service.getIssuer(requestParams, requestUri)
@@ -87,7 +85,7 @@ class TestThirdPartyIssuerService {
     }
 
     @Test
-    fun getIssuer_isWhitelisted() {
+    fun getIssuer_isWhitelisted(): Unit = runBlocking {
         service.whitelist = hashSetOf(iss)
 
         val response = service.getIssuer(requestParams, requestUri)
@@ -100,7 +98,7 @@ class TestThirdPartyIssuerService {
     }
 
     @Test
-    fun getIssuer_notWhitelisted() {
+    fun getIssuer_notWhitelisted(): Unit = runBlocking {
         service.whitelist = hashSetOf("some.other.site")
 
         assertThrows<AuthenticationServiceException> {
@@ -109,7 +107,7 @@ class TestThirdPartyIssuerService {
     }
 
     @Test
-    fun getIssuer_blacklisted() {
+    fun getIssuer_blacklisted(): Unit = runBlocking {
         service.blacklist = hashSetOf(iss)
 
         assertThrows<AuthenticationServiceException> {
@@ -118,7 +116,7 @@ class TestThirdPartyIssuerService {
     }
 
     @Test
-    fun getIssuer_badUri() {
+    fun getIssuer_badUri(): Unit = runBlocking {
         requestParams = parameters { appendAll(requestParams.filter { k, _ -> k != "iss" }) }
         service.accountChooserUrl = "e=mc^2"
 

@@ -63,7 +63,7 @@ class KtorOIDCTokenService(
     val tokenService: OAuth2TokenEntityService,
 ) : OIDCTokenService {
 
-    override fun createIdToken(
+    override suspend fun createIdToken(
         client: OAuthClientDetails,
         request: OAuth2Request,
         issueTime: Date?,
@@ -72,10 +72,7 @@ class KtorOIDCTokenService(
     ): JWT? {
         var signingAlg = jwtService.defaultSigningAlgorithm
 
-        if (client.idTokenSignedResponseAlg != null) {
-            signingAlg = client.idTokenSignedResponseAlg
-        }
-
+        client.idTokenSignedResponseAlg?.let { signingAlg = it }
 
         var idToken: JWT? = null
 

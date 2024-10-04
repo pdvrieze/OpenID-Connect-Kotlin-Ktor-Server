@@ -17,6 +17,7 @@
  */
 package org.mitre.openid.connect.client.service.impl
 
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -48,7 +49,7 @@ class TestPlainAuthRequestUrlBuilder {
     }
 
     @Test
-    fun buildAuthRequestUrl() {
+    fun buildAuthRequestUrl(): Unit = runBlocking {
         val expectedUrl = "https://server.example.com/authorize?" +
                 "response_type=code" +
                 "&client_id=s6BhdRkqt3" +
@@ -67,7 +68,7 @@ class TestPlainAuthRequestUrlBuilder {
     }
 
     @Test
-    fun buildAuthRequestUrl_withLoginHint() {
+    fun buildAuthRequestUrl_withLoginHint(): Unit = runBlocking {
         val expectedUrl = "https://server.example.com/authorize?" +
                 "response_type=code" +
                 "&client_id=s6BhdRkqt3" +
@@ -87,7 +88,7 @@ class TestPlainAuthRequestUrlBuilder {
     }
 
     @Test
-    fun buildAuthRequestUrl_badUri() {
+    fun buildAuthRequestUrl_badUri(): Unit = runBlocking {
         whenever(serverConfig.authorizationEndpointUri).thenReturn("e=mc^2")
 
         val options: Map<String, String> = mapOf("foo" to "bar")

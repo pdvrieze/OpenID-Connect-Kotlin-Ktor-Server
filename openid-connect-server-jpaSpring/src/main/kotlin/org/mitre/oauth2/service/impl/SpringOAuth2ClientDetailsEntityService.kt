@@ -106,7 +106,8 @@ class SpringOAuth2ClientDetailsEntityService : SpringClientDetailsEntityService 
         .maximumSize(100)
         .build(SectorIdentifierLoader(HttpClientBuilder.create().useSystemProperties().build()))
 
-    override fun saveNewClient(client: OAuthClientDetails.Builder): OAuthClientDetails {
+
+    fun saveNewClient(client: OAuthClientDetails.Builder): OAuthClientDetails {
         val clientBuilder = client
         require(clientBuilder.id == null) {  // if it's not null, it's already been saved, this is an error
             "Tried to save a new client with an existing ID: " + clientBuilder.id
@@ -289,7 +290,7 @@ class SpringOAuth2ClientDetailsEntityService : SpringClientDetailsEntityService 
     /**
      * Get the client by its internal ID
      */
-    override fun getClientById(id: Long): OAuthClientDetails? {
+    fun getClientById(id: Long): OAuthClientDetails? {
         val client = clientRepository.getById(id)
 
         return client?.let(ClientDetailsEntity::from)
@@ -299,19 +300,20 @@ class SpringOAuth2ClientDetailsEntityService : SpringClientDetailsEntityService 
      * Get the client for the given ClientID
      */
     @Throws(OAuth2Exception::class, InvalidClientException::class, IllegalArgumentException::class)
-    override fun loadClientByClientId(clientId: String): SpringClientDetailsEntity? {
+    override fun loadClientByClientId(clientId: String): SpringClientDetailsEntity.OIDClientDetails? {
         require(clientId.isNotEmpty()) { "Client id must not be empty!" }
 
-        return clientRepository.getClientByClientId(clientId)
+        return (clientRepository.getClientByClientId(clientId)
             ?.let(::SpringClientDetailsEntity)
-            ?: throw InvalidClientException("Client with id $clientId was not found")
+            ?: throw InvalidClientException("Client with id $clientId was not found"))
+            .clientDetails
     }
 
     /**
      * Delete a client and all its associated tokens
      */
     @Throws(InvalidClientException::class)
-    override fun deleteClient(client: OAuthClientDetails) {
+    fun deleteClient(client: OAuthClientDetails) {
         if (clientRepository.getById(client.id.requireId()) == null) {
             throw InvalidClientException("Client with id ${client.clientId} was not found")
         }
@@ -355,7 +357,7 @@ class SpringOAuth2ClientDetailsEntityService : SpringClientDetailsEntityService 
      *
      */
     @Throws(IllegalArgumentException::class)
-    override fun updateClient(oldClient: OAuthClientDetails, newClient: OAuthClientDetails): OAuthClientDetails {
+    fun updateClient(oldClient: OAuthClientDetails, newClient: OAuthClientDetails): OAuthClientDetails {
         if (oldClient == null || newClient == null) {
             throw IllegalArgumentException("Neither old client or new client can be null!")
         }
@@ -389,23 +391,23 @@ class SpringOAuth2ClientDetailsEntityService : SpringClientDetailsEntityService 
 
     }
 
-    override val allClients: Collection<OAuthClientDetails>
-        /**
-         * Get all clients in the system
-         */
+    /**
+     * Get all clients in the system
+     */
+    val allClients: Collection<OAuthClientDetails>
         get() = clientRepository.allClients.map(ClientDetailsEntity::from)
 
     /**
      * Generates a clientId for the given client and sets it to the client's clientId field. Returns the client that was passed in, now with id set.
      */
-    override fun generateClientIdString(client: OAuthClientDetails): String {
+    fun generateClientIdString(client: OAuthClientDetails): String {
         return UUID.randomUUID().toString()
     }
 
     /**
      * Generates a new clientSecret for the given client and sets it to the client's clientSecret field. Returns the client that was passed in, now with secret set.
      */
-    override fun generateClientSecret(client: OAuthClientDetails.Builder): String? {
+    fun generateClientSecret(client: OAuthClientDetails.Builder): String? {
         if (config.isHeartMode) {
             logger.error("[HEART mode] Can't generate a client secret, skipping step; client won't be saved due to invalid configuration")
             return null

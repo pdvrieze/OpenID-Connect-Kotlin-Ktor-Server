@@ -20,6 +20,7 @@ spring = "5.3.32"
 mockito = "5.11.0"
 logback = "1.4.14"
 exposed = "0.49.0"
+coroutines = "1.9.0"
 
 [libraries]
 #commons-math3 = { module = "org.apache.commons:commons-math3", version.ref = "commons-math3" }
@@ -130,6 +131,7 @@ kotlinx-html = { module = "org.jetbrains.kotlinx:kotlinx-html-jvm", version = "0
 kotlin-wrappers-css = { module = "org.jetbrains.kotlin-wrappers:kotlin-css", version = "1.0.0-pre.808" }
 kotlin-styled = { module = "org.jetbrains.kotlin-wrappers:kotlin-styled-next", version = "1.2.4-pre.808" }
 kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
+kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

@@ -62,9 +62,10 @@ suspend fun PipelineContext<Unit, ApplicationCall>.userInfoJWTView(
         }
     } else {
         var signingAlg = jwtService.defaultSigningAlgorithm // default to the server's preference
-        if (client.userInfoSignedResponseAlg != null) {
-            signingAlg = client.userInfoSignedResponseAlg // override with the client's preference if available
-        }
+
+        // override with the client's preference if available
+        client.userInfoSignedResponseAlg?.let { signingAlg = it }
+
         val header = JWSHeader.Builder(signingAlg)
             .keyID(jwtService.defaultSignerKeyId)
             .build()

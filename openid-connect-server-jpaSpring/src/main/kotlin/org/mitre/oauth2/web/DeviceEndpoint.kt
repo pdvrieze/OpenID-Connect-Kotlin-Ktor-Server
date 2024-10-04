@@ -20,7 +20,7 @@ import io.github.pdvrieze.openid.spring.fromSpring
 import org.apache.http.client.utils.URIBuilder
 import org.mitre.oauth2.exception.DeviceCodeCreationException
 import org.mitre.oauth2.model.DeviceCode
-import org.mitre.oauth2.model.OAuth2Authentication
+import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.service.ClientDetailsEntityService
@@ -264,7 +264,7 @@ class DeviceEndpoint {
 
         // create an OAuth request for storage
         val o2req = oAuth2RequestFactory.createOAuth2Request(authorizationRequest).fromSpring()
-        val o2Auth = OAuth2Authentication(o2req, auth?.fromSpring())
+        val o2Auth = OAuth2RequestAuthentication(o2req, auth?.fromSpring())
 
         val approvedCode = deviceCodeService.approveDeviceCode(dc, o2Auth)
 

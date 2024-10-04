@@ -40,7 +40,7 @@ abstract class ConnectTokenEnhancer: TokenEnhancer {
     abstract val userInfoService: UserInfoService
     abstract val connectTokenService: OIDCTokenService
 
-    override fun enhance(accessToken: OAuth2AccessToken.Builder, authentication: OAuth2RequestAuthentication) {
+    override suspend fun enhance(accessToken: OAuth2AccessToken.Builder, authentication: OAuth2RequestAuthentication) {
         val originalAuthRequest = authentication.oAuth2Request
 
         val clientId = originalAuthRequest.clientId

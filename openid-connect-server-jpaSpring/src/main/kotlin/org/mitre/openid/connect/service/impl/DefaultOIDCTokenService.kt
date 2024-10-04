@@ -27,6 +27,7 @@ import com.nimbusds.jwt.JWT
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.PlainJWT
 import com.nimbusds.jwt.SignedJWT
+import org.mitre.jwt.signer.service.ClientKeyCacheService
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.jwt.signer.service.impl.SymmetricKeyJWTValidatorCacheService
 import org.mitre.oauth2.model.AuthenticationHolderEntity
@@ -34,7 +35,7 @@ import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
-import org.mitre.oauth2.model.OAuth2Authentication
+import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.convert.OAuth2Request
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
@@ -67,7 +68,7 @@ class DefaultOIDCTokenService : OIDCTokenService {
     lateinit var configBean: ConfigurationPropertiesBean
 
     @Autowired
-    private lateinit var encrypters: org.mitre.jwt.signer.service.impl.ClientKeyCacheService
+    private lateinit var encrypters: ClientKeyCacheService
 
     @Autowired
     private lateinit var symmetricCacheService: SymmetricKeyJWTValidatorCacheService
@@ -75,7 +76,7 @@ class DefaultOIDCTokenService : OIDCTokenService {
     @Autowired
     private lateinit var tokenService: OAuth2TokenEntityService
 
-    override fun createIdToken(
+    override suspend fun createIdToken(
         client: OAuthClientDetails,
         request: OAuth2Request,
         issueTime: Date?,
@@ -84,10 +85,7 @@ class DefaultOIDCTokenService : OIDCTokenService {
     ): JWT? {
         var signingAlg = jwtService.defaultSigningAlgorithm
 
-        if (client.idTokenSignedResponseAlg != null) {
-            signingAlg = client.idTokenSignedResponseAlg
-        }
-
+        client.idTokenSignedResponseAlg?.let { signingAlg = it }
 
         var idToken: JWT? = null
 
@@ -227,7 +225,7 @@ class DefaultOIDCTokenService : OIDCTokenService {
             hashSetOf(GrantedAuthority("ROLE_CLIENT")), true,
             scope ?: emptySet(), null, null, null, extensionStrings = null
         )
-        val authentication = OAuth2Authentication(clientAuth, null)
+        val authentication = OAuth2RequestAuthentication(clientAuth, null)
 
         val tokenBuilder = OAuth2AccessTokenEntity.Builder()
         tokenBuilder.setClient(client)
