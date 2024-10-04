@@ -35,10 +35,10 @@ class ThirdPartyIssuerService(var accountChooserUrl: String) : IssuerService {
     var whitelist: Set<String> = HashSet()
     var blacklist: Set<String> = HashSet()
 
-    override suspend fun getIssuer(requestParams: Parameters, requestUrl: String): IssuerServiceResponse {
+    override suspend fun getIssuer(requestParams: Map<String, List<String>>, requestUrl: String): IssuerServiceResponse {
         // if the issuer is passed in, return that
 
-        val iss = requestParams["iss"]
+        val iss: String? = requestParams["iss"]?.firstOrNull()
         if (! iss.isNullOrEmpty()) {
             if (whitelist.isNotEmpty() && iss !in whitelist) {
                 throw AuthenticationServiceException("Whitelist was nonempty, issuer was not in whitelist: $iss")
@@ -48,7 +48,7 @@ class ThirdPartyIssuerService(var accountChooserUrl: String) : IssuerService {
                 throw AuthenticationServiceException("Issuer was in blacklist: $iss")
             }
 
-            return IssuerServiceResponse(iss, requestParams["login_hint"], requestParams["target_link_uri"])
+            return IssuerServiceResponse(iss, requestParams["login_hint"]?.firstOrNull(), requestParams["target_link_uri"]?.firstOrNull())
         } else {
             try {
                 // otherwise, need to forward to the account chooser

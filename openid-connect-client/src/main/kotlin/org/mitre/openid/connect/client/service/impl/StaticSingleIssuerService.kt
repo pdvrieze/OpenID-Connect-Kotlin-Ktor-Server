@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.client.service.impl
 
-import io.ktor.http.*
 import org.mitre.openid.connect.client.model.IssuerServiceResponse
 import org.mitre.openid.connect.client.service.IssuerService
 
@@ -30,7 +29,7 @@ class StaticSingleIssuerService(val issuer: String) : IssuerService {
      *
      * @see org.mitre.openid.connect.client.service.IssuerService.getIssuer
      */
-    override suspend fun getIssuer(requestParams: Parameters, requestUrl: String): IssuerServiceResponse {
+    override suspend fun getIssuer(requestParams: Map<String, List<String>>, requestUrl: String): IssuerServiceResponse {
         return IssuerServiceResponse(issuer, null, null)
     }
 

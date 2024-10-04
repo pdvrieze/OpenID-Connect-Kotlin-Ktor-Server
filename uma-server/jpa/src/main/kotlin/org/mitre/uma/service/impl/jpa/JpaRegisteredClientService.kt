@@ -4,7 +4,6 @@ import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.openid.connect.client.service.RegisteredClientService
 import org.mitre.uma.model.SavedRegisteredClient
 import org.mitre.uma.service.SavedRegisteredClientService
-import org.mitre.util.jpa.JpaUtil
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import javax.persistence.EntityManager

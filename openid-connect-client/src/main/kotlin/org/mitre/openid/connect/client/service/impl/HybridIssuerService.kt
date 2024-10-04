@@ -17,7 +17,6 @@
  */
 package org.mitre.openid.connect.client.service.impl
 
-import io.ktor.http.*
 import org.mitre.openid.connect.client.model.IssuerServiceResponse
 import org.mitre.openid.connect.client.service.IssuerService
 
@@ -48,10 +47,10 @@ class HybridIssuerService(accountChooserUrl: String) : IssuerService {
     private val thirdPartyIssuerService = ThirdPartyIssuerService(accountChooserUrl)
     private val webfingerIssuerService = WebfingerIssuerService()
 
-    override suspend fun getIssuer(requestParams: Parameters, requestUrl: String): IssuerServiceResponse? {
+    override suspend fun getIssuer(requestParams: Map<String, List<String>>, requestUrl: String): IssuerServiceResponse? {
         val resp = thirdPartyIssuerService.getIssuer(requestParams, requestUrl)
             // if it wants us to redirect, try the webfinger approach first
-        return if (resp.shouldRedirect()) {
+        return if (resp != null && resp.shouldRedirect()) {
             webfingerIssuerService.getIssuer(requestParams, requestUrl)
         } else {
             resp

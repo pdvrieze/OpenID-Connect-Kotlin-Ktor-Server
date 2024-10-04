@@ -15,7 +15,6 @@
  */
 package org.mitre.uma.web
 
-import io.ktor.http.*
 import kotlinx.serialization.json.JsonPrimitive
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.model.OIDCAuthenticationToken
@@ -32,6 +31,7 @@ import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.util.DefaultUriBuilderFactory
 
 /**
  *
@@ -156,14 +156,14 @@ class ClaimsCollectionEndpoint {
             }
         }
 
-        val template = URLBuilder(redirectUri)
+        val template = DefaultUriBuilderFactory().uriString(redirectUri)
 
-        template.parameters.append("authorization_state", "claims_submitted")
+        template.queryParam("authorization_state", "claims_submitted")
         if (!state.isNullOrEmpty()) {
-            template.parameters.append("state", state)
+            template.queryParam("state", state)
         }
 
-        val uriString = template.buildString()
+        val uriString = template.build()
         logger.info("Redirecting to $uriString")
 
         return "redirect:$uriString"

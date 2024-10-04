@@ -72,9 +72,9 @@ class WebfingerIssuerService(
      */
     var isForceHttps: Boolean = true
 
-    override suspend fun getIssuer(requestParams: Parameters, requestUrl: String): IssuerServiceResponse? {
-        val identifier: String? = requestParams[parameterName]
-        val targetLinkUri: String? = requestParams["target_link_uri"]
+    override suspend fun getIssuer(requestParams: Map<String, List<String>>, requestUrl: String): IssuerServiceResponse? {
+        val identifier: String? = requestParams[parameterName]?.firstOrNull()
+        val targetLinkUri: String? = requestParams["target_link_uri"]?.firstOrNull()
 
         if (!identifier.isNullOrEmpty()) {
             try {

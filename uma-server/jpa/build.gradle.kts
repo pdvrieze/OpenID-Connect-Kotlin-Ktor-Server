@@ -7,11 +7,14 @@ base {
 }
 
 dependencies {
+    implementation(projects.openidConnectCommon)
+    implementation(projects.openidConnectSpring)
     implementation(projects.openidConnectServer)
     implementation(projects.openidConnectServerJpaSpring)
     implementation(projects.openidConnectClient)
     api(projects.umaServer.common)
 
+    implementation(libs.ktor.client.cio)
     implementation(libs.guava)
     implementation(libs.servlet.api)
     implementation(libs.slf4j.api)

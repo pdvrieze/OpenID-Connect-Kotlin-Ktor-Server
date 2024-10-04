@@ -17,8 +17,8 @@
  */
 package org.mitre.openid.connect.client.service
 
-import io.ktor.http.*
 import io.ktor.server.request.*
+import io.ktor.util.*
 import org.mitre.openid.connect.client.model.IssuerServiceResponse
 
 /**
@@ -28,9 +28,9 @@ import org.mitre.openid.connect.client.model.IssuerServiceResponse
  * @author jricher
  */
 interface IssuerService {
-    suspend fun getIssuer(request: ApplicationRequest): IssuerServiceResponse? {
-        return getIssuer(request.queryParameters, request.uri)
-    }
+    suspend fun getIssuer(requestParams: Map<String, List<String>>, requestUrl: String): IssuerServiceResponse?
+}
 
-    suspend fun getIssuer(requestParams: Parameters, requestUrl: String): IssuerServiceResponse?
+suspend fun IssuerService.getIssuer(request: ApplicationRequest): IssuerServiceResponse? {
+    return getIssuer(request.queryParameters.toMap(), request.uri)
 }

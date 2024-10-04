@@ -55,9 +55,9 @@ class UmaDiscoveryEndpoint {
             "authorization_endpoint" to "${issuer}authorize",
             "requesting_party_claims_endpoint" to "$issuer${ClaimsCollectionEndpoint.URL}",
             "introspection_endpoint" to issuer + IntrospectionEndpoint.URL,
-            "resource_set_registration_endpoint" to "$issuer${ResourceSetRegistrationEndpoint.DISCOVERY_URL}",
+            "resource_set_registration_endpoint" to "${issuer}resource_set",
             "permission_registration_endpoint" to "$issuer${PermissionRegistrationEndpoint.URL}",
-            "rpt_endpoint" to issuer + org.mitre.uma.web.AuthorizationRequestEndpoint.URL,
+            "rpt_endpoint" to issuer + AuthorizationRequestEndpoint.URL,
         )
 
 

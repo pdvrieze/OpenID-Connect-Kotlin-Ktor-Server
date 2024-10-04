@@ -18,7 +18,6 @@ package org.mitre.uma.web
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
-import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
@@ -29,6 +28,7 @@ import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.view.respondJson
+import org.mitre.openid.connect.client.service.getIssuer
 import org.mitre.openid.connect.client.service.impl.WebfingerIssuerService
 import org.mitre.openid.connect.web.RootController
 import org.mitre.web.util.KtorEndpoint
@@ -85,7 +85,7 @@ class UserClaimSearchHelper: KtorEndpoint {
         }
         // otherwise do a webfinger lookup
 
-        val resp = webfingerIssuerService.getIssuer(call.request.queryParameters, call.request.uri)
+        val resp = webfingerIssuerService.getIssuer(call.request)
 
         if (resp?.issuer == null) {
             return call.respond(HttpStatusCode.NotFound)

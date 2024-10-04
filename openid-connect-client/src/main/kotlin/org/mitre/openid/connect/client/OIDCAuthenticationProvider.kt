@@ -59,6 +59,7 @@ import org.mitre.openid.connect.client.service.AuthRequestUrlBuilder
 import org.mitre.openid.connect.client.service.ClientConfigurationService
 import org.mitre.openid.connect.client.service.IssuerService
 import org.mitre.openid.connect.client.service.ServerConfigurationService
+import org.mitre.openid.connect.client.service.getIssuer
 import org.mitre.openid.connect.client.service.impl.StaticAuthRequestOptionsService
 import org.mitre.openid.connect.model.OIDCAuthenticationToken
 import org.mitre.openid.connect.model.PendingOIDCAuthenticationToken
