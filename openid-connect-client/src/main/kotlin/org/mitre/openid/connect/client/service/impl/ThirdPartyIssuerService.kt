@@ -18,10 +18,9 @@
 package org.mitre.openid.connect.client.service.impl
 
 import io.ktor.http.*
-import io.ktor.server.util.*
+import org.mitre.openid.connect.client.AuthenticationServiceException
 import org.mitre.openid.connect.client.model.IssuerServiceResponse
 import org.mitre.openid.connect.client.service.IssuerService
-import org.springframework.security.authentication.AuthenticationServiceException
 import java.net.URISyntaxException
 
 /**
@@ -52,12 +51,11 @@ class ThirdPartyIssuerService(var accountChooserUrl: String) : IssuerService {
         } else {
             try {
                 // otherwise, need to forward to the account chooser
-                val uri = url {
-                    takeFrom(accountChooserUrl)
+                val uri = URLBuilder(accountChooserUrl).apply {
                     parameters.append("redirect_uri", requestUrl)
-                }
+                }.build().apply { toURI() }
 
-                return IssuerServiceResponse(uri)
+                return IssuerServiceResponse(uri.toString())
             } catch (e: URISyntaxException) {
                 throw AuthenticationServiceException("Account Chooser URL is not valid", e)
             }

@@ -25,8 +25,8 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.mitre.openid.connect.client.AuthenticationServiceException
 import org.mitre.openid.connect.client.service.getIssuer
-import org.springframework.security.authentication.AuthenticationServiceException
 
 /**
  * @author wkim
