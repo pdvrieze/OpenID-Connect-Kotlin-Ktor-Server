@@ -19,6 +19,8 @@ dependencies {
     implementation(libs.exposed.jdbc)
     implementation(libs.exposed.javatime)
 
+    testImplementation(projects.openidConnectCommon)
+
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.mockito.jupiter)
     testImplementation(libs.junit.jupiter.api)

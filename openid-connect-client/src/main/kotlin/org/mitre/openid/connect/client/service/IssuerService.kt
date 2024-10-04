@@ -31,6 +31,10 @@ interface IssuerService {
     suspend fun getIssuer(requestParams: Map<String, List<String>>, requestUrl: String): IssuerServiceResponse?
 }
 
+suspend fun IssuerService.getIssuer(params: StringValues, requestUrl: String): IssuerServiceResponse? {
+    return getIssuer(params.toMap(), requestUrl)
+}
+
 suspend fun IssuerService.getIssuer(request: ApplicationRequest): IssuerServiceResponse? {
     return getIssuer(request.queryParameters.toMap(), request.uri)
 }

@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.mitre.openid.connect.client.service.getIssuer
 import org.springframework.security.authentication.AuthenticationServiceException
 
 /**
@@ -59,7 +60,7 @@ class TestThirdPartyIssuerService {
 
     @Test
     fun getIssuer_hasIssuer(): Unit = runBlocking {
-        val response = service.getIssuer(requestParams, requestUri)
+        val response = service.getIssuer(requestParams, requestUri)!!
 
         assertEquals(iss, response.issuer)
         assertEquals(login_hint, response.loginHint)
@@ -72,7 +73,7 @@ class TestThirdPartyIssuerService {
     fun getIssuer_noIssuer(): Unit = runBlocking {
         requestParams = parameters { appendAll(requestParams.filter { k, _ -> k != "iss" }) }
 
-        val response = service.getIssuer(requestParams, requestUri)
+        val response = service.getIssuer(requestParams, requestUri)!!
 
         assertNull(response.issuer)
         assertNull(response.loginHint)
@@ -88,7 +89,7 @@ class TestThirdPartyIssuerService {
     fun getIssuer_isWhitelisted(): Unit = runBlocking {
         service.whitelist = hashSetOf(iss)
 
-        val response = service.getIssuer(requestParams, requestUri)
+        val response = service.getIssuer(requestParams, requestUri)!!
 
         assertEquals(iss, response.issuer)
         assertEquals(login_hint, response.loginHint)

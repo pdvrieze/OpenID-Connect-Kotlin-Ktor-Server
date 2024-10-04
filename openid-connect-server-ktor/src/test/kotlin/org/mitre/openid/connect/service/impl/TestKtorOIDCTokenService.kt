@@ -3,6 +3,7 @@ package org.mitre.openid.connect.service.impl
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.PlainJWT
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -60,7 +61,7 @@ class TestKtorOIDCTokenService {
 
     @Test
     @Throws(ParseException::class)
-    fun invokesCustomClaimsHook() {
+    fun invokesCustomClaimsHook(): Unit = runBlocking {
         val m = KtorOIDCTokenService::class.java.declaredMethods.first { it.name == "addCustomIdTokenClaims" }
         m.isAccessible = true
         val mh = MethodHandles.lookup()

@@ -2,6 +2,7 @@ package org.mitre.openid.connect.token
 
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jwt.JWTClaimsSet
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -69,7 +70,7 @@ class TestConnectTokenEnhancer {
 
     @Test
     @Throws(ParseException::class)
-    fun invokesCustomClaimsHook() {
+    fun invokesCustomClaimsHook(): Unit = runBlocking {
         enhancer = object : ConnectTokenEnhancerImpl(
             clientService, configBean, jwtService, userInfoService, { connectTokenService }
         ) {

@@ -10,7 +10,7 @@ base {
 }
 
 dependencies {
-    implementation(projects.openidConnectCommon)
+    api(projects.openidConnectCommon)
     api(projects.openidConnectCommonKtor)
 
     implementation(libs.servlet.api)

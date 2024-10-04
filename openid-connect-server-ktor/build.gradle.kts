@@ -8,8 +8,9 @@ base {
 }
 
 dependencies {
-    implementation(projects.openidConnectCommon)
+    api(projects.openidConnectCommon)
     api(projects.openidConnectServer)
+
     implementation(projects.openidConnectServerExposed)
     implementation(libs.guava) // for caching code
     implementation(libs.ktor.http)
