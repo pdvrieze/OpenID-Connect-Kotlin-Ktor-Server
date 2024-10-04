@@ -23,7 +23,6 @@ import org.mitre.oauth2.model.LocalGrantedAuthority
 import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
-import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
@@ -49,11 +48,10 @@ class TestJWTBearerAuthenticationProvider {
     @Mock
     private lateinit var config: ConfigurationPropertiesBean
 
-    @InjectMocks
     private lateinit var jwtBearerAuthenticationProvider: JWTBearerAuthenticationProvider
 
     @Mock
-    private lateinit var token: org.mitre.openid.connect.assertion.JWTBearerAssertionAuthenticationToken
+    private lateinit var token: JWTBearerAssertionAuthenticationToken
 
     @Mock
     private lateinit var client: ClientDetailsEntity
@@ -63,6 +61,12 @@ class TestJWTBearerAuthenticationProvider {
 
     @BeforeEach
     fun setup() {
+        jwtBearerAuthenticationProvider = JWTBearerAuthenticationProvider(
+            validators,
+            clientService,
+            config,
+        )
+
         runBlocking {
             whenever(clientService.loadClientByClientId(CLIENT_ID)).thenReturn(client)
 
@@ -86,7 +90,7 @@ class TestJWTBearerAuthenticationProvider {
 
     @Test
     fun should_support_JWTBearerAssertionAuthenticationToken() {
-        assertTrue(jwtBearerAuthenticationProvider.supports(org.mitre.openid.connect.assertion.JWTBearerAssertionAuthenticationToken::class.java))
+        assertTrue(jwtBearerAuthenticationProvider.supports(JWTBearerAssertionAuthenticationToken::class.java))
     }
 
     @Test
@@ -318,9 +322,9 @@ class TestJWTBearerAuthenticationProvider {
 
         val authentication = jwtBearerAuthenticationProvider.authenticate(token)
 
-        assertIs<org.mitre.openid.connect.assertion.JWTBearerAssertionAuthenticationToken>(authentication)
+        assertIs<JWTBearerAssertionAuthenticationToken>(authentication)
 
-        val token = authentication as org.mitre.openid.connect.assertion.JWTBearerAssertionAuthenticationToken
+        val token = authentication as JWTBearerAssertionAuthenticationToken
         assertEquals(SUBJECT, token.name)
         assertEquals(jwt, token.jwt)
         assertTrue(token.authorities.map { LocalGrantedAuthority(it.authority) }.containsAll(listOf(authority1, authority2, authority3)))
@@ -340,9 +344,9 @@ class TestJWTBearerAuthenticationProvider {
 
         val authentication = jwtBearerAuthenticationProvider.authenticate(token)
 
-        assertIs<org.mitre.openid.connect.assertion.JWTBearerAssertionAuthenticationToken>(authentication)
+        assertIs<JWTBearerAssertionAuthenticationToken>(authentication)
 
-        val token = authentication as org.mitre.openid.connect.assertion.JWTBearerAssertionAuthenticationToken
+        val token = authentication as JWTBearerAssertionAuthenticationToken
         assertEquals(SUBJECT, token.name)
         assertEquals(jwt, token.jwt)
         assertTrue(token.authorities.map { LocalGrantedAuthority(it.authority) }.containsAll(listOf(authority1, authority2, authority3)))
