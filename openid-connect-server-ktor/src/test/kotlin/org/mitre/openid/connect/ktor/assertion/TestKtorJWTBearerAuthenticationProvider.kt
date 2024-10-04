@@ -29,7 +29,6 @@ import org.mitre.openid.connect.assertion.JWTBearerAssertionAuthenticationToken
 import org.mitre.openid.connect.assertion.JWTBearerAuthenticationProvider
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.ktor.assertIs
-import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
@@ -51,7 +50,6 @@ class TestKtorJWTBearerAuthenticationProvider {
     @Mock
     private lateinit var config: ConfigurationPropertiesBean
 
-    @InjectMocks
     private lateinit var jwtBearerAuthenticationProvider: JWTBearerAuthenticationProvider
 
     @Mock
@@ -65,6 +63,10 @@ class TestKtorJWTBearerAuthenticationProvider {
 
     @BeforeEach
     fun setup() {
+        jwtBearerAuthenticationProvider = JWTBearerAuthenticationProvider(
+            validators, clientService, config
+        )
+
         runBlocking {
             whenever(clientService.loadClientByClientId(CLIENT_ID)).thenReturn(client)
 
@@ -99,7 +101,7 @@ class TestKtorJWTBearerAuthenticationProvider {
 
         val thrown = authenticateAndReturnThrownException()
 
-        Assertions.assertInstanceOf(AssertionError::class.java, thrown) // check concrete type
+        assertIs<AuthenticationException>(thrown) // check concrete type
         Assertions.assertEquals("Could not find client: $CLIENT_ID", thrown.message)
     }
 
