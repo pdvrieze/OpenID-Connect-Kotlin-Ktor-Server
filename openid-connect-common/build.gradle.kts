@@ -10,13 +10,12 @@ base {
 }
 
 dependencies {
+    api(libs.jwt) // needed for base class of PKCEAlgorithm
     implementation(libs.caffeine)
     implementation(libs.kotlinx.coroutines)
-//    implementation(libs.guava)
-    api(libs.jwt) // needed for base class of PKCEAlgorithm
     implementation(libs.slf4j.api)
 
-    api(libs.kotlinx.serialization.json)
+    implementation(libs.kotlinx.serialization.json)
 
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)

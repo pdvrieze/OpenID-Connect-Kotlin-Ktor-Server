@@ -28,15 +28,13 @@ import kotlinx.serialization.encoding.Encoder
 /**
  * @author jricher
  */
-@Serializable(PKCEAlgorithm.Companion::class)
+@Serializable(PKCEAlgorithmSerializer::class)
 class PKCEAlgorithm : Algorithm {
     constructor(name: String?, req: Requirement?) : super(name, req)
 
     constructor(name: String?) : super(name, null)
 
-    companion object : KSerializer<PKCEAlgorithm> {
-        override val descriptor: SerialDescriptor =
-            PrimitiveSerialDescriptor("org.mitre.oauth2.model.PKCEAlgorithm", PrimitiveKind.STRING)
+    companion object {
 
         private const val serialVersionUID = 7752852583210088925L
 
@@ -54,13 +52,18 @@ class PKCEAlgorithm : Algorithm {
                 else -> PKCEAlgorithm(s)
             }
         }
+    }
+}
+
+private object PKCEAlgorithmSerializer: KSerializer<PKCEAlgorithm> {
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor("org.mitre.oauth2.model.PKCEAlgorithm", PrimitiveKind.STRING)
 
         override fun serialize(encoder: Encoder, value: PKCEAlgorithm) {
             encoder.encodeString(value.name)
         }
 
         override fun deserialize(decoder: Decoder): PKCEAlgorithm {
-            return parse(descriptor.toString())
+            return PKCEAlgorithm.parse(descriptor.toString())
         }
-    }
 }

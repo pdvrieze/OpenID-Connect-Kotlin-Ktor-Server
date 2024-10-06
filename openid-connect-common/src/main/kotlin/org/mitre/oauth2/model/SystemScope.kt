@@ -26,15 +26,13 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonElement
-import org.mitre.oauth2.model.SystemScope.Companion.PARAM_VALUE
-import org.mitre.oauth2.model.SystemScope.Companion.QUERY_ALL
-import org.mitre.oauth2.model.SystemScope.Companion.QUERY_BY_VALUE
+import org.mitre.oauth2.model.SystemScope.SerialDelegate
 import org.mitre.util.getLogger
 
 /**
  * @author jricher
  */
-@Serializable(SystemScope.Companion::class)
+@Serializable(SystemScopeSerializer::class)
 class SystemScope(
     var id: Long? = null,
     var value: String? = null, // scope value
@@ -169,25 +167,29 @@ class SystemScope(
     }
 
 
-    @OptIn(ExperimentalSerializationApi::class)
-    companion object : KSerializer<SystemScope> {
+    companion object {
         @JvmStatic
         private val logger = getLogger<SystemScope>()
-        val delegate = SerialDelegate.serializer()
-        override val descriptor: SerialDescriptor =
-            SerialDescriptor("org.mitre.oauth2.model.SystemScope", delegate.descriptor)
 
         const val QUERY_BY_VALUE: String = "SystemScope.getByValue"
         const val QUERY_ALL: String = "SystemScope.findAll"
 
         const val PARAM_VALUE: String = "value"
+    }
+}
 
-        override fun serialize(encoder: Encoder, value: SystemScope) {
-            delegate.serialize(encoder, SerialDelegate(value))
-        }
+@OptIn(ExperimentalSerializationApi::class)
+object SystemScopeSerializer: KSerializer<SystemScope> {
+    private val delegate = SerialDelegate.serializer()
 
-        override fun deserialize(decoder: Decoder): SystemScope {
-            return delegate.deserialize(decoder).toSystemScope()
-        }
+    override val descriptor: SerialDescriptor =
+        SerialDescriptor("org.mitre.oauth2.model.SystemScope", delegate.descriptor)
+
+    override fun serialize(encoder: Encoder, value: SystemScope) {
+        delegate.serialize(encoder, SerialDelegate(value))
+    }
+
+    override fun deserialize(decoder: Decoder): SystemScope {
+        return delegate.deserialize(decoder).toSystemScope()
     }
 }

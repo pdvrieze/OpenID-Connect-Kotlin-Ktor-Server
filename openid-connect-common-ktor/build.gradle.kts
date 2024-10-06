@@ -11,6 +11,7 @@ base {
 
 dependencies {
     implementation(projects.openidConnectCommon)
+
     implementation(libs.ktor.server.core)
 
     testImplementation(libs.junit.jupiter.api)

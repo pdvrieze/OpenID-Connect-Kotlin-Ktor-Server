@@ -19,6 +19,7 @@ dependencies {
     implementation(libs.caffeine)
     implementation(libs.commons.httpclient)
     implementation(libs.servlet.api)
+    implementation(libs.kotlinx.serialization.json)
 
     implementation(libs.eclipse.persistence.core)
     implementation(libs.eclipse.persistence.jpa)

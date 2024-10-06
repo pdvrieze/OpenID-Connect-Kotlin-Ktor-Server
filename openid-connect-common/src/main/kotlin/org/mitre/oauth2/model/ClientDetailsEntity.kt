@@ -64,7 +64,6 @@ import org.mitre.oauth2.model.RegisteredClientFields.USERINFO_ENCRYPTED_RESPONSE
 import org.mitre.oauth2.model.RegisteredClientFields.USERINFO_SIGNED_RESPONSE_ALG
 import org.mitre.oauth2.model.convert.*
 import java.util.*
-import kotlin.collections.HashSet
 import kotlinx.serialization.Transient as KXS_Transient
 
 /**
@@ -216,7 +215,7 @@ open class ClientDetailsEntity(
 
     /** PKCE  */
     @SerialName(CODE_CHALLENGE_METHOD)
-    override var codeChallengeMethod: PKCEAlgorithm? = null,
+    override var codeChallengeMethod: @Serializable PKCEAlgorithm? = null,
 
     @KXS_Transient
     override var accessTokenValiditySeconds: Int? = 0,
