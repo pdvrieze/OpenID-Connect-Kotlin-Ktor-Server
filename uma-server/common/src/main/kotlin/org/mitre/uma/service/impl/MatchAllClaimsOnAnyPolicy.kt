@@ -19,7 +19,6 @@ import org.mitre.uma.model.Claim
 import org.mitre.uma.model.ClaimProcessingResult
 import org.mitre.uma.model.PermissionTicket
 import org.mitre.uma.model.ResourceSet
-import org.springframework.stereotype.Service
 
 /**
  * Tests if all the claims in the required set have a matching
@@ -27,7 +26,6 @@ import org.springframework.stereotype.Service
  *
  * @author jricher
  */
-@Service("matchAllClaimsOnAnyPolicy")
 class MatchAllClaimsOnAnyPolicy : org.mitre.uma.service.ClaimsProcessingService {
     /* (non-Javadoc)
 	 * @see org.mitre.uma.service.ClaimsProcessingService#claimsAreSatisfied(java.util.Collection, java.util.Collection)

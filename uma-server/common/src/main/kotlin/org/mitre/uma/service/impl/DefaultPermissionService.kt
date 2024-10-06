@@ -15,27 +15,24 @@
  */
 package org.mitre.uma.service.impl
 
+import org.mitre.oauth2.exception.InsufficientScopeException
+import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.uma.model.Permission
 import org.mitre.uma.model.PermissionTicket
 import org.mitre.uma.model.ResourceSet
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.security.oauth2.common.exceptions.InsufficientScopeException
-import org.springframework.stereotype.Service
+import org.mitre.uma.repository.PermissionRepository
+import org.mitre.uma.service.PermissionService
 import java.sql.Date
 import java.util.*
 
 /**
  * @author jricher
  */
-@Service
-class DefaultPermissionService : org.mitre.uma.service.PermissionService {
-    @Autowired
-    private lateinit var repository: org.mitre.uma.repository.PermissionRepository
-
-    @Autowired
-    private lateinit var scopeService: org.mitre.oauth2.service.SystemScopeService
-
-    private val permissionExpirationSeconds = 60L * 60L // 1 hr
+class DefaultPermissionService(
+    private val repository: PermissionRepository,
+    private val scopeService: SystemScopeService,
+    private val permissionExpirationSeconds: Long = 60L * 60L, // 1 hr
+) : PermissionService {
 
     /* (non-Javadoc)
 	 * @see org.mitre.uma.service.PermissionService#create(org.mitre.uma.model.ResourceSet, java.util.Set)

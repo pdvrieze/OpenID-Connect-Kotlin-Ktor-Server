@@ -18,7 +18,7 @@
 package org.mitre.oauth2.introspectingfilter.service
 
 import kotlinx.serialization.json.JsonObject
-import org.springframework.security.core.GrantedAuthority
+import org.mitre.oauth2.model.GrantedAuthority
 
 /**
  * @author jricher

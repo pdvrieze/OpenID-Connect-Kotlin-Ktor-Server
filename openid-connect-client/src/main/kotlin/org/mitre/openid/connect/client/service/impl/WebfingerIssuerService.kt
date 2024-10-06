@@ -32,12 +32,11 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonArray
 import org.mitre.discovery.util.WebfingerURLNormalizer.normalizeResource
+import org.mitre.openid.connect.client.AuthenticationServiceException
 import org.mitre.openid.connect.client.model.IssuerServiceResponse
 import org.mitre.openid.connect.client.service.IssuerService
 import org.mitre.util.asString
 import org.mitre.util.getLogger
-import org.springframework.security.authentication.AuthenticationServiceException
-import org.springframework.web.client.RestClientException
 import java.util.concurrent.ExecutionException
 
 /**
@@ -174,8 +173,6 @@ class WebfingerIssuerService(
                 }
             }
         } catch (e: SerializationException) {
-            logger.warn("Failure in fetching webfinger input", e.message)
-        } catch (e: RestClientException) {
             logger.warn("Failure in fetching webfinger input", e.message)
         }
 

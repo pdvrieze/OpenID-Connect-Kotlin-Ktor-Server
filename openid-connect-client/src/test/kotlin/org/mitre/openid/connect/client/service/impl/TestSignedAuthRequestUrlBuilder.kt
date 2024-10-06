@@ -37,7 +37,6 @@ import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.openid.connect.config.ServerConfiguration
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import org.springframework.web.util.UriComponentsBuilder
 import java.net.URISyntaxException
 import java.security.NoSuchAlgorithmException
 import java.security.spec.InvalidKeySpecException
@@ -111,14 +110,14 @@ class TestSignedAuthRequestUrlBuilder {
             urlBuilder.buildAuthRequestUrl(serverConfig, clientConfig, redirectUri, nonce, state, options, null)
 
         // parsing the result
-        val builder: UriComponentsBuilder = try {
-            UriComponentsBuilder.fromUri(requestUri.toURI())
-        } catch (e1: URISyntaxException) {
-            fail("URISyntaxException was thrown.")
-        }
+//        val builder: UriComponentsBuilder = try {
+//            UriComponentsBuilder.fromUri(requestUri.toURI())
+//        } catch (e1: URISyntaxException) {
+//            fail("URISyntaxException was thrown.")
+//        }
 
-        val components = builder.build()
-        val jwtString = components.queryParams["request"]!![0]
+        val components = requestUri.toURI()
+        val jwtString = requestUri.parameters["request"]!!
 
         val claims: JWTClaimsSet? = try {
             val jwt = SignedJWT.parse(jwtString)
@@ -150,15 +149,7 @@ class TestSignedAuthRequestUrlBuilder {
         val requestUri =
             urlBuilder.buildAuthRequestUrl(serverConfig, clientConfig, redirectUri, nonce, state, options, loginHint)
 
-        // parsing the result
-        val builder: UriComponentsBuilder= try {
-            UriComponentsBuilder.fromUri(requestUri.toURI())
-        } catch (e1: URISyntaxException) {
-            fail("URISyntaxException was thrown.")
-        }
-
-        val components = builder.build()
-        val jwtString = components.queryParams["request"]!![0]
+        val jwtString = requestUri.parameters["request"]!!
 
         val claims: JWTClaimsSet = try {
             SignedJWT.parse(jwtString).jwtClaimsSet

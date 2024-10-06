@@ -20,6 +20,8 @@ dependencies {
     implementation(libs.exposed.javatime)
 
     testImplementation(projects.openidConnectCommon)
+    testImplementation(projects.openidConnectServerKtor)
+
 
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.mockito.jupiter)

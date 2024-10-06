@@ -17,39 +17,21 @@ package org.mitre.uma.service.impl
 
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuthClientDetails
+import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.uma.model.ResourceSet
+import org.mitre.uma.repository.PermissionRepository
+import org.mitre.uma.repository.ResourceSetRepository
+import org.mitre.uma.service.ResourceSetService
 import org.mitre.util.getLogger
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.annotation.Primary
-import org.springframework.stereotype.Service
 
 /**
  * @author jricher
  */
-@Service
-@Primary
-class DefaultResourceSetService : org.mitre.uma.service.ResourceSetService {
-    @Autowired
-    private lateinit var repository: org.mitre.uma.repository.ResourceSetRepository
-
-    @Autowired
-    private lateinit var tokenRepository: org.mitre.oauth2.repository.OAuth2TokenRepository
-
-    @Autowired
-    private lateinit var ticketRepository: org.mitre.uma.repository.PermissionRepository
-
-    @Deprecated("JPA only")
-    constructor()
-
-    constructor(
-        repository: org.mitre.uma.repository.ResourceSetRepository,
-        tokenRepository: org.mitre.oauth2.repository.OAuth2TokenRepository,
-        ticketRepository: org.mitre.uma.repository.PermissionRepository,
-    ) {
-        this.repository = repository
-        this.tokenRepository = tokenRepository
-        this.ticketRepository = ticketRepository
-    }
+class DefaultResourceSetService(
+    private val repository: ResourceSetRepository,
+    private val tokenRepository: OAuth2TokenRepository,
+    private val ticketRepository: PermissionRepository,
+) : ResourceSetService {
 
     override fun saveNew(rs: ResourceSet): ResourceSet {
         require(rs.id == null) { "Can't save a new resource set with an ID already set to it." }

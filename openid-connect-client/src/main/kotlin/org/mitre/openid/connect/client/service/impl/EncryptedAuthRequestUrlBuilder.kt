@@ -25,9 +25,9 @@ import com.nimbusds.jwt.JWTClaimsSet
 import io.ktor.http.*
 import org.mitre.jwt.signer.service.JWKSetCacheService
 import org.mitre.oauth2.model.RegisteredClient
+import org.mitre.openid.connect.client.AuthenticationServiceException
 import org.mitre.openid.connect.client.service.AuthRequestUrlBuilder
 import org.mitre.openid.connect.config.ServerConfiguration
-import org.springframework.security.authentication.AuthenticationServiceException
 import java.net.URISyntaxException
 
 /**

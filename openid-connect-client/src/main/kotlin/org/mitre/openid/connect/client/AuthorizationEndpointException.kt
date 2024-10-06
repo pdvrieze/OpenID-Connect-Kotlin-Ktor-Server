@@ -15,8 +15,6 @@
  */
 package org.mitre.openid.connect.client
 
-import org.springframework.security.authentication.AuthenticationServiceException
-
 class AuthorizationEndpointException(val error: String, val errorDescription: String?, val errorURI: String?) :
     AuthenticationServiceException("Error from Authorization Endpoint: $error $errorDescription $errorURI") {
 

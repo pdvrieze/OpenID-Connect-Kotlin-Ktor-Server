@@ -65,7 +65,6 @@ import org.mitre.openid.connect.model.OIDCAuthenticationToken
 import org.mitre.openid.connect.model.PendingOIDCAuthenticationToken
 import org.mitre.util.asString
 import org.mitre.util.getLogger
-import org.springframework.security.core.userdetails.UsernameNotFoundException
 import java.io.IOException
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
@@ -621,7 +620,7 @@ class OIDCAuthenticationProvider internal constructor(config: Config) : Authenti
             // if we found userinfo, double check it
             if (!userInfo.subject.isNullOrEmpty() && userInfo.subject != authentication.sub) {
                 // the userinfo came back and the user_id fields don't match what was in the id_token
-                throw UsernameNotFoundException("user_id mismatch between id_token and user_info call: " + authentication.sub + " / " + userInfo.subject)
+                throw AuthenticationException("user_id mismatch between id_token and user_info call: " + authentication.sub + " / " + userInfo.subject)
             }
         }
 

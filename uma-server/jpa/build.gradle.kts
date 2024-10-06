@@ -19,6 +19,7 @@ dependencies {
     implementation(libs.servlet.api)
     implementation(libs.slf4j.api)
     implementation(libs.spring.webmvc)
+    implementation(libs.spring.oauth)
     implementation(libs.spring.tx)
     implementation(libs.kotlinx.serialization.json)
 /*

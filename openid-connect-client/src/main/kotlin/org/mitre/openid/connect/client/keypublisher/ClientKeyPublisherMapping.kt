@@ -17,16 +17,10 @@
  */
 package org.mitre.openid.connect.client.keypublisher
 
-import org.springframework.stereotype.Component
-import org.springframework.web.servlet.mvc.condition.PatternsRequestCondition
-import org.springframework.web.servlet.mvc.method.RequestMappingInfo
-import org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping
-import java.lang.reflect.Method
-
 /**
  * @author jricher
  */
-@Component
+/*
 class ClientKeyPublisherMapping : RequestMappingInfoHandlerMapping() {
     var jwkPublishUrl: String? = null
 
@@ -50,3 +44,4 @@ class ClientKeyPublisherMapping : RequestMappingInfoHandlerMapping() {
         }
     }
 }
+*/

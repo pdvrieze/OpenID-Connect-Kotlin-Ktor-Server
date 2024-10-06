@@ -17,17 +17,13 @@
  */
 package org.mitre.openid.connect.client.keypublisher
 
-import org.springframework.core.Ordered
-import org.springframework.web.servlet.View
-import org.springframework.web.servlet.ViewResolver
-import java.util.*
-
 /**
  *
  * Simple view resolver to map JWK view names to appropriate beans
  *
  * @author jricher
  */
+/*
 class JwkViewResolver : ViewResolver, Ordered {
     var jwkViewName: String = "jwkKeyList"
     var jwk: View? = null
@@ -35,10 +31,12 @@ class JwkViewResolver : ViewResolver, Ordered {
     private var order =
         Ordered.HIGHEST_PRECEDENCE // highest precedence, most specific -- avoids hitting the catch-all view resolvers
 
-    /**
+    */
+/**
      * Map "jwkKeyList" to the jwk property on this bean.
      * Everything else returns null
-     */
+     *//*
+
     @Throws(Exception::class)
     override fun resolveViewName(viewName: String?, locale: Locale): View? {
         return when (viewName) {
@@ -56,3 +54,4 @@ class JwkViewResolver : ViewResolver, Ordered {
         this.order = order
     }
 }
+*/

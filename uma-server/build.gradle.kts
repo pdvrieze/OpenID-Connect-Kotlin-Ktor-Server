@@ -7,15 +7,15 @@ base {
 }
 
 dependencies {
-    implementation(projects.openidConnectServer)
-    implementation(projects.openidConnectClient)
+//    implementation(projects.openidConnectServer)
+//    implementation(projects.openidConnectClient)
 //    implementation(projects.openidConnectServerWebapp)
-    implementation(libs.guava)
-    implementation(libs.servlet.api)
-    implementation(libs.slf4j.api)
-    implementation(libs.spring.webmvc)
-    testImplementation(libs.spring.tx)
-    implementation(libs.kotlinx.serialization.json)
+//    implementation(libs.guava)
+//    implementation(libs.servlet.api)
+//    implementation(libs.slf4j.api)
+//    implementation(libs.spring.webmvc)
+//    testImplementation(libs.spring.tx)
+//    implementation(libs.kotlinx.serialization.json)
 /*
     implementation(libs.spring.core) {
         exclude("commons-logging:commons-logging")

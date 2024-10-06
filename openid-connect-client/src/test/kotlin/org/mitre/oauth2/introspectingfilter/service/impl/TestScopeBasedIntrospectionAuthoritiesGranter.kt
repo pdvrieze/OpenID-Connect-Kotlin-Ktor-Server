@@ -2,11 +2,11 @@ package org.mitre.oauth2.introspectingfilter.service.impl
 
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.security.core.GrantedAuthority
-import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.mitre.oauth2.model.GrantedAuthority
+import org.mitre.oauth2.model.ScopeAuthority
 
 /**
  * @author jricher
@@ -32,17 +32,18 @@ class TestScopeBasedIntrospectionAuthoritiesGranter {
     fun testGetAuthoritiesJsonObject_withScopes() {
         introspectionResponse = JsonObject(mapOf("scope" to JsonPrimitive("foo bar baz batman")))
 
-        val expected: MutableList<GrantedAuthority> = ArrayList()
-        expected.add(SimpleGrantedAuthority("ROLE_API"))
-        expected.add(SimpleGrantedAuthority("OAUTH_SCOPE_foo"))
-        expected.add(SimpleGrantedAuthority("OAUTH_SCOPE_bar"))
-        expected.add(SimpleGrantedAuthority("OAUTH_SCOPE_baz"))
-        expected.add(SimpleGrantedAuthority("OAUTH_SCOPE_batman"))
+        val expected = listOf(
+            GrantedAuthority.ROLE_API,
+            ScopeAuthority("foo"),
+            ScopeAuthority("bar"),
+            ScopeAuthority("baz"),
+            ScopeAuthority("batman"),
+        )
 
         val authorities = granter.getAuthorities(introspectionResponse)
 
-        Assertions.assertTrue(authorities.containsAll(expected))
-        Assertions.assertTrue(expected.containsAll(authorities))
+        assertTrue(authorities.containsAll(expected))
+        assertTrue(expected.containsAll(authorities))
     }
 
     /**
@@ -51,11 +52,11 @@ class TestScopeBasedIntrospectionAuthoritiesGranter {
     @Test
     fun testGetAuthoritiesJsonObject_withoutScopes() {
         val expected: MutableList<GrantedAuthority> = ArrayList()
-        expected.add(SimpleGrantedAuthority("ROLE_API"))
+        expected.add(GrantedAuthority.ROLE_API)
 
         val authorities = granter.getAuthorities(introspectionResponse)
 
-        Assertions.assertTrue(authorities.containsAll(expected))
-        Assertions.assertTrue(expected.containsAll(authorities))
+        assertTrue(authorities.containsAll(expected))
+        assertTrue(expected.containsAll(authorities))
     }
 }

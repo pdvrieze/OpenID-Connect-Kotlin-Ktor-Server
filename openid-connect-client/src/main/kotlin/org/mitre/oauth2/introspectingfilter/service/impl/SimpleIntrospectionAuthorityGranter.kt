@@ -19,8 +19,7 @@ package org.mitre.oauth2.introspectingfilter.service.impl
 
 import kotlinx.serialization.json.JsonObject
 import org.mitre.oauth2.introspectingfilter.service.IntrospectionAuthorityGranter
-import org.springframework.security.core.GrantedAuthority
-import org.springframework.security.core.authority.AuthorityUtils
+import org.mitre.oauth2.model.GrantedAuthority
 
 /**
  *
@@ -29,7 +28,7 @@ import org.springframework.security.core.authority.AuthorityUtils
  * @author jricher
  */
 class SimpleIntrospectionAuthorityGranter : IntrospectionAuthorityGranter {
-    var authorities: List<GrantedAuthority> = AuthorityUtils.createAuthorityList("ROLE_API")
+    var authorities: List<GrantedAuthority> = listOf(GrantedAuthority.ROLE_API)
 
     override fun getAuthorities(introspectionResponse: JsonObject): List<GrantedAuthority> {
         return authorities

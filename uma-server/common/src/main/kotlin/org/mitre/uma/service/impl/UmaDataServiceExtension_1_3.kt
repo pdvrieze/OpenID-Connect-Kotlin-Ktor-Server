@@ -36,27 +36,18 @@ import org.mitre.uma.repository.ResourceSetRepository
 import org.mitre.uma.service.SavedRegisteredClientService
 import org.mitre.util.asString
 import org.mitre.util.getLogger
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Service
 import java.io.IOException
 
 /**
  * @author jricher
  */
 @OptIn(ExperimentalSerializationApi::class)
-@Service("umaDataExtension_1_3")
-class UmaDataServiceExtension_1_3 : MITREidDataServiceExtension {
-    @Autowired
-    private lateinit var registeredClientService: SavedRegisteredClientService
-
-    @Autowired
-    private lateinit var resourceSetRepository: ResourceSetRepository
-
-    @Autowired
-    private lateinit var permissionRepository: PermissionRepository
-
-    @Autowired
-    private lateinit var tokenRepository: OAuth2TokenRepository
+class UmaDataServiceExtension_1_3(
+    private val registeredClientService: SavedRegisteredClientService,
+    private val resourceSetRepository: ResourceSetRepository,
+    private val permissionRepository: PermissionRepository,
+    private val tokenRepository: OAuth2TokenRepository,
+) : MITREidDataServiceExtension {
 
     private val tokenToPermissionRefs: MutableMap<Long, Set<Long>> = HashMap()
 

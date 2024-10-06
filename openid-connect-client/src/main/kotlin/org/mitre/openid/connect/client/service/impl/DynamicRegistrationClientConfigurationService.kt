@@ -27,14 +27,14 @@ import io.ktor.http.*
 import io.ktor.utils.io.errors.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.mitre.oauth2.exception.AuthenticationException
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.openid.connect.ClientDetailsEntityJsonProcessor.parseRegistered
+import org.mitre.openid.connect.client.AuthenticationServiceException
 import org.mitre.openid.connect.client.service.ClientConfigurationService
 import org.mitre.openid.connect.client.service.RegisteredClientService
 import org.mitre.openid.connect.config.ServerConfiguration
 import org.mitre.util.getLogger
-import org.springframework.security.authentication.AuthenticationServiceException
-import org.springframework.security.oauth2.common.exceptions.InvalidClientException
 import java.util.concurrent.ExecutionException
 
 /**
@@ -129,7 +129,7 @@ class DynamicRegistrationClientConfigurationService(
                     accept(ContentType.Application.Json)
                 }
                 if (!resp.status.isSuccess()) {
-                    throw InvalidClientException("Error loading previously registered client information from server")
+                    throw AuthenticationException("Error loading previously registered client information from server")
                 }
 
                 // TODO: handle HTTP errors

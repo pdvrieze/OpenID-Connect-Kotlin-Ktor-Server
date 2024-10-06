@@ -221,7 +221,12 @@ data class OpenIdConfigurator(
         // TODO (make this configurable, and not use the insane policy)
         override val claimsProcessingService: ClaimsProcessingService = MatchAllClaimsOnAnyPolicy()
 
-        override val permissionService: PermissionService = DefaultPermissionService()
+        val permissionRepository = ExposedPermissionRepository(configurator.database, resourceSetRepository)
+
+        override val permissionService: PermissionService = DefaultPermissionService(
+            permissionRepository,
+            scopeService,
+        )
 
         override val savedRegisteredClientService: SavedRegisteredClientService =
             KtorRegisteredClientService(configurator.database)

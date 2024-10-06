@@ -26,6 +26,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
+import org.mitre.openid.connect.client.AuthenticationServiceException
 import org.mitre.openid.connect.client.service.ServerConfigurationService
 import org.mitre.openid.connect.config.ServerConfiguration
 import org.mitre.util.asBoolean
@@ -36,7 +37,6 @@ import org.mitre.util.asString
 import org.mitre.util.asStringList
 import org.mitre.util.asStringOrNull
 import org.mitre.util.getLogger
-import org.springframework.security.authentication.AuthenticationServiceException
 import java.util.concurrent.ExecutionException
 
 /**

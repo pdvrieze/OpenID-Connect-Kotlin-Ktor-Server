@@ -1,50 +1,33 @@
-/*******************************************************************************
- * Copyright 2018 The MIT Internet Trust Consortium
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-package org.mitre.uma.service.impl
+package org.mitre.uma.service.impl.ktor
 
-import org.junit.jupiter.api.Assertions.assertNotEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mitre.oauth2.exception.InsufficientScopeException
 import org.mitre.uma.model.PermissionTicket
 import org.mitre.uma.model.ResourceSet
-import org.mockito.AdditionalAnswers.returnsFirstArg
-import org.mockito.ArgumentMatchers.anySet
-import org.mockito.InjectMocks
+import org.mitre.uma.service.impl.DefaultPermissionService
+import org.mockito.AdditionalAnswers
+import org.mockito.ArgumentMatchers
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.isA
 import org.mockito.kotlin.whenever
-import org.springframework.security.oauth2.common.exceptions.InsufficientScopeException
 import java.util.*
 
 /**
  * @author jricher
  */
 @ExtendWith(MockitoExtension::class)
-class TestDefaultPermissionService {
+class TestKtorDefaultPermissionService {
     @Mock
     private lateinit var permissionRepository: org.mitre.uma.repository.PermissionRepository
 
     @Mock
     private lateinit var scopeService: org.mitre.oauth2.service.SystemScopeService
 
-    @InjectMocks
     private lateinit var permissionService: DefaultPermissionService
 
     private val scopes1: Set<String> = setOf("foo", "bar", "baz")
@@ -64,6 +47,7 @@ class TestDefaultPermissionService {
 
     @BeforeEach
     fun prepare() {
+        permissionService = DefaultPermissionService(permissionRepository, scopeService)
         rs1 = ResourceSet(
             name = rs1Name,
             owner = rs1Owner,
@@ -82,9 +66,9 @@ class TestDefaultPermissionService {
     private fun mocks() {
         // have the repository just pass the argument through
         whenever(permissionRepository.save(isA<PermissionTicket>()))
-            .then(returnsFirstArg<Any>())
+            .then(AdditionalAnswers.returnsFirstArg<Any>())
 
-        whenever(scopeService.scopesMatch(anySet(), anySet()))
+        whenever(scopeService.scopesMatch(ArgumentMatchers.anySet(), ArgumentMatchers.anySet()))
             .then { invocation ->
                 val arguments = invocation.arguments
                 val expected = arguments[0] as Set<String>
@@ -104,7 +88,7 @@ class TestDefaultPermissionService {
         val perm = permissionService.createTicket(rs1, scopes1)!!
 
         // we want there to be a non-null ticket
-        assertNotNull(perm.ticket)
+        Assertions.assertNotNull(perm.ticket)
     }
 
     @Test
@@ -116,7 +100,7 @@ class TestDefaultPermissionService {
         // we expect this to be a UUID
         val uuid = UUID.fromString(perm.ticket)
 
-        assertNotNull(uuid)
+        Assertions.assertNotNull(uuid)
     }
 
     @Test
@@ -126,11 +110,11 @@ class TestDefaultPermissionService {
         val perm1 = permissionService.createTicket(rs1, scopes1)!!
         val perm2 = permissionService.createTicket(rs1, scopes1)!!
 
-        assertNotNull(perm1.ticket)
-        assertNotNull(perm2.ticket)
+        Assertions.assertNotNull(perm1.ticket)
+        Assertions.assertNotNull(perm2.ticket)
 
         // make sure these are different from each other
-        assertNotEquals(perm2.ticket, perm1.ticket)
+        Assertions.assertNotEquals(perm2.ticket, perm1.ticket)
     }
 
     @Test
@@ -140,17 +124,17 @@ class TestDefaultPermissionService {
         val perm1 = permissionService.createTicket(rs1, scopes1)!!
         val perm2 = permissionService.createTicket(rs2, scopes2)!!
 
-        assertNotNull(perm1.ticket)
-        assertNotNull(perm2.ticket)
+        Assertions.assertNotNull(perm1.ticket)
+        Assertions.assertNotNull(perm2.ticket)
 
         // make sure these are different from each other
-        assertNotEquals(perm2.ticket, perm1.ticket)
+        Assertions.assertNotEquals(perm2.ticket, perm1.ticket)
     }
 
     @Test
     fun testCreate_scopeMismatch() {
         // have the repository just pass the argument through
-        whenever(scopeService.scopesMatch(anySet(), anySet()))
+        whenever(scopeService.scopesMatch(ArgumentMatchers.anySet(), ArgumentMatchers.anySet()))
             .then { invocation ->
                 val arguments = invocation.arguments
                 val expected = arguments[0] as Set<String>

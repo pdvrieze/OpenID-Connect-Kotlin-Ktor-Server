@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mitre.uma.service.impl
+package org.mitre.uma.service.impl.ktor
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -22,8 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.uma.model.ResourceSet
 import org.mitre.uma.repository.PermissionRepository
-import org.mitre.uma.repository.ResourceSetRepository
-import org.mockito.InjectMocks
+import org.mitre.uma.service.impl.DefaultResourceSetService
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 
@@ -31,9 +30,9 @@ import org.mockito.junit.jupiter.MockitoExtension
  * @author jricher
  */
 @ExtendWith(MockitoExtension::class)
-class TestDefaultResourceSetService {
+class TestKtorDefaultResourceSetService {
     @Mock
-    private lateinit var repository: ResourceSetRepository
+    private lateinit var repository: org.mitre.uma.repository.ResourceSetRepository
 
     @Mock
     private lateinit var tokenRepository: OAuth2TokenRepository
@@ -41,7 +40,6 @@ class TestDefaultResourceSetService {
     @Mock
     private lateinit var ticketRepository: PermissionRepository
 
-    @InjectMocks
     private lateinit var resourceSetService: DefaultResourceSetService
 
     /**
@@ -50,6 +48,7 @@ class TestDefaultResourceSetService {
     @BeforeEach
     @Throws(Exception::class)
     fun setUp() {
+        resourceSetService = DefaultResourceSetService(repository, tokenRepository, ticketRepository)
         // unused by mockito (causs unnecessary stubbing exception
 //		when(repository.save(any(ResourceSet.class))).then(AdditionalAnswers.returnsFirstArg());
     }
