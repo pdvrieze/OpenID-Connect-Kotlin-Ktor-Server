@@ -1,9 +1,8 @@
 package org.mitre.jwt.signer.service.impl
 
-import com.google.common.cache.CacheBuilder
-import com.google.common.cache.CacheLoader
-import com.google.common.cache.LoadingCache
-import com.google.common.util.concurrent.UncheckedExecutionException
+import com.github.benmanes.caffeine.cache.CacheLoader
+import com.github.benmanes.caffeine.cache.Caffeine
+import com.github.benmanes.caffeine.cache.LoadingCache
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.jwk.JWKSet
 import org.mitre.jose.keystore.JWKSetKeyStore
@@ -31,13 +30,13 @@ class DefaultClientKeyCacheService : ClientKeyCacheService {
     private val symmetricCache = SymmetricKeyJWTValidatorCacheService()
 
     // cache of validators for by-value JWKs
-    private val jwksValidators: LoadingCache<JWKSet, JWTSigningAndValidationService> = CacheBuilder.newBuilder()
+    private val jwksValidators: LoadingCache<JWKSet, JWTSigningAndValidationService> = Caffeine.newBuilder()
         .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
         .maximumSize(100)
         .build(JWKSetVerifierBuilder())
 
     // cache of encryptors for by-value JWKs
-    private val jwksEncrypters: LoadingCache<JWKSet, JWTEncryptionAndDecryptionService> = CacheBuilder.newBuilder()
+    private val jwksEncrypters: LoadingCache<JWKSet, JWTEncryptionAndDecryptionService> = Caffeine.newBuilder()
         .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
         .maximumSize(100)
         .build(JWKSetEncryptorBuilder())
@@ -61,9 +60,6 @@ class DefaultClientKeyCacheService : ClientKeyCacheService {
                 }
                 else -> null
             }
-        } catch (e: UncheckedExecutionException) {
-            logger.error("Problem loading client validator", e)
-            return null
         } catch (e: ExecutionException) {
             logger.error("Problem loading client validator", e)
             return null
@@ -74,9 +70,6 @@ class DefaultClientKeyCacheService : ClientKeyCacheService {
         try {
             return client.jwks?.let { jwksEncrypters[it] }
                 ?: client.jwksUri?.takeIf { it.isNotEmpty() }?.let { jwksUriCache.getEncrypter(it) }
-        } catch (e: UncheckedExecutionException) {
-            logger.error("Problem loading client encrypter", e)
-            return null
         } catch (e: ExecutionException) {
             logger.error("Problem loading client encrypter", e)
             return null
@@ -84,14 +77,14 @@ class DefaultClientKeyCacheService : ClientKeyCacheService {
     }
 
 
-    private inner class JWKSetEncryptorBuilder : CacheLoader<JWKSet, JWTEncryptionAndDecryptionService>() {
+    private inner class JWKSetEncryptorBuilder : CacheLoader<JWKSet, JWTEncryptionAndDecryptionService> {
         @Throws(Exception::class)
         override fun load(key: JWKSet): JWTEncryptionAndDecryptionService {
             return org.mitre.jwt.encryption.service.impl.DefaultJWTEncryptionAndDecryptionService(JWKSetKeyStore(key))
         }
     }
 
-    private inner class JWKSetVerifierBuilder : CacheLoader<JWKSet, JWTSigningAndValidationService>() {
+    private inner class JWKSetVerifierBuilder : CacheLoader<JWKSet, JWTSigningAndValidationService> {
         @Throws(Exception::class)
         override fun load(key: JWKSet): JWTSigningAndValidationService {
             return DefaultJWTSigningAndValidationService(JWKSetKeyStore(key))

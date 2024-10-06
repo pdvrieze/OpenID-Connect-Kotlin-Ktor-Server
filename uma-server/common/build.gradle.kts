@@ -12,7 +12,7 @@ dependencies {
     implementation(projects.openidConnectServerKtor)
     implementation(projects.openidConnectClient)
 //    implementation(projects.openidConnectServerWebapp)
-    implementation(libs.guava)
+    implementation(libs.caffeine)
     implementation(libs.servlet.api)
     implementation(libs.slf4j.api)
     implementation(libs.ktor.http)

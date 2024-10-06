@@ -15,7 +15,7 @@ dependencies {
     api(projects.umaServer.common)
 
     implementation(libs.ktor.client.cio)
-    implementation(libs.guava)
+    implementation(libs.caffeine)
     implementation(libs.servlet.api)
     implementation(libs.slf4j.api)
     implementation(libs.spring.webmvc)

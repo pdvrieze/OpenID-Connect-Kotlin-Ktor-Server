@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mitre.openid.connect.service.impl
+package org.mitre.openid.connect.service.impl.spring
 
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuthClientDetails
@@ -36,7 +36,7 @@ import java.util.*
  * @author Michael Joseph Walsh, aanganes
  */
 @Service("defaultApprovedSiteService")
-class DefaultApprovedSiteService : ApprovedSiteService {
+class SpringApprovedSiteService : ApprovedSiteService {
     @Autowired
     private lateinit var approvedSiteRepository: ApprovedSiteRepository
 
@@ -58,7 +58,7 @@ class DefaultApprovedSiteService : ApprovedSiteService {
     ) {
         this.approvedSiteRepository = approvedSiteRepository
         this.tokenRepository = tokenRepository
-        this.statsService = statsService ?: DefaultStatsService(this)
+        this.statsService = statsService ?: SpringStatsService(this)
     }
 
     override val all: Collection<ApprovedSite>?
@@ -169,6 +169,6 @@ class DefaultApprovedSiteService : ApprovedSiteService {
         /**
          * Logger for this class
          */
-        private val logger = getLogger<DefaultApprovedSiteService>()
+        private val logger = getLogger<SpringApprovedSiteService>()
     }
 }

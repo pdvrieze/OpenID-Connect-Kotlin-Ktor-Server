@@ -15,7 +15,6 @@
  */
 package org.mitre.oauth2.web
 
-import com.google.common.collect.Sets
 import io.github.pdvrieze.openid.spring.fromSpring
 import org.apache.http.client.utils.URIBuilder
 import org.mitre.oauth2.exception.DeviceCodeCreationException
@@ -283,7 +282,7 @@ class DeviceEndpoint {
         }
 
         // add in any scopes that aren't system scopes to the end of the list
-        sortedScopes.addAll(Sets.difference(scopes, systemScopes))
+        sortedScopes.addAll(scopes.minus(systemScopes))
 
         model["scopes"] = sortedScopes
         model["approved"] = true

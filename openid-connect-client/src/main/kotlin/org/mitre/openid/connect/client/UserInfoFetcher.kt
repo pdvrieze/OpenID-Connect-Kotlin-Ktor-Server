@@ -17,8 +17,8 @@
  */
 package org.mitre.openid.connect.client
 
-import io.github.pdvrieze.client.CoroutineCache
 import io.github.pdvrieze.client.onError
+import io.github.pdvrieze.oidc.util.CoroutineCache
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*

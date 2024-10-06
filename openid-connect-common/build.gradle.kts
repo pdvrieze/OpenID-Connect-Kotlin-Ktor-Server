@@ -10,7 +10,9 @@ base {
 }
 
 dependencies {
-    implementation(libs.guava)
+    implementation(libs.caffeine)
+    implementation(libs.kotlinx.coroutines)
+//    implementation(libs.guava)
     api(libs.jwt) // needed for base class of PKCEAlgorithm
     implementation(libs.slf4j.api)
 

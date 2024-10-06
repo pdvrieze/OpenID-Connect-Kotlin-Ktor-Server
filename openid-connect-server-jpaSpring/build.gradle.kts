@@ -16,7 +16,7 @@ dependencies {
     implementation(projects.openidConnectSpring)
 
     implementation(libs.slf4j.api)
-    implementation(libs.guava)
+    implementation(libs.caffeine)
     implementation(libs.commons.httpclient)
     implementation(libs.servlet.api)
 

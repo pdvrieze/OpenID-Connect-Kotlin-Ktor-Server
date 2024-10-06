@@ -17,8 +17,7 @@
  */
 package org.mitre.openid.connect.client.service.impl
 
-import com.google.common.util.concurrent.UncheckedExecutionException
-import io.github.pdvrieze.client.CoroutineCache
+import io.github.pdvrieze.oidc.util.CoroutineCache
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
@@ -66,9 +65,6 @@ class DynamicRegistrationClientConfigurationService(
             }
 
             return clients.load(issuer)
-        } catch (e: UncheckedExecutionException) {
-            logger.warn("Unable to get client configuration", e)
-            return null
         } catch (e: ExecutionException) {
             logger.warn("Unable to get client configuration", e)
             return null

@@ -15,10 +15,9 @@
  */
 package org.mitre.jwt.signer.service.impl
 
-import com.google.common.cache.CacheBuilder
-import com.google.common.cache.CacheLoader
-import com.google.common.cache.LoadingCache
-import com.google.common.util.concurrent.UncheckedExecutionException
+import com.github.benmanes.caffeine.cache.CacheLoader
+import com.github.benmanes.caffeine.cache.Caffeine
+import com.github.benmanes.caffeine.cache.LoadingCache
 import com.nimbusds.jose.jwk.JWK
 import com.nimbusds.jose.jwk.KeyUse
 import com.nimbusds.jose.jwk.OctetSequenceKey
@@ -37,7 +36,7 @@ import java.util.concurrent.TimeUnit
  * @author jricher
  */
 class SymmetricKeyJWTValidatorCacheService {
-    private val validators: LoadingCache<String, JWTSigningAndValidationService> = CacheBuilder.newBuilder()
+    private val validators: LoadingCache<String, JWTSigningAndValidationService> = Caffeine.newBuilder()
         .expireAfterAccess(24, TimeUnit.HOURS)
         .maximumSize(100)
         .build(SymmetricValidatorBuilder())
@@ -54,16 +53,13 @@ class SymmetricKeyJWTValidatorCacheService {
 
         try {
             return validators[client.clientSecret]
-        } catch (ue: UncheckedExecutionException) {
-            logger.error("Problem loading client validator", ue)
-            return null
         } catch (e: ExecutionException) {
             logger.error("Problem loading client validator", e)
             return null
         }
     }
 
-    inner class SymmetricValidatorBuilder : CacheLoader<String, JWTSigningAndValidationService>() {
+    inner class SymmetricValidatorBuilder : CacheLoader<String, JWTSigningAndValidationService> {
         @Throws(Exception::class)
         override fun load(key: String): JWTSigningAndValidationService {
             try {

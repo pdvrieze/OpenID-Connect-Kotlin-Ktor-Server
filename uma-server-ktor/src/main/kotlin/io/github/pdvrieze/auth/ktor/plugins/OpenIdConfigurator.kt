@@ -52,7 +52,6 @@ import org.mitre.openid.connect.repository.UserInfoRepository
 import org.mitre.openid.connect.repository.WhitelistedSiteRepository
 import org.mitre.openid.connect.request.KtorConnectOAuth2RequestFactory
 import org.mitre.openid.connect.request.KtorOAuth2RequestFactory
-import org.mitre.openid.connect.service.ApprovedSiteService
 import org.mitre.openid.connect.service.BlacklistedSiteService
 import org.mitre.openid.connect.service.OIDCTokenService
 import org.mitre.openid.connect.service.PairwiseIdentifierService
@@ -60,13 +59,13 @@ import org.mitre.openid.connect.service.ScopeClaimTranslationService
 import org.mitre.openid.connect.service.StatsService
 import org.mitre.openid.connect.service.UserInfoService
 import org.mitre.openid.connect.service.WhitelistedSiteService
-import org.mitre.openid.connect.service.impl.DefaultApprovedSiteService
 import org.mitre.openid.connect.service.impl.DefaultBlacklistedSiteService
 import org.mitre.openid.connect.service.impl.DefaultScopeClaimTranslationService
 import org.mitre.openid.connect.service.impl.DefaultUserInfoService
 import org.mitre.openid.connect.service.impl.DefaultWhitelistedSiteService
 import org.mitre.openid.connect.service.impl.KtorOIDCTokenService
 import org.mitre.openid.connect.service.impl.UUIDPairwiseIdentiferService
+import org.mitre.openid.connect.service.impl.ktor.DefaultApprovedSiteService
 import org.mitre.openid.connect.token.ConnectTokenEnhancerImpl
 import org.mitre.uma.repository.PermissionRepository
 import org.mitre.uma.repository.ResourceSetRepository
@@ -131,12 +130,12 @@ data class OpenIdConfigurator(
 
         override val approvedSiteRepository: ApprovedSiteRepository = ExposedApprovedSiteRepository(configurator.database)
 
-        override val approvedSiteService : ApprovedSiteService = DefaultApprovedSiteService(
+        override val approvedSiteService : DefaultApprovedSiteService = DefaultApprovedSiteService(
             approvedSiteRepository = approvedSiteRepository,
             tokenRepository = tokenRepository,
         )
 
-        override val statsService: StatsService = (approvedSiteService as DefaultApprovedSiteService).getStatsService()
+        override val statsService: StatsService = approvedSiteService.getStatsService()
 
         override val whitelistedSiteRepository: WhitelistedSiteRepository = ExposedWhitelistedSiteRepository(configurator.database)
 

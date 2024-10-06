@@ -1,20 +1,3 @@
-/*******************************************************************************
- * Copyright 2018 The MIT Internet Trust Consortium
- *
- * Portions copyright 2011-2013 The MITRE Corporation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package org.mitre.openid.connect.service.impl
 
 import org.junit.jupiter.api.BeforeEach
@@ -27,7 +10,7 @@ import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.openid.connect.repository.ApprovedSiteRepository
 import org.mitre.openid.connect.service.ApprovedSiteService
 import org.mitre.openid.connect.service.StatsService
-import org.mockito.InjectMocks
+import org.mitre.openid.connect.service.impl.ktor.DefaultApprovedSiteService
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.isA
@@ -36,7 +19,6 @@ import org.mockito.kotlin.reset
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import org.springframework.test.annotation.Rollback
 
 @ExtendWith(MockitoExtension::class)
 class TestDefaultApprovedSiteService {
@@ -55,8 +37,7 @@ class TestDefaultApprovedSiteService {
     @Mock
     private lateinit var statsService: StatsService
 
-    @InjectMocks
-    private val service: ApprovedSiteService = DefaultApprovedSiteService()
+    private lateinit var service: ApprovedSiteService
 
 
     /**
@@ -65,6 +46,8 @@ class TestDefaultApprovedSiteService {
      */
     @BeforeEach
     fun prepare() {
+        service = DefaultApprovedSiteService(repository, tokenRepository, statsService)
+
         client = ClientDetailsEntity().also {
             it.setClientId(clientId)
         }
@@ -112,7 +95,6 @@ class TestDefaultApprovedSiteService {
      * sites. Ensure that the repository's remove() method is never called in this case.
      */
     @Test
-    @Rollback
     fun clearApprovedSitesForClient_null() {
         val otherId = "a different id"
         (client as ClientDetailsEntity).setClientId(otherId)

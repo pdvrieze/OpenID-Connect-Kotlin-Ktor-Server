@@ -1,7 +1,7 @@
-package io.github.pdvrieze.client
+package io.github.pdvrieze.oidc.util
 
-import com.google.common.cache.CacheBuilder
-import com.google.common.cache.CacheLoader
+import com.github.benmanes.caffeine.cache.CacheLoader
+import com.github.benmanes.caffeine.cache.Caffeine
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.future.future
@@ -11,11 +11,12 @@ import kotlin.coroutines.EmptyCoroutineContext
 
 class CoroutineCache<K, V>(
     loaderFunction: suspend (K) -> V,
-    configure: CacheBuilder<*, *>.() -> Unit = {}
+    configure: Caffeine<*, *>.() -> Unit = {}
 ) {
 
-    private class CoroutineLoader<K, V>(private val loaderFunction: suspend (K) -> V) : CacheLoader<K, CompletableFuture<V>>(),
-                                                                                CoroutineScope {
+    private class CoroutineLoader<K, V>(private val loaderFunction: suspend (K) -> V) :
+        CacheLoader<K, CompletableFuture<V>>, CoroutineScope {
+
         override val coroutineContext: CoroutineContext
             get() = EmptyCoroutineContext
 
@@ -25,7 +26,7 @@ class CoroutineCache<K, V>(
     }
 
 
-    private val cache = CacheBuilder.newBuilder().apply(configure).build(CoroutineLoader(loaderFunction))
+    private val cache = Caffeine.newBuilder().apply(configure).build(CoroutineLoader(loaderFunction))
 
     suspend fun load(key: K): V {
         return cache[key].await()

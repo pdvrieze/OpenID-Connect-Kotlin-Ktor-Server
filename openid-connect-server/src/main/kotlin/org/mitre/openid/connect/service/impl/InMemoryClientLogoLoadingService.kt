@@ -15,10 +15,9 @@
  */
 package org.mitre.openid.connect.service.impl
 
-import com.google.common.cache.CacheBuilder
-import com.google.common.cache.CacheLoader
-import com.google.common.cache.LoadingCache
-import com.google.common.util.concurrent.UncheckedExecutionException
+import com.github.benmanes.caffeine.cache.CacheLoader
+import com.github.benmanes.caffeine.cache.Caffeine
+import com.github.benmanes.caffeine.cache.LoadingCache
 import org.apache.commons.io.IOUtils
 import org.apache.http.client.HttpClient
 import org.apache.http.client.methods.HttpGet
@@ -38,7 +37,7 @@ import java.util.concurrent.TimeUnit
 class InMemoryClientLogoLoadingService(
     httpClient: HttpClient = HttpClientBuilder.create().useSystemProperties().build()
 ) : ClientLogoLoadingService {
-    private val cache: LoadingCache<OAuthClientDetails, CachedImage> = CacheBuilder.newBuilder()
+    private val cache: LoadingCache<OAuthClientDetails, CachedImage> = Caffeine.newBuilder()
         .maximumSize(100)
         .expireAfterAccess(14, TimeUnit.DAYS)
         .build(ClientLogoFetcher(httpClient))
@@ -55,8 +54,6 @@ class InMemoryClientLogoLoadingService(
                     cache[client]
                 else -> null
             }
-        } catch (e: UncheckedExecutionException) {
-            null
         } catch (e: ExecutionException) {
             null
         }
@@ -67,7 +64,7 @@ class InMemoryClientLogoLoadingService(
      */
     inner class ClientLogoFetcher(
         private val httpClient: HttpClient = HttpClientBuilder.create().useSystemProperties().build()
-    ) : CacheLoader<OAuthClientDetails, CachedImage>() {
+    ) : CacheLoader<OAuthClientDetails, CachedImage> {
         /* (non-Javadoc)
 		 * @see com.google.common.cache.CacheLoader#load(java.lang.Object)
 		 */

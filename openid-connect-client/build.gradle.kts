@@ -12,7 +12,7 @@ dependencies {
 
     implementation(libs.ktor.server.auth.jwt)
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.guava)
+    implementation(libs.caffeine)
     api(libs.jwt)
     implementation(libs.slf4j.api)
     implementation(libs.ktor.http)

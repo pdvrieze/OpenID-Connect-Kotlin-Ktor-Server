@@ -12,7 +12,7 @@ dependencies {
     api(projects.openidConnectServer)
 
     implementation(projects.openidConnectServerExposed)
-    implementation(libs.guava) // for caching code
+    implementation(libs.caffeine) // for caching code
     implementation(libs.ktor.http)
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.java)

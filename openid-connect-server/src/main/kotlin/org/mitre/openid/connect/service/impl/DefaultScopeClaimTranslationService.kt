@@ -17,43 +17,38 @@
  */
 package org.mitre.openid.connect.service.impl
 
-import com.google.common.collect.HashMultimap
-import com.google.common.collect.SetMultimap
 import org.mitre.openid.connect.service.ScopeClaimTranslationService
-import org.springframework.stereotype.Service
 
 /**
  * Service to map scopes to claims, and claims to Java field names
  *
  * @author Amanda Anganes
  */
-@Service("scopeClaimTranslator")
 class DefaultScopeClaimTranslationService : ScopeClaimTranslationService {
-    private val scopesToClaims: SetMultimap<String, String> = HashMultimap.create<String, String>().apply {
-        put("openid", "sub")
+    private val scopesToClaims: Map<String, Set<String>> = buildMap {
+        put("openId", setOf("sub"))
+        put("profile", setOf(
+            "name",
+            "preferred_username",
+            "given_name",
+            "family_name",
+            "middle_name",
+            "nickname",
+            "profile",
+            "picture",
+            "website",
+            "gender",
+            "zoneinfo",
+            "locale",
+            "updated_at",
+            "birthdate",
+        ))
 
-        put("profile", "name")
-        put("profile", "preferred_username")
-        put("profile", "given_name")
-        put("profile", "family_name")
-        put("profile", "middle_name")
-        put("profile", "nickname")
-        put("profile", "profile")
-        put("profile", "picture")
-        put("profile", "website")
-        put("profile", "gender")
-        put("profile", "zoneinfo")
-        put("profile", "locale")
-        put("profile", "updated_at")
-        put("profile", "birthdate")
+        put("email", setOf("email", "email_verified"))
 
-        put("email", "email")
-        put("email", "email_verified")
+        put("phone", setOf("phone_number", "phone_number_verified"))
 
-        put("phone", "phone_number")
-        put("phone", "phone_number_verified")
-
-        put("address", "address")
+        put("address", setOf("address"))
     }
 
     /* (non-Javadoc)

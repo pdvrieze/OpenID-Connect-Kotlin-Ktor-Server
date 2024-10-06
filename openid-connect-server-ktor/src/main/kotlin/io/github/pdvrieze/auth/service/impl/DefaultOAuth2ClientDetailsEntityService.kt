@@ -17,10 +17,9 @@
  */
 package org.mitre.oauth2.service.impl
 
-import com.google.common.cache.CacheBuilder
-import com.google.common.cache.CacheLoader
-import com.google.common.cache.LoadingCache
-import com.google.common.util.concurrent.UncheckedExecutionException
+import com.github.benmanes.caffeine.cache.CacheLoader
+import com.github.benmanes.caffeine.cache.Caffeine
+import com.github.benmanes.caffeine.cache.LoadingCache
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
@@ -51,8 +50,7 @@ import org.mitre.util.getLogger
 import java.math.BigInteger
 import java.net.URI
 import java.security.SecureRandom
-import java.util.Date
-import java.util.UUID
+import java.util.*
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 import kotlin.io.encoding.Base64
@@ -71,7 +69,7 @@ class DefaultOAuth2ClientDetailsEntityService(
 ) : ClientDetailsEntityService {
 
     // map of sector URI -> list of redirect URIs
-    private val sectorRedirects: LoadingCache<String, List<String>> = CacheBuilder.newBuilder()
+    private val sectorRedirects: LoadingCache<String, List<String>> = Caffeine.newBuilder()
         .expireAfterAccess(1, TimeUnit.HOURS)
         .maximumSize(100)
         .build(SectorIdentifierLoader(HttpClient(Java) {}))
@@ -154,8 +152,6 @@ class DefaultOAuth2ClientDetailsEntityService(
                 for (uri in redirectUris) {
                     require(redirects.contains(uri)) { "Requested Redirect URI $uri is not listed at sector identifier $redirects" }
                 }
-            } catch (e: UncheckedExecutionException) {
-                throw IllegalArgumentException("Unable to load sector identifier URI ${client.sectorIdentifierUri}: ${e.message}")
             } catch (e: ExecutionException) {
                 throw IllegalArgumentException("Unable to load sector identifier URI ${client.sectorIdentifierUri}: ${e.message}")
             }
@@ -392,7 +388,7 @@ class DefaultOAuth2ClientDetailsEntityService(
      * @author jricher
      */
     private inner class SectorIdentifierLoader(private val httpClient: HttpClient = HttpClient(Java) {}) :
-        CacheLoader<String, List<String>>() {
+        CacheLoader<String, List<String>> {
 //        private val httpFactory = HttpComponentsClientHttpRequestFactory(httpClient)
 //        private val restTemplate = RestTemplate(httpFactory)
 

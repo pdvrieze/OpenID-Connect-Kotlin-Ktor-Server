@@ -1,9 +1,8 @@
 package org.mitre.jwt.signer.service.impl
 
-import com.google.common.cache.CacheBuilder
-import com.google.common.cache.CacheLoader
-import com.google.common.cache.LoadingCache
-import com.google.common.util.concurrent.UncheckedExecutionException
+import com.github.benmanes.caffeine.cache.CacheLoader
+import com.github.benmanes.caffeine.cache.Caffeine
+import com.github.benmanes.caffeine.cache.LoadingCache
 import com.nimbusds.jose.jwk.JWKSet
 import org.apache.http.client.HttpClient
 import org.apache.http.impl.client.HttpClientBuilder
@@ -28,14 +27,14 @@ import java.util.concurrent.TimeUnit
 class JWKSetCacheServiceImpl : JWKSetCacheService {
     // map of jwk set uri -> signing/validation service built on the keys found in that jwk set
     private val validators: LoadingCache<String, JWTSigningAndValidationService> =
-        CacheBuilder.newBuilder()
+        Caffeine.newBuilder()
             .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
             .maximumSize(100)
             .build(JWKSetVerifierFetcher(HttpClientBuilder.create().useSystemProperties().build()))
 
     // map of jwk set uri -> encryption/decryption service built on the keys found in that jwk set
     private val encrypters: LoadingCache<String, JWTEncryptionAndDecryptionService> =
-        CacheBuilder.newBuilder()
+        Caffeine.newBuilder()
             .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
             .maximumSize(100)
             .build(JWKSetEncryptorFetcher(HttpClientBuilder.create().useSystemProperties().build()))
@@ -47,9 +46,6 @@ class JWKSetCacheServiceImpl : JWKSetCacheService {
     override suspend fun getValidator(jwksUri: String): JWTSigningAndValidationService? {
         try {
             return validators.get(jwksUri)
-        } catch (e: UncheckedExecutionException) {
-            logger.warn("Couldn't load JWK Set from " + jwksUri + ": " + e.message)
-            return null
         } catch (e: ExecutionException) {
             logger.warn("Couldn't load JWK Set from " + jwksUri + ": " + e.message)
             return null
@@ -59,11 +55,8 @@ class JWKSetCacheServiceImpl : JWKSetCacheService {
     override suspend fun getEncrypter(jwksUri: String): JWTEncryptionAndDecryptionService? {
         try {
             return encrypters[jwksUri]
-        } catch (e: UncheckedExecutionException) {
-            logger.warn("Couldn't load JWK Set from " + jwksUri + ": " + e.message)
-            return null
         } catch (e: ExecutionException) {
-            logger.warn("Couldn't load JWK Set from " + jwksUri + ": " + e.message)
+            logger.warn("Couldn't load JWK Set from $jwksUri: ${e.message}")
             return null
         }
     }
@@ -71,7 +64,7 @@ class JWKSetCacheServiceImpl : JWKSetCacheService {
     /**
      * @author jricher
      */
-    private inner class JWKSetVerifierFetcher(httpClient: HttpClient) : CacheLoader<String, JWTSigningAndValidationService>() {
+    private inner class JWKSetVerifierFetcher(httpClient: HttpClient) : CacheLoader<String, JWTSigningAndValidationService> {
 //        private val httpFactory = HttpComponentsClientHttpRequestFactory(httpClient)
 //        private val restTemplate = RestTemplate(httpFactory)
 
@@ -95,7 +88,7 @@ class JWKSetCacheServiceImpl : JWKSetCacheService {
      * @author jricher
      */
     private inner class JWKSetEncryptorFetcher(httpClient: HttpClient) :
-        CacheLoader<String, JWTEncryptionAndDecryptionService>() {
+        CacheLoader<String, JWTEncryptionAndDecryptionService> {
 //        private val httpFactory = HttpComponentsClientHttpRequestFactory(httpClient)
 //        private val restTemplate = RestTemplate(httpFactory)
 
