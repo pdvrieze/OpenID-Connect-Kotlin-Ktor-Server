@@ -28,7 +28,6 @@ import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.SavedUserAuthentication
-import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.convert.OAuth2Request
 import org.mitre.openid.connect.service.MITREidDataService.Companion.ACCESSTOKENS
 import org.mitre.openid.connect.service.MITREidDataService.Companion.AUTHENTICATIONHOLDERS
@@ -43,11 +42,8 @@ import org.mockito.ArgumentMatchers.anyLong
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
-import org.mockito.kotlin.capture
 import org.mockito.kotlin.isA
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.times
-import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
 import org.mockito.stubbing.Answer
@@ -98,101 +94,13 @@ class TestMITREidDataService_1_0 : TestMITREiDDataServiceBase<MITREidDataService
     }
 
     @Test
-    @Throws(IOException::class)
     fun testImportAuthenticationHolders() {
         testImportAuthenticationHolders(true)
     }
 
     @Test
-    @Throws(IOException::class)
     fun testImportSystemScopes() {
-        val scope1 = SystemScope(
-            id = 1L,
-            value = "scope1",
-            description = "Scope 1",
-            isRestricted = true,
-            isDefaultScope = false,
-            icon = "glass",
-        )
-
-        val scope2 = SystemScope(
-            id = 2L,
-            value = "scope2",
-            description = "Scope 2",
-            isRestricted = false,
-            isDefaultScope = false,
-            icon = "ball",
-        )
-
-        val scope3 = SystemScope(
-            id = 3L,
-            value = "scope3",
-            description = "Scope 3",
-            isRestricted = false,
-            isDefaultScope = true,
-            icon = "road",
-        )
-
-        val configJson =
-            """{"$CLIENTS": [], 
-                |  "$ACCESSTOKENS": [],
-                |  "$REFRESHTOKENS": [],
-                |  "$GRANTS": [],
-                |  "$WHITELISTEDSITES": [],
-                |  "$BLACKLISTEDSITES": [],
-                |  "$AUTHENTICATIONHOLDERS": [],
-                |  "$SYSTEMSCOPES": [
-                |    {
-                |      "id":1,
-                |      "description":"Scope 1",
-                |      "icon":"glass",
-                |      "value":"scope1",
-                |      "allowDynReg":false,
-                |      "defaultScope":false
-                |    },{
-                |      "id":2,
-                |      "description":"Scope 2",
-                |      "icon":"ball",
-                |      "value":"scope2",
-                |      "allowDynReg":true,
-                |      "defaultScope":false
-                |    },{
-                |      "id":3,
-                |      "description":"Scope 3",
-                |      "icon":"road",
-                |      "value":"scope3",
-                |      "allowDynReg":true,
-                |      "defaultScope":true
-                |    }
-                |  ]
-                |}""".trimMargin()
-
-        System.err.println(configJson)
-
-        dataService.importData(configJson)
-
-        verify(sysScopeRepository, times(3)).save(capture(capturedScope))
-
-        val savedScopes = capturedScope.allValues
-
-        assertEquals(3, savedScopes.size)
-        assertEquals(scope1.value, savedScopes[0].value)
-        assertEquals(scope1.description, savedScopes[0].description)
-        assertEquals(scope1.icon, savedScopes[0].icon)
-        assertEquals(scope1.isDefaultScope, savedScopes[0].isDefaultScope)
-        assertEquals(scope1.isRestricted, savedScopes[0].isRestricted)
-
-        assertEquals(scope2.value, savedScopes[1].value)
-        assertEquals(scope2.description, savedScopes[1].description)
-        assertEquals(scope2.icon, savedScopes[1].icon)
-        assertEquals(scope2.isDefaultScope, savedScopes[1].isDefaultScope)
-        assertEquals(scope2.isRestricted, savedScopes[1].isRestricted)
-
-        assertEquals(scope3.value, savedScopes[2].value)
-        assertEquals(scope3.description, savedScopes[2].description)
-        assertEquals(scope3.icon, savedScopes[2].icon)
-        assertEquals(scope3.isDefaultScope, savedScopes[2].isDefaultScope)
-        assertEquals(scope3.isRestricted, savedScopes[2].isRestricted)
+        super.testImportSystemScopes(false)
     }
 
     @Test

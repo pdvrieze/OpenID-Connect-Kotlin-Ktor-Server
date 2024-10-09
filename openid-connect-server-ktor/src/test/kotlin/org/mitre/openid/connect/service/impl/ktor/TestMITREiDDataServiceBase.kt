@@ -704,6 +704,100 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
         assertEquals(holder2.authentication.oAuth2Request.clientId, savedAuthHolders[1].authentication.oAuth2Request.clientId)
     }
 
+    protected fun testImportSystemScopes(hasRestricted: Boolean) {
+        val registerAttrName = when {
+            hasRestricted -> "restricted"
+            else -> "allowDynReg"
+        }
+        val scope1 = SystemScope(
+            id = 1L,
+            value = "scope1",
+            description = "Scope 1",
+            isRestricted = true,
+            isDefaultScope = false,
+            icon = "glass",
+        )
+
+        val scope2 = SystemScope(
+            id = 2L,
+            value = "scope2",
+            description = "Scope 2",
+            isRestricted = false,
+            isDefaultScope = false,
+            icon = "ball",
+        )
+
+        val scope3 = SystemScope(
+            id = 3L,
+            value = "scope3",
+            description = "Scope 3",
+            isRestricted = false,
+            isDefaultScope = true,
+            icon = "road",
+        )
+
+        val configJson =
+            """{"clients": [], 
+                |  "accessTokens": [],
+                |  "refreshTokens": [],
+                |  "grants": [],
+                |  "whitelistedSites": [],
+                |  "blacklistedSites": [],
+                |  "authenticationHolders": [],
+                |  "systemScopes": [
+                |    {
+                |      "id":1,
+                |      "description":"Scope 1",
+                |      "icon":"glass",
+                |      "value":"scope1",
+                |      "$registerAttrName":${hasRestricted},
+                |      "defaultScope":false
+                |    },{
+                |      "id":2,
+                |      "description":"Scope 2",
+                |      "icon":"ball",
+                |      "value":"scope2",
+                |      "$registerAttrName":${!hasRestricted},
+                |      "defaultScope":false
+                |    },{
+                |      "id":3,
+                |      "description":"Scope 3",
+                |      "icon":"road",
+                |      "value":"scope3",
+                |      "$registerAttrName":${!hasRestricted},
+                |      "defaultScope":true
+                |    }
+                |  ]
+                |}""".trimMargin()
+
+        System.err.println(configJson)
+
+        dataService.importData(configJson)
+
+        verify(sysScopeRepository, times(3)).save(capture(capturedScope))
+
+        val savedScopes = capturedScope.allValues
+
+        assertEquals(3, savedScopes.size)
+        assertEquals(scope1.value, savedScopes[0].value)
+        assertEquals(scope1.description, savedScopes[0].description)
+        assertEquals(scope1.icon, savedScopes[0].icon)
+        assertEquals(scope1.isDefaultScope, savedScopes[0].isDefaultScope)
+        assertEquals(scope1.isRestricted, savedScopes[0].isRestricted)
+
+        assertEquals(scope2.value, savedScopes[1].value)
+        assertEquals(scope2.description, savedScopes[1].description)
+        assertEquals(scope2.icon, savedScopes[1].icon)
+        assertEquals(scope2.isDefaultScope, savedScopes[1].isDefaultScope)
+        assertEquals(scope2.isRestricted, savedScopes[1].isRestricted)
+
+        assertEquals(scope3.value, savedScopes[2].value)
+        assertEquals(scope3.description, savedScopes[2].description)
+        assertEquals(scope3.icon, savedScopes[2].icon)
+        assertEquals(scope3.isDefaultScope, savedScopes[2].isDefaultScope)
+        assertEquals(scope3.isRestricted, savedScopes[2].isRestricted)
+    }
+
     protected class refreshTokenIdComparator : Comparator<OAuth2RefreshTokenEntity> {
         override fun compare(entity1: OAuth2RefreshTokenEntity, entity2: OAuth2RefreshTokenEntity): Int {
             return entity1.id!!.compareTo(entity2.id!!)
