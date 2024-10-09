@@ -33,6 +33,7 @@ import org.mitre.openid.connect.service.MITREidDataService.Companion.SYSTEMSCOPE
 import org.mitre.openid.connect.service.MITREidDataService.Companion.WHITELISTEDSITES
 import org.mitre.openid.connect.service.MITREidDataServiceMaps
 import org.mockito.ArgumentCaptor
+import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.anyLong
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Captor
@@ -797,6 +798,139 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
         assertEquals(scope3.isDefaultScope, savedScopes[2].isDefaultScope)
         assertEquals(scope3.isRestricted, savedScopes[2].isRestricted)
     }
+
+    fun testFixRefreshTokenAuthHolderReferencesOnImport(format: Int) {
+        val expirationDate1 = instant(("2014-09-10T22:49:44.090+00:00"))
+
+        val mockedClient1 = mock<ClientDetailsEntity>()
+
+        // unused by mockito (causs unnecessary stubbing exception
+//		when(mockedClient1.getClientId()).thenReturn("mocked_client_1");
+        val req1 = OAuth2Request(
+            clientId = "client1",
+            isApproved = true,
+            redirectUri = "http://foo.com",
+        )
+        val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
+        val auth1 = OAuth2RequestAuthentication(req1, mockAuth1)
+
+        val holder1 = AuthenticationHolderEntity()
+        holder1.id = 1L
+        holder1.authentication = auth1
+
+        val token1 = OAuth2RefreshTokenEntity(
+            id = 1L,
+            client = mockedClient1,
+            expirationInstant = expirationDate1,
+            jwt = JWTParser.parse("eyJhbGciOiJub25lIn0.eyJqdGkiOiJmOTg4OWQyOS0xMTk1LTQ4ODEtODgwZC1lZjVlYzAwY2Y4NDIifQ."),
+            authenticationHolder = holder1,
+        )
+
+        val expirationDate2 = instant("2015-01-07T18:31:50.079+00:00")
+
+        val mockedClient2 = mock<ClientDetailsEntity>()
+
+        // unused by mockito (causs unnecessary stubbing exception
+//		when(mockedClient2.getClientId()).thenReturn("mocked_client_2");
+        val req2 = OAuth2Request(
+            clientId = "client2",
+            isApproved = true,
+            redirectUri = "http://bar.com",
+        )
+
+        val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
+        val auth2 = OAuth2RequestAuthentication(req2, mockAuth2)
+
+        val holder2 = AuthenticationHolderEntity()
+        holder2.id = 2L
+        holder2.authentication = auth2
+
+        val token2 = OAuth2RefreshTokenEntity(
+            id = 2L,
+            client = mockedClient2,
+            expirationInstant = expirationDate2,
+            jwt = JWTParser.parse("eyJhbGciOiJub25lIn0.eyJqdGkiOiJlYmEyYjc3My0xNjAzLTRmNDAtOWQ3MS1hMGIxZDg1OWE2MDAifQ."),
+            authenticationHolder = holder2,
+        )
+
+        val configJson = (buildString {
+            append("{")
+            append("\"systemScopes\": [], ")
+            append("\"accessTokens\": [], ")
+            append("\"clients\": [], ")
+            append("\"grants\": [], ")
+            append("\"whitelistedSites\": [], ")
+            append("\"blacklistedSites\": [], ")
+            append("\"authenticationHolders\": [")
+            append("{\"id\":1,\"authentication\":{\"")
+            if(format > 0) append("authorizationRequest") else append("clientAuthorization")
+            append("\":{\"clientId\":\"client1\",\"redirectUri\":\"http://foo.com\"},")
+            append("\"userAuthentication\":null}},")
+            append("{\"id\":2,\"authentication\":{\"")
+            if(format > 0) append("authorizationRequest") else append("clientAuthorization")
+            append("\":{\"clientId\":\"client2\",\"redirectUri\":\"http://bar.com\"},")
+            append("\"userAuthentication\":null}}")
+            append("  ],")
+            append("\"refreshTokens\": [")
+            append("{\"id\":1,\"clientId\":\"mocked_client_1\",\"expiration\":\"2014-09-10T22:49:44.090+00:00\",\"authenticationHolderId\":1,\"value\":\"eyJhbGciOiJub25lIn0.eyJqdGkiOiJmOTg4OWQyOS0xMTk1LTQ4ODEtODgwZC1lZjVlYzAwY2Y4NDIifQ.\"},")
+            append("{\"id\":2,\"clientId\":\"mocked_client_2\",\"expiration\":\"2015-01-07T18:31:50.079+00:00\",\"authenticationHolderId\":2,\"value\":\"eyJhbGciOiJub25lIn0.eyJqdGkiOiJlYmEyYjc3My0xNjAzLTRmNDAtOWQ3MS1hMGIxZDg1OWE2MDAifQ.\"}  ")
+            append("  ]")
+            append("}")
+        })
+        System.err.println(configJson)
+
+        val fakeRefreshTokenTable: MutableMap<Long, OAuth2RefreshTokenEntity> = HashMap()
+        val fakeAuthHolderTable: MutableMap<Long, AuthenticationHolderEntity> = HashMap()
+        whenever(tokenRepository.saveRefreshToken(isA<OAuth2RefreshTokenEntity>()))
+            .thenAnswer(object : Answer<OAuth2RefreshTokenEntity> {
+                var id: Long = 343L
+
+                @Throws(Throwable::class)
+                override fun answer(invocation: InvocationOnMock): OAuth2RefreshTokenEntity {
+                    val _token = invocation.arguments[0] as OAuth2RefreshTokenEntity
+                    val id = _token.id ?: (id++).also { _token.id = it }
+                    fakeRefreshTokenTable[id] = _token
+                    return _token
+                }
+            })
+        whenever(tokenRepository.getRefreshTokenById(isA())).thenAnswer { invocation ->
+            val _id = invocation.arguments[0] as Long
+            fakeRefreshTokenTable[_id]
+        }
+        whenever(clientRepository.getClientByClientId(ArgumentMatchers.anyString())).thenAnswer { invocation ->
+            val _clientId = invocation.arguments[0] as String
+            val _client = mock<ClientDetailsEntity>()
+            // unused by mockito (causs unnecessary stubbing exception
+//				when(_client.getClientId()).thenReturn(_clientId);
+            _client
+        }
+        whenever<AuthenticationHolderEntity>(authHolderRepository.save(isA<AuthenticationHolderEntity>()))
+            .thenAnswer(object : Answer<AuthenticationHolderEntity> {
+                var id: Long = 356L
+
+                @Throws(Throwable::class)
+                override fun answer(invocation: InvocationOnMock): AuthenticationHolderEntity {
+                    val _holder = invocation.arguments[0] as AuthenticationHolderEntity
+                    val id = _holder.id ?: (id++).also { _holder.id = it }
+                    fakeAuthHolderTable[id] = _holder
+                    return _holder
+                }
+            })
+        whenever(authHolderRepository.getById(anyLong())).thenAnswer { invocation ->
+            val _id = invocation.arguments[0] as Long
+            fakeAuthHolderTable[_id]
+        }
+
+        dataService.importData(configJson)
+
+        val savedRefreshTokens: List<OAuth2RefreshTokenEntity> =
+            fakeRefreshTokenTable.values.sortedWith(refreshTokenIdComparator())
+        //capturedRefreshTokens.getAllValues();
+
+        assertEquals(356L, savedRefreshTokens[0].authenticationHolder.id)
+        assertEquals(357L, savedRefreshTokens[1].authenticationHolder.id)
+    }
+
 
     protected class refreshTokenIdComparator : Comparator<OAuth2RefreshTokenEntity> {
         override fun compare(entity1: OAuth2RefreshTokenEntity, entity2: OAuth2RefreshTokenEntity): Int {
