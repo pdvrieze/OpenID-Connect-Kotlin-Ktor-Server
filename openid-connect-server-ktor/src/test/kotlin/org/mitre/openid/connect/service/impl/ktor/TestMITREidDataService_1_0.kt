@@ -98,13 +98,12 @@ class TestMITREidDataService_1_0 : TestMITREiDDataServiceBase<MITREidDataService
     @Test
     @Throws(IOException::class, ParseException::class)
     fun testImportGrants() {
-        val creationDate1 = Instant.from(formatter.parse("2014-09-10T22:49:44.090+00:00"))
-        val accessDate1 = Instant.from(formatter.parse("2014-09-10T23:49:44.090+00:00"))
+        val creationDate1 = instant("2014-09-10T22:49:44.090+00:00")
+        val accessDate1 = instant("2014-09-10T23:49:44.090+00:00")
 
         val mockToken1 = mock<OAuth2AccessTokenEntity>()
 
         // unused by mockito (causs unnecessary stubbing exception
-//		when(mockToken1.getId()).thenReturn(1L);
         val site1 = ApprovedSite(
             id = 1L,
             clientId = "foo",
@@ -115,10 +114,9 @@ class TestMITREidDataService_1_0 : TestMITREiDDataServiceBase<MITREidDataService
         )
 
         // unused by mockito (causs unnecessary stubbing exception
-//		when(mockToken1.getApprovedSite()).thenReturn(site1);
-        val creationDate2 = Instant.from(formatter.parse("2014-09-11T18:49:44.090+00:00"))
-        val accessDate2 = Instant.from(formatter.parse("2014-09-11T20:49:44.090+00:00"))
-        val timeoutDate2 = Instant.from(formatter.parse("2014-10-01T20:49:44.090+00:00"))
+        val creationDate2 = instant("2014-09-11T18:49:44.090+00:00")
+        val accessDate2 = instant("2014-09-11T20:49:44.090+00:00")
+        val timeoutDate2 = instant("2014-10-01T20:49:44.090+00:00")
 
         val site2 = ApprovedSite(
             id = 2L,
@@ -131,14 +129,14 @@ class TestMITREidDataService_1_0 : TestMITREiDDataServiceBase<MITREidDataService
         )
 
         val configJson = ("{" +
-                "\"" + CLIENTS + "\": [], " +
-                "\"" + ACCESSTOKENS + "\": [], " +
-                "\"" + REFRESHTOKENS + "\": [], " +
-                "\"" + WHITELISTEDSITES + "\": [], " +
-                "\"" + BLACKLISTEDSITES + "\": [], " +
-                "\"" + SYSTEMSCOPES + "\": [], " +
-                "\"" + AUTHENTICATIONHOLDERS + "\": [], " +
-                "\"" + GRANTS + "\": [" +
+                "\"$CLIENTS\": [], " +
+                "\"$ACCESSTOKENS\": [], " +
+                "\"$REFRESHTOKENS\": [], " +
+                "\"$WHITELISTEDSITES\": [], " +
+                "\"$BLACKLISTEDSITES\": [], " +
+                "\"$SYSTEMSCOPES\": [], " +
+                "\"$AUTHENTICATIONHOLDERS\": [], " +
+                "\"$GRANTS\": [" +
                 "{\"id\":1,\"clientId\":\"foo\",\"creationDate\":\"2014-09-10T22:49:44.090+00:00\",\"accessDate\":\"2014-09-10T23:49:44.090+00:00\","
                 + "\"userId\":\"user1\",\"whitelistedSiteId\":null,\"allowedScopes\":[\"openid\",\"phone\"], \"whitelistedSiteId\":1,"
                 + "\"approvedAccessTokens\":[1]}," +
@@ -245,14 +243,14 @@ class TestMITREidDataService_1_0 : TestMITREiDDataServiceBase<MITREidDataService
         holder2.authentication = auth2
 
         val configJson = ("{" +
-                "\"" + CLIENTS + "\": [], " +
-                "\"" + ACCESSTOKENS + "\": [], " +
-                "\"" + REFRESHTOKENS + "\": [], " +
-                "\"" + GRANTS + "\": [], " +
-                "\"" + WHITELISTEDSITES + "\": [], " +
-                "\"" + BLACKLISTEDSITES + "\": [], " +
-                "\"" + SYSTEMSCOPES + "\": [], " +
-                "\"" + AUTHENTICATIONHOLDERS + "\": [" +
+                "\"$CLIENTS\": [], " +
+                "\"$ACCESSTOKENS\": [], " +
+                "\"$REFRESHTOKENS\": [], " +
+                "\"$GRANTS\": [], " +
+                "\"$WHITELISTEDSITES\": [], " +
+                "\"$BLACKLISTEDSITES\": [], " +
+                "\"$SYSTEMSCOPES\": [], " +
+                "\"$AUTHENTICATIONHOLDERS\": [" +
                 "{\"id\":1,\"authentication\":{\"clientAuthorization\":{\"clientId\":\"client1\",\"redirectUri\":\"http://foo.com\"},"
                 + "\"userAuthentication\":null}}," +
                 "{\"id\":2,\"authentication\":{\"clientAuthorization\":{\"clientId\":\"client2\",\"redirectUri\":\"http://bar.com\"},"
@@ -385,7 +383,7 @@ class TestMITREidDataService_1_0 : TestMITREiDDataServiceBase<MITREidDataService
     @Throws(IOException::class, ParseException::class)
     fun testFixRefreshTokenAuthHolderReferencesOnImport() {
         val expiration1 = "2014-09-10T22:49:44.090+00:00"
-        val expirationDate1 = Instant.from(formatter.parse(expiration1))
+        val expirationDate1 = instant((expiration1))
 
         val mockedClient1 = mock<ClientDetailsEntity>()
 
@@ -411,7 +409,7 @@ class TestMITREidDataService_1_0 : TestMITREiDDataServiceBase<MITREidDataService
             authenticationHolder = holder1,
         )
 
-        val expirationDate2 = Instant.from(formatter.parse("2015-01-07T18:31:50.079+00:00"))
+        val expirationDate2 = instant("2015-01-07T18:31:50.079+00:00")
 
         val mockedClient2 = mock<ClientDetailsEntity>()
 
@@ -439,19 +437,19 @@ class TestMITREidDataService_1_0 : TestMITREiDDataServiceBase<MITREidDataService
         )
 
         val configJson = ("{" +
-                "\"" + SYSTEMSCOPES + "\": [], " +
-                "\"" + ACCESSTOKENS + "\": [], " +
-                "\"" + CLIENTS + "\": [], " +
-                "\"" + GRANTS + "\": [], " +
-                "\"" + WHITELISTEDSITES + "\": [], " +
-                "\"" + BLACKLISTEDSITES + "\": [], " +
-                "\"" + AUTHENTICATIONHOLDERS + "\": [" +
+                "\"$SYSTEMSCOPES\": [], " +
+                "\"$ACCESSTOKENS\": [], " +
+                "\"$CLIENTS\": [], " +
+                "\"$GRANTS\": [], " +
+                "\"$WHITELISTEDSITES\": [], " +
+                "\"$BLACKLISTEDSITES\": [], " +
+                "\"$AUTHENTICATIONHOLDERS\": [" +
                 "{\"id\":1,\"authentication\":{\"clientAuthorization\":{\"clientId\":\"client1\",\"redirectUri\":\"http://foo.com\"},"
                 + "\"userAuthentication\":null}}," +
                 "{\"id\":2,\"authentication\":{\"clientAuthorization\":{\"clientId\":\"client2\",\"redirectUri\":\"http://bar.com\"},"
                 + "\"userAuthentication\":null}}" +
                 "  ]," +
-                "\"" + REFRESHTOKENS + "\": [" +
+                "\"$REFRESHTOKENS\": [" +
                 "{\"id\":1,\"clientId\":\"mocked_client_1\",\"expiration\":\"2014-09-10T22:49:44.090+00:00\","
                 + "\"authenticationHolderId\":1,\"value\":\"eyJhbGciOiJub25lIn0.eyJqdGkiOiJmOTg4OWQyOS0xMTk1LTQ4ODEtODgwZC1lZjVlYzAwY2Y4NDIifQ.\"}," +
                 "{\"id\":2,\"clientId\":\"mocked_client_2\",\"expiration\":\"2015-01-07T18:31:50.079+00:00\","

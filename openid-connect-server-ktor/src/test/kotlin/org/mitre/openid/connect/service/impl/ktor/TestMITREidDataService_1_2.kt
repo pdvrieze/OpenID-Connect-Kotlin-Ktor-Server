@@ -57,7 +57,6 @@ import org.mockito.quality.Strictness
 import org.mockito.stubbing.Answer
 import java.io.IOException
 import java.text.ParseException
-import java.time.Instant
 import java.util.*
 
 @ExtendWith(MockitoExtension::class)
@@ -114,8 +113,8 @@ class TestMITREidDataService_1_2 : TestMITREiDDataServiceBase<MITREidDataService
     @Test
     @Throws(IOException::class, ParseException::class)
     fun testImportGrants() {
-        val creationDate1 = Instant.from(formatter.parse("2014-09-10T22:49:44.090+00:00"))
-        val accessDate1 = Instant.from(formatter.parse("2014-09-10T23:49:44.090+00:00"))
+        val creationDate1 = instant("2014-09-10T22:49:44.090+00:00")
+        val accessDate1 = instant("2014-09-10T23:49:44.090+00:00")
 
         val mockToken1 = mock<OAuth2AccessTokenEntity>()
 
@@ -132,9 +131,9 @@ class TestMITREidDataService_1_2 : TestMITREiDDataServiceBase<MITREidDataService
 
         // unused by mockito (causs unnecessary stubbing exception
 //		when(mockToken1.getApprovedSite()).thenReturn(site1);
-        val creationDate2 = Instant.from(formatter.parse("2014-09-11T18:49:44.090+00:00"))
-        val accessDate2 = Instant.from(formatter.parse("2014-09-11T20:49:44.090+00:00"))
-        val timeoutDate2 = Instant.from(formatter.parse("2014-10-01T20:49:44.090+00:00"))
+        val creationDate2 = instant("2014-09-11T18:49:44.090+00:00")
+        val accessDate2 = instant("2014-09-11T20:49:44.090+00:00")
+        val timeoutDate2 = instant("2014-10-01T20:49:44.090+00:00")
 
         val site2 = ApprovedSite(
             id = 2L,
@@ -147,14 +146,14 @@ class TestMITREidDataService_1_2 : TestMITREiDDataServiceBase<MITREidDataService
         )
 
         val configJson = ("{" +
-                "\"" + CLIENTS + "\": [], " +
-                "\"" + ACCESSTOKENS + "\": [], " +
-                "\"" + REFRESHTOKENS + "\": [], " +
-                "\"" + WHITELISTEDSITES + "\": [], " +
-                "\"" + BLACKLISTEDSITES + "\": [], " +
-                "\"" + SYSTEMSCOPES + "\": [], " +
-                "\"" + AUTHENTICATIONHOLDERS + "\": [], " +
-                "\"" + GRANTS + "\": [" +
+                "\"$CLIENTS\": [], " +
+                "\"$ACCESSTOKENS\": [], " +
+                "\"$REFRESHTOKENS\": [], " +
+                "\"$WHITELISTEDSITES\": [], " +
+                "\"$BLACKLISTEDSITES\": [], " +
+                "\"$SYSTEMSCOPES\": [], " +
+                "\"$AUTHENTICATIONHOLDERS\": [], " +
+                "\"$GRANTS\": [" +
                 "{\"id\":1,\"clientId\":\"foo\",\"creationDate\":\"2014-09-10T22:49:44.090+00:00\",\"accessDate\":\"2014-09-10T23:49:44.090+00:00\","
                 + "\"userId\":\"user1\",\"whitelistedSiteId\":null,\"allowedScopes\":[\"openid\",\"phone\"], \"whitelistedSiteId\":1,"
                 + "\"approvedAccessTokens\":[1]}," +
@@ -258,14 +257,14 @@ class TestMITREidDataService_1_2 : TestMITREiDDataServiceBase<MITREidDataService
         )
 
         val configJson = ("{" +
-                "\"" + CLIENTS + "\": [], " +
-                "\"" + ACCESSTOKENS + "\": [], " +
-                "\"" + REFRESHTOKENS + "\": [], " +
-                "\"" + GRANTS + "\": [], " +
-                "\"" + WHITELISTEDSITES + "\": [], " +
-                "\"" + BLACKLISTEDSITES + "\": [], " +
-                "\"" + SYSTEMSCOPES + "\": [], " +
-                "\"" + AUTHENTICATIONHOLDERS + "\": [" +
+                "\"$CLIENTS\": [], " +
+                "\"$ACCESSTOKENS\": [], " +
+                "\"$REFRESHTOKENS\": [], " +
+                "\"$GRANTS\": [], " +
+                "\"$WHITELISTEDSITES\": [], " +
+                "\"$BLACKLISTEDSITES\": [], " +
+                "\"$SYSTEMSCOPES\": [], " +
+                "\"$AUTHENTICATIONHOLDERS\": [" +
                 "{\"id\":1,\"clientId\":\"client1\",\"redirectUri\":\"http://foo.com\","
                 + "\"savedUserAuthentication\":null}," +
                 "{\"id\":2,\"clientId\":\"client2\",\"redirectUri\":\"http://bar.com\","
@@ -333,14 +332,14 @@ class TestMITREidDataService_1_2 : TestMITREiDDataServiceBase<MITREidDataService
         )
 
         val configJson = "{" +
-                "\"" + CLIENTS + "\": [], " +
-                "\"" + ACCESSTOKENS + "\": [], " +
-                "\"" + REFRESHTOKENS + "\": [], " +
-                "\"" + GRANTS + "\": [], " +
-                "\"" + WHITELISTEDSITES + "\": [], " +
-                "\"" + BLACKLISTEDSITES + "\": [], " +
-                "\"" + AUTHENTICATIONHOLDERS + "\": [], " +
-                "\"" + SYSTEMSCOPES + "\": [" +
+                "\"$CLIENTS\": [], " +
+                "\"$ACCESSTOKENS\": [], " +
+                "\"$REFRESHTOKENS\": [], " +
+                "\"$GRANTS\": [], " +
+                "\"$WHITELISTEDSITES\": [], " +
+                "\"$BLACKLISTEDSITES\": [], " +
+                "\"$AUTHENTICATIONHOLDERS\": [], " +
+                "\"$SYSTEMSCOPES\": [" +
                 "{\"id\":1,\"description\":\"Scope 1\",\"icon\":\"glass\",\"value\":\"scope1\",\"restricted\":true,\"defaultScope\":false}," +
                 "{\"id\":2,\"description\":\"Scope 2\",\"icon\":\"ball\",\"value\":\"scope2\",\"restricted\":false,\"defaultScope\":false}," +
                 "{\"id\":3,\"description\":\"Scope 3\",\"icon\":\"road\",\"value\":\"scope3\",\"restricted\":false,\"defaultScope\":true}" +
@@ -378,7 +377,7 @@ class TestMITREidDataService_1_2 : TestMITREiDDataServiceBase<MITREidDataService
     @Test
     @Throws(IOException::class, ParseException::class)
     fun testFixRefreshTokenAuthHolderReferencesOnImport() {
-        val expirationDate1 = Instant.from(formatter.parse("2014-09-10T22:49:44.090+00:00"))
+        val expirationDate1 = instant("2014-09-10T22:49:44.090+00:00")
 
         val mockedClient1 = mock<ClientDetailsEntity>()
 
@@ -404,7 +403,7 @@ class TestMITREidDataService_1_2 : TestMITREiDDataServiceBase<MITREidDataService
             authenticationHolder = holder1,
         )
 
-        val expirationDate2 = Instant.from(formatter.parse("2015-01-07T18:31:50.079+00:00"))
+        val expirationDate2 = instant("2015-01-07T18:31:50.079+00:00")
 
         val mockedClient2 = mock<ClientDetailsEntity>()
 

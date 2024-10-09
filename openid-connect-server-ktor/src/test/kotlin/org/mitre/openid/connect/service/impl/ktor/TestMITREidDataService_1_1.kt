@@ -140,14 +140,14 @@ class TestMITREidDataService_1_1 : TestMITREiDDataServiceBase<MITREidDataService
         )
 
         val configJson = ("{" +
-                "\"" + CLIENTS + "\": [], " +
-                "\"" + ACCESSTOKENS + "\": [], " +
-                "\"" + REFRESHTOKENS + "\": [], " +
-                "\"" + WHITELISTEDSITES + "\": [], " +
-                "\"" + BLACKLISTEDSITES + "\": [], " +
-                "\"" + SYSTEMSCOPES + "\": [], " +
-                "\"" + AUTHENTICATIONHOLDERS + "\": [], " +
-                "\"" + GRANTS + "\": [" +
+                "\"$CLIENTS\": [], " +
+                "\"$ACCESSTOKENS\": [], " +
+                "\"$REFRESHTOKENS\": [], " +
+                "\"$WHITELISTEDSITES\": [], " +
+                "\"$BLACKLISTEDSITES\": [], " +
+                "\"$SYSTEMSCOPES\": [], " +
+                "\"$AUTHENTICATIONHOLDERS\": [], " +
+                "\"$GRANTS\": [" +
                 "{\"id\":1,\"clientId\":\"foo\",\"creationDate\":\"2014-09-10T22:49:44.090+00:00\",\"accessDate\":\"2014-09-10T23:49:44.090+00:00\","
                 + "\"userId\":\"user1\",\"whitelistedSiteId\":null,\"allowedScopes\":[\"openid\",\"phone\"], \"whitelistedSiteId\":1,"
                 + "\"approvedAccessTokens\":[1]}," +
@@ -254,14 +254,14 @@ class TestMITREidDataService_1_1 : TestMITREiDDataServiceBase<MITREidDataService
         holder2.authentication = auth2
 
         val configJson = ("{" +
-                "\"" + CLIENTS + "\": [], " +
-                "\"" + ACCESSTOKENS + "\": [], " +
-                "\"" + REFRESHTOKENS + "\": [], " +
-                "\"" + GRANTS + "\": [], " +
-                "\"" + WHITELISTEDSITES + "\": [], " +
-                "\"" + BLACKLISTEDSITES + "\": [], " +
-                "\"" + SYSTEMSCOPES + "\": [], " +
-                "\"" + AUTHENTICATIONHOLDERS + "\": [" +
+                "\"$CLIENTS\": [], " +
+                "\"$ACCESSTOKENS\": [], " +
+                "\"$REFRESHTOKENS\": [], " +
+                "\"$GRANTS\": [], " +
+                "\"$WHITELISTEDSITES\": [], " +
+                "\"$BLACKLISTEDSITES\": [], " +
+                "\"$SYSTEMSCOPES\": [], " +
+                "\"$AUTHENTICATIONHOLDERS\": [" +
                 "{\"id\":1,\"authentication\":{\"clientAuthorization\":{\"clientId\":\"client1\",\"redirectUri\":\"http://foo.com\"},"
                 + "\"userAuthentication\":null}}," +
                 "{\"id\":2,\"authentication\":{\"clientAuthorization\":{\"clientId\":\"client2\",\"redirectUri\":\"http://bar.com\"},"

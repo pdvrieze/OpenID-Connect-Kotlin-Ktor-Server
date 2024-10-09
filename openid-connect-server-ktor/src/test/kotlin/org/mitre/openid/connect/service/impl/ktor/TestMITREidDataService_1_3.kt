@@ -70,7 +70,6 @@ import org.mockito.quality.Strictness
 import org.mockito.stubbing.Answer
 import java.io.IOException
 import java.text.ParseException
-import java.time.Instant
 import java.util.*
 
 @ExtendWith(MockitoExtension::class)
@@ -94,7 +93,7 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
     @Test
     @Throws(IOException::class, ParseException::class)
     fun testExportRefreshTokens() {
-        val expirationDate1 = Instant.from(formatter.parse("2014-09-10T22:49:44.090+00:00"))
+        val expirationDate1 = instant("2014-09-10T22:49:44.090+00:00")
 
         val mockedClient1 = mock<ClientDetailsEntity>()
         whenever(mockedClient1.clientId).thenReturn("mocked_client_1")
@@ -110,7 +109,7 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
             authenticationHolder = mockedAuthHolder1,
         )
 
-        val expirationDate2 = Instant.from(formatter.parse("2015-01-07T18:31:50.079+00:00"))
+        val expirationDate2 = instant("2015-01-07T18:31:50.079+00:00")
 
         val mockedClient2 = mock<ClientDetailsEntity>()
         whenever(mockedClient2.clientId).thenReturn("mocked_client_2")
@@ -239,8 +238,8 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
     @Test
     @Throws(IOException::class, ParseException::class)
     fun testImportGrants() {
-        val creationDate1 = Instant.from(formatter.parse("2014-09-10T22:49:44.090+00:00"))
-        val accessDate1 = Instant.from(formatter.parse("2014-09-10T23:49:44.090+00:00"))
+        val creationDate1 = instant("2014-09-10T22:49:44.090+00:00")
+        val accessDate1 = instant("2014-09-10T23:49:44.090+00:00")
 
         val mockToken1 = mock<OAuth2AccessTokenEntity>()
         whenever(mockToken1.id).thenReturn(1L)
@@ -498,7 +497,7 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
 
     @Test
     fun testExportAccessTokens() {
-        val expirationDate1 = Instant.from(formatter.parse("2014-09-10T22:49:44.090+00:00"))
+        val expirationDate1 = instant("2014-09-10T22:49:44.090+00:00")
 
         val mockedClient1 = mock<ClientDetailsEntity>()
         whenever(mockedClient1.clientId).thenReturn("mocked_client_1")
@@ -908,8 +907,8 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
     @Test
     @Throws(IOException::class, ParseException::class)
     fun testExportGrants() {
-        val creationDate1 = Instant.from(formatter.parse("2014-09-10T22:49:44.090+00:00"))
-        val accessDate1 = Instant.from(formatter.parse("2014-09-10T23:49:44.090+00:00"))
+        val creationDate1 = instant("2014-09-10T22:49:44.090+00:00")
+        val accessDate1 = instant("2014-09-10T23:49:44.090+00:00")
 
         val mockToken1 = mock<OAuth2AccessTokenEntity>()
         whenever(mockToken1.id).thenReturn(1L)
@@ -924,9 +923,9 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
         )
         whenever(mockToken1.approvedSite).thenReturn(site1)
 
-        val creationDate2 = Instant.from(formatter.parse("2014-09-11T18:49:44.090+00:00"))
-        val accessDate2 = Instant.from(formatter.parse("2014-09-11T20:49:44.090+00:00"))
-        val timeoutDate2 = Instant.from(formatter.parse("2014-10-01T20:49:44.090+00:00"))
+        val creationDate2 = instant("2014-09-11T18:49:44.090+00:00")
+        val accessDate2 = instant("2014-09-11T20:49:44.090+00:00")
+        val timeoutDate2 = instant("2014-10-01T20:49:44.090+00:00")
 
         val site2 = ApprovedSite(
             id = 2L,
@@ -1240,7 +1239,7 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
     @Test
     @Throws(IOException::class, ParseException::class)
     fun testFixRefreshTokenAuthHolderReferencesOnImport() {
-        val expirationDate1 = Instant.from(formatter.parse("2014-09-10T22:49:44.090+00:00"))
+        val expirationDate1 = instant("2014-09-10T22:49:44.090+00:00")
 
         val mockedClient1 = mock<ClientDetailsEntity>()
         whenever(mockedClient1.clientId).thenReturn("mocked_client_1")
@@ -1265,7 +1264,7 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
             JWTParser.parse("eyJhbGciOiJub25lIn0.eyJqdGkiOiJmOTg4OWQyOS0xMTk1LTQ4ODEtODgwZC1lZjVlYzAwY2Y4NDIifQ.")
         token1.authenticationHolder = holder1
 
-        val expirationDate2 = Instant.from(formatter.parse("2015-01-07T18:31:50.079+00:00"))
+        val expirationDate2 = instant("2015-01-07T18:31:50.079+00:00")
 
         val mockedClient2 = mock<ClientDetailsEntity>()
         whenever(mockedClient2.clientId).thenReturn("mocked_client_2")
