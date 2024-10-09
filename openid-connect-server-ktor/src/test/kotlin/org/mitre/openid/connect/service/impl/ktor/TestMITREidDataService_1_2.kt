@@ -29,7 +29,6 @@ import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.convert.OAuth2Request
-import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.openid.connect.service.MITREidDataService.Companion.ACCESSTOKENS
 import org.mitre.openid.connect.service.MITREidDataService.Companion.AUTHENTICATIONHOLDERS
 import org.mitre.openid.connect.service.MITREidDataService.Companion.BLACKLISTEDSITES
@@ -112,123 +111,8 @@ class TestMITREidDataService_1_2 : TestMITREiDDataServiceBase<MITREidDataService
 
     @Test
     @Throws(IOException::class, ParseException::class)
-    fun testImportGrants() {
-        val creationDate1 = instant("2014-09-10T22:49:44.090+00:00")
-        val accessDate1 = instant("2014-09-10T23:49:44.090+00:00")
-
-        val mockToken1 = mock<OAuth2AccessTokenEntity>()
-
-        // unused by mockito (causs unnecessary stubbing exception
-//		when(mockToken1.getId()).thenReturn(1L);
-        val site1 = ApprovedSite(
-            id = 1L,
-            clientId = "foo",
-            creationDate = creationDate1,
-            accessDate = accessDate1,
-            userId = "user1",
-            allowedScopes = setOf("openid", "phone"),
-        )
-
-        // unused by mockito (causs unnecessary stubbing exception
-//		when(mockToken1.getApprovedSite()).thenReturn(site1);
-        val creationDate2 = instant("2014-09-11T18:49:44.090+00:00")
-        val accessDate2 = instant("2014-09-11T20:49:44.090+00:00")
-        val timeoutDate2 = instant("2014-10-01T20:49:44.090+00:00")
-
-        val site2 = ApprovedSite(
-            id = 2L,
-            clientId = "bar",
-            creationDate = creationDate2,
-            accessDate = accessDate2,
-            userId = "user2",
-            allowedScopes = setOf("openid", "offline_access", "email", "profile"),
-            timeoutDate = timeoutDate2,
-        )
-
-        val configJson = ("{" +
-                "\"$CLIENTS\": [], " +
-                "\"$ACCESSTOKENS\": [], " +
-                "\"$REFRESHTOKENS\": [], " +
-                "\"$WHITELISTEDSITES\": [], " +
-                "\"$BLACKLISTEDSITES\": [], " +
-                "\"$SYSTEMSCOPES\": [], " +
-                "\"$AUTHENTICATIONHOLDERS\": [], " +
-                "\"$GRANTS\": [" +
-                "{\"id\":1,\"clientId\":\"foo\",\"creationDate\":\"2014-09-10T22:49:44.090+00:00\",\"accessDate\":\"2014-09-10T23:49:44.090+00:00\","
-                + "\"userId\":\"user1\",\"whitelistedSiteId\":null,\"allowedScopes\":[\"openid\",\"phone\"], \"whitelistedSiteId\":1,"
-                + "\"approvedAccessTokens\":[1]}," +
-                "{\"id\":2,\"clientId\":\"bar\",\"creationDate\":\"2014-09-11T18:49:44.090+00:00\",\"accessDate\":\"2014-09-11T20:49:44.090+00:00\","
-                + "\"timeoutDate\":\"2014-10-01T20:49:44.090+00:00\",\"userId\":\"user2\","
-                + "\"allowedScopes\":[\"openid\",\"offline_access\",\"email\",\"profile\"]}" +
-                "  ]" +
-                "}")
-
-        logger.debug(configJson)
-
-        val fakeDb: MutableMap<Long, ApprovedSite> = HashMap()
-        whenever(approvedSiteRepository.save(isA<ApprovedSite>()))
-            .thenAnswer(object : Answer<ApprovedSite> {
-                var id: Long = 364L
-
-                @Throws(Throwable::class)
-                override fun answer(invocation: InvocationOnMock): ApprovedSite {
-                    val _site = invocation.arguments[0] as ApprovedSite
-                    val id = _site.id ?: id++.also { _site.id = it }
-                    fakeDb[id] = _site
-                    return _site
-                }
-            })
-        whenever(approvedSiteRepository.getById(isA())).thenAnswer { invocation ->
-            val _id = invocation.arguments[0] as Long
-            fakeDb[_id]
-        }
-        // unused by mockito (causs unnecessary stubbing exception
-        /*
-        when(wlSiteRepository.getById(isNull(Long.class))).thenAnswer(new Answer<WhitelistedSite>() {
-			Long id = 432L;
-			@Override
-			public WhitelistedSite answer(InvocationOnMock invocation) throws Throwable {
-				WhitelistedSite _site = mock(WhitelistedSite.class);
-				when(_site.getId()).thenReturn(id++);
-				return _site;
-			}
-		})*/
-
-        whenever(tokenRepository.getAccessTokenById(anyLong()))
-            .thenAnswer(object : Answer<OAuth2AccessTokenEntity> {
-                var id: Long = 245L
-
-                @Throws(Throwable::class)
-                override fun answer(invocation: InvocationOnMock): OAuth2AccessTokenEntity {
-                    val _token = mock<OAuth2AccessTokenEntity>()
-                    // unused by mockito (causs unnecessary stubbing exception
-//				when(_token.getId()).thenReturn(id++);
-                    return _token
-                }
-            })
-
-        maps.accessTokenOldToNewIdMap[1L] = 245L
-
-        dataService.importData(configJson)
-
-        //2 for sites, 1 for updating access token ref on #1
-        verify(approvedSiteRepository, times(3)).save(capture(capturedApprovedSites))
-
-        val savedSites: List<ApprovedSite> = fakeDb.values.toList()
-
-        assertEquals(2, savedSites.size)
-
-        assertEquals(site1.clientId, savedSites[0].clientId)
-        assertEquals(site1.accessDate, savedSites[0].accessDate)
-        assertEquals(site1.creationDate, savedSites[0].creationDate)
-        assertEquals(site1.allowedScopes, savedSites[0].allowedScopes)
-        assertEquals(site1.timeoutDate, savedSites[0].timeoutDate)
-
-        assertEquals(site2.clientId, savedSites[1].clientId)
-        assertEquals(site2.accessDate, savedSites[1].accessDate)
-        assertEquals(site2.creationDate, savedSites[1].creationDate)
-        assertEquals(site2.allowedScopes, savedSites[1].allowedScopes)
-        assertEquals(site2.timeoutDate, savedSites[1].timeoutDate)
+    override fun testImportGrants() {
+        super.testImportGrants()
     }
 
     @Test
