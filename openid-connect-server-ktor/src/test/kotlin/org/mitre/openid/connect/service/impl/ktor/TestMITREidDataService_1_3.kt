@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.api.fail
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
@@ -216,15 +217,14 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
             assertIs<JsonObject>(e)
             val token = e.jsonObject
 
-            var compare: OAuth2RefreshTokenEntity? = null
-            if (token["id"]!!.jsonPrimitive.long == token1.id) {
-                compare = token1
-            } else if (token["id"]!!.jsonPrimitive.long == token2.id) {
-                compare = token2
+            val compare: OAuth2RefreshTokenEntity? = when (token["id"]!!.jsonPrimitive.long) {
+                token1.id -> token1
+                token2.id -> token2
+                else -> null
             }
 
             if (compare == null) {
-                fail("Could not find matching id: ${token["id"].asString()}")
+                fail("Could not find matching id: ${token["id"]}")
             } else {
                 assertEquals(compare.id, token["id"]?.jsonPrimitive?.long)
                 assertEquals(compare.client!!.clientId, token["clientId"].asString())
@@ -335,32 +335,28 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
             assertIs<JsonObject>(e)
             val token = e as JsonObject
 
-            var compare: OAuth2AccessTokenEntity? = null
             val tokenId = token["id"]!!.jsonPrimitive.long
-            if (tokenId == token1.id) {
-                compare = token1
-            } else if (tokenId == token2.id) {
-                compare = token2
+
+            val compare = when (tokenId) {
+                token1.id -> token1
+                token2.id -> token2
+                else -> fail("Could not find matching id: $tokenId")
             }
 
-            if (compare == null) {
-                fail("Could not find matching id: ${tokenId}")
+            assertEquals(compare.id, tokenId)
+            assertEquals(compare.client!!.clientId, token["clientId"].asString())
+            assertEquals(formatter.format(compare.expirationInstant), token["expiration"].asString())
+            assertEquals(compare.value, token["value"].asString())
+            assertEquals(compare.tokenType, token["type"].asString())
+            assertEquals(compare.authenticationHolder.id, token["authenticationHolderId"]!!.jsonPrimitive.long)
+            assertIs<JsonArray>(token["scope"])
+            assertEquals(compare.scope, jsonArrayToStringSet(token["scope"]!!.jsonArray))
+            if (token["refreshTokenId"] is JsonNull) {
+                assertNull(compare.refreshToken)
             } else {
-                assertEquals(compare.id, tokenId)
-                assertEquals(compare.client!!.clientId, token["clientId"].asString())
-                assertEquals(formatter.format(compare.expirationInstant), token["expiration"].asString())
-                assertEquals(compare.value, token["value"].asString())
-                assertEquals(compare.tokenType, token["type"].asString())
-                assertEquals(compare.authenticationHolder.id, token["authenticationHolderId"]!!.jsonPrimitive.long)
-                assertIs<JsonArray>(token["scope"])
-                assertEquals(compare.scope, jsonArrayToStringSet(token["scope"]!!.jsonArray))
-                if (token["refreshTokenId"] is JsonNull) {
-                    assertNull(compare.refreshToken)
-                } else {
-                    assertEquals(compare.refreshToken!!.id, token["refreshTokenId"]!!.jsonPrimitive.long)
-                }
-                checked.add(compare)
+                assertEquals(compare.refreshToken!!.id, token["refreshTokenId"]!!.jsonPrimitive.long)
             }
+            checked.add(compare)
         }
         // make sure all of our access tokens were found
         assertTrue(checked.containsAll(allAccessTokens))
@@ -550,7 +546,7 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
             }
 
             if (compare == null) {
-                fail("Could not find matching blacklisted site id: " + site["id"].asString())
+                fail("Could not find matching blacklisted site id: ${site["id"].asString()}")
             } else {
                 assertEquals(compare.uri, site["uri"].asString())
                 checked.add(compare)

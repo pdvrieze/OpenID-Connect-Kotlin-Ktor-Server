@@ -18,11 +18,8 @@ package org.mitre.openid.connect.service.impl.ktor
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.util.getLogger
-import org.mockito.ArgumentCaptor
-import org.mockito.Captor
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
 import org.mockito.quality.Strictness
@@ -33,12 +30,6 @@ import java.util.*
 @ExtendWith(MockitoExtension::class)
 @MockitoSettings(strictness = Strictness.WARN)
 class TestMITREidDataService_1_2 : TestMITREiDDataServiceBase<MITREidDataService_1_2>() {
-
-    @Captor
-    private lateinit var capturedRefreshTokens: ArgumentCaptor<OAuth2RefreshTokenEntity>
-
-    @Captor
-    private lateinit var capturedAccessTokens: ArgumentCaptor<OAuth2AccessTokenEntity>
 
     override lateinit var dataService: MITREidDataService_1_2
 

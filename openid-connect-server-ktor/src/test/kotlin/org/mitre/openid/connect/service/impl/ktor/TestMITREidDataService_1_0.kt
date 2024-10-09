@@ -24,9 +24,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
 import org.mockito.quality.Strictness
-import java.time.Instant
-import java.time.format.DateTimeFormatter
-import java.util.*
 
 @ExtendWith(MockitoExtension::class)
 @MockitoSettings(strictness = Strictness.WARN)
@@ -91,5 +88,3 @@ class TestMITREidDataService_1_0 : TestMITREiDDataServiceBase<MITREidDataService
     }
 }
 
-fun DateTimeFormatter.parse(text: String, locale: Locale) =
-    Instant.parse(text)

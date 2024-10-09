@@ -134,11 +134,9 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
 
     fun instant(s: String) = Instant.from(formatter.parse(s))
 
-    fun instant(s: String, locale: Locale) = instant(s)
-
     @Test
     protected open fun testImportRefreshTokens() {
-        val expirationDate1 = Instant.from(formatter.parse("2014-09-10T22:49:44.090+00:00"))
+        val expirationDate1 = instant("2014-09-10T22:49:44.090+00:00")
 
         val mockedClient1 = mock<ClientDetailsEntity>()
         whenever(mockedClient1.clientId).thenReturn("mocked_client_1")
@@ -147,23 +145,22 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
 
         // unused by mockito (causs unnecessary stubbing exception
         //		when(mockedAuthHolder1.getId()).thenReturn(1L);
-        val token1 = OAuth2RefreshTokenEntity()
-        token1.id = 1L
-        token1.client = mockedClient1
-        token1.expirationInstant = expirationDate1
-        token1.jwt =
-            JWTParser.parse("eyJhbGciOiJub25lIn0.eyJqdGkiOiJmOTg4OWQyOS0xMTk1LTQ4ODEtODgwZC1lZjVlYzAwY2Y4NDIifQ.")
-        token1.authenticationHolder = mockedAuthHolder1
+        val token1 = OAuth2RefreshTokenEntity(
+            id = 1L,
+            client = mockedClient1,
+            expirationInstant = expirationDate1,
+            jwt = JWTParser.parse("eyJhbGciOiJub25lIn0.eyJqdGkiOiJmOTg4OWQyOS0xMTk1LTQ4ODEtODgwZC1lZjVlYzAwY2Y4NDIifQ."),
+            authenticationHolder = mockedAuthHolder1,
+        )
 
-        val expirationDate2 = Instant.from(formatter.parse("2015-01-07T18:31:50.079+00:00"))
+        val expirationDate2 = instant("2015-01-07T18:31:50.079+00:00")
 
-        val mockedClient2 = mock<ClientDetailsEntity>()
-        whenever(mockedClient2.clientId).thenReturn("mocked_client_2")
+        val mockedClient2 = mock<ClientDetailsEntity> {
+            whenever(mock.clientId).thenReturn("mocked_client_2")
+        }
 
         val mockedAuthHolder2 = mock<AuthenticationHolderEntity>()
 
-        // unused by mockito (causs unnecessary stubbing exception
-        //		when(mockedAuthHolder2.getId()).thenReturn(2L);
         val token2 = OAuth2RefreshTokenEntity(
             id = 2L,
             client = mockedClient2,
@@ -173,24 +170,21 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
         )
 
         val configJson = ("{" +
-                "\"$SYSTEMSCOPES\": [], " +
-                "\"$ACCESSTOKENS\": [], " +
-                "\"$CLIENTS\": [], " +
-                "\"$GRANTS\": [], " +
-                "\"$WHITELISTEDSITES\": [], " +
-                "\"$BLACKLISTEDSITES\": [], " +
-                "\"$AUTHENTICATIONHOLDERS\": [], " +
-                "\"$REFRESHTOKENS\": [" +
-                "{\"id\":1,\"clientId\":\"mocked_client_1\",\"expiration\":\"2014-09-10T22:49:44.090+00:00\","
-                + "\"authenticationHolderId\":1,\"value\":\"eyJhbGciOiJub25lIn0.eyJqdGkiOiJmOTg4OWQyOS0xMTk1LTQ4ODEtODgwZC1lZjVlYzAwY2Y4NDIifQ.\"}," +
-                "{\"id\":2,\"clientId\":\"mocked_client_2\",\"expiration\":\"2015-01-07T18:31:50.079+00:00\","
-                + "\"authenticationHolderId\":2,\"value\":\"eyJhbGciOiJub25lIn0.eyJqdGkiOiJlYmEyYjc3My0xNjAzLTRmNDAtOWQ3MS1hMGIxZDg1OWE2MDAifQ.\"}" +
+                "\"systemScopes\": [], " +
+                "\"accessTokens\": [], " +
+                "\"clients\": [], " +
+                "\"grants\": [], " +
+                "\"whitelistedSites\": [], " +
+                "\"blacklistedSites\": [], " +
+                "\"authenticationHolders\": [], " +
+                "\"refreshTokens\": [" +
+                "{\"id\":1,\"clientId\":\"mocked_client_1\",\"expiration\":\"2014-09-10T22:49:44.090+00:00\",\"authenticationHolderId\":1,\"value\":\"eyJhbGciOiJub25lIn0.eyJqdGkiOiJmOTg4OWQyOS0xMTk1LTQ4ODEtODgwZC1lZjVlYzAwY2Y4NDIifQ.\"}," +
+                "{\"id\":2,\"clientId\":\"mocked_client_2\",\"expiration\":\"2015-01-07T18:31:50.079+00:00\",\"authenticationHolderId\":2,\"value\":\"eyJhbGciOiJub25lIn0.eyJqdGkiOiJlYmEyYjc3My0xNjAzLTRmNDAtOWQ3MS1hMGIxZDg1OWE2MDAifQ.\"}" +
                 "  ]" +
                 "}")
 
-        System.err.println(configJson)
-
         val fakeDb: MutableMap<Long, OAuth2RefreshTokenEntity> = HashMap()
+
         whenever(tokenRepository.saveRefreshToken(isA<OAuth2RefreshTokenEntity>()))
             .thenAnswer(object : Answer<OAuth2RefreshTokenEntity> {
                 var id: Long = 343L
@@ -203,25 +197,16 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
                     return _token
                 }
             })
-        whenever(tokenRepository.getRefreshTokenById(isA())).thenAnswer { invocation ->
-            val _id = invocation.arguments[0] as Long
-            fakeDb[_id]
-        }
-        whenever(clientRepository.getClientByClientId(anyString())).thenAnswer { invocation ->
-            val _clientId = invocation.arguments[0] as String
-            val _client = mock<ClientDetailsEntity>()
-            whenever(_client.clientId).thenReturn(_clientId)
-            _client
-        }
-        whenever(authHolderRepository.getById(anyLong()))
-            .thenAnswer(object : Answer<AuthenticationHolderEntity> {
-                var id: Long = 678L
+        whenever(tokenRepository.getRefreshTokenById(isA())).thenAnswer { fakeDb[it.getArgument(0)] }
 
-                @Throws(Throwable::class)
-                override fun answer(invocation: InvocationOnMock): AuthenticationHolderEntity {
-                    return mock<AuthenticationHolderEntity>()
-                }
-            })
+        whenever(clientRepository.getClientByClientId(anyString())).thenAnswer { invocation ->
+            val _clientId = invocation.getArgument<String>(0)
+            mock<ClientDetailsEntity> {
+                whenever(mock.clientId).thenReturn(_clientId)
+            }
+        }
+
+        whenever(authHolderRepository.getById(anyLong())).thenAnswer { mock<AuthenticationHolderEntity>() }
 
         maps.authHolderOldToNewIdMap[1L] = 678L
         maps.authHolderOldToNewIdMap[2L] = 679L
@@ -247,11 +232,15 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
     @Test
     open fun testImportAccessTokens() {
         val expirationDate1 = Instant.from(formatter.parse("2014-09-10T22:49:44.090+00:00"))
-        val mockedClient1 = mock<ClientDetailsEntity>()
-        whenever(mockedClient1.clientId).thenReturn("mocked_client_1")
+        val mockedClient1 = mock<ClientDetailsEntity> {
+            whenever(mock.clientId).thenReturn("mocked_client_1")
+        }
+
         val mockedAuthHolder1 = mock<AuthenticationHolderEntity>()
+
         // unused by mockito (causs unnecessary stubbing exception
         //		when(mockedAuthHolder1.getId()).thenReturn(1L);
+
         val token1 = OAuth2AccessTokenEntity(
             id = 1L,
             expirationInstant = expirationDate1,
@@ -261,15 +250,14 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
             authenticationHolder = mockedAuthHolder1,
             tokenType = "Bearer",
         )
-        val expirationDate2 = Instant.from(formatter.parse("2015-01-07T18:31:50.079+00:00"))
-        val mockedClient2 = mock<ClientDetailsEntity>()
-        whenever(mockedClient2.clientId).thenReturn("mocked_client_2")
+
+        val expirationDate2 = instant("2015-01-07T18:31:50.079+00:00")
+        val mockedClient2 = mock<ClientDetailsEntity> {
+            whenever(mock.clientId).thenReturn("mocked_client_2")
+        }
         val mockedAuthHolder2 = mock<AuthenticationHolderEntity>()
-        // unused by mockito (causs unnecessary stubbing exception
-        //		when(mockedAuthHolder2.getId()).thenReturn(2L);
         val mockRefreshToken2 = mock<OAuth2RefreshTokenEntity>()
-        // unused by mockito (causs unnecessary stubbing exception
-        //		when(mockRefreshToken2.getId()).thenReturn(1L);
+
         val token2 = OAuth2AccessTokenEntity(
             id = 2L,
             client = mockedClient2,
@@ -281,14 +269,14 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
             tokenType = "Bearer",
         )
         val configJson = ("{" +
-                "\"" + SYSTEMSCOPES + "\": [], " +
-                "\"" + REFRESHTOKENS + "\": [], " +
-                "\"" + CLIENTS + "\": [], " +
-                "\"" + GRANTS + "\": [], " +
-                "\"" + WHITELISTEDSITES + "\": [], " +
-                "\"" + BLACKLISTEDSITES + "\": [], " +
-                "\"" + AUTHENTICATIONHOLDERS + "\": [], " +
-                "\"" + ACCESSTOKENS + "\": [" +
+                "\"systemScopes\": [], " +
+                "\"refreshTokens\": [], " +
+                "\"clients\": [], " +
+                "\"grants\": [], " +
+                "\"whitelistedSites\": [], " +
+                "\"blacklistedSites\": [], " +
+                "\"authenticationHolders\": [], " +
+                "\"accessTokens\": [" +
                 "{\"id\":1,\"clientId\":\"mocked_client_1\",\"expiration\":\"2014-09-10T22:49:44.090+00:00\","
                 + "\"refreshTokenId\":null,\"idTokenId\":null,\"scope\":[\"id-token\"],\"type\":\"Bearer\","
                 + "\"authenticationHolderId\":1,\"value\":\"eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0MTI3ODk5NjgsInN1YiI6IjkwMzQyLkFTREZKV0ZBIiwiYXRfaGFzaCI6InptTmt1QmNRSmNYQktNaVpFODZqY0EiLCJhdWQiOlsiY2xpZW50Il0sImlzcyI6Imh0dHA6XC9cL2xvY2FsaG9zdDo4MDgwXC9vcGVuaWQtY29ubmVjdC1zZXJ2ZXItd2ViYXBwXC8iLCJpYXQiOjE0MTI3ODkzNjh9.xkEJ9IMXpH7qybWXomfq9WOOlpGYnrvGPgey9UQ4GLzbQx7JC0XgJK83PmrmBZosvFPCmota7FzI_BtwoZLgAZfFiH6w3WIlxuogoH-TxmYbxEpTHoTsszZppkq9mNgOlArV4jrR9y3TPo4MovsH71dDhS_ck-CvAlJunHlqhs0\"}," +
@@ -297,9 +285,10 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
                 + "\"authenticationHolderId\":2,\"value\":\"eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0MTI3OTI5NjgsImF1ZCI6WyJjbGllbnQiXSwiaXNzIjoiaHR0cDpcL1wvbG9jYWxob3N0OjgwODBcL29wZW5pZC1jb25uZWN0LXNlcnZlci13ZWJhcHBcLyIsImp0aSI6IjBmZGE5ZmRiLTYyYzItNGIzZS05OTdiLWU0M2VhMDUwMzNiOSIsImlhdCI6MTQxMjc4OTM2OH0.xgaVpRLYE5MzbgXfE0tZt823tjAm6Oh3_kdR1P2I9jRLR6gnTlBQFlYi3Y_0pWNnZSerbAE8Tn6SJHZ9k-curVG0-ByKichV7CNvgsE5X_2wpEaUzejvKf8eZ-BammRY-ie6yxSkAarcUGMvGGOLbkFcz5CtrBpZhfd75J49BIQ\"}" +
                 "  ]" +
                 "}")
-        System.err.println(configJson)
+
         val fakeDb: MutableMap<Long, OAuth2AccessTokenEntity> = HashMap()
-        whenever<OAuth2AccessTokenEntity>(tokenRepository.saveAccessToken(isA<OAuth2AccessTokenEntity>()))
+
+        whenever(tokenRepository.saveAccessToken(isA<OAuth2AccessTokenEntity>()))
             .thenAnswer(object : Answer<OAuth2AccessTokenEntity> {
                 var id: Long = 343L
 
@@ -311,36 +300,28 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
                     return _token
                 }
             })
-        whenever(tokenRepository.getAccessTokenById(isA<Long>())).thenAnswer { invocation ->
-            val _id = invocation.arguments[0] as Long
-            fakeDb[_id]
-        }
+
+        whenever(tokenRepository.getAccessTokenById(isA())).thenAnswer { fakeDb[it.getArgument(0)] }
+
         whenever(clientRepository.getClientByClientId(anyString())).thenAnswer { invocation ->
             val _clientId = invocation.arguments[0] as String
             val _client = mock<ClientDetailsEntity>()
             whenever(_client.clientId).thenReturn(_clientId)
             _client
         }
-        whenever(authHolderRepository.getById(anyLong()))
-            .thenAnswer(object : Answer<AuthenticationHolderEntity> {
-                var id: Long = 234L
 
-                @Throws(Throwable::class)
-                override fun answer(invocation: InvocationOnMock): AuthenticationHolderEntity {
-                    val _auth = mock<AuthenticationHolderEntity>()
-                    // unused by mockito (causs unnecessary stubbing exception
-                    //				when(_auth.getId()).thenReturn(id);
-                    id++
-                    return _auth
-                }
-            })
+        whenever(authHolderRepository.getById(anyLong()))
+            .thenAnswer { mock<AuthenticationHolderEntity>() }
+
         whenever(tokenRepository.getRefreshTokenById(eq(1L))).thenReturn(mockRefreshToken2)
-        whenever(tokenRepository.getRefreshTokenById(eq(402L))).thenAnswer { invocation ->
+        whenever(tokenRepository.getRefreshTokenById(eq(402L))).thenAnswer {
             mock<OAuth2RefreshTokenEntity>()
         }
+
         maps.authHolderOldToNewIdMap[1L] = 401L
         maps.authHolderOldToNewIdMap[2L] = 403L
         maps.refreshTokenOldToNewIdMap[1L] = 402L
+
         dataService.importData(configJson)
         //2 times for token, 2 times to update client, 2 times to update authHolder, 1 times to update refresh token
         verify(tokenRepository, times(7)).saveAccessToken(capture<OAuth2AccessTokenEntity>(capturedAccessTokens))
@@ -349,10 +330,12 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
 
         assertEquals(token1.client!!.clientId, savedAccessTokens[0].client!!.clientId)
         assertEquals(token1.expiration, savedAccessTokens[0].expiration)
+        assertEquals(token1.expirationInstant, savedAccessTokens[0].expirationInstant)
         assertEquals(token1.value, savedAccessTokens[0].value)
 
         assertEquals(token2.client!!.clientId, savedAccessTokens[1].client!!.clientId)
         assertEquals(token2.expiration, savedAccessTokens[1].expiration)
+        assertEquals(token2.expirationInstant, savedAccessTokens[1].expirationInstant)
         assertEquals(token2.value, savedAccessTokens[1].value)
     }
 
