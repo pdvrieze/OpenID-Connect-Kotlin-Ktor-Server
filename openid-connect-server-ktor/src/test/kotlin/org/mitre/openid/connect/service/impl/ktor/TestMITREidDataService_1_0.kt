@@ -73,14 +73,14 @@ class TestMITREidDataService_1_0 : TestMITREiDDataServiceBase<MITREidDataService
 
     @Test
     @Throws(IOException::class, ParseException::class)
-    fun testImportRefreshTokens() {
-        testImportRefreshTokensBase()
+    override fun testImportRefreshTokens() {
+        super.testImportRefreshTokens()
     }
 
     @Test
     @Throws(IOException::class, ParseException::class)
-    fun testImportAccessTokens() {
-        testImportAccessTokensBase()
+    override fun testImportAccessTokens() {
+        super.testImportAccessTokens()
     }
 
 

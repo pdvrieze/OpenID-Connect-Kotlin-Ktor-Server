@@ -84,8 +84,8 @@ class TestMITREidDataService_1_1 : TestMITREiDDataServiceBase<MITREidDataService
 
     @Test
     @Throws(IOException::class, ParseException::class)
-    fun testImportRefreshTokens() {
-        testImportRefreshTokensBase()
+    override fun testImportRefreshTokens() {
+        super.testImportRefreshTokens()
     }
 
     private inner class accessTokenIdComparator : Comparator<OAuth2AccessTokenEntity> {
@@ -96,8 +96,8 @@ class TestMITREidDataService_1_1 : TestMITREiDDataServiceBase<MITREidDataService
 
     @Test
     @Throws(IOException::class, ParseException::class)
-    fun testImportAccessTokens() {
-        testImportAccessTokensBase()
+    override fun testImportAccessTokens() {
+        super.testImportAccessTokens()
     }
 
 

@@ -2,6 +2,7 @@ package org.mitre.openid.connect.service.impl.ktor
 
 import com.nimbusds.jwt.JWTParser
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 import org.junit.platform.commons.util.ReflectionUtils
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
@@ -29,7 +30,6 @@ import org.mitre.openid.connect.service.MITREidDataService.Companion.SYSTEMSCOPE
 import org.mitre.openid.connect.service.MITREidDataService.Companion.WHITELISTEDSITES
 import org.mitre.openid.connect.service.MITREidDataServiceMaps
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.anyLong
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Captor
@@ -128,7 +128,8 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
         maps = ReflectionUtils.tryToReadFieldValue(mapsHolder.java, "maps", dataService).get() as MITREidDataServiceMaps
     }
 
-    protected fun testImportRefreshTokensBase() {
+    @Test
+    protected open fun testImportRefreshTokens() {
         val expirationDate1 = Instant.from(formatter.parse("2014-09-10T22:49:44.090+00:00"))
 
         val mockedClient1 = mock<ClientDetailsEntity>()
@@ -235,14 +236,12 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
         assertEquals(token2.value, savedRefreshTokens[1].value)
     }
 
-    protected fun testImportAccessTokensBase() {
+    @Test
+    open fun testImportAccessTokens() {
         val expirationDate1 = Instant.from(formatter.parse("2014-09-10T22:49:44.090+00:00"))
-
         val mockedClient1 = mock<ClientDetailsEntity>()
         whenever(mockedClient1.clientId).thenReturn("mocked_client_1")
-
         val mockedAuthHolder1 = mock<AuthenticationHolderEntity>()
-
         // unused by mockito (causs unnecessary stubbing exception
         //		when(mockedAuthHolder1.getId()).thenReturn(1L);
         val token1 = OAuth2AccessTokenEntity(
@@ -254,18 +253,13 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
             authenticationHolder = mockedAuthHolder1,
             tokenType = "Bearer",
         )
-
         val expirationDate2 = Instant.from(formatter.parse("2015-01-07T18:31:50.079+00:00"))
-
         val mockedClient2 = mock<ClientDetailsEntity>()
         whenever(mockedClient2.clientId).thenReturn("mocked_client_2")
-
         val mockedAuthHolder2 = mock<AuthenticationHolderEntity>()
-
         // unused by mockito (causs unnecessary stubbing exception
         //		when(mockedAuthHolder2.getId()).thenReturn(2L);
         val mockRefreshToken2 = mock<OAuth2RefreshTokenEntity>()
-
         // unused by mockito (causs unnecessary stubbing exception
         //		when(mockRefreshToken2.getId()).thenReturn(1L);
         val token2 = OAuth2AccessTokenEntity(
@@ -278,7 +272,6 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
             scope = setOf("openid", "offline_access", "email", "profile"),
             tokenType = "Bearer",
         )
-
         val configJson = ("{" +
                 "\"" + SYSTEMSCOPES + "\": [], " +
                 "\"" + REFRESHTOKENS + "\": [], " +
@@ -296,10 +289,7 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
                 + "\"authenticationHolderId\":2,\"value\":\"eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0MTI3OTI5NjgsImF1ZCI6WyJjbGllbnQiXSwiaXNzIjoiaHR0cDpcL1wvbG9jYWxob3N0OjgwODBcL29wZW5pZC1jb25uZWN0LXNlcnZlci13ZWJhcHBcLyIsImp0aSI6IjBmZGE5ZmRiLTYyYzItNGIzZS05OTdiLWU0M2VhMDUwMzNiOSIsImlhdCI6MTQxMjc4OTM2OH0.xgaVpRLYE5MzbgXfE0tZt823tjAm6Oh3_kdR1P2I9jRLR6gnTlBQFlYi3Y_0pWNnZSerbAE8Tn6SJHZ9k-curVG0-ByKichV7CNvgsE5X_2wpEaUzejvKf8eZ-BammRY-ie6yxSkAarcUGMvGGOLbkFcz5CtrBpZhfd75J49BIQ\"}" +
                 "  ]" +
                 "}")
-
-
         System.err.println(configJson)
-
         val fakeDb: MutableMap<Long, OAuth2AccessTokenEntity> = HashMap()
         whenever<OAuth2AccessTokenEntity>(tokenRepository.saveAccessToken(isA<OAuth2AccessTokenEntity>()))
             .thenAnswer(object : Answer<OAuth2AccessTokenEntity> {
@@ -313,11 +303,11 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
                     return _token
                 }
             })
-        whenever(tokenRepository.getAccessTokenById(isA())).thenAnswer { invocation ->
+        whenever(tokenRepository.getAccessTokenById(isA<Long>())).thenAnswer { invocation ->
             val _id = invocation.arguments[0] as Long
             fakeDb[_id]
         }
-        whenever(clientRepository.getClientByClientId(ArgumentMatchers.anyString())).thenAnswer { invocation ->
+        whenever(clientRepository.getClientByClientId(anyString())).thenAnswer { invocation ->
             val _clientId = invocation.arguments[0] as String
             val _client = mock<ClientDetailsEntity>()
             whenever(_client.clientId).thenReturn(_clientId)
@@ -336,24 +326,17 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
                     return _auth
                 }
             })
-
         whenever(tokenRepository.getRefreshTokenById(eq(1L))).thenReturn(mockRefreshToken2)
         whenever(tokenRepository.getRefreshTokenById(eq(402L))).thenAnswer { invocation ->
             mock<OAuth2RefreshTokenEntity>()
         }
-
-
         maps.authHolderOldToNewIdMap[1L] = 401L
         maps.authHolderOldToNewIdMap[2L] = 403L
         maps.refreshTokenOldToNewIdMap[1L] = 402L
-
         dataService.importData(configJson)
-
         //2 times for token, 2 times to update client, 2 times to update authHolder, 1 times to update refresh token
-        verify(tokenRepository, times(7)).saveAccessToken(capture(capturedAccessTokens))
-
+        verify(tokenRepository, times(7)).saveAccessToken(capture<OAuth2AccessTokenEntity>(capturedAccessTokens))
         val savedAccessTokens: List<OAuth2AccessTokenEntity> = fakeDb.values.sortedWith(accessTokenIdComparator())
-
         assertEquals(2, savedAccessTokens.size)
 
         assertEquals(token1.client!!.clientId, savedAccessTokens[0].client!!.clientId)
@@ -365,8 +348,9 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
         assertEquals(token2.value, savedAccessTokens[1].value)
     }
 
-    fun instant(s:String) = Instant.from(formatter.parse(s))
-    fun instant(s:String, locale: Locale) = instant(s)
+    fun instant(s: String) = Instant.from(formatter.parse(s))
+
+    fun instant(s: String, locale: Locale) = instant(s)
 
     protected class refreshTokenIdComparator : Comparator<OAuth2RefreshTokenEntity> {
         override fun compare(entity1: OAuth2RefreshTokenEntity, entity2: OAuth2RefreshTokenEntity): Int {
