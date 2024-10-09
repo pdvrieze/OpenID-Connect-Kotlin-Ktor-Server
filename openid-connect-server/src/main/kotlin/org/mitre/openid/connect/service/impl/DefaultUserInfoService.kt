@@ -24,37 +24,18 @@ import org.mitre.openid.connect.model.UserInfo
 import org.mitre.openid.connect.repository.UserInfoRepository
 import org.mitre.openid.connect.service.PairwiseIdentifierService
 import org.mitre.openid.connect.service.UserInfoService
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Service
 
 /**
  * Implementation of the UserInfoService
  *
  * @author Michael Joseph Walsh, jricher
  */
-@Service
-class DefaultUserInfoService : UserInfoService {
-    @Autowired
-    private lateinit var userInfoRepository: UserInfoRepository
+abstract class AbstractUserInfoService : UserInfoService {
+    protected abstract val userInfoRepository: UserInfoRepository
 
-    @Autowired
-    private lateinit var clientService: ClientDetailsEntityService
+    protected abstract val clientService: ClientDetailsEntityService
 
-    @Autowired
-    private lateinit var pairwiseIdentifierService: PairwiseIdentifierService
-
-    @Deprecated("Use constructor that doesn't rely on autowiring")
-    constructor()
-
-    constructor(
-        userInfoRepository: UserInfoRepository,
-        clientService: ClientDetailsEntityService,
-        pairwiseIdentifierService: PairwiseIdentifierService,
-    ) {
-        this.userInfoRepository = userInfoRepository
-        this.clientService = clientService
-        this.pairwiseIdentifierService = pairwiseIdentifierService
-    }
+    protected abstract val pairwiseIdentifierService: PairwiseIdentifierService
 
     override fun getByUsername(username: String): UserInfo? {
         return userInfoRepository.getByUsername(username)

@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mitre.openid.connect.service.impl
+package org.mitre.openid.connect.service.impl.spring
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotSame
@@ -30,6 +30,7 @@ import org.mitre.openid.connect.model.PairwiseIdentifier
 import org.mitre.openid.connect.model.UserInfo
 import org.mitre.openid.connect.repository.PairwiseIdentifierRepository
 import org.mitre.openid.connect.service.PairwiseIdentifierService
+import org.mitre.openid.connect.service.impl.UUIDPairwiseIdentiferService
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
@@ -43,7 +44,7 @@ import java.util.*
  * @author jricher
  */
 @ExtendWith(MockitoExtension::class)
-class TestUUIDPairwiseIdentiferService {
+class TestSpringUUIDPairwiseIdentiferService {
     @Mock
     private lateinit var pairwiseIdentifierRepository: PairwiseIdentifierRepository
 

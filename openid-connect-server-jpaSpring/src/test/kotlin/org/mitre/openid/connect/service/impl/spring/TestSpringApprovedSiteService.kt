@@ -39,7 +39,7 @@ import org.mockito.kotlin.whenever
 import org.springframework.test.annotation.Rollback
 
 @ExtendWith(MockitoExtension::class)
-class TestDefaultApprovedSiteService {
+class TestSpringApprovedSiteService {
     private lateinit var site1: ApprovedSite
     private lateinit var site2: ApprovedSite
     private lateinit var site3: ApprovedSite

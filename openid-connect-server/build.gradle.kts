@@ -13,13 +13,12 @@ dependencies {
     api(projects.openidConnectCommon)
     api(projects.openidConnectCommonKtor)
 
-    implementation(libs.servlet.api)
-    implementation(libs.spring.tx)
+//    implementation(libs.spring.tx)
     implementation(libs.spring.orm) {
         exclude("commons-logging:commons-logging")
     }
-    implementation(libs.spring.webmvc)
-    implementation(libs.spring.oauth)
+//    implementation(libs.spring.webmvc)
+//    implementation(libs.spring.oauth)
     implementation(libs.commons.httpclient)
     implementation(libs.slf4j.api)
     implementation(libs.eclipse.persistence.core)

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mitre.openid.connect.service.impl
+package org.mitre.openid.connect.service.impl.spring
 
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jwt.JWTClaimsSet
@@ -39,7 +39,7 @@ import java.time.Instant
 import java.util.*
 
 @ExtendWith(MockitoExtension::class)
-class TestDefaultOIDCTokenService {
+class TestSpringOIDCTokenService {
     private val configBean = ConfigurationPropertiesBean(javaClass.name)
     private val client = ClientDetailsEntity()
     private val accessToken = OAuth2AccessTokenEntity(

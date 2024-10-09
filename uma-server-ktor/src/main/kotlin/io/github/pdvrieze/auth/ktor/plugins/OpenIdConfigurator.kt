@@ -59,13 +59,13 @@ import org.mitre.openid.connect.service.ScopeClaimTranslationService
 import org.mitre.openid.connect.service.StatsService
 import org.mitre.openid.connect.service.UserInfoService
 import org.mitre.openid.connect.service.WhitelistedSiteService
-import org.mitre.openid.connect.service.impl.DefaultBlacklistedSiteService
 import org.mitre.openid.connect.service.impl.DefaultScopeClaimTranslationService
-import org.mitre.openid.connect.service.impl.DefaultUserInfoService
 import org.mitre.openid.connect.service.impl.DefaultWhitelistedSiteService
 import org.mitre.openid.connect.service.impl.KtorOIDCTokenService
 import org.mitre.openid.connect.service.impl.UUIDPairwiseIdentiferService
 import org.mitre.openid.connect.service.impl.ktor.DefaultApprovedSiteService
+import org.mitre.openid.connect.service.impl.ktor.DefaultBlacklistedSiteService
+import org.mitre.openid.connect.service.impl.ktor.DefaultUserInfoService
 import org.mitre.openid.connect.token.ConnectTokenEnhancerImpl
 import org.mitre.uma.repository.PermissionRepository
 import org.mitre.uma.repository.ResourceSetRepository

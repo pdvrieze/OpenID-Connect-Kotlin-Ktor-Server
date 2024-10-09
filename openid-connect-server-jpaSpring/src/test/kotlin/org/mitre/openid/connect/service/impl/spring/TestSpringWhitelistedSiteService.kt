@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mitre.openid.connect.service.impl
+package org.mitre.openid.connect.service.impl.spring
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -23,6 +23,7 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.openid.connect.model.WhitelistedSite
 import org.mitre.openid.connect.repository.WhitelistedSiteRepository
+import org.mitre.openid.connect.service.impl.DefaultWhitelistedSiteService
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
@@ -35,7 +36,7 @@ import org.mockito.kotlin.whenever
  * @author wkim
  */
 @ExtendWith(MockitoExtension::class)
-class TestDefaultWhitelistedSiteService {
+class TestSpringWhitelistedSiteService {
     @Mock
     private lateinit var repository: WhitelistedSiteRepository
 

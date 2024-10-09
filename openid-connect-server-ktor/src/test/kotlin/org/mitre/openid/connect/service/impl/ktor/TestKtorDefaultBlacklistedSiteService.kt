@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mitre.openid.connect.service.impl
+package org.mitre.openid.connect.service.impl.ktor
 
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -24,8 +24,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.openid.connect.model.BlacklistedSite
 import org.mitre.openid.connect.repository.BlacklistedSiteRepository
-import org.mockito.InjectMocks
-import org.mockito.Mock
+import org.mockito.Mockito.mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
@@ -35,17 +34,15 @@ import org.mockito.kotlin.whenever
  * @author wkim
  */
 @ExtendWith(MockitoExtension::class)
-class TestDefaultBlacklistedSiteService {
+class TestKtorDefaultBlacklistedSiteService {
     private lateinit var site1: BlacklistedSite
     private lateinit var site2: BlacklistedSite
 
     private lateinit var blackListedSitesSet: Set<BlacklistedSite>
 
-    @Mock
-    private lateinit var mockRepository: BlacklistedSiteRepository
+    private val mockRepository = mock<BlacklistedSiteRepository>()
 
-    @InjectMocks
-    private val service = DefaultBlacklistedSiteService()
+    private val service = DefaultBlacklistedSiteService(mockRepository)
 
     /**
      * @throws java.lang.Exception

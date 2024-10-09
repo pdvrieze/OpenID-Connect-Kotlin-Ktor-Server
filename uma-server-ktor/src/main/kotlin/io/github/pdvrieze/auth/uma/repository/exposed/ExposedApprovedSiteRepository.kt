@@ -59,9 +59,9 @@ class ExposedApprovedSiteRepository(database: Database): RepositoryBase(database
         val newId = ApprovedSites.save(oldId) { b ->
             b[userId] = v.userId
             b[clientId] = v.clientId
-            b[creationDate] = v.creationDate?.toInstant()
-            b[accessDate] = v.accessDate?.toInstant()
-            b[timeoutDate] = v.timeoutDate?.toInstant()
+            b[creationDate] = v.creationDate
+            b[accessDate] = v.accessDate
+            b[timeoutDate] = v.timeoutDate
         }
 
         if (oldId != null) {

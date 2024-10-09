@@ -6,7 +6,7 @@ import org.mitre.openid.connect.model.UserInfo
 import org.mitre.openid.connect.repository.PairwiseIdentifierRepository
 import org.mitre.openid.connect.service.PairwiseIdentifierService
 import org.mitre.util.getLogger
-import org.springframework.web.util.UriComponentsBuilder
+import java.net.URI
 import java.util.*
 
 /**
@@ -20,12 +20,10 @@ abstract class AbstractUUIDPairwiseIdentiferService : PairwiseIdentifierService 
 
         val sectorIdentifierUri = client.sectorIdentifierUri
         if (!sectorIdentifierUri.isNullOrEmpty()) {
-            val uri = UriComponentsBuilder.fromUriString(sectorIdentifierUri).build()
-            sectorIdentifier = uri.host // calculate based on the host component only
+            sectorIdentifier = URI.create(sectorIdentifierUri).host // calculate based on the host component only
         } else {
             val redirectUris = client.redirectUris
-            val uri = UriComponentsBuilder.fromUriString(redirectUris.single()).build()
-            sectorIdentifier = uri.host // calculate based on the host of the only redirect URI
+            sectorIdentifier = URI.create(redirectUris.single()).host // calculate based on the host of the only redirect URI
         }
 
         if (sectorIdentifier != null) {

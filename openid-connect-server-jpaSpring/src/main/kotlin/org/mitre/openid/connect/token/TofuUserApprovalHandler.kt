@@ -30,6 +30,7 @@ import org.springframework.security.oauth2.provider.approval.UserApprovalHandler
 import org.springframework.stereotype.Component
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.context.request.ServletRequestAttributes
+import java.time.Instant
 import java.util.*
 
 /**
@@ -125,7 +126,7 @@ class TofuUserApprovalHandler : UserApprovalHandler {
                     if (systemScopes.scopesMatch(ap.allowedScopes, authorizationRequest.scope)) {
                         //We have a match; update the access date on the AP entry and return true.
 
-                        ap.accessDate = Date()
+                        ap.accessDate = Instant.now()
                         approvedSiteService.save(ap)
 
                         val apId = ap.id.toString()

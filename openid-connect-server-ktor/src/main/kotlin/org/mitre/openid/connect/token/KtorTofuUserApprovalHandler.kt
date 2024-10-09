@@ -30,6 +30,7 @@ import org.mitre.openid.connect.web.AuthenticationTimeStamper
 import org.mitre.util.asBoolean
 import org.mitre.util.asString
 import org.mitre.util.asStringSet
+import java.time.Instant
 import java.util.*
 
 /**
@@ -120,7 +121,7 @@ class KtorTofuUserApprovalHandler(
                     if (systemScopes.scopesMatch(ap.allowedScopes, authorizationRequest.scope)) {
                         //We have a match; update the access date on the AP entry and return true.
 
-                        ap.accessDate = Date()
+                        ap.accessDate = Instant.now()
                         approvedSiteService.save(ap)
 
                         val apId = ap.id.toString()

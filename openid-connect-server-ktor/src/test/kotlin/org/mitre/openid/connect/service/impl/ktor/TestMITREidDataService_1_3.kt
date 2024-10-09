@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mitre.openid.connect.service.impl
+package org.mitre.openid.connect.service.impl.ktor
 
 import com.nimbusds.jwt.JWTParser
 import kotlinx.serialization.json.Json
@@ -31,23 +31,17 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
-import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
+import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.PKCEAlgorithm
 import org.mitre.oauth2.model.PKCEAlgorithm.Companion.parse
 import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.convert.OAuth2Request
-import org.mitre.oauth2.repository.AuthenticationHolderRepository
-import org.mitre.oauth2.repository.OAuth2ClientRepository
-import org.mitre.oauth2.repository.OAuth2TokenRepository
-import org.mitre.oauth2.repository.SystemScopeRepository
+import org.mitre.openid.connect.ktor.assertIs
 import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.openid.connect.model.BlacklistedSite
 import org.mitre.openid.connect.model.WhitelistedSite
-import org.mitre.openid.connect.repository.ApprovedSiteRepository
-import org.mitre.openid.connect.repository.BlacklistedSiteRepository
-import org.mitre.openid.connect.repository.WhitelistedSiteRepository
 import org.mitre.openid.connect.service.MITREidDataService
 import org.mitre.openid.connect.service.MITREidDataService.Companion.ACCESSTOKENS
 import org.mitre.openid.connect.service.MITREidDataService.Companion.AUTHENTICATIONHOLDERS
@@ -57,8 +51,6 @@ import org.mitre.openid.connect.service.MITREidDataService.Companion.GRANTS
 import org.mitre.openid.connect.service.MITREidDataService.Companion.REFRESHTOKENS
 import org.mitre.openid.connect.service.MITREidDataService.Companion.SYSTEMSCOPES
 import org.mitre.openid.connect.service.MITREidDataService.Companion.WHITELISTEDSITES
-import org.mitre.openid.connect.service.MITREidDataServiceMaps
-import org.mitre.openid.connect.util.assertIs
 import org.mitre.util.asBoolean
 import org.mitre.util.asString
 import org.mitre.util.getLogger
@@ -66,8 +58,6 @@ import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Captor
-import org.mockito.InjectMocks
-import org.mockito.Mock
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
@@ -75,42 +65,19 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.capture
 import org.mockito.kotlin.isA
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.reset
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
 import org.mockito.stubbing.Answer
-import org.springframework.format.annotation.DateTimeFormat
-import org.springframework.format.datetime.DateFormatter
-import org.springframework.util.ReflectionUtils
 import java.io.IOException
 import java.text.ParseException
+import java.time.Instant
 import java.util.*
 
 @MockitoSettings(strictness = Strictness.WARN)
 @ExtendWith(MockitoExtension::class)
-class TestMITREidDataService_1_3 {
-    @Mock
-    private lateinit var clientRepository: OAuth2ClientRepository
-
-    @Mock
-    private lateinit var approvedSiteRepository: ApprovedSiteRepository
-
-    @Mock
-    private lateinit var wlSiteRepository: WhitelistedSiteRepository
-
-    @Mock
-    private lateinit var blSiteRepository: BlacklistedSiteRepository
-
-    @Mock
-    private lateinit var authHolderRepository: AuthenticationHolderRepository
-
-    @Mock
-    private lateinit var tokenRepository: OAuth2TokenRepository
-
-    @Mock
-    private lateinit var sysScopeRepository: SystemScopeRepository
+class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService_1_3>() {
 
     @Captor
     private lateinit var capturedRefreshTokens: ArgumentCaptor<OAuth2RefreshTokenEntity>
@@ -118,47 +85,18 @@ class TestMITREidDataService_1_3 {
     @Captor
     private lateinit var capturedAccessTokens: ArgumentCaptor<OAuth2AccessTokenEntity>
 
-    @Captor
-    private lateinit var capturedClients: ArgumentCaptor<ClientDetailsEntity>
-
-    @Captor
-    private lateinit var capturedBlacklistedSites: ArgumentCaptor<BlacklistedSite>
-
-    @Captor
-    private lateinit var capturedWhitelistedSites: ArgumentCaptor<WhitelistedSite>
-
-    @Captor
-    private lateinit var capturedApprovedSites: ArgumentCaptor<ApprovedSite>
-
-    @Captor
-    private lateinit var capturedAuthHolders: ArgumentCaptor<AuthenticationHolderEntity>
-
-    @Captor
-    private lateinit var capturedScope: ArgumentCaptor<SystemScope>
-
-    @InjectMocks
-    private lateinit var dataService: MITREidDataService_1_3
-    private lateinit var formatter: DateFormatter
-
-    private lateinit var maps: MITREidDataServiceMaps
+    override lateinit var dataService: MITREidDataService_1_3
 
     @BeforeEach
     fun prepare() {
-        formatter = DateFormatter()
-        formatter.setIso(DateTimeFormat.ISO.DATE_TIME)
-
-        reset(clientRepository, approvedSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository, wlSiteRepository, blSiteRepository)
-
-        val mapsField = ReflectionUtils.findField(MITREidDataService_1_3::class.java, "maps")!!
-        mapsField.isAccessible = true
-        maps = ReflectionUtils.getField(mapsField, dataService) as MITREidDataServiceMaps
+        dataService = MITREidDataService_1_3(clientRepository, approvedSiteRepository, wlSiteRepository, blSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository)
+        commonPrepare(MITREidDataService_1_3::class)
     }
 
     @Test
     @Throws(IOException::class, ParseException::class)
     fun testExportRefreshTokens() {
-        val expiration1 = "2014-09-10T22:49:44.090+00:00"
-        val expirationDate1 = formatter.parse(expiration1, Locale.ENGLISH)
+        val expirationDate1 = Instant.from(formatter.parse("2014-09-10T22:49:44.090+00:00"))
 
         val mockedClient1 = mock<ClientDetailsEntity>()
         whenever(mockedClient1.clientId).thenReturn("mocked_client_1")
@@ -169,13 +107,12 @@ class TestMITREidDataService_1_3 {
         val token1 = OAuth2RefreshTokenEntity(
             id = 1L,
             client = mockedClient1,
-            expiration = expirationDate1,
+            expirationInstant = expirationDate1,
             jwt = JWTParser.parse("eyJhbGciOiJub25lIn0.eyJqdGkiOiJmOTg4OWQyOS0xMTk1LTQ4ODEtODgwZC1lZjVlYzAwY2Y4NDIifQ."),
             authenticationHolder = mockedAuthHolder1,
         )
 
-        val expiration2 = "2015-01-07T18:31:50.079+00:00"
-        val expirationDate2 = formatter.parse(expiration2, Locale.ENGLISH)
+        val expirationDate2 = Instant.from(formatter.parse("2015-01-07T18:31:50.079+00:00"))
 
         val mockedClient2 = mock<ClientDetailsEntity>()
         whenever(mockedClient2.clientId).thenReturn("mocked_client_2")
@@ -186,7 +123,7 @@ class TestMITREidDataService_1_3 {
         val token2 = OAuth2RefreshTokenEntity(
             id = 2L,
             client = mockedClient2,
-            expiration = expirationDate2,
+            expirationInstant = expirationDate2,
             jwt = JWTParser.parse("eyJhbGciOiJub25lIn0.eyJqdGkiOiJlYmEyYjc3My0xNjAzLTRmNDAtOWQ3MS1hMGIxZDg1OWE2MDAifQ."),
             authenticationHolder = mockedAuthHolder2,
         )
@@ -257,7 +194,7 @@ class TestMITREidDataService_1_3 {
             } else {
                 assertEquals(compare.id, token["id"]?.jsonPrimitive?.long)
                 assertEquals(compare.client!!.clientId, token["clientId"].asString())
-                assertEquals(formatter.print(compare.expiration!!, Locale.ENGLISH), token["expiration"].asString())
+                assertEquals(formatter.format(compare.expirationInstant), token["expiration"].asString())
                 assertEquals(compare.value, token["value"].asString())
                 assertEquals(compare.authenticationHolder.id, token["authenticationHolderId"]!!.jsonPrimitive.long)
                 checked.add(compare)
@@ -277,8 +214,7 @@ class TestMITREidDataService_1_3 {
     @Test
     @Throws(IOException::class, ParseException::class)
     fun testImportRefreshTokens() {
-        val expiration1 = "2014-09-10T22:49:44.090+00:00"
-        val expirationDate1 = formatter.parse(expiration1, Locale.ENGLISH)
+        val expirationDate1 = Instant.from(formatter.parse("2014-09-10T22:49:44.090+00:00"))
 
         val mockedClient1 = mock<ClientDetailsEntity>()
         whenever(mockedClient1.clientId).thenReturn("mocked_client_1")
@@ -289,13 +225,13 @@ class TestMITREidDataService_1_3 {
         val token1 = OAuth2RefreshTokenEntity()
         token1.id = 1L
         token1.client = mockedClient1
-        token1.expiration = expirationDate1
+        token1.expirationInstant = expirationDate1
         token1.jwt =
             JWTParser.parse("eyJhbGciOiJub25lIn0.eyJqdGkiOiJmOTg4OWQyOS0xMTk1LTQ4ODEtODgwZC1lZjVlYzAwY2Y4NDIifQ.")
         token1.authenticationHolder = mockedAuthHolder1
 
         val expiration2 = "2015-01-07T18:31:50.079+00:00"
-        val expirationDate2 = formatter.parse(expiration2, Locale.ENGLISH)
+        val expirationDate2 = instant(expiration2, Locale.ENGLISH)
 
         val mockedClient2 = mock<ClientDetailsEntity>()
         whenever(mockedClient2.clientId).thenReturn("mocked_client_2")
@@ -306,7 +242,7 @@ class TestMITREidDataService_1_3 {
         val token2 = OAuth2RefreshTokenEntity()
         token2.id = 2L
         token2.client = mockedClient2
-        token2.expiration = expirationDate2
+        token2.expirationInstant = expirationDate2
         token2.jwt =
             JWTParser.parse("eyJhbGciOiJub25lIn0.eyJqdGkiOiJlYmEyYjc3My0xNjAzLTRmNDAtOWQ3MS1hMGIxZDg1OWE2MDAifQ.")
         token2.authenticationHolder = mockedAuthHolder2
@@ -389,8 +325,7 @@ class TestMITREidDataService_1_3 {
     @Test
     @Throws(IOException::class, ParseException::class)
     fun testExportAccessTokens() {
-        val expiration1 = "2014-09-10T22:49:44.090+00:00"
-        val expirationDate1 = formatter.parse(expiration1, Locale.ENGLISH)
+        val expirationDate1 = Instant.from(formatter.parse("2014-09-10T22:49:44.090+00:00"))
 
         val mockedClient1 = mock<ClientDetailsEntity>()
         whenever(mockedClient1.clientId).thenReturn("mocked_client_1")
@@ -401,7 +336,7 @@ class TestMITREidDataService_1_3 {
         val token1 = OAuth2AccessTokenEntity(
             id = 1L,
             client = mockedClient1,
-            expiration = expirationDate1,
+            expirationInstant = expirationDate1,
             jwt = JWTParser.parse("eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0MTI3ODk5NjgsInN1YiI6IjkwMzQyLkFTREZKV0ZBIiwiYXRfaGFzaCI6InptTmt1QmNRSmNYQktNaVpFODZqY0EiLCJhdWQiOlsiY2xpZW50Il0sImlzcyI6Imh0dHA6XC9cL2xvY2FsaG9zdDo4MDgwXC9vcGVuaWQtY29ubmVjdC1zZXJ2ZXItd2ViYXBwXC8iLCJpYXQiOjE0MTI3ODkzNjh9.xkEJ9IMXpH7qybWXomfq9WOOlpGYnrvGPgey9UQ4GLzbQx7JC0XgJK83PmrmBZosvFPCmota7FzI_BtwoZLgAZfFiH6w3WIlxuogoH-TxmYbxEpTHoTsszZppkq9mNgOlArV4jrR9y3TPo4MovsH71dDhS_ck-CvAlJunHlqhs0"),
             authenticationHolder = mockedAuthHolder1,
             scope = setOf("id-token"),
@@ -409,7 +344,7 @@ class TestMITREidDataService_1_3 {
         )
 
         val expiration2 = "2015-01-07T18:31:50.079+00:00"
-        val expirationDate2 = formatter.parse(expiration2, Locale.ENGLISH)
+        val expirationDate2 = instant(expiration2, Locale.ENGLISH)
 
         val mockedClient2 = mock<ClientDetailsEntity>()
         whenever(mockedClient2.clientId).thenReturn("mocked_client_2")
@@ -423,7 +358,7 @@ class TestMITREidDataService_1_3 {
         val token2 = OAuth2AccessTokenEntity(
             id = 2L,
             client = mockedClient2,
-            expiration = expirationDate2,
+            expirationInstant = expirationDate2,
             jwt = JWTParser.parse("eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0MTI3OTI5NjgsImF1ZCI6WyJjbGllbnQiXSwiaXNzIjoiaHR0cDpcL1wvbG9jYWxob3N0OjgwODBcL29wZW5pZC1jb25uZWN0LXNlcnZlci13ZWJhcHBcLyIsImp0aSI6IjBmZGE5ZmRiLTYyYzItNGIzZS05OTdiLWU0M2VhMDUwMzNiOSIsImlhdCI6MTQxMjc4OTM2OH0.xgaVpRLYE5MzbgXfE0tZt823tjAm6Oh3_kdR1P2I9jRLR6gnTlBQFlYi3Y_0pWNnZSerbAE8Tn6SJHZ9k-curVG0-ByKichV7CNvgsE5X_2wpEaUzejvKf8eZ-BammRY-ie6yxSkAarcUGMvGGOLbkFcz5CtrBpZhfd75J49BIQ"),
             authenticationHolder = mockedAuthHolder2,
             refreshToken = mockRefreshToken2,
@@ -498,7 +433,7 @@ class TestMITREidDataService_1_3 {
             } else {
                 assertEquals(compare.id, tokenId)
                 assertEquals(compare.client!!.clientId, token["clientId"].asString())
-                assertEquals(formatter.print(compare.expiration, Locale.ENGLISH), token["expiration"].asString())
+                assertEquals(formatter.format(compare.expirationInstant), token["expiration"].asString())
                 assertEquals(compare.value, token["value"].asString())
                 assertEquals(compare.tokenType, token["type"].asString())
                 assertEquals(compare.authenticationHolder.id, token["authenticationHolderId"]!!.jsonPrimitive.long)
@@ -525,8 +460,7 @@ class TestMITREidDataService_1_3 {
     @Test
     @Throws(IOException::class, ParseException::class)
     fun testImportAccessTokens() {
-        val expiration1 = "2014-09-10T22:49:44.090+00:00"
-        val expirationDate1 = formatter.parse(expiration1, Locale.ENGLISH)
+        val expirationDate1 = instant("2014-09-10T22:49:44.090+00:00")
 
         val mockedClient1 = mock<ClientDetailsEntity>()
         whenever(mockedClient1.clientId).thenReturn("mocked_client_1")
@@ -537,15 +471,14 @@ class TestMITREidDataService_1_3 {
         val token1 = OAuth2AccessTokenEntity(
             id = 1L,
             client = mockedClient1,
-            expiration = expirationDate1,
+            expirationInstant = expirationDate1,
             jwt = JWTParser.parse("eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0MTI3ODk5NjgsInN1YiI6IjkwMzQyLkFTREZKV0ZBIiwiYXRfaGFzaCI6InptTmt1QmNRSmNYQktNaVpFODZqY0EiLCJhdWQiOlsiY2xpZW50Il0sImlzcyI6Imh0dHA6XC9cL2xvY2FsaG9zdDo4MDgwXC9vcGVuaWQtY29ubmVjdC1zZXJ2ZXItd2ViYXBwXC8iLCJpYXQiOjE0MTI3ODkzNjh9.xkEJ9IMXpH7qybWXomfq9WOOlpGYnrvGPgey9UQ4GLzbQx7JC0XgJK83PmrmBZosvFPCmota7FzI_BtwoZLgAZfFiH6w3WIlxuogoH-TxmYbxEpTHoTsszZppkq9mNgOlArV4jrR9y3TPo4MovsH71dDhS_ck-CvAlJunHlqhs0"),
             authenticationHolder = mockedAuthHolder1,
             scope = setOf("id-token"),
             tokenType = "Bearer",
         )
 
-        val expiration2 = "2015-01-07T18:31:50.079+00:00"
-        val expirationDate2 = formatter.parse(expiration2, Locale.ENGLISH)
+        val expirationDate2 = instant("2015-01-07T18:31:50.079+00:00")
 
         val mockedClient2 = mock<ClientDetailsEntity>()
         whenever(mockedClient2.clientId).thenReturn("mocked_client_2")
@@ -559,7 +492,7 @@ class TestMITREidDataService_1_3 {
         val token2 = OAuth2AccessTokenEntity(
             id = 2L,
             client = mockedClient2,
-            expiration = expirationDate2,
+            expirationInstant = expirationDate2,
             jwt = JWTParser.parse("eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjE0MTI3OTI5NjgsImF1ZCI6WyJjbGllbnQiXSwiaXNzIjoiaHR0cDpcL1wvbG9jYWxob3N0OjgwODBcL29wZW5pZC1jb25uZWN0LXNlcnZlci13ZWJhcHBcLyIsImp0aSI6IjBmZGE5ZmRiLTYyYzItNGIzZS05OTdiLWU0M2VhMDUwMzNiOSIsImlhdCI6MTQxMjc4OTM2OH0.xgaVpRLYE5MzbgXfE0tZt823tjAm6Oh3_kdR1P2I9jRLR6gnTlBQFlYi3Y_0pWNnZSerbAE8Tn6SJHZ9k-curVG0-ByKichV7CNvgsE5X_2wpEaUzejvKf8eZ-BammRY-ie6yxSkAarcUGMvGGOLbkFcz5CtrBpZhfd75J49BIQ"),
             authenticationHolder = mockedAuthHolder2,
             refreshToken = mockRefreshToken2,
@@ -1108,8 +1041,8 @@ class TestMITREidDataService_1_3 {
     @Test
     @Throws(IOException::class, ParseException::class)
     fun testExportGrants() {
-        val creationDate1 = formatter.parse("2014-09-10T22:49:44.090+00:00", Locale.ENGLISH)
-        val accessDate1 = formatter.parse("2014-09-10T23:49:44.090+00:00", Locale.ENGLISH)
+        val creationDate1 = Instant.from(formatter.parse("2014-09-10T22:49:44.090+00:00"))
+        val accessDate1 = Instant.from(formatter.parse("2014-09-10T23:49:44.090+00:00"))
 
         val mockToken1 = mock<OAuth2AccessTokenEntity>()
         whenever(mockToken1.id).thenReturn(1L)
@@ -1124,9 +1057,9 @@ class TestMITREidDataService_1_3 {
         )
         whenever(mockToken1.approvedSite).thenReturn(site1)
 
-        val creationDate2 = formatter.parse("2014-09-11T18:49:44.090+00:00", Locale.ENGLISH)
-        val accessDate2 = formatter.parse("2014-09-11T20:49:44.090+00:00", Locale.ENGLISH)
-        val timeoutDate2 = formatter.parse("2014-10-01T20:49:44.090+00:00", Locale.ENGLISH)
+        val creationDate2 = Instant.from(formatter.parse("2014-09-11T18:49:44.090+00:00"))
+        val accessDate2 = Instant.from(formatter.parse("2014-09-11T20:49:44.090+00:00"))
+        val timeoutDate2 = Instant.from(formatter.parse("2014-10-01T20:49:44.090+00:00"))
 
         val site2 = ApprovedSite(
             id = 2L,
@@ -1201,12 +1134,12 @@ class TestMITREidDataService_1_3 {
                 fail("Could not find matching whitelisted site id: " + site["id"].asString())
             } else {
                 assertEquals(compare.clientId, site["clientId"].asString())
-                assertEquals(formatter.print(compare.creationDate, Locale.ENGLISH), site["creationDate"].asString())
-                assertEquals(formatter.print(compare.accessDate, Locale.ENGLISH), site["accessDate"].asString())
+                assertEquals(formatter.format(compare.creationDate), site["creationDate"].asString())
+                assertEquals(formatter.format(compare.accessDate), site["accessDate"].asString())
                 if (site["timeoutDate"] is JsonNull) {
                     assertNull(compare.timeoutDate)
                 } else {
-                    assertEquals(formatter.print(compare.timeoutDate, Locale.ENGLISH), site["timeoutDate"].asString())
+                    assertEquals(formatter.format(compare.timeoutDate), site["timeoutDate"].asString())
                 }
                 assertEquals(compare.userId, site["userId"].asString())
                 assertEquals(compare.allowedScopes, jsonArrayToStringSet(site["allowedScopes"]!!.jsonArray))
@@ -1220,8 +1153,8 @@ class TestMITREidDataService_1_3 {
     @Test
     @Throws(IOException::class, ParseException::class)
     fun testImportGrants() {
-        val creationDate1 = formatter.parse("2014-09-10T22:49:44.090+00:00", Locale.ENGLISH)
-        val accessDate1 = formatter.parse("2014-09-10T23:49:44.090+00:00", Locale.ENGLISH)
+        val creationDate1 = Instant.from(formatter.parse("2014-09-10T22:49:44.090+00:00"))
+        val accessDate1 = Instant.from(formatter.parse("2014-09-10T23:49:44.090+00:00"))
 
         val mockToken1 = mock<OAuth2AccessTokenEntity>()
         whenever(mockToken1.id).thenReturn(1L)
@@ -1236,9 +1169,9 @@ class TestMITREidDataService_1_3 {
         )
         whenever(mockToken1.approvedSite).thenReturn(site1)
 
-        val creationDate2 = formatter.parse("2014-09-11T18:49:44.090+00:00", Locale.ENGLISH)
-        val accessDate2 = formatter.parse("2014-09-11T20:49:44.090+00:00", Locale.ENGLISH)
-        val timeoutDate2 = formatter.parse("2014-10-01T20:49:44.090+00:00", Locale.ENGLISH)
+        val creationDate2 = instant("2014-09-11T18:49:44.090+00:00")
+        val accessDate2 = instant("2014-09-11T20:49:44.090+00:00")
+        val timeoutDate2 = instant("2014-10-01T20:49:44.090+00:00")
 
         val site2 = ApprovedSite(
             id = 2L,
@@ -1700,8 +1633,7 @@ class TestMITREidDataService_1_3 {
     @Test
     @Throws(IOException::class, ParseException::class)
     fun testFixRefreshTokenAuthHolderReferencesOnImport() {
-        val expiration1 = "2014-09-10T22:49:44.090+00:00"
-        val expirationDate1 = formatter.parse(expiration1, Locale.ENGLISH)
+        val expirationDate1 = Instant.from(formatter.parse("2014-09-10T22:49:44.090+00:00"))
 
         val mockedClient1 = mock<ClientDetailsEntity>()
         whenever(mockedClient1.clientId).thenReturn("mocked_client_1")
@@ -1721,13 +1653,12 @@ class TestMITREidDataService_1_3 {
         val token1 = OAuth2RefreshTokenEntity()
         token1.id = 1L
         token1.client = mockedClient1
-        token1.expiration = expirationDate1
+        token1.expirationInstant = expirationDate1
         token1.jwt =
             JWTParser.parse("eyJhbGciOiJub25lIn0.eyJqdGkiOiJmOTg4OWQyOS0xMTk1LTQ4ODEtODgwZC1lZjVlYzAwY2Y4NDIifQ.")
         token1.authenticationHolder = holder1
 
-        val expiration2 = "2015-01-07T18:31:50.079+00:00"
-        val expirationDate2 = formatter.parse(expiration2, Locale.ENGLISH)
+        val expirationDate2 = Instant.from(formatter.parse("2015-01-07T18:31:50.079+00:00"))
 
         val mockedClient2 = mock<ClientDetailsEntity>()
         whenever(mockedClient2.clientId).thenReturn("mocked_client_2")
@@ -1747,7 +1678,7 @@ class TestMITREidDataService_1_3 {
         val token2 = OAuth2RefreshTokenEntity()
         token2.id = 2L
         token2.client = mockedClient2
-        token2.expiration = expirationDate2
+        token2.expirationInstant = expirationDate2
         token2.jwt =
             JWTParser.parse("eyJhbGciOiJub25lIn0.eyJqdGkiOiJlYmEyYjc3My0xNjAzLTRmNDAtOWQ3MS1hMGIxZDg1OWE2MDAifQ.")
         token2.authenticationHolder = holder2

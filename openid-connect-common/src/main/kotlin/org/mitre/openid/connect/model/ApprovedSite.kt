@@ -21,13 +21,8 @@ import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.mitre.openid.connect.model.ApprovedSite.Companion.PARAM_CLIENT_ID
-import org.mitre.openid.connect.model.ApprovedSite.Companion.PARAM_USER_ID
-import org.mitre.openid.connect.model.ApprovedSite.Companion.QUERY_ALL
-import org.mitre.openid.connect.model.ApprovedSite.Companion.QUERY_BY_CLIENT_ID
-import org.mitre.openid.connect.model.ApprovedSite.Companion.QUERY_BY_CLIENT_ID_AND_USER_ID
-import org.mitre.openid.connect.model.ApprovedSite.Companion.QUERY_BY_USER_ID
-import org.mitre.openid.connect.model.convert.ISODate
+import org.mitre.openid.connect.model.convert.ISOInstant
+import java.time.Instant
 import java.util.*
 
 //    NamedQuery(name = QUERY_ALL, query = "select a from ApprovedSite a"),
@@ -45,11 +40,29 @@ class ApprovedSite(
     var id: Long? = null,
     var userId: String?,
     var clientId: String?,
-    var creationDate: ISODate? = null,
-    var accessDate: ISODate? = null,
-    var timeoutDate: ISODate? = null,
+    var creationDate: ISOInstant? = null,
+    var accessDate: ISOInstant? = null,
+    var timeoutDate: ISOInstant? = null,
     var allowedScopes: Set<String> = emptySet(),
 ) {
+
+    constructor(
+        id: Long? = null,
+        userId: String?,
+        clientId: String?,
+        creationDate: Date?,
+        accessDate: Date? = null,
+        timeoutDate: Date? = null,
+        allowedScopes: Set<String> = emptySet(),
+    ): this(
+        id = id,
+        userId = userId,
+        clientId = clientId,
+        creationDate = creationDate?.toInstant(),
+        accessDate = accessDate?.toInstant(),
+        timeoutDate = timeoutDate?.toInstant(),
+        allowedScopes = allowedScopes,
+    )
 
     /**
      * Has this approval expired?
@@ -58,7 +71,7 @@ class ApprovedSite(
         get() {
             return when (val timeoutDate = timeoutDate) {
                 null -> false
-                else -> Date().after(timeoutDate)
+                else -> Instant.now().isAfter(timeoutDate)
             }
         }
 
@@ -68,13 +81,13 @@ class ApprovedSite(
         @EncodeDefault @SerialName("id")
         val currentId: Long,
         @EncodeDefault @SerialName("accessDate")
-        val accessDate: ISODate? = null,
+        val accessDate: ISOInstant? = null,
         @EncodeDefault @SerialName("clientId")
         val clientId: String,
         @EncodeDefault @SerialName("creationDate")
-        val creationDate: ISODate? = null,
+        val creationDate: ISOInstant? = null,
         @EncodeDefault @SerialName("timeoutDate")
-        val timeoutDate: ISODate? = null,
+        val timeoutDate: ISOInstant? = null,
         @EncodeDefault @SerialName("userId")
         val userId: String? = null,
         @EncodeDefault @SerialName("allowedScopes")

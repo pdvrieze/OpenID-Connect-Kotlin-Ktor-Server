@@ -33,7 +33,7 @@ import kotlinx.serialization.json.put
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.view.respondJson
 import org.mitre.openid.connect.service.MITREidDataService
-import org.mitre.openid.connect.service.impl.MITREidDataService_1_3
+import org.mitre.openid.connect.service.impl.ktor.MITREidDataService_1_3
 import org.mitre.util.getLogger
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.openIdContext
@@ -56,7 +56,7 @@ class DataAPI(
     val exporter : MITREidDataService_1_3,
 ) : KtorEndpoint {
 
-    private constructor(service: MITREidDataService_1_3 = MITREidDataService_1_3()): this(listOf(service), service)
+    private constructor(service: MITREidDataService_1_3): this(listOf(service), service)
 
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
 

@@ -25,7 +25,6 @@ import org.apache.http.impl.client.HttpClientBuilder
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.openid.connect.model.CachedImage
 import org.mitre.openid.connect.service.ClientLogoLoadingService
-import org.springframework.stereotype.Service
 import java.io.IOException
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
@@ -33,7 +32,6 @@ import java.util.concurrent.TimeUnit
 /**
  * @author jricher
  */
-@Service("inMemoryClientLogoLoadingService")
 class InMemoryClientLogoLoadingService(
     httpClient: HttpClient = HttpClientBuilder.create().useSystemProperties().build()
 ) : ClientLogoLoadingService {

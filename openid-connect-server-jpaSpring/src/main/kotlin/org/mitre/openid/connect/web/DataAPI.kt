@@ -24,7 +24,7 @@ import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.encodeToStream
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.service.MITREidDataService
-import org.mitre.openid.connect.service.impl.MITREidDataService_1_3
+import org.mitre.openid.connect.service.impl.spring.MITREidDataService_1_3
 import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType

@@ -13,21 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mitre.openid.connect.service.impl
+package org.mitre.openid.connect.service.impl.ktor
 
 import org.mitre.openid.connect.service.LoginHintExtracter
 import org.mitre.openid.connect.service.UserInfoService
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
 
 /**
  * Checks the login hint against the User Info collection, only populates it if a user is found.
  * @author jricher
  */
-@Component
-class MatchLoginHintsAgainstUsers : LoginHintExtracter {
-    @Autowired
-    private lateinit var userInfoService: UserInfoService
+class MatchLoginHintsAgainstUsers(
+    private val userInfoService: UserInfoService
+) : LoginHintExtracter {
+
 
     /* (non-Javadoc)
 	 * @see org.mitre.openid.connect.service.LoginHintTester#useHint(java.lang.String)

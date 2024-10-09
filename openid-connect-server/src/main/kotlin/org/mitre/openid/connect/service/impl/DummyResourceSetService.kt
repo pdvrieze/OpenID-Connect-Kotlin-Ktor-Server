@@ -18,7 +18,6 @@ package org.mitre.openid.connect.service.impl
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.uma.model.ResourceSet
 import org.mitre.uma.service.ResourceSetService
-import org.springframework.stereotype.Service
 
 /**
  * Dummy resource set service that doesn't do anything; acts as a stub for the
@@ -26,7 +25,6 @@ import org.springframework.stereotype.Service
  *
  * @author jricher
  */
-@Service
 class DummyResourceSetService : ResourceSetService {
     override fun saveNew(rs: ResourceSet): ResourceSet {
         throw UnsupportedOperationException()

@@ -20,23 +20,12 @@ package org.mitre.openid.connect.service.impl
 import org.mitre.openid.connect.model.BlacklistedSite
 import org.mitre.openid.connect.repository.BlacklistedSiteRepository
 import org.mitre.openid.connect.service.BlacklistedSiteService
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 
 /**
  * @author jricher
  */
-@Service
-@Transactional(value = "defaultTransactionManager")
-class DefaultBlacklistedSiteService : BlacklistedSiteService {
-    @Autowired
-    private lateinit var repository: BlacklistedSiteRepository
-
-    @Deprecated("JPA only")
-    constructor()
-
-    constructor(repository: BlacklistedSiteRepository) { this.repository = repository }
+abstract class AbstractBlacklistedSiteService : BlacklistedSiteService {
+    protected abstract val repository: BlacklistedSiteRepository
 
     override val all: Collection<BlacklistedSite>
         /* (non-Javadoc)

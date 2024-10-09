@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mitre.openid.connect.service.impl
+package org.mitre.openid.connect.service.impl.spring
 
 import com.nimbusds.jose.Algorithm
 import com.nimbusds.jose.JWEHeader

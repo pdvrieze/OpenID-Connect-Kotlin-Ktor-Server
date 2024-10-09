@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mitre.openid.connect.service.impl
+package org.mitre.openid.connect.service.impl.ktor
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
@@ -29,8 +29,7 @@ import org.mitre.openid.connect.model.DefaultUserInfo
 import org.mitre.openid.connect.model.UserInfo
 import org.mitre.openid.connect.repository.UserInfoRepository
 import org.mitre.openid.connect.service.PairwiseIdentifierService
-import org.mockito.InjectMocks
-import org.mockito.Mock
+import org.mockito.Mockito.mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.isA
 import org.mockito.kotlin.never
@@ -41,18 +40,13 @@ import org.mockito.kotlin.whenever
  * @author jricher
  */
 @ExtendWith(MockitoExtension::class)
-class TestDefaultUserInfoService {
-    @InjectMocks
-    private val service = DefaultUserInfoService()
+class TestKtorUserInfoService {
 
-    @Mock
-    private lateinit var userInfoRepository: UserInfoRepository
+    private val userInfoRepository = mock<UserInfoRepository>()
+    private val clientDetailsEntityService = mock<ClientDetailsEntityService>()
+    private val pairwiseIdentiferService = mock<PairwiseIdentifierService>()
 
-    @Mock
-    private lateinit var clientDetailsEntityService: ClientDetailsEntityService
-
-    @Mock
-    private lateinit var pairwiseIdentiferService: PairwiseIdentifierService
+    private val service = DefaultUserInfoService(userInfoRepository, clientDetailsEntityService, pairwiseIdentiferService)
 
     private lateinit var userInfoAdmin: UserInfo
     private lateinit var userInfoRegular: UserInfo

@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mitre.openid.connect.service.impl
+package org.mitre.openid.connect.service.impl.ktor
 
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
@@ -32,8 +32,6 @@ import org.mitre.openid.connect.service.MITREidDataService.Companion.warnIgnored
 import org.mitre.openid.connect.service.MITREidDataServiceExtension
 import org.mitre.openid.connect.service.MITREidDataServiceMaps
 import org.mitre.util.getLogger
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Service
 
 /**
  *
@@ -42,31 +40,16 @@ import org.springframework.stereotype.Service
  * @author jricher
  * @author arielak
  */
-@Service
-class MITREidDataService_1_0 : MITREidDataService {
-    @Autowired
-    private lateinit var clientRepository: OAuth2ClientRepository
-
-    @Autowired
-    private lateinit var approvedSiteRepository: ApprovedSiteRepository
-
-    @Autowired
-    private lateinit var wlSiteRepository: WhitelistedSiteRepository
-
-    @Autowired
-    private lateinit var blSiteRepository: BlacklistedSiteRepository
-
-    @Autowired
-    private lateinit var authHolderRepository: AuthenticationHolderRepository
-
-    @Autowired
-    private lateinit var tokenRepository: OAuth2TokenRepository
-
-    @Autowired
-    private lateinit var sysScopeRepository: SystemScopeRepository
-
-    @Autowired(required = false)
-    private var extensions: List<MITREidDataServiceExtension> = emptyList<MITREidDataServiceExtension>()
+class MITREidDataService_1_0(
+    private val clientRepository: OAuth2ClientRepository,
+    private val approvedSiteRepository: ApprovedSiteRepository,
+    private val wlSiteRepository: WhitelistedSiteRepository,
+    private val blSiteRepository: BlacklistedSiteRepository,
+    private val authHolderRepository: AuthenticationHolderRepository,
+    private val tokenRepository: OAuth2TokenRepository,
+    private val sysScopeRepository: SystemScopeRepository,
+    private var extensions: List<MITREidDataServiceExtension> = emptyList(),
+) : MITREidDataService {
 
     private val maps: MITREidDataServiceMaps = MITREidDataServiceMaps()
 
