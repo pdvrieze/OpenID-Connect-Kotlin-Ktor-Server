@@ -630,6 +630,80 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
         assertEquals(site2.allowedScopes, savedSites[1].allowedScopes)
         assertEquals(site2.timeoutDate, savedSites[1].timeoutDate)
     }
+
+    protected fun testImportAuthenticationHolders(wrapAuthentication:Boolean) {
+        val req1 = OAuth2Request(
+            clientId = "client1",
+            isApproved = true,
+            redirectUri = "http://foo.com",
+        )
+        val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
+        val auth1 = OAuth2RequestAuthentication(req1, mockAuth1)
+
+        val holder1 = AuthenticationHolderEntity()
+        holder1.id = 1L
+        holder1.authentication = auth1
+
+        val req2 = OAuth2Request(
+            clientId = "client2",
+            isApproved =  true,
+            redirectUri = "http://bar.com",
+        )
+        val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
+        val auth2 = OAuth2RequestAuthentication(req2, mockAuth2)
+
+        val holder2 = AuthenticationHolderEntity()
+        holder2.id = 2L
+        holder2.authentication = auth2
+
+        val configJson = (buildString {
+            append("{")
+            append("\"$CLIENTS\": [], ")
+            append("\"$ACCESSTOKENS\": [], ")
+            append("\"$REFRESHTOKENS\": [], ")
+            append("\"$GRANTS\": [], ")
+            append("\"$WHITELISTEDSITES\": [], ")
+            append("\"$BLACKLISTEDSITES\": [], ")
+            append("\"$SYSTEMSCOPES\": [], ")
+            append("\"$AUTHENTICATIONHOLDERS\": [")
+            if (wrapAuthentication) {
+                append("{\"id\":1,\"authentication\":{\"clientAuthorization\":{\"clientId\":\"client1\",\"redirectUri\":\"http://foo.com\"},\"userAuthentication\":null}},")
+                append("{\"id\":2,\"authentication\":{\"clientAuthorization\":{\"clientId\":\"client2\",\"redirectUri\":\"http://bar.com\"},\"userAuthentication\":null}}")
+            } else {
+                append("{\"id\":1,\"clientId\":\"client1\",\"redirectUri\":\"http://foo.com\",\"savedUserAuthentication\":null},")
+                append("{\"id\":2,\"clientId\":\"client2\",\"redirectUri\":\"http://bar.com\",\"savedUserAuthentication\":null}")
+            }
+            append("  ]")
+            append("}")
+        })
+
+        System.err.println(configJson)
+
+        val fakeDb: MutableMap<Long, AuthenticationHolderEntity> = HashMap()
+        whenever(authHolderRepository.save(isA<AuthenticationHolderEntity>()))
+            .thenAnswer(object : Answer<AuthenticationHolderEntity> {
+                var id: Long = 356L
+
+                @Throws(Throwable::class)
+                override fun answer(invocation: InvocationOnMock): AuthenticationHolderEntity {
+                    val _holder = invocation.arguments[0] as AuthenticationHolderEntity
+                    val hid = _holder.id ?: id++.also { _holder.id = it }
+                    fakeDb[hid] = _holder
+                    return _holder
+                }
+            })
+
+        dataService.importData(configJson)
+
+        verify(authHolderRepository, times(2)).save(capture(capturedAuthHolders))
+
+        val savedAuthHolders = capturedAuthHolders.allValues
+
+        assertEquals(2, savedAuthHolders.size)
+        assertEquals(holder1.authentication.oAuth2Request.clientId, savedAuthHolders[0].authentication.oAuth2Request.clientId)
+        assertEquals(holder2.authentication.oAuth2Request.clientId, savedAuthHolders[1].authentication.oAuth2Request.clientId)
+    }
+
     protected class refreshTokenIdComparator : Comparator<OAuth2RefreshTokenEntity> {
         override fun compare(entity1: OAuth2RefreshTokenEntity, entity2: OAuth2RefreshTokenEntity): Int {
             return entity1.id!!.compareTo(entity2.id!!)

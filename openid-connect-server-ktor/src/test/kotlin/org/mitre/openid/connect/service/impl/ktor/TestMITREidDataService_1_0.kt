@@ -25,13 +25,11 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
-import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.convert.OAuth2Request
-import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.openid.connect.service.MITREidDataService.Companion.ACCESSTOKENS
 import org.mitre.openid.connect.service.MITREidDataService.Companion.AUTHENTICATIONHOLDERS
 import org.mitre.openid.connect.service.MITREidDataService.Companion.BLACKLISTEDSITES
@@ -46,7 +44,6 @@ import org.mockito.invocation.InvocationOnMock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.junit.jupiter.MockitoSettings
 import org.mockito.kotlin.capture
-import org.mockito.kotlin.eq
 import org.mockito.kotlin.isA
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
@@ -103,73 +100,7 @@ class TestMITREidDataService_1_0 : TestMITREiDDataServiceBase<MITREidDataService
     @Test
     @Throws(IOException::class)
     fun testImportAuthenticationHolders() {
-        val req1 = OAuth2Request(
-            clientId = "client1",
-            isApproved = true,
-            redirectUri = "http://foo.com",
-        )
-        val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
-        val auth1 = OAuth2RequestAuthentication(req1, mockAuth1)
-
-        val holder1 = AuthenticationHolderEntity()
-        holder1.id = 1L
-        holder1.authentication = auth1
-
-        val req2 = OAuth2Request(
-            clientId = "client2",
-            isApproved =  true,
-            redirectUri = "http://bar.com",
-        )
-        val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
-        val auth2 = OAuth2RequestAuthentication(req2, mockAuth2)
-
-        val holder2 = AuthenticationHolderEntity()
-        holder2.id = 2L
-        holder2.authentication = auth2
-
-        val configJson = ("{" +
-                "\"$CLIENTS\": [], " +
-                "\"$ACCESSTOKENS\": [], " +
-                "\"$REFRESHTOKENS\": [], " +
-                "\"$GRANTS\": [], " +
-                "\"$WHITELISTEDSITES\": [], " +
-                "\"$BLACKLISTEDSITES\": [], " +
-                "\"$SYSTEMSCOPES\": [], " +
-                "\"$AUTHENTICATIONHOLDERS\": [" +
-                "{\"id\":1,\"authentication\":{\"clientAuthorization\":{\"clientId\":\"client1\",\"redirectUri\":\"http://foo.com\"},"
-                + "\"userAuthentication\":null}}," +
-                "{\"id\":2,\"authentication\":{\"clientAuthorization\":{\"clientId\":\"client2\",\"redirectUri\":\"http://bar.com\"},"
-                + "\"userAuthentication\":null}}" +
-                "  ]" +
-                "}")
-
-        System.err.println(configJson)
-
-        val fakeDb: MutableMap<Long?, AuthenticationHolderEntity> = HashMap()
-        whenever<AuthenticationHolderEntity>(authHolderRepository.save(isA<AuthenticationHolderEntity>()))
-            .thenAnswer(object : Answer<AuthenticationHolderEntity> {
-                var id: Long = 356L
-
-                @Throws(Throwable::class)
-                override fun answer(invocation: InvocationOnMock): AuthenticationHolderEntity {
-                    val _holder = invocation.arguments[0] as AuthenticationHolderEntity
-                    if (_holder.id == null) {
-                        _holder.id = id++
-                    }
-                    fakeDb[_holder.id] = _holder
-                    return _holder
-                }
-            })
-
-        dataService.importData(configJson)
-
-        verify(authHolderRepository, times(2)).save(capture(capturedAuthHolders))
-
-        val savedAuthHolders = capturedAuthHolders.allValues
-
-        assertEquals(2, savedAuthHolders.size)
-        assertEquals(holder1.authentication.oAuth2Request.clientId, savedAuthHolders[0].authentication.oAuth2Request.clientId)
-        assertEquals(holder2.authentication.oAuth2Request.clientId, savedAuthHolders[1].authentication.oAuth2Request.clientId)
+        testImportAuthenticationHolders(true)
     }
 
     @Test

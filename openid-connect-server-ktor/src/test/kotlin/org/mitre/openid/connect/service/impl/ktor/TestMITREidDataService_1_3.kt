@@ -230,85 +230,18 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
     }
 
     @Test
-    @Throws(IOException::class)
     override fun testImportWhitelistedSites() {
         super.testImportWhitelistedSites()
     }
 
     @Test
-    @Throws(IOException::class, ParseException::class)
     override fun testImportGrants() {
         super.testImportGrants()
     }
 
     @Test
-    @Throws(IOException::class)
     fun testImportAuthenticationHolders() {
-        val req1 = OAuth2Request(
-            clientId = "client1",
-            isApproved = true,
-            redirectUri = "http://foo.com",
-        )
-        val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
-        val auth1 = OAuth2RequestAuthentication(req1, mockAuth1)
-
-        val holder1 = AuthenticationHolderEntity()
-        holder1.id = 1L
-        holder1.authentication = auth1
-
-        val req2 = OAuth2Request(
-            clientId = "client2",
-            isApproved = true,
-            redirectUri = "http://bar.com",
-        )
-        val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
-        val auth2 = OAuth2RequestAuthentication(req2, mockAuth2)
-
-        val holder2 = AuthenticationHolderEntity()
-        holder2.id = 2L
-        holder2.authentication = auth2
-
-        val configJson = ("{" +
-                "\"" + CLIENTS + "\": [], " +
-                "\"" + ACCESSTOKENS + "\": [], " +
-                "\"" + REFRESHTOKENS + "\": [], " +
-                "\"" + GRANTS + "\": [], " +
-                "\"" + WHITELISTEDSITES + "\": [], " +
-                "\"" + BLACKLISTEDSITES + "\": [], " +
-                "\"" + SYSTEMSCOPES + "\": [], " +
-                "\"" + AUTHENTICATIONHOLDERS + "\": [" +
-                "{\"id\":1,\"clientId\":\"client1\",\"redirectUri\":\"http://foo.com\","
-                + "\"savedUserAuthentication\":null}," +
-                "{\"id\":2,\"clientId\":\"client2\",\"redirectUri\":\"http://bar.com\","
-                + "\"savedUserAuthentication\":null}" +
-                "  ]" +
-                "}")
-
-        logger.debug(configJson)
-
-        val fakeDb: MutableMap<Long, AuthenticationHolderEntity> = HashMap()
-        whenever<AuthenticationHolderEntity>(authHolderRepository.save(isA<AuthenticationHolderEntity>()))
-            .thenAnswer(object : Answer<AuthenticationHolderEntity> {
-                var id: Long = 243L
-
-                @Throws(Throwable::class)
-                override fun answer(invocation: InvocationOnMock): AuthenticationHolderEntity {
-                    val _site = invocation.arguments[0] as AuthenticationHolderEntity
-                    val id = _site.id ?: id++.also { _site.id = it }
-                    fakeDb[id] = _site
-                    return _site
-                }
-            })
-
-        dataService.importData(configJson)
-
-        verify(authHolderRepository, times(2)).save(capture(capturedAuthHolders))
-
-        val savedAuthHolders = capturedAuthHolders.allValues
-
-        assertEquals(2, savedAuthHolders.size)
-        assertEquals(holder1.authentication.oAuth2Request.clientId, savedAuthHolders[0].authentication.oAuth2Request.clientId)
-        assertEquals(holder2.authentication.oAuth2Request.clientId, savedAuthHolders[1].authentication.oAuth2Request.clientId)
+        testImportAuthenticationHolders(false)
     }
 
     @Test
