@@ -73,8 +73,8 @@ import java.text.ParseException
 import java.time.Instant
 import java.util.*
 
-@MockitoSettings(strictness = Strictness.WARN)
 @ExtendWith(MockitoExtension::class)
+@MockitoSettings(strictness = Strictness.WARN)
 class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService_1_3>() {
 
     @Captor
@@ -216,7 +216,287 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
     }
 
     @Test
+    override fun testImportAccessTokens() {
+        super.testImportAccessTokens()
+    }
+
+    @Test
+    override fun testImportClients() {
+        super.testImportClients()
+    }
+
+    @Test
+    override fun testImportBlacklistedSites() {
+        super.testImportBlacklistedSites()
+    }
+
+    @Test
+    @Throws(IOException::class)
+    override fun testImportWhitelistedSites() {
+        super.testImportWhitelistedSites()
+    }
+
+    @Test
     @Throws(IOException::class, ParseException::class)
+    fun testImportGrants() {
+        val creationDate1 = Instant.from(formatter.parse("2014-09-10T22:49:44.090+00:00"))
+        val accessDate1 = Instant.from(formatter.parse("2014-09-10T23:49:44.090+00:00"))
+
+        val mockToken1 = mock<OAuth2AccessTokenEntity>()
+        whenever(mockToken1.id).thenReturn(1L)
+
+        val site1 = ApprovedSite(
+            id = 1L,
+            clientId = "foo",
+            creationDate = creationDate1,
+            accessDate = accessDate1,
+            userId = "user1",
+            allowedScopes = setOf("openid", "phone"),
+        )
+        whenever(mockToken1.approvedSite).thenReturn(site1)
+
+        val creationDate2 = instant("2014-09-11T18:49:44.090+00:00")
+        val accessDate2 = instant("2014-09-11T20:49:44.090+00:00")
+        val timeoutDate2 = instant("2014-10-01T20:49:44.090+00:00")
+
+        val site2 = ApprovedSite(
+            id = 2L,
+            clientId = "bar",
+            creationDate = creationDate2,
+            accessDate = accessDate2,
+            userId = "user2",
+            allowedScopes = setOf("openid", "offline_access", "email", "profile"),
+            timeoutDate = timeoutDate2,
+        )
+
+        val configJson = ("{" +
+                "\"" + CLIENTS + "\": [], " +
+                "\"" + ACCESSTOKENS + "\": [], " +
+                "\"" + REFRESHTOKENS + "\": [], " +
+                "\"" + WHITELISTEDSITES + "\": [], " +
+                "\"" + BLACKLISTEDSITES + "\": [], " +
+                "\"" + SYSTEMSCOPES + "\": [], " +
+                "\"" + AUTHENTICATIONHOLDERS + "\": [], " +
+                "\"" + GRANTS + "\": [" +
+                "{\"id\":1,\"clientId\":\"foo\",\"creationDate\":\"2014-09-10T22:49:44.090+00:00\",\"accessDate\":\"2014-09-10T23:49:44.090+00:00\","
+                + "\"userId\":\"user1\",\"whitelistedSiteId\":null,\"allowedScopes\":[\"openid\",\"phone\"], \"whitelistedSiteId\":1,"
+                + "\"approvedAccessTokens\":[1]}," +
+                "{\"id\":2,\"clientId\":\"bar\",\"creationDate\":\"2014-09-11T18:49:44.090+00:00\",\"accessDate\":\"2014-09-11T20:49:44.090+00:00\","
+                + "\"timeoutDate\":\"2014-10-01T20:49:44.090+00:00\",\"userId\":\"user2\","
+                + "\"allowedScopes\":[\"openid\",\"offline_access\",\"email\",\"profile\"]}" +
+                "  ]" +
+                "}")
+
+        logger.debug(configJson)
+
+        val fakeDb: MutableMap<Long, ApprovedSite> = HashMap()
+        whenever(approvedSiteRepository.save(isA<ApprovedSite>()))
+            .thenAnswer(object : Answer<ApprovedSite> {
+                var id: Long = 364L
+
+                @Throws(Throwable::class)
+                override fun answer(invocation: InvocationOnMock): ApprovedSite {
+                    val _site = invocation.arguments[0] as ApprovedSite
+                    val id = _site.id ?: id++.also { _site.id = it }
+                    fakeDb[id] = _site
+                    return _site
+                }
+            })
+        whenever(approvedSiteRepository.getById(isA())).thenAnswer { invocation ->
+            val _id = invocation.arguments[0] as Long
+            fakeDb[_id]
+        }
+        whenever(wlSiteRepository.getById(isA()))
+            .thenAnswer(object : Answer<WhitelistedSite> {
+                var id: Long = 432L
+
+                @Throws(Throwable::class)
+                override fun answer(invocation: InvocationOnMock): WhitelistedSite {
+                    val _site = mock<WhitelistedSite>()
+                    whenever(_site.id).thenReturn(id++)
+                    return _site
+                }
+            })
+        whenever(tokenRepository.getAccessTokenById(isA()))
+            .thenAnswer(object : Answer<OAuth2AccessTokenEntity> {
+                var id: Long = 245L
+
+                @Throws(Throwable::class)
+                override fun answer(invocation: InvocationOnMock): OAuth2AccessTokenEntity {
+                    val _token = mock<OAuth2AccessTokenEntity>()
+                    whenever(_token.id).thenReturn(id++)
+                    return _token
+                }
+            })
+
+        maps.accessTokenOldToNewIdMap[1L] = 245L
+
+        dataService.importData(configJson)
+
+        //2 for sites, 1 for updating access token ref on #1
+        verify(approvedSiteRepository, times(3)).save(capture(capturedApprovedSites))
+
+        val savedSites: List<ApprovedSite> = fakeDb.values.toList()
+
+        assertEquals(2, savedSites.size)
+
+        assertEquals(site1.clientId, savedSites[0].clientId)
+        assertEquals(site1.accessDate, savedSites[0].accessDate)
+        assertEquals(site1.creationDate, savedSites[0].creationDate)
+        assertEquals(site1.allowedScopes, savedSites[0].allowedScopes)
+        assertEquals(site1.timeoutDate, savedSites[0].timeoutDate)
+
+        assertEquals(site2.clientId, savedSites[1].clientId)
+        assertEquals(site2.accessDate, savedSites[1].accessDate)
+        assertEquals(site2.creationDate, savedSites[1].creationDate)
+        assertEquals(site2.allowedScopes, savedSites[1].allowedScopes)
+        assertEquals(site2.timeoutDate, savedSites[1].timeoutDate)
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun testImportAuthenticationHolders() {
+        val req1 = OAuth2Request(
+            clientId = "client1",
+            isApproved = true,
+            redirectUri = "http://foo.com",
+        )
+        val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
+        val auth1 = OAuth2RequestAuthentication(req1, mockAuth1)
+
+        val holder1 = AuthenticationHolderEntity()
+        holder1.id = 1L
+        holder1.authentication = auth1
+
+        val req2 = OAuth2Request(
+            clientId = "client2",
+            isApproved = true,
+            redirectUri = "http://bar.com",
+        )
+        val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
+        val auth2 = OAuth2RequestAuthentication(req2, mockAuth2)
+
+        val holder2 = AuthenticationHolderEntity()
+        holder2.id = 2L
+        holder2.authentication = auth2
+
+        val configJson = ("{" +
+                "\"" + CLIENTS + "\": [], " +
+                "\"" + ACCESSTOKENS + "\": [], " +
+                "\"" + REFRESHTOKENS + "\": [], " +
+                "\"" + GRANTS + "\": [], " +
+                "\"" + WHITELISTEDSITES + "\": [], " +
+                "\"" + BLACKLISTEDSITES + "\": [], " +
+                "\"" + SYSTEMSCOPES + "\": [], " +
+                "\"" + AUTHENTICATIONHOLDERS + "\": [" +
+                "{\"id\":1,\"clientId\":\"client1\",\"redirectUri\":\"http://foo.com\","
+                + "\"savedUserAuthentication\":null}," +
+                "{\"id\":2,\"clientId\":\"client2\",\"redirectUri\":\"http://bar.com\","
+                + "\"savedUserAuthentication\":null}" +
+                "  ]" +
+                "}")
+
+        logger.debug(configJson)
+
+        val fakeDb: MutableMap<Long, AuthenticationHolderEntity> = HashMap()
+        whenever<AuthenticationHolderEntity>(authHolderRepository.save(isA<AuthenticationHolderEntity>()))
+            .thenAnswer(object : Answer<AuthenticationHolderEntity> {
+                var id: Long = 243L
+
+                @Throws(Throwable::class)
+                override fun answer(invocation: InvocationOnMock): AuthenticationHolderEntity {
+                    val _site = invocation.arguments[0] as AuthenticationHolderEntity
+                    val id = _site.id ?: id++.also { _site.id = it }
+                    fakeDb[id] = _site
+                    return _site
+                }
+            })
+
+        dataService.importData(configJson)
+
+        verify(authHolderRepository, times(2)).save(capture(capturedAuthHolders))
+
+        val savedAuthHolders = capturedAuthHolders.allValues
+
+        assertEquals(2, savedAuthHolders.size)
+        assertEquals(holder1.authentication.oAuth2Request.clientId, savedAuthHolders[0].authentication.oAuth2Request.clientId)
+        assertEquals(holder2.authentication.oAuth2Request.clientId, savedAuthHolders[1].authentication.oAuth2Request.clientId)
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun testImportSystemScopes() {
+        val scope1 = SystemScope(
+            id = 1L,
+            value = "scope1",
+            description = "Scope 1",
+            isRestricted = true,
+            isDefaultScope = false,
+            icon = "glass",
+        )
+
+        val scope2 = SystemScope(
+            id = 2L,
+            value = "scope2",
+            description = "Scope 2",
+            isRestricted = false,
+            isDefaultScope = false,
+            icon = "ball",
+        )
+
+        val scope3 = SystemScope(
+            id = 3L,
+            value = "scope3",
+            description = "Scope 3",
+            isRestricted = false,
+            isDefaultScope = true,
+            icon = "road",
+        )
+
+        val configJson = "{" +
+                "\"$CLIENTS\": [], " +
+                "\"$ACCESSTOKENS\": [], " +
+                "\"$REFRESHTOKENS\": [], " +
+                "\"$GRANTS\": [], " +
+                "\"$WHITELISTEDSITES\": [], " +
+                "\"$BLACKLISTEDSITES\": [], " +
+                "\"$AUTHENTICATIONHOLDERS\": [], " +
+                "\"$SYSTEMSCOPES\": [" +
+                "{\"id\":1,\"description\":\"Scope 1\",\"icon\":\"glass\",\"value\":\"scope1\",\"restricted\":true,\"defaultScope\":false}," +
+                "{\"id\":2,\"description\":\"Scope 2\",\"icon\":\"ball\",\"value\":\"scope2\",\"restricted\":false,\"defaultScope\":false}," +
+                "{\"id\":3,\"description\":\"Scope 3\",\"icon\":\"road\",\"value\":\"scope3\",\"restricted\":false,\"defaultScope\":true}" +
+                "  ]" +
+                "}"
+
+        logger.debug(configJson)
+
+        dataService.importData(configJson)
+
+        verify(sysScopeRepository, times(3)).save(capture(capturedScope))
+
+        val savedScopes = capturedScope.allValues
+
+        assertEquals(3, savedScopes.size)
+        assertEquals(scope1.value, savedScopes[0].value)
+        assertEquals(scope1.description, savedScopes[0].description)
+        assertEquals(scope1.icon, savedScopes[0].icon)
+        assertEquals(scope1.isDefaultScope, savedScopes[0].isDefaultScope)
+        assertEquals(scope1.isRestricted, savedScopes[0].isRestricted)
+
+        assertEquals(scope2.value, savedScopes[1].value)
+        assertEquals(scope2.description, savedScopes[1].description)
+        assertEquals(scope2.icon, savedScopes[1].icon)
+        assertEquals(scope2.isDefaultScope, savedScopes[1].isDefaultScope)
+        assertEquals(scope2.isRestricted, savedScopes[1].isRestricted)
+
+        assertEquals(scope3.value, savedScopes[2].value)
+        assertEquals(scope3.description, savedScopes[2].description)
+        assertEquals(scope3.icon, savedScopes[2].icon)
+        assertEquals(scope3.isDefaultScope, savedScopes[2].isDefaultScope)
+        assertEquals(scope3.isRestricted, savedScopes[2].isRestricted)
+    }
+
+    @Test
     fun testExportAccessTokens() {
         val expirationDate1 = Instant.from(formatter.parse("2014-09-10T22:49:44.090+00:00"))
 
@@ -344,18 +624,6 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
         assertTrue(checked.containsAll(allAccessTokens))
     }
 
-    private inner class accessTokenIdComparator : Comparator<OAuth2AccessTokenEntity> {
-        override fun compare(entity1: OAuth2AccessTokenEntity, entity2: OAuth2AccessTokenEntity): Int {
-            return entity1.id!!.compareTo(entity2.id!!)
-        }
-    }
-
-    @Test
-    @Throws(IOException::class, ParseException::class)
-    override fun testImportAccessTokens() {
-        super.testImportAccessTokens()
-    }
-
     @Test
     @Throws(IOException::class)
     fun testExportClients() {
@@ -462,80 +730,6 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
 
     @Test
     @Throws(IOException::class)
-    fun testImportClients() {
-        val client1 = ClientDetailsEntity(
-            id = 1L,
-            accessTokenValiditySeconds = 3600,
-            clientId = "client1",
-            clientSecret = "clientsecret1",
-            redirectUris = setOf("http://foo.com/"),
-            scope = hashSetOf("foo", "bar", "baz", "dolphin"),
-            authorizedGrantTypes = hashSetOf("implicit", "authorization_code", "urn:ietf:params:oauth:grant_type:redelegate", "refresh_token"),
-            isAllowIntrospection = true,
-        )
-
-        val client2 = ClientDetailsEntity(
-            id = 2L,
-            accessTokenValiditySeconds = 3600,
-            clientId = "client2",
-            clientSecret = "clientsecret2",
-            redirectUris = setOf("http://bar.baz.com/"),
-            scope = hashSetOf("foo", "dolphin", "electric-wombat"),
-            authorizedGrantTypes = hashSetOf("client_credentials", "urn:ietf:params:oauth:grant_type:redelegate"),
-            isAllowIntrospection = false,
-        )
-
-        val configJson = ("{" +
-                "\"" + SYSTEMSCOPES + "\": [], " +
-                "\"" + ACCESSTOKENS + "\": [], " +
-                "\"" + REFRESHTOKENS + "\": [], " +
-                "\"" + GRANTS + "\": [], " +
-                "\"" + WHITELISTEDSITES + "\": [], " +
-                "\"" + BLACKLISTEDSITES + "\": [], " +
-                "\"" + AUTHENTICATIONHOLDERS + "\": [], " +
-                "\"" + CLIENTS + "\": [" +
-                "{\"id\":1,\"accessTokenValiditySeconds\":3600,\"clientId\":\"client1\",\"secret\":\"clientsecret1\","
-                + "\"redirectUris\":[\"http://foo.com/\"],"
-                + "\"scope\":[\"foo\",\"bar\",\"baz\",\"dolphin\"],"
-                + "\"grantTypes\":[\"implicit\",\"authorization_code\",\"urn:ietf:params:oauth:grant_type:redelegate\",\"refresh_token\"],"
-                + "\"allowIntrospection\":true}," +
-                "{\"id\":2,\"accessTokenValiditySeconds\":3600,\"clientId\":\"client2\",\"secret\":\"clientsecret2\","
-                + "\"redirectUris\":[\"http://bar.baz.com/\"],"
-                + "\"scope\":[\"foo\",\"dolphin\",\"electric-wombat\"],"
-                + "\"grantTypes\":[\"client_credentials\",\"urn:ietf:params:oauth:grant_type:redelegate\"],"
-                + "\"allowIntrospection\":false}" +
-                "  ]" +
-                "}")
-
-        logger.debug(configJson)
-
-        dataService.importData(configJson)
-
-        verify(clientRepository, times(2)).saveClient(capture(capturedClients))
-
-        val savedClients = capturedClients.allValues
-
-        assertEquals(2, savedClients.size)
-
-        assertEquals(client1.accessTokenValiditySeconds, savedClients[0].accessTokenValiditySeconds)
-        assertEquals(client1.clientId, savedClients[0].clientId)
-        assertEquals(client1.clientSecret, savedClients[0].clientSecret)
-        assertEquals(client1.redirectUris, savedClients[0].redirectUris)
-        assertEquals(client1.scope, savedClients[0].scope)
-        assertEquals(client1.authorizedGrantTypes, savedClients[0].authorizedGrantTypes)
-        assertEquals(client1.isAllowIntrospection, savedClients[0].isAllowIntrospection)
-
-        assertEquals(client2.accessTokenValiditySeconds, savedClients[1].accessTokenValiditySeconds)
-        assertEquals(client2.clientId, savedClients[1].clientId)
-        assertEquals(client2.clientSecret, savedClients[1].clientSecret)
-        assertEquals(client2.redirectUris, savedClients[1].redirectUris)
-        assertEquals(client2.scope, savedClients[1].scope)
-        assertEquals(client2.authorizedGrantTypes, savedClients[1].authorizedGrantTypes)
-        assertEquals(client2.isAllowIntrospection, savedClients[1].isAllowIntrospection)
-    }
-
-    @Test
-    @Throws(IOException::class)
     fun testExportBlacklistedSites() {
         val site1 = BlacklistedSite(
             id = 1L,
@@ -626,46 +820,6 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
 
     @Test
     @Throws(IOException::class)
-    fun testImportBlacklistedSites() {
-        val site1 = BlacklistedSite(id = 1L, uri = "http://foo.com")
-
-        val site2 = BlacklistedSite(id = 2L, uri = "http://bar.com")
-
-        val site3 = BlacklistedSite(id = 3L, uri = "http://baz.com")
-
-        val configJson = "{" +
-                "\"" + CLIENTS + "\": [], " +
-                "\"" + ACCESSTOKENS + "\": [], " +
-                "\"" + REFRESHTOKENS + "\": [], " +
-                "\"" + GRANTS + "\": [], " +
-                "\"" + WHITELISTEDSITES + "\": [], " +
-                "\"" + SYSTEMSCOPES + "\": [], " +
-                "\"" + AUTHENTICATIONHOLDERS + "\": [], " +
-                "\"" + BLACKLISTEDSITES + "\": [" +
-                "{\"id\":1,\"uri\":\"http://foo.com\"}," +
-                "{\"id\":2,\"uri\":\"http://bar.com\"}," +
-                "{\"id\":3,\"uri\":\"http://baz.com\"}" +
-                "  ]" +
-                "}"
-
-
-        logger.debug(configJson)
-
-        dataService.importData(configJson)
-
-        verify(blSiteRepository, times(3)).save(capture(capturedBlacklistedSites))
-
-        val savedSites = capturedBlacklistedSites.allValues
-
-        assertEquals(3, savedSites.size)
-
-        assertEquals(site1.uri, savedSites[0].uri)
-        assertEquals(site2.uri, savedSites[1].uri)
-        assertEquals(site3.uri, savedSites[2].uri)
-    }
-
-    @Test
-    @Throws(IOException::class)
     fun testExportWhitelistedSites() {
         val site1 = WhitelistedSite()
         site1.id = 1L
@@ -749,70 +903,6 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
         }
         // make sure all of our clients were found
         assertTrue(checked.containsAll(allWhitelistedSites))
-    }
-
-    @Test
-    @Throws(IOException::class)
-    fun testImportWhitelistedSites() {
-        val site1 = WhitelistedSite()
-        site1.id = 1L
-        site1.clientId = "foo"
-
-        val site2 = WhitelistedSite()
-        site2.id = 2L
-        site2.clientId = "bar"
-
-        val site3 = WhitelistedSite()
-        site3.id = 3L
-        site3.clientId = "baz"
-
-        //site3.setAllowedScopes(null);
-        val configJson = "{" +
-                "\"" + CLIENTS + "\": [], " +
-                "\"" + ACCESSTOKENS + "\": [], " +
-                "\"" + REFRESHTOKENS + "\": [], " +
-                "\"" + GRANTS + "\": [], " +
-                "\"" + BLACKLISTEDSITES + "\": [], " +
-                "\"" + SYSTEMSCOPES + "\": [], " +
-                "\"" + AUTHENTICATIONHOLDERS + "\": [], " +
-                "\"" + WHITELISTEDSITES + "\": [" +
-                "{\"id\":1,\"clientId\":\"foo\"}," +
-                "{\"id\":2,\"clientId\":\"bar\"}," +
-                "{\"id\":3,\"clientId\":\"baz\"}" +
-                "  ]" +
-                "}"
-
-        logger.debug(configJson)
-
-        val fakeDb: MutableMap<Long, WhitelistedSite> = HashMap()
-        whenever<WhitelistedSite>(wlSiteRepository.save(isA<WhitelistedSite>()))
-            .thenAnswer(object : Answer<WhitelistedSite> {
-                var id: Long = 333L
-
-                @Throws(Throwable::class)
-                override fun answer(invocation: InvocationOnMock): WhitelistedSite {
-                    val _site = invocation.arguments[0] as WhitelistedSite
-                    val id = _site.id ?: id++.also { _site.id = it }
-                    fakeDb[id] = _site
-                    return _site
-                }
-            })
-        whenever(wlSiteRepository.getById(isA())).thenAnswer { invocation ->
-            val _id = invocation.arguments[0] as Long
-            fakeDb[_id]
-        }
-
-        dataService.importData(configJson)
-
-        verify(wlSiteRepository, times(3)).save(capture(capturedWhitelistedSites))
-
-        val savedSites = capturedWhitelistedSites.allValues
-
-        assertEquals(3, savedSites.size)
-
-        assertEquals(site1.clientId, savedSites[0].clientId)
-        assertEquals(site2.clientId, savedSites[1].clientId)
-        assertEquals(site3.clientId, savedSites[2].clientId)
     }
 
     @Test
@@ -925,123 +1015,6 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
         }
         // make sure all of our clients were found
         assertTrue(checked.containsAll(allApprovedSites))
-    }
-
-    @Test
-    @Throws(IOException::class, ParseException::class)
-    fun testImportGrants() {
-        val creationDate1 = Instant.from(formatter.parse("2014-09-10T22:49:44.090+00:00"))
-        val accessDate1 = Instant.from(formatter.parse("2014-09-10T23:49:44.090+00:00"))
-
-        val mockToken1 = mock<OAuth2AccessTokenEntity>()
-        whenever(mockToken1.id).thenReturn(1L)
-
-        val site1 = ApprovedSite(
-            id = 1L,
-            clientId = "foo",
-            creationDate = creationDate1,
-            accessDate = accessDate1,
-            userId = "user1",
-            allowedScopes = setOf("openid", "phone"),
-        )
-        whenever(mockToken1.approvedSite).thenReturn(site1)
-
-        val creationDate2 = instant("2014-09-11T18:49:44.090+00:00")
-        val accessDate2 = instant("2014-09-11T20:49:44.090+00:00")
-        val timeoutDate2 = instant("2014-10-01T20:49:44.090+00:00")
-
-        val site2 = ApprovedSite(
-            id = 2L,
-            clientId = "bar",
-            creationDate = creationDate2,
-            accessDate = accessDate2,
-            userId = "user2",
-            allowedScopes = setOf("openid", "offline_access", "email", "profile"),
-            timeoutDate = timeoutDate2,
-        )
-
-        val configJson = ("{" +
-                "\"" + CLIENTS + "\": [], " +
-                "\"" + ACCESSTOKENS + "\": [], " +
-                "\"" + REFRESHTOKENS + "\": [], " +
-                "\"" + WHITELISTEDSITES + "\": [], " +
-                "\"" + BLACKLISTEDSITES + "\": [], " +
-                "\"" + SYSTEMSCOPES + "\": [], " +
-                "\"" + AUTHENTICATIONHOLDERS + "\": [], " +
-                "\"" + GRANTS + "\": [" +
-                "{\"id\":1,\"clientId\":\"foo\",\"creationDate\":\"2014-09-10T22:49:44.090+00:00\",\"accessDate\":\"2014-09-10T23:49:44.090+00:00\","
-                + "\"userId\":\"user1\",\"whitelistedSiteId\":null,\"allowedScopes\":[\"openid\",\"phone\"], \"whitelistedSiteId\":1,"
-                + "\"approvedAccessTokens\":[1]}," +
-                "{\"id\":2,\"clientId\":\"bar\",\"creationDate\":\"2014-09-11T18:49:44.090+00:00\",\"accessDate\":\"2014-09-11T20:49:44.090+00:00\","
-                + "\"timeoutDate\":\"2014-10-01T20:49:44.090+00:00\",\"userId\":\"user2\","
-                + "\"allowedScopes\":[\"openid\",\"offline_access\",\"email\",\"profile\"]}" +
-                "  ]" +
-                "}")
-
-        logger.debug(configJson)
-
-        val fakeDb: MutableMap<Long, ApprovedSite> = HashMap()
-        whenever(approvedSiteRepository.save(isA<ApprovedSite>()))
-            .thenAnswer(object : Answer<ApprovedSite> {
-                var id: Long = 364L
-
-                @Throws(Throwable::class)
-                override fun answer(invocation: InvocationOnMock): ApprovedSite {
-                    val _site = invocation.arguments[0] as ApprovedSite
-                    val id = _site.id ?: id++.also { _site.id = it }
-                    fakeDb[id] = _site
-                    return _site
-                }
-            })
-        whenever(approvedSiteRepository.getById(isA())).thenAnswer { invocation ->
-            val _id = invocation.arguments[0] as Long
-            fakeDb[_id]
-        }
-        whenever(wlSiteRepository.getById(isA()))
-            .thenAnswer(object : Answer<WhitelistedSite> {
-                var id: Long = 432L
-
-                @Throws(Throwable::class)
-                override fun answer(invocation: InvocationOnMock): WhitelistedSite {
-                    val _site = mock<WhitelistedSite>()
-                    whenever(_site.id).thenReturn(id++)
-                    return _site
-                }
-            })
-        whenever(tokenRepository.getAccessTokenById(isA()))
-            .thenAnswer(object : Answer<OAuth2AccessTokenEntity> {
-                var id: Long = 245L
-
-                @Throws(Throwable::class)
-                override fun answer(invocation: InvocationOnMock): OAuth2AccessTokenEntity {
-                    val _token = mock<OAuth2AccessTokenEntity>()
-                    whenever(_token.id).thenReturn(id++)
-                    return _token
-                }
-            })
-
-        maps.accessTokenOldToNewIdMap[1L] = 245L
-
-        dataService.importData(configJson)
-
-        //2 for sites, 1 for updating access token ref on #1
-        verify(approvedSiteRepository, times(3)).save(capture(capturedApprovedSites))
-
-        val savedSites: List<ApprovedSite> = fakeDb.values.toList()
-
-        assertEquals(2, savedSites.size)
-
-        assertEquals(site1.clientId, savedSites[0].clientId)
-        assertEquals(site1.accessDate, savedSites[0].accessDate)
-        assertEquals(site1.creationDate, savedSites[0].creationDate)
-        assertEquals(site1.allowedScopes, savedSites[0].allowedScopes)
-        assertEquals(site1.timeoutDate, savedSites[0].timeoutDate)
-
-        assertEquals(site2.clientId, savedSites[1].clientId)
-        assertEquals(site2.accessDate, savedSites[1].accessDate)
-        assertEquals(site2.creationDate, savedSites[1].creationDate)
-        assertEquals(site2.allowedScopes, savedSites[1].allowedScopes)
-        assertEquals(site2.timeoutDate, savedSites[1].timeoutDate)
     }
 
     @Test
@@ -1158,76 +1131,6 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
 
     @Test
     @Throws(IOException::class)
-    fun testImportAuthenticationHolders() {
-        val req1 = OAuth2Request(
-            clientId = "client1",
-            isApproved = true,
-            redirectUri = "http://foo.com",
-        )
-        val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
-        val auth1 = OAuth2RequestAuthentication(req1, mockAuth1)
-
-        val holder1 = AuthenticationHolderEntity()
-        holder1.id = 1L
-        holder1.authentication = auth1
-
-        val req2 = OAuth2Request(
-            clientId = "client2",
-            isApproved = true,
-            redirectUri = "http://bar.com",
-        )
-        val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
-        val auth2 = OAuth2RequestAuthentication(req2, mockAuth2)
-
-        val holder2 = AuthenticationHolderEntity()
-        holder2.id = 2L
-        holder2.authentication = auth2
-
-        val configJson = ("{" +
-                "\"" + CLIENTS + "\": [], " +
-                "\"" + ACCESSTOKENS + "\": [], " +
-                "\"" + REFRESHTOKENS + "\": [], " +
-                "\"" + GRANTS + "\": [], " +
-                "\"" + WHITELISTEDSITES + "\": [], " +
-                "\"" + BLACKLISTEDSITES + "\": [], " +
-                "\"" + SYSTEMSCOPES + "\": [], " +
-                "\"" + AUTHENTICATIONHOLDERS + "\": [" +
-                "{\"id\":1,\"clientId\":\"client1\",\"redirectUri\":\"http://foo.com\","
-                + "\"savedUserAuthentication\":null}," +
-                "{\"id\":2,\"clientId\":\"client2\",\"redirectUri\":\"http://bar.com\","
-                + "\"savedUserAuthentication\":null}" +
-                "  ]" +
-                "}")
-
-        logger.debug(configJson)
-
-        val fakeDb: MutableMap<Long, AuthenticationHolderEntity> = HashMap()
-        whenever<AuthenticationHolderEntity>(authHolderRepository.save(isA<AuthenticationHolderEntity>()))
-            .thenAnswer(object : Answer<AuthenticationHolderEntity> {
-                var id: Long = 243L
-
-                @Throws(Throwable::class)
-                override fun answer(invocation: InvocationOnMock): AuthenticationHolderEntity {
-                    val _site = invocation.arguments[0] as AuthenticationHolderEntity
-                    val id = _site.id ?: id++.also { _site.id = it }
-                    fakeDb[id] = _site
-                    return _site
-                }
-            })
-
-        dataService.importData(configJson)
-
-        verify(authHolderRepository, times(2)).save(capture(capturedAuthHolders))
-
-        val savedAuthHolders = capturedAuthHolders.allValues
-
-        assertEquals(2, savedAuthHolders.size)
-        assertEquals(holder1.authentication.oAuth2Request.clientId, savedAuthHolders[0].authentication.oAuth2Request.clientId)
-        assertEquals(holder2.authentication.oAuth2Request.clientId, savedAuthHolders[1].authentication.oAuth2Request.clientId)
-    }
-
-    @Test
-    @Throws(IOException::class)
     fun testExportSystemScopes() {
         val scope1 = SystemScope(
             id = 1L,
@@ -1332,79 +1235,6 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
         }
         // make sure all of our clients were found
         assertTrue(checked.containsAll(allScopes))
-    }
-
-    @Test
-    @Throws(IOException::class)
-    fun testImportSystemScopes() {
-        val scope1 = SystemScope(
-            id = 1L,
-            value = "scope1",
-            description = "Scope 1",
-            isRestricted = true,
-            isDefaultScope = false,
-            icon = "glass",
-        )
-
-        val scope2 = SystemScope(
-            id = 2L,
-            value = "scope2",
-            description = "Scope 2",
-            isRestricted = false,
-            isDefaultScope = false,
-            icon = "ball",
-        )
-
-        val scope3 = SystemScope(
-            id = 3L,
-            value = "scope3",
-            description = "Scope 3",
-            isRestricted = false,
-            isDefaultScope = true,
-            icon = "road",
-        )
-
-        val configJson = "{" +
-                "\"$CLIENTS\": [], " +
-                "\"$ACCESSTOKENS\": [], " +
-                "\"$REFRESHTOKENS\": [], " +
-                "\"$GRANTS\": [], " +
-                "\"$WHITELISTEDSITES\": [], " +
-                "\"$BLACKLISTEDSITES\": [], " +
-                "\"$AUTHENTICATIONHOLDERS\": [], " +
-                "\"$SYSTEMSCOPES\": [" +
-                "{\"id\":1,\"description\":\"Scope 1\",\"icon\":\"glass\",\"value\":\"scope1\",\"restricted\":true,\"defaultScope\":false}," +
-                "{\"id\":2,\"description\":\"Scope 2\",\"icon\":\"ball\",\"value\":\"scope2\",\"restricted\":false,\"defaultScope\":false}," +
-                "{\"id\":3,\"description\":\"Scope 3\",\"icon\":\"road\",\"value\":\"scope3\",\"restricted\":false,\"defaultScope\":true}" +
-                "  ]" +
-                "}"
-
-        logger.debug(configJson)
-
-        dataService.importData(configJson)
-
-        verify(sysScopeRepository, times(3)).save(capture(capturedScope))
-
-        val savedScopes = capturedScope.allValues
-
-        assertEquals(3, savedScopes.size)
-        assertEquals(scope1.value, savedScopes[0].value)
-        assertEquals(scope1.description, savedScopes[0].description)
-        assertEquals(scope1.icon, savedScopes[0].icon)
-        assertEquals(scope1.isDefaultScope, savedScopes[0].isDefaultScope)
-        assertEquals(scope1.isRestricted, savedScopes[0].isRestricted)
-
-        assertEquals(scope2.value, savedScopes[1].value)
-        assertEquals(scope2.description, savedScopes[1].description)
-        assertEquals(scope2.icon, savedScopes[1].icon)
-        assertEquals(scope2.isDefaultScope, savedScopes[1].isDefaultScope)
-        assertEquals(scope2.isRestricted, savedScopes[1].isRestricted)
-
-        assertEquals(scope3.value, savedScopes[2].value)
-        assertEquals(scope3.description, savedScopes[2].description)
-        assertEquals(scope3.icon, savedScopes[2].icon)
-        assertEquals(scope3.isDefaultScope, savedScopes[2].isDefaultScope)
-        assertEquals(scope3.isRestricted, savedScopes[2].isRestricted)
     }
 
     @Test

@@ -128,6 +128,10 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
         maps = ReflectionUtils.tryToReadFieldValue(mapsHolder.java, "maps", dataService).get() as MITREidDataServiceMaps
     }
 
+    fun instant(s: String) = Instant.from(formatter.parse(s))
+
+    fun instant(s: String, locale: Locale) = instant(s)
+
     @Test
     protected open fun testImportRefreshTokens() {
         val expirationDate1 = Instant.from(formatter.parse("2014-09-10T22:49:44.090+00:00"))
@@ -348,9 +352,178 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
         assertEquals(token2.value, savedAccessTokens[1].value)
     }
 
-    fun instant(s: String) = Instant.from(formatter.parse(s))
+    @Test
+    protected open fun testImportClients() {
+        val client1 = ClientDetailsEntity(
+            id = 1L,
+            accessTokenValiditySeconds = 3600,
+            clientId = "client1",
+            clientSecret = "clientsecret1",
+            redirectUris = setOf("http://foo.com/"),
+            scope = hashSetOf("foo", "bar", "baz", "dolphin"),
+            authorizedGrantTypes = hashSetOf("implicit", "authorization_code", "urn:ietf:params:oauth:grant_type:redelegate", "refresh_token"),
+            isAllowIntrospection = true,
+        )
 
-    fun instant(s: String, locale: Locale) = instant(s)
+        val client2 = ClientDetailsEntity(
+            id = 2L,
+            accessTokenValiditySeconds = 3600,
+            clientId = "client2",
+            clientSecret = "clientsecret2",
+            redirectUris = setOf("http://bar.baz.com/"),
+            scope = hashSetOf("foo", "dolphin", "electric-wombat"),
+            authorizedGrantTypes = hashSetOf("client_credentials", "urn:ietf:params:oauth:grant_type:redelegate"),
+            isAllowIntrospection = false,
+        )
+
+        val configJson = ("{\"$SYSTEMSCOPES\": [], " +
+                "\"$ACCESSTOKENS\": [], " +
+                "\"$REFRESHTOKENS\": [], " +
+                "\"$GRANTS\": [], " +
+                "\"$WHITELISTEDSITES\": [], " +
+                "\"$BLACKLISTEDSITES\": [], " +
+                "\"$AUTHENTICATIONHOLDERS\": [], " +
+                "\"$CLIENTS\": ["+
+                "{\"id\":1,\"accessTokenValiditySeconds\":3600,\"clientId\":\"client1\",\"secret\":\"clientsecret1\","
+                + "\"redirectUris\":[\"http://foo.com/\"],"
+                + "\"scope\":[\"foo\",\"bar\",\"baz\",\"dolphin\"],"
+                + "\"grantTypes\":[\"implicit\",\"authorization_code\",\"urn:ietf:params:oauth:grant_type:redelegate\",\"refresh_token\"],"
+                + "\"allowIntrospection\":true}," +
+                "{\"id\":2,\"accessTokenValiditySeconds\":3600,\"clientId\":\"client2\",\"secret\":\"clientsecret2\","
+                + "\"redirectUris\":[\"http://bar.baz.com/\"],"
+                + "\"scope\":[\"foo\",\"dolphin\",\"electric-wombat\"],"
+                + "\"grantTypes\":[\"client_credentials\",\"urn:ietf:params:oauth:grant_type:redelegate\"],"
+                + "\"allowIntrospection\":false}" +
+                "  ]" +
+                "}")
+
+        System.err.println(configJson)
+
+        dataService.importData(configJson)
+
+        verify(clientRepository, times(2)).saveClient(capture(capturedClients))
+
+        val savedClients = capturedClients.allValues
+
+        assertEquals(2, savedClients.size)
+
+        assertEquals(client1.accessTokenValiditySeconds, savedClients[0].accessTokenValiditySeconds)
+        assertEquals(client1.clientId, savedClients[0].clientId)
+        assertEquals(client1.clientSecret, savedClients[0].clientSecret)
+        assertEquals(client1.redirectUris, savedClients[0].redirectUris)
+        assertEquals(client1.scope, savedClients[0].scope)
+        assertEquals(client1.authorizedGrantTypes, savedClients[0].authorizedGrantTypes)
+        assertEquals(client1.isAllowIntrospection, savedClients[0].isAllowIntrospection)
+
+        assertEquals(client2.accessTokenValiditySeconds, savedClients[1].accessTokenValiditySeconds)
+        assertEquals(client2.clientId, savedClients[1].clientId)
+        assertEquals(client2.clientSecret, savedClients[1].clientSecret)
+        assertEquals(client2.redirectUris, savedClients[1].redirectUris)
+        assertEquals(client2.scope, savedClients[1].scope)
+        assertEquals(client2.authorizedGrantTypes, savedClients[1].authorizedGrantTypes)
+        assertEquals(client2.isAllowIntrospection, savedClients[1].isAllowIntrospection)
+    }
+
+
+    open fun testImportBlacklistedSites() {
+        val site1 = BlacklistedSite(id = 1L, uri = "http://foo.com")
+
+        val site2 = BlacklistedSite(id = 2L, uri = "http://bar.com")
+
+        val site3 = BlacklistedSite(id = 3L, uri = "http://baz.com")
+
+        val configJson = "{" +
+                "\"" + CLIENTS + "\": [], " +
+                "\"" + ACCESSTOKENS + "\": [], " +
+                "\"" + REFRESHTOKENS + "\": [], " +
+                "\"" + GRANTS + "\": [], " +
+                "\"" + WHITELISTEDSITES + "\": [], " +
+                "\"" + SYSTEMSCOPES + "\": [], " +
+                "\"" + AUTHENTICATIONHOLDERS + "\": [], " +
+                "\"" + BLACKLISTEDSITES + "\": [" +
+                "{\"id\":1,\"uri\":\"http://foo.com\"}," +
+                "{\"id\":2,\"uri\":\"http://bar.com\"}," +
+                "{\"id\":3,\"uri\":\"http://baz.com\"}" +
+                "  ]" +
+                "}"
+
+
+        System.err.println(configJson)
+
+        dataService.importData(configJson)
+
+        verify(blSiteRepository, times(3)).save(capture(capturedBlacklistedSites))
+
+        val savedSites = capturedBlacklistedSites.allValues
+
+        assertEquals(3, savedSites.size)
+
+        assertEquals(site1.uri, savedSites[0].uri)
+        assertEquals(site2.uri, savedSites[1].uri)
+        assertEquals(site3.uri, savedSites[2].uri)
+    }
+
+    @Test
+    open fun testImportWhitelistedSites() {
+        val site1 = WhitelistedSite()
+        site1.id = 1L
+        site1.clientId = "foo"
+
+        val site2 = WhitelistedSite()
+        site2.id = 2L
+        site2.clientId = "bar"
+
+        val site3 = WhitelistedSite()
+        site3.id = 3L
+        site3.clientId = "baz"
+
+        val configJson = "{" +
+                "\"$CLIENTS\": [], " +
+                "\"$ACCESSTOKENS\": [], " +
+                "\"$REFRESHTOKENS\": [], " +
+                "\"$GRANTS\": [], " +
+                "\"$BLACKLISTEDSITES\": [], " +
+                "\"$SYSTEMSCOPES\": [], " +
+                "\"$AUTHENTICATIONHOLDERS\": [], " +
+                "\"$WHITELISTEDSITES\": [" +
+                "{\"id\":1,\"clientId\":\"foo\"}," +
+                "{\"id\":2,\"clientId\":\"bar\"}," +
+                "{\"id\":3,\"clientId\":\"baz\"}" +
+                "  ]" +
+                "}"
+
+        System.err.println(configJson)
+
+        val fakeDb: MutableMap<Long, WhitelistedSite> = HashMap()
+        whenever(wlSiteRepository.save(isA<WhitelistedSite>()))
+            .thenAnswer(object : Answer<WhitelistedSite> {
+                var id: Long = 345L
+
+                @Throws(Throwable::class)
+                override fun answer(invocation: InvocationOnMock): WhitelistedSite {
+                    val _site = invocation.arguments[0] as WhitelistedSite
+                    val siteId = _site.id ?: (id++).also { _site.id = it }
+                    fakeDb[siteId] = _site
+                    return _site
+                }
+            })
+
+        whenever(wlSiteRepository.getById(isA())).thenAnswer { inv ->
+            fakeDb[inv.getArgument(0)]
+        }
+
+        dataService.importData(configJson)
+
+        verify(wlSiteRepository, times(3)).save(capture(capturedWhitelistedSites))
+
+        val savedSites = capturedWhitelistedSites.allValues
+
+        assertEquals(3, savedSites.size)
+
+        assertEquals(site1.clientId, savedSites[0].clientId)
+        assertEquals(site2.clientId, savedSites[1].clientId)
+        assertEquals(site3.clientId, savedSites[2].clientId)
+    }
 
     protected class refreshTokenIdComparator : Comparator<OAuth2RefreshTokenEntity> {
         override fun compare(entity1: OAuth2RefreshTokenEntity, entity2: OAuth2RefreshTokenEntity): Int {
@@ -363,5 +536,4 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
             return entity1.id!!.compareTo(entity2.id!!)
         }
     }
-
 }
