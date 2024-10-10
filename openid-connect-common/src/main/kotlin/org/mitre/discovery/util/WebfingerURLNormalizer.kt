@@ -99,14 +99,20 @@ object WebfingerURLNormalizer {
 
             return when(matchedScheme) {
                 "acct" -> {
-                    require(matchedPort==null) { "The acct schema has no port: $matchedPort" }
-                    require(matchedPath.isNullOrEmpty()) { "The acct schema may not have a path: $matchedPath"}
-                    require(matchedQuery.isNullOrEmpty())  { "The acct query may not have a query: $matchedQuery"}
-                    ExtUri.Acct(requireNotNull(matchedUserInfo), requireNotNull(matchedHost))
+                    val authorityExt= buildString {
+                        if (matchedPort!=null) append(':').append(matchedPort.toString())
+                        if (matchedPath!=null) append(matchedPath)
+                        m.groups[12]?.let { append(it.value) }
+                    }.takeIf { it.isNotEmpty() }
+
+                    ExtUri.Acct(requireNotNull(matchedUserInfo), requireNotNull(matchedHost), authorityExt)
                 }
                 "mailto" -> {
-                    require(matchedPort==null) { "Mailto domains have no ports: $matchedPort" }
-                    require(matchedPath.isNullOrEmpty()) { "Mailto urls have no paths: $matchedPath" }
+                    val authorityExt= buildString {
+                        if (matchedPort!=null) append(':').append(matchedPort.toString())
+                        if (matchedPath!=null) append(matchedPath)
+                    }.takeIf { it.isNotEmpty() }
+
                     val fields = matchedQuery?.run {
                         split('&').associate {
                             val eqPos = it.indexOf('=')
@@ -117,7 +123,7 @@ object WebfingerURLNormalizer {
                         }
                     }
                         ?: emptyMap()
-                    ExtUri.MailTo(requireNotNull(matchedUserInfo), requireNotNull(matchedHost), fields)
+                    ExtUri.MailTo(requireNotNull(matchedUserInfo), requireNotNull(matchedHost), authorityExt, headerFields = fields)
                 }
                 "tel" -> {
                     val ssp = (m.groups[4]?.value ?: "")+(matchedPath?:"") + (m.groups[12]?.value?:"")
@@ -147,16 +153,20 @@ sealed class ExtUri {
         override fun toString() = uri.toString()
     }
 
-    data class Acct(val userInfo: String, val domain: String) : ExtUri() {
-        override fun toString() = "acct:$userInfo@$domain"
+    data class Acct(val userInfo: String, val domain: String, val authorityExt: String? = null) : ExtUri() {
+        override fun toString() = when(authorityExt) {
+            null -> "acct:$userInfo@$domain"
+            else -> "acct:$userInfo@$domain$authorityExt"
+        }
     }
 
-    data class MailTo(val userInfo: String, val domain: String, val headerFields: Map<String, String?> = emptyMap()) : ExtUri() {
+    data class MailTo(val userInfo: String, val domain: String, val authorityExt: String? =null, val headerFields: Map<String, String?> = emptyMap()) : ExtUri() {
         override fun toString(): String = buildString {
             append("mailto:")
             append(userInfo)
             append('@')
             append(domain)
+            if (authorityExt != null) append(authorityExt)
             if (headerFields.isNotEmpty()) {
                 headerFields.entries.joinTo(this, separator = "&", prefix = "?") { (k, v) ->
                     if (v==null) k else "$k=$v"

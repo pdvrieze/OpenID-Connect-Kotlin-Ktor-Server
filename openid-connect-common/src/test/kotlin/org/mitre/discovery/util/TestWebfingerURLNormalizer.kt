@@ -19,7 +19,6 @@ package org.mitre.discovery.util
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.mitre.discovery.util.WebfingerURLNormalizer.normalizeResource
 import org.mitre.discovery.util.WebfingerURLNormalizer.serializeURL
 
@@ -51,15 +50,18 @@ class TestWebfingerURLNormalizer {
         put("nov@example.com:8080/path?query#fragment", ExtUri.Url("https://nov@example.com:8080/path?query") to "https://nov@example.com:8080/path?query")
 
         put("acct:nov@matake.jp", ExtUri.Acct("nov", "matake.jp") to "acct:nov@matake.jp")
-//        put("acct:nov@example.com:8080", ExtUri.Acct("nov", "example.com:8080") to "acct:nov@example.com:8080")
-//        put("acct:nov@example.com/path", ExtUri.Acct("nov", "example.com/path") to "acct:nov@example.com/path")
-//        put("acct:nov@example.com?query", ExtUri.Acct("nov", "example.com?query") to "acct:nov@example.com?query")
+        put("acct:nov@example.com:8080", ExtUri.Acct("nov", "example.com", ":8080") to "acct:nov@example.com:8080")
+        put("acct:nov@example.com/path", ExtUri.Acct("nov", "example.com", "/path") to "acct:nov@example.com/path")
+        put("acct:nov@example.com?query", ExtUri.Acct("nov", "example.com", "?query") to "acct:nov@example.com?query")
         put("acct:nov@example.com#fragment", ExtUri.Acct("nov", "example.com") to "acct:nov@example.com")
-//        put("acct:nov@example.com:8080/path?query#fragment", ExtUri.Acct("nov", "example.com:8080/path?query") to "acct:nov@example.com:8080/path?query")
+        put("acct:nov@example.com:8080/path?query#fragment", ExtUri.Acct("nov", "example.com", ":8080/path?query") to "acct:nov@example.com:8080/path?query")
 
         put("mailto:nov@matake.jp", ExtUri.MailTo("nov", "matake.jp") to "mailto:nov@matake.jp")
-        put("mailto:nov@example.com?query", ExtUri.MailTo("nov", "example.com", mapOf("query" to null)) to "mailto:nov@example.com?query")
+        put("mailto:nov@example.com:8080", ExtUri.MailTo("nov", "example.com", ":8080") to "mailto:nov@example.com:8080")
+        put("mailto:nov@example.com/path", ExtUri.MailTo("nov", "example.com", "/path") to "mailto:nov@example.com/path")
+        put("mailto:nov@example.com?query", ExtUri.MailTo("nov", "example.com", headerFields = mapOf("query" to null)) to "mailto:nov@example.com?query")
         put("mailto:nov@example.com#fragment", ExtUri.MailTo("nov", "example.com") to "mailto:nov@example.com")
+        put("mailto:nov@example.com:8080/path?query#fragment", ExtUri.MailTo("nov", "example.com", ":8080/path", mapOf("query" to null)) to "mailto:nov@example.com:8080/path?query")
 
         put("localhost", ExtUri.Url("https://localhost") to "https://localhost")
         put("localhost:8080", ExtUri.Url("https://localhost:8080") to "https://localhost:8080")
@@ -84,6 +86,7 @@ class TestWebfingerURLNormalizer {
     }
 
     // Test fixture:
+/*
     private val invalidInputs: List<String> = buildList {
 
         add("acct:nov@example.com:8080")
@@ -96,6 +99,7 @@ class TestWebfingerURLNormalizer {
 
         add("mailto:nov@example.com/path")
     }
+*/
 
 
     /*
@@ -171,6 +175,7 @@ class TestWebfingerURLNormalizer {
         }
     }
 
+/*
     @Test
     fun expectInvalidUrl() {
         for(input in invalidInputs) {
@@ -179,4 +184,5 @@ class TestWebfingerURLNormalizer {
             }
         }
     }
+*/
 }

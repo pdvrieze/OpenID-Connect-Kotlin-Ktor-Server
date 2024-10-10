@@ -3,16 +3,17 @@ package io.github.pdvrieze.auth.ktor
 import io.github.pdvrieze.auth.ktor.plugins.OpenIdConfigurator
 import io.github.pdvrieze.auth.ktor.plugins.configureRouting
 import io.github.pdvrieze.auth.uma.repository.exposed.UserInfos
-import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.testing.*
-import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.Before
+import org.mitre.discovery.view.WebfingerViews
 import org.mitre.discovery.web.DiscoveryEndpoint
 import org.mitre.web.util.OpenIdContext
 import org.mitre.web.util.OpenIdContextPlugin
@@ -26,7 +27,7 @@ class WebFingerTest {
 
     @Before
     fun setUp() {
-        testContext = OpenIdConfigurator("http://localhost:8080/").resolveDefault()
+        testContext = OpenIdConfigurator("http://example.com/").resolveDefault()
         transaction {
             UserInfos.insert { st ->
                 st[sub] = "user"
@@ -43,8 +44,8 @@ class WebFingerTest {
 
         client.get("/.well-known/webfinger?resource=user%40example.com").apply {
             assertTrue(status.isSuccess(), "Unexpected response : $status" )
-            assertEquals(ContentType.Application.Json, contentType())
-            val json = body<JsonElement>()
+            assertEquals(WebfingerViews.CT_JRD, contentType())
+            val json = Json.parseToJsonElement(bodyAsText())
             assertTrue { json is JsonObject }
 
         }
