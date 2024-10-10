@@ -15,6 +15,8 @@ import io.github.pdvrieze.auth.uma.repository.exposed.ExposedResourceSetReposito
 import io.github.pdvrieze.auth.uma.repository.exposed.ExposedUserInfoRepository
 import io.github.pdvrieze.auth.uma.repository.exposed.ExposedWhitelistedSiteRepository
 import io.github.pdvrieze.openid.web.views.DefaultHtmlViews
+import io.ktor.client.*
+import io.ktor.client.engine.java.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.util.*
@@ -26,6 +28,7 @@ import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.jwt.signer.service.impl.DefaultClientKeyCacheService
 import org.mitre.jwt.signer.service.impl.DefaultJWTSigningAndValidationService
 import org.mitre.jwt.signer.service.impl.SymmetricKeyJWTValidatorCacheService
+import org.mitre.jwt.signer.service.impl.ktor.KtorJWKSetCacheService
 import org.mitre.oauth2.TokenEnhancer
 import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.GrantedAuthority
@@ -89,6 +92,7 @@ data class OpenIdConfigurator(
         user = "root",
         driver = "org.h2.Driver",
     ),
+    var httpClient: HttpClient = HttpClient(Java),
 ) {
 
     private var encryptionKeySet: Map<String, JWK> = emptyMap()
@@ -114,13 +118,16 @@ data class OpenIdConfigurator(
 
         override val userInfoRepository: UserInfoRepository = ExposedUserInfoRepository(configurator.database)
 
-        val pairwiseIdentiferRepository: PairwiseIdentifierRepository = ExposedPairwiseIdentifierRepository(configurator.database)
+        val pairwiseIdentiferRepository: PairwiseIdentifierRepository =
+            ExposedPairwiseIdentifierRepository(configurator.database)
 
-        override val pairwiseIdentifierService: PairwiseIdentifierService = UUIDPairwiseIdentiferService(pairwiseIdentiferRepository)
+        override val pairwiseIdentifierService: PairwiseIdentifierService =
+            UUIDPairwiseIdentiferService(pairwiseIdentiferRepository)
 
         override val clientRepository: OAuth2ClientRepository = ExposedOauth2ClientRepository(configurator.database)
 
-        override val authenticationHolderRepository: AuthenticationHolderRepository = ExposedAuthenticationHolderRepository(configurator.database)
+        override val authenticationHolderRepository: AuthenticationHolderRepository =
+            ExposedAuthenticationHolderRepository(configurator.database)
 
         override val tokenRepository: OAuth2TokenRepository = ExposedOauth2TokenRepository(
             database = configurator.database,
@@ -128,28 +135,34 @@ data class OpenIdConfigurator(
             clientRepository = clientRepository
         )
 
-        override val approvedSiteRepository: ApprovedSiteRepository = ExposedApprovedSiteRepository(configurator.database)
+        override val approvedSiteRepository: ApprovedSiteRepository =
+            ExposedApprovedSiteRepository(configurator.database)
 
-        override val approvedSiteService : DefaultApprovedSiteService = DefaultApprovedSiteService(
+        override val approvedSiteService: DefaultApprovedSiteService = DefaultApprovedSiteService(
             approvedSiteRepository = approvedSiteRepository,
             tokenRepository = tokenRepository,
         )
 
         override val statsService: StatsService = approvedSiteService.getStatsService()
 
-        override val whitelistedSiteRepository: WhitelistedSiteRepository = ExposedWhitelistedSiteRepository(configurator.database)
+        override val whitelistedSiteRepository: WhitelistedSiteRepository =
+            ExposedWhitelistedSiteRepository(configurator.database)
 
-        override val whitelistedSiteService: WhitelistedSiteService = DefaultWhitelistedSiteService(whitelistedSiteRepository)
+        override val whitelistedSiteService: WhitelistedSiteService =
+            DefaultWhitelistedSiteService(whitelistedSiteRepository)
 
-        override val blacklistedSiteRepository: BlacklistedSiteRepository = ExposedBlacklistedSiteRepository(configurator.database)
+        override val blacklistedSiteRepository: BlacklistedSiteRepository =
+            ExposedBlacklistedSiteRepository(configurator.database)
 
-        override val blacklistedSiteService: BlacklistedSiteService = DefaultBlacklistedSiteService(blacklistedSiteRepository)
+        override val blacklistedSiteService: BlacklistedSiteService =
+            DefaultBlacklistedSiteService(blacklistedSiteRepository)
 
         override val redirectResolver: RedirectResolver = BlacklistAwareRedirectResolver(blacklistedSiteService, config)
 
         override val resourceSetRepository: ResourceSetRepository = ExposedResourceSetRepository(configurator.database)
 
-        override val ticketRepository: PermissionRepository = ExposedPermissionRepository(configurator.database, resourceSetRepository)
+        override val ticketRepository: PermissionRepository =
+            ExposedPermissionRepository(configurator.database, resourceSetRepository)
 
         override val resourceSetService: ResourceSetService = DefaultResourceSetService(
             repository = resourceSetRepository,
@@ -176,7 +189,8 @@ data class OpenIdConfigurator(
             userInfoRepository, clientService, pairwiseIdentifierService
         )
 
-        override val routeSetService: ResourceSetService = DefaultResourceSetService(resourceSetRepository, tokenRepository, ticketRepository)
+        override val routeSetService: ResourceSetService =
+            DefaultResourceSetService(resourceSetRepository, tokenRepository, ticketRepository)
 
         override val clientDetailsService: ClientDetailsEntityService = DefaultOAuth2ClientDetailsEntityService(
             clientRepository,
@@ -190,7 +204,8 @@ data class OpenIdConfigurator(
             this.config
         )
 
-        override val jwtService: JWTSigningAndValidationService = DefaultJWTSigningAndValidationService(configurator.signingKeySet)
+        override val jwtService: JWTSigningAndValidationService =
+            DefaultJWTSigningAndValidationService(configurator.signingKeySet)
 
         override val deviceCodeService: DeviceCodeService = DefaultDeviceCodeService()
 
@@ -205,7 +220,7 @@ data class OpenIdConfigurator(
             SymmetricKeyJWTValidatorCacheService()
 
         override val encyptersService: ClientKeyCacheService =
-            DefaultClientKeyCacheService()
+            DefaultClientKeyCacheService(KtorJWKSetCacheService(configurator.httpClient))
 
         override val oidcTokenService: OIDCTokenService = KtorOIDCTokenService(
             jwtService, authenticationHolderRepository, config, encyptersService, symetricCacheService, tokenService
@@ -249,13 +264,13 @@ data class OpenIdConfigurator(
         }
 
         // TODO Do something more sane
-        private fun resolveAuthServiceAuthorities(name: String): Collection<GrantedAuthority> = when(name) {
+        private fun resolveAuthServiceAuthorities(name: String): Collection<GrantedAuthority> = when (name) {
             "admin" -> listOf(GrantedAuthority.ROLE_ADMIN, GrantedAuthority.ROLE_CLIENT)
             else -> listOf(GrantedAuthority.ROLE_CLIENT)
         }
     }
 
     companion object {
-        private val  KEY_AUTHENTICATION: AttributeKey<Authentication> = AttributeKey("authentication")
+        private val KEY_AUTHENTICATION: AttributeKey<Authentication> = AttributeKey("authentication")
     }
 }

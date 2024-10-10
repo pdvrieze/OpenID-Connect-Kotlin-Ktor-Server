@@ -8,6 +8,8 @@ import kotlinx.coroutines.future.future
 import java.util.concurrent.CompletableFuture
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.time.Duration
+import kotlin.time.toJavaDuration
 
 class CoroutineCache<K, V>(
     loaderFunction: suspend (K) -> V,
@@ -33,3 +35,12 @@ class CoroutineCache<K, V>(
     }
 
 }
+
+fun Caffeine<*, *>.expireAfterWrite(duration: Duration) =
+    expireAfterWrite(duration.toJavaDuration())
+
+fun Caffeine<*, *>.expireAfterAccess(duration: Duration) =
+    expireAfterAccess(duration.toJavaDuration())
+
+fun Caffeine<*, *>.refreshAfterWrite(duration: Duration) =
+    refreshAfterWrite(duration.toJavaDuration())

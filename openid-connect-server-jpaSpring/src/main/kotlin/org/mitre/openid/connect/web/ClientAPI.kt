@@ -380,7 +380,7 @@ class ClientAPI {
             return ResponseEntity(HttpStatus.NOT_FOUND)
         } else {
             // get the image from cache
-            val image = clientLogoLoadingService.getLogo(client)
+            val image = runBlocking { clientLogoLoadingService.getLogo(client) }
                 ?: return ResponseEntity(HttpStatus.NOT_FOUND)
 
             val headers = HttpHeaders()

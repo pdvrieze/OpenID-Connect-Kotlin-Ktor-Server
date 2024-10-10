@@ -8,6 +8,7 @@ import com.nimbusds.jose.jwk.JWKSet
 import org.mitre.jose.keystore.JWKSetKeyStore
 import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
 import org.mitre.jwt.signer.service.ClientKeyCacheService
+import org.mitre.jwt.signer.service.JWKSetCacheService
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.util.getLogger
@@ -22,11 +23,10 @@ import java.util.concurrent.TimeUnit
  *
  * @author jricher
  */
-class DefaultClientKeyCacheService : ClientKeyCacheService {
-//    @Autowired
-    private val jwksUriCache = JWKSetCacheServiceImpl()
+class DefaultClientKeyCacheService(
+    private val jwksUriCache: JWKSetCacheService
+) : ClientKeyCacheService {
 
-//    @Autowired
     private val symmetricCache = SymmetricKeyJWTValidatorCacheService()
 
     // cache of validators for by-value JWKs

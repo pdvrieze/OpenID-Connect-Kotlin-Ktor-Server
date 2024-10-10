@@ -18,7 +18,6 @@ package org.mitre.openid.connect.service.impl
 import com.github.benmanes.caffeine.cache.CacheLoader
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.benmanes.caffeine.cache.LoadingCache
-import org.apache.commons.io.IOUtils
 import org.apache.http.client.HttpClient
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.impl.client.HttpClientBuilder
@@ -44,7 +43,7 @@ class InMemoryClientLogoLoadingService(
     /* (non-Javadoc)
 	 * @see org.mitre.openid.connect.service.ClientLogoLoadingService#getLogo(org.mitre.oauth2.model.ClientDetailsEntity)
 	 */
-    override fun getLogo(client: OAuthClientDetails?): CachedImage? {
+    override suspend fun getLogo(client: OAuthClientDetails?): CachedImage? {
         return try {
             when {
                 client == null -> null
@@ -74,7 +73,7 @@ class InMemoryClientLogoLoadingService(
                 val entity = response.entity
 
                 return CachedImage(
-                    data = IOUtils.toByteArray(entity.content),
+                    data = entity.content.readAllBytes(),
                     contentType = entity.contentType.value,
                     length = entity.contentLength,
                 )
