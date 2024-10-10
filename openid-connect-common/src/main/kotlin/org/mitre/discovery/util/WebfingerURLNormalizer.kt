@@ -52,7 +52,7 @@ object WebfingerURLNormalizer {
      * @return the normalized string, or null if the string can't be normalized
      */
 	@JvmStatic
-	fun normalizeResource(identifier: String?): URI? {
+	fun normalizeResource(identifier: String?): ExtUri? {
         // try to parse the URI
         // NOTE: we can't use the Java built-in URI class because it doesn't split the parts appropriately
 
@@ -98,21 +98,83 @@ object WebfingerURLNormalizer {
             }
 
             return when(matchedScheme) {
-                in SPECIAL_SCHEMES -> {
-                    val ssp = (m.groups[4]?.value ?: "")+(matchedPath?:"") + (m.groups[12]?.value?:"")
-                    URI(matchedScheme, ssp, null) // no fragment
+                "acct" -> {
+                    require(matchedPort==null) { "The acct schema has no port: $matchedPort" }
+                    require(matchedPath.isNullOrEmpty()) { "The acct schema may not have a path: $matchedPath"}
+                    require(matchedQuery.isNullOrEmpty())  { "The acct query may not have a query: $matchedQuery"}
+                    ExtUri.Acct(requireNotNull(matchedUserInfo), requireNotNull(matchedHost))
                 }
-                else -> URI(matchedScheme, matchedUserInfo, matchedHost, matchedPort ?: -1 , matchedPath, matchedQuery, null)
+                "mailto" -> {
+                    require(matchedPort==null) { "Mailto domains have no ports: $matchedPort" }
+                    require(matchedPath.isNullOrEmpty()) { "Mailto urls have no paths: $matchedPath" }
+                    val fields = matchedQuery?.run {
+                        split('&').associate {
+                            val eqPos = it.indexOf('=')
+                            when {
+                                eqPos<0 -> it to null
+                                else -> it.substring(0, eqPos) to it.substring(eqPos + 1)
+                            }
+                        }
+                    }
+                        ?: emptyMap()
+                    ExtUri.MailTo(requireNotNull(matchedUserInfo), requireNotNull(matchedHost), fields)
+                }
+                "tel" -> {
+                    val ssp = (m.groups[4]?.value ?: "")+(matchedPath?:"") + (m.groups[12]?.value?:"")
+                    ExtUri.Tel(ssp)
+                }
+                "device" -> {
+                    ExtUri.Device(m.groups[4]?.value?:"", matchedPath, matchedQuery)
+                }
+                else -> ExtUri.Url(URI(matchedScheme, matchedUserInfo, matchedHost, matchedPort ?: -1, matchedPath, matchedQuery, null))
             }
         }
     }
 
 
     @JvmStatic
-	fun serializeURL(uri: URI): String {
+	fun serializeURL(uri: ExtUri): String {
         return uri.toString()
     }
 
     private val SPECIAL_SCHEMES = hashSetOf("acct", "mailto", "tel", "device")
     private val ACCT_SCHEME = "acct"
+}
+
+sealed class ExtUri {
+    data class Url(val uri: URI) : ExtUri() {
+        constructor(uri: String): this(URI.create(uri))
+        override fun toString() = uri.toString()
+    }
+
+    data class Acct(val userInfo: String, val domain: String) : ExtUri() {
+        override fun toString() = "acct:$userInfo@$domain"
+    }
+
+    data class MailTo(val userInfo: String, val domain: String, val headerFields: Map<String, String?> = emptyMap()) : ExtUri() {
+        override fun toString(): String = buildString {
+            append("mailto:")
+            append(userInfo)
+            append('@')
+            append(domain)
+            if (headerFields.isNotEmpty()) {
+                headerFields.entries.joinTo(this, separator = "&", prefix = "?") { (k, v) ->
+                    if (v==null) k else "$k=$v"
+                }
+            }
+        }
+    }
+
+    data class Tel(val telNumber: String): ExtUri() {
+        override fun toString(): String = "tel:$telNumber"
+    }
+
+    data class Device(val host: String, val path: String? = null, val query: String? = null): ExtUri() {
+        override fun toString(): String = buildString {
+            append("device:")
+            append(host)
+            if (path != null) { append(path) }
+            if (query != null) { append('?').append(query) }
+        }
+    }
 }

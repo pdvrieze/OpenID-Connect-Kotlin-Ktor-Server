@@ -13,16 +13,18 @@ import kotlinx.serialization.json.addAll
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
+import org.mitre.discovery.util.ExtUri
 import org.mitre.discovery.util.WebfingerURLNormalizer
 import org.mitre.discovery.view.webfingerView
-import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
-import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.oauth2.model.PKCEAlgorithm
-import org.mitre.oauth2.service.SystemScopeService
-import org.mitre.openid.connect.config.ConfigurationPropertiesBean
-import org.mitre.openid.connect.service.UserInfoService
 import org.mitre.util.getLogger
 import org.mitre.web.util.KtorEndpoint
+import org.mitre.web.util.config
+import org.mitre.web.util.encryptionService
+import org.mitre.web.util.openIdContext
+import org.mitre.web.util.scopeService
+import org.mitre.web.util.signService
+import org.mitre.web.util.userInfoService
 
 /**
  *
@@ -30,13 +32,9 @@ import org.mitre.web.util.KtorEndpoint
  *
  * @author jricher
  */
-class DiscoveryEndpoint(
-    private val config: ConfigurationPropertiesBean,
-    private val scopeService: SystemScopeService,
-    private val signService: JWTSigningAndValidationService,
-    private val encService: JWTEncryptionAndDecryptionService,
-    private val userService: UserInfoService
-) : KtorEndpoint {
+object DiscoveryEndpoint : KtorEndpoint {
+
+
 
     // used to map JWA algorithms objects to strings
     private val toAlgorithmName: ((Algorithm) -> String) = { alg -> alg.name }
@@ -46,7 +44,9 @@ class DiscoveryEndpoint(
     }
 
     private fun Route.getWebfinger() {
-        get("/$WEBFINGER_URL") {
+        get("/.well-known/webfinger") {
+            val config = openIdContext.config
+
             val queryParameters = call.request.queryParameters
             val resource = queryParameters["resource"]
                 ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing resource parameter")
@@ -61,15 +61,15 @@ class DiscoveryEndpoint(
                 val resourceUri = WebfingerURLNormalizer.normalizeResource(resource)
 
                 // acct: URI (email address format)
-                if (resourceUri?.scheme != "acct") {
+                if (resourceUri !is ExtUri.Acct) {
                     logger.info("Unknown URI format: $resource")
                     return@get call.respond(HttpStatusCode.NotFound)
                 }
 
                 // check on email addresses first
 
-                var user = userService.getByEmailAddress("${resourceUri.userInfo}@${resourceUri.host}")
-                    ?: resourceUri.userInfo?.let { userService.getByUsername(it) } // first part is the username
+                var user = userInfoService.getByEmailAddress("${resourceUri.userInfo}@${resourceUri.domain}")
+                    ?: userInfoService.getByUsername(resourceUri.userInfo) // first part is the username
                     ?: run {
                         // if the user's still null, punt and say we didn't find them
 
@@ -80,8 +80,8 @@ class DiscoveryEndpoint(
                 // username matched, check the host component
                 val issuerComponents = Url.invoke(config.issuer)
 
-                if (issuerComponents.host != (resourceUri.host ?: "")) {
-                    logger.info("Host mismatch, expected ${issuerComponents.host} got ${resourceUri.host}")
+                if (issuerComponents.host != resourceUri.domain) {
+                    logger.info("Host mismatch, expected ${issuerComponents.host} got ${resourceUri.domain}")
                     return@get call.respond(HttpStatusCode.NotFound)
                 }
             }
@@ -238,6 +238,8 @@ class DiscoveryEndpoint(
             val grantTypes =
                 listOf("authorization_code", "implicit", "urn:ietf:params:oauth:grant-type:jwt-bearer", "client_credentials", "urn:ietf:params:oauth:grant_type:redelegate", "urn:ietf:params:oauth:grant-type:device_code", "refresh_token")
 
+            val scopeService = scopeService
+            val encryptionService = encryptionService
             val result = buildJsonObject {
                 put("issuer", config.issuer)
                 put("authorization_endpoint", baseUrl + "authorize")
@@ -268,11 +270,11 @@ class DiscoveryEndpoint(
                 }
 
                 putJsonArray("userinfo_encryption_alg_values_supported") {
-                    addAll(encService.allEncryptionAlgsSupported.map(toAlgorithmName))
+                    addAll(encryptionService.allEncryptionAlgsSupported.map(toAlgorithmName))
                 }
 
                 putJsonArray("userinfo_encryption_enc_values_supported") {
-                    addAll(encService.allEncryptionEncsSupported.map(toAlgorithmName))
+                    addAll(encryptionService.allEncryptionEncsSupported.map(toAlgorithmName))
                 }
 
                 putJsonArray("id_token_signing_alg_values_supported") {
@@ -280,11 +282,11 @@ class DiscoveryEndpoint(
                 }
 
                 putJsonArray("id_token_encryption_alg_values_supported") {
-                    addAll(encService.allEncryptionAlgsSupported.map(toAlgorithmName))
+                    addAll(encryptionService.allEncryptionAlgsSupported.map(toAlgorithmName))
                 }
 
                 putJsonArray("id_token_encryption_enc_values_supported") {
-                    addAll(encService.allEncryptionEncsSupported.map(toAlgorithmName))
+                    addAll(encryptionService.allEncryptionEncsSupported.map(toAlgorithmName))
                 }
 
                 putJsonArray("request_object_signing_alg_values_supported") {
@@ -292,11 +294,11 @@ class DiscoveryEndpoint(
                 }
 
                 putJsonArray("request_object_encryption_alg_values_supported") {
-                    addAll(encService.allEncryptionAlgsSupported.map(toAlgorithmName))
+                    addAll(encryptionService.allEncryptionAlgsSupported.map(toAlgorithmName))
                 }
 
                 putJsonArray("request_object_encryption_enc_values_supported") {
-                    addAll(encService.allEncryptionEncsSupported.map(toAlgorithmName))
+                    addAll(encryptionService.allEncryptionEncsSupported.map(toAlgorithmName))
                 }
 
                 putJsonArray("token_endpoint_auth_methods_supported") {
@@ -335,14 +337,12 @@ class DiscoveryEndpoint(
         }
     }
 
-    companion object {
-        const val WELL_KNOWN_URL: String = ".well-known"
-        const val OPENID_CONFIGURATION_URL: String = WELL_KNOWN_URL + "/openid-configuration"
-        const val WEBFINGER_URL: String = WELL_KNOWN_URL + "/webfinger"
+    const val WELL_KNOWN_URL: String = ".well-known"
+    const val OPENID_CONFIGURATION_URL: String = WELL_KNOWN_URL + "/openid-configuration"
+    const val WEBFINGER_URL: String = WELL_KNOWN_URL + "/webfinger"
 
-        /**
-         * Logger for this class
-         */
-        private val logger = getLogger<DiscoveryEndpoint>()
-    }
+    /**
+     * Logger for this class
+     */
+    private val logger = getLogger<DiscoveryEndpoint>()
 }

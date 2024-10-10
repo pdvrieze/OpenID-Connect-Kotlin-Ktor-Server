@@ -2,32 +2,79 @@ package io.github.pdvrieze.auth.ktor
 
 import io.github.pdvrieze.auth.ktor.plugins.OpenIdConfigurator
 import io.github.pdvrieze.auth.ktor.plugins.configureRouting
+import io.github.pdvrieze.auth.uma.repository.exposed.UserInfos
+import io.ktor.client.call.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.server.application.*
 import io.ktor.server.testing.*
-import kotlin.test.*
-
-class ApplicationTest {
-    @Test
-    fun testRoot() = testApplication {
-        val configurator = OpenIdConfigurator("http://localhost:8080")
-        application {
-            configureRouting(configurator.resolveDefault())
-        }
-        client.get("/").apply {
-            assertEquals(HttpStatusCode.OK, status)
-            assertEquals("Hello World!", bodyAsText())
-        }
-    }
-}
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.transactions.transaction
+import org.junit.Before
+import org.mitre.discovery.web.DiscoveryEndpoint
+import org.mitre.web.util.OpenIdContext
+import org.mitre.web.util.OpenIdContextPlugin
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class WebFingerTest {
+
+    private lateinit var testContext: OpenIdContext
+
+    @Before
+    fun setUp() {
+        testContext = OpenIdConfigurator("http://localhost:8080/").resolveDefault()
+        transaction {
+            UserInfos.insert { st ->
+                st[sub] = "user"
+                st[email] = "user@example.com"
+                st[givenName] = "Joe"
+                st[familyName] = "Bloggs"
+            }
+        }
+    }
+
     @Test
-    fun testWellKnown() = testApplication {
-        val configurator = OpenIdConfigurator("http://localhost:8080")
+    fun testWebFinger() = testApplication {
+        configureApplication()
+
+        client.get("/.well-known/webfinger?resource=user%40example.com").apply {
+            assertTrue(status.isSuccess(), "Unexpected response : $status" )
+            assertEquals(ContentType.Application.Json, contentType())
+            val json = body<JsonElement>()
+            assertTrue { json is JsonObject }
+
+        }
+    }
+
+    @Test
+    fun testMissingResource() = testApplication {
+        configureApplication()
+
+        client.get("/.well-known/webfinger").apply {
+            assertEquals(400, status.value)
+        }
+    }
+
+    @Test
+    fun testMissingUser() = testApplication {
+        configureApplication()
+
+        client.get("/.well-known/webfinger?resource=joe%40example.com").apply {
+            assertEquals(404, status.value)
+        }
+    }
+
+    private fun ApplicationTestBuilder.configureApplication() {
         application {
-            configureRouting(configurator.resolveDefault())
+            install(OpenIdContextPlugin) { context = testContext }
+
+            configureRouting() {
+                with(DiscoveryEndpoint) { addRoutes() }
+            }
         }
     }
 }

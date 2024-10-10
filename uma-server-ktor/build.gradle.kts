@@ -30,6 +30,7 @@ dependencies {
     implementation(projects.umaServer.exposed)
 
     implementation(libs.ktor.client.java)
+    implementation(libs.ktor.client.core)
 
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.auth.common)

@@ -46,5 +46,5 @@ fun Application.module() {
     configureSerialization()
 //    configureTemplating()
 //    configureDatabases()
-    configureRouting(configuration.resolveDefault())
+    configureRouting()
 }
