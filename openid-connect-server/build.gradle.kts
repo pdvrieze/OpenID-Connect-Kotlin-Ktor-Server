@@ -21,12 +21,9 @@ dependencies {
 
     testImplementation(libs.mockito.jupiter)
     testImplementation(libs.mockito.kotlin)
-    testImplementation(libs.spring.test)
     testImplementation(libs.junit.jupiter.api)
 
     testRuntimeOnly(libs.junit.jupiter.engine)
-    testRuntimeOnly(libs.eclipse.persistence.jpa)
-    testRuntimeOnly(libs.eclipse.persistence.core)
 }
 
 kotlin {
