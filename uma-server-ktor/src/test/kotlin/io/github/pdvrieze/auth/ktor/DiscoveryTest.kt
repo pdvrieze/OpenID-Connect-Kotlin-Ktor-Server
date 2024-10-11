@@ -12,6 +12,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonArray
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.Before
@@ -108,6 +109,10 @@ class DiscoveryTest {
                 assertTrue(actual.containsKey(key), "provider configuration misses key: $key")
                 assertNotEquals(actual[key], JsonPrimitive(""))
             }
+
+            assertEquals(actual["issuer"], JsonPrimitive("https://example.com/"))
+            assertEquals(actual["authorization_endpoint"], JsonPrimitive("https://example.com/authorize"))
+            assertEquals(actual["response_types_supported"], buildJsonArray { add(JsonPrimitive("code")); add(JsonPrimitive("token"))})
         }
     }
 
