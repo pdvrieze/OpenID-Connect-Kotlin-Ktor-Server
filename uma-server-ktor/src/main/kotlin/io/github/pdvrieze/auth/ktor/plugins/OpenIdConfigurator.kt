@@ -250,7 +250,7 @@ data class OpenIdConfigurator(
             get() = TODO("not implemented")
         override val htmlViews: HtmlViews = DefaultHtmlViews()
 
-        override val messageSource: JsonMessageSource = JsonMessageSource("js/locale/", config)
+        override val messageSource: JsonMessageSource = JsonMessageSource("/js/locale/", config)
 
         override fun resolveAuthenticatedUser(applicationCall: ApplicationCall): Authentication? {
             applicationCall.attributes.getOrNull(KEY_AUTHENTICATION)?.let { return it }
