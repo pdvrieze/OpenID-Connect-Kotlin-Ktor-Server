@@ -558,7 +558,7 @@ object DefaultMixins: Mixins {
         backgroundRepeat = BackgroundRepeat.repeatX
 
         // IE9 and down
-        filter = """e(%("progid:DXImageTransform.Microsoft.gradient(startColorstr='%d', endColorstr='%d', GradientType=1)",argb($startColor),argb($endColor)))"""
+        filter = """e("progid:DXImageTransform.Microsoft.gradient(startColorstr='$startColor', endColorstr='$endColor', GradientType=1)")"""
     }
 
     override fun CssBuilder.gradientVertical(startColor: Color, endColor: Color) {
@@ -572,7 +572,7 @@ object DefaultMixins: Mixins {
 
         // IE9 and down
         filter =
-            """e(%("progid:DXImageTransform.Microsoft.gradient(startColorstr='%d', endColorstr='%d', GradientType=0)",argb($startColor),argb($endColor)));"""
+            """e("progid:DXImageTransform.Microsoft.gradient(startColorstr='$startColor', endColorstr='$endColor', GradientType=0)")"""
     }
 
     override fun CssBuilder.gradientDirectional(
@@ -610,7 +610,7 @@ object DefaultMixins: Mixins {
         backgroundRepeat = BackgroundRepeat.noRepeat
 
         // IE9 and down, gets no color-stop at all for proper fallback
-        filter = """e(%("progid:DXImageTransform.Microsoft.gradient(startColorstr='%d', endColorstr='%d', GradientType=0)",argb($startColor),argb($endColor)))"""
+        filter = """e("progid:DXImageTransform.Microsoft.gradient(startColorstr='$startColor', endColorstr='$endColor', GradientType=0)")"""
     }
 
     override fun CssBuilder.gradientVerticalThreeColors(
@@ -632,7 +632,7 @@ object DefaultMixins: Mixins {
         backgroundRepeat = BackgroundRepeat.noRepeat
 
         // IE9 and down, gets no color-stop at all for proper fallback
-        filter = """e(%("progid:DXImageTransform.Microsoft.gradient(startColorstr='%d', endColorstr='%d', GradientType=0)",argb($startColor),argb($endColor)))"""
+        filter = """e("progid:DXImageTransform.Microsoft.gradient(startColorstr='$startColor', endColorstr='$endColor', GradientType=0)")"""
     }
 
     override fun CssBuilder.gradientRadial(innerColor: Color, outerColor: Color) {
@@ -669,7 +669,7 @@ object DefaultMixins: Mixins {
 
     /** Reset filters for IE */
     override fun CssBuilder.resetFilter() {
-        filter = """e(%("progid:DXImageTransform.Microsoft.gradient(enabled = false)"));"""
+        filter = """e("progid:DXImageTransform.Microsoft.gradient(enabled = false)")"""
     }
     //endregion
 

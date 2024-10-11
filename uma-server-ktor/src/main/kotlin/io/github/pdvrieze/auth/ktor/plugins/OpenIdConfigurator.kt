@@ -79,6 +79,7 @@ import org.mitre.uma.service.SavedRegisteredClientService
 import org.mitre.uma.service.UmaTokenService
 import org.mitre.uma.service.impl.DefaultPermissionService
 import org.mitre.uma.service.impl.DefaultResourceSetService
+import org.mitre.uma.service.impl.DefaultUmaTokenService
 import org.mitre.uma.service.impl.MatchAllClaimsOnAnyPolicy
 import org.mitre.uma.service.impl.ktor.KtorRegisteredClientService
 import org.mitre.util.UserIdPrincipalAuthentication
@@ -246,8 +247,9 @@ data class OpenIdConfigurator(
         override val savedRegisteredClientService: SavedRegisteredClientService =
             KtorRegisteredClientService(configurator.database)
 
-        override val umaTokenService: UmaTokenService
-            get() = TODO("not implemented")
+        override val umaTokenService: UmaTokenService =
+            DefaultUmaTokenService(authenticationHolderRepository, tokenService, clientService, config, jwtService)
+
         override val htmlViews: HtmlViews = DefaultHtmlViews()
 
         override val messageSource: JsonMessageSource = JsonMessageSource("/js/locale/", config)

@@ -1699,14 +1699,14 @@ object DefaultStyles : Styles {
 
 // Redeclare since the fluid row class is more specific
         ruleOf(
-            "input[class*=\"span\"],",
-            "select[class*=\"span\"],",
-            "textarea[class*=\"span\"],",
-            ".uneditable-input[class*=\"span\"],",
+            "input[class*=\"span\"]",
+            "select[class*=\"span\"]",
+            "textarea[class*=\"span\"]",
+            ".uneditable-input[class*=\"span\"]",
             // Redeclare since the fluid row class is more specific
-            ".row-fluid input[class*=\"span\"],",
-            ".row-fluid select[class*=\"span\"],",
-            ".row-fluid textarea[class*=\"span\"],",
+            ".row-fluid input[class*=\"span\"]",
+            ".row-fluid select[class*=\"span\"]",
+            ".row-fluid textarea[class*=\"span\"]",
             ".row-fluid .uneditable-input[class*=\"span\"]"
         ) {
             float = Float.none
@@ -2133,7 +2133,7 @@ object DefaultStyles : Styles {
             h1 {
                 marginBottom = 0.px
                 fontSize = 60.px
-                lineHeight = 1.px.lh
+                lineHeight = LineHeight("1")
                 color = vars.heroUnitHeadingColor
                 letterSpacing = -1.px
             }
@@ -3824,7 +3824,7 @@ object DefaultStyles : Styles {
             "input[type=\"reset\"]",
             "input[type=\"submit\"]"
         ) {
-            declarations["-webkit-appearance"] = button
+            declarations["-webkit-appearance"] = "button"
             // Corrects inability to style clickable `input` types in iOS.
             cursor =
                 Cursor.pointer // Improves usability and consistency of cursor style between image-type `input` and others.
