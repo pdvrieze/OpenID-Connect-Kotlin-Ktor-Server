@@ -112,7 +112,19 @@ data class OpenIdConfigurator(
         val database = configurator.database
         private val credentialVerifier = configurator.verifyCredential
 
-        override val config: ConfigurationPropertiesBean = ConfigurationPropertiesBean(configurator.issuer, configurator.topBarTitle)
+        override val config: ConfigurationPropertiesBean = ConfigurationPropertiesBean(configurator.issuer, configurator.topBarTitle).apply {
+            jsFiles = setOf(
+                "resources/js/client.js",
+                "resources/js/grant.js",
+                "resources/js/scope.js",
+                "resources/js/whitelist.js",
+                "resources/js/dynreg.js",
+                "resources/js/rsreg.js",
+                "resources/js/token.js",
+                "resources/js/blacklist.js",
+                "resources/js/profile.js",
+            )
+        }
 
         override val scopeRepository: SystemScopeRepository = ExposedSystemScopeRepository(configurator.database)
 

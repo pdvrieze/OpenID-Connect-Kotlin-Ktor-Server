@@ -200,6 +200,6 @@ class DefaultHtmlViews(): HtmlViews {
         override val config: ConfigurationPropertiesBean
             get() = openIdContext.config
         override val ui: UIConfiguration
-            get() = UIConfiguration()
+            get() = UIConfiguration(config.jsFiles)
     }
 }

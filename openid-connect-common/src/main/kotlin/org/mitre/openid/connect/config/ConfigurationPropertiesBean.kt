@@ -30,6 +30,7 @@ import java.util.*
  * @author AANGANES
  */
 class ConfigurationPropertiesBean {
+    var jsFiles: Set<String> = emptySet()
     val projectVersion: String = "0.1 - BETA" // TODO("make this more dynamic")
 
     /**

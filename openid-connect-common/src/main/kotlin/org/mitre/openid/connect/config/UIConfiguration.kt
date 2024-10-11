@@ -21,6 +21,6 @@ package org.mitre.openid.connect.config
  *
  * @author jricher
  */
-class UIConfiguration {
+class UIConfiguration(
     var jsFiles: Set<String> = emptySet()
-}
+)
