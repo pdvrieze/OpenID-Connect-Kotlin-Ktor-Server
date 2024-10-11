@@ -2,6 +2,7 @@ package io.github.pdvrieze.openid.web.tags
 
 import io.github.pdvrieze.openid.web.WebContext
 import kotlinx.html.*
+import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.web.AuthenticationUtilities
 
 @HtmlTagMarker
@@ -24,7 +25,7 @@ fun FlowContent.topBar(context: WebContext, pageName: String? = null) {
         }
     }
 
-    val isUser = AuthenticationUtilities.hasRole(context.authentication, "ROLE_USER")
+    val isUser = AuthenticationUtilities.hasRole(context.authentication, GrantedAuthority.ROLE_USER)
 
     div("navbar navbar-fixed-top") {
         div("navbar-inner") {

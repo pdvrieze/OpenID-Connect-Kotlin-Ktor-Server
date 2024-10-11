@@ -33,7 +33,7 @@ import org.mitre.web.util.clientService
 import org.mitre.web.util.requireRoleOf
 import org.mitre.web.util.tokenService
 
-class RevocationEndpoint : KtorEndpoint {
+object RevocationEndpoint : KtorEndpoint {
 
     override fun Route.addRoutes() {
         revoke()
@@ -125,11 +125,5 @@ class RevocationEndpoint : KtorEndpoint {
         }
     }
 
-    companion object {
-        /**
-         * Logger for this class
-         */
-        private val logger = getLogger<RevocationEndpoint>()
-
-    }
+    private val logger = getLogger()
 }

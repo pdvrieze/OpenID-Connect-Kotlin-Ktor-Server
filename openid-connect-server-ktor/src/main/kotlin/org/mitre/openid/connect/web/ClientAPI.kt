@@ -77,7 +77,6 @@ import org.mitre.oauth2.model.RegisteredClientFields.TOS_URI
 import org.mitre.oauth2.model.RegisteredClientFields.USERINFO_ENCRYPTED_RESPONSE_ALG
 import org.mitre.oauth2.model.RegisteredClientFields.USERINFO_ENCRYPTED_RESPONSE_ENC
 import org.mitre.oauth2.model.RegisteredClientFields.USERINFO_SIGNED_RESPONSE_ALG
-import org.mitre.openid.connect.service.ClientLogoLoadingService
 import org.mitre.openid.connect.view.clientEntityViewForAdmins
 import org.mitre.openid.connect.view.clientEntityViewForUsers
 import org.mitre.openid.connect.view.jsonErrorView
@@ -85,6 +84,8 @@ import org.mitre.util.asBoolean
 import org.mitre.util.asBooleanOrNull
 import org.mitre.util.getLogger
 import org.mitre.web.util.KtorEndpoint
+import org.mitre.web.util.assertionValidator
+import org.mitre.web.util.clientLogoLoadingService
 import org.mitre.web.util.clientService
 import org.mitre.web.util.requireRole
 import java.text.ParseException
@@ -95,10 +96,7 @@ import java.text.ParseException
 //@Controller
 //@RequestMapping("/api/clients")
 //@PreAuthorize("hasRole('ROLE_USER')")
-class ClientAPI(
-    val assertionValidator: AssertionValidator,
-    val clientLogoLoadingService: ClientLogoLoadingService,
-): KtorEndpoint {
+object ClientAPI: KtorEndpoint {
 
     override fun Route.addRoutes() {
         authenticate {
@@ -475,12 +473,10 @@ class ClientAPI(
         }
     }
 
-    companion object {
-        const val URL: String = RootController.API_URL + "/clients"
+    const val URL: String = RootController.API_URL + "/clients"
 
-        /**
-         * Logger for this class
-         */
-        private val logger = getLogger<ClientAPI>()
-    }
+    /**
+     * Logger for this class
+     */
+    private val logger = getLogger<ClientAPI>()
 }

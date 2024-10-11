@@ -16,18 +16,14 @@
 package org.mitre.uma.web
 
 import io.ktor.server.application.*
-import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
 import kotlinx.serialization.json.addAll
-import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import org.mitre.oauth2.view.respondJson
 import org.mitre.oauth2.web.IntrospectionEndpoint
-import org.mitre.openid.connect.config.ConfigurationPropertiesBean
-import org.mitre.openid.connect.view.JsonEntityView
 import org.mitre.openid.connect.web.DynamicClientRegistrationEndpoint
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.config
@@ -36,7 +32,7 @@ import org.mitre.web.util.config
  * @author jricher
  */
 //@Controller
-class UmaDiscoveryEndpoint : KtorEndpoint {
+object UmaDiscoveryEndpoint : KtorEndpoint {
 
     override fun Route.addRoutes() {
         get("/.well-known/uma-configuration") { umaConfiguration()}

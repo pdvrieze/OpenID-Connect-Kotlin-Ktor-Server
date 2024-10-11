@@ -45,7 +45,7 @@ import org.mitre.web.util.whitelistedSiteService
 //@Controller
 //@RequestMapping("/" + WhitelistAPI.URL)
 //@PreAuthorize("hasRole('ROLE_USER')")
-class WhitelistAPI : KtorEndpoint {
+object WhitelistAPI : KtorEndpoint {
     override fun Route.addRoutes() {
         route("/api/whitelist") {
             authenticate {
@@ -178,12 +178,10 @@ class WhitelistAPI : KtorEndpoint {
         return call.respondJson(whitelist)
     }
 
-    companion object {
-        const val URL: String = RootController.API_URL + "/whitelist"
+    const val URL: String = RootController.API_URL + "/whitelist"
 
-        /**
-         * Logger for this class
-         */
-        private val logger = getLogger<WhitelistAPI>()
-    }
+    /**
+     * Logger for this class
+     */
+    private val logger = getLogger<WhitelistAPI>()
 }

@@ -5,11 +5,12 @@ import kotlinx.html.FlowContent
 import kotlinx.html.HtmlTagMarker
 import kotlinx.html.div
 import kotlinx.html.ul
+import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.web.AuthenticationUtilities
 
 @HtmlTagMarker
 fun FlowContent.sidebar(context: WebContext) {
-    if(AuthenticationUtilities.hasRole(context.authentication, "ROLE_USER")) {
+    if(AuthenticationUtilities.hasRole(context.authentication, GrantedAuthority.ROLE_USER)) {
         div("span2 visible-desktop") {
             div("well sidebar-nav") {
                 ul("nav nav-list") {

@@ -49,9 +49,7 @@ import java.text.ParseException
 import java.time.Instant
 import java.util.*
 
-//@Controller
-//@RequestMapping(value = [ProtectedResourceRegistrationEndpoint.URL])
-class ProtectedResourceRegistrationEndpoint: KtorEndpoint {
+object ProtectedResourceRegistrationEndpoint: KtorEndpoint {
     override fun Route.addRoutes() {
         route("resource") {
             post { registerNewProtectedResource() }
@@ -63,22 +61,6 @@ class ProtectedResourceRegistrationEndpoint: KtorEndpoint {
         }
     }
 
-/*
-    @Autowired
-    private lateinit var clientService: ClientDetailsEntityService
-
-    @Autowired
-    private lateinit var tokenService: OAuth2TokenEntityService
-
-    @Autowired
-    private lateinit var scopeService: SystemScopeService
-
-    @Autowired
-    private lateinit var config: ConfigurationPropertiesBean
-
-    @Autowired
-    private lateinit var connectTokenService: OIDCTokenService
-*/
 
     /**
      * Create a new Client, issue a client ID, and create a registration access token.
@@ -385,12 +367,10 @@ class ProtectedResourceRegistrationEndpoint: KtorEndpoint {
         }
     }
 
-    companion object {
-        const val URL: String = "resource"
+    const val URL: String = "resource"
 
-        /**
-         * Logger for this class
-         */
-        private val logger = getLogger<ProtectedResourceRegistrationEndpoint>()
-    }
+    /**
+     * Logger for this class
+     */
+    private val logger = getLogger<ProtectedResourceRegistrationEndpoint>()
 }

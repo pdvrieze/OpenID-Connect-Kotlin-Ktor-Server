@@ -61,6 +61,7 @@ interface HtmlViews {
     suspend fun PipelineContext<*, ApplicationCall>.login(
         loginHint: String?,
         paramError: String?,
+        redirectUri: String?,
     )
 
     suspend fun PipelineContext<*, ApplicationCall>.logoutConfirmation(client: OAuthClientDetails?)

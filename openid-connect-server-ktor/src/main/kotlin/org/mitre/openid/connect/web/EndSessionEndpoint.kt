@@ -25,7 +25,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import io.ktor.util.pipeline.*
-import org.mitre.jwt.assertion.impl.SelfAssertionValidator
 import org.mitre.oauth2.exception.InvalidClientException
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuthClientDetails
@@ -34,6 +33,7 @@ import org.mitre.web.OpenIdSessionStorage
 import org.mitre.web.htmlLogoutConfirmationView
 import org.mitre.web.htmlPostLogoutView
 import org.mitre.web.util.KtorEndpoint
+import org.mitre.web.util.assertionValidator
 import org.mitre.web.util.clientService
 import org.mitre.web.util.resolveAuthenticatedUser
 import org.mitre.web.util.update
@@ -45,7 +45,7 @@ import java.text.ParseException
  *
  * @author jricher
  */
-class EndSessionEndpoint(val validator: SelfAssertionValidator): KtorEndpoint {
+object EndSessionEndpoint: KtorEndpoint {
 //    private lateinit var validator: SelfAssertionValidator
 
 //    private lateinit var userInfoService: UserInfoService
@@ -85,7 +85,7 @@ class EndSessionEndpoint(val validator: SelfAssertionValidator): KtorEndpoint {
             try {
                 val idToken = JWTParser.parse(idTokenHint)
 
-                if (validator.isValid(idToken)) {
+                if (assertionValidator.isValid(idToken)) {
                     // we issued this ID token, figure out who it's for
                     idTokenClaims = idToken.jwtClaimsSet
 
@@ -187,13 +187,11 @@ class EndSessionEndpoint(val validator: SelfAssertionValidator): KtorEndpoint {
         return htmlPostLogoutView()
     }
 
-    companion object {
-        const val URL: String = "endsession"
+    const val URL: String = "endsession"
 
-        private const val CLIENT_KEY = "client"
-        private const val STATE_KEY = "state"
-        private const val REDIRECT_URI_KEY = "redirectUri"
+    private const val CLIENT_KEY = "client"
+    private const val STATE_KEY = "state"
+    private const val REDIRECT_URI_KEY = "redirectUri"
 
-        private val logger = getLogger<EndSessionEndpoint>()
-    }
+    private val logger = getLogger()
 }

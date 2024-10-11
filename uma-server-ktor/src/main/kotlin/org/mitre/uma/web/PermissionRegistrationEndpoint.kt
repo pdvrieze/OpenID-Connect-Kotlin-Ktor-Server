@@ -47,7 +47,7 @@ import org.mitre.web.util.scopeService
  */
 //@RequestMapping("/permission")
 //@PreAuthorize("hasRole('ROLE_USER')")
-class PermissionRegistrationEndpoint: KtorEndpoint {
+object PermissionRegistrationEndpoint: KtorEndpoint {
 
     override fun Route.addRoutes() {
         route("/permission") {
@@ -110,10 +110,8 @@ class PermissionRegistrationEndpoint: KtorEndpoint {
         }
     }
 
-    companion object {
-        // Logger for this class
-        private val logger = getLogger<PermissionRegistrationEndpoint>()
+    // Logger for this class
+    private val logger = getLogger<PermissionRegistrationEndpoint>()
 
-        const val URL: String = "permission"
-    }
+    const val URL: String = "permission"
 }

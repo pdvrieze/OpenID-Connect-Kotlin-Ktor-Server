@@ -35,8 +35,6 @@ import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.oauth2.view.respondJson
 import org.mitre.oauth2.web.AuthenticationUtilities.ensureOAuthScope
-import org.mitre.openid.connect.view.JsonEntityView
-import org.mitre.openid.connect.view.JsonErrorView
 import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.uma.model.ResourceSet
 import org.mitre.uma.view.resourceSetEntityAbbreviatedView
@@ -51,7 +49,7 @@ import org.mitre.web.util.scopeService
 
 //@RequestMapping("/resource_set/resource_set")
 //@PreAuthorize("hasRole('ROLE_USER')")
-class ResourceSetRegistrationEndpoint: KtorEndpoint {
+object ResourceSetRegistrationEndpoint: KtorEndpoint {
 
     override fun Route.addRoutes() {
         route("/resource_set/resource_set") {
@@ -225,10 +223,8 @@ class ResourceSetRegistrationEndpoint: KtorEndpoint {
         return rs
     }
 
-    companion object {
-        private val logger = getLogger<ResourceSetRegistrationEndpoint>()
+    private val logger = getLogger<ResourceSetRegistrationEndpoint>()
 
-        const val DISCOVERY_URL: String = "resource_set"
-        const val URL: String = DISCOVERY_URL + "/resource_set"
-    }
+    const val DISCOVERY_URL: String = "resource_set"
+    const val URL: String = DISCOVERY_URL + "/resource_set"
 }

@@ -17,7 +17,6 @@ import org.mitre.oauth2.exception.OAuthErrorCodes
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.oauth2.view.respondJson
 import org.mitre.oauth2.web.AuthenticationUtilities
-import org.mitre.openid.connect.view.JsonEntityView
 import org.mitre.openid.connect.view.JsonErrorView
 import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.util.asString
@@ -34,7 +33,7 @@ import org.mitre.web.util.umaTokenService
  */
 //@Controller
 //@RequestMapping("/authz_request")
-class AuthorizationRequestEndpoint() : KtorEndpoint {
+object AuthorizationRequestEndpoint : KtorEndpoint {
     override fun Route.addRoutes() {
         route("/authz_request") {
             authenticate {
@@ -132,12 +131,10 @@ class AuthorizationRequestEndpoint() : KtorEndpoint {
         return call.respondJson(entity)
     }
 
-    companion object {
-        // Logger for this class
-        private val logger = getLogger<AuthorizationRequestEndpoint>()
+    // Logger for this class
+    private val logger = getLogger()
 
-        const val RPT: String = "rpt"
-        const val TICKET: String = "ticket"
-        const val URL: String = "authz_request"
-    }
+    const val RPT: String = "rpt"
+    const val TICKET: String = "ticket"
+    const val URL: String = "authz_request"
 }

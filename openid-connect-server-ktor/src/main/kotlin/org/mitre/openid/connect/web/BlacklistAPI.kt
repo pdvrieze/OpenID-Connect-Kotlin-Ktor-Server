@@ -19,6 +19,7 @@ package org.mitre.openid.connect.web
 
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -44,15 +45,17 @@ import org.mitre.web.util.requireRole
 //@Controller
 //@RequestMapping("/api/blacklist")
 //@PreAuthorize("hasRole('ROLE_ADMIN')")
-class BlacklistAPI : KtorEndpoint {
+object BlacklistAPI : KtorEndpoint {
 
     override fun Route.addRoutes() {
-        route("/api/blacklist") {
-            get { getAllBlacklistedSites() }
-            post { addNewBlacklistedSite() }
-            put("/{id}") { updateBlacklistedSite() }
-            delete("/{id}") { deleteBlacklistedSite() }
-            get("/{id}") { getBlacklistedSite() }
+        authenticate {
+            route("/api/blacklist") {
+                get { getAllBlacklistedSites() }
+                post { addNewBlacklistedSite() }
+                put("/{id}") { updateBlacklistedSite() }
+                delete("/{id}") { deleteBlacklistedSite() }
+                get("/{id}") { getBlacklistedSite() }
+            }
         }
     }
 
@@ -170,9 +173,7 @@ class BlacklistAPI : KtorEndpoint {
         return call.respondJson(blacklist)
     }
 
-    companion object {
-        const val URL: String = "api/blacklist"
+    const val URL: String = "api/blacklist"
 
-        private val logger = getLogger<BlacklistAPI>()
-    }
+    private val logger = getLogger<BlacklistAPI>()
 }

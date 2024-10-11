@@ -1,6 +1,7 @@
 package org.mitre.oauth2.web
 
 import org.mitre.oauth2.model.Authentication
+import org.mitre.oauth2.model.GrantedAuthority
 
 /**
  *
@@ -33,11 +34,11 @@ object AuthenticationUtilities {
      * Check to see if the given auth object has ROLE_ADMIN assigned to it or not
      */
     fun isAdmin(auth: Authentication?): Boolean {
-        return (auth ?: return false).authorities.any { it.authority == "ROLE_ADMIN" }
+        return (auth ?: return false).authorities.any { it == GrantedAuthority.ROLE_ADMIN }
     }
 
 
-    fun hasRole(auth: Authentication?, role: String): Boolean {
-        return (auth ?: return false).authorities.any { it.authority == role }
+    fun hasRole(auth: Authentication?, role: GrantedAuthority): Boolean {
+        return (auth ?: return false).authorities.any { it == role }
     }
 }

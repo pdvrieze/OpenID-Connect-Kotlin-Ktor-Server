@@ -24,9 +24,10 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
 import org.mitre.oauth2.exception.InvalidTokenException
+import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
-import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
+import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.service.JsonIntrospectionResultAssembler
 import org.mitre.oauth2.service.SystemScopeService
@@ -43,7 +44,7 @@ import org.mitre.web.util.tokenService
 import org.mitre.web.util.userInfoService
 
 
-class IntrospectionEndpoint: KtorEndpoint {
+object IntrospectionEndpoint: KtorEndpoint {
     override fun Route.addRoutes() {
         authenticate() {
             get("/introspection") {
@@ -99,7 +100,7 @@ class IntrospectionEndpoint: KtorEndpoint {
             // directly authenticated clients get a subset of any scopes that they've registered for
             authClient.scope?.let { authScopes.addAll(it) }
 
-            if (!org.mitre.oauth2.web.AuthenticationUtilities.hasRole(auth, "ROLE_CLIENT")
+            if (!AuthenticationUtilities.hasRole(auth, GrantedAuthority.ROLE_CLIENT)
                 || !authClient.isAllowIntrospection
             ) {
                 // this client isn't allowed to do direct introspection
@@ -162,12 +163,10 @@ class IntrospectionEndpoint: KtorEndpoint {
         return jsonEntityView(active = false)
     }
 
-    companion object {
-        const val URL: String = "introspect"
+    const val URL: String = "introspect"
 
-        /**
-         * Logger for this class
-         */
-        private val logger = getLogger<IntrospectionEndpoint>()
-    }
+    /**
+     * Logger for this class
+     */
+    private val logger = getLogger<IntrospectionEndpoint>()
 }

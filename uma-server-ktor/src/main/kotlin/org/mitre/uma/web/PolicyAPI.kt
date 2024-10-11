@@ -39,7 +39,7 @@ import org.mitre.web.util.resourceSetService
  */
 //@RequestMapping("/api/resourceset")
 //@PreAuthorize("hasRole('ROLE_USER')")
-class PolicyAPI: KtorEndpoint {
+object PolicyAPI: KtorEndpoint {
 
     override fun Route.addRoutes() {
         route("/api/resourceset") {
@@ -278,11 +278,9 @@ class PolicyAPI: KtorEndpoint {
         return call.respond(HttpStatusCode.NoContent)
     }
 
-    companion object {
-        // Logger for this class
-        private val logger = getLogger<PolicyAPI>()
+    // Logger for this class
+    private val logger = getLogger<PolicyAPI>()
 
-        const val URL: String = RootController.API_URL + "/resourceset"
-        const val POLICYURL: String = "/policy"
-    }
+    const val URL: String = RootController.API_URL + "/resourceset"
+    const val POLICYURL: String = "/policy"
 }

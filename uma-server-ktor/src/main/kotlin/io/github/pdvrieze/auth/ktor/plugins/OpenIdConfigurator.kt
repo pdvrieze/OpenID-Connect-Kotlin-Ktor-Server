@@ -268,8 +268,8 @@ data class OpenIdConfigurator(
 
         // TODO Do something more sane
         private fun resolveAuthServiceAuthorities(name: String): Collection<GrantedAuthority> = when (name) {
-            "admin" -> listOf(GrantedAuthority.ROLE_ADMIN, GrantedAuthority.ROLE_CLIENT)
-            else -> listOf(GrantedAuthority.ROLE_CLIENT)
+            "admin" -> listOf(GrantedAuthority.ROLE_ADMIN, GrantedAuthority.ROLE_USER)
+            else -> listOf(GrantedAuthority.ROLE_USER)
         }
     }
 

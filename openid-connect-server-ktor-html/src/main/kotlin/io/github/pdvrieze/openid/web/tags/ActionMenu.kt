@@ -4,12 +4,13 @@ import io.github.pdvrieze.openid.web.WebContext
 import kotlinx.html.HtmlTagMarker
 import kotlinx.html.UL
 import kotlinx.html.li
+import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.web.AuthenticationUtilities
 
 @HtmlTagMarker
 fun UL.actionMenu(context: WebContext) {
     with(context.intl) {
-        if (AuthenticationUtilities.hasRole(context.authentication, "ROLE_ADMIN")) {
+        if (AuthenticationUtilities.hasRole(context.authentication, GrantedAuthority.ROLE_ADMIN)) {
             li("nav-header") { message("sidebar.administrative.title") }
 
             li { a_data(href = "manage/#admin/clients") { message("sidebar.administrative.manage_clients") } }

@@ -91,8 +91,9 @@ suspend fun PipelineContext<Unit, ApplicationCall>.htmlHomeView() {
 suspend fun PipelineContext<Unit, ApplicationCall>.htmlLoginView(
     loginHint: String?,
     paramError: String?,
+    redirectUri: String?,
 ) {
-    with(openIdContext.htmlViews) { login(loginHint, paramError) }
+    with(openIdContext.htmlViews) { login(loginHint, paramError, redirectUri) }
 }
 
 suspend fun PipelineContext<Unit, ApplicationCall>.htmlLogoutConfirmationView(client: OAuthClientDetails?) {

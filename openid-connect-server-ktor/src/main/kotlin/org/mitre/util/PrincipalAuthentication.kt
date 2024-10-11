@@ -7,7 +7,7 @@ import org.mitre.oauth2.service.OAuth2TokenEntityService
 
 // TODO this entire code path needs more. It requires looking up users and providing further information.
 fun Principal?.toAuth(tokenEntityService: OAuth2TokenEntityService): Authentication = when (this) {
-    is UserIdPrincipal -> UserIdPrincipalAuthentication(this)
+    is UserIdPrincipal -> UserIdPrincipalAuthentication(this, listOf(GrantedAuthority.ROLE_USER))
     is OAuthAccessTokenResponse.OAuth2 -> tokenEntityService.loadAuthentication(this.accessToken)
     else -> throw UnsupportedOperationException("Unsupported principal: $this")
 }

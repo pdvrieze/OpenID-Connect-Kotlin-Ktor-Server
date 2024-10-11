@@ -41,7 +41,7 @@ import org.mitre.web.util.scopeService
 // @Controller
 // @RequestMapping("/" + ScopeAPI.URL)
 // @PreAuthorize("hasRole('ROLE_USER')")
-class ScopeAPI : KtorEndpoint {
+object ScopeAPI : KtorEndpoint {
 
     override fun Route.addRoutes() {
         route("/api/scopes") {
@@ -168,13 +168,8 @@ class ScopeAPI : KtorEndpoint {
         }
     }
 
-    companion object {
-        const val URL: String = RootController.API_URL + "/scopes"
+    const val URL: String = RootController.API_URL + "/scopes"
 
-        /**
-         * Logger for this class
-         */
-        private val logger = getLogger<ScopeAPI>()
-    }
+    private val logger = getLogger()
 }
 

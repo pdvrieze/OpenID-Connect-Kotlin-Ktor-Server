@@ -43,7 +43,7 @@ import org.mitre.web.util.tokenService
 //@Controller
 //@RequestMapping("/" + TokenAPI.URL)
 //@PreAuthorize("hasRole('ROLE_USER')")
-class TokenAPI : KtorEndpoint {
+object TokenAPI : KtorEndpoint {
     override fun Route.addRoutes() {
         route("/api/tokens") {
             authenticate {
@@ -194,12 +194,10 @@ class TokenAPI : KtorEndpoint {
         return call.respond(HttpStatusCode.OK)
     }
 
-    companion object {
-        const val URL: String = "api/tokens"
+    const val URL: String = "api/tokens"
 
-        /**
-         * Logger for this class
-         */
-        private val logger = getLogger<TokenAPI>()
-    }
+    /**
+     * Logger for this class
+     */
+    private val logger = getLogger<TokenAPI>()
 }

@@ -11,6 +11,7 @@ fun HTML.login(
     context: WebContext,
     loginHint: String?,
     paramError: String?,
+    redirectUri: String?,
 ) {
     val title = "Log In"//context.intl.messageText("login")
     val config = context.config
@@ -59,7 +60,7 @@ fun HTML.login(
                                     div("input-prepend input-block-level") {
                                         span("add-on") {i("icon-lock")}
                                         input(InputType.password, name="password") {
-                                            placeholder="<spring:message code='login.password'/>"
+                                            placeholder=messageText("login.password")
                                             attributes["autocorrect"]="off"
                                             attributes["autocapitalize"]="off"
                                             attributes["autocomplete"]="off"
@@ -69,8 +70,11 @@ fun HTML.login(
                                     }
                                 }
                                 div() {
-                                    input(type=InputType.hidden, name= _csrf.parameterName) {
+                                    hiddenInput(name= _csrf.parameterName) {
                                         value= _csrf.token
+                                    }
+                                    if (redirectUri != null) {
+                                        hiddenInput(name = "redirect") { redirectUri }
                                     }
                                     input(type=InputType.submit, classes="btn", name="submit") {
                                         value=messageText("login.login-button")

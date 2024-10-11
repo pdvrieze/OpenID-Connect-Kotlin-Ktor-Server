@@ -34,6 +34,7 @@ import org.mitre.oauth2.token.DeviceTokenGranter
 import org.mitre.oauth2.view.respondJson
 import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.util.getLogger
+import org.mitre.web.htmlApproveDeviceView
 import org.mitre.web.htmlRequestUserCodeView
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.clientService
@@ -43,7 +44,7 @@ import org.mitre.web.util.requireRole
 import org.mitre.web.util.scopeService
 import java.net.URISyntaxException
 import java.util.*
-import org.mitre.web.htmlApproveDeviceView
+
 /**
  * Implements https://tools.ietf.org/html/draft-ietf-oauth-device-flow
  *
@@ -52,8 +53,7 @@ import org.mitre.web.htmlApproveDeviceView
  *
  * @author jricher
  */
-class DeviceEndpoint(
-) : KtorEndpoint {
+object DeviceEndpoint : KtorEndpoint {
 
     override fun Route.addRoutes() {
         post("/devicecode") {
@@ -312,11 +312,9 @@ class DeviceEndpoint(
         call.respond(HttpStatusCode.BadRequest, category)
     }
 
-    companion object {
-        const val URL: String = "devicecode"
-        const val USER_URL: String = "device"
+    const val URL: String = "devicecode"
+    const val USER_URL: String = "device"
 
-        val logger = getLogger<DeviceEndpoint>()
-    }
+    val logger = getLogger<DeviceEndpoint>()
 }
 

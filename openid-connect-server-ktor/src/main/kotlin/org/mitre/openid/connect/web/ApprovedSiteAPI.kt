@@ -23,7 +23,8 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
 import kotlinx.serialization.json.encodeToJsonElement
-import org.mitre.oauth2.exception.OAuthErrorCodes.*
+import org.mitre.oauth2.exception.OAuthErrorCodes.ACCESS_DENIED
+import org.mitre.oauth2.exception.OAuthErrorCodes.INVALID_REQUEST
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.openid.connect.view.jsonApprovedSiteView
 import org.mitre.openid.connect.view.jsonErrorView
@@ -37,7 +38,7 @@ import org.mitre.web.util.requireRole
  */
 //@RequestMapping("/" + ApprovedSiteAPI.URL)
 //@PreAuthorize("hasRole('ROLE_USER')")
-class ApprovedSiteAPI : KtorEndpoint {
+object ApprovedSiteAPI : KtorEndpoint {
 
     override fun Route.addRoutes() {
         route("/api/approved") {
@@ -107,12 +108,10 @@ class ApprovedSiteAPI : KtorEndpoint {
         return jsonApprovedSiteView(json.encodeToJsonElement(approvedSite))
     }
 
-    companion object {
-        const val URL: String = "api/approved"
+    const val URL: String = "api/approved"
 
-        /**
-         * Logger for this class
-         */
-        private val logger = getLogger<ApprovedSiteAPI>()
-    }
+    /**
+     * Logger for this class
+     */
+    private val logger = getLogger<ApprovedSiteAPI>()
 }

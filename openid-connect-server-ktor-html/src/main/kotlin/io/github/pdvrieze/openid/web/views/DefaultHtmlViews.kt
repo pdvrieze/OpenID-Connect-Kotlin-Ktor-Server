@@ -6,6 +6,8 @@ import io.ktor.server.application.*
 import io.ktor.server.html.*
 import io.ktor.server.request.*
 import io.ktor.util.pipeline.*
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonArray
 import org.mitre.oauth2.exception.OAuth2Exception
 import org.mitre.oauth2.exception.OAuthErrorCode
 import org.mitre.oauth2.model.Authentication
@@ -114,9 +116,10 @@ class DefaultHtmlViews(): HtmlViews {
     override suspend fun PipelineContext<*, ApplicationCall>.login(
         loginHint: String?,
         paramError: String?,
+        redirectUri: String?,
     ) {
         call.respondHtml {
-            login(createContext(), loginHint, paramError)
+            login(createContext(), loginHint, paramError, redirectUri)
         }
     }
 
@@ -162,14 +165,19 @@ class DefaultHtmlViews(): HtmlViews {
             override val token: String get() = "DUMMY_TOKEN"
         }
 
-        override val authentication: Authentication? = openIdContext.resolveAuthenticatedUser(applicationCall)
+        override val authentication: Authentication? by lazy { openIdContext.resolveAuthenticatedUser(applicationCall) }
 
         override val userInfo: UserInfo? by lazy {
             authentication?.let { DefaultUserInfo(it.name) }
         }
 
         override val userAuthorities: String?
-            get() = authentication?.authorities?.joinToString(separator = " ") { it.authority }
+            get() {
+                val a = authentication?.authorities ?: return null
+                return buildJsonArray {
+                    for (entry in a) { add(JsonPrimitive(entry.authority)) }
+                }.toString()
+            }
 
         override val lang: String by lazy {
             applicationCall.request.acceptLanguageItems()
@@ -192,6 +200,6 @@ class DefaultHtmlViews(): HtmlViews {
         override val config: ConfigurationPropertiesBean
             get() = openIdContext.config
         override val ui: UIConfiguration
-            get() = TODO("not implemented")
+            get() = UIConfiguration()
     }
 }

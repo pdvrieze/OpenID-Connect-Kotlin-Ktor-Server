@@ -22,7 +22,7 @@ import org.mitre.openid.connect.ktor.views.jwkView
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.jwtService
 
-class JWKSetPublishingEndpoint(): KtorEndpoint {
+object JWKSetPublishingEndpoint: KtorEndpoint {
     override fun Route.addRoutes() {
         get("/jwk") {
             val keys = jwtService.allPublicKeys

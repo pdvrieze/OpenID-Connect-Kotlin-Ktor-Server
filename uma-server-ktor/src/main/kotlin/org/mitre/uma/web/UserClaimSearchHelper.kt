@@ -42,7 +42,7 @@ import org.mitre.web.util.userInfoService
 //@Controller
 //@RequestMapping("/" + UserClaimSearchHelper.URL)
 //@PreAuthorize("hasRole('ROLE_USER')")
-class UserClaimSearchHelper: KtorEndpoint {
+object UserClaimSearchHelper: KtorEndpoint {
     override fun Route.addRoutes() {
         route("/api/emailsearch") {
             authenticate {
@@ -107,7 +107,5 @@ class UserClaimSearchHelper: KtorEndpoint {
         return call.respondJson(res)
     }
 
-    companion object {
-        const val URL: String = RootController.API_URL + "/emailsearch"
-    }
+    const val URL: String = RootController.API_URL + "/emailsearch"
 }

@@ -3,6 +3,7 @@ package org.mitre.web.util
 import io.ktor.server.application.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
+import org.mitre.jwt.assertion.AssertionValidator
 import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
 import org.mitre.jwt.signer.service.ClientKeyCacheService
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
@@ -28,6 +29,7 @@ import org.mitre.openid.connect.repository.WhitelistedSiteRepository
 import org.mitre.openid.connect.request.OAuth2RequestFactory
 import org.mitre.openid.connect.service.ApprovedSiteService
 import org.mitre.openid.connect.service.BlacklistedSiteService
+import org.mitre.openid.connect.service.ClientLogoLoadingService
 import org.mitre.openid.connect.service.OIDCTokenService
 import org.mitre.openid.connect.service.PairwiseIdentifierService
 import org.mitre.openid.connect.service.ScopeClaimTranslationService
@@ -75,6 +77,8 @@ interface OpenIdContext {
 
     val symetricCacheService: SymmetricKeyJWTValidatorCacheService
     val encyptersService: ClientKeyCacheService
+    val clientLogoLoadingService: ClientLogoLoadingService
+    val assertionValidator: AssertionValidator
     //endregion
 
     //region Regular repositories
@@ -163,6 +167,12 @@ val PipelineContext<*, ApplicationCall>.symetricCacheService: SymmetricKeyJWTVal
     get() = openIdContext.symetricCacheService
 val PipelineContext<*, ApplicationCall>.encryptersService: ClientKeyCacheService
     get() = openIdContext.encyptersService
+
+val PipelineContext<*, ApplicationCall>.clientLogoLoadingService: ClientLogoLoadingService
+    get()  = openIdContext.clientLogoLoadingService
+
+val PipelineContext<*, ApplicationCall>.assertionValidator: AssertionValidator
+    get()  = openIdContext.assertionValidator
 //endregion
 
 //region Direct access to UMA services

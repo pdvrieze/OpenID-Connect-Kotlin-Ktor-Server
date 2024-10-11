@@ -30,7 +30,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
 import kotlinx.serialization.SerializationException
-import org.mitre.jwt.assertion.AssertionValidator
 import org.mitre.oauth2.exception.OAuthErrorCodes.*
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.GrantedAuthority
@@ -85,6 +84,7 @@ import org.mitre.openid.connect.view.clientInformationResponseView
 import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.util.getLogger
 import org.mitre.web.util.KtorEndpoint
+import org.mitre.web.util.assertionValidator
 import org.mitre.web.util.blacklistedSiteService
 import org.mitre.web.util.clientService
 import org.mitre.web.util.oidcTokenService
@@ -98,9 +98,7 @@ import java.util.concurrent.TimeUnit
 
 //@Controller
 //@RequestMapping(value = ["register"])
-class DynamicClientRegistrationEndpoint(
-    val assertionValidator: AssertionValidator,
-) : KtorEndpoint {
+object DynamicClientRegistrationEndpoint: KtorEndpoint {
 
     override fun Route.addRoutes() {
         route("/register") {
@@ -650,14 +648,12 @@ class DynamicClientRegistrationEndpoint(
         }
     }
 
-    companion object {
-        const val URL: String = "register"
+    const val URL: String = "register"
 
-        /**
-         * Logger for this class
-         */
-        private val logger = getLogger<DynamicClientRegistrationEndpoint>()
-    }
+    /**
+     * Logger for this class
+     */
+    private val logger = getLogger<DynamicClientRegistrationEndpoint>()
 }
 
 

@@ -40,7 +40,7 @@ import org.mitre.web.util.requireRole
  * @author jricher
  */
 //@PreAuthorize("hasRole('ROLE_EXTERNAL_USER')")
-class ClaimsCollectionEndpoint : KtorEndpoint {
+object ClaimsCollectionEndpoint : KtorEndpoint {
     override fun Route.addRoutes() {
         route("/rqp_claims") {
             authenticate {
@@ -168,10 +168,8 @@ class ClaimsCollectionEndpoint : KtorEndpoint {
     }
 
 
-    companion object {
-        // Logger for this class
-        private val logger = getLogger<ClaimsCollectionEndpoint>()
+    // Logger for this class
+    private val logger = getLogger<ClaimsCollectionEndpoint>()
 
-        const val URL: String = "rqp_claims"
-    }
+    const val URL: String = "rqp_claims"
 }

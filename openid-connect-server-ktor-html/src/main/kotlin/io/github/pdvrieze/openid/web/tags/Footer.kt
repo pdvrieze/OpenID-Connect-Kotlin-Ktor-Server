@@ -42,7 +42,11 @@ fun BODY.footer(context: WebContext, js: Boolean = false, extraJs: String? = nul
                 |  init: [] // functions to call after initialization is complete
                 |};
                 """.trimMargin())
-                if(extraJs != null) raw(extraJs)
+                if(extraJs != null) {
+                    raw("\n")
+                    raw(extraJs)
+                    raw("\n")
+                }
             }
         }
         for(file in context.ui.jsFiles) {
@@ -51,7 +55,11 @@ fun BODY.footer(context: WebContext, js: Boolean = false, extraJs: String? = nul
         script("text/javascript", "resources/js/admin.js") {}
     } else if (extraJs != null) {
         script("text/javascript") {
-            unsafe { raw("\n"); raw(extraJs) }
+            unsafe {
+                raw("\n")
+                raw(extraJs)
+                raw("\n")
+            }
         }
     }
     div("hide") { id="templates" }

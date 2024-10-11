@@ -36,7 +36,6 @@ import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.clientService
 import org.mitre.web.util.redirectResolver
 import org.mitre.web.util.requireRole
-import org.mitre.web.util.resolveAuthenticatedUser
 import org.mitre.web.util.scopeClaimTranslationService
 import org.mitre.web.util.scopeService
 import org.mitre.web.util.statsService
@@ -49,7 +48,7 @@ import java.time.temporal.ChronoUnit
  * @author jricher
  */
 //@SessionAttributes("authorizationRequest")
-class OAuthConfirmationController: KtorEndpoint {
+object OAuthConfirmationController: KtorEndpoint {
 
     override fun Route.addRoutes() {
         confirmAccess()
@@ -168,11 +167,5 @@ class OAuthConfirmationController: KtorEndpoint {
         }
     }
 
-
-    companion object {
-        /**
-         * Logger for this class
-         */
-        private val logger = getLogger<OAuthConfirmationController>()
-    }
+    private val logger = getLogger()
 }

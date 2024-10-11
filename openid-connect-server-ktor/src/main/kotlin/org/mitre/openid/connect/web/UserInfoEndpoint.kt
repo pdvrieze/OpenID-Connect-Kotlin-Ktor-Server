@@ -19,8 +19,6 @@ package org.mitre.openid.connect.web
 
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
@@ -29,8 +27,6 @@ import kotlinx.serialization.json.jsonObject
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.openid.connect.view.CT_JWT
-import org.mitre.openid.connect.view.UserInfoJWTView
-import org.mitre.openid.connect.view.UserInfoView
 import org.mitre.openid.connect.view.userInfoJWTView
 import org.mitre.openid.connect.view.userInfoView
 import org.mitre.util.getLogger
@@ -49,9 +45,7 @@ import org.mitre.web.util.userInfoService
  *
  * @author AANGANES
  */
-//@Controller
-//@RequestMapping("/" + UserInfoEndpoint.URL)
-class UserInfoEndpoint: KtorEndpoint {
+object UserInfoEndpoint: KtorEndpoint {
     override fun Route.addRoutes() {
         route("/userinfo") {
             get() { getInfo() }
@@ -59,17 +53,9 @@ class UserInfoEndpoint: KtorEndpoint {
         }
     }
 
-//    @Autowired
-//    private lateinit var userInfoService: UserInfoService
-
-//    @Autowired
-//    private lateinit var clientService: ClientDetailsEntityService
-
     /**
      * Get information about the user as specified in the accessToken included in this request
      */
-//    @PreAuthorize("hasRole('ROLE_USER') and #oauth2.hasScope('" + SystemScopeService.OPENID_SCOPE + "')")
-//    @RequestMapping(method = [RequestMethod.GET, RequestMethod.POST], produces = [MediaType.APPLICATION_JSON_VALUE, org.mitre.openid.connect.view.UserInfoJWTView.JOSE_MEDIA_TYPE_VALUE])
     suspend fun PipelineContext<Unit, ApplicationCall>.getInfo() {
         val auth = requireRole(GrantedAuthority.ROLE_USER, SystemScopeService.OPENID_SCOPE) {
             logger.error("getInfo failed; no principal. Requester is not authorized.")
@@ -95,6 +81,7 @@ class UserInfoEndpoint: KtorEndpoint {
 
         if (client.userInfoSignedResponseAlg != null || client.userInfoEncryptedResponseAlg != null || client.userInfoEncryptedResponseEnc != null) {
             // client has a preference, see if they ask for plain JSON specifically on this request
+            respondJWT = true
             for (ctq in acceptedResponses) {
                 val m = ctq.contentType
                 when {
@@ -104,9 +91,9 @@ class UserInfoEndpoint: KtorEndpoint {
                     m.match(ContentType.Application.Json) -> { respondJWT = false; break; }
                 }
             }
-            respondJWT = true
         } else {
             // client has no preference, see if they asked for JWT specifically on this request
+            respondJWT = false
             for (ctq in acceptedResponses) {
                 val m = ctq.contentType
                 when {
@@ -115,7 +102,6 @@ class UserInfoEndpoint: KtorEndpoint {
                     m.match(CT_JWT) -> { respondJWT = true; break; }
                 }
             }
-            respondJWT = false
         }
 
         if (respondJWT) {
@@ -142,12 +128,10 @@ class UserInfoEndpoint: KtorEndpoint {
         }
     }
 
-    companion object {
-        const val URL: String = "userinfo"
+    const val URL: String = "userinfo"
 
-        /**
-         * Logger for this class
-         */
-        private val logger = getLogger<UserInfoEndpoint>()
-    }
+    /**
+     * Logger for this class
+     */
+    private val logger = getLogger<UserInfoEndpoint>()
 }

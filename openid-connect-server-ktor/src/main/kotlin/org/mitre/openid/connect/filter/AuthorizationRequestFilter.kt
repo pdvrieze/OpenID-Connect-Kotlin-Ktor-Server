@@ -18,7 +18,6 @@ import org.mitre.web.util.openIdContext
 import org.mitre.web.util.redirectResolver
 import org.mitre.web.util.resolveAuthenticatedUser
 import java.net.URISyntaxException
-import java.util.*
 
 /**
  * @author jricher
@@ -189,6 +188,8 @@ class AuthorizationRequestFilter {
 
         return requestMap
     }
+
+
 
     companion object Plugin: BaseApplicationPlugin<ApplicationCallPipeline, Unit, AuthorizationRequestFilter> {
         /**
