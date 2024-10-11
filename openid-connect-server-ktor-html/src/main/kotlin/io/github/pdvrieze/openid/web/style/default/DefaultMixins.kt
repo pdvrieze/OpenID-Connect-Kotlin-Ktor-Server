@@ -7,6 +7,74 @@ import kotlinx.css.*
 import kotlinx.css.Float
 import kotlinx.css.properties.*
 
+internal fun LinearDimension.optMinus(other: LinearDimension): LinearDimension {
+    return when {
+        this !is NumericLinearDimension || other !is NumericLinearDimension || unit!=other.unit -> this - other
+        number is Int && other.number is Int ->
+            NumericLinearDimension((number as Int) - (other.number as Int), unit)
+
+        number is Long && other.number is Long ->
+            NumericLinearDimension((number as Long) - (other.number as Long), unit)
+
+        else -> NumericLinearDimension(number.toDouble() - other.number.toDouble(), unit)
+    }
+}
+
+internal fun LinearDimension.optPlus(other: LinearDimension): LinearDimension {
+    return when {
+        this !is NumericLinearDimension || other !is NumericLinearDimension || unit!=other.unit -> this - other
+        number is Int && other.number is Int ->
+            NumericLinearDimension((number as Int) + (other.number as Int), unit)
+
+        number is Long && other.number is Long ->
+            NumericLinearDimension((number as Long) + (other.number as Long), unit)
+
+        else -> NumericLinearDimension(number.toDouble() + other.number.toDouble(), unit)
+    }
+}
+
+internal fun LinearDimension.optDiv(other: Int): LinearDimension {
+    return when {
+        this !is NumericLinearDimension -> this / other
+        number is Int ->
+            NumericLinearDimension((number as Int) + other, unit)
+
+        number is Long ->
+            NumericLinearDimension((number as Long) + other, unit)
+
+        else -> NumericLinearDimension(number.toDouble() + other.toDouble(), unit)
+    }
+}
+
+internal fun LinearDimension.optDiv(other: Double): LinearDimension {
+    return when {
+        this !is NumericLinearDimension -> this / other
+
+        else -> NumericLinearDimension(number.toDouble() + other, unit)
+    }
+}
+
+internal fun LinearDimension.optTimes(other: Int): LinearDimension {
+    return when {
+        this !is NumericLinearDimension -> this * other
+        number is Int ->
+            NumericLinearDimension((number as Int) * other, unit)
+
+        number is Long ->
+            NumericLinearDimension((number as Long) * other, unit)
+
+        else -> NumericLinearDimension(number.toDouble() * other.toDouble(), unit)
+    }
+}
+
+internal fun LinearDimension.optTimes(other: Double): LinearDimension {
+    return when {
+        this !is NumericLinearDimension -> this * other
+
+        else -> NumericLinearDimension(number.toDouble() * other, unit)
+    }
+}
+
 object DefaultMixins: Mixins {
 
     //region Utility Mixins
@@ -490,7 +558,7 @@ object DefaultMixins: Mixins {
         backgroundRepeat = BackgroundRepeat.repeatX
 
         // IE9 and down
-        filter = """e(%("progid:DXImageTransform.Microsoft.gradient(startColorstr='%d', endColorstr='%d', GradientType=1)",argb(@startColor),argb(@endColor)))"""
+        filter = """e(%("progid:DXImageTransform.Microsoft.gradient(startColorstr='%d', endColorstr='%d', GradientType=1)",argb($startColor),argb($endColor)))"""
     }
 
     override fun CssBuilder.gradientVertical(startColor: Color, endColor: Color) {
@@ -504,7 +572,7 @@ object DefaultMixins: Mixins {
 
         // IE9 and down
         filter =
-            """e(%("progid:DXImageTransform.Microsoft.gradient(startColorstr='%d', endColorstr='%d', GradientType=0)",argb(@startColor),argb(@endColor)));"""
+            """e(%("progid:DXImageTransform.Microsoft.gradient(startColorstr='%d', endColorstr='%d', GradientType=0)",argb($startColor),argb($endColor)));"""
     }
 
     override fun CssBuilder.gradientDirectional(
@@ -542,7 +610,7 @@ object DefaultMixins: Mixins {
         backgroundRepeat = BackgroundRepeat.noRepeat
 
         // IE9 and down, gets no color-stop at all for proper fallback
-        filter = """e(%("progid:DXImageTransform.Microsoft.gradient(startColorstr='%d', endColorstr='%d', GradientType=0)",argb(@startColor),argb(@endColor)))"""
+        filter = """e(%("progid:DXImageTransform.Microsoft.gradient(startColorstr='%d', endColorstr='%d', GradientType=0)",argb($startColor),argb($endColor)))"""
     }
 
     override fun CssBuilder.gradientVerticalThreeColors(
@@ -564,7 +632,7 @@ object DefaultMixins: Mixins {
         backgroundRepeat = BackgroundRepeat.noRepeat
 
         // IE9 and down, gets no color-stop at all for proper fallback
-        filter = """e(%("progid:DXImageTransform.Microsoft.gradient(startColorstr='%d', endColorstr='%d', GradientType=0)",argb(@startColor),argb(@endColor)))"""
+        filter = """e(%("progid:DXImageTransform.Microsoft.gradient(startColorstr='%d', endColorstr='%d', GradientType=0)",argb($startColor),argb($endColor)))"""
     }
 
     override fun CssBuilder.gradientRadial(innerColor: Color, outerColor: Color) {
@@ -669,7 +737,7 @@ object DefaultMixins: Mixins {
         elementHeight: LinearDimension,
         navbarHeight: LinearDimension,
     ) {
-        marginTop = (navbarHeight - elementHeight) / 2
+        marginTop = (navbarHeight.optMinus(elementHeight)).optDiv(2)
     }
     //endregion
     
@@ -762,14 +830,14 @@ object DefaultMixins: Mixins {
     ) : Mixins.GridCore {
         override fun CssBuilder.spanX(index: Int) {
             if (index != 0) {
-                ".span@$index" { span(index) }
+                ".span$index" { span(index) }
                 spanX(index-1) // recurse
             }
         }
 
         override fun CssBuilder.offsetX(index:Int) {
             if (index > 0) {
-                ".offset@$index" {
+                ".offset$index" {
                     offset(index)
                     offsetX(index - 1) //recurse
                 }
@@ -777,11 +845,11 @@ object DefaultMixins: Mixins {
         }
 
         override fun CssBuilder.offset (columns: Int) {
-            marginLeft = (gridColumnWidth * columns) + (gridGutterWidth * (columns + 1))
+            marginLeft = (gridColumnWidth.optTimes(columns)).optPlus((gridGutterWidth.optTimes((columns + 1))))
         }
 
         override fun CssBuilder.span (columns: Int) {
-            width = (gridColumnWidth * columns) + (gridGutterWidth * (columns-1))
+            width = (gridColumnWidth.optTimes(columns)).optPlus((gridGutterWidth.optTimes (columns-1)))
         }
 
         override fun CssBuilder.row () {
@@ -837,37 +905,39 @@ object DefaultMixins: Mixins {
     ) : Mixins.GridFluid {
         override fun CssBuilder.spanX(index: Int) {
             if (index > 0) {
-                ".span@$index" { span(index) }
+                ".span$index" { span(index) }
                 spanX(index - 1) // recurse
             }
         }
 
         override fun CssBuilder.offsetX(index: Int) {
             if (index > 0) {
-                ".offset@$index" { offset(index) }
-                ".offset@$index:first-child" { offsetFirstChild(index) }
+                ".offset$index" { offset(index) }
+                ".offset$index:first-child" { offsetFirstChild(index) }
                 offsetX(index - 1) // recurse
             }
         }
 
         override fun CssBuilder.offset(columns: Int) {
             marginLeft =
-                (fluidGridColumnWidth * columns) + (fluidGridGutterWidth * (columns - 1)) + (fluidGridGutterWidth * 2)
+                (fluidGridColumnWidth.optTimes(columns)).optPlus((fluidGridGutterWidth.optTimes((columns - 1))))
+                    .optPlus((fluidGridGutterWidth * 2))
             declarations["*marginLeft"] =
-                "calc((@fluidGridColumnWidth * @columns) + (@fluidGridGutterWidth * (${columns - 1})) - (.5 / $gridRowWidth * 100 * 1%) + ($fluidGridGutterWidth*2) - (.5 / $gridRowWidth * 100 * 1%))"
+                "calc(($fluidGridColumnWidth * $columns) + ($fluidGridGutterWidth * (${columns - 1})) - (.5 / $gridRowWidth * 100 * 1%) + ($fluidGridGutterWidth*2) - (.5 / $gridRowWidth * 100 * 1%))"
         }
 
         override fun CssBuilder.offsetFirstChild(columns: Int) {
             marginLeft =
-                (fluidGridColumnWidth * columns) + (fluidGridGutterWidth * (columns - 1)) + (fluidGridGutterWidth)
+                (fluidGridColumnWidth.optTimes(columns)).optPlus((fluidGridGutterWidth.optTimes((columns - 1))))
+                    .optPlus((fluidGridGutterWidth))
             declarations["*marginLeft"] =
-                "calc((@fluidGridColumnWidth * @columns) + (@fluidGridGutterWidth * (${columns - 1})) - (.5 / $gridRowWidth * 100 * 1%) + ($fluidGridGutterWidth) - (.5 / $gridRowWidth * 100 * 1%))"
+                "calc(($fluidGridColumnWidth * $columns) + ($fluidGridGutterWidth * (${columns - 1})) - (.5 / $gridRowWidth * 100 * 1%) + ($fluidGridGutterWidth) - (.5 / $gridRowWidth * 100 * 1%))"
         }
 
         override fun CssBuilder.span(columns: Int) {
-            width = (fluidGridColumnWidth * columns) + (fluidGridGutterWidth * (columns - 1))
+            width = (fluidGridColumnWidth.optTimes(columns)).optPlus((fluidGridGutterWidth.optTimes((columns - 1))))
             declarations["*width"] =
-                "calc(($fluidGridColumnWidth * $columns) + ($fluidGridGutterWidth * (${columns - 1})) - (.5 / @gridRowWidth * 100 * 1%))"
+                "calc(($fluidGridColumnWidth * $columns) + ($fluidGridGutterWidth * (${columns - 1})) - (.5 / $gridRowWidth * 100 * 1%))"
         }
 
 
@@ -902,7 +972,7 @@ object DefaultMixins: Mixins {
     ) : Mixins.GridInput {
         override fun CssBuilder.spanX(index:Int) {
             if(index>0) {
-                "input.span@${index}, textarea.span@${index}, .uneditable-input.span@${index}" {
+                "input.span${index}, textarea.span${index}, .uneditable-input.span${index}" {
                     span(index)
                 }
                 spanX(index - 1)

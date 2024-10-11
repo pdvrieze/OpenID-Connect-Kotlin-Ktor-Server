@@ -159,7 +159,7 @@ object DefaultStyles : Styles {
         override val inputBorderRadius get() = baseBorderRadius
         override val inputDisabledBackground get() = grayLighter
         override val formActionsBackground = Color("#f5f5f5")
-        override val inputHeight get() = LinearDimension(baseLineHeight.value) + 10.px
+        override val inputHeight get() = baseLineHeight.optPlus(10.px)
         // base line-height + 8px vertical padding + 2px top/bottom border
 
 
@@ -4479,7 +4479,7 @@ object DefaultStyles : Styles {
           with(mixins) { ie7RestoreRightWhitespace() }
           lineHeight = 14.px.lh
           verticalAlign = VerticalAlign.textTop
-          backgroundImage = Image("url(\"@{iconSpritePath}\")")
+          backgroundImage = Image("url(\"${vars.iconSpritePath}\")")
           backgroundPosition = RelativePosition("14px 14px")
           backgroundRepeat = BackgroundRepeat.noRepeat
           marginTop = 1.px
@@ -4503,7 +4503,7 @@ object DefaultStyles : Styles {
             ".dropdown-submenu:focus > a > [class^=\"icon-\"]",
             ".dropdown-submenu:hover > a > [class*=\" icon-\"]",
             ".dropdown-submenu:focus > a > [class*=\" icon-\"]") {
-          backgroundImage= Image("url(\"@{iconWhiteSpritePath}\")") }
+          backgroundImage= Image("url(\"${vars.iconWhiteSpritePath}\")") }
 
         rule(".icon-glass") { backgroundPosition = RelativePosition("0px 0px") }
         rule(".icon-music") { backgroundPosition = RelativePosition("-24px 0px") }
@@ -5032,14 +5032,14 @@ object DefaultStyles : Styles {
     override fun CssBuilder.type() {
         // Body text
         rule("p") {
-            margin = Margin(0.px, 0.px, vars.baseLineHeight / 2)
+            margin = Margin(0.px, 0.px, vars.baseLineHeight.optDiv(2))
         }
 
         rule(".lead") {
             marginBottom = vars.baseLineHeight
-            fontSize = vars.baseFontSize * 1.5
+            fontSize = vars.baseFontSize.optTimes(1.5)
             fontWeight = FontWeight.w200
-            lineHeight = (vars.baseLineHeight * 1.5).lh
+            lineHeight = (vars.baseLineHeight.optTimes(1.5)).lh
         }
 
 
@@ -5079,7 +5079,7 @@ object DefaultStyles : Styles {
 
         // Headings
         ruleOf("h1", "h2", "h3", "h4", "h5", "h6") {
-            margin = Margin((vars.baseLineHeight / 2), 0.px)
+            margin = Margin(vars.baseLineHeight.optDiv(2), 0.px)
             fontFamily = vars.headingsFontFamily
             fontWeight = vars.headingsFontWeight
             lineHeight = vars.baseLineHeight.lh
@@ -5093,17 +5093,17 @@ object DefaultStyles : Styles {
             }
         }
 
-        ruleOf("h1", "h2", "h3") { lineHeight = (vars.baseLineHeight * 2).lh }
+        ruleOf("h1", "h2", "h3") { lineHeight = vars.baseLineHeight.optTimes(2).lh }
 
-        rule("h1") { fontSize = vars.baseFontSize * 2.75 } // ~38px
-        rule("h2") { fontSize = vars.baseFontSize * 2.25 } // ~32px
-        rule("h3") { fontSize = vars.baseFontSize * 1.75 } // ~24px
-        rule("h4") { fontSize = vars.baseFontSize * 1.25 } // ~18px
+        rule("h1") { fontSize = vars.baseFontSize.optTimes(2.75) } // ~38px
+        rule("h2") { fontSize = vars.baseFontSize.optTimes(2.25) } // ~32px
+        rule("h3") { fontSize = vars.baseFontSize.optTimes(1.75) } // ~24px
+        rule("h4") { fontSize = vars.baseFontSize.optTimes(1.25) } // ~18px
         rule("h5") { fontSize = vars.baseFontSize }
 
-        rule("h6") { fontSize = vars.baseFontSize * 0.85 } // ~12px
-        rule("h1 small") { fontSize = vars.baseFontSize * 1.75 } // ~24px
-        rule("h2 small") { fontSize = vars.baseFontSize * 1.25 } // ~18px
+        rule("h6") { fontSize = vars.baseFontSize.optTimes(0.85) } // ~12px
+        rule("h1 small") { fontSize = vars.baseFontSize.optTimes(1.75) } // ~24px
+        rule("h2 small") { fontSize = vars.baseFontSize.optTimes(1.25) } // ~18px
         rule("h3 small") { fontSize = vars.baseFontSize }
 
         rule("h4 small") { fontSize = vars.baseFontSize }
@@ -5111,8 +5111,8 @@ object DefaultStyles : Styles {
 
         // Page header
         rule(".page-header") {
-            paddingBottom = (vars.baseLineHeight / 2) - 1.px
-            margin = Margin(vars.baseLineHeight, 0.px, (vars.baseLineHeight * 1.5))
+            paddingBottom = (vars.baseLineHeight.optDiv(2)).optMinus(1.px)
+            margin = Margin(vars.baseLineHeight, 0.px, (vars.baseLineHeight.optTimes(1.5)))
             borderBottom = Border(1.px, BorderStyle.solid, vars.grayLighter)
         }
 
@@ -5122,7 +5122,7 @@ object DefaultStyles : Styles {
         // Unordered and Ordered lists
         rule("ul, ol") {
             padding = Padding(0.px)
-            margin = Margin(0.px, 0.px, vars.baseLineHeight / 2, 25.px)
+            margin = Margin(0.px, 0.px, vars.baseLineHeight.optDiv(2), 25.px)
         }
 
         ruleOf("ul ul", "ul ol", "ol ol", "ol ul") {
@@ -5165,7 +5165,7 @@ object DefaultStyles : Styles {
         }
 
         rule("dd") {
-            marginLeft = vars.baseLineHeight / 2
+            marginLeft = vars.baseLineHeight.optDiv(2)
         }
         // Horizontal layout (like forms)
         rule(".dl-horizontal") {
@@ -5173,7 +5173,7 @@ object DefaultStyles : Styles {
             // Ensure dl clears floats if empty dd elements present
             dt {
                 float = Float.left
-                width = vars.horizontalComponentOffset - 20.px
+                width = vars.horizontalComponentOffset.optMinus(20.px)
                 clear = Clear.left
                 textAlign = TextAlign.right
                 with(mixins) { textOverflow() }
@@ -5215,7 +5215,7 @@ object DefaultStyles : Styles {
             borderLeft = Border(5.px, BorderStyle.solid, vars.grayLighter)
             p {
                 marginBottom = 0.px
-                fontSize = vars.baseFontSize * 1.25
+                fontSize = vars.baseFontSize.optTimes(1.25)
                 fontWeight = FontWeight.w300
                 lineHeight = 1.25.px.lh
             }
