@@ -83,6 +83,11 @@ class JsonMessageSource(private val baseResource: String, private val config: Co
 
 
     private fun getLanguageMap(locale: Locale): List<JsonObject>? {
+        val baseResource = when {
+            baseResource.endsWith('/') -> baseResource.substring(0, baseResource.length - 1)
+            else -> baseResource
+        }
+
         if (!languageMaps.containsKey(locale)) {
             try {
                 val set: MutableList<JsonObject> = ArrayList()

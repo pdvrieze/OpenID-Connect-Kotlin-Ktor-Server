@@ -72,7 +72,7 @@ class ConfigurationPropertiesBean {
 
     var locale: Locale = Locale.ENGLISH // we default to the english translation
 
-    var languageNamespaces: List<String> = listOf("messages")
+    var languageNamespaces: List<String> = listOf("messages", "uma")
 
     /**
      * The dual client configuration. `true` if dual client is configured, otherwise `false`

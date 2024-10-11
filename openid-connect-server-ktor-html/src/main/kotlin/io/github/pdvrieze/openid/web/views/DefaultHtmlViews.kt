@@ -174,7 +174,7 @@ class DefaultHtmlViews(): HtmlViews {
         override val lang: String by lazy {
             applicationCall.request.acceptLanguageItems()
                 .firstOrNull { it.value in openIdContext.config.languageNamespaces }?.value
-                ?: openIdContext.config.defaultLanguageNamespace
+                ?: openIdContext.config.locale.language
         }
 
         override val intl: Intl = object : Intl {

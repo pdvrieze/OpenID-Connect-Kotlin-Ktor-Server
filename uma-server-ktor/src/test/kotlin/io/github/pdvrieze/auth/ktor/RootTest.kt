@@ -13,6 +13,7 @@ import org.mitre.openid.connect.web.RootController
 import org.mitre.web.util.OpenIdContext
 import org.mitre.web.util.OpenIdContextPlugin
 import kotlin.test.Test
+import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -42,17 +43,17 @@ class RootTest {
 
         val recv1 = client.get("/").apply {
             assertTrue(status.isSuccess(), "Unexpected response : $status" )
-            assertEquals(ContentType.Text.Html, contentType())
+            assertEquals(ContentType.Text.Html, contentType()?.withoutParameters())
         }.bodyAsText()
 
         val recv2 = client.get("/home").apply {
             assertTrue(status.isSuccess(), "Unexpected response : $status" )
-            assertEquals(ContentType.Text.Html, contentType())
+            assertEquals(ContentType.Text.Html, contentType()?.withoutParameters())
         }.bodyAsText()
 
         val recv3 = client.get("/index").apply {
             assertTrue(status.isSuccess(), "Unexpected response : $status" )
-            assertEquals(ContentType.Text.Html, contentType())
+            assertEquals(ContentType.Text.Html, contentType()?.withoutParameters())
         }.bodyAsText()
 
         assertEquals(recv1, recv2)
@@ -66,8 +67,7 @@ class RootTest {
         val recv = client.get("/").apply {
             assertTrue(status.isSuccess(), "Unexpected response : $status" )
         }.bodyAsText()
-
-        assertEquals("foo", recv)
+        assertContains(recv, "<h2>About</h2>")
     }
 
     @Test
