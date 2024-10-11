@@ -24,11 +24,10 @@ class JsonMessageSource(private val baseResource: String, private val config: Co
 
     private val languageMaps: MutableMap<Locale, List<JsonObject>?> = HashMap()
 
-    override fun resolveCode(code: String, locale: Locale): MessageFormat? {
-        val value = getValue(code, getLanguageMap(locale))
-                // if we haven't found anything, try the default locale
-            ?: getValue(code, getLanguageMap(fallbackLocale))
-            ?: return null // if it's still null, return null
+    override fun resolveCode(code: String, locales: List<Locale>): MessageFormat? {
+        val (locale, languageMap) = (locales.asSequence() + sequenceOf(fallbackLocale)).mapNotNull { k -> getLanguageMap(k)?.let { k to it } }.firstOrNull()
+            ?: return null
+        val value = getValue(code, languageMap) ?: return null
 
         return MessageFormat(value, locale)
     }

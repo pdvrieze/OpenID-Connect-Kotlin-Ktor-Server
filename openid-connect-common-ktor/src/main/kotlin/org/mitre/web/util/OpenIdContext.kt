@@ -1,6 +1,7 @@
 package org.mitre.web.util
 
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import org.mitre.jwt.assertion.AssertionValidator
@@ -47,6 +48,7 @@ import org.mitre.web.HtmlViews
 
 interface OpenIdContext {
     fun resolveAuthenticatedUser(authenticationContext: ApplicationCall): Authentication?
+    fun checkCredential(credential: Credential): Boolean
 
     //region Regular services
     val authRequestFactory: OAuth2RequestFactory

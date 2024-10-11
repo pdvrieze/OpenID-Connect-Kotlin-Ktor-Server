@@ -21,6 +21,8 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.util.*
 import org.jetbrains.exposed.sql.Database
+import org.mitre.jwt.assertion.AssertionValidator
+import org.mitre.jwt.assertion.impl.SelfAssertionValidator
 import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
 import org.mitre.jwt.encryption.service.impl.DefaultJWTEncryptionAndDecryptionService
 import org.mitre.jwt.signer.service.ClientKeyCacheService
@@ -56,6 +58,7 @@ import org.mitre.openid.connect.repository.WhitelistedSiteRepository
 import org.mitre.openid.connect.request.KtorConnectOAuth2RequestFactory
 import org.mitre.openid.connect.request.KtorOAuth2RequestFactory
 import org.mitre.openid.connect.service.BlacklistedSiteService
+import org.mitre.openid.connect.service.ClientLogoLoadingService
 import org.mitre.openid.connect.service.OIDCTokenService
 import org.mitre.openid.connect.service.PairwiseIdentifierService
 import org.mitre.openid.connect.service.ScopeClaimTranslationService
@@ -69,6 +72,7 @@ import org.mitre.openid.connect.service.impl.UUIDPairwiseIdentiferService
 import org.mitre.openid.connect.service.impl.ktor.DefaultApprovedSiteService
 import org.mitre.openid.connect.service.impl.ktor.DefaultBlacklistedSiteService
 import org.mitre.openid.connect.service.impl.ktor.DefaultUserInfoService
+import org.mitre.openid.connect.service.impl.ktor.KtorInMemoryClientLogoLoadingService
 import org.mitre.openid.connect.token.ConnectTokenEnhancerImpl
 import org.mitre.uma.repository.PermissionRepository
 import org.mitre.uma.repository.ResourceSetRepository
@@ -94,6 +98,7 @@ data class OpenIdConfigurator(
         driver = "org.h2.Driver",
     ),
     var httpClient: HttpClient = HttpClient(Java),
+    var verifyCredential: (Credential) -> Boolean = { false },
 ) {
 
     private var topBarTitle: String = "Ktor OpenId provider"
@@ -105,6 +110,7 @@ data class OpenIdConfigurator(
     private class ResolvedImpl(configurator: OpenIdConfigurator) : OpenIdContext {
         @Deprecated("Hopefully not needed. Use configurator.database")
         val database = configurator.database
+        private val credentialVerifier = configurator.verifyCredential
 
         override val config: ConfigurationPropertiesBean = ConfigurationPropertiesBean(configurator.issuer, configurator.topBarTitle)
 
@@ -237,6 +243,8 @@ data class OpenIdConfigurator(
         // TODO (make this configurable, and not use the insane policy)
         override val claimsProcessingService: ClaimsProcessingService = MatchAllClaimsOnAnyPolicy()
 
+
+
         val permissionRepository = ExposedPermissionRepository(configurator.database, resourceSetRepository)
 
         override val permissionService: PermissionService = DefaultPermissionService(
@@ -249,6 +257,12 @@ data class OpenIdConfigurator(
 
         override val umaTokenService: UmaTokenService =
             DefaultUmaTokenService(authenticationHolderRepository, tokenService, clientService, config, jwtService)
+
+        override val clientLogoLoadingService: ClientLogoLoadingService =
+            KtorInMemoryClientLogoLoadingService()
+
+        override val assertionValidator: AssertionValidator =
+            SelfAssertionValidator(config, jwtService)
 
         override val htmlViews: HtmlViews = DefaultHtmlViews()
 
@@ -264,6 +278,10 @@ data class OpenIdConfigurator(
             applicationCall.attributes.put(KEY_AUTHENTICATION, result)
 
             return result
+        }
+
+        override fun checkCredential(credential: Credential): Boolean {
+            return credentialVerifier(credential)
         }
 
         // TODO Do something more sane

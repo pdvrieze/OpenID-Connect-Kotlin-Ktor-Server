@@ -3,6 +3,7 @@ package io.github.pdvrieze.auth.ktor
 import io.github.pdvrieze.auth.ktor.plugins.OpenIdConfigurator
 import io.github.pdvrieze.auth.ktor.plugins.configureRouting
 import io.github.pdvrieze.auth.ktor.plugins.configureSerialization
+import io.github.pdvrieze.auth.ktor.plugins.redirectingForm
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -22,7 +23,13 @@ fun main() {
 }
 
 fun Application.module() {
-    val configuration = OpenIdConfigurator("http://localhost:8080")
+    val configuration = OpenIdConfigurator("http://localhost:8080") { cred ->
+        cred is UserPasswordCredential && when(cred.name) {
+            "admin" -> cred.password == "secret"
+            else -> false
+        }
+    }
+
     install(IgnoreTrailingSlash)
     install(Sessions) {
         cookie<OpenIdSessionStorage>(OpenIdSessionStorage.COOKIE_NAME, SessionStorageMemory())
@@ -52,7 +59,7 @@ fun Application.module() {
                 commonChallenge(call)
             }
         }
-        form("form") {
+        redirectingForm("form") {
             userParamName = "username"
             passwordParamName = "password"
             validate { credentials ->

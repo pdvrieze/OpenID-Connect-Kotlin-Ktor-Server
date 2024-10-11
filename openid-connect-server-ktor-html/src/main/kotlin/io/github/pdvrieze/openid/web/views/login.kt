@@ -74,7 +74,7 @@ fun HTML.login(
                                         value= _csrf.token
                                     }
                                     if (redirectUri != null) {
-                                        hiddenInput(name = "redirect") { redirectUri }
+                                        hiddenInput(name = "redirect") { value=redirectUri }
                                     }
                                     input(type=InputType.submit, classes="btn", name="submit") {
                                         value=messageText("login.login-button")

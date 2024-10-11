@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit
 /**
  * @author jricher
  */
-class InMemoryClientLogoLoadingService(
+class SpringInMemoryClientLogoLoadingService(
     httpClient: HttpClient = HttpClientBuilder.create().useSystemProperties().build()
 ) : ClientLogoLoadingService {
     private val cache: LoadingCache<OAuthClientDetails, CachedImage> = Caffeine.newBuilder()

@@ -31,7 +31,7 @@ import kotlin.time.Duration.Companion.days
 /**
  * @author jricher
  */
-class InMemoryClientLogoLoadingService(
+class KtorInMemoryClientLogoLoadingService(
     private val httpClient: HttpClient = HttpClient(Java) {},
 ) : ClientLogoLoadingService {
     private val cache = CoroutineCache(::fetchLogo) {

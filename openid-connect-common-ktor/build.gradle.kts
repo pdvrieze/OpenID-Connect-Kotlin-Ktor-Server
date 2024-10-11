@@ -13,6 +13,7 @@ dependencies {
     implementation(projects.openidConnectCommon)
 
     implementation(libs.ktor.server.core)
+    implementation(libs.ktor.server.auth.common)
 
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)

@@ -19,6 +19,7 @@ package org.mitre.openid.connect.web
 
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
@@ -32,10 +33,12 @@ import org.mitre.web.htmlLoginView
 import org.mitre.web.htmlManageView
 import org.mitre.web.htmlStatsView
 import org.mitre.web.util.KtorEndpoint
+import org.mitre.web.util.openIdContext
 import org.mitre.web.util.requireRole
 import org.mitre.web.util.statsService
 import org.mitre.web.util.update
 import java.net.URI
+import java.util.*
 
 /**
  * @author Michael Jett <mjett></mjett>@mitre.org>
@@ -54,9 +57,9 @@ object RootController: KtorEndpoint {
         authenticate {
             get("manage/{...}") { showClientManager() }
         }
-        authenticate("form") {
-            post("login") { doLogin() }
-        }
+        post("login") { doLogin() }
+//        authenticate("form") {
+//        }
     }
 
     suspend fun PipelineContext<Unit, ApplicationCall>.showHomePage() {
@@ -85,15 +88,24 @@ object RootController: KtorEndpoint {
     }
 
     suspend fun PipelineContext<Unit, ApplicationCall>.doLogin() {
-        val principal = call.authentication.principal<UserIdPrincipal>()
-        val formParams = call.parameters
-        if (principal != null) {
+        val formParams = call.receiveParameters()
+
+        val userName = formParams["username"]
+        val password = formParams["password"]
+
+        if (!userName.isNullOrBlank() && !password.isNullOrBlank() &&
+            openIdContext.checkCredential(UserPasswordCredential(userName, password))) {
+
+            val principal = UserIdPrincipal(userName)
+            call.authentication.principal(principal)
             call.sessions.update<OpenIdSessionStorage> { it?.copy(principal = principal) ?: OpenIdSessionStorage(principal = principal) }
             val redirect = formParams["redirect"]?.takeIf { ! URI.create(it).isAbsolute } ?: "/"
-            call.respondRedirect(redirect)
-        } else {
-            return htmlLoginView(formParams["username"], null, formParams["redirect_uri"])
+            return call.respondRedirect(redirect)
         }
+
+        val locales = call.request.acceptLanguageItems().map { Locale(it.value) }
+        val error = openIdContext.messageSource.resolveCode("login.error", locales)?.format(null)
+        return htmlLoginView(formParams["username"], error, formParams["redirect"])
     }
 
 
