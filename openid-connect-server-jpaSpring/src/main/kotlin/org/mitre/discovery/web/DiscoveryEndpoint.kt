@@ -2,6 +2,7 @@ package org.mitre.discovery.web
 
 import com.nimbusds.jose.Algorithm
 import com.nimbusds.jose.JWSAlgorithm
+import org.mitre.discovery.util.ExtUri
 import org.mitre.discovery.util.WebfingerURLNormalizer
 import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
@@ -84,12 +85,12 @@ class DiscoveryEndpoint {
             // it's not the issuer directly, need to check other methods
 
             val resourceUri = WebfingerURLNormalizer.normalizeResource(resource)
-            if (resourceUri?.scheme == "acct") {
+            if (resourceUri is ExtUri.Acct) {
                 // acct: URI (email address format)
 
                 // check on email addresses first
 
-                var user = userService.getByEmailAddress("${resourceUri.userInfo}@${resourceUri.host}")
+                var user = userService.getByEmailAddress("${resourceUri.userInfo}@${resourceUri.domain}")
 
                 if (user == null) {
                     // user wasn't found, see if the local part of the username matches, plus our issuer host
@@ -99,8 +100,8 @@ class DiscoveryEndpoint {
                     if (user != null) {
                         // username matched, check the host component
                         val issuerComponents = UriComponentsBuilder.fromHttpUrl(config.issuer).build()
-                        if ((issuerComponents.host ?: "") != (resourceUri.host ?: "")) {
-                            logger.info("Host mismatch, expected " + issuerComponents.host + " got " + resourceUri.host)
+                        if ((issuerComponents.host ?: "") != (resourceUri.domain ?: "")) {
+                            logger.info("Host mismatch, expected " + issuerComponents.host + " got " + resourceUri.domain)
                             model.addAttribute(HttpCodeView.CODE, HttpStatus.NOT_FOUND)
                             return HttpCodeView.VIEWNAME
                         }

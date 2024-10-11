@@ -40,7 +40,7 @@ import java.util.*
 
 @ExtendWith(MockitoExtension::class)
 class TestSpringOIDCTokenService {
-    private val configBean = ConfigurationPropertiesBean(javaClass.name)
+    private val configBean = ConfigurationPropertiesBean(javaClass.name, "topbar")
     private val client = ClientDetailsEntity()
     private val accessToken = OAuth2AccessTokenEntity(
         authenticationHolder = AuthenticationHolderEntity(),

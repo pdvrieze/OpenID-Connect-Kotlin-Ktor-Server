@@ -20,7 +20,7 @@ class TestKtorJsonMessageSource {
     @BeforeEach
     fun setup() {
         //test message files are located in test/resources/js/locale/
-        config = ConfigurationPropertiesBean("http://localhost:8080/")
+        config = ConfigurationPropertiesBean("http://localhost:8080/", "topbar")
         jsonMessageSource = JsonMessageSource("/resources/js/locale", config)
     }
 

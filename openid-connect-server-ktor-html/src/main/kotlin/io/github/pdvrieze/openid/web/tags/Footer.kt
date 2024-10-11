@@ -20,7 +20,7 @@ fun BODY.footer(context: WebContext, js: Boolean = false, extraJs: String? = nul
         }
     }
 
-    comment("Javascript -- footer for speed")
+    comment("Javascript - footer for speed")
     script("text/javascript", "resources/bootstrap2/js/bootstrap.js") {}
     script("text/javascript", "resources/js/lib/underscore.js") {}
     script("text/javascript", "resources/js/lib/backbone.js") {}

@@ -44,8 +44,9 @@ class ConfigurationPropertiesBean {
 
     @Deprecated("Doesn't initialize issuer")
     constructor()
-    constructor(issuer: String) {
+    constructor(issuer: String, topBarTitle: String = "Ktor OID Server") {
         this.issuer = issuer
+        this.topbarTitle = topBarTitle
     }
 
     lateinit var topbarTitle: String

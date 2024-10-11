@@ -30,32 +30,32 @@ object DefaultStyles : Styles {
         get() = DefaultMixins
 
     fun percentage(numerator: LinearDimension, denumerator: LinearDimension): LinearDimension {
-        require(numerator is NumericLinearDimension)
-        require(denumerator is NumericLinearDimension)
-        require(numerator.unit == denumerator.unit) { "Unit mismatch in percentage" }
+        require(numerator is NumericLinearDimension) { "numerator $numerator is not a linear dimension" }
+        require(denumerator is NumericLinearDimension) { "denumerator $denumerator is not a linear dimension" }
+        require(numerator.unit == denumerator.unit) { "Unit mismatch in percentage ($numerator / $denumerator)" }
         return NumericLinearDimension((100*numerator.number.toFloat())/denumerator.number.toFloat(), "%")
     }
 
     object DefaultVars : Styles.Vars {
         // Grays
-        override val black = Color("000")
-        override val grayDarker = Color("222")
-        override val grayDark = Color("333")
-        override val gray = Color("555")
-        override val grayLight = Color("999")
-        override val grayLighter = Color("eee")
-        override val white = Color("fff")
+        override val black = Color("#000")
+        override val grayDarker = Color("#222")
+        override val grayDark = Color("#333")
+        override val gray = Color("#555")
+        override val grayLight = Color("#999")
+        override val grayLighter = Color("#eee")
+        override val white = Color("#fff")
 
 
         // Accent colors
-        override val blue = Color("049cdb")
-        override val blueDark = Color("0064cd")
-        override val green = Color("46a546")
-        override val red = Color("9d261d")
-        override val yellow = Color("ffc40d")
-        override val orange = Color("f89406")
-        override val pink = Color("c3325f")
-        override val purple = Color("7a43b6")
+        override val blue = Color("#049cdb")
+        override val blueDark = Color("#0064cd")
+        override val green = Color("#46a546")
+        override val red = Color("#9d261d")
+        override val yellow = Color("#ffc40d")
+        override val orange = Color("#f89406")
+        override val pink = Color("#c3325f")
+        override val purple = Color("#7a43b6")
 
 
         // Scaffolding
@@ -64,7 +64,7 @@ object DefaultStyles : Styles {
 
 
         // Links
-        override val linkColor = Color("08c")
+        override val linkColor = Color("#08c")
         override val linkColorHover get() = linkColor.darken(15)
 
 
@@ -118,47 +118,47 @@ object DefaultStyles : Styles {
         override val tableBackground = Color.transparent
 
         // overall background-color
-        override val tableBackgroundAccent = Color("f9f9f9")
+        override val tableBackgroundAccent = Color("#f9f9f9")
 
         // for striping
-        override val tableBackgroundHover = Color("f5f5f5")
+        override val tableBackgroundHover = Color("#f5f5f5")
 
         // for hover
-        override val tableBorder = Color("ddd")
+        override val tableBorder = Color("#ddd")
         // table and cell border
 
         // Buttons
         override val btnBackground get() = white
         override val btnBackgroundHighlight get() = white.darken(10)
-        override val btnBorder = Color("ccc")
+        override val btnBorder = Color("#ccc")
 
         override val btnPrimaryBackground get() = linkColor
 
         // Spin 20% from btnPrimaryBackground
         override val btnPrimaryBackgroundHighlight: Color = hsl(251, 255, 204)
 
-        override val btnInfoBackground = Color("5bc0de")
-        override val btnInfoBackgroundHighlight = Color("2f96b4")
+        override val btnInfoBackground = Color("#5bc0de")
+        override val btnInfoBackgroundHighlight = Color("#2f96b4")
 
-        override val btnSuccessBackground = Color("62c462")
-        override val btnSuccessBackgroundHighlight = Color("51a351")
+        override val btnSuccessBackground = Color("#62c462")
+        override val btnSuccessBackgroundHighlight = Color("#51a351")
 
         override val btnWarningBackground = orange.lighten(15)
         override val btnWarningBackgroundHighlight get() = orange
 
-        override val btnDangerBackground = Color("ee5f5b")
-        override val btnDangerBackgroundHighlight = Color("bd362f")
+        override val btnDangerBackground = Color("#ee5f5b")
+        override val btnDangerBackgroundHighlight = Color("#bd362f")
 
-        override val btnInverseBackground = Color("444")
+        override val btnInverseBackground = Color("#444")
         override val btnInverseBackgroundHighlight get() = grayDarker
 
 
         // Forms
         override val inputBackground get() = white
-        override val inputBorder = Color("ccc")
+        override val inputBorder = Color("#ccc")
         override val inputBorderRadius get() = baseBorderRadius
         override val inputDisabledBackground get() = grayLighter
-        override val formActionsBackground = Color("f5f5f5")
+        override val formActionsBackground = Color("#f5f5f5")
         override val inputHeight get() = LinearDimension(baseLineHeight.value) + 10.px
         // base line-height + 8px vertical padding + 2px top/bottom border
 
@@ -166,7 +166,7 @@ object DefaultStyles : Styles {
         // Dropdowns
         override val dropdownBackground get() = white
         override val dropdownBorder = rgb(0, 0, 0, .2)
-        override val dropdownDividerTop = Color("e5e5e5")
+        override val dropdownDividerTop = Color("#e5e5e5")
         override val dropdownDividerBottom get() = white
 
         override val dropdownLinkColor get() = grayDark
@@ -209,7 +209,7 @@ object DefaultStyles : Styles {
 
 
         // Wells
-        override val wellBackground = Color("f5f5f5")
+        override val wellBackground = Color("#f5f5f5")
 
 
         // Navbar
@@ -217,12 +217,12 @@ object DefaultStyles : Styles {
         override val navbarCollapseDesktopWidth = navbarCollapseWidth + 1.px
 
         override val navbarHeight = 40.px
-        override val navbarBackgroundHighlight = Color("ffffff")
+        override val navbarBackgroundHighlight = Color("#ffffff")
         override val navbarBackground = navbarBackgroundHighlight.darken(5)
         override val navbarBorder = navbarBackground.darken(12)
 
-        override val navbarText = Color("777")
-        override val navbarLinkColor = Color("777")
+        override val navbarText = Color("#777")
+        override val navbarLinkColor = Color("#777")
         override val navbarLinkColorHover get() = grayDark
         override val navbarLinkColorActive get() = gray
         override val navbarLinkBackgroundHover = Color.transparent
@@ -231,9 +231,9 @@ object DefaultStyles : Styles {
         override val navbarBrandColor get() = navbarLinkColor
 
         // Inverted navbar
-        override val navbarInverseBackground = Color("111111")
-        override val navbarInverseBackgroundHighlight = Color("222222")
-        override val navbarInverseBorder = Color("252525")
+        override val navbarInverseBackground = Color("#111111")
+        override val navbarInverseBackgroundHighlight = Color("#222222")
+        override val navbarInverseBorder = Color("#252525")
 
         override val navbarInverseText get() = grayLight
         override val navbarInverseLinkColor get() = grayLight
@@ -245,15 +245,15 @@ object DefaultStyles : Styles {
         override val navbarInverseSearchBackground = navbarInverseBackground.lighten(25)
         override val navbarInverseSearchBackgroundFocus get() = white
         override val navbarInverseSearchBorder get() = navbarInverseBackground
-        override val navbarInverseSearchPlaceholderColor = Color("ccc")
+        override val navbarInverseSearchPlaceholderColor = Color("#ccc")
 
         override val navbarInverseBrandColor get() = navbarInverseLinkColor
 
 
         // Pagination
-        override val paginationBackground = Color("fff")
-        override val paginationBorder = Color("ddd")
-        override val paginationActiveBackground = Color("f5f5f5")
+        override val paginationBackground = Color("#fff")
+        override val paginationBorder = Color("#ddd")
+        override val paginationActiveBackground = Color("#f5f5f5")
 
 
         // Hero unit
@@ -263,40 +263,40 @@ object DefaultStyles : Styles {
 
 
         // Form states and alerts
-        override val warningText = Color("c09853")
-        override val warningBackground = Color("fcf8e3")
+        override val warningText = Color("#c09853")
+        override val warningBackground = Color("#fcf8e3")
 
         // darken(spin(vars.warningBackground, -10), 3%)
         override val warningBorder = hsl(24, 25, 252).darken(3)
 
-        override val errorText = Color("b94a48")
-        override val errorBackground = Color("f2dede")
+        override val errorText = Color("#b94a48")
+        override val errorBackground = Color("#f2dede")
 
         // darken(spin(vars.errorBackground, -10), 3%)
         override val errorBorder = hsl(230, 21, 242).darken(3)
 
-        override val successText = Color("468847")
-        override val successBackground = Color("dff0d8")
+        override val successText = Color("#468847")
+        override val successBackground = Color("#dff0d8")
 
         // darken(spin(vars.successBackground, -10), 5%)
         override val successBorder = hsl(76, 25, 240).darken(5)
 
-        override val infoText = Color("3a87ad")
-        override val infoBackground = Color("d9edf7")
+        override val infoText = Color("#3a87ad")
+        override val infoBackground = Color("#d9edf7")
 
         // darken(spin(vars.infoBackground, -10), 7%)
         override val infoBorder = hsl(174, 31, 247).darken(7)
 
 
         // Tooltips and popovers
-        override val tooltipColor = Color("fff")
-        override val tooltipBackground = Color("000")
+        override val tooltipColor = Color("#fff")
+        override val tooltipBackground = Color("#000")
         override val tooltipArrowWidth = 5.px
         override val tooltipArrowColor get() = tooltipBackground
 
-        override val popoverBackground = Color("fff")
+        override val popoverBackground = Color("#fff")
         override val popoverArrowWidth = 10.px
-        override val popoverArrowColor = Color("fff")
+        override val popoverArrowColor = Color("#fff")
         override val popoverTitleBackground = popoverBackground.darken(3)
 
         // Special enhancement for popovers
@@ -309,19 +309,19 @@ object DefaultStyles : Styles {
 
         // Default 940px grid
         override val gridColumns = 12
-        override val gridColumnWidth = 60.px
-        override val gridGutterWidth = 20.px
-        override val gridRowWidth = (gridColumnWidth * gridColumns) + (gridGutterWidth * (gridColumns-1))
+        override val gridColumnWidth = 60.px as NumericLinearDimension
+        override val gridGutterWidth = 20.px as NumericLinearDimension
+        override val gridRowWidth = ((gridColumnWidth.number.toInt() * gridColumns) + (gridGutterWidth.number.toInt() * (gridColumns-1))).px
 
         // 1200px min
-        override val gridColumnWidth1200 = 70.px
-        override val gridGutterWidth1200 = 30.px
-        override val gridRowWidth1200 = (gridColumnWidth1200 * gridColumns) + (gridGutterWidth1200 * (gridColumns-1))
+        override val gridColumnWidth1200 = 70.px as NumericLinearDimension
+        override val gridGutterWidth1200 = 30.px as NumericLinearDimension
+        override val gridRowWidth1200 = ((gridColumnWidth1200.number.toInt() * gridColumns) + (gridGutterWidth1200.number.toInt() * (gridColumns-1))).px
 
         // 768px-979px
-        override val gridColumnWidth768 = 42.px
-        override val gridGutterWidth768 = 20.px
-        override val gridRowWidth768 = (gridColumnWidth768 * gridColumns) + (gridGutterWidth768 * (gridColumns-1))
+        override val gridColumnWidth768 = 42.px as NumericLinearDimension
+        override val gridGutterWidth768 = 20.px as NumericLinearDimension
+        override val gridRowWidth768 = ((gridColumnWidth768.number.toInt() * gridColumns) + (gridGutterWidth768.number.toInt() * (gridColumns - 1))).px
 
 
         // Fluid grid

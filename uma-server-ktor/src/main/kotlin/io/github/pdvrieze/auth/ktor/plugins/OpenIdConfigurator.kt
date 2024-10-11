@@ -95,6 +95,7 @@ data class OpenIdConfigurator(
     var httpClient: HttpClient = HttpClient(Java),
 ) {
 
+    private var topBarTitle: String = "Ktor OpenId provider"
     private var encryptionKeySet: Map<String, JWK> = emptyMap()
     private var signingKeySet: Map<String, JWK> = emptyMap()
 
@@ -104,7 +105,7 @@ data class OpenIdConfigurator(
         @Deprecated("Hopefully not needed. Use configurator.database")
         val database = configurator.database
 
-        override val config: ConfigurationPropertiesBean = ConfigurationPropertiesBean(configurator.issuer)
+        override val config: ConfigurationPropertiesBean = ConfigurationPropertiesBean(configurator.issuer, configurator.topBarTitle)
 
         override val scopeRepository: SystemScopeRepository = ExposedSystemScopeRepository(configurator.database)
 

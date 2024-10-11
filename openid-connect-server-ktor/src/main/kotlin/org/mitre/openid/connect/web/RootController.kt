@@ -34,7 +34,7 @@ import org.mitre.web.util.statsService
 /**
  * @author Michael Jett <mjett></mjett>@mitre.org>
  */
-class RootController: KtorEndpoint {
+object RootController: KtorEndpoint {
 
     override fun Route.addRoutes() {
         get("", "home", "index") { showHomePage()}
@@ -43,9 +43,7 @@ class RootController: KtorEndpoint {
         get("contact") { showContactPage() }
 
         authenticate {
-            get("manage/{...}") {
-                showClientManager()
-            }
+            get("manage/{...}") { showClientManager() }
         }
     }
 
@@ -70,7 +68,5 @@ class RootController: KtorEndpoint {
         return htmlManageView()
     }
 
-    companion object {
-        const val API_URL: String = "api"
-    }
+    const val API_URL: String = "api"
 }

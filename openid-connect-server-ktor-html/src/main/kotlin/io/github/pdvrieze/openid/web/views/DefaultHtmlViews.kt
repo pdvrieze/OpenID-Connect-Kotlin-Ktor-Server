@@ -187,7 +187,7 @@ class DefaultHtmlViews(): HtmlViews {
         }
 
         override val config: ConfigurationPropertiesBean
-            get() = TODO("not implemented")
+            get() = openIdContext.config
         override val ui: UIConfiguration
             get() = TODO("not implemented")
     }

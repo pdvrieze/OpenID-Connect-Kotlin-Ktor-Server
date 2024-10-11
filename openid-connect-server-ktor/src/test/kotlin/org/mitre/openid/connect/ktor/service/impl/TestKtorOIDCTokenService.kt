@@ -39,7 +39,7 @@ class TestKtorOIDCTokenService {
     private val encrypters: ClientKeyCacheService = mock()
     private val authenticationHolderRepository: AuthenticationHolderRepository = mock()
 
-    private val configBean = ConfigurationPropertiesBean("http://localhost")
+    private val configBean = ConfigurationPropertiesBean("http://localhost", "topbar")
     private val client = ClientDetailsEntity()
     private val accessToken = OAuth2AccessTokenEntity(
         authenticationHolder = AuthenticationHolderEntity(),
