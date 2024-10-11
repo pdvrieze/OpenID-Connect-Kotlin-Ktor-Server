@@ -49,6 +49,10 @@ fun BODY.footer(context: WebContext, js: Boolean = false, extraJs: String? = nul
             script("text/javascript", file) {}
         }
         script("text/javascript", "resources/js/admin.js") {}
+    } else if (extraJs != null) {
+        script("text/javascript") {
+            unsafe { raw("\n"); raw(extraJs) }
+        }
     }
     div("hide") { id="templates" }
 }

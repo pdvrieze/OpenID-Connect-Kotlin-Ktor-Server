@@ -178,6 +178,9 @@ class DefaultHtmlViews(): HtmlViews {
         }
 
         override val intl: Intl = object : Intl {
+            override fun messageText(key: String): String {
+                return openIdContext.messageSource.resolveCode(key, Locale(lang))?.format(null) ?: key
+            }
 
             override fun messageText(key: String, vararg args: Any?): String {
                 val format = openIdContext.messageSource.resolveCode(key, Locale(lang))

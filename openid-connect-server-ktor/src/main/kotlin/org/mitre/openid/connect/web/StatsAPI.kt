@@ -28,7 +28,7 @@ import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.requireRole
 import org.mitre.web.util.statsService
 
-class StatsAPI: KtorEndpoint {
+object StatsAPI: KtorEndpoint {
 
     override fun Route.addRoutes() {
         route("/api/stats") {
@@ -65,10 +65,8 @@ class StatsAPI: KtorEndpoint {
         return call.respondJson(statsService.getCountForClientId(clientId))
     }
 
-    companion object {
-        const val URL: String = RootController.API_URL + "/stats"
+    const val URL: String = RootController.API_URL + "/stats"
 
-        // Logger for this class
-        private val logger = getLogger<StatsAPI>()
-    }
+    // Logger for this class
+    private val logger = getLogger<StatsAPI>()
 }

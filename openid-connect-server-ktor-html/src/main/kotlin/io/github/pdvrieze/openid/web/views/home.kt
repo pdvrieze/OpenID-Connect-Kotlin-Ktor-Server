@@ -61,7 +61,9 @@ fun HTML.home(context: WebContext) {
                             p {
                                 id = "stats"
                                 message("home.statistics.number_users", "?")
+                                +" "
                                 message("home.statistics.number_clients", "?")
+                                +" "
                                 message("home.statistics.number_approvals", "?")
                             }
                         }

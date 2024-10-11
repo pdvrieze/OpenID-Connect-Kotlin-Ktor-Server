@@ -22,7 +22,9 @@ fun HTML.stats(
 
                     p() {
                         message("statistics.number_users", statsSummary["userCount"])
+                        +" "
                         message("statistics.number_clients", statsSummary["clientCount"])
+                        +" "
                         message("statistics.number_approvals", statsSummary["approvalCount"])
                     }
                 }

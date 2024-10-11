@@ -8,7 +8,6 @@ import kotlinx.html.div
 import kotlinx.html.h1
 import kotlinx.html.style
 import org.mitre.oauth2.model.GrantedAuthority
-import org.mitre.oauth2.web.AuthenticationUtilities
 
 fun HTML.postLogout(context: WebContext) {
     with(context.intl) {

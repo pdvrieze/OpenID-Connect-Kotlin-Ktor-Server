@@ -6,6 +6,7 @@ import io.ktor.server.http.content.*
 import io.ktor.server.resources.*
 import io.ktor.server.routing.*
 import org.mitre.openid.connect.web.RootController
+import org.mitre.openid.connect.web.StatsAPI
 
 fun Application.configureRouting(additional: Route.() -> Unit = {}) {
     install(Resources)
@@ -22,6 +23,7 @@ fun Application.configureRouting(additional: Route.() -> Unit = {}) {
 
 
         with(RootController) { addRoutes() }
+        with(StatsAPI) { addRoutes() }
 
 
         additional()
