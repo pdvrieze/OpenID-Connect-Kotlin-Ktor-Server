@@ -8,19 +8,19 @@ import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuth2RequestAuthentication
 
-inline suspend fun PipelineContext<Unit, ApplicationCall>.requireRole(requiredRole: GrantedAuthority, onMissing: (Authentication?) -> Nothing): Authentication {
+suspend inline fun PipelineContext<Unit, ApplicationCall>.requireRole(requiredRole: GrantedAuthority, onMissing: (Authentication?) -> Nothing): Authentication {
     val authentication = resolveAuthenticatedUser() ?: run {
         call.respond(HttpStatusCode.Unauthorized)
         return onMissing(null)
     }
-    if (requiredRole!in authentication.authorities) {
+    if (requiredRole !in authentication.authorities) {
         call.respond(HttpStatusCode.Forbidden)
         return onMissing(authentication)
     }
     return authentication
 }
 
-inline suspend fun PipelineContext<Unit, ApplicationCall>.requireScope(
+suspend inline fun PipelineContext<Unit, ApplicationCall>.requireScope(
     scope: String,
     onMissing: (Authentication?) -> Nothing,
 ): OAuth2RequestAuthentication {
@@ -42,7 +42,7 @@ inline suspend fun PipelineContext<Unit, ApplicationCall>.requireScope(
 /**
  * Variant that also requires scopes to be present
  */
-inline suspend fun PipelineContext<Unit, ApplicationCall>.requireRole(requiredRole: GrantedAuthority, vararg scopes: String, onMissing: (Authentication?) -> Nothing): OAuth2RequestAuthentication {
+suspend inline fun PipelineContext<Unit, ApplicationCall>.requireRole(requiredRole: GrantedAuthority, vararg scopes: String, onMissing: (Authentication?) -> Nothing): OAuth2RequestAuthentication {
     val authentication = resolveAuthenticatedUser() ?: run {
         call.respond(HttpStatusCode.Unauthorized)
         return onMissing(null)
@@ -63,7 +63,7 @@ inline suspend fun PipelineContext<Unit, ApplicationCall>.requireRole(requiredRo
     return authentication
 }
 
-inline suspend fun PipelineContext<Unit, ApplicationCall>.requireRoleOf(requiredRole1: GrantedAuthority, requiredRole2: GrantedAuthority, onMissing: (Authentication?) -> Nothing): Authentication {
+suspend inline fun PipelineContext<Unit, ApplicationCall>.requireRoleOf(requiredRole1: GrantedAuthority, requiredRole2: GrantedAuthority, onMissing: (Authentication?) -> Nothing): Authentication {
     val authentication = resolveAuthenticatedUser() ?: run {
         call.respond(HttpStatusCode.Unauthorized)
         return onMissing(null)
@@ -75,7 +75,7 @@ inline suspend fun PipelineContext<Unit, ApplicationCall>.requireRoleOf(required
     return authentication
 }
 
-inline suspend fun PipelineContext<Unit, ApplicationCall>.requireRoleOf(requiredRoles: List<GrantedAuthority>, onMissing: (Authentication?) -> Nothing): Authentication {
+suspend inline fun PipelineContext<Unit, ApplicationCall>.requireRoleOf(requiredRoles: List<GrantedAuthority>, onMissing: (Authentication?) -> Nothing): Authentication {
     val authentication = resolveAuthenticatedUser() ?: run {
         call.respond(HttpStatusCode.Unauthorized)
         return onMissing(null)

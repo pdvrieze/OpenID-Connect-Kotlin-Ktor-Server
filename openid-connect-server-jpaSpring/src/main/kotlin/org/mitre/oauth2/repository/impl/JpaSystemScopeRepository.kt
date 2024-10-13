@@ -77,7 +77,7 @@ class JpaSystemScopeRepository : SystemScopeRepository {
 	 * @see org.mitre.oauth2.repository.SystemScopeRepository#save(org.mitre.oauth2.model.SystemScope)
 	 */
     @Transactional(value = "defaultTransactionManager")
-    override fun save(scope: SystemScope): SystemScope? {
+    override fun save(scope: SystemScope): SystemScope {
         val id = requireNotNull(scope.id) { "missing id in scope" }
         return saveOrUpdate<SystemScope, Long>(id, em, scope)
     }

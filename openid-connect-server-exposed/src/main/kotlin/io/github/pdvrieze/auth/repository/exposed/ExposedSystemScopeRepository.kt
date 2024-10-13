@@ -46,15 +46,17 @@ class ExposedSystemScopeRepository(database: Database):
     }
 
     override fun save(scope: SystemScope): SystemScope = transaction {
-        scope.apply { id = SystemScopes.save(scope.id) { scope.toUpdate(it) } }
+        val newId = SystemScopes.save(scope.id) { scope.toUpdate(it) }
+
+        scope.apply { id = newId }
     }
 
     private fun SystemScope.toUpdate(
         builder: UpdateBuilder<Int>
     ) {
         builder[SystemScopes.value] = value!!
-        builder[SystemScopes.description] = description
-        builder[SystemScopes.icon] = icon
+        description?.let { builder[SystemScopes.description] = it }
+        icon?.let { builder[SystemScopes.icon] = it }
         builder[SystemScopes.defaultScope] = isDefaultScope
         builder[SystemScopes.restricted] = isRestricted
     }

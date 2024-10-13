@@ -214,7 +214,7 @@ class AuthTest {
                     }
                 }
             }
-            install(Authentication) {
+            authentication {
                 session<OpenIdSessionStorage> {
                     validate {
                         it.principal

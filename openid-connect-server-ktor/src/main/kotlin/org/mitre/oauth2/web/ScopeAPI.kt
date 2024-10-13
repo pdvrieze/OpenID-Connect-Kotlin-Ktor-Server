@@ -74,7 +74,7 @@ object ScopeAPI : KtorEndpoint {
             return call.respondJson(scope)
         } else {
             logger.error("getScope failed; scope not found: $id", )
-            return jsonErrorView(OAuthErrorCodes.INVALID_SCOPE, errorMessage = "The requested scope with id $id could not be found.")
+            return jsonErrorView(OAuthErrorCodes.INVALID_SCOPE, errorMessage = "The requested scope with id $id could not be found.", code = HttpStatusCode.NotFound)
         }
     }
 
@@ -106,8 +106,8 @@ object ScopeAPI : KtorEndpoint {
                 logger.error("updateScope failed; scope ids to not match: got ${existing.id} and ${scope.id}")
 
                 return jsonErrorView(
-                    OAuthErrorCodes.INVALID_REQUEST,
-                    errorMessage = "Could not update scope. Scope ids to not match: got ${existing.id} and ${scope.id}"
+                    errorCode = OAuthErrorCodes.INVALID_REQUEST,
+                    errorMessage = "Could not update scope. Scope ids to not match: got ${existing.id} and ${scope.id}",
                 )
             }
         }
@@ -155,10 +155,7 @@ object ScopeAPI : KtorEndpoint {
 
         val existing = scopeService.getById(id)
 
-        if (existing != null) {
-            scopeService.remove(existing)
-            return call.respond(HttpStatusCode.OK)
-        } else {
+        if (existing == null) {
             logger.error("deleteScope failed; scope with id $id not found.")
             return jsonErrorView(
                 OAuthErrorCodes.INVALID_SCOPE,
@@ -166,6 +163,9 @@ object ScopeAPI : KtorEndpoint {
                 "Could not delete scope. The requested scope with id $id could not be found."
             )
         }
+
+        scopeService.remove(existing)
+        return call.respond(HttpStatusCode.OK)
     }
 
     const val URL: String = RootController.API_URL + "/scopes"

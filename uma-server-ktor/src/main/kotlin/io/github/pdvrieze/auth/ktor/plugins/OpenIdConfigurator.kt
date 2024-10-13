@@ -105,9 +105,9 @@ data class OpenIdConfigurator(
     private var encryptionKeySet: Map<String, JWK> = emptyMap()
     private var signingKeySet: Map<String, JWK> = emptyMap()
 
-    fun resolveDefault(): OpenIdContext = ResolvedImpl(this)
+    fun resolveDefault(): OpenIdContext = DefaultContext(this)
 
-    private class ResolvedImpl(configurator: OpenIdConfigurator) : OpenIdContext {
+    open class DefaultContext(configurator: OpenIdConfigurator) : OpenIdContext {
         @Deprecated("Hopefully not needed. Use configurator.database")
         val database = configurator.database
         private val credentialVerifier = configurator.verifyCredential
@@ -297,7 +297,7 @@ data class OpenIdConfigurator(
         }
 
         // TODO Do something more sane
-        private fun resolveAuthServiceAuthorities(name: String): Collection<GrantedAuthority> = when (name) {
+        protected open fun resolveAuthServiceAuthorities(name: String): Collection<GrantedAuthority> = when (name) {
             "admin" -> listOf(GrantedAuthority.ROLE_ADMIN, GrantedAuthority.ROLE_USER, GrantedAuthority.ROLE_ADMIN)
             else -> listOf(GrantedAuthority.ROLE_USER)
         }

@@ -17,7 +17,7 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.Before
 import org.mitre.discovery.view.WebfingerViews
-import org.mitre.discovery.web.DiscoveryEndpoint
+import org.mitre.oauth2.web.ScopeAPI
 import org.mitre.web.util.OpenIdContext
 import org.mitre.web.util.OpenIdContextPlugin
 import kotlin.test.Test
@@ -121,7 +121,7 @@ class DiscoveryTest {
             install(OpenIdContextPlugin) { context = testContext }
 
             configureRouting() {
-                with(DiscoveryEndpoint) { addRoutes() }
+                with(ScopeAPI) { addRoutes() }
             }
         }
     }

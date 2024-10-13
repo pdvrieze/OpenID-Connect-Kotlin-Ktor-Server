@@ -119,17 +119,17 @@ class ScopeAPI {
 
         val savedScope = scopeService.save(inputScope)
 
-        if (savedScope?.id != null) {
-            m[JsonEntityView.ENTITY] = savedScope
-
-            return JsonEntityView.VIEWNAME
-        } else {
+        if (savedScope?.id == null) {
             logger.error("createScope failed; JSON was invalid: $json")
             m[HttpCodeView.CODE] = HttpStatus.BAD_REQUEST
             m[JsonErrorView.ERROR_MESSAGE] =
                 "Could not save new scope $savedScope. The scope service failed to return a saved entity."
             return JsonErrorView.VIEWNAME
         }
+
+        m[JsonEntityView.ENTITY] = savedScope
+
+        return JsonEntityView.VIEWNAME
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")

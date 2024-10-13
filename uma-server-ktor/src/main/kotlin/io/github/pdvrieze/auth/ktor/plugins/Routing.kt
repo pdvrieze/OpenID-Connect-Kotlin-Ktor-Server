@@ -56,11 +56,12 @@ fun Application.configureRouting(additional: Route.() -> Unit = {}) {
 private val endpoints: List<KtorEndpoint> = listOf(
     RootController,
     FormAuthEndpoint,
+    ScopeAPI,
+
     OAuthConfirmationController,
     DeviceEndpoint,
     RevocationEndpoint,
     TokenAPI,
-    ScopeAPI,
     IntrospectionEndpoint,
 //    UmaDiscoveryEndpoint,
     PolicyAPI,

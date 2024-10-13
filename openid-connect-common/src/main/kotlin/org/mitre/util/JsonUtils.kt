@@ -22,7 +22,6 @@ import com.nimbusds.jose.JWEAlgorithm
 import com.nimbusds.jose.JWSAlgorithm
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.boolean
@@ -31,6 +30,12 @@ import kotlinx.serialization.json.booleanOrNull
 fun JsonPrimitive.asString(): String {
     require(isString) { "The primitive found is not a string" }
     return content
+}
+
+fun JsonElement?.asLong(): Long {
+    require(this is JsonPrimitive) { "The element is not a primitive : ${this?.javaClass?.simpleName}" }
+    require(!isString) { "Json long expected, but found string" }
+    return content.toLong()
 }
 
 fun JsonElement?.asString(): String {

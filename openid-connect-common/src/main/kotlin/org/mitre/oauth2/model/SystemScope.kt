@@ -147,7 +147,7 @@ class SystemScope(
             id = s.id,
             value = s.value,
             description = s.description,
-            isAllowDynReg = !s.isRestricted,
+            isAllowDynReg = null,
             isRestricted = s.isRestricted,
             isDefaultScope = s.isDefaultScope,
             icon = s.icon,

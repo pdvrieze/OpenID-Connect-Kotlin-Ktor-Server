@@ -14,5 +14,5 @@ interface SystemScopeRepository {
 
     fun remove(scope: SystemScope)
 
-    fun save(scope: SystemScope): SystemScope?
+    fun save(scope: SystemScope): SystemScope
 }
