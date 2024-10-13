@@ -32,25 +32,19 @@ fun Application.module() {
 
     install(IgnoreTrailingSlash)
     install(Sessions) {
-        cookie<OpenIdSessionStorage>(OpenIdSessionStorage.COOKIE_NAME, SessionStorageMemory())
+        cookie<OpenIdSessionStorage>(OpenIdSessionStorage.COOKIE_NAME, SessionStorageMemory()) {
+            cookie.apply {
+                httpOnly = true
+                secure = ! this@module.developmentMode // secure except in development mode
+                maxAge = null
+            }
+        }
+
     }
     install(OpenIdContextPlugin) {
         context = configuration.resolveDefault()
     }
     install(Authentication) {
-/*
-        basic("basic") {
-            realm = "test-ktor-openid"
-            validate { credentials ->
-                // temporary testing
-                if (credentials.name == "admin" && credentials.password == "secret") {
-                    UserIdPrincipal("admin")
-                } else {
-                    null
-                }
-            }
-        }
-*/
         session<OpenIdSessionStorage> {
             validate { session ->
                 session.principal
