@@ -29,6 +29,7 @@ import org.mitre.uma.web.PermissionRegistrationEndpoint
 import org.mitre.uma.web.PolicyAPI
 import org.mitre.uma.web.ResourceSetRegistrationEndpoint
 import org.mitre.uma.web.UserClaimSearchHelper
+import org.mitre.web.FormAuthEndpoint
 import org.mitre.web.util.KtorEndpoint
 
 fun Application.configureRouting(additional: Route.() -> Unit = {}) {
@@ -53,6 +54,8 @@ fun Application.configureRouting(additional: Route.() -> Unit = {}) {
 }
 
 private val endpoints: List<KtorEndpoint> = listOf(
+    RootController,
+    FormAuthEndpoint,
     OAuthConfirmationController,
     DeviceEndpoint,
     RevocationEndpoint,
@@ -74,7 +77,6 @@ private val endpoints: List<KtorEndpoint> = listOf(
     DynamicClientRegistrationEndpoint,
     EndSessionEndpoint,
     ProtectedResourceRegistrationEndpoint,
-    RootController,
     StatsAPI,
     UserInfoEndpoint,
     WhitelistAPI,
