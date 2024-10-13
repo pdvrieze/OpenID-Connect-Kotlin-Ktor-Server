@@ -66,7 +66,7 @@ object TokenAPI : KtorEndpoint {
     suspend fun PipelineContext<Unit, ApplicationCall>.getAllAccessTokens() {
         val p = requireRole(GrantedAuthority.ROLE_USER) { return }
 
-        return call.respondJson(tokenService.getAllAccessTokensForUser(p.name))
+        return call.respondJson(tokenService.getAllAccessTokensForUser(p.name).map { it.serialDelegate() })
     }
 
     //    @RequestMapping(value = ["/access/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -150,7 +150,7 @@ object TokenAPI : KtorEndpoint {
     //    @RequestMapping(value = ["/refresh"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun PipelineContext<Unit, ApplicationCall>.getAllRefreshTokens() {
         val p = requireRole(GrantedAuthority.ROLE_USER) { return }
-        val allTokens = tokenService.getAllRefreshTokensForUser(p.name)
+        val allTokens = tokenService.getAllRefreshTokensForUser(p.name).map { it.serialDelegate() }
         return tokenApiView(json.encodeToJsonElement(allTokens))
     }
 

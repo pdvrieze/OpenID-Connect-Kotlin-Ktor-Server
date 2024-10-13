@@ -6,7 +6,6 @@ import io.ktor.server.response.*
 import io.ktor.util.pipeline.*
 import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.GrantedAuthority
-import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2RequestAuthentication
 
 inline suspend fun PipelineContext<Unit, ApplicationCall>.requireRole(requiredRole: GrantedAuthority, onMissing: (Authentication?) -> Nothing): Authentication {
@@ -69,7 +68,7 @@ inline suspend fun PipelineContext<Unit, ApplicationCall>.requireRoleOf(required
         call.respond(HttpStatusCode.Unauthorized)
         return onMissing(null)
     }
-    if (requiredRole1 in authentication.authorities || requiredRole2 in authentication.authorities) {
+    if (!(requiredRole1 in authentication.authorities || requiredRole2 in authentication.authorities)) {
         call.respond(HttpStatusCode.Forbidden)
         return onMissing(authentication)
     }
