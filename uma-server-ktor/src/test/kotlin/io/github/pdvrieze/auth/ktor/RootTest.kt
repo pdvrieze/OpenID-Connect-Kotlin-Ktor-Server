@@ -88,6 +88,25 @@ class RootTest {
         }
     }
 
+    @Test
+    fun testManage() = testApplication {
+        configureApplication()
+
+        client.get("/manage") {
+            basicAuth("admin", "secret")
+        }.apply {
+            assertTrue(status.isSuccess(), "Unexpected response : $status" )
+        }
+    }
+
+    @Test
+    fun testManageUnAuth() = testApplication {
+        configureApplication()
+
+        client.get("/manage").apply {
+            assertEquals(HttpStatusCode.Unauthorized, status, "Unexpected response : $status" )
+        }
+    }
 
     private fun ApplicationTestBuilder.configureApplication() {
         application {
