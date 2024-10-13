@@ -1,5 +1,6 @@
 package org.mitre.web
 
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.util.pipeline.*
 import org.mitre.oauth2.exception.OAuth2Exception
@@ -62,6 +63,7 @@ interface HtmlViews {
         loginHint: String?,
         paramError: String?,
         redirectUri: String?,
+        status: HttpStatusCode = HttpStatusCode.OK,
     )
 
     suspend fun PipelineContext<*, ApplicationCall>.logoutConfirmation(client: OAuthClientDetails?)

@@ -2,6 +2,7 @@ package io.github.pdvrieze.openid.web.views
 
 import io.github.pdvrieze.openid.web.Intl
 import io.github.pdvrieze.openid.web.WebContext
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.html.*
 import io.ktor.server.request.*
@@ -117,8 +118,9 @@ class DefaultHtmlViews(): HtmlViews {
         loginHint: String?,
         paramError: String?,
         redirectUri: String?,
+        status: HttpStatusCode,
     ) {
-        call.respondHtml {
+        call.respondHtml(status) {
             login(createContext(), loginHint, paramError, redirectUri)
         }
     }
