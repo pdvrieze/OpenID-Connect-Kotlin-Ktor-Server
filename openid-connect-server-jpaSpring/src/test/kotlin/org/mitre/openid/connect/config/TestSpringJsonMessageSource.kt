@@ -26,6 +26,7 @@ class TestSpringJsonMessageSource {
 
     @BeforeEach
     fun setup() {
+        config.languageNamespaces = listOf("messages")
         //test message files are located in test/resources/js/locale/
         val resource: Resource = ClassPathResource("/resources/js/locale/")
         jsonMessageSource.baseDirectory = resource
