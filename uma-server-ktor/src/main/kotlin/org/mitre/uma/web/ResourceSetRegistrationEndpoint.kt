@@ -16,12 +16,10 @@
 package org.mitre.uma.web
 
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.util.pipeline.*
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -64,7 +62,7 @@ object ResourceSetRegistrationEndpoint: KtorEndpoint {
     }
 
 //    @RequestMapping(method = [RequestMethod.POST], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE], consumes = [MimeTypeUtils.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.createResourceSet() {
+    suspend fun RoutingContext.createResourceSet() {
         val auth: Authentication = requireRole(GrantedAuthority.ROLE_USER) { return }
         val jsonString = call.receiveText()
         ensureOAuthScope(auth, SystemScopeService.UMA_PROTECTION_SCOPE)
@@ -96,7 +94,7 @@ object ResourceSetRegistrationEndpoint: KtorEndpoint {
     }
 
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.readResourceSet() {
+    suspend fun RoutingContext.readResourceSet() {
         val auth = requireRole(GrantedAuthority.ROLE_USER, SystemScopeService.UMA_PROTECTION_SCOPE) { return }
         val id = call.request.queryParameters["id"]!!.toLong()
 
@@ -114,7 +112,7 @@ object ResourceSetRegistrationEndpoint: KtorEndpoint {
 }
 
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.PUT], consumes = [MimeTypeUtils.APPLICATION_JSON_VALUE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.updateResourceSet() {
+    suspend fun RoutingContext.updateResourceSet() {
         val auth = requireRole(GrantedAuthority.ROLE_USER, SystemScopeService.UMA_PROTECTION_SCOPE) { return }
         val id = call.request.queryParameters["id"]!!.toLong()
 
@@ -142,7 +140,7 @@ object ResourceSetRegistrationEndpoint: KtorEndpoint {
     }
 
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.DELETE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.deleteResourceSet() {
+    suspend fun RoutingContext.deleteResourceSet() {
         val auth = requireRole(GrantedAuthority.ROLE_USER, SystemScopeService.UMA_PROTECTION_SCOPE) { return }
         val id = call.request.queryParameters["id"]!!.toLong()
 
@@ -167,7 +165,7 @@ object ResourceSetRegistrationEndpoint: KtorEndpoint {
 }
 
 //    @RequestMapping(method = [RequestMethod.GET], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.listResourceSets() {
+    suspend fun RoutingContext.listResourceSets() {
         val auth = requireRole(GrantedAuthority.ROLE_USER,  SystemScopeService.UMA_PROTECTION_SCOPE) { return }
 
         val owner = auth.name

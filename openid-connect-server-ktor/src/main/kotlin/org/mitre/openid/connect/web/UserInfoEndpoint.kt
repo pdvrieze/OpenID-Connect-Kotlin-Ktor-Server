@@ -18,10 +18,8 @@
 package org.mitre.openid.connect.web
 
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.util.pipeline.*
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
 import org.mitre.oauth2.model.GrantedAuthority
@@ -56,7 +54,7 @@ object UserInfoEndpoint: KtorEndpoint {
     /**
      * Get information about the user as specified in the accessToken included in this request
      */
-    suspend fun PipelineContext<Unit, ApplicationCall>.getInfo() {
+    suspend fun RoutingContext.getInfo() {
         val auth = requireRole(GrantedAuthority.ROLE_USER, SystemScopeService.OPENID_SCOPE) {
             logger.error("getInfo failed; no principal. Requester is not authorized.")
             return

@@ -15,6 +15,7 @@ dependencies {
     implementation(libs.spring.orm) {
         exclude("commons-logging:commons-logging")
     }
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.spring.webmvc)
     implementation(libs.spring.oauth)
 }

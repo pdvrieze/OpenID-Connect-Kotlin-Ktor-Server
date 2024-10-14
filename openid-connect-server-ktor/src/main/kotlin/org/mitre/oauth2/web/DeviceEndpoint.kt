@@ -16,12 +16,10 @@
 package org.mitre.oauth2.web
 
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.util.pipeline.*
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import org.mitre.oauth2.exception.DeviceCodeCreationException
@@ -72,7 +70,7 @@ object DeviceEndpoint : KtorEndpoint {
         }
     }
 
-    private suspend fun PipelineContext<Unit, ApplicationCall>.requestDeviceCode() {
+    private suspend fun RoutingContext.requestDeviceCode() {
         val config = openIdContext.config
         require(call.request.contentType() == ContentType.Application.FormUrlEncoded) {
             "Only Form url-encoded is supported"
@@ -149,7 +147,7 @@ object DeviceEndpoint : KtorEndpoint {
 
     }
 
-    private suspend fun PipelineContext<Unit, ApplicationCall>.requestUserCode() {
+    private suspend fun RoutingContext.requestUserCode() {
         val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
 
         val userCode = call.parameters["user_code"]
@@ -170,7 +168,7 @@ object DeviceEndpoint : KtorEndpoint {
     }
 
 
-    private suspend fun PipelineContext<Unit, ApplicationCall>.readUserCode() {
+    private suspend fun RoutingContext.readUserCode() {
         val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
 
         val userCode = call.receiveParameters()["user_code"]
@@ -179,7 +177,7 @@ object DeviceEndpoint : KtorEndpoint {
         readUserCodeImpl(userCode, auth)
     }
 
-    private suspend fun PipelineContext<Unit, ApplicationCall>.readUserCodeImpl(userCode: String, auth: Authentication) {
+    private suspend fun RoutingContext.readUserCodeImpl(userCode: String, auth: Authentication) {
 
         // look up the request based on the user code
 
@@ -236,7 +234,7 @@ object DeviceEndpoint : KtorEndpoint {
 
     }
 
-    private suspend fun PipelineContext<Unit, ApplicationCall>.approveDevice() {
+    private suspend fun RoutingContext.approveDevice() {
             val userCode: String = call.request.queryParameters["user_code"]
                 ?: call.receiveParameters()["user_code"]
                 ?: return call.respond(HttpStatusCode.BadRequest)
@@ -308,7 +306,7 @@ object DeviceEndpoint : KtorEndpoint {
     }
 
     // TODO for errors create a mapping form requestUserCode.jsp (use enums?)
-    suspend fun PipelineContext<*, ApplicationCall>.doError(category: String) {
+    suspend fun RoutingContext.doError(category: String) {
         call.respond(HttpStatusCode.BadRequest, category)
     }
 

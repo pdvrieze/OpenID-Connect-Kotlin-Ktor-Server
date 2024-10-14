@@ -2,8 +2,8 @@ package org.mitre.web.util
 
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.routing.*
 import io.ktor.util.*
-import io.ktor.util.pipeline.*
 import org.mitre.jwt.assertion.AssertionValidator
 import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
 import org.mitre.jwt.signer.service.ClientKeyCacheService
@@ -48,7 +48,7 @@ import org.mitre.web.HtmlViews
 
 interface OpenIdContext {
     fun resolveAuthenticatedUser(authenticationContext: ApplicationCall): Authentication?
-    fun checkCredential(credential: Credential): Boolean
+    fun checkCredential(credential: UserPasswordCredential): Boolean
 
     //region Regular services
     val authRequestFactory: OAuth2RequestFactory
@@ -111,105 +111,105 @@ interface OpenIdContext {
 
 
 //  PipelineContext<Unit, ApplicationCall>
-val PipelineContext<*, ApplicationCall>.openIdContext: OpenIdContext
+val RoutingContext.openIdContext: OpenIdContext
     get() = call.application.plugin(OpenIdContextPlugin).context
 
 val ApplicationCall.openIdContext: OpenIdContext
     get() = application.plugin(OpenIdContextPlugin).context
 
-fun PipelineContext<*, ApplicationCall>.resolveAuthenticatedUser(): Authentication? {
+fun RoutingContext.resolveAuthenticatedUser(): Authentication? {
     return openIdContext.resolveAuthenticatedUser(call)
 }
 
 //region Direct accessors to regular services
-val PipelineContext<*, ApplicationCall>.approvedSiteService: ApprovedSiteService
+val RoutingContext.approvedSiteService: ApprovedSiteService
     get() = openIdContext.approvedSiteService
-val PipelineContext<*, ApplicationCall>.blacklistedSiteService: BlacklistedSiteService
+val RoutingContext.blacklistedSiteService: BlacklistedSiteService
     get() = openIdContext.blacklistedSiteService
-val PipelineContext<*, ApplicationCall>.clientDetailsService: ClientDetailsEntityService
+val RoutingContext.clientDetailsService: ClientDetailsEntityService
     get() = openIdContext.clientDetailsService
-val PipelineContext<*, ApplicationCall>.clientService: ClientDetailsEntityService
+val RoutingContext.clientService: ClientDetailsEntityService
     get() = openIdContext.clientService
-val PipelineContext<*, ApplicationCall>.config: ConfigurationPropertiesBean
+val RoutingContext.config: ConfigurationPropertiesBean
     get() = openIdContext.config
-val PipelineContext<*, ApplicationCall>.deviceCodeService: DeviceCodeService
+val RoutingContext.deviceCodeService: DeviceCodeService
     get() = openIdContext.deviceCodeService
-val PipelineContext<*, ApplicationCall>.encryptionService: JWTEncryptionAndDecryptionService
+val RoutingContext.encryptionService: JWTEncryptionAndDecryptionService
     get() = openIdContext.encryptionService
-val PipelineContext<*, ApplicationCall>.introspectionResultAssembler: JsonIntrospectionResultAssembler
+val RoutingContext.introspectionResultAssembler: JsonIntrospectionResultAssembler
     get() = openIdContext.introspectionResultAssembler
-val PipelineContext<*, ApplicationCall>.jwtService: JWTSigningAndValidationService
+val RoutingContext.jwtService: JWTSigningAndValidationService
     get() = openIdContext.jwtService
-val PipelineContext<*, ApplicationCall>.oidcTokenService: OIDCTokenService
+val RoutingContext.oidcTokenService: OIDCTokenService
     get() = openIdContext.oidcTokenService
-val PipelineContext<*, ApplicationCall>.pairwiseIdentifierService: PairwiseIdentifierService
+val RoutingContext.pairwiseIdentifierService: PairwiseIdentifierService
     get() = openIdContext.pairwiseIdentifierService
-val PipelineContext<*, ApplicationCall>.redirectResolver: RedirectResolver
+val RoutingContext.redirectResolver: RedirectResolver
     get() = openIdContext.redirectResolver
-val PipelineContext<*, ApplicationCall>.routeSetService: ResourceSetService
+val RoutingContext.routeSetService: ResourceSetService
     get() = openIdContext.routeSetService
-val PipelineContext<*, ApplicationCall>.scopeClaimTranslationService: ScopeClaimTranslationService
+val RoutingContext.scopeClaimTranslationService: ScopeClaimTranslationService
     get() = openIdContext.scopeClaimTranslationService
-val PipelineContext<*, ApplicationCall>.scopeService: SystemScopeService
+val RoutingContext.scopeService: SystemScopeService
     get() = openIdContext.scopeService
-val PipelineContext<*, ApplicationCall>.signService: JWTSigningAndValidationService
+val RoutingContext.signService: JWTSigningAndValidationService
     get() = openIdContext.signService
-val PipelineContext<*, ApplicationCall>.statsService: StatsService
+val RoutingContext.statsService: StatsService
     get() = openIdContext.statsService
-val PipelineContext<*, ApplicationCall>.tokenEnhancer: TokenEnhancer
+val RoutingContext.tokenEnhancer: TokenEnhancer
     get() = openIdContext.tokenEnhancer
-val PipelineContext<*, ApplicationCall>.tokenService: OAuth2TokenEntityService
+val RoutingContext.tokenService: OAuth2TokenEntityService
     get() = openIdContext.tokenService
-val PipelineContext<*, ApplicationCall>.userInfoService: UserInfoService
+val RoutingContext.userInfoService: UserInfoService
     get() = openIdContext.userInfoService
-val PipelineContext<*, ApplicationCall>.whitelistedSiteService: WhitelistedSiteService
+val RoutingContext.whitelistedSiteService: WhitelistedSiteService
     get() = openIdContext.whitelistedSiteService
 
-val PipelineContext<*, ApplicationCall>.symetricCacheService: SymmetricKeyJWTValidatorCacheService
+val RoutingContext.symetricCacheService: SymmetricKeyJWTValidatorCacheService
     get() = openIdContext.symetricCacheService
-val PipelineContext<*, ApplicationCall>.encryptersService: ClientKeyCacheService
+val RoutingContext.encryptersService: ClientKeyCacheService
     get() = openIdContext.encyptersService
 
-val PipelineContext<*, ApplicationCall>.clientLogoLoadingService: ClientLogoLoadingService
+val RoutingContext.clientLogoLoadingService: ClientLogoLoadingService
     get()  = openIdContext.clientLogoLoadingService
 
-val PipelineContext<*, ApplicationCall>.assertionValidator: AssertionValidator
+val RoutingContext.assertionValidator: AssertionValidator
     get()  = openIdContext.assertionValidator
 //endregion
 
 //region Direct access to UMA services
-val PipelineContext<*, ApplicationCall>.claimsProcessingService: ClaimsProcessingService
+val RoutingContext.claimsProcessingService: ClaimsProcessingService
     get() = openIdContext.claimsProcessingService
-val PipelineContext<*, ApplicationCall>.permissionService: PermissionService
+val RoutingContext.permissionService: PermissionService
     get() = openIdContext.permissionService
-val PipelineContext<*, ApplicationCall>.resourceSetService: ResourceSetService
+val RoutingContext.resourceSetService: ResourceSetService
     get() = openIdContext.resourceSetService
-val PipelineContext<*, ApplicationCall>.savedRegisteredClientService: SavedRegisteredClientService
+val RoutingContext.savedRegisteredClientService: SavedRegisteredClientService
     get() = openIdContext.savedRegisteredClientService
-val PipelineContext<*, ApplicationCall>.umaTokenService: UmaTokenService
+val RoutingContext.umaTokenService: UmaTokenService
     get() = openIdContext.umaTokenService
 //endregion
 
 //region direct access to regular repositories
-val PipelineContext<*, ApplicationCall>.approvedSiteRepository: ApprovedSiteRepository
+val RoutingContext.approvedSiteRepository: ApprovedSiteRepository
     get() = openIdContext.approvedSiteRepository
-val PipelineContext<*, ApplicationCall>.authenticationHolderRepository: AuthenticationHolderRepository
+val RoutingContext.authenticationHolderRepository: AuthenticationHolderRepository
     get() = openIdContext.authenticationHolderRepository
-val PipelineContext<*, ApplicationCall>.blacklistedSiteRepository: BlacklistedSiteRepository
+val RoutingContext.blacklistedSiteRepository: BlacklistedSiteRepository
     get() = openIdContext.blacklistedSiteRepository
-val PipelineContext<*, ApplicationCall>.clientRepository: OAuth2ClientRepository
+val RoutingContext.clientRepository: OAuth2ClientRepository
     get() = openIdContext.clientRepository
-val PipelineContext<*, ApplicationCall>.resourceSetRepository: ResourceSetRepository
+val RoutingContext.resourceSetRepository: ResourceSetRepository
     get() = openIdContext.resourceSetRepository
-val PipelineContext<*, ApplicationCall>.scopeRepository: SystemScopeRepository
+val RoutingContext.scopeRepository: SystemScopeRepository
     get() = openIdContext.scopeRepository
-val PipelineContext<*, ApplicationCall>.ticketRepository: PermissionRepository
+val RoutingContext.ticketRepository: PermissionRepository
     get() = openIdContext.ticketRepository
-val PipelineContext<*, ApplicationCall>.tokenRepository: OAuth2TokenRepository
+val RoutingContext.tokenRepository: OAuth2TokenRepository
     get() = openIdContext.tokenRepository
-val PipelineContext<*, ApplicationCall>.userInfoRepository: UserInfoRepository
+val RoutingContext.userInfoRepository: UserInfoRepository
     get() = openIdContext.userInfoRepository
-val PipelineContext<*, ApplicationCall>.whitelistedSiteRepository: WhitelistedSiteRepository
+val RoutingContext.whitelistedSiteRepository: WhitelistedSiteRepository
     get() = openIdContext.whitelistedSiteRepository
 //endregion
 

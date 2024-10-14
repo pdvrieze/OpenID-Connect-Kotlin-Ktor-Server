@@ -66,7 +66,7 @@ object ProtectedResourceRegistrationEndpoint: KtorEndpoint {
      * Create a new Client, issue a client ID, and create a registration access token.
      */
 //    @RequestMapping(method = [RequestMethod.POST], consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
-    private suspend fun PipelineContext<Unit, ApplicationCall>.registerNewProtectedResource() {
+    private suspend fun RoutingContext.registerNewProtectedResource() {
         val newClientBuilder: ClientDetailsEntity.Builder?
         try {
             newClientBuilder = parse(call.receiveText()).builder()
@@ -148,7 +148,7 @@ object ProtectedResourceRegistrationEndpoint: KtorEndpoint {
     }
 
     @Throws(ValidationException::class)
-    private suspend fun PipelineContext<Unit, ApplicationCall>.validateScopes(newClient: ClientDetailsEntity.Builder) {
+    private suspend fun RoutingContext.validateScopes(newClient: ClientDetailsEntity.Builder) {
         val scopeService = scopeService
         // scopes that the client is asking for
         val requestedScopes = scopeService.fromStrings(newClient.scope)!!
@@ -169,7 +169,7 @@ object ProtectedResourceRegistrationEndpoint: KtorEndpoint {
      */
 //    @PreAuthorize("hasRole('ROLE_CLIENT') and #oauth2.hasScope('" + SystemScopeService.RESOURCE_TOKEN_SCOPE + "')")
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
-    private suspend fun PipelineContext<Unit, ApplicationCall>.readResourceConfiguration() {
+    private suspend fun RoutingContext.readResourceConfiguration() {
         val auth = requireRole(GrantedAuthority.ROLE_CLIENT, SystemScopeService.RESOURCE_TOKEN_SCOPE) { return }
         val client = clientService.loadClientByClientId(call.parameters["id"]!!)
 
@@ -192,7 +192,7 @@ object ProtectedResourceRegistrationEndpoint: KtorEndpoint {
      */
 //    @PreAuthorize("hasRole('ROLE_CLIENT') and #oauth2.hasScope('" + SystemScopeService.RESOURCE_TOKEN_SCOPE + "')")
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.PUT], produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.updateProtectedResource() {
+    suspend fun RoutingContext.updateProtectedResource() {
         val auth = requireRole(GrantedAuthority.ROLE_CLIENT, SystemScopeService.RESOURCE_TOKEN_SCOPE) { return }
         val clientId = call.parameters["id"]!!
 
@@ -284,7 +284,7 @@ object ProtectedResourceRegistrationEndpoint: KtorEndpoint {
      */
 //    @PreAuthorize("hasRole('ROLE_CLIENT') and #oauth2.hasScope('" + SystemScopeService.RESOURCE_TOKEN_SCOPE + "')")
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.DELETE], produces = [MediaType.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.deleteResource() {
+    suspend fun RoutingContext.deleteResource() {
         val auth = requireRole(GrantedAuthority.ROLE_CLIENT, SystemScopeService.RESOURCE_TOKEN_SCOPE) { return }
         val clientId = call.parameters["id"]!!
         val client = clientService.loadClientByClientId(clientId)
@@ -306,7 +306,7 @@ object ProtectedResourceRegistrationEndpoint: KtorEndpoint {
     }
 
     @Throws(ValidationException::class)
-    private suspend fun PipelineContext<Unit, ApplicationCall>.validateAuth(newClient: ClientDetailsEntity.Builder) {
+    private suspend fun RoutingContext.validateAuth(newClient: ClientDetailsEntity.Builder) {
         if (newClient.tokenEndpointAuthMethod == null) {
             newClient.tokenEndpointAuthMethod = AuthMethod.SECRET_BASIC
         }
@@ -334,7 +334,7 @@ object ProtectedResourceRegistrationEndpoint: KtorEndpoint {
         }
     }
 
-    private suspend fun PipelineContext<Unit, ApplicationCall>.fetchValidRegistrationToken(
+    private suspend fun RoutingContext.fetchValidRegistrationToken(
         auth: OAuth2RequestAuthentication,
         client: OAuthClientDetails
     ): OAuth2AccessTokenEntity {

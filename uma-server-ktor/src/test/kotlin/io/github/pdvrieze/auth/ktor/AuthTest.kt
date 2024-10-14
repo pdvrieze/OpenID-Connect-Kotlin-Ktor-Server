@@ -48,8 +48,8 @@ class AuthTest {
         */
     }
 
-    private fun verifyPwd(credential: Credential): Boolean {
-        return credential is UserPasswordCredential && credential.name == "admin" && credential.password == "secret"
+    private fun verifyPwd(credential: UserPasswordCredential): Boolean {
+        return credential.name == "admin" && credential.password == "secret"
     }
 
     @Test

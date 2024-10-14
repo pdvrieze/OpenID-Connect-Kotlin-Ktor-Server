@@ -98,7 +98,7 @@ data class OpenIdConfigurator(
         driver = "org.h2.Driver",
     ),
     var httpClient: HttpClient = HttpClient(Java),
-    var verifyCredential: (Credential) -> Boolean = { false },
+    var verifyCredential: (UserPasswordCredential) -> Boolean = { false },
 ) {
 
     private var topBarTitle: String = "Ktor OpenId provider"
@@ -292,7 +292,7 @@ data class OpenIdConfigurator(
             return result
         }
 
-        override fun checkCredential(credential: Credential): Boolean {
+        override fun checkCredential(credential: UserPasswordCredential): Boolean {
             return credentialVerifier(credential)
         }
 

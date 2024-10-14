@@ -1,9 +1,8 @@
 package org.mitre.uma.view
 
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.response.*
-import io.ktor.util.pipeline.*
+import io.ktor.server.routing.*
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import org.mitre.oauth2.view.respondJson
@@ -12,7 +11,7 @@ import org.mitre.uma.model.ResourceSet
 import org.mitre.util.getLogger
 import org.mitre.web.util.config
 
-suspend fun PipelineContext<Unit, ApplicationCall>.resourceSetEntityAbbreviatedView(
+suspend fun RoutingContext.resourceSetEntityAbbreviatedView(
     rs: ResourceSet,
     location: String? = null,
     code: HttpStatusCode = HttpStatusCode.OK,

@@ -16,12 +16,10 @@
 package org.mitre.uma.web
 
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.util.pipeline.*
 import kotlinx.serialization.json.Json
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.view.respondJson
@@ -60,7 +58,7 @@ object PolicyAPI: KtorEndpoint {
      * List all resource sets for the current user
      */
 //    @RequestMapping(value = [""], method = [RequestMethod.GET], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
-    private suspend fun PipelineContext<Unit, ApplicationCall>.getResourceSetsForCurrentUser() {
+    private suspend fun RoutingContext.getResourceSetsForCurrentUser() {
         val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
 
         return call.respondJson(resourceSetService.getAllForOwner(auth.name))
@@ -70,7 +68,7 @@ object PolicyAPI: KtorEndpoint {
      * Get the indicated resource set
      */
 //    @RequestMapping(value = ["/{rsid}"], method = [RequestMethod.GET], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
-    private suspend fun PipelineContext<Unit, ApplicationCall>.getResourceSet() {
+    private suspend fun RoutingContext.getResourceSet() {
         val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
         val rsid = call.parameters["rsid"]!!.toLong()
 
@@ -89,7 +87,7 @@ object PolicyAPI: KtorEndpoint {
      * Delete the indicated resource set
      */
 //    @RequestMapping(value = ["/{rsid}"], method = [RequestMethod.DELETE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
-    private suspend fun PipelineContext<Unit, ApplicationCall>.deleteResourceSet() {
+    private suspend fun RoutingContext.deleteResourceSet() {
         val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
         val rsid = call.parameters["rsid"]!!.toLong()
 
@@ -109,7 +107,7 @@ object PolicyAPI: KtorEndpoint {
      * List all the policies for the given resource set
      */
 //    @RequestMapping(value = ["/{rsid}" + POLICYURL], method = [RequestMethod.GET], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
-    private suspend fun PipelineContext<Unit, ApplicationCall>.getPoliciesForResourceSet() {
+    private suspend fun RoutingContext.getPoliciesForResourceSet() {
         val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
         val rsid = call.parameters["rsid"]!!.toLong()
 
@@ -128,7 +126,7 @@ object PolicyAPI: KtorEndpoint {
      * Create a new policy on the given resource set
      */
 //    @RequestMapping(value = ["/{rsid}" + POLICYURL], method = [RequestMethod.POST], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
-    private suspend fun PipelineContext<Unit, ApplicationCall>.createNewPolicyForResourceSet() {
+    private suspend fun RoutingContext.createNewPolicyForResourceSet() {
         val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
         val rsid = call.parameters["rsid"]!!.toLong()
 
@@ -174,7 +172,7 @@ object PolicyAPI: KtorEndpoint {
      * Get a specific policy
      */
 //    @RequestMapping(value = ["/{rsid}" + POLICYURL + "/{pid}"], method = [RequestMethod.GET], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
-    private suspend fun PipelineContext<Unit, ApplicationCall>.getPolicy() {
+    private suspend fun RoutingContext.getPolicy() {
         val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
         val rsid = call.parameters["rsid"]!!.toLong()
         val pid = call.parameters["pid"]!!.toLong()
@@ -197,7 +195,7 @@ object PolicyAPI: KtorEndpoint {
      * Update a specific policy
      */
 //    @RequestMapping(value = ["/{rsid}" + POLICYURL + "/{pid}"], method = [RequestMethod.PUT], consumes = [MimeTypeUtils.APPLICATION_JSON_VALUE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
-    private suspend fun PipelineContext<Unit, ApplicationCall>.setClaimsForResourceSet() {
+    private suspend fun RoutingContext.setClaimsForResourceSet() {
         val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
         val rsid = call.parameters["rsid"]!!.toLong()
         val pid = call.parameters["pid"]!!.toLong()
@@ -255,7 +253,7 @@ object PolicyAPI: KtorEndpoint {
      * Delete a specific policy
      */
 //    @RequestMapping(value = ["/{rsid}" + POLICYURL + "/{pid}"], method = [RequestMethod.DELETE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
-    private suspend fun PipelineContext<Unit, ApplicationCall>.deleteResourceSetPolicy() {
+    private suspend fun RoutingContext.deleteResourceSetPolicy() {
         val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
         val rsid = call.parameters["rsid"]!!.toLong()
         val pid = call.parameters["pid"]!!.toLong()

@@ -22,7 +22,6 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.util.pipeline.*
 import org.mitre.oauth2.exception.InvalidTokenException
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
@@ -56,10 +55,10 @@ object IntrospectionEndpoint: KtorEndpoint {
         }
     }
 
-    val PipelineContext<Unit, ApplicationCall>.openIdContext
+    val RoutingContext.openIdContext
         get() = call.application.plugin(OpenIdContextPlugin).context
 
-    suspend fun PipelineContext<Unit, ApplicationCall>.verify(
+    suspend fun RoutingContext.verify(
         tokenValue: String?,
         tokenType: String?,
     ) {

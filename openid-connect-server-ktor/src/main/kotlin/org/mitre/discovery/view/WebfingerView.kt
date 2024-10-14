@@ -1,9 +1,8 @@
 package org.mitre.discovery.view
 
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.response.*
-import io.ktor.util.pipeline.*
+import io.ktor.server.routing.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.addJsonObject
 import kotlinx.serialization.json.buildJsonObject
@@ -13,7 +12,7 @@ import org.mitre.openid.connect.service.MITREidDataService
 import org.mitre.util.getLogger
 import java.io.IOException
 
-suspend fun PipelineContext<Unit, ApplicationCall>.webfingerView(
+suspend fun RoutingContext.webfingerView(
     resource: String,
     issuer: String,
     code: HttpStatusCode = HttpStatusCode.OK,
@@ -21,7 +20,7 @@ suspend fun PipelineContext<Unit, ApplicationCall>.webfingerView(
 
 object WebfingerViews {
 
-    suspend fun PipelineContext<Unit, ApplicationCall>.webfingerView(
+    suspend fun RoutingContext.webfingerView(
         resource: String,
         issuer: String,
         code: HttpStatusCode = HttpStatusCode.OK,

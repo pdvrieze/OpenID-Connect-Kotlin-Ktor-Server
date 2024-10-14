@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.plugins.serialization)
 //    id("ro.isdc.wro4j.gradle") version "1.8.0.Beta5"
 }
 
@@ -10,6 +11,8 @@ base {
 dependencies {
     api(projects.openidConnectCommon)
     api(projects.openidConnectServer)
+
+    implementation(libs.kotlinx.serialization.json)
 
     implementation(projects.openidConnectServerExposed)
     implementation(libs.caffeine) // for caching code

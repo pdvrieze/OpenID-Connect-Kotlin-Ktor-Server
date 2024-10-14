@@ -15,9 +15,7 @@
  */
 package org.mitre.uma.web
 
-import io.ktor.server.application.*
 import io.ktor.server.routing.*
-import io.ktor.util.pipeline.*
 import kotlinx.serialization.json.addAll
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -39,7 +37,7 @@ object UmaDiscoveryEndpoint : KtorEndpoint {
     }
 
     //    @RequestMapping(".well-known/uma-configuration")
-    suspend fun PipelineContext<Unit, ApplicationCall>.umaConfiguration() {
+    suspend fun RoutingContext.umaConfiguration() {
         val config = config
         val issuer = config.issuer
         val tokenProfiles = setOf("bearer")

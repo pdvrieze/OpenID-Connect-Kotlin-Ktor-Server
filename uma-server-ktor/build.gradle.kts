@@ -56,6 +56,6 @@ dependencies {
 //    implementation(libs.spring.oauth)
 
 
-    testImplementation(libs.ktor.server.tests)
+    testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.kotlin.test.junit)
 }

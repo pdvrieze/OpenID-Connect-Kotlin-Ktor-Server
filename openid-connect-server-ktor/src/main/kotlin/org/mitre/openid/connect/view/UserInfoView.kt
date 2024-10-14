@@ -1,8 +1,7 @@
 package org.mitre.openid.connect.view
 
 import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.util.pipeline.*
+import io.ktor.server.routing.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -15,7 +14,7 @@ import org.mitre.openid.connect.model.UserInfo
 import org.mitre.openid.connect.service.ScopeClaimTranslationService
 import org.mitre.util.getLogger
 
-suspend fun PipelineContext<Unit, ApplicationCall>.userInfoView(
+suspend fun RoutingContext.userInfoView(
     jwtService: JWTSigningAndValidationService,
     config: ConfigurationPropertiesBean,
     encrypters: ClientKeyCacheService,

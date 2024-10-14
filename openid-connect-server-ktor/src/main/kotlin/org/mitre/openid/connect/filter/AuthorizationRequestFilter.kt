@@ -13,11 +13,16 @@ import org.mitre.openid.connect.request.ConnectRequestParameters
 import org.mitre.openid.connect.service.LoginHintExtracter
 import org.mitre.openid.connect.service.impl.RemoveLoginHintsWithHTTP
 import org.mitre.util.getLogger
-import org.mitre.web.util.clientService
 import org.mitre.web.util.openIdContext
-import org.mitre.web.util.redirectResolver
-import org.mitre.web.util.resolveAuthenticatedUser
 import java.net.URISyntaxException
+import kotlin.collections.HashMap
+import kotlin.collections.Map
+import kotlin.collections.MutableMap
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.isNullOrEmpty
+import kotlin.collections.iterator
+import kotlin.collections.set
 
 /**
  * @author jricher
@@ -38,7 +43,7 @@ class AuthorizationRequestFilter {
 //    var requestMatcher: RequestMatcher = AntPathRequestMatcher("/authorize")
 
 //    override fun doFilter(req: ServletRequest, res: ServletResponse, chain: FilterChain) {
-    private suspend fun PipelineContext<Any, ApplicationCall>.doIntercept(subject: Any) {
+    private suspend fun PipelineContext<Any, PipelineCall>.doIntercept(subject: Any) {
         // skip everything that's not an authorize URL
         if (!call.request.path().startsWith("/authorize")) return // skip intercept
 
@@ -51,10 +56,12 @@ class AuthorizationRequestFilter {
 
             val params = call.request.queryParameters.let { if (call.request.httpMethod == HttpMethod.Post) it+call.receiveParameters() else it }
 
+            val openIdContext = call.openIdContext
+
             authRequest = openIdContext.authRequestFactory.createAuthorizationRequest(params)
 
             if (!authRequest.clientId.isNullOrEmpty()) {
-                client = clientService.loadClientByClientId(authRequest.clientId)
+                client = openIdContext.clientService.loadClientByClientId(authRequest.clientId)
             }
 
 /*
@@ -76,7 +83,7 @@ class AuthorizationRequestFilter {
 
                 if (ConnectRequestParameters.PROMPT_NONE in prompts) {
                     // see if the user's logged in
-                    val auth = resolveAuthenticatedUser()
+                    val auth = openIdContext.resolveAuthenticatedUser(call)
 
                     if (auth != null) {
                         // user's been logged in already (by session management)
@@ -91,7 +98,7 @@ class AuthorizationRequestFilter {
                             // if we've got a redirect URI then we'll send it
 
                             // TODO Stuck to spring/ClientDetails
-                            val url = redirectResolver.resolveRedirect(redirectUri, client)
+                            val url = openIdContext.redirectResolver.resolveRedirect(redirectUri, client)
 
                             try {
                                 val uriBuilder = URLBuilder(url)
@@ -120,7 +127,7 @@ class AuthorizationRequestFilter {
 //                        session.setAttribute(PROMPT_REQUESTED, true)
 
                         // see if the user's logged in
-                        val auth = resolveAuthenticatedUser()
+                        val auth = openIdContext.resolveAuthenticatedUser(call)
                         if (auth != null) {
                             // TODO this can not be done in ktor
                             // user's been logged in already (by session management)
@@ -208,6 +215,7 @@ class AuthorizationRequestFilter {
         ): AuthorizationRequestFilter {
             val plugin = AuthorizationRequestFilter()
             pipeline.receivePipeline.intercept(ApplicationReceivePipeline.Before) { subject ->
+                val t: PipelineContext<Any, PipelineCall> = this
                 with(plugin) {  doIntercept(subject) }
             }
             return plugin

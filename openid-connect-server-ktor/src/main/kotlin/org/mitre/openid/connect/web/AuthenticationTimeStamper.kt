@@ -17,8 +17,7 @@
  */
 package org.mitre.openid.connect.web
 
-import io.ktor.server.application.*
-import io.ktor.util.pipeline.*
+import io.ktor.server.routing.*
 import org.mitre.util.getLogger
 import java.util.*
 
@@ -35,7 +34,7 @@ class AuthenticationTimeStamper {
      * useful for calculating authentication age. This gets stored in the sesion
      * and can get pulled out by other components.
      */
-    suspend fun PipelineContext<Unit, ApplicationCall>.onAuthenticationSuccess(
+    suspend fun RoutingContext.onAuthenticationSuccess(
 //        request: HttpServletRequest,
 //        response: HttpServletResponse,
 //        authentication: Authentication

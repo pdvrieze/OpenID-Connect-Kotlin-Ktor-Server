@@ -1,8 +1,7 @@
 package org.mitre.openid.connect.view
 
 import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.util.pipeline.*
+import io.ktor.server.routing.*
 import kotlinx.serialization.serializer
 import org.mitre.oauth2.view.respondJson
 
@@ -22,7 +21,7 @@ object ClientEntityViewForAdmins {
 
 
 // TODO make this somehow different (or remove it)
-suspend inline fun <reified T> PipelineContext<Unit, ApplicationCall>.clientEntityViewForAdmins(
+suspend inline fun <reified T> RoutingContext.clientEntityViewForAdmins(
     jsonEntity: T,
     code: HttpStatusCode = HttpStatusCode.OK,
 ) = call.respondJson(serializer<T>(), jsonEntity, code)

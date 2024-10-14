@@ -115,7 +115,7 @@ object DynamicClientRegistrationEndpoint: KtorEndpoint {
      * Create a new Client, issue a client ID, and create a registration access token.
      */
 //    @RequestMapping(method = [RequestMethod.POST], consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.registerNewClient() {
+    suspend fun RoutingContext.registerNewClient() {
         val config = openIdContext.config
 
         val newClientBuilder: ClientDetailsEntity.Builder?
@@ -219,7 +219,7 @@ object DynamicClientRegistrationEndpoint: KtorEndpoint {
      */
 //    @PreAuthorize("hasRole('ROLE_CLIENT') and #oauth2.hasScope('" + SystemScopeService.REGISTRATION_TOKEN_SCOPE + "')")
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.readClientConfiguration() {
+    suspend fun RoutingContext.readClientConfiguration() {
         val auth = requireRole(GrantedAuthority.ROLE_CLIENT, SystemScopeService.REGISTRATION_TOKEN_SCOPE) { return }
         val clientId = call.parameters["id"]!!
 
@@ -242,7 +242,7 @@ object DynamicClientRegistrationEndpoint: KtorEndpoint {
      */
 //    @PreAuthorize("hasRole('ROLE_CLIENT') and #oauth2.hasScope('" + SystemScopeService.REGISTRATION_TOKEN_SCOPE + "')")
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.PUT], produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.updateClient() {
+    suspend fun RoutingContext.updateClient() {
         val auth = requireRole(GrantedAuthority.ROLE_CLIENT, SystemScopeService.REGISTRATION_TOKEN_SCOPE) { return }
         val clientId = call.parameters["id"]!!
 
@@ -316,7 +316,7 @@ object DynamicClientRegistrationEndpoint: KtorEndpoint {
      */
 //    @PreAuthorize("hasRole('ROLE_CLIENT') and #oauth2.hasScope('" + SystemScopeService.REGISTRATION_TOKEN_SCOPE + "')")
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.DELETE], produces = [MediaType.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.deleteClient() {
+    suspend fun RoutingContext.deleteClient() {
         val auth = requireRole(GrantedAuthority.ROLE_CLIENT, SystemScopeService.REGISTRATION_TOKEN_SCOPE) { return }
         val clientId = call.parameters["id"]!!
         val client = clientService.loadClientByClientId(clientId)
@@ -332,7 +332,7 @@ object DynamicClientRegistrationEndpoint: KtorEndpoint {
     }
 
     @Throws(ValidationException::class)
-    private fun PipelineContext<Unit, ApplicationCall>.validateScopes(newClient: ClientDetailsEntity.Builder) {
+    private fun RoutingContext.validateScopes(newClient: ClientDetailsEntity.Builder) {
         // scopes that the client is asking for
         val requestedScopes = scopeService.fromStrings(newClient.scope)
 
@@ -348,12 +348,12 @@ object DynamicClientRegistrationEndpoint: KtorEndpoint {
     }
 
     @Throws(ValidationException::class)
-    private fun PipelineContext<Unit, ApplicationCall>.validateResponseTypes(newClient: ClientDetailsEntity.Builder) {
+    private fun RoutingContext.validateResponseTypes(newClient: ClientDetailsEntity.Builder) {
         // does not do anything
     }
 
     @Throws(ValidationException::class)
-    private fun PipelineContext<Unit, ApplicationCall>.validateGrantTypes(builder: ClientDetailsEntity.Builder) {
+    private fun RoutingContext.validateGrantTypes(builder: ClientDetailsEntity.Builder) {
         val config = openIdContext.config
         if (builder.authorizedGrantTypes.isEmpty()) {
             if (builder.scope?.contains("offline_access") == true) { // client asked for offline access
@@ -457,7 +457,7 @@ object DynamicClientRegistrationEndpoint: KtorEndpoint {
     }
 
     @Throws(ValidationException::class)
-    private fun PipelineContext<Unit, ApplicationCall>.validateRedirectUris(newClient: ClientDetailsEntity.Builder) {
+    private fun RoutingContext.validateRedirectUris(newClient: ClientDetailsEntity.Builder) {
         // check to make sure this client registered a redirect URI if using a redirect flow
         if (newClient.authorizedGrantTypes.contains("authorization_code") || newClient.authorizedGrantTypes.contains("implicit")) {
             if (newClient.redirectUris.isEmpty()) {
@@ -480,7 +480,7 @@ object DynamicClientRegistrationEndpoint: KtorEndpoint {
     }
 
     @Throws(ValidationException::class)
-    private fun PipelineContext<Unit, ApplicationCall>.validateAuth(newClient: ClientDetailsEntity.Builder) {
+    private fun RoutingContext.validateAuth(newClient: ClientDetailsEntity.Builder) {
         if (newClient.tokenEndpointAuthMethod == null) {
             newClient.tokenEndpointAuthMethod = AuthMethod.SECRET_BASIC
         }
@@ -514,7 +514,7 @@ object DynamicClientRegistrationEndpoint: KtorEndpoint {
      * @throws ValidationException
      */
     @Throws(ValidationException::class)
-    private suspend fun PipelineContext<Unit, ApplicationCall>.validateSoftwareStatement(newClient: ClientDetailsEntity.Builder) {
+    private suspend fun RoutingContext.validateSoftwareStatement(newClient: ClientDetailsEntity.Builder) {
         if (newClient.softwareStatement == null) return
 
         if (!assertionValidator.isValid(newClient.softwareStatement!!)) {
@@ -616,7 +616,7 @@ object DynamicClientRegistrationEndpoint: KtorEndpoint {
     /*
 	 * Rotates the registration token if it's expired, otherwise returns it
 	 */
-    private fun PipelineContext<Unit, ApplicationCall>.rotateRegistrationTokenIfNecessary(
+    private fun RoutingContext.rotateRegistrationTokenIfNecessary(
         auth: OAuth2RequestAuthentication,
         client: OAuthClientDetails
     ): OAuth2AccessTokenEntity {

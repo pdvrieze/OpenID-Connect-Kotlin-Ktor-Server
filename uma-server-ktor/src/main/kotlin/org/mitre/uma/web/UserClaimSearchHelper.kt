@@ -16,11 +16,9 @@
 package org.mitre.uma.web
 
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.util.pipeline.*
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.addJsonObject
 import kotlinx.serialization.json.buildJsonArray
@@ -55,7 +53,7 @@ object UserClaimSearchHelper: KtorEndpoint {
 
 
     //    @RequestMapping(method = [RequestMethod.GET], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.search() {
+    suspend fun RoutingContext.search() {
         val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
         // check locally first
         val email = call.request.queryParameters["email"] ?: return call.respond(HttpStatusCode.BadRequest)

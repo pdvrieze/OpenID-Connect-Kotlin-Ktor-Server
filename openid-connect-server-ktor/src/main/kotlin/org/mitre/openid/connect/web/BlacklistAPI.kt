@@ -18,12 +18,10 @@
 package org.mitre.openid.connect.web
 
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.util.pipeline.*
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -63,7 +61,7 @@ object BlacklistAPI : KtorEndpoint {
      * Get a list of all blacklisted sites
      */
 //    @RequestMapping(method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
-    private suspend fun PipelineContext<Unit, ApplicationCall>.getAllBlacklistedSites() {
+    private suspend fun RoutingContext.getAllBlacklistedSites() {
         val p = requireRole(GrantedAuthority.ROLE_ADMIN) { return }
 
         return call.respondJson(blacklistedSiteService.all)
@@ -73,7 +71,7 @@ object BlacklistAPI : KtorEndpoint {
      * Create a new blacklisted site
      */
 //    @RequestMapping(method = [RequestMethod.POST], consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
-    private suspend fun PipelineContext<Unit, ApplicationCall>.addNewBlacklistedSite() {
+    private suspend fun RoutingContext.addNewBlacklistedSite() {
         val p = requireRole(GrantedAuthority.ROLE_ADMIN) { return }
 
         try {
@@ -100,7 +98,7 @@ object BlacklistAPI : KtorEndpoint {
      * Update an existing blacklisted site
      */
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.PUT], consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
-    private suspend fun PipelineContext<Unit, ApplicationCall>.updateBlacklistedSite() {
+    private suspend fun RoutingContext.updateBlacklistedSite() {
         val p = requireRole(GrantedAuthority.ROLE_ADMIN) { return }
         val id = call.parameters["id"]!!.toLong()
 
@@ -140,7 +138,7 @@ object BlacklistAPI : KtorEndpoint {
      * Delete a blacklisted site
      */
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.DELETE])
-    private suspend fun PipelineContext<Unit, ApplicationCall>.deleteBlacklistedSite() {
+    private suspend fun RoutingContext.deleteBlacklistedSite() {
         val p = requireRole(GrantedAuthority.ROLE_ADMIN) { return }
         val id = call.parameters["id"]!!.toLong()
 
@@ -159,7 +157,7 @@ object BlacklistAPI : KtorEndpoint {
      * Get a single blacklisted site
      */
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.getBlacklistedSite() {
+    suspend fun RoutingContext.getBlacklistedSite() {
         val p = requireRole(GrantedAuthority.ROLE_ADMIN) { return }
         val id = call.parameters["id"]!!.toLong()
 

@@ -3,6 +3,7 @@ package org.mitre.openid.connect.view
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
@@ -27,14 +28,14 @@ object ClientEntityViewForUsers {
     const val VIEWNAME: String = "clientEntityViewUsers"
 }
 
-suspend inline fun <reified T> PipelineContext<Unit, ApplicationCall>.clientEntityViewForUsers(
+suspend inline fun <reified T> RoutingContext.clientEntityViewForUsers(
     jsonEntity: T,
     code: HttpStatusCode = HttpStatusCode.OK,
 ) {
     clientEntitityViewForUsers<T>(serializer<T>(), jsonEntity, code)
 }
 
-suspend fun <T> PipelineContext<Unit, ApplicationCall>.clientEntitityViewForUsers(
+suspend fun <T> RoutingContext.clientEntitityViewForUsers(
     serializer: KSerializer<T>,
     entity: T,
     code: HttpStatusCode = HttpStatusCode.OK,

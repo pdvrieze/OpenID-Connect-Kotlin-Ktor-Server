@@ -18,10 +18,8 @@
 package org.mitre.openid.connect.web
 
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.util.pipeline.*
 import kotlinx.serialization.json.encodeToJsonElement
 import org.mitre.oauth2.exception.OAuthErrorCodes.ACCESS_DENIED
 import org.mitre.oauth2.exception.OAuthErrorCodes.INVALID_REQUEST
@@ -52,7 +50,7 @@ object ApprovedSiteAPI : KtorEndpoint {
      * Get a list of all of this user's approved sites
      */
 //    @RequestMapping(method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.getAllApprovedSites() {
+    suspend fun RoutingContext.getAllApprovedSites() {
         val p = requireRole(GrantedAuthority.ROLE_USER) { return }
 
         val all = approvedSiteService.getByUserId(p.name)
@@ -64,7 +62,7 @@ object ApprovedSiteAPI : KtorEndpoint {
      * Delete an approved site
      */
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.DELETE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.deleteApprovedSite() {
+    suspend fun RoutingContext.deleteApprovedSite() {
         val p = requireRole(GrantedAuthority.ROLE_USER) { return }
         val id = call.parameters["id"]!!.toLong()
 
@@ -89,7 +87,7 @@ object ApprovedSiteAPI : KtorEndpoint {
      * Get a single approved site
      */
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.getApprovedSite() {
+    suspend fun RoutingContext.getApprovedSite() {
         val p = requireRole(GrantedAuthority.ROLE_USER) { return }
         val id = call.parameters["id"]!!.toLong()
 

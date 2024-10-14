@@ -17,10 +17,8 @@
  */
 package org.mitre.openid.connect.web
 
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.routing.*
-import io.ktor.util.pipeline.*
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.view.respondJson
 import org.mitre.util.getLogger
@@ -43,7 +41,7 @@ object StatsAPI: KtorEndpoint {
 //    private lateinit var statsService: StatsService
 
 //    @RequestMapping(value = ["summary"], produces = [MediaType.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.statsSummary() {
+    suspend fun RoutingContext.statsSummary() {
         return call.respondJson(statsService.summaryStats)
     }
 
@@ -59,7 +57,7 @@ object StatsAPI: KtorEndpoint {
     //
 //    @PreAuthorize("hasRole('ROLE_USER')")
 //    @RequestMapping(value = ["byclientid/{id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.statsByClientId() {
+    suspend fun RoutingContext.statsByClientId() {
         requireRole(GrantedAuthority.ROLE_USER) { return }
         val clientId = call.parameters["id"]!!
         return call.respondJson(statsService.getCountForClientId(clientId))

@@ -16,11 +16,9 @@
 package org.mitre.uma.web
 
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
-import io.ktor.util.pipeline.*
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -58,7 +56,7 @@ object PermissionRegistrationEndpoint: KtorEndpoint {
     }
 
 //    @RequestMapping(method = [RequestMethod.POST], consumes = [MimeTypeUtils.APPLICATION_JSON_VALUE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
-    private suspend fun PipelineContext<Unit, ApplicationCall>.getPermissionTicket() {
+    private suspend fun RoutingContext.getPermissionTicket() {
         val auth = requireRole(GrantedAuthority.ROLE_USER, SystemScopeService.UMA_PROTECTION_SCOPE) { return }
 
         try {

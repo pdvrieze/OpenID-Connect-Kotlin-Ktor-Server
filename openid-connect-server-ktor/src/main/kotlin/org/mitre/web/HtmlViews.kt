@@ -1,8 +1,7 @@
 package org.mitre.web
 
 import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.util.pipeline.*
+import io.ktor.server.routing.*
 import org.mitre.oauth2.exception.OAuth2Exception
 import org.mitre.oauth2.exception.OAuthErrorCode
 import org.mitre.oauth2.model.OAuthClientDetails
@@ -10,11 +9,11 @@ import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.convert.OAuth2Request
 import org.mitre.web.util.openIdContext
 
-suspend fun PipelineContext<Unit, ApplicationCall>.htmlAboutView() {
+suspend fun RoutingContext.htmlAboutView() {
     with(openIdContext.htmlViews) { about() }
 }
 
-suspend fun PipelineContext<Unit, ApplicationCall>.htmlApproveView(
+suspend fun RoutingContext.htmlApproveView(
     authRequest: OAuth2Request?,
     client: OAuthClientDetails,
     redirectUri: String?,
@@ -34,7 +33,7 @@ suspend fun PipelineContext<Unit, ApplicationCall>.htmlApproveView(
     }
 }
 
-suspend fun PipelineContext<Unit, ApplicationCall>.htmlApproveDeviceView(
+suspend fun RoutingContext.htmlApproveDeviceView(
     client: OAuthClientDetails,
     scopes: Set<SystemScope>,
     claims:  Map<String?, Map<String, String>> = emptyMap(),
@@ -46,11 +45,11 @@ suspend fun PipelineContext<Unit, ApplicationCall>.htmlApproveDeviceView(
     with(openIdContext.htmlViews) { approveDevice(client, scopes, claims, exception, count, gras, contacts) }
 }
 
-suspend fun PipelineContext<Unit, ApplicationCall>.htmlContactView() {
+suspend fun RoutingContext.htmlContactView() {
     with(openIdContext.htmlViews) { contact() }
 }
 
-suspend fun PipelineContext<Unit, ApplicationCall>.htmlDeviceApprovedView(
+suspend fun RoutingContext.htmlDeviceApprovedView(
     client: OAuthClientDetails,
     isApproved: Boolean,
 ) {
@@ -58,38 +57,38 @@ suspend fun PipelineContext<Unit, ApplicationCall>.htmlDeviceApprovedView(
 }
 
 @Deprecated("Avoid errors without any context")
-suspend fun PipelineContext<Unit, ApplicationCall>.htmlErrorView() {
+suspend fun RoutingContext.htmlErrorView() {
     with(openIdContext.htmlViews) {
         @Suppress("DEPRECATION")
         error()
     }
 }
 
-suspend fun PipelineContext<Unit, ApplicationCall>.htmlErrorView(
+suspend fun RoutingContext.htmlErrorView(
         error: OAuth2Exception
 ) {
     with(openIdContext.htmlViews) { error(error) }
 }
 
-suspend fun PipelineContext<Unit, ApplicationCall>.htmlErrorView(
+suspend fun RoutingContext.htmlErrorView(
     errorCode: OAuthErrorCode,
     errorMessage: String,
 ) {
     with(openIdContext.htmlViews) { error(errorCode, errorMessage) }
 }
 
-suspend fun PipelineContext<Unit, ApplicationCall>.htmlErrorView(
+suspend fun RoutingContext.htmlErrorView(
         errorCodeString: String,
         errorMessage: String,
 ) {
     with(openIdContext.htmlViews) { error(errorCodeString, errorMessage) }
 }
 
-suspend fun PipelineContext<Unit, ApplicationCall>.htmlHomeView() {
+suspend fun RoutingContext.htmlHomeView() {
     with(openIdContext.htmlViews) { home() }
 }
 
-suspend fun PipelineContext<Unit, ApplicationCall>.htmlLoginView(
+suspend fun RoutingContext.htmlLoginView(
     loginHint: String?,
     paramError: String?,
     redirectUri: String?,
@@ -98,22 +97,22 @@ suspend fun PipelineContext<Unit, ApplicationCall>.htmlLoginView(
     with(openIdContext.htmlViews) { login(loginHint, paramError, redirectUri, status) }
 }
 
-suspend fun PipelineContext<Unit, ApplicationCall>.htmlLogoutConfirmationView(client: OAuthClientDetails?) {
+suspend fun RoutingContext.htmlLogoutConfirmationView(client: OAuthClientDetails?) {
     with(openIdContext.htmlViews) { logoutConfirmation(client) }
 }
 
-suspend fun PipelineContext<Unit, ApplicationCall>.htmlManageView() {
+suspend fun RoutingContext.htmlManageView() {
     with(openIdContext.htmlViews) { manage() }
 }
 
-suspend fun PipelineContext<Unit, ApplicationCall>.htmlPostLogoutView() {
+suspend fun RoutingContext.htmlPostLogoutView() {
     with(openIdContext.htmlViews) { postLogout() }
 }
 
-suspend fun PipelineContext<Unit, ApplicationCall>.htmlRequestUserCodeView(error: String? = null) {
+suspend fun RoutingContext.htmlRequestUserCodeView(error: String? = null) {
     with(openIdContext.htmlViews) { requestUserCode(error) }
 }
 
-suspend fun PipelineContext<Unit, ApplicationCall>.htmlStatsView(statsSummary: Map<String, Int>) {
+suspend fun RoutingContext.htmlStatsView(statsSummary: Map<String, Int>) {
     with(openIdContext.htmlViews) { stats(statsSummary) }
 }

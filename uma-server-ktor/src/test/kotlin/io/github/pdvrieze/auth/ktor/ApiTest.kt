@@ -14,11 +14,12 @@ import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.Before
 import org.mitre.oauth2.model.GrantedAuthority
+import org.mitre.openid.connect.filter.AuthorizationRequestFilter
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.OpenIdContextPlugin
 import kotlin.test.assertEquals
 
-abstract class ApiTest(vararg endpoints: KtorEndpoint) {
+abstract class ApiTest(vararg endpoints: KtorEndpoint, private val includeAuthzFilter: Boolean = false) {
 
     protected lateinit var testContext: TestContext
 
@@ -38,9 +39,12 @@ abstract class ApiTest(vararg endpoints: KtorEndpoint) {
     }
 
 
-    protected fun ApplicationTestBuilder.configureApplication() {
+    protected open fun ApplicationTestBuilder.configureApplication() {
         application {
             install(OpenIdContextPlugin) { context = testContext }
+            if (includeAuthzFilter) {
+                install(AuthorizationRequestFilter.Plugin)
+            }
             authentication {
                 basic {
                     validate { cred ->

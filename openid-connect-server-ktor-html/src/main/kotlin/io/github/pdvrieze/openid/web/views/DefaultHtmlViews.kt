@@ -6,7 +6,7 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.html.*
 import io.ktor.server.request.*
-import io.ktor.util.pipeline.*
+import io.ktor.server.routing.*
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
 import org.mitre.oauth2.exception.OAuth2Exception
@@ -26,17 +26,17 @@ import java.util.*
 
 class DefaultHtmlViews(): HtmlViews {
 
-    private fun PipelineContext<*, ApplicationCall>.createContext(): WebContext {
+    private fun RoutingContext.createContext(): WebContext {
         return DefaultWebContext(call)
     }
 
-    override suspend fun PipelineContext<*, ApplicationCall>.about() {
+    override suspend fun RoutingContext.about() {
         call.respondHtml {
             about(createContext())
         }
     }
 
-    override suspend fun PipelineContext<*, ApplicationCall>.approve(
+    override suspend fun RoutingContext.approve(
         authRequest: OAuth2Request?,
         client: OAuthClientDetails,
         redirectUri: String?,
@@ -54,7 +54,7 @@ class DefaultHtmlViews(): HtmlViews {
         }
     }
 
-    override suspend fun PipelineContext<*, ApplicationCall>.approveDevice(
+    override suspend fun RoutingContext.approveDevice(
         client: OAuthClientDetails,
         scopes: Set<SystemScope>,
         claims:  Map<String?, Map<String, String>>,
@@ -68,13 +68,13 @@ class DefaultHtmlViews(): HtmlViews {
         }
     }
 
-    override suspend fun PipelineContext<*, ApplicationCall>.contact() {
+    override suspend fun RoutingContext.contact() {
         call.respondHtml {
             contact(createContext())
         }
     }
 
-    override suspend fun PipelineContext<*, ApplicationCall>.deviceApproved(
+    override suspend fun RoutingContext.deviceApproved(
         client: OAuthClientDetails,
         isApproved: Boolean,
     ) {
@@ -84,37 +84,37 @@ class DefaultHtmlViews(): HtmlViews {
     }
 
     @Deprecated("Avoid errors without any context")
-    override suspend fun PipelineContext<*, ApplicationCall>.error() {
+    override suspend fun RoutingContext.error() {
         call.respondHtml {
             error(createContext())
         }
     }
 
-    override suspend fun PipelineContext<*, ApplicationCall>.error(error: OAuth2Exception) {
+    override suspend fun RoutingContext.error(error: OAuth2Exception) {
         call.respondHtml {
             error(createContext(), error)
         }
     }
 
-    override suspend fun PipelineContext<*, ApplicationCall>.error(errorCode: OAuthErrorCode, errorMessage: String) {
+    override suspend fun RoutingContext.error(errorCode: OAuthErrorCode, errorMessage: String) {
         call.respondHtml {
             error(createContext(), errorCode, errorMessage)
         }
     }
 
-    override suspend fun PipelineContext<*, ApplicationCall>.error(errorCodeString: String, errorMessage: String) {
+    override suspend fun RoutingContext.error(errorCodeString: String, errorMessage: String) {
         call.respondHtml {
             error(createContext(), errorCodeString, errorMessage)
         }
     }
 
-    override suspend fun PipelineContext<*, ApplicationCall>.home() {
+    override suspend fun RoutingContext.home() {
         call.respondHtml {
             home(createContext())
         }
     }
 
-    override suspend fun PipelineContext<*, ApplicationCall>.login(
+    override suspend fun RoutingContext.login(
         loginHint: String?,
         paramError: String?,
         redirectUri: String?,
@@ -125,32 +125,32 @@ class DefaultHtmlViews(): HtmlViews {
         }
     }
 
-    override suspend fun PipelineContext<*, ApplicationCall>.logoutConfirmation(client: OAuthClientDetails?) {
+    override suspend fun RoutingContext.logoutConfirmation(client: OAuthClientDetails?) {
         call.respondHtml {
             logoutConfirmation(createContext(), client)
         }
     }
 
-    override suspend fun PipelineContext<*, ApplicationCall>.manage() {
+    override suspend fun RoutingContext.manage() {
         call.respondHtml {
             manage(createContext())
         }
     }
 
-    override suspend fun PipelineContext<*, ApplicationCall>.postLogout() {
+    override suspend fun RoutingContext.postLogout() {
         call.respondHtml {
             postLogout(createContext())
         }
 
     }
 
-    override suspend fun PipelineContext<*, ApplicationCall>.requestUserCode(error: String?) {
+    override suspend fun RoutingContext.requestUserCode(error: String?) {
         call.respondHtml {
             requestUserCode(createContext(), error)
         }
     }
 
-    override suspend fun PipelineContext<*, ApplicationCall>.stats(statsSummary: Map<String, Int>) {
+    override suspend fun RoutingContext.stats(statsSummary: Map<String, Int>) {
         call.respondHtml {
             stats(createContext(), statsSummary)
         }

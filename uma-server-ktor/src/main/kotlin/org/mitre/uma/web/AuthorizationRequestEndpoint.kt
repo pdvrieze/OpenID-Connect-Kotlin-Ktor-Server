@@ -1,10 +1,8 @@
 package org.mitre.uma.web
 
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
-import io.ktor.util.pipeline.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.addAll
@@ -57,7 +55,7 @@ object AuthorizationRequestEndpoint : KtorEndpoint {
     */
 
     //    @RequestMapping(method = [RequestMethod.POST], consumes = [MimeTypeUtils.APPLICATION_JSON_VALUE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
-    private suspend fun PipelineContext<Unit, ApplicationCall>.authorizationRequest() {
+    private suspend fun RoutingContext.authorizationRequest() {
         val auth = requireScope(SystemScopeService.UMA_AUTHORIZATION_SCOPE) { return }
         AuthenticationUtilities.ensureOAuthScope(auth, SystemScopeService.UMA_AUTHORIZATION_SCOPE)
 

@@ -3,10 +3,8 @@ package org.mitre.discovery.web
 import com.nimbusds.jose.Algorithm
 import com.nimbusds.jose.JWSAlgorithm
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.util.pipeline.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.add
@@ -45,7 +43,7 @@ object DiscoveryEndpoint : KtorEndpoint {
         get("/.well-known/openid-configuration") { getProviderConfiguration() }
     }
 
-    private suspend fun PipelineContext<Unit, ApplicationCall>.getWebfinger() {
+    private suspend fun RoutingContext.getWebfinger() {
         val config = openIdContext.config
 
         val queryParameters = call.request.queryParameters
@@ -90,7 +88,7 @@ object DiscoveryEndpoint : KtorEndpoint {
         webfingerView(resource, config.issuer)
     }
 
-    suspend fun PipelineContext<Unit, ApplicationCall>.getProviderConfiguration() {
+    suspend fun RoutingContext.getProviderConfiguration() {
         /*
             issuer
                 REQUIRED. URL using the https scheme with no query or fragment component that the OP asserts as its Issuer Identifier.

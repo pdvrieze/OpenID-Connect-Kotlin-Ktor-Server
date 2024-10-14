@@ -18,11 +18,9 @@
 package org.mitre.oauth2.web
 
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.util.pipeline.*
 import kotlinx.serialization.json.encodeToJsonElement
 import org.mitre.oauth2.exception.OAuthErrorCodes.*
 import org.mitre.oauth2.model.GrantedAuthority
@@ -63,14 +61,14 @@ object TokenAPI : KtorEndpoint {
     }
 
     //    @RequestMapping(value = ["/access"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.getAllAccessTokens() {
+    suspend fun RoutingContext.getAllAccessTokens() {
         val p = requireRole(GrantedAuthority.ROLE_USER) { return }
 
         return call.respondJson(tokenService.getAllAccessTokensForUser(p.name).map { it.serialDelegate() })
     }
 
     //    @RequestMapping(value = ["/access/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.getAccessTokenById() {
+    suspend fun RoutingContext.getAccessTokenById() {
         val p = requireRole(GrantedAuthority.ROLE_USER) { return }
 
         val id = call.parameters["id"]!!.toLong()
@@ -88,7 +86,7 @@ object TokenAPI : KtorEndpoint {
     }
 
     //    @RequestMapping(value = ["/access/{id}"], method = [RequestMethod.DELETE], produces = [MediaType.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.deleteAccessTokenById() {
+    suspend fun RoutingContext.deleteAccessTokenById() {
         val p = requireRole(GrantedAuthority.ROLE_USER) { return }
         val id = call.parameters["id"]!!.toLong()
         val token = tokenService.getAccessTokenById(id)
@@ -107,7 +105,7 @@ object TokenAPI : KtorEndpoint {
 
     //    @PreAuthorize("hasRole('ROLE_ADMIN')")
 //    @RequestMapping(value = ["/client/{clientId}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.getAccessTokensByClientId() {
+    suspend fun RoutingContext.getAccessTokensByClientId() {
         requireRole(GrantedAuthority.ROLE_ADMIN) { return }
         val clientId = call.parameters["clientId"]!!
         val client = clientService.loadClientByClientId(clientId)
@@ -119,7 +117,7 @@ object TokenAPI : KtorEndpoint {
 
     //    @PreAuthorize("hasRole('ROLE_ADMIN')")
 //    @RequestMapping(value = ["/registration/{clientId}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.getRegistrationTokenByClientId() {
+    suspend fun RoutingContext.getRegistrationTokenByClientId() {
         requireRole(GrantedAuthority.ROLE_USER) { return }
         val clientId = call.parameters["clientId"]!!
         val client = clientService.loadClientByClientId(clientId)
@@ -133,7 +131,7 @@ object TokenAPI : KtorEndpoint {
 
     //    @PreAuthorize("hasRole('ROLE_ADMIN')")
 //    @RequestMapping(value = ["/registration/{clientId}"], method = [RequestMethod.PUT], produces = [MediaType.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.rotateRegistrationTokenByClientId() {
+    suspend fun RoutingContext.rotateRegistrationTokenByClientId() {
         val p = requireRole(GrantedAuthority.ROLE_ADMIN) { return }
         val clientId = call.parameters["clientId"]!!
 
@@ -148,14 +146,14 @@ object TokenAPI : KtorEndpoint {
     }
 
     //    @RequestMapping(value = ["/refresh"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.getAllRefreshTokens() {
+    suspend fun RoutingContext.getAllRefreshTokens() {
         val p = requireRole(GrantedAuthority.ROLE_USER) { return }
         val allTokens = tokenService.getAllRefreshTokensForUser(p.name).map { it.serialDelegate() }
         return tokenApiView(json.encodeToJsonElement(allTokens))
     }
 
     //    @RequestMapping(value = ["/refresh/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.getRefreshTokenById() {
+    suspend fun RoutingContext.getRefreshTokenById() {
         val p = requireRole(GrantedAuthority.ROLE_USER) { return }
         val id = call.parameters["id"]!!.toLong()
         val token = tokenService.getRefreshTokenById(id)
@@ -173,7 +171,7 @@ object TokenAPI : KtorEndpoint {
     }
 
     //    @RequestMapping(value = ["/refresh/{id}"], method = [RequestMethod.DELETE], produces = [MediaType.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.deleteRefreshTokenById() {
+    suspend fun RoutingContext.deleteRefreshTokenById() {
         val p = requireRole(GrantedAuthority.ROLE_USER) { return }
 
         val id = call.parameters["id"]!!.toLong()

@@ -1,13 +1,11 @@
 package org.mitre.web
 
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
-import io.ktor.util.pipeline.*
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.openIdContext
 import org.mitre.web.util.update
@@ -20,11 +18,11 @@ object FormAuthEndpoint: KtorEndpoint {
         post("login") { doLogin() }
     }
 
-    suspend fun PipelineContext<Unit, ApplicationCall>.showLoginRequest() {
+    suspend fun RoutingContext.showLoginRequest() {
         return htmlLoginView(null, null, call.request.queryParameters["redirect_uri"])
     }
 
-    suspend fun PipelineContext<Unit, ApplicationCall>.doLogin() {
+    suspend fun RoutingContext.doLogin() {
         val formParams = call.receiveParameters()
 
         val userName = formParams["username"]

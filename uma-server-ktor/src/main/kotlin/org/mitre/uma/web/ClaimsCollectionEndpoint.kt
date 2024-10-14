@@ -16,11 +16,9 @@
 package org.mitre.uma.web
 
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.util.pipeline.*
 import kotlinx.serialization.json.JsonPrimitive
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuth2AccessToken
@@ -50,7 +48,7 @@ object ClaimsCollectionEndpoint : KtorEndpoint {
         }
     }
 
-    private suspend fun PipelineContext<Unit, ApplicationCall>.collectClaims() {
+    private suspend fun RoutingContext.collectClaims() {
         val auth = requireRole(GrantedAuthority.ROLE_EXTERNAL_USER) { return }
         val clientId = call.request.queryParameters["client_id"] ?: return call.respond(HttpStatusCode.BadRequest)
         var redirectUri = call.request.queryParameters["redirect_uri"]

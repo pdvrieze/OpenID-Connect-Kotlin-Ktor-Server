@@ -117,7 +117,7 @@ object ClientAPI: KtorEndpoint {
      * Get a list of all clients
      */
 //    @RequestMapping(method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.apiGetAllClients() {
+    suspend fun RoutingContext.apiGetAllClients() {
         val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
         val clients = clientService.allClients
 
@@ -133,7 +133,7 @@ object ClientAPI: KtorEndpoint {
      */
 //    @PreAuthorize("hasRole('ROLE_ADMIN')")
 //    @RequestMapping(method = [RequestMethod.POST], consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.apiAddClient() {
+    suspend fun RoutingContext.apiAddClient() {
         val auth = requireRole(GrantedAuthority.ROLE_ADMIN) { return }
         val clientBuilder: OAuthClientDetails.Builder
 
@@ -211,7 +211,7 @@ object ClientAPI: KtorEndpoint {
      */
 //    @PreAuthorize("hasRole('ROLE_ADMIN')")
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.PUT], consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.apiUpdateClient(
+    suspend fun RoutingContext.apiUpdateClient(
     ) {
         val auth = requireRole(GrantedAuthority.ROLE_ADMIN) { return }
         val id = call.parameters["id"]!!.toLong()
@@ -303,7 +303,7 @@ object ClientAPI: KtorEndpoint {
      */
 //    @PreAuthorize("hasRole('ROLE_ADMIN')")
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.DELETE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.apiDeleteClient(id: Long) {
+    suspend fun RoutingContext.apiDeleteClient(id: Long) {
         val auth = requireRole(GrantedAuthority.ROLE_ADMIN) { return }
         val id = call.parameters["id"]!!.toLong()
 
@@ -325,7 +325,7 @@ object ClientAPI: KtorEndpoint {
      * Get an individual client
      */
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.apiShowClient() {
+    suspend fun RoutingContext.apiShowClient() {
         val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
         val id = call.parameters["id"]!!.toLong()
         val client = clientService.getClientById(id) ?: run {
@@ -347,7 +347,7 @@ object ClientAPI: KtorEndpoint {
      * Get the logo image for a client
      */
 //    @RequestMapping(value = ["/{id}/logo"], method = [RequestMethod.GET], produces = [MediaType.IMAGE_GIF_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.getClientLogo() {
+    suspend fun RoutingContext.getClientLogo() {
         val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
         val id = call.parameters["id"]!!.toLong()
         val client = clientService.getClientById(id) ?: return call.respond(HttpStatusCode.NotFound)
@@ -360,7 +360,7 @@ object ClientAPI: KtorEndpoint {
     }
 
     @Throws(org.mitre.openid.connect.exception.ValidationException::class)
-    private suspend fun PipelineContext<Unit, ApplicationCall>.validateSoftwareStatement(assertionValidator: AssertionValidator, clientBuilder: OAuthClientDetails.Builder) {
+    private suspend fun RoutingContext.validateSoftwareStatement(assertionValidator: AssertionValidator, clientBuilder: OAuthClientDetails.Builder) {
         val softwareStatement = clientBuilder.softwareStatement
         if (softwareStatement == null) {
             // nothing to see here, carry on

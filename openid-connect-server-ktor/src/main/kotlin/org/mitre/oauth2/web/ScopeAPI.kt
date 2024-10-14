@@ -18,12 +18,10 @@
 package org.mitre.oauth2.web
 
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.util.pipeline.*
 import org.mitre.oauth2.exception.OAuthErrorCodes
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.SystemScope
@@ -57,14 +55,14 @@ object ScopeAPI : KtorEndpoint {
     }
 
     //    @RequestMapping(value = [""], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.getAll() {
+    suspend fun RoutingContext.getAll() {
         requireRole(GrantedAuthority.ROLE_CLIENT) { return@getAll }
 
         return call.respondJson(scopeService.all)
     }
 
     //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
-    private suspend fun PipelineContext<Unit, ApplicationCall>.getScope() {
+    private suspend fun RoutingContext.getScope() {
         requireRole(GrantedAuthority.ROLE_CLIENT) { return@getScope }
         val id = call.parameters["id"]!!.toLong()
 
@@ -80,7 +78,7 @@ object ScopeAPI : KtorEndpoint {
 
     //    @PreAuthorize("hasRole('ROLE_ADMIN')")
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.PUT], produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])
-    private suspend fun PipelineContext<Unit, ApplicationCall>.updateScope() {
+    private suspend fun RoutingContext.updateScope() {
         requireRole(GrantedAuthority.ROLE_ADMIN) { return@updateScope }
 
         val id = call.parameters["id"]!!.toLong()
@@ -115,7 +113,7 @@ object ScopeAPI : KtorEndpoint {
 
     //    @PreAuthorize("hasRole('ROLE_ADMIN')")
 //    @RequestMapping(value = [""], method = [RequestMethod.POST], produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])
-    private suspend fun PipelineContext<Unit, ApplicationCall>.createScope() {
+    private suspend fun RoutingContext.createScope() {
         requireRole(GrantedAuthority.ROLE_ADMIN) { return }
 
         val jsonText = call.receiveText()
@@ -149,7 +147,7 @@ object ScopeAPI : KtorEndpoint {
 
     //    @PreAuthorize("hasRole('ROLE_ADMIN')")
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.DELETE])
-    private suspend fun PipelineContext<Unit, ApplicationCall>.deleteScope() {
+    private suspend fun RoutingContext.deleteScope() {
         requireRole(GrantedAuthority.ROLE_ADMIN) { return }
         val id = call.parameters["id"]!!.toLong()
 

@@ -18,12 +18,10 @@
 package org.mitre.openid.connect.web
 
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.util.pipeline.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -77,7 +75,7 @@ class DataAPI(
     }
 
 //    @RequestMapping(method = [RequestMethod.POST], consumes = [MediaType.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.importData() {
+    suspend fun RoutingContext.importData() {
         requireRole(GrantedAuthority.ROLE_ADMIN) { return }
         val data = call.receive<RawData>()
 
@@ -158,7 +156,7 @@ class DataAPI(
 
     @OptIn(ExperimentalSerializationApi::class)
 //    @RequestMapping(method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
-    suspend fun PipelineContext<Unit, ApplicationCall>.exportData() {
+    suspend fun RoutingContext.exportData() {
         val prin = requireRole(GrantedAuthority.ROLE_ADMIN) { return }
 
         try {

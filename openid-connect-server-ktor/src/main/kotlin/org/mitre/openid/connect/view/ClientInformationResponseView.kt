@@ -1,8 +1,7 @@
 package org.mitre.openid.connect.view
 
 import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.util.pipeline.*
+import io.ktor.server.routing.*
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.oauth2.view.respondJson
 
@@ -14,7 +13,7 @@ import org.mitre.oauth2.view.respondJson
  *
  * @author jricher
  */
-suspend fun PipelineContext<Unit, ApplicationCall>.clientInformationResponseView(
+suspend fun RoutingContext.clientInformationResponseView(
     client: RegisteredClient,
     code: HttpStatusCode = HttpStatusCode.OK,
 ) = call.respondJson(client, code)

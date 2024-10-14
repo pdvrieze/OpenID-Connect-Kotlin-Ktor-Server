@@ -18,13 +18,11 @@ package org.mitre.openid.connect.web
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.JWTParser
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
-import io.ktor.util.pipeline.*
 import org.mitre.oauth2.exception.InvalidClientException
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuthClientDetails
@@ -60,7 +58,7 @@ object EndSessionEndpoint: KtorEndpoint {
     }
 
 //    @RequestMapping(value = ["/" + URL], method = [RequestMethod.GET])
-    suspend fun PipelineContext<Unit, ApplicationCall>.endSession() {
+    suspend fun RoutingContext.endSession() {
         val auth = resolveAuthenticatedUser()
 
         val state: String? = call.request.queryParameters["state"]
@@ -137,14 +135,14 @@ object EndSessionEndpoint: KtorEndpoint {
         }
     }
 
-    suspend fun PipelineContext<Unit, ApplicationCall>.processLogout() {
+    suspend fun RoutingContext.processLogout() {
         val clientId = call.receiveParameters()["clientId"]
         val client: OAuthClientDetails? = clientId?.let { clientService.loadClientByClientId(it) }
         processLogout(call.request.queryParameters["approved"], client)
     }
 
 //    @RequestMapping(value = ["/" + URL], method = [RequestMethod.POST])
-    private suspend fun PipelineContext<Unit, ApplicationCall>.processLogout(
+    private suspend fun RoutingContext.processLogout(
         approved: String?,
         client: OAuthClientDetails?
     ) {

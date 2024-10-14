@@ -17,10 +17,8 @@
  */
 package org.mitre.openid.connect.web
 
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.routing.*
-import io.ktor.util.pipeline.*
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.web.htmlAboutView
 import org.mitre.web.htmlContactView
@@ -49,23 +47,23 @@ object RootController: KtorEndpoint {
         }
     }
 
-    suspend fun PipelineContext<Unit, ApplicationCall>.showHomePage() {
+    suspend fun RoutingContext.showHomePage() {
         return htmlHomeView()
     }
 
-    suspend fun PipelineContext<Unit, ApplicationCall>.showAboutPage() {
+    suspend fun RoutingContext.showAboutPage() {
         return htmlAboutView()
     }
 
-    suspend fun PipelineContext<Unit, ApplicationCall>.showStatsPage() {
+    suspend fun RoutingContext.showStatsPage() {
         return htmlStatsView(statsService.summaryStats)
     }
 
-    suspend fun PipelineContext<Unit, ApplicationCall>.showContactPage() {
+    suspend fun RoutingContext.showContactPage() {
         return htmlContactView()
     }
 
-    suspend fun PipelineContext<Unit, ApplicationCall>.showClientManager() {
+    suspend fun RoutingContext.showClientManager() {
         requireRole(GrantedAuthority.ROLE_USER) { return }
         return htmlManageView()
     }

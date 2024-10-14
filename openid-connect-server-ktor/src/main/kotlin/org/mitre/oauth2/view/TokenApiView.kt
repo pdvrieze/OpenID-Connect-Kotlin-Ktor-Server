@@ -3,13 +3,13 @@ package org.mitre.oauth2.view
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
-import io.ktor.util.pipeline.*
+import io.ktor.server.routing.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.serializer
 
-suspend inline fun <reified T> PipelineContext<Unit, ApplicationCall>.tokenApiView(
+suspend inline fun <reified T> RoutingContext.tokenApiView(
     jsonEntity: T,
     code:HttpStatusCode = HttpStatusCode.OK,
 ) = call.respondJson(serializer<T>(), jsonEntity, code)

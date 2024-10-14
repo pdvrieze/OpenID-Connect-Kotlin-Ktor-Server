@@ -8,9 +8,8 @@ import com.nimbusds.jwt.EncryptedJWT
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.response.*
-import io.ktor.util.pipeline.*
+import io.ktor.server.routing.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -21,7 +20,7 @@ import org.mitre.util.getLogger
 import org.mitre.web.util.openIdContext
 import java.util.*
 
-suspend fun PipelineContext<Unit, ApplicationCall>.userInfoJWTView(
+suspend fun RoutingContext.userInfoJWTView(
     encrypters: ClientKeyCacheService,
     symmetricCacheService: SymmetricKeyJWTValidatorCacheService,
     userInfo: JsonObject,

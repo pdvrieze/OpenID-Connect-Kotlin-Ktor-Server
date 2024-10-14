@@ -1,8 +1,7 @@
 package org.mitre.web
 
 import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.util.pipeline.*
+import io.ktor.server.routing.*
 import org.mitre.oauth2.exception.OAuth2Exception
 import org.mitre.oauth2.exception.OAuthErrorCode
 import org.mitre.oauth2.model.OAuthClientDetails
@@ -10,8 +9,8 @@ import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.convert.OAuth2Request
 
 interface HtmlViews {
-    suspend fun PipelineContext<*, ApplicationCall>.about()
-    suspend fun PipelineContext<*, ApplicationCall>.approve(
+    suspend fun RoutingContext.about()
+    suspend fun RoutingContext.approve(
         authRequest: OAuth2Request?,
         client: OAuthClientDetails,
         redirectUri: String?,
@@ -24,7 +23,7 @@ interface HtmlViews {
         authenticationException: OAuth2Exception? = null,
     )
 
-    suspend fun PipelineContext<*, ApplicationCall>.approveDevice(
+    suspend fun RoutingContext.approveDevice(
         client: OAuthClientDetails,
         scopes: Set<SystemScope>,
         claims:  Map<String?, Map<String, String>>,
@@ -34,41 +33,41 @@ interface HtmlViews {
         contacts: String? = null,
     )
 
-    suspend fun PipelineContext<*, ApplicationCall>.contact()
+    suspend fun RoutingContext.contact()
 
-    suspend fun PipelineContext<*, ApplicationCall>.deviceApproved(
+    suspend fun RoutingContext.deviceApproved(
         client: OAuthClientDetails,
         isApproved: Boolean,
     )
 
     @Deprecated("Avoid errors without any context")
-    suspend fun PipelineContext<*, ApplicationCall>.error()
-    suspend fun PipelineContext<*, ApplicationCall>.error(
+    suspend fun RoutingContext.error()
+    suspend fun RoutingContext.error(
         error: OAuth2Exception
     )
 
-    suspend fun PipelineContext<*, ApplicationCall>.error(
+    suspend fun RoutingContext.error(
         errorCode: OAuthErrorCode,
         errorMessage: String,
     )
 
-    suspend fun PipelineContext<*, ApplicationCall>.error(
+    suspend fun RoutingContext.error(
         errorCodeString: String,
         errorMessage: String,
     )
 
-    suspend fun PipelineContext<*, ApplicationCall>.home()
+    suspend fun RoutingContext.home()
 
-    suspend fun PipelineContext<*, ApplicationCall>.login(
+    suspend fun RoutingContext.login(
         loginHint: String?,
         paramError: String?,
         redirectUri: String?,
         status: HttpStatusCode = HttpStatusCode.OK,
     )
 
-    suspend fun PipelineContext<*, ApplicationCall>.logoutConfirmation(client: OAuthClientDetails?)
-    suspend fun PipelineContext<*, ApplicationCall>.manage()
-    suspend fun PipelineContext<*, ApplicationCall>.postLogout()
-    suspend fun PipelineContext<*, ApplicationCall>.requestUserCode(error: String? = null)
-    suspend fun PipelineContext<*, ApplicationCall>.stats(statsSummary: Map<String, Int>)
+    suspend fun RoutingContext.logoutConfirmation(client: OAuthClientDetails?)
+    suspend fun RoutingContext.manage()
+    suspend fun RoutingContext.postLogout()
+    suspend fun RoutingContext.requestUserCode(error: String? = null)
+    suspend fun RoutingContext.stats(statsSummary: Map<String, Int>)
 }

@@ -16,9 +16,8 @@
 package org.mitre.uma.view
 
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.response.*
-import io.ktor.util.pipeline.*
+import io.ktor.server.routing.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.addAll
 import kotlinx.serialization.json.buildJsonObject
@@ -30,7 +29,7 @@ import org.mitre.web.util.config
 import java.io.IOException
 
 
-suspend fun PipelineContext<Unit, ApplicationCall>.resourceEntitySetView(
+suspend fun RoutingContext.resourceEntitySetView(
     rs: ResourceSet,
     location: String? = null,
     code: HttpStatusCode= HttpStatusCode.OK,
