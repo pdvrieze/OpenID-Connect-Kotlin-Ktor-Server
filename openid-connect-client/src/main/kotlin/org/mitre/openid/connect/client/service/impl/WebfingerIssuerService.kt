@@ -30,6 +30,7 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonArray
+import org.mitre.discovery.util.ExtUri
 import org.mitre.discovery.util.WebfingerURLNormalizer.normalizeResource
 import org.mitre.openid.connect.client.AuthenticationServiceException
 import org.mitre.openid.connect.client.model.IssuerServiceResponse
@@ -98,15 +99,15 @@ class WebfingerIssuerService(
 
     @Throws(Exception::class)
     private suspend fun fetch(identifier: String): LoadingResult {
-        val key = normalizeResource(identifier)
+        val key = normalizeResource(identifier) as? ExtUri.Url ?: throw IllegalArgumentException("$identifier is not a URL")
 
         // construct the URL to go to
-        val rawScheme = key!!.scheme
+        val rawScheme = key.scheme
 
         val scheme: URLProtocol
 
         // preserving http scheme is strictly for demo system use only.
-        if (!rawScheme.isNullOrEmpty() && rawScheme == "http") {
+        if (rawScheme == "http") {
             // add on colon and slashes.
             require(!isForceHttps) { "Scheme must not be 'http'" }
             logger.warn("Webfinger endpoint MUST use the https URI scheme, overriding by configuration")
@@ -116,15 +117,17 @@ class WebfingerIssuerService(
             scheme = URLProtocol.HTTPS
         }
 
+        val uri = key.uri
+
         // do a webfinger lookup
         val url = url {
             protocol = scheme
-            host = key.host
-            if (key.port >=0) port = key.port
-            path(key.path?:"")
+            host = uri.host
+            if (uri.port >=0) port = uri.port
+            path(uri.path?:"")
 
             parameters {
-                val q = key.query
+                val q = uri.query
                 if (!q.isNullOrEmpty()) {
                     appendAll(parseQueryString(q))
                 }

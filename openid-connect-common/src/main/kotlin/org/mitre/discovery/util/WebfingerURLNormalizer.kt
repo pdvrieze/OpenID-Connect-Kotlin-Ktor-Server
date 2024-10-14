@@ -148,12 +148,21 @@ object WebfingerURLNormalizer {
 }
 
 sealed class ExtUri {
+
+    abstract val scheme: String
+
     data class Url(val uri: URI) : ExtUri() {
         constructor(uri: String): this(URI.create(uri))
+
+        override val scheme: String get() = uri.scheme
+
         override fun toString() = uri.toString()
     }
 
     data class Acct(val userInfo: String, val domain: String, val authorityExt: String? = null) : ExtUri() {
+        override val scheme: String
+            get() = "acct"
+
         override fun toString() = when(authorityExt) {
             null -> "acct:$userInfo@$domain"
             else -> "acct:$userInfo@$domain$authorityExt"
@@ -161,6 +170,9 @@ sealed class ExtUri {
     }
 
     data class MailTo(val userInfo: String, val domain: String, val authorityExt: String? =null, val headerFields: Map<String, String?> = emptyMap()) : ExtUri() {
+        override val scheme: String
+            get() = "mailto"
+
         override fun toString(): String = buildString {
             append("mailto:")
             append(userInfo)
@@ -176,10 +188,16 @@ sealed class ExtUri {
     }
 
     data class Tel(val telNumber: String): ExtUri() {
+        override val scheme: String
+            get() = "tel"
+
         override fun toString(): String = "tel:$telNumber"
     }
 
     data class Device(val host: String, val path: String? = null, val query: String? = null): ExtUri() {
+        override val scheme: String
+            get() = "device"
+
         override fun toString(): String = buildString {
             append("device:")
             append(host)
