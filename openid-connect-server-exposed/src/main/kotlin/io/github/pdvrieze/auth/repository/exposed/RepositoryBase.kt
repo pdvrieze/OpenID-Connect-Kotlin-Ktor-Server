@@ -1,6 +1,7 @@
 package io.github.pdvrieze.auth.exposed
 
 import io.github.pdvrieze.auth.repository.exposed.SystemScopes
+import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -32,32 +33,23 @@ abstract class RepositoryBase(protected val database: Database, vararg val table
     }
 
 
-    protected inline fun <T: Table> T.save(id: Long?, crossinline builder: T.(UpdateBuilder<Int>) -> Unit): Long = transaction {
+    protected inline fun <T: IdTable<K>, K: Comparable<K>> T.save(id: K?, crossinline builder: T.(UpdateBuilder<Int>) -> Unit): K = transaction {
+        val t = this@save
         when (id) {
             null -> {
-                val newId = SystemScopes.insertAndGetId {
+                val newId = t.insertAndGetId {
                     builder(it)
                 }
                 newId.value
             }
 
             else -> { // update
-                SystemScopes.update({ SystemScopes.id eq id}) {
+                t.update({ t.id eq id}) {
                     builder(it)
                 }
                 id
             }
         }
-    }
-
-    private fun SystemScope.toUpdate(
-        builder: UpdateBuilder<Int>
-    ) {
-        builder[SystemScopes.value] = value!!
-        builder[SystemScopes.description] = description
-        builder[SystemScopes.icon] = icon
-        builder[SystemScopes.defaultScope] = isDefaultScope
-        builder[SystemScopes.restricted] = isRestricted
     }
 
     protected fun Transaction.saveStrings(data: Collection<String>?, table: Table, idColumn: Column<Long>, idValue: Long, dataColumn: Column<String>) {
