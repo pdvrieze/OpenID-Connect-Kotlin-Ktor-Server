@@ -22,6 +22,7 @@ class ExposedOauth2ClientRepository(database: Database) :
     RepositoryBase(
         database,
         ClientDetails,
+        ClientRedirectUris,
         ClientRequestUris,
         ClientContacts,
         ClientScopes,
@@ -134,6 +135,7 @@ class ExposedOauth2ClientRepository(database: Database) :
         }
 
     private fun deleteJoinedTables(clientId: Long) {
+        ClientRedirectUris.deleteWhere { ownerId eq clientId }
         ClientRequestUris.deleteWhere { ownerId eq clientId }
         ClientContacts.deleteWhere { ownerId eq clientId }
         ClientScopes.deleteWhere { ownerId eq clientId }
@@ -151,29 +153,28 @@ private fun OAuthClientDetails.toUpdate(builder: UpdateBuilder<Int>) {
     id?.let { builder[t.id] = it }
 
     clientId?.let{ builder[ClientDetails.clientId] = it }
-    builder[ClientDetails.clientSecret] =
-        ClientDetails.clientSecret
+    builder[ClientDetails.clientSecret] = clientSecret
     builder[ClientDetails.clientName] = clientName
     builder[ClientDetails.clientUri] = clientUri
     builder[ClientDetails.logoUri] = logoUri
     builder[ClientDetails.tosUri] = tosUri
-    builder[ClientDetails.tokenEndpointAuthMethod] = tokenEndpointAuthMethod?.value
+    tokenEndpointAuthMethod?.let { builder[ClientDetails.tokenEndpointAuthMethod] = it.value }
     builder[ClientDetails.policyUri] = policyUri
     builder[ClientDetails.jwksUri] = jwksUri
-    builder[ClientDetails.jwks] = jwks.toString()
+    builder[ClientDetails.jwks] = jwks?.toString()
     builder[ClientDetails.softwareId] = softwareId
     builder[ClientDetails.softwareVersion] = softwareVersion
     builder[ClientDetails.applicationType] = applicationType.value
     builder[ClientDetails.sectorIdentifierUri] = sectorIdentifierUri
-    builder[ClientDetails.subjectType] = subjectType?.value
-    builder[ClientDetails.requestObjectSigningAlg] = requestObjectSigningAlg?.name
-    builder[ClientDetails.userInfoSignedResponseAlg] = userInfoSignedResponseAlg?.name
-    builder[ClientDetails.userInfoEncryptedResponseAlg] = userInfoEncryptedResponseAlg?.name
-    builder[ClientDetails.userInfoEncryptedResponseEnc] = userInfoEncryptedResponseEnc?.name
-    builder[ClientDetails.idTokenSignedResponseAlg] = idTokenSignedResponseAlg?.name
-    builder[ClientDetails.idTokenEncryptedResponseAlg] = idTokenEncryptedResponseAlg?.name
-    builder[ClientDetails.idTokenEncryptedResponseEnc] = idTokenEncryptedResponseEnc?.name
-    builder[ClientDetails.tokenEndpointAuthSigningAlg] = tokenEndpointAuthSigningAlg?.name
+    subjectType?.let { builder[ClientDetails.subjectType] = it.value }
+    requestObjectSigningAlg?.let { builder[ClientDetails.requestObjectSigningAlg] = it.name }
+    userInfoSignedResponseAlg?.let { builder[ClientDetails.userInfoSignedResponseAlg] = it.name }
+    userInfoEncryptedResponseAlg?.let { builder[ClientDetails.userInfoEncryptedResponseAlg] = it.name }
+    userInfoEncryptedResponseEnc?.let { builder[ClientDetails.userInfoEncryptedResponseEnc] = it.name }
+    idTokenSignedResponseAlg?.let { builder[ClientDetails.idTokenSignedResponseAlg] = it.name }
+    idTokenEncryptedResponseAlg?.let { builder[ClientDetails.idTokenEncryptedResponseAlg] = it.name }
+    idTokenEncryptedResponseEnc?.let { builder[ClientDetails.idTokenEncryptedResponseEnc] = it.name }
+    tokenEndpointAuthSigningAlg?.let { builder[ClientDetails.tokenEndpointAuthSigningAlg] = it.name }
     builder[ClientDetails.defaultMaxAge] = defaultMaxAge
     builder[ClientDetails.requireAuthTime] = requireAuthTime
     builder[ClientDetails.initiateLoginUri] = initiateLoginUri
@@ -182,11 +183,11 @@ private fun OAuthClientDetails.toUpdate(builder: UpdateBuilder<Int>) {
     builder[ClientDetails.dynamicallyRegistered] = isDynamicallyRegistered
     builder[ClientDetails.allowIntrospection] = isAllowIntrospection
     idTokenValiditySeconds?.let { builder[ClientDetails.idTokenValiditySeconds] = it }
-    builder[ClientDetails.createdAt] = createdAt?.toInstant()
+    createdAt?.let { builder[ClientDetails.createdAt] = it.toInstant() }
     builder[ClientDetails.clearAccessTokensOnRefresh] = isClearAccessTokensOnRefresh
     builder[ClientDetails.deviceCodeValiditySeconds] = deviceCodeValiditySeconds
-    builder[ClientDetails.softwareStatement] = softwareStatement?.serialize()
-    builder[ClientDetails.codeChallengeMethod] = codeChallengeMethod?.name
+    softwareStatement?.let { builder[ClientDetails.softwareStatement] = it.serialize() }
+    codeChallengeMethod?.let { builder[ClientDetails.codeChallengeMethod] = it.name }
 }
 
 private fun org.jetbrains.exposed.sql.ResultRow.toClient(): OAuthClientDetails {
@@ -243,7 +244,8 @@ private fun org.jetbrains.exposed.sql.ResultRow.toClient(): OAuthClientDetails {
             jwks = r[jwks]?.let { JWKSet.parse(it) },
             softwareId = r[softwareId],
             softwareVersion = r[softwareVersion],
-            applicationType = OAuthClientDetails.AppType.valueOf(r[applicationType]),
+            applicationType = OAuthClientDetails.AppType.getByValue(r[applicationType])
+                ?: OAuthClientDetails.AppType.WEB,
             sectorIdentifierUri = r[sectorIdentifierUri],
             subjectType = r[subjectType]?.let { OAuthClientDetails.SubjectType.getByValue(it) },
             requestObjectSigningAlg = r[requestObjectSigningAlg]?.let { JWSAlgorithm.parse(it) },
