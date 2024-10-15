@@ -5,6 +5,7 @@ import io.github.pdvrieze.auth.exposed.RepositoryBase
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.inSubQuery
 import org.jetbrains.exposed.sql.batchInsert
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.selectAll
@@ -28,7 +29,7 @@ class ExposedOauth2TokenRepository(
     database: Database,
     val authenticationHolderRepository: AuthenticationHolderRepository,
     val clientRepository: OAuth2ClientRepository,
-) : RepositoryBase(database, AccessTokens, RefreshTokens, SavedUserAuths, SavedUserAuthAuthorities, TokenScopes),
+) : RepositoryBase(database, AccessTokens, AccessTokenPermissions, RefreshTokens, SavedUserAuths, SavedUserAuthAuthorities, TokenScopes),
     OAuth2TokenRepository {
 
     override fun getRefreshTokenByValue(refreshTokenValue: String): OAuth2RefreshTokenEntity? = transaction {
@@ -240,7 +241,13 @@ class ExposedOauth2TokenRepository(
     }
 
     override fun clearTokensForClient(client: OAuthClientDetails) {
-        TODO("not implemented")
+        transaction {
+            AccessTokenPermissions.deleteWhere {
+                accessTokenId.inSubQuery(AccessTokens.select(AccessTokens.id).where { AccessTokens.clientId eq client.id })
+            }
+            AccessTokens.deleteWhere { clientId eq client.id }
+            RefreshTokens.deleteWhere { clientId eq client.id }
+        }
     }
 
 
