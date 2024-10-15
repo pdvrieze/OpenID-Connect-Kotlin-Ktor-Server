@@ -371,7 +371,7 @@ class DefaultOAuth2ClientDetailsEntityService(
      * Generates a new clientSecret for the given client and sets it to the client's clientSecret field. Returns the client that was passed in, now with secret set.
      */
     @OptIn(ExperimentalEncodingApi::class)
-    override fun generateClientSecret(client: OAuthClientDetails.Builder): String? {
+    override fun generateClientSecret(client: OAuthClientDetails.Builder?): String? {
         if (config.isHeartMode) {
             logger.error("[HEART mode] Can't generate a client secret, skipping step; client won't be saved due to invalid configuration")
             return null

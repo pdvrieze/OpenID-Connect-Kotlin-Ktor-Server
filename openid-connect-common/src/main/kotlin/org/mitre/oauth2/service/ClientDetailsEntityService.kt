@@ -17,5 +17,5 @@ interface ClientDetailsEntityService : ClientResolver {
 
     fun generateClientIdString(client: OAuthClientDetails): String
 
-    fun generateClientSecret(client: OAuthClientDetails.Builder): String?
+    fun generateClientSecret(client: OAuthClientDetails.Builder? = null): String?
 }
