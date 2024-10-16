@@ -43,7 +43,7 @@ import org.springframework.security.oauth2.provider.AuthorizationRequest as Spri
 
 // TODO Spring specific
 @Component("connectOAuth2RequestFactory")
-class ConnectOAuth2RequestFactory @Autowired constructor(
+class SpringConnectOAuth2RequestFactory @Autowired constructor(
     private val clientDetailsService: SpringClientDetailsEntityService
 ) : DefaultOAuth2RequestFactory(clientDetailsService) {
 
@@ -301,6 +301,6 @@ class ConnectOAuth2RequestFactory @Autowired constructor(
         /**
          * Logger for this class
          */
-        private val logger = getLogger<ConnectOAuth2RequestFactory>()
+        private val logger = getLogger<SpringConnectOAuth2RequestFactory>()
     }
 }

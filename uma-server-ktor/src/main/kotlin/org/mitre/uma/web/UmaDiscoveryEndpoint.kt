@@ -61,7 +61,7 @@ object UmaDiscoveryEndpoint : KtorEndpoint {
             put("introspection_endpoint", issuer + IntrospectionEndpoint.URL)
             put("resource_set_registration_endpoint", "$issuer${ResourceSetRegistrationEndpoint.DISCOVERY_URL}")
             put("permission_registration_endpoint", "$issuer${PermissionRegistrationEndpoint.URL}")
-            put("rpt_endpoint", issuer + AuthorizationRequestEndpoint.URL)
+            put("rpt_endpoint", issuer + UmaAuthorizationRequestEndpoint.URL)
         }
         return call.respondJson(m)
     }

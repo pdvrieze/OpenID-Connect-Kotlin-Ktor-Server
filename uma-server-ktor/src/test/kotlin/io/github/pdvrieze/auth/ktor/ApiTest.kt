@@ -14,12 +14,14 @@ import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.Before
 import org.mitre.oauth2.model.GrantedAuthority
-import org.mitre.openid.connect.filter.AuthorizationRequestFilter
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.OpenIdContextPlugin
 import kotlin.test.assertEquals
 
-abstract class ApiTest(vararg endpoints: KtorEndpoint, private val includeAuthzFilter: Boolean = false) {
+abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, private val includeAuthzFilter: Boolean) {
+
+    constructor(vararg endpoints: KtorEndpoint) : this(endpoints, false)
+    constructor(includeAuthzFilter: Boolean = false, vararg endpoints: KtorEndpoint) : this(endpoints, includeAuthzFilter)
 
     protected lateinit var testContext: TestContext
 
@@ -39,26 +41,24 @@ abstract class ApiTest(vararg endpoints: KtorEndpoint, private val includeAuthzF
     }
 
 
-    protected open fun ApplicationTestBuilder.configureApplication() {
-        application {
-            install(OpenIdContextPlugin) { context = testContext }
-            if (includeAuthzFilter) {
-                install(AuthorizationRequestFilter.Plugin)
-            }
-            authentication {
-                basic {
-                    validate { cred ->
+    protected open fun configureApplication(testBuilder: ApplicationTestBuilder) {
+        testBuilder.application {
+            this.install(OpenIdContextPlugin) { this.context = this@ApiTest.testContext }
+            this.authentication {
+                this.basic {
+                    this.validate { cred ->
                         when (cred.name) {
-                        "admin" -> UserIdPrincipal(cred.name).takeIf { cred.password == "secret" }
-                        "user" -> UserIdPrincipal(cred.name).takeIf { cred.password == "userSecret" }
-                        "client" -> UserIdPrincipal(cred.name).takeIf { cred.password == "clientSecret" }
-                        else -> null
-                    } }
+                            "admin" -> UserIdPrincipal(cred.name).takeIf { cred.password == "secret" }
+                            "user" -> UserIdPrincipal(cred.name).takeIf { cred.password == "userSecret" }
+                            "client" -> UserIdPrincipal(cred.name).takeIf { cred.password == "clientSecret" }
+                            else -> null
+                        }
+                    }
                 }
             }
 
-            configureRouting() {
-                for (endpoint in endpoints) {
+            this.configureRouting() {
+                for (endpoint in this@ApiTest.endpoints) {
                     with(endpoint) { addRoutes() }
                 }
             }
@@ -67,7 +67,7 @@ abstract class ApiTest(vararg endpoints: KtorEndpoint, private val includeAuthzF
 
     protected fun testEndpoint(block: suspend ApplicationTestBuilder.() -> Unit) {
         testApplication {
-            configureApplication()
+            configureApplication(this)
             block()
         }
     }
@@ -90,7 +90,7 @@ abstract class ApiTest(vararg endpoints: KtorEndpoint, private val includeAuthzF
         client: HttpClient = this.client,
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
-        return getUnAuth(url, statusCode) {
+        return getUnAuth(url, statusCode, client) {
             basicAuth("user", "userSecret")
             block()
         }
@@ -102,7 +102,7 @@ abstract class ApiTest(vararg endpoints: KtorEndpoint, private val includeAuthzF
         client: HttpClient = this.client,
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
-        return getUnAuth(url, statusCode) {
+        return getUnAuth(url, statusCode, client) {
             basicAuth("client", "clientSecret")
             block()
         }
@@ -114,7 +114,7 @@ abstract class ApiTest(vararg endpoints: KtorEndpoint, private val includeAuthzF
         client: HttpClient = this.client,
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
-        return getUnAuth(url, statusCode) {
+        return getUnAuth(url, statusCode, client) {
             basicAuth("admin", "secret")
             block()
         }
@@ -138,7 +138,7 @@ abstract class ApiTest(vararg endpoints: KtorEndpoint, private val includeAuthzF
         client: HttpClient = this.client,
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
-        return putUnAuth(url, statusCode) {
+        return putUnAuth(url, statusCode, client) {
             basicAuth("user", "userSecret")
             block()
         }
@@ -150,7 +150,7 @@ abstract class ApiTest(vararg endpoints: KtorEndpoint, private val includeAuthzF
         client: HttpClient = this.client,
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
-        return putUnAuth(url, statusCode) {
+        return putUnAuth(url, statusCode, client) {
             basicAuth("client", "clientSecret")
             block()
         }
@@ -162,7 +162,7 @@ abstract class ApiTest(vararg endpoints: KtorEndpoint, private val includeAuthzF
         client: HttpClient = this.client,
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
-        return putUnAuth(url, statusCode) {
+        return putUnAuth(url, statusCode, client) {
             basicAuth("admin", "secret")
             block()
         }
@@ -186,7 +186,7 @@ abstract class ApiTest(vararg endpoints: KtorEndpoint, private val includeAuthzF
         client: HttpClient = this.client,
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
-        return postUnAuth(url, statusCode) {
+        return postUnAuth(url, statusCode, client) {
             basicAuth("user", "userSecret")
             block()
         }
@@ -198,7 +198,7 @@ abstract class ApiTest(vararg endpoints: KtorEndpoint, private val includeAuthzF
         client: HttpClient = this.client,
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
-        return postUnAuth(url, statusCode) {
+        return postUnAuth(url, statusCode, client) {
             basicAuth("client", "clientSecret")
             block()
         }
@@ -210,7 +210,7 @@ abstract class ApiTest(vararg endpoints: KtorEndpoint, private val includeAuthzF
         client: HttpClient = this.client,
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
-        return postUnAuth(url, statusCode) {
+        return postUnAuth(url, statusCode, client) {
             basicAuth("admin", "secret")
             block()
         }
@@ -234,7 +234,7 @@ abstract class ApiTest(vararg endpoints: KtorEndpoint, private val includeAuthzF
         client: HttpClient = this.client,
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
-        return deleteUnAuth(url, statusCode) {
+        return deleteUnAuth(url, statusCode, client) {
             basicAuth("user", "userSecret")
             block()
         }
@@ -246,7 +246,7 @@ abstract class ApiTest(vararg endpoints: KtorEndpoint, private val includeAuthzF
         client: HttpClient = this.client,
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
-        return deleteUnAuth(url, statusCode) {
+        return deleteUnAuth(url, statusCode, client) {
             basicAuth("client", "clientSecret")
             block()
         }
@@ -258,7 +258,7 @@ abstract class ApiTest(vararg endpoints: KtorEndpoint, private val includeAuthzF
         client: HttpClient = this.client,
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
-        return deleteUnAuth(url, statusCode) {
+        return deleteUnAuth(url, statusCode, client) {
             basicAuth("admin", "secret")
             block()
         }

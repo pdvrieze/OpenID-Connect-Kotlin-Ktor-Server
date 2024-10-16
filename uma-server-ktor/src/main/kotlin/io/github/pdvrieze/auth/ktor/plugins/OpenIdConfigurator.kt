@@ -2,6 +2,7 @@ package io.github.pdvrieze.auth.ktor.plugins
 
 import com.nimbusds.jose.jwk.JWK
 import io.github.pdvrieze.auth.repository.exposed.ExposedAuthenticationHolderRepository
+import io.github.pdvrieze.auth.repository.exposed.ExposedAuthorizationCodeRepository
 import io.github.pdvrieze.auth.repository.exposed.ExposedOauth2ClientRepository
 import io.github.pdvrieze.auth.repository.exposed.ExposedOauth2TokenRepository
 import io.github.pdvrieze.auth.repository.exposed.ExposedSystemScopeRepository
@@ -35,16 +36,19 @@ import org.mitre.oauth2.TokenEnhancer
 import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
+import org.mitre.oauth2.repository.AuthorizationCodeRepository
 import org.mitre.oauth2.repository.OAuth2ClientRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.oauth2.repository.SystemScopeRepository
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.DeviceCodeService
 import org.mitre.oauth2.service.JsonIntrospectionResultAssembler
+import org.mitre.oauth2.service.OAuth2AuthorizationCodeService
 import org.mitre.oauth2.service.OAuth2TokenEntityService
 import org.mitre.oauth2.service.RedirectResolver
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.oauth2.service.impl.DefaultDeviceCodeService
+import org.mitre.oauth2.service.impl.DefaultOAuth2AuthorizationCodeService
 import org.mitre.oauth2.service.impl.DefaultOAuth2ClientDetailsEntityService
 import org.mitre.oauth2.service.impl.DefaultOAuth2ProviderTokenService
 import org.mitre.oauth2.service.impl.DefaultSystemScopeService
@@ -249,6 +253,13 @@ data class OpenIdConfigurator(
         override val scopeClaimTranslationService: ScopeClaimTranslationService =
             DefaultScopeClaimTranslationService()
 
+        val authorizationCodeRepository: AuthorizationCodeRepository =
+            ExposedAuthorizationCodeRepository(configurator.database, authenticationHolderRepository)
+
+        override val authcodeService: OAuth2AuthorizationCodeService = DefaultOAuth2AuthorizationCodeService(
+            authorizationCodeRepository, authenticationHolderRepository, config.authCodeExpirationSeconds
+        )
+
         override val authRequestFactory: KtorOAuth2RequestFactory =
             KtorConnectOAuth2RequestFactory(clientDetailsService, encyptersService, encryptionService)
 
@@ -284,12 +295,16 @@ data class OpenIdConfigurator(
             applicationCall.attributes.getOrNull(KEY_AUTHENTICATION)?.let { return it }
 
             val result = applicationCall.principal<UserIdPrincipal>()
-                ?.let { UserIdPrincipalAuthentication(it, resolveAuthServiceAuthorities(it.name)) }
+                ?.let { principalToAuthentication(it) }
                 ?: return null
 
             applicationCall.attributes.put(KEY_AUTHENTICATION, result)
 
             return result
+        }
+
+        override fun principalToAuthentication(principal: UserIdPrincipal): Authentication? {
+            return UserIdPrincipalAuthentication(principal, resolveAuthServiceAuthorities(principal.name))
         }
 
         override fun checkCredential(credential: UserPasswordCredential): Boolean {

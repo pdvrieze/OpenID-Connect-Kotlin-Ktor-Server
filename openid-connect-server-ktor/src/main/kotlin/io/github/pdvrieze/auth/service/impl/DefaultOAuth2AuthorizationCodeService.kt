@@ -24,8 +24,11 @@ import org.mitre.oauth2.model.AuthorizationCodeEntity
 import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.AuthorizationCodeRepository
+import org.mitre.oauth2.service.OAuth2AuthorizationCodeService
 import org.mitre.oauth2.util.RandomStringGenerator
 import org.mitre.util.getLogger
+import java.time.Duration
+import java.time.Instant
 import java.util.*
 
 /**
@@ -33,12 +36,11 @@ import java.util.*
  *
  * @author aanganes
  */
-class DefaultOAuth2AuthorizationCodeService {
-    lateinit var repository: AuthorizationCodeRepository
-
-    private lateinit var authenticationHolderRepository: AuthenticationHolderRepository
-
-    var authCodeExpirationSeconds: Int = 60 * 5 // expire in 5 minutes by default
+class DefaultOAuth2AuthorizationCodeService(
+    private val codeRepository: AuthorizationCodeRepository,
+    private val authenticationHolderRepository: AuthenticationHolderRepository,
+    private val authCodeExpirationSeconds: Duration = Duration.ofMinutes(5) // expire in 5 minutes by default
+) : OAuth2AuthorizationCodeService {
 
     private val generator = RandomStringGenerator(22)
 
@@ -50,7 +52,7 @@ class DefaultOAuth2AuthorizationCodeService {
      * code is consumed
      * @return                    the authorization code
      */
-    fun createAuthorizationCode(authentication: OAuth2RequestAuthentication): String {
+    override fun createAuthorizationCode(authentication: OAuth2RequestAuthentication): String {
         val code = generator.generate()
 
         // attach the authorization so that we can look it up later
@@ -59,10 +61,10 @@ class DefaultOAuth2AuthorizationCodeService {
         authHolder = authenticationHolderRepository.save(authHolder)
 
         // set the auth code to expire
-        val expiration = Date(System.currentTimeMillis() + (authCodeExpirationSeconds * 1000L))
+        val expiration = Date.from(Instant.now()+ authCodeExpirationSeconds)
 
         val entity = AuthorizationCodeEntity(code = code, authenticationHolder = authHolder, expiration = expiration)
-        repository.save(entity)
+        codeRepository.save(entity)
 
         return code
     }
@@ -77,13 +79,13 @@ class DefaultOAuth2AuthorizationCodeService {
      * @return            the authentication that made the original request
      * @throws            InvalidGrantException, if an AuthorizationCodeEntity is not found with the given value
      */
-    fun consumeAuthorizationCode(code: String): OAuth2RequestAuthentication {
-        val result = repository.getByCode(code)
+    override fun consumeAuthorizationCode(code: String): OAuth2RequestAuthentication {
+        val result = codeRepository.getByCode(code)
             ?: throw InvalidGrantException("JpaAuthorizationCodeRepository: no authorization code found for value $code")
 
         val auth = result.authenticationHolder!!.authentication
 
-        repository.remove(result)
+        codeRepository.remove(result)
 
         return auth
     }
@@ -91,14 +93,14 @@ class DefaultOAuth2AuthorizationCodeService {
     /**
      * Find and remove all expired auth codes.
      */
-    fun clearExpiredAuthorizationCodes() {
+    override fun clearExpiredAuthorizationCodes() {
         object : AbstractPageOperationTemplate<AuthorizationCodeEntity>("clearExpiredAuthorizationCodes") {
             override fun fetchPage(): Collection<AuthorizationCodeEntity> {
-                return repository.expiredCodes
+                return codeRepository.expiredCodes
             }
 
             override fun doOperation(item: AuthorizationCodeEntity) {
-                repository.remove(item)
+                codeRepository.remove(item)
             }
         }.execute()
     }

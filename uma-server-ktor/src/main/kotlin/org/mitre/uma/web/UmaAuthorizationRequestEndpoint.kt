@@ -31,7 +31,7 @@ import org.mitre.web.util.umaTokenService
  */
 //@Controller
 //@RequestMapping("/authz_request")
-object AuthorizationRequestEndpoint : KtorEndpoint {
+object UmaAuthorizationRequestEndpoint : KtorEndpoint {
     override fun Route.addRoutes() {
         route("/authz_request") {
             authenticate {

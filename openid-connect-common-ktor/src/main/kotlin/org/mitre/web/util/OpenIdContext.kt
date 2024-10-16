@@ -18,6 +18,7 @@ import org.mitre.oauth2.repository.SystemScopeRepository
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.DeviceCodeService
 import org.mitre.oauth2.service.JsonIntrospectionResultAssembler
+import org.mitre.oauth2.service.OAuth2AuthorizationCodeService
 import org.mitre.oauth2.service.OAuth2TokenEntityService
 import org.mitre.oauth2.service.RedirectResolver
 import org.mitre.oauth2.service.SystemScopeService
@@ -48,6 +49,8 @@ import org.mitre.web.HtmlViews
 
 interface OpenIdContext {
     fun resolveAuthenticatedUser(authenticationContext: ApplicationCall): Authentication?
+    fun principalToAuthentication(principal: UserIdPrincipal): Authentication?
+
     fun checkCredential(credential: UserPasswordCredential): Boolean
 
     //region Regular services
@@ -76,6 +79,7 @@ interface OpenIdContext {
     val tokenServices: OAuth2TokenEntityService get() = tokenService
     val userInfoService: UserInfoService
     val whitelistedSiteService: WhitelistedSiteService
+    val authcodeService: OAuth2AuthorizationCodeService
 
     val symetricCacheService: SymmetricKeyJWTValidatorCacheService
     val encyptersService: ClientKeyCacheService
@@ -160,6 +164,8 @@ val RoutingContext.tokenEnhancer: TokenEnhancer
     get() = openIdContext.tokenEnhancer
 val RoutingContext.tokenService: OAuth2TokenEntityService
     get() = openIdContext.tokenService
+val RoutingContext.authcodeService: OAuth2AuthorizationCodeService
+    get() = openIdContext.authcodeService
 val RoutingContext.userInfoService: UserInfoService
     get() = openIdContext.userInfoService
 val RoutingContext.whitelistedSiteService: WhitelistedSiteService

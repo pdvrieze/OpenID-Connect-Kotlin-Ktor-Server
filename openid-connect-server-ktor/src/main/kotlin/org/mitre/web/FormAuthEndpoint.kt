@@ -6,9 +6,11 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
+import org.mitre.oauth2.exception.OAuthErrorCodes
+import org.mitre.openid.connect.filter.PlainAuthorizationRequestEndpoint
+import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.openIdContext
-import org.mitre.web.util.update
 import java.net.URI
 import java.util.*
 
@@ -32,10 +34,21 @@ object FormAuthEndpoint: KtorEndpoint {
             openIdContext.checkCredential(UserPasswordCredential(userName, password))) {
 
             val principal = UserIdPrincipal(userName)
-            call.authentication.principal(principal)
-            call.sessions.update<OpenIdSessionStorage> { it?.copy(principal = principal) ?: OpenIdSessionStorage(principal = principal) }
-            val redirect = formParams["redirect"]?.takeIf { ! URI.create(it).isAbsolute } ?: "/"
-            return call.respondRedirect(redirect)
+            val oldSession = call.sessions.get<OpenIdSessionStorage>()
+            call.sessions.set(OpenIdSessionStorage(principal = principal))
+
+            when(val authorizationRequest = oldSession?.authorizationRequest) {
+                null -> {
+                    call.authentication.principal(principal)
+                    call.respondRedirect(formParams["redirect"]?.takeIf { ! URI.create(it).isAbsolute } ?: "/")
+                }
+
+                else -> with (PlainAuthorizationRequestEndpoint) {
+                    val redirect = oldSession.redirectUri ?: return jsonErrorView(OAuthErrorCodes.SERVER_ERROR)
+                    val auth = openIdContext.principalToAuthentication(principal) ?: return jsonErrorView(OAuthErrorCodes.SERVER_ERROR)
+                    respondWithAuthCode(authorizationRequest, auth, redirect, oldSession.state)
+                }
+            }
         }
 
         val locales = call.request.acceptLanguageItems().map { Locale(it.value) }

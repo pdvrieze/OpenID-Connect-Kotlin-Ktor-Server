@@ -6,6 +6,7 @@ import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.transactions.transaction
 import org.mitre.data.PageCriteria
 import org.mitre.oauth2.model.AuthorizationCodeEntity
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
@@ -19,7 +20,7 @@ class ExposedAuthorizationCodeRepository(database: Database, private val authHol
     override fun save(authorizationCode: AuthorizationCodeEntity): AuthorizationCodeEntity {
         val oldId = authorizationCode.id
 
-        return transaction {
+        return transaction(database) {
             val newId = AuthorizationCodes.save(oldId) { b ->
                 b[AuthorizationCodes.code] = authorizationCode.code
                 authorizationCode.authenticationHolder?.let { ah ->
@@ -34,8 +35,8 @@ class ExposedAuthorizationCodeRepository(database: Database, private val authHol
     /* (non-Javadoc)
 	 * @see org.mitre.oauth2.repository.AuthorizationCodeRepository#getByCode(java.lang.String)
 	 */
-    override fun getByCode(code: String): AuthorizationCodeEntity? {
-        return AuthorizationCodes.selectAll()
+    override fun getByCode(code: String): AuthorizationCodeEntity? = transaction(database) {
+        AuthorizationCodes.selectAll()
             .where { AuthorizationCodes.code.eq(code) }
             .map { it.toAuthorizationCode() }
             .singleOrNull()
@@ -45,7 +46,7 @@ class ExposedAuthorizationCodeRepository(database: Database, private val authHol
 	 * @see org.mitre.oauth2.repository.AuthorizationCodeRepository#remove(org.mitre.oauth2.model.AuthorizationCodeEntity)
 	 */
     override fun remove(authorizationCodeEntity: AuthorizationCodeEntity) {
-        transaction {
+        transaction(database) {
             AuthorizationCodes.deleteWhere {
                 AuthorizationCodes.id eq authorizationCodeEntity.id
             }
@@ -63,14 +64,15 @@ class ExposedAuthorizationCodeRepository(database: Database, private val authHol
 
     override fun getExpiredCodes(pageCriteria: PageCriteria): Collection<AuthorizationCodeEntity> {
         val now = Instant.now()
-        return AuthorizationCodes
+        return transaction(database) { AuthorizationCodes
             .selectAll()
             .where { AuthorizationCodes.expiration lessEq now }
             .limit(pageCriteria.pageSize, (pageCriteria.pageSize.toLong() * pageCriteria.pageNumber.toLong()))
             .map { it.toAuthorizationCode() }
+            }
     }
 
-    internal fun ResultRow.toAuthorizationCode(): AuthorizationCodeEntity {
+    private fun ResultRow.toAuthorizationCode(): AuthorizationCodeEntity {
         val authHolderId = get(AuthorizationCodes.authHolderId)
         val authHolder = authHolders.getById(authHolderId.requireId())
 

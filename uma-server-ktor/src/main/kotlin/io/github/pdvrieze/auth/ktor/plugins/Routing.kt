@@ -12,6 +12,7 @@ import org.mitre.oauth2.web.OAuthConfirmationController
 import org.mitre.oauth2.web.RevocationEndpoint
 import org.mitre.oauth2.web.ScopeAPI
 import org.mitre.oauth2.web.TokenAPI
+import org.mitre.openid.connect.filter.PlainAuthorizationRequestEndpoint
 import org.mitre.openid.connect.web.ApprovedSiteAPI
 import org.mitre.openid.connect.web.BlacklistAPI
 import org.mitre.openid.connect.web.ClientAPI
@@ -23,11 +24,11 @@ import org.mitre.openid.connect.web.RootController
 import org.mitre.openid.connect.web.StatsAPI
 import org.mitre.openid.connect.web.UserInfoEndpoint
 import org.mitre.openid.connect.web.WhitelistAPI
-import org.mitre.uma.web.AuthorizationRequestEndpoint
 import org.mitre.uma.web.ClaimsCollectionEndpoint
 import org.mitre.uma.web.PermissionRegistrationEndpoint
 import org.mitre.uma.web.PolicyAPI
 import org.mitre.uma.web.ResourceSetRegistrationEndpoint
+import org.mitre.uma.web.UmaAuthorizationRequestEndpoint
 import org.mitre.uma.web.UserClaimSearchHelper
 import org.mitre.web.FormAuthEndpoint
 import org.mitre.web.util.KtorEndpoint
@@ -57,7 +58,7 @@ private val endpoints: List<KtorEndpoint> = listOf(
     RootController,
     FormAuthEndpoint,
     ScopeAPI,
-
+    PlainAuthorizationRequestEndpoint,
     OAuthConfirmationController,
     DeviceEndpoint,
     RevocationEndpoint,
@@ -81,5 +82,5 @@ private val endpoints: List<KtorEndpoint> = listOf(
     StatsAPI,
     UserInfoEndpoint,
     WhitelistAPI,
-    AuthorizationRequestEndpoint,
+    UmaAuthorizationRequestEndpoint,
 )
