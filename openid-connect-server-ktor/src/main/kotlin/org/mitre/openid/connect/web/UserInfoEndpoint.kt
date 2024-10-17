@@ -29,7 +29,7 @@ import org.mitre.openid.connect.view.userInfoJWTView
 import org.mitre.openid.connect.view.userInfoView
 import org.mitre.util.getLogger
 import org.mitre.web.util.KtorEndpoint
-import org.mitre.web.util.clientService
+import org.mitre.web.util.clientDetailsService
 import org.mitre.web.util.encryptersService
 import org.mitre.web.util.jwtService
 import org.mitre.web.util.openIdContext
@@ -71,7 +71,7 @@ object UserInfoEndpoint: KtorEndpoint {
         // content negotiation
 
         // start off by seeing if the client has registered for a signed/encrypted JWT from here
-        val client = checkNotNull(clientService.loadClientByClientId(auth.oAuth2Request.clientId))
+        val client = checkNotNull(clientDetailsService.loadClientByClientId(auth.oAuth2Request.clientId))
 
         val acceptedResponses = getSortedAcceptHeader()
 

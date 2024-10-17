@@ -36,7 +36,7 @@ import org.mitre.openid.connect.view.jsonEntityView
 import org.mitre.util.getLogger
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.OpenIdContextPlugin
-import org.mitre.web.util.clientService
+import org.mitre.web.util.clientDetailsService
 import org.mitre.web.util.resolveAuthenticatedUser
 import org.mitre.web.util.resourceSetService
 import org.mitre.web.util.tokenService
@@ -75,7 +75,7 @@ object IntrospectionEndpoint: KtorEndpoint {
             val o2a = auth
 
             val authClientId = o2a.oAuth2Request.clientId
-            authClient = checkNotNull(clientService.loadClientByClientId(authClientId))
+            authClient = checkNotNull(clientDetailsService.loadClientByClientId(authClientId))
 
             // the owner is the user who authorized the token in the first place
             val ownerId = checkNotNull(o2a.userAuthentication).name
@@ -94,7 +94,7 @@ object IntrospectionEndpoint: KtorEndpoint {
 
             val authClientId =
                 auth.name // direct authentication puts the client_id into the authentication's name field
-            authClient = checkNotNull(clientService.loadClientByClientId(authClientId))
+            authClient = checkNotNull(clientDetailsService.loadClientByClientId(authClientId))
 
             // directly authenticated clients get a subset of any scopes that they've registered for
             authClient.scope?.let { authScopes.addAll(it) }

@@ -39,7 +39,7 @@ import org.mitre.openid.connect.view.clientInformationResponseView
 import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.util.getLogger
 import org.mitre.web.util.KtorEndpoint
-import org.mitre.web.util.clientService
+import org.mitre.web.util.clientDetailsService
 import org.mitre.web.util.oidcTokenService
 import org.mitre.web.util.openIdContext
 import org.mitre.web.util.requireRole
@@ -132,7 +132,7 @@ object ProtectedResourceRegistrationEndpoint: KtorEndpoint {
 
         // now save it
         try {
-            val savedClient = clientService.saveNewClient(newClientBuilder.build())
+            val savedClient = clientDetailsService.saveNewClient(newClientBuilder.build())
 
             // generate the registration access token
             val token = oidcTokenService.createResourceAccessToken(savedClient)!!
@@ -171,7 +171,7 @@ object ProtectedResourceRegistrationEndpoint: KtorEndpoint {
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.readResourceConfiguration() {
         val auth = requireRole(GrantedAuthority.ROLE_CLIENT, SystemScopeService.RESOURCE_TOKEN_SCOPE) { return }
-        val client = clientService.loadClientByClientId(call.parameters["id"]!!)
+        val client = clientDetailsService.loadClientByClientId(call.parameters["id"]!!)
 
         if (client == null || client.clientId != auth.oAuth2Request.clientId) {
             // client mismatch
@@ -206,7 +206,7 @@ object ProtectedResourceRegistrationEndpoint: KtorEndpoint {
             return call.respond(HttpStatusCode.BadRequest)
         }
 
-        val oldClient = clientService.loadClientByClientId(clientId)
+        val oldClient = clientDetailsService.loadClientByClientId(clientId)
 
         if (oldClient?.clientId != auth.oAuth2Request.clientId || oldClient.clientId != newClient.clientId) {
             // client mismatch
@@ -265,7 +265,7 @@ object ProtectedResourceRegistrationEndpoint: KtorEndpoint {
 
         try {
             // save the client
-            val savedClient = clientService.updateClient(oldClient, newClient.build())
+            val savedClient = clientDetailsService.updateClient(oldClient, newClient.build())
 
             // possibly update the token
             val token = fetchValidRegistrationToken(auth, savedClient)
@@ -287,7 +287,7 @@ object ProtectedResourceRegistrationEndpoint: KtorEndpoint {
     suspend fun RoutingContext.deleteResource() {
         val auth = requireRole(GrantedAuthority.ROLE_CLIENT, SystemScopeService.RESOURCE_TOKEN_SCOPE) { return }
         val clientId = call.parameters["id"]!!
-        val client = clientService.loadClientByClientId(clientId)
+        val client = clientDetailsService.loadClientByClientId(clientId)
 
         if (client == null) {
             // client mismatch
@@ -301,7 +301,7 @@ object ProtectedResourceRegistrationEndpoint: KtorEndpoint {
             return call.respond(HttpStatusCode.Forbidden)
         }
 
-        clientService.deleteClient(client)
+        clientDetailsService.deleteClient(client)
         return call.respond(HttpStatusCode.NoContent)
     }
 
@@ -315,7 +315,7 @@ object ProtectedResourceRegistrationEndpoint: KtorEndpoint {
             AuthMethod.SECRET_BASIC, AuthMethod.SECRET_JWT, AuthMethod.SECRET_POST -> {
                 if (newClient.clientSecret.isNullOrEmpty()) {
                     // no secret yet, we need to generate a secret
-                    newClient.clientSecret = clientService.generateClientSecret(newClient)
+                    newClient.clientSecret = clientDetailsService.generateClientSecret(newClient)
                 }
             }
 

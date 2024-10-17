@@ -3,8 +3,6 @@ package org.mitre.oauth2.token
 import com.nimbusds.jwt.JWTParser
 import org.mitre.jwt.assertion.AssertionValidator
 import org.mitre.oauth2.assertion.AssertionOAuth2RequestFactory
-import org.mitre.oauth2.model.ClientDetailsEntity
-import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.SavedUserAuthentication
@@ -20,7 +18,7 @@ import java.text.ParseException
  */
 class JWTAssertionTokenGranter constructor(
     tokenServices: OAuth2TokenEntityService,
-    clientDetailsService: ClientDetailsEntityService?,
+    clientDetailsService: ClientDetailsEntityService,
     requestFactory: OAuth2RequestFactory,
     private val validator: AssertionValidator,
     private val assertionFactory: AssertionOAuth2RequestFactory
@@ -29,7 +27,7 @@ class JWTAssertionTokenGranter constructor(
     override suspend fun getOAuth2Authentication(
         client: OAuthClientDetails,
         tokenRequest: TokenRequest,
-    ): OAuth2RequestAuthentication? {
+    ): OAuth2RequestAuthentication {
         // read and load up the existing token
         try {
             val incomingAssertionValue = tokenRequest.requestParameters["assertion"]
@@ -49,20 +47,14 @@ class JWTAssertionTokenGranter constructor(
                     userAuthentication
                 )
             } else {
-                logger.warn("Incoming assertion did not pass validator, rejecting")
-                return null
+                error("Incoming assertion did not pass validator, rejecting")
             }
         } catch (e: ParseException) {
             logger.warn("Unable to parse incoming assertion")
         }
 
         // if we had made a token, we'd have returned it by now, so return null here to close out with no created token
-        return null
-    }
-
-    override suspend fun getAccessToken(client: ClientDetailsEntity, tokenRequest: TokenRequest): OAuth2AccessToken {
-        val auth: OAuth2RequestAuthentication = getOAuth2Authentication(client, tokenRequest)!!
-        return tokenServices.createAccessToken(auth)
+        error("no token")
     }
 
 

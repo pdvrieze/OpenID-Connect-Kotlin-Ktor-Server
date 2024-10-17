@@ -18,7 +18,6 @@
 package org.mitre.oauth2.web
 
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -33,7 +32,7 @@ import org.mitre.util.getLogger
 import org.mitre.web.OpenIdSessionStorage
 import org.mitre.web.htmlApproveView
 import org.mitre.web.util.KtorEndpoint
-import org.mitre.web.util.clientService
+import org.mitre.web.util.clientDetailsService
 import org.mitre.web.util.redirectResolver
 import org.mitre.web.util.requireRole
 import org.mitre.web.util.scopeClaimTranslationService
@@ -68,7 +67,7 @@ object OAuthConfirmationController: KtorEndpoint {
 
                 val client: OAuthClientDetails?
                 try {
-                    client = clientService.loadClientByClientId(authRequest.clientId)
+                    client = clientDetailsService.loadClientByClientId(authRequest.clientId)
                 } catch (e: OAuth2Exception) {
                     logger.error("confirmAccess: OAuth2Exception was thrown when attempting to load client", e)
                     return@get call.respond(HttpStatusCode.BadRequest)

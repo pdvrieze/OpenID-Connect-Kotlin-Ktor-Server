@@ -29,7 +29,7 @@ import org.mitre.oauth2.view.tokenApiView
 import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.util.getLogger
 import org.mitre.web.util.KtorEndpoint
-import org.mitre.web.util.clientService
+import org.mitre.web.util.clientDetailsService
 import org.mitre.web.util.oidcTokenService
 import org.mitre.web.util.requireRole
 import org.mitre.web.util.tokenService
@@ -108,7 +108,7 @@ object TokenAPI : KtorEndpoint {
     suspend fun RoutingContext.getAccessTokensByClientId() {
         requireRole(GrantedAuthority.ROLE_ADMIN) { return }
         val clientId = call.parameters["clientId"]!!
-        val client = clientService.loadClientByClientId(clientId)
+        val client = clientDetailsService.loadClientByClientId(clientId)
             ?: return jsonErrorView(INVALID_REQUEST, HttpStatusCode.NotFound, "The requested client with id $clientId could not be found.")
 
         val tokens = tokenService.getAccessTokensForClient(client)
@@ -120,7 +120,7 @@ object TokenAPI : KtorEndpoint {
     suspend fun RoutingContext.getRegistrationTokenByClientId() {
         requireRole(GrantedAuthority.ROLE_USER) { return }
         val clientId = call.parameters["clientId"]!!
-        val client = clientService.loadClientByClientId(clientId)
+        val client = clientDetailsService.loadClientByClientId(clientId)
             ?: return jsonErrorView(INVALID_REQUEST, HttpStatusCode.NotFound, "The requested client with id $clientId could not be found.")
 
         val token = tokenService.getRegistrationAccessTokenForClient(client)
@@ -135,7 +135,7 @@ object TokenAPI : KtorEndpoint {
         val p = requireRole(GrantedAuthority.ROLE_ADMIN) { return }
         val clientId = call.parameters["clientId"]!!
 
-        val client = clientService.loadClientByClientId(clientId)
+        val client = clientDetailsService.loadClientByClientId(clientId)
             ?: return jsonErrorView(INVALID_REQUEST, HttpStatusCode.NotFound, "The requested client with id $clientId could not be found.")
 
         val token = oidcTokenService.rotateRegistrationAccessTokenForClient(client)

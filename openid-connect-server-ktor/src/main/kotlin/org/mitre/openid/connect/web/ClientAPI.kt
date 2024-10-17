@@ -85,8 +85,8 @@ import org.mitre.util.asBooleanOrNull
 import org.mitre.util.getLogger
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.assertionValidator
+import org.mitre.web.util.clientDetailsService
 import org.mitre.web.util.clientLogoLoadingService
-import org.mitre.web.util.clientService
 import org.mitre.web.util.requireRole
 import java.text.ParseException
 
@@ -119,7 +119,7 @@ object ClientAPI: KtorEndpoint {
 //    @RequestMapping(method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.apiGetAllClients() {
         val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
-        val clients = clientService.allClients
+        val clients = clientDetailsService.allClients
 
         if (GrantedAuthority.ROLE_ADMIN in auth.authorities) {
             return clientEntityViewForAdmins(clients)
@@ -160,7 +160,8 @@ object ClientAPI: KtorEndpoint {
         }
 
         // if they leave the client identifier empty, force it to be generated
-        if (clientBuilder.clientId.isNullOrEmpty()) clientBuilder.clientId = clientService.generateClientIdString(clientBuilder.build())
+        if (clientBuilder.clientId.isNullOrEmpty()) clientBuilder.clientId =
+            clientDetailsService.generateClientIdString(clientBuilder.build())
 
         if (clientBuilder.tokenEndpointAuthMethod == null || clientBuilder.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.NONE) {
             // we shouldn't have a secret for this client
@@ -172,7 +173,7 @@ object ClientAPI: KtorEndpoint {
             if (rawJson["generateClientSecret"]?.asBooleanOrNull() == true
                 || clientBuilder.clientSecret.isNullOrEmpty()
             ) {
-                clientBuilder.clientSecret = clientService.generateClientSecret(clientBuilder)
+                clientBuilder.clientSecret = clientDetailsService.generateClientSecret(clientBuilder)
             }
         } else if (clientBuilder.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.PRIVATE_KEY) {
             if (clientBuilder.jwksUri.isNullOrEmpty() && clientBuilder.jwks == null) {
@@ -193,7 +194,7 @@ object ClientAPI: KtorEndpoint {
         clientBuilder.isDynamicallyRegistered = false
 
         try {
-            val newClient = clientService.saveNewClient(clientBuilder.build())
+            val newClient = clientDetailsService.saveNewClient(clientBuilder.build())
 
             if (GrantedAuthority.ROLE_ADMIN in auth.authorities) {
                 return clientEntityViewForAdmins(newClient)
@@ -245,7 +246,7 @@ object ClientAPI: KtorEndpoint {
             )
         }
 
-        val oldClient = clientService.getClientById(id) ?: run {
+        val oldClient = clientDetailsService.getClientById(id) ?: run {
             logger.error("apiUpdateClient failed; client with id $id could not be found.")
             return jsonErrorView(
                 INVALID_REQUEST,
@@ -255,7 +256,7 @@ object ClientAPI: KtorEndpoint {
 
         // if they leave the client identifier empty, force it to be generated
         if (clientBuilder.clientId.isNullOrEmpty()) {
-            clientBuilder.clientId = clientService.generateClientIdString(clientBuilder.build())
+            clientBuilder.clientId = clientDetailsService.generateClientIdString(clientBuilder.build())
         }
 
         if (clientBuilder.tokenEndpointAuthMethod == null || clientBuilder.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.NONE) {
@@ -266,7 +267,7 @@ object ClientAPI: KtorEndpoint {
             // if they've asked for us to generate a client secret (or they left it blank but require one), do so here
 
             if (rawJson["generateClientSecret"]?.asBoolean() == true || clientBuilder.clientSecret.isNullOrEmpty()) {
-                clientBuilder.clientSecret = clientService.generateClientSecret(clientBuilder)
+                clientBuilder.clientSecret = clientDetailsService.generateClientSecret(clientBuilder)
             }
         } else if (clientBuilder.tokenEndpointAuthMethod == OAuthClientDetails.AuthMethod.PRIVATE_KEY) {
             if (clientBuilder.jwksUri.isNullOrEmpty() && clientBuilder.jwks == null) {
@@ -285,7 +286,7 @@ object ClientAPI: KtorEndpoint {
         }
 
         try {
-            val newClient = clientService.updateClient(oldClient, clientBuilder.build())
+            val newClient = clientDetailsService.updateClient(oldClient, clientBuilder.build())
 
             if (GrantedAuthority.ROLE_ADMIN in auth.authorities) {
                 return clientEntityViewForAdmins(newClient)
@@ -307,7 +308,7 @@ object ClientAPI: KtorEndpoint {
         val auth = requireRole(GrantedAuthority.ROLE_ADMIN) { return }
         val id = call.parameters["id"]!!.toLong()
 
-        val client = clientService.getClientById(id) ?: run {
+        val client = clientDetailsService.getClientById(id) ?: run {
             logger.error("apiDeleteClient failed; client with id $id could not be found.")
             return jsonErrorView(
                 INVALID_REQUEST, HttpStatusCode.NotFound,
@@ -315,7 +316,7 @@ object ClientAPI: KtorEndpoint {
             )
         }
 
-        clientService.deleteClient(client)
+        clientDetailsService.deleteClient(client)
 
         return call.respond(HttpStatusCode.OK)
     }
@@ -328,7 +329,7 @@ object ClientAPI: KtorEndpoint {
     suspend fun RoutingContext.apiShowClient() {
         val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
         val id = call.parameters["id"]!!.toLong()
-        val client = clientService.getClientById(id) ?: run {
+        val client = clientDetailsService.getClientById(id) ?: run {
             logger.error("apiShowClient failed; client with id $id could not be found.")
             return jsonErrorView(
                 INVALID_REQUEST, HttpStatusCode.NotFound,
@@ -350,7 +351,7 @@ object ClientAPI: KtorEndpoint {
     suspend fun RoutingContext.getClientLogo() {
         val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
         val id = call.parameters["id"]!!.toLong()
-        val client = clientService.getClientById(id) ?: return call.respond(HttpStatusCode.NotFound)
+        val client = clientDetailsService.getClientById(id) ?: return call.respond(HttpStatusCode.NotFound)
         val logoUri = client.logoUri?.takeUnless { it.isBlank() } ?: return call.respond(HttpStatusCode.NotFound)
 
         // get the image from cache

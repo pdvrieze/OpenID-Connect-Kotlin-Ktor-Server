@@ -7,6 +7,7 @@ import io.github.pdvrieze.auth.repository.exposed.AuthorizationCodes
 import io.github.pdvrieze.auth.repository.exposed.SystemScopes
 import io.ktor.client.*
 import io.ktor.client.request.*
+import io.ktor.client.request.forms.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import org.jetbrains.exposed.sql.Table
@@ -43,14 +44,14 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
 
         transaction { SystemScopes.deleteAll() }
 
-        testContext.clientService.allClients.toList().forEach { client ->
-            testContext.clientService.deleteClient(client)
+        testContext.clientDetailsService.allClients.toList().forEach { client ->
+            testContext.clientDetailsService.deleteClient(client)
         }
 
         scope1Id = testContext.scopeRepository.save(SystemScope("scope1")).id!!
         scope2Id = testContext.scopeRepository.save(SystemScope("scope2")).id!!
 
-        clientSecret = testContext.clientService.generateClientSecret()!!
+        clientSecret = testContext.clientDetailsService.generateClientSecret()!!
         val newClient = ClientDetailsEntity(
             clientId = "MyClient",
             clientSecret = clientSecret,
@@ -58,12 +59,12 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
             scope = setOf("scope1", "scope2"),
         )
 
-        clientId = testContext.clientService.saveNewClient(newClient).clientId!!
+        clientId = testContext.clientDetailsService.saveNewClient(newClient).clientId!!
     }
 
     @Test
     fun testSetup() {
-        val client = assertNotNull(testContext.clientService.loadClientByClientId(clientId), "Missing client")
+        val client = assertNotNull(testContext.clientDetailsService.loadClientByClientId(clientId), "Missing client")
         assertNotNull(client.clientSecret, "Missing client secret")
     }
 
@@ -113,7 +114,13 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
         assertEquals(REDIRECT_URI, actualBase)
         val code = assertNotNull(respUri.parameters["code"])
 
-        val r2 = getUnAuth("/token?grant_type=authorization_code&code=$code", client = nonRedirectingClient) {
+        val r2 = nonRedirectingClient.submitForm(
+            "/token",
+            formParameters = parameters {
+                append("grant_type", "authorization_code")
+                append("code", code)
+            }
+        ) {
             basicAuth(clientId, clientSecret)
         }
         assertEquals(HttpStatusCode.OK, r2.status)

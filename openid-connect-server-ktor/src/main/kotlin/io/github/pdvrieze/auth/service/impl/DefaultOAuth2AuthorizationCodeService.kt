@@ -37,7 +37,7 @@ import java.util.*
  * @author aanganes
  */
 class DefaultOAuth2AuthorizationCodeService(
-    private val codeRepository: AuthorizationCodeRepository,
+    private val authcodeRepository: AuthorizationCodeRepository,
     private val authenticationHolderRepository: AuthenticationHolderRepository,
     private val authCodeExpirationSeconds: Duration = Duration.ofMinutes(5) // expire in 5 minutes by default
 ) : OAuth2AuthorizationCodeService {
@@ -64,7 +64,7 @@ class DefaultOAuth2AuthorizationCodeService(
         val expiration = Date.from(Instant.now()+ authCodeExpirationSeconds)
 
         val entity = AuthorizationCodeEntity(code = code, authenticationHolder = authHolder, expiration = expiration)
-        codeRepository.save(entity)
+        authcodeRepository.save(entity)
 
         return code
     }
@@ -80,12 +80,12 @@ class DefaultOAuth2AuthorizationCodeService(
      * @throws            InvalidGrantException, if an AuthorizationCodeEntity is not found with the given value
      */
     override fun consumeAuthorizationCode(code: String): OAuth2RequestAuthentication {
-        val result = codeRepository.getByCode(code)
+        val result = authcodeRepository.getByCode(code)
             ?: throw InvalidGrantException("JpaAuthorizationCodeRepository: no authorization code found for value $code")
 
         val auth = result.authenticationHolder!!.authentication
 
-        codeRepository.remove(result)
+        authcodeRepository.remove(result)
 
         return auth
     }
@@ -96,11 +96,11 @@ class DefaultOAuth2AuthorizationCodeService(
     override fun clearExpiredAuthorizationCodes() {
         object : AbstractPageOperationTemplate<AuthorizationCodeEntity>("clearExpiredAuthorizationCodes") {
             override fun fetchPage(): Collection<AuthorizationCodeEntity> {
-                return codeRepository.expiredCodes
+                return authcodeRepository.expiredCodes
             }
 
             override fun doOperation(item: AuthorizationCodeEntity) {
-                codeRepository.remove(item)
+                authcodeRepository.remove(item)
             }
         }.execute()
     }

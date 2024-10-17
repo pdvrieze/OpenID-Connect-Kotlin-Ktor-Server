@@ -18,7 +18,6 @@
 package org.mitre.oauth2.web
 
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -29,7 +28,7 @@ import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.util.getLogger
 import org.mitre.web.util.KtorEndpoint
-import org.mitre.web.util.clientService
+import org.mitre.web.util.clientDetailsService
 import org.mitre.web.util.requireRoleOf
 import org.mitre.web.util.tokenService
 
@@ -50,7 +49,7 @@ object RevocationEndpoint : KtorEndpoint {
 
                 val authClient: OAuthClientDetails
 
-                val clientService = clientService
+                val clientService = clientDetailsService
 
                 if (auth is OAuth2RequestAuthentication) {
                     // the client authenticated with OAuth, do our UMA checks

@@ -27,6 +27,7 @@ import io.ktor.client.engine.java.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.util.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonPrimitive
 import org.mitre.oauth2.exception.AuthenticationException
@@ -37,6 +38,7 @@ import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.repository.OAuth2ClientRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.oauth2.service.ClientDetailsEntityService
+import org.mitre.oauth2.service.ClientLoadingResult
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.oauth2.util.requireId
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
@@ -270,12 +272,27 @@ class DefaultOAuth2ClientDetailsEntityService(
     /**
      * Get the client for the given ClientID
      */
-    override fun loadClientByClientId(clientId: String): ClientDetailsEntity? {
+    override fun loadClientByClientId(clientId: String): ClientDetailsEntity {
         require(clientId.isNotEmpty()) { "Client id must not be empty!" }
 
         return clientRepository.getClientByClientId(clientId)
             ?.let(ClientDetailsEntity::from)
             ?: throw InvalidClientException("Client with id $clientId was not found")
+    }
+
+    @OptIn(ExperimentalEncodingApi::class)
+    override fun loadClientAuthenticated(clientId: String, clientPublicSecret: String): ClientLoadingResult {
+        val client = clientRepository.getClientByClientId(clientId)?: return ClientLoadingResult.Missing
+        val clientSecret = client.clientSecret ?: return ClientLoadingResult.Unauthorized // don't allow unauthorized clients
+        val pwdIdx = clientSecret.indexOf(':')
+        if (pwdIdx >=0) {
+            val salt = clientSecret.substring(0, pwdIdx)
+            val expectedDigest = Base64.Default.decode(clientSecret.substring(pwdIdx + 1))
+            val actualDigest = getDigestFunction("SHA-256", { salt }).invoke(clientPublicSecret)
+            if (!expectedDigest.contentEquals(actualDigest)) {return ClientLoadingResult.Unauthorized}
+        } else if (clientSecret != clientPublicSecret) return ClientLoadingResult.Unauthorized
+
+        return ClientLoadingResult.Found(client)
     }
 
     /**

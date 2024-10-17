@@ -32,7 +32,7 @@ import org.mitre.web.htmlLogoutConfirmationView
 import org.mitre.web.htmlPostLogoutView
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.assertionValidator
-import org.mitre.web.util.clientService
+import org.mitre.web.util.clientDetailsService
 import org.mitre.web.util.resolveAuthenticatedUser
 import org.mitre.web.util.update
 import org.mitre.web.util.userInfoService
@@ -89,7 +89,7 @@ object EndSessionEndpoint: KtorEndpoint {
 
                     val clientId = idTokenClaims.audience.single()
 
-                    client = clientService.loadClientByClientId(clientId)
+                    client = clientDetailsService.loadClientByClientId(clientId)
 
 
                     // save a reference in the session for us to pick up later
@@ -137,7 +137,7 @@ object EndSessionEndpoint: KtorEndpoint {
 
     suspend fun RoutingContext.processLogout() {
         val clientId = call.receiveParameters()["clientId"]
-        val client: OAuthClientDetails? = clientId?.let { clientService.loadClientByClientId(it) }
+        val client: OAuthClientDetails? = clientId?.let { clientDetailsService.loadClientByClientId(it) }
         processLogout(call.request.queryParameters["approved"], client)
     }
 

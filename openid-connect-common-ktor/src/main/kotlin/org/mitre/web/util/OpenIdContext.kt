@@ -10,6 +10,7 @@ import org.mitre.jwt.signer.service.ClientKeyCacheService
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.jwt.signer.service.impl.SymmetricKeyJWTValidatorCacheService
 import org.mitre.oauth2.TokenEnhancer
+import org.mitre.oauth2.assertion.AssertionOAuth2RequestFactory
 import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2ClientRepository
@@ -22,6 +23,7 @@ import org.mitre.oauth2.service.OAuth2AuthorizationCodeService
 import org.mitre.oauth2.service.OAuth2TokenEntityService
 import org.mitre.oauth2.service.RedirectResolver
 import org.mitre.oauth2.service.SystemScopeService
+import org.mitre.oauth2.token.TokenGranter
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.config.MessageSource
 import org.mitre.openid.connect.repository.ApprovedSiteRepository
@@ -58,7 +60,6 @@ interface OpenIdContext {
     val approvedSiteService: ApprovedSiteService
     val blacklistedSiteService: BlacklistedSiteService
     val clientDetailsService: ClientDetailsEntityService
-    val clientService: ClientDetailsEntityService
     val config: ConfigurationPropertiesBean
     val deviceCodeService: DeviceCodeService
     val encryptionService: JWTEncryptionAndDecryptionService
@@ -68,13 +69,13 @@ interface OpenIdContext {
     val oidcTokenService: OIDCTokenService
     val pairwiseIdentifierService: PairwiseIdentifierService
     val redirectResolver: RedirectResolver
-    val routeSetService: ResourceSetService
     val scopeClaimTranslationService: ScopeClaimTranslationService
     val scopeService: SystemScopeService
     val signService: JWTSigningAndValidationService
     val statsService: StatsService
     val tokenEnhancer: TokenEnhancer
     val tokenService: OAuth2TokenEntityService
+
     @Deprecated("Use tokenService", ReplaceWith("tokenService"))
     val tokenServices: OAuth2TokenEntityService get() = tokenService
     val userInfoService: UserInfoService
@@ -85,6 +86,7 @@ interface OpenIdContext {
     val encyptersService: ClientKeyCacheService
     val clientLogoLoadingService: ClientLogoLoadingService
     val assertionValidator: AssertionValidator
+    val tokenGranters: Map<String, TokenGranter>
     //endregion
 
     //region Regular repositories
@@ -110,7 +112,9 @@ interface OpenIdContext {
 
     //region Access to the html views
     val htmlViews: HtmlViews
+
     //endregion
+    val assertionFactory: AssertionOAuth2RequestFactory
 }
 
 
@@ -132,8 +136,6 @@ val RoutingContext.blacklistedSiteService: BlacklistedSiteService
     get() = openIdContext.blacklistedSiteService
 val RoutingContext.clientDetailsService: ClientDetailsEntityService
     get() = openIdContext.clientDetailsService
-val RoutingContext.clientService: ClientDetailsEntityService
-    get() = openIdContext.clientService
 val RoutingContext.config: ConfigurationPropertiesBean
     get() = openIdContext.config
 val RoutingContext.deviceCodeService: DeviceCodeService
@@ -150,8 +152,6 @@ val RoutingContext.pairwiseIdentifierService: PairwiseIdentifierService
     get() = openIdContext.pairwiseIdentifierService
 val RoutingContext.redirectResolver: RedirectResolver
     get() = openIdContext.redirectResolver
-val RoutingContext.routeSetService: ResourceSetService
-    get() = openIdContext.routeSetService
 val RoutingContext.scopeClaimTranslationService: ScopeClaimTranslationService
     get() = openIdContext.scopeClaimTranslationService
 val RoutingContext.scopeService: SystemScopeService
@@ -177,10 +177,14 @@ val RoutingContext.encryptersService: ClientKeyCacheService
     get() = openIdContext.encyptersService
 
 val RoutingContext.clientLogoLoadingService: ClientLogoLoadingService
-    get()  = openIdContext.clientLogoLoadingService
+    get() = openIdContext.clientLogoLoadingService
 
 val RoutingContext.assertionValidator: AssertionValidator
-    get()  = openIdContext.assertionValidator
+    get() = openIdContext.assertionValidator
+
+val RoutingContext.tokenGranters: Map<String, TokenGranter>
+    get() = openIdContext.tokenGranters
+
 //endregion
 
 //region Direct access to UMA services

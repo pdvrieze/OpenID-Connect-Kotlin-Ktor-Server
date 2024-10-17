@@ -35,7 +35,7 @@ import org.mitre.util.getLogger
 import org.mitre.web.htmlApproveDeviceView
 import org.mitre.web.htmlRequestUserCodeView
 import org.mitre.web.util.KtorEndpoint
-import org.mitre.web.util.clientService
+import org.mitre.web.util.clientDetailsService
 import org.mitre.web.util.deviceCodeService
 import org.mitre.web.util.openIdContext
 import org.mitre.web.util.requireRole
@@ -81,7 +81,7 @@ object DeviceEndpoint : KtorEndpoint {
 
         val client: OAuthClientDetails
         try {
-            client = clientService.loadClientByClientId(clientId) ?: run {
+            client = clientDetailsService.loadClientByClientId(clientId) ?: run {
                 logger.error("could not find client $clientId")
                 return call.respond(HttpStatusCode.NotFound)
             }
@@ -194,7 +194,7 @@ object DeviceEndpoint : KtorEndpoint {
             return doError("userCodeAlreadyApproved")
         }
 
-        val client = clientService.loadClientByClientId(dc.clientId!!)!!
+        val client = clientDetailsService.loadClientByClientId(dc.clientId!!)!!
 
         // model["client"] = client
         // model["dc"] = dc

@@ -5,6 +5,7 @@ import io.github.pdvrieze.auth.repository.exposed.ExposedAuthenticationHolderRep
 import io.github.pdvrieze.auth.repository.exposed.ExposedAuthorizationCodeRepository
 import io.github.pdvrieze.auth.repository.exposed.ExposedOauth2ClientRepository
 import io.github.pdvrieze.auth.repository.exposed.ExposedOauth2TokenRepository
+import io.github.pdvrieze.auth.repository.exposed.ExposedOpenIdContext
 import io.github.pdvrieze.auth.repository.exposed.ExposedSystemScopeRepository
 import io.github.pdvrieze.auth.service.impl.BlacklistAwareRedirectResolver
 import io.github.pdvrieze.auth.service.impl.DefaultIntrospectionResultAssembler
@@ -33,6 +34,8 @@ import org.mitre.jwt.signer.service.impl.DefaultJWTSigningAndValidationService
 import org.mitre.jwt.signer.service.impl.SymmetricKeyJWTValidatorCacheService
 import org.mitre.jwt.signer.service.impl.ktor.KtorJWKSetCacheService
 import org.mitre.oauth2.TokenEnhancer
+import org.mitre.oauth2.assertion.AssertionOAuth2RequestFactory
+import org.mitre.oauth2.assertion.impl.DirectCopyRequestFactory
 import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
@@ -52,6 +55,8 @@ import org.mitre.oauth2.service.impl.DefaultOAuth2AuthorizationCodeService
 import org.mitre.oauth2.service.impl.DefaultOAuth2ClientDetailsEntityService
 import org.mitre.oauth2.service.impl.DefaultOAuth2ProviderTokenService
 import org.mitre.oauth2.service.impl.DefaultSystemScopeService
+import org.mitre.oauth2.token.AuthorizationCodeTokenGranter
+import org.mitre.oauth2.token.TokenGranter
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.config.JsonMessageSource
 import org.mitre.openid.connect.repository.ApprovedSiteRepository
@@ -111,9 +116,9 @@ data class OpenIdConfigurator(
 
     fun resolveDefault(): OpenIdContext = DefaultContext(this)
 
-    open class DefaultContext(configurator: OpenIdConfigurator) : OpenIdContext {
+    open class DefaultContext(configurator: OpenIdConfigurator) : ExposedOpenIdContext {
         @Deprecated("Hopefully not needed. Use configurator.database")
-        val database = configurator.database
+        override val database = configurator.database
         private val credentialVerifier = configurator.verifyCredential
 
         override val config: ConfigurationPropertiesBean = ConfigurationPropertiesBean(configurator.issuer, configurator.topBarTitle).apply {
@@ -194,28 +199,6 @@ data class OpenIdConfigurator(
             ticketRepository = ticketRepository,
         )
 
-        override val clientService: ClientDetailsEntityService = DefaultOAuth2ClientDetailsEntityService(
-            clientRepository = clientRepository,
-            tokenRepository = tokenRepository,
-            approvedSiteService = approvedSiteService,
-            whitelistedSiteService = whitelistedSiteService,
-            blacklistedSiteService = blacklistedSiteService,
-            scopeService = scopeService,
-            statsService = statsService,
-            resourceSetService = resourceSetService,
-            config = this.config,
-        )
-
-        override val introspectionResultAssembler: JsonIntrospectionResultAssembler =
-            DefaultIntrospectionResultAssembler()
-
-        override val userInfoService: UserInfoService = DefaultUserInfoService(
-            userInfoRepository, clientService, pairwiseIdentifierService
-        )
-
-        override val routeSetService: ResourceSetService =
-            DefaultResourceSetService(resourceSetRepository, tokenRepository, ticketRepository)
-
         override val clientDetailsService: ClientDetailsEntityService = DefaultOAuth2ClientDetailsEntityService(
             clientRepository,
             tokenRepository,
@@ -224,8 +207,15 @@ data class OpenIdConfigurator(
             blacklistedSiteService,
             scopeService,
             statsService,
-            routeSetService,
+            resourceSetService,
             this.config
+        )
+
+        override val introspectionResultAssembler: JsonIntrospectionResultAssembler =
+            DefaultIntrospectionResultAssembler()
+
+        override val userInfoService: UserInfoService = DefaultUserInfoService(
+            userInfoRepository, clientDetailsService, pairwiseIdentifierService
         )
 
         override val jwtService: JWTSigningAndValidationService =
@@ -236,7 +226,7 @@ data class OpenIdConfigurator(
         override val tokenEnhancer: TokenEnhancer =
             ConnectTokenEnhancerImpl(clientDetailsService, config, jwtService, userInfoService, { oidcTokenService })
 
-        override val tokenService: OAuth2TokenEntityService = DefaultOAuth2ProviderTokenService(
+        final override val tokenService: OAuth2TokenEntityService = DefaultOAuth2ProviderTokenService(
             tokenRepository, authenticationHolderRepository, clientDetailsService, tokenEnhancer, scopeService, approvedSiteService
         )
 
@@ -279,13 +269,21 @@ data class OpenIdConfigurator(
             KtorRegisteredClientService(configurator.database)
 
         override val umaTokenService: UmaTokenService =
-            DefaultUmaTokenService(authenticationHolderRepository, tokenService, clientService, config, jwtService)
+            DefaultUmaTokenService(authenticationHolderRepository, tokenService, clientDetailsService, config, jwtService)
 
         override val clientLogoLoadingService: ClientLogoLoadingService =
             KtorInMemoryClientLogoLoadingService()
 
         override val assertionValidator: AssertionValidator =
             SelfAssertionValidator(config, jwtService)
+
+        override val assertionFactory: AssertionOAuth2RequestFactory =
+            DirectCopyRequestFactory()
+
+        override val tokenGranters: Map<String, TokenGranter> =
+            listOf(
+                AuthorizationCodeTokenGranter(tokenService, authcodeService, clientDetailsService, authRequestFactory)
+            ).associateBy { it.grantType }
 
         override val htmlViews: HtmlViews = DefaultHtmlViews()
 

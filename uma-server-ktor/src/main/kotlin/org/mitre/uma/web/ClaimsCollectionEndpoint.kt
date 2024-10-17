@@ -27,7 +27,7 @@ import org.mitre.openid.connect.model.DefaultUserInfo
 import org.mitre.uma.model.Claim
 import org.mitre.util.getLogger
 import org.mitre.web.util.KtorEndpoint
-import org.mitre.web.util.clientService
+import org.mitre.web.util.clientDetailsService
 import org.mitre.web.util.permissionService
 import org.mitre.web.util.requireRole
 
@@ -57,7 +57,7 @@ object ClaimsCollectionEndpoint : KtorEndpoint {
 
         if (auth !is OAuth2AccessToken) return call.respond(HttpStatusCode.Unauthorized) // requires OAuth
 
-        val client = clientService.loadClientByClientId(clientId)
+        val client = clientDetailsService.loadClientByClientId(clientId)
 
         val ticket = permissionService.getByTicket(ticketValue)
 
@@ -141,7 +141,8 @@ object ClaimsCollectionEndpoint : KtorEndpoint {
 
         if (redirectUri.isNullOrEmpty()) {
             if (client.claimsRedirectUris?.size == 1) {
-                redirectUri = client.claimsRedirectUris!!.iterator().next() // get the first (and only) redirect URI to use here
+                redirectUri =
+                    client.claimsRedirectUris!!.iterator().next() // get the first (and only) redirect URI to use here
                 logger.info("No redirect URI passed in, using registered value: $redirectUri")
             } else {
                 throw RedirectResolver.RedirectMismatchException("Unable to find redirect URI and none passed in.")

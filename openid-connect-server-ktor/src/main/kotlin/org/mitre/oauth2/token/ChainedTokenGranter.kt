@@ -1,8 +1,6 @@
 package org.mitre.oauth2.token
 
 import org.mitre.oauth2.exception.InvalidScopeException
-import org.mitre.oauth2.model.ClientDetailsEntity
-import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.resolver.ClientResolver
@@ -14,7 +12,7 @@ import org.mitre.openid.connect.request.OAuth2RequestFactory
  */
 class ChainedTokenGranter constructor(// keep down-cast versions so we can get to the right queries
     tokenServices: OAuth2TokenEntityService,
-    clientResolver: ClientResolver?,
+    clientResolver: ClientResolver,
     requestFactory: OAuth2RequestFactory
     // TODO: remove cast to ClientDetails service, but that means inhertence needs to be different
 ) : AbstractTokenGranter(tokenServices, clientResolver, requestFactory, GRANT_TYPE) {
@@ -56,10 +54,6 @@ class ChainedTokenGranter constructor(// keep down-cast versions so we can get t
         )
 
         return authentication
-    }
-
-    override suspend fun getAccessToken(client: ClientDetailsEntity, tokenRequest: TokenRequest): OAuth2AccessToken {
-        return tokenServices.createAccessToken(getOAuth2Authentication(client, tokenRequest))
     }
 
     companion object {

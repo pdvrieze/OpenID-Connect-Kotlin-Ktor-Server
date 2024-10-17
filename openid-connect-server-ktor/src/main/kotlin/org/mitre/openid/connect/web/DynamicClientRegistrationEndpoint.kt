@@ -86,7 +86,7 @@ import org.mitre.util.getLogger
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.assertionValidator
 import org.mitre.web.util.blacklistedSiteService
-import org.mitre.web.util.clientService
+import org.mitre.web.util.clientDetailsService
 import org.mitre.web.util.oidcTokenService
 import org.mitre.web.util.openIdContext
 import org.mitre.web.util.requireRole
@@ -156,7 +156,7 @@ object DynamicClientRegistrationEndpoint: KtorEndpoint {
         if (newClientBuilder.tokenEndpointAuthMethod == AuthMethod.SECRET_BASIC || newClientBuilder.tokenEndpointAuthMethod == AuthMethod.SECRET_JWT || newClientBuilder.tokenEndpointAuthMethod == AuthMethod.SECRET_POST) {
             // we need to generate a secret
 
-            newClientBuilder.clientSecret = clientService.generateClientSecret(newClientBuilder)
+            newClientBuilder.clientSecret = clientDetailsService.generateClientSecret(newClientBuilder)
         }
 
         // set some defaults for token timeouts
@@ -198,7 +198,7 @@ object DynamicClientRegistrationEndpoint: KtorEndpoint {
 
         // now save it
         try {
-            val savedClient = clientService.saveNewClient(newClientBuilder.build())
+            val savedClient = clientDetailsService.saveNewClient(newClientBuilder.build())
 
             // generate the registration access token
             var token = oidcTokenService.createRegistrationAccessToken(savedClient)!!
@@ -223,7 +223,7 @@ object DynamicClientRegistrationEndpoint: KtorEndpoint {
         val auth = requireRole(GrantedAuthority.ROLE_CLIENT, SystemScopeService.REGISTRATION_TOKEN_SCOPE) { return }
         val clientId = call.parameters["id"]!!
 
-        val client = clientService.loadClientByClientId(clientId)
+        val client = clientDetailsService.loadClientByClientId(clientId)
 
         if (client != null && client.clientId == auth.oAuth2Request.clientId) {
             val token = rotateRegistrationTokenIfNecessary(auth, client)
@@ -256,7 +256,7 @@ object DynamicClientRegistrationEndpoint: KtorEndpoint {
             return call.respond(HttpStatusCode.BadRequest)
         }
 
-        val oldClient = clientService.loadClientByClientId(clientId)
+        val oldClient = clientDetailsService.loadClientByClientId(clientId)
 
         if (newClient == null || oldClient == null || oldClient.clientId != auth.oAuth2Request.clientId || oldClient.clientId != newClient.clientId
         ) {
@@ -275,7 +275,8 @@ object DynamicClientRegistrationEndpoint: KtorEndpoint {
         newClient.idTokenValiditySeconds = oldClient.idTokenValiditySeconds
         newClient.refreshTokenValiditySeconds = oldClient.refreshTokenValiditySeconds
         newClient.isDynamicallyRegistered = true  // it's still dynamically registered
-        newClient.isAllowIntrospection = false  // dynamically registered clients can't do introspection -- use the resource registration instead
+        newClient.isAllowIntrospection =
+            false  // dynamically registered clients can't do introspection -- use the resource registration instead
         newClient.authorities = oldClient.authorities.toHashSet()
         newClient.clientDescription = oldClient.clientDescription
         newClient.createdAt = oldClient.createdAt
@@ -296,7 +297,7 @@ object DynamicClientRegistrationEndpoint: KtorEndpoint {
 
         try {
             // save the client
-            val savedClient = clientService.updateClient(oldClient, newClient.build())
+            val savedClient = clientDetailsService.updateClient(oldClient, newClient.build())
 
             val token = rotateRegistrationTokenIfNecessary(auth, savedClient)
 
@@ -319,10 +320,10 @@ object DynamicClientRegistrationEndpoint: KtorEndpoint {
     suspend fun RoutingContext.deleteClient() {
         val auth = requireRole(GrantedAuthority.ROLE_CLIENT, SystemScopeService.REGISTRATION_TOKEN_SCOPE) { return }
         val clientId = call.parameters["id"]!!
-        val client = clientService.loadClientByClientId(clientId)
+        val client = clientDetailsService.loadClientByClientId(clientId)
 
         if (client != null && client.clientId == auth.oAuth2Request.clientId) {
-            clientService.deleteClient(client)
+            clientDetailsService.deleteClient(client)
             return call.respond(HttpStatusCode.NoContent)
         } else {
             // client mismatch
@@ -491,7 +492,7 @@ object DynamicClientRegistrationEndpoint: KtorEndpoint {
             AuthMethod.SECRET_POST -> {
                 if (newClient.clientSecret.isNullOrEmpty()) {
                     // no secret yet, we need to generate a secret
-                    newClient.clientSecret = clientService.generateClientSecret(newClient)
+                    newClient.clientSecret = clientDetailsService.generateClientSecret(newClient)
                 }
             }
 

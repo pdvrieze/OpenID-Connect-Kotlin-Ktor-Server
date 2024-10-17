@@ -6,10 +6,12 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
+import org.mitre.oauth2.exception.OAuth2Exception
 import org.mitre.oauth2.exception.OAuthErrorCodes
 import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.convert.OAuth2Request
+import org.mitre.oauth2.service.ClientLoadingResult
 import org.mitre.openid.connect.request.ConnectRequestParameters
 import org.mitre.openid.connect.service.LoginHintExtracter
 import org.mitre.openid.connect.service.impl.RemoveLoginHintsWithHTTP
@@ -19,24 +21,28 @@ import org.mitre.web.OpenIdSessionStorage
 import org.mitre.web.htmlLoginView
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.authcodeService
-import org.mitre.web.util.clientService
+import org.mitre.web.util.clientDetailsService
 import org.mitre.web.util.openIdContext
 import org.mitre.web.util.update
 import java.net.URISyntaxException
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 /**
  * @author jricher
  */
-object PlainAuthorizationRequestEndpoint: KtorEndpoint {
+object PlainAuthorizationRequestEndpoint : KtorEndpoint {
     private val loginHintExtracter: LoginHintExtracter = RemoveLoginHintsWithHTTP()
     override fun Route.addRoutes() {
         authenticate(optional = true) {
             get("authorize") {
                 startAuthorizationFlow()
             }
+        }
+        post("/token") {
+            exchangeAccessToken()
         }
     }
 
@@ -65,7 +71,7 @@ object PlainAuthorizationRequestEndpoint: KtorEndpoint {
         authRequest = openIdContext.authRequestFactory.createAuthorizationRequest(params)
         if (authRequest.clientId.isBlank()) return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
 
-        val client = clientService.loadClientByClientId(authRequest.clientId)
+        val client = clientDetailsService.loadClientByClientId(authRequest.clientId)
             ?: return jsonErrorView(OAuthErrorCodes.INVALID_CLIENT)
 
         val auth = openIdContext.resolveAuthenticatedUser(call)
@@ -110,8 +116,7 @@ object PlainAuthorizationRequestEndpoint: KtorEndpoint {
 
         // TODO check redirect uri validity (if in the auth request)
         val redirectUri = authRequest.redirectUri ?: client.redirectUris.singleOrNull()
-            ?: return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
-
+        ?: return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
 
 
         // TODO check scopes
@@ -145,7 +150,7 @@ object PlainAuthorizationRequestEndpoint: KtorEndpoint {
         prompt: String,
         authRequest: OAuth2Request,
         client: OAuthClientDetails?,
-        auth: Authentication?
+        auth: Authentication?,
     ): Boolean {
         TODO("Not correct, not fully implemented")
         // we have a "prompt" parameter
@@ -218,6 +223,79 @@ object PlainAuthorizationRequestEndpoint: KtorEndpoint {
         return true
     }
 
+    @OptIn(ExperimentalEncodingApi::class)
+    private suspend fun RoutingContext.exchangeAccessToken() {
+
+        val postParams = call.receiveParameters()
+
+        if (postParams.entries().any { it.value.size != 1 }) {
+            return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
+        }
+
+        logger.info("Query parameters: ${postParams.entries().joinToString { (k, v) -> "$k=\"${v.single()}\"" }}")
+
+        val grantType = postParams["grant_type"] ?: return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
+        val code = postParams["code"] ?: return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
+        val redirectUri = postParams["redirect_uri"] // can be null if also not in original request
+
+        val requestClientId: String? = call.request.queryParameters["client_id"]
+
+        val creds : UserPasswordCredential
+
+        when {
+            call.request.authorization() != null -> {
+                val authorizationHeader = call.request.parseAuthorizationHeader()
+                when (authorizationHeader?.authScheme) {
+                    "Basic" -> {
+                        creds = call.request.basicAuthenticationCredentials()!!
+                    }
+                    else -> return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
+                }
+
+                postParams.getAll("client_id")?.run {
+                    if(size > 1) return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
+                    if (requestClientId!= null && requestClientId != get(0)) {
+                        //mismatch between client ids
+                        return jsonErrorView(OAuthErrorCodes.INVALID_CLIENT)
+                    }
+                }
+
+                if (postParams.contains("client_secret")) {
+                    // double authorization is not allowed
+                    return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
+                }
+            }
+
+            else -> {
+                val cid = postParams.getAll("client_id")?.singleOrNull()
+                val clientSecret = postParams.getAll("client_secret")?.singleOrNull()
+                if (cid == null || clientSecret == null) return jsonErrorView(OAuthErrorCodes.INVALID_CLIENT, HttpStatusCode.Unauthorized)
+
+                creds = UserPasswordCredential(cid, clientSecret)
+            }
+        }
+
+        val client = when (val c = clientDetailsService.loadClientAuthenticated(creds.name, creds.password)) {
+            is ClientLoadingResult.Unauthorized,
+            is ClientLoadingResult.Missing -> return jsonErrorView(OAuthErrorCodes.INVALID_CLIENT, HttpStatusCode.Unauthorized)
+
+            is ClientLoadingResult.Found -> c.client
+        }
+
+
+        val req = try {
+            authcodeService.consumeAuthorizationCode(code)
+        } catch (e: OAuth2Exception) { return jsonErrorView(e.oauth2ErrorCode) }
+
+        // don't allow redirect uri mismatch
+        if (req.oAuth2Request.redirectUri != redirectUri) return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
+
+        val granter = openIdContext.tokenGranters[grantType]
+            ?: return jsonErrorView(OAuthErrorCodes.UNSUPPORTED_GRANT_TYPE)
+
+        granter.getAccessToken(client, req.oAuth2Request)
+    }
+
     private fun createRequestMap(parameterMap: Map<String, Array<String>?>): Map<String, String> {
         val requestMap: MutableMap<String, String> = HashMap()
         for ((key, value) in parameterMap) {
@@ -238,24 +316,24 @@ object PlainAuthorizationRequestEndpoint: KtorEndpoint {
     const val PROMPTED: String = "PROMPT_FILTER_PROMPTED"
     const val PROMPT_REQUESTED: String = "PROMPT_FILTER_REQUESTED"
 
-/*
-    companion object Plugin: BaseApplicationPlugin<ApplicationCallPipeline, Unit, AuthorizationRequestFilter> {
+    /*
+companion object Plugin: BaseApplicationPlugin<ApplicationCallPipeline, Unit, AuthorizationRequestFilter> {
 
-        override val key = AttributeKey<AuthorizationRequestFilter>("AuthorizationRequestFilter")
+    override val key = AttributeKey<AuthorizationRequestFilter>("AuthorizationRequestFilter")
 
-        override fun install(
-            pipeline: ApplicationCallPipeline,
-            configure: Unit.() -> Unit,
-        ): AuthorizationRequestFilter {
-            val plugin = AuthorizationRequestFilter()
-            pipeline.intercept(ApplicationCallPipeline.Plugins) {
-                with(plugin) {  doIntercept(subject) }
-            }
-
-            pipeline.receivePipeline.intercept(ApplicationReceivePipeline.Before) { subject ->
-            }
-            return plugin
+    override fun install(
+        pipeline: ApplicationCallPipeline,
+        configure: Unit.() -> Unit,
+    ): AuthorizationRequestFilter {
+        val plugin = AuthorizationRequestFilter()
+        pipeline.intercept(ApplicationCallPipeline.Plugins) {
+            with(plugin) {  doIntercept(subject) }
         }
+
+        pipeline.receivePipeline.intercept(ApplicationReceivePipeline.Before) { subject ->
+        }
+        return plugin
     }
+}
 */
 }
