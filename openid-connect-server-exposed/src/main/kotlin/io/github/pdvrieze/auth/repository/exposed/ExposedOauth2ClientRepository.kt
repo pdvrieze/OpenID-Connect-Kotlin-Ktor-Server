@@ -7,6 +7,7 @@ import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jwt.JWTParser
 import io.github.pdvrieze.auth.exposed.RepositoryBase
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.batchInsert
 import org.jetbrains.exposed.sql.deleteWhere
@@ -182,6 +183,8 @@ private fun OAuthClientDetails.toUpdate(builder: UpdateBuilder<Int>) {
     builder[ClientDetails.reuseRefreshTokens] = isReuseRefreshToken
     builder[ClientDetails.dynamicallyRegistered] = isDynamicallyRegistered
     builder[ClientDetails.allowIntrospection] = isAllowIntrospection
+    accessTokenValiditySeconds?.let { builder[ClientDetails.accessTokenValiditySeconds] = it.toLong() }
+    refreshTokenValiditySeconds?.let { builder[ClientDetails.refreshTokenValiditySeconds] = it.toLong() }
     idTokenValiditySeconds?.let { builder[ClientDetails.idTokenValiditySeconds] = it }
     createdAt?.let { builder[ClientDetails.createdAt] = it.toInstant() }
     builder[ClientDetails.clearAccessTokensOnRefresh] = isClearAccessTokensOnRefresh
@@ -190,7 +193,7 @@ private fun OAuthClientDetails.toUpdate(builder: UpdateBuilder<Int>) {
     codeChallengeMethod?.let { builder[ClientDetails.codeChallengeMethod] = it.name }
 }
 
-private fun org.jetbrains.exposed.sql.ResultRow.toClient(): OAuthClientDetails {
+private fun ResultRow.toClient(): OAuthClientDetails {
     val id = get(ClientDetails.id).value
 
     val redirectUris = ClientRedirectUris.selectAll().where { ClientRedirectUris.ownerId eq id }
@@ -273,6 +276,7 @@ private fun org.jetbrains.exposed.sql.ResultRow.toClient(): OAuthClientDetails {
             claimsRedirectUris = claimsRedirectUris,
             softwareStatement = r[softwareStatement]?.let { JWTParser.parse(it) },
             codeChallengeMethod = r[codeChallengeMethod]?.let { PKCEAlgorithm.parse(it) },
+            accessTokenValiditySeconds = r[accessTokenValiditySeconds]?.toInt(),
         )
     }
 }
