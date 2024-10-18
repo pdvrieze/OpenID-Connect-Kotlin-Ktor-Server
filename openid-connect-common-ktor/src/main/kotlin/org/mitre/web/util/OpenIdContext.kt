@@ -65,7 +65,6 @@ interface OpenIdContext {
     val encryptionService: JWTEncryptionAndDecryptionService
     val introspectionResultAssembler: JsonIntrospectionResultAssembler
     val messageSource: MessageSource
-    val jwtService: JWTSigningAndValidationService
     val oidcTokenService: OIDCTokenService
     val pairwiseIdentifierService: PairwiseIdentifierService
     val redirectResolver: RedirectResolver
@@ -144,8 +143,6 @@ val RoutingContext.encryptionService: JWTEncryptionAndDecryptionService
     get() = openIdContext.encryptionService
 val RoutingContext.introspectionResultAssembler: JsonIntrospectionResultAssembler
     get() = openIdContext.introspectionResultAssembler
-val RoutingContext.jwtService: JWTSigningAndValidationService
-    get() = openIdContext.jwtService
 val RoutingContext.oidcTokenService: OIDCTokenService
     get() = openIdContext.oidcTokenService
 val RoutingContext.pairwiseIdentifierService: PairwiseIdentifierService

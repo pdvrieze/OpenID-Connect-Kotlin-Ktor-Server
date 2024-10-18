@@ -1,14 +1,18 @@
 package io.github.pdvrieze.auth.ktor
 
+import com.nimbusds.jose.jwk.JWK
 import io.github.pdvrieze.auth.ktor.plugins.OpenIdConfigurator
 import io.github.pdvrieze.auth.ktor.plugins.configureRouting
 import io.ktor.client.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.testing.*
+import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -32,6 +36,9 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
     @Before
     open fun setUp() {
         val configurator = OpenIdConfigurator("https://example.com/")
+        val key = JWK.parse(SIGNING_KEY)
+        configurator.signingKeySet = mapOf(key.keyID to key)
+
         testContext = TestContext(configurator)
         transaction(configurator.database) {
             for (table in deletableTables) {
@@ -42,6 +49,11 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
 
 
     protected open fun configureApplication(testBuilder: ApplicationTestBuilder) {
+        testBuilder.client.config {
+            install(ContentNegotiation) {
+                json(Json { prettyPrint = true })
+            }
+        }
         testBuilder.application {
             this.install(OpenIdContextPlugin) { this.context = this@ApiTest.testContext }
             this.authentication {
@@ -273,5 +285,22 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
                 else -> emptyList()
             }
         }
+    }
+
+    companion object {
+        val SIGNING_KEY: String = """|{
+            |    "p": "_ZMsTanYI15KZjlZUcYR7MSDKY7c_b12WzS6qQ4Q1w90qBunvn2_elNwyY7XMxXIFG5psINOoGFwFaGmeFois27lDilD6puE6OcGulSXFxj8t3uVEJCLTOo9_OhgwDqhhE9tpJsLIByOYwIJngweSKmrn5c6DQS9iTZ39tARPi0",
+            |    "kty": "RSA",
+            |    "q": "jOK2lCEeNdb7KLUlZINxEGOHIryJ2ZSZ4K5hM-83GOVnFXQHP1eRqeqxZjgm18PTw3WgPWCCSdE0yMudbdwJP5Z2x_JBRjAW8o3eX7MxIDeHjYpfqdm36_U_bzRD6AyfCRZ3xcqkgOk_dHueIHdyxrX7ZMrcPio3pnJ_9Tz2Kr8",
+            |    "d": "AQy9lU06fLNHKdPtHqUCclUCZV4ZatxCHJqfz9VU8adORAnX8oU9hYx3dE79bLGiF1nZjigMYppgzwJQFrPx7T2RSkQg_A8j1sk31MotqwssK75zyUqzUQc8yH2hqoldt8E6wYm7ZwyiPT398ldzIWzCFFbk5RpVZeU-Bouxi8lmiED_S_09VJAHL-8nYMZomRZSZG_md1r763SFCRRcmeyRuefnA7kJM8SpSw1zDUvTsmnVfNqf2XfwviGFOFbwlPqHHmCfLv8lCafPIxbL5tzFn5K3c94kDethh0u-ywgsK0ogfpbJhraeHAlsY8qNocHUFsGPI8TbCvjxPORviQ",
+            |    "e": "AQAB",
+            |    "use": "sig",
+            |    "kid": "uqDUJ0zzEnqqSR35iQDVLDHlj-SMcEW6y3KRbTiK55o",
+            |    "qi": "X7NvKdXqixK7tlU-52a8UWl9VqH_-GZGf6G8i4PJbROmEmY5iaiwlX7veTibElglUB2E-IA92if7fXMe7uZMTeE5gHvWh-cYi72F_M7ZsdxhB5qJNAX5rQMkXBsCYumy2ABp_s7HSvn0n7AbHumlZ9Ntht8iWHmqxB2nETBKkAc",
+            |    "dp": "ccb9lANnhccjHucQms6C8HfkWltN8VR3rMjmEEDNcZHvyBZQl_qYVezmqKm9CaD2W6SHK7pfJztRLYOQzGO1OknB4S7G2JfbdR1kOWsHOEfv7Ow4oGwa9PINylMCRn6IRnPVQIyI22m0wdwCMLZDSFtJNJyIYZsE6HJWNZp6gik",
+            |    "alg": "RS256",
+            |    "dq": "d1mMMHrJ2_RuOrMSpU7QloCqN1wfL4q6vOMdB2EMfPPB2yO7DAcEKDzg4eaJyVlk6P2ZrMU4Oo6XN89-Y1X3I740i_gHIg2VMw_KJapo4JEKLXbeycXeEG9nuK4_JLKke49kEdQ0fdya2_PpJjnqqrn56Q4NfEBJeqEfE0L8i4M",
+            |    "n": "i40NAPDU3RZCAJDZWeaaZohtPgzevuxA1lJCtELewlYoKZktXZDl7Uzafu65vAFyOyqIDUuTSqbmPNFRA6cDNkK992PUepzEPtx9qthBBiYEoUwWtwkkui-sxpON2RJOePZmLOkfCuxq57bhiUsFIKf8am_Dw101mo49Keo9AQRNhscgnhB6VrDq0qGqTpf0ESaWbMlzwObV0a6NVT5susnnWXyUvwO7P57X30OtxMZrfPrRr_KDbkA9fX_MLOhnS4Rj0aYyJ7ClWUtKRQV8M0Sm0z56VD39MDPrKklP4wPm889-gFCpl0Y4ajMhSWD811LQwn0OFHj7pM59XE7Fkw"
+            |}""".trimMargin()
     }
 }

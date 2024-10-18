@@ -110,9 +110,29 @@ data class OpenIdConfigurator(
     var verifyCredential: (UserPasswordCredential) -> Boolean = { false },
 ) {
 
-    private var topBarTitle: String = "Ktor OpenId provider"
-    private var encryptionKeySet: Map<String, JWK> = emptyMap()
-    private var signingKeySet: Map<String, JWK> = emptyMap()
+    var topBarTitle: String = "Ktor OpenId provider"
+    var encryptionKeySet: Map<String, JWK> = emptyMap()
+
+    var defaultSigningKeyId: String? = null
+        set(value) {
+            if (signingKeySet.isNotEmpty()) {
+                require(signingKeySet.containsKey(value)) { "The keyId specified does not exist in a non-empty key set" }
+            }
+
+            field = value
+        }
+
+    var signingKeySet: Map<String, JWK> = emptyMap()
+        set(value) {
+            when {
+                value.isEmpty() -> defaultSigningKeyId = null
+                else -> {
+                    value.keys.singleOrNull()?.let { key -> defaultSigningKeyId = key }
+                }
+            }
+
+            field = value
+        }
 
     fun resolveDefault(): OpenIdContext = DefaultContext(this)
 
@@ -140,7 +160,7 @@ data class OpenIdConfigurator(
         override val scopeService: SystemScopeService = DefaultSystemScopeService(scopeRepository)
 
         override val signService: JWTSigningAndValidationService =
-            DefaultJWTSigningAndValidationService(configurator.signingKeySet)
+            DefaultJWTSigningAndValidationService(configurator.signingKeySet, requireNotNull(configurator.defaultSigningKeyId) { "Default signing keyid not defined" })
 
         override val encryptionService: JWTEncryptionAndDecryptionService =
             DefaultJWTEncryptionAndDecryptionService(configurator.encryptionKeySet)
@@ -218,13 +238,10 @@ data class OpenIdConfigurator(
             userInfoRepository, clientDetailsService, pairwiseIdentifierService
         )
 
-        override val jwtService: JWTSigningAndValidationService =
-            DefaultJWTSigningAndValidationService(configurator.signingKeySet)
-
         override val deviceCodeService: DeviceCodeService = DefaultDeviceCodeService()
 
         override val tokenEnhancer: TokenEnhancer =
-            ConnectTokenEnhancerImpl(clientDetailsService, config, jwtService, userInfoService, { oidcTokenService })
+            ConnectTokenEnhancerImpl(clientDetailsService, config, signService, userInfoService, { oidcTokenService })
 
         final override val tokenService: OAuth2TokenEntityService = DefaultOAuth2ProviderTokenService(
             tokenRepository, authenticationHolderRepository, clientDetailsService, tokenEnhancer, scopeService, approvedSiteService
@@ -237,7 +254,7 @@ data class OpenIdConfigurator(
             DefaultClientKeyCacheService(KtorJWKSetCacheService(configurator.httpClient))
 
         override val oidcTokenService: OIDCTokenService = KtorOIDCTokenService(
-            jwtService, authenticationHolderRepository, config, encyptersService, symetricCacheService, tokenService
+            signService, authenticationHolderRepository, config, encyptersService, symetricCacheService, tokenService
         )
 
         override val scopeClaimTranslationService: ScopeClaimTranslationService =
@@ -269,13 +286,13 @@ data class OpenIdConfigurator(
             KtorRegisteredClientService(configurator.database)
 
         override val umaTokenService: UmaTokenService =
-            DefaultUmaTokenService(authenticationHolderRepository, tokenService, clientDetailsService, config, jwtService)
+            DefaultUmaTokenService(authenticationHolderRepository, tokenService, clientDetailsService, config, signService)
 
         override val clientLogoLoadingService: ClientLogoLoadingService =
             KtorInMemoryClientLogoLoadingService()
 
         override val assertionValidator: AssertionValidator =
-            SelfAssertionValidator(config, jwtService)
+            SelfAssertionValidator(config, signService)
 
         override val assertionFactory: AssertionOAuth2RequestFactory =
             DirectCopyRequestFactory()

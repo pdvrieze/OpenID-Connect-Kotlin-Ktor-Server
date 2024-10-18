@@ -6,12 +6,15 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import org.mitre.oauth2.exception.OAuth2Exception
 import org.mitre.oauth2.exception.OAuthErrorCodes
 import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.convert.OAuth2Request
 import org.mitre.oauth2.service.ClientLoadingResult
+import org.mitre.oauth2.view.respondJson
 import org.mitre.openid.connect.request.ConnectRequestParameters
 import org.mitre.openid.connect.service.LoginHintExtracter
 import org.mitre.openid.connect.service.impl.RemoveLoginHintsWithHTTP
@@ -38,6 +41,9 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
     override fun Route.addRoutes() {
         authenticate(optional = true) {
             get("authorize") {
+                startAuthorizationFlow()
+            }
+            post("authorize") {
                 startAuthorizationFlow()
             }
         }
@@ -293,7 +299,16 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         val granter = openIdContext.tokenGranters[grantType]
             ?: return jsonErrorView(OAuthErrorCodes.UNSUPPORTED_GRANT_TYPE)
 
-        granter.getAccessToken(client, req.oAuth2Request)
+        val accessToken = granter.getAccessToken(client, req.oAuth2Request)
+
+        val response = buildJsonObject {
+            put("access_token", accessToken.value)
+            put("token_type", "Bearer")
+            put("expires_in", accessToken.expiresIn)
+            accessToken.refreshToken?.let { put("refresh_token", it.value) }
+        }
+
+        return call.respondJson(response)
     }
 
     private fun createRequestMap(parameterMap: Map<String, Array<String>?>): Map<String, String> {

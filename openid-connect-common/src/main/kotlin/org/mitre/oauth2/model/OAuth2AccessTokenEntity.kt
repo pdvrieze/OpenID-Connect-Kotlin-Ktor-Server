@@ -13,7 +13,7 @@ import org.mitre.oauth2.resolver.AuthenticationHolderResolver
 import org.mitre.oauth2.resolver.ClientResolver
 import org.mitre.oauth2.resolver.OAuth2TokenResolver
 import org.mitre.openid.connect.model.ApprovedSite
-import org.mitre.openid.connect.model.convert.ISODate
+import org.mitre.openid.connect.model.convert.ISOInstant
 import org.mitre.uma.model.Permission
 import java.time.Instant
 import java.util.*
@@ -47,8 +47,11 @@ class OAuth2AccessTokenEntity(
 ) : OAuth2AccessToken {
 
     @Deprecated("Use expirationInstant")
-    override val expiration: Date
-        get() = Date.from(expirationInstant)
+    override val expiration: Date?
+        get() = when (expirationInstant) {
+            Instant.MIN -> null
+            else ->Date.from(expirationInstant)
+        }
 
     var permissions: Set<Permission>? = null
 
@@ -283,7 +286,7 @@ class OAuth2AccessTokenEntity(
         @SerialName("id")
         val currentId: Long,
         @SerialName("expiration")
-        @EncodeDefault val expiration: ISODate? = null,
+        @EncodeDefault val expiration: ISOInstant? = null,
         @SerialName("value")
         @EncodeDefault val value: @Serializable(JWTStringConverter::class) JWT? = null,
         @SerialName("clientId")
@@ -300,7 +303,7 @@ class OAuth2AccessTokenEntity(
 
         constructor(s: OAuth2AccessTokenEntity) : this(
             currentId = s.id!!,
-            expiration = s.expiration,
+            expiration = s.expirationInstant,
             value = s.jwt,
             clientId = s.client!!.clientId!!,
             authenticationHolderId = s.authenticationHolder.id!!,

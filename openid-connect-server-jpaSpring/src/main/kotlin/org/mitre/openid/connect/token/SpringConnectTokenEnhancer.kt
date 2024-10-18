@@ -19,6 +19,7 @@ import org.springframework.security.oauth2.common.OAuth2AccessToken
 import org.springframework.security.oauth2.provider.OAuth2Authentication
 import org.springframework.security.oauth2.provider.token.TokenEnhancer
 import org.springframework.stereotype.Service
+import java.time.Instant
 import java.util.*
 
 @Service
@@ -49,7 +50,11 @@ class SpringConnectTokenEnhancer : ConnectTokenEnhancer(), TokenEnhancer {
             .claim("azp", clientId)
             .issuer(configBean.issuer)
             .issueTime(Date())
-            .expirationTime(token.expiration)
+            .also {
+                if (token.expirationInstant != Instant.MIN) {
+                    it.expirationTime(Date.from(token.expirationInstant))
+                }
+            }
             .subject(authentication.name)
             .jwtID(UUID.randomUUID().toString()) // set a random NONCE in the middle of it
 

@@ -29,7 +29,7 @@ suspend fun RoutingContext.userInfoJWTView(
 ) {
     val openIdContext = openIdContext
 
-    val jwtService = openIdContext.jwtService
+    val signService = openIdContext.signService
     val config = openIdContext.config
 
     val encodedJson = Json.encodeToString(userInfo)
@@ -60,13 +60,13 @@ suspend fun RoutingContext.userInfoJWTView(
             UserInfoJWTView.logger.error("Couldn't find encrypter for client: " + client.clientId)
         }
     } else {
-        var signingAlg = jwtService.defaultSigningAlgorithm // default to the server's preference
+        var signingAlg = signService.defaultSigningAlgorithm // default to the server's preference
 
         // override with the client's preference if available
         client.userInfoSignedResponseAlg?.let { signingAlg = it }
 
         val header = JWSHeader.Builder(signingAlg)
-            .keyID(jwtService.defaultSignerKeyId)
+            .keyID(signService.defaultSignerKeyId)
             .build()
 
         val signed = SignedJWT(header, claims)
@@ -78,7 +78,7 @@ suspend fun RoutingContext.userInfoJWTView(
             signer.signJwt(signed)
         } else {
             // sign it with the server's key
-            jwtService.signJwt(signed)
+            signService.signJwt(signed)
         }
 
         call.respondText(signed.serialize(), CT_JWT, code)

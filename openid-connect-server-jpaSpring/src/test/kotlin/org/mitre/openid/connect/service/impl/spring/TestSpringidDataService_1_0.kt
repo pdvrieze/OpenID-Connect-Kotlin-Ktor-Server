@@ -378,11 +378,11 @@ class TestSpringidDataService_1_0 {
         assertEquals(2, savedAccessTokens.size)
 
         assertEquals(token1.client!!.clientId, savedAccessTokens[0].client!!.clientId)
-        assertEquals(token1.expiration, savedAccessTokens[0].expiration)
+        assertEquals(token1.expirationInstant, savedAccessTokens[0].expirationInstant)
         assertEquals(token1.value, savedAccessTokens[0].value)
 
         assertEquals(token2.client!!.clientId, savedAccessTokens[1].client!!.clientId)
-        assertEquals(token2.expiration, savedAccessTokens[1].expiration)
+        assertEquals(token2.expirationInstant, savedAccessTokens[1].expirationInstant)
         assertEquals(token2.value, savedAccessTokens[1].value)
     }
 

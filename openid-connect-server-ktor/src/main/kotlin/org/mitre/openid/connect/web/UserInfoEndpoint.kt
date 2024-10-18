@@ -31,10 +31,10 @@ import org.mitre.util.getLogger
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.clientDetailsService
 import org.mitre.web.util.encryptersService
-import org.mitre.web.util.jwtService
 import org.mitre.web.util.openIdContext
 import org.mitre.web.util.requireRole
 import org.mitre.web.util.scopeClaimTranslationService
+import org.mitre.web.util.signService
 import org.mitre.web.util.symetricCacheService
 import org.mitre.web.util.userInfoService
 
@@ -112,7 +112,7 @@ object UserInfoEndpoint: KtorEndpoint {
 
         } else {
             return userInfoView(
-                jwtService = jwtService,
+                jwtService = signService,
                 config = openIdContext.config,
                 encrypters = encryptersService,
                 symmetricCacheService = symetricCacheService,

@@ -39,7 +39,7 @@ class TestOAuth2AccessTokenImpl {
         val tok = OAuth2AccessTokenImpl(tokenObj, tokenString)
 
         assertEquals(scopes, tok.scope)
-        assertEquals(exp, tok.expiration)
+        assertEquals(exp, tok.expirationInstant)
     }
 
     @Test
@@ -69,7 +69,7 @@ class TestOAuth2AccessTokenImpl {
         val tok = OAuth2AccessTokenImpl(tokenObj, tokenString)
 
         assertEquals(Collections.EMPTY_SET, tok.scope)
-        assertEquals(exp, tok.expiration)
+        assertEquals(exp, tok.expirationInstant)
     }
 
     @Test
@@ -92,7 +92,7 @@ class TestOAuth2AccessTokenImpl {
         private val scopes: Set<String> = setOf("bar", "foo")
         private const val scopeString = "foo bar"
 
-        private val exp = Date(123 * 1000L)
+        private val exp = Instant.ofEpochSecond(123)
         private const val expVal = 123L
     }
 }

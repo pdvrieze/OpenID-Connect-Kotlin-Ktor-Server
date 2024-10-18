@@ -211,11 +211,11 @@ class ExposedOauth2TokenRepository(
         return transaction {
             val newId = with(AccessTokens) {
                 AccessTokens.save(tokenId) { b ->
-                    b[expiration] = token.expiration.toInstant()
+                    if (token.expirationInstant > Instant.MIN) { b[expiration] = token.expirationInstant }
                     b[tokenValue] = token.jwt.serialize()
                     b[clientId] = token.client?.id
                     b[authHolderId] = token.authenticationHolder.id!!
-                    b[refreshTokenId] = token.refreshToken!!.id!!
+                    b[refreshTokenId] = token.refreshToken?.id
                     b[tokenType] = token.tokenType
 
                 }

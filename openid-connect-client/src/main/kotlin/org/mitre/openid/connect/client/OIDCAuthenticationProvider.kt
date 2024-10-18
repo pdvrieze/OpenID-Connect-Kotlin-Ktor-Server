@@ -133,8 +133,7 @@ class OIDCAuthenticationProvider internal constructor(config: Config) : Authenti
     private var authoritiesMapper: OIDCAuthoritiesMapper = NamedAdminAuthoritiesMapper()
 
 
-    inner class SimpleValidationService(
-    ) : JWKSetCacheService {
+    inner class SimpleValidationService : JWKSetCacheService {
         lateinit var jwksUri: String
         lateinit var service: JWTSigningAndValidationService
 
@@ -154,7 +153,9 @@ class OIDCAuthenticationProvider internal constructor(config: Config) : Authenti
             }
             val keyStore = JWKSetKeyStore(JWKSet.parse(response.bodyAsText()))
 
-            service = DefaultJWTSigningAndValidationService(keyStore)
+            val defaultSignerKeyId = requireNotNull(keyStore.keys.firstOrNull(), { "No keys defined" }).keyID
+
+            service = DefaultJWTSigningAndValidationService(keyStore, defaultSignerKeyId)
             this.jwksUri = jwksUri // delay setting this until no more options for exceptions
 
             return service

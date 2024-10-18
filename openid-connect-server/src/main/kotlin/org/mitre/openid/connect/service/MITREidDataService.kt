@@ -214,12 +214,12 @@ interface MITREidDataService {
 
             val token = OAuth2AccessTokenEntity(
                 id = null,
-                expiration = delegate.expiration!!,
+                expirationInstant = delegate.expiration!!,
                 jwt = delegate.value ?: error("Missing token in auth2 access token entity"),
                 client = null,
                 authenticationHolder = authHolder,
                 refreshToken = refreshToken,
-                scope = delegate.scope,
+                scope = delegate.scope ?: emptySet(),
                 tokenType = delegate.tokenType
             )
 

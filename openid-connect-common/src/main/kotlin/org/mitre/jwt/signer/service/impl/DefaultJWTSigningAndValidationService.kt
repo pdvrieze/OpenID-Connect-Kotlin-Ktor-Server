@@ -39,38 +39,39 @@ import java.security.NoSuchAlgorithmException
 import java.security.spec.InvalidKeySpecException
 import java.util.*
 
-class DefaultJWTSigningAndValidationService : JWTSigningAndValidationService {
+/**
+ * @constructor Build this service based on the keys given. All public keys will be used
+ * to make verifiers, all private keys will be used to make signers.
+ *
+ * @param keys A map of key identifier to key
+ *
+ * @throws InvalidKeySpecException If the keys in the JWKs are not valid
+ * @throws NoSuchAlgorithmException If there is no appropriate algorithm to tie the keys to.
+ */
+
+class DefaultJWTSigningAndValidationService(keys: Map<String, JWK>, override val defaultSignerKeyId: String) : JWTSigningAndValidationService {
+
+    constructor(key: JWK, defaultSignerKeyId: String = key.keyID ?: UUID.randomUUID().toString()) :
+            this(mapOf(defaultSignerKeyId to key), defaultSignerKeyId)
+
     // map of identifier to signer
     private val signers: MutableMap<String, JWSSigner> = HashMap()
 
     // map of identifier to verifier
     private val verifiers: MutableMap<String, JWSVerifier> = HashMap()
 
-    /**
-     * the defaultSignerKeyId
-     */
-    override var defaultSignerKeyId: String? = null
-
     override var defaultSigningAlgorithm: JWSAlgorithm = JWSAlgorithm.RS256 // required
         private set
 
     // map of identifier to key
-    private var keys: MutableMap<String, JWK> = HashMap()
+    private val keys: MutableMap<String, JWK> = keys.toMutableMap()
 
-    /**
-     * Build this service based on the keys given. All public keys will be used
-     * to make verifiers, all private keys will be used to make signers.
-     *
-     * A map of key identifier to key
-     *
-     * @throws InvalidKeySpecException If the keys in the JWKs are not valid
-     * @throws NoSuchAlgorithmException If there is no appropriate algorithm to tie the keys to.
-     */
-    @Throws(InvalidKeySpecException::class, NoSuchAlgorithmException::class)
-    constructor(keys: Map<String, JWK>) {
-        this.keys = keys.toMutableMap()
+    init {
         buildSignersAndVerifiers()
+
     }
+
+
 
     /**
      * Build this service based on the given keystore. All keys must have a key
@@ -81,16 +82,16 @@ class DefaultJWTSigningAndValidationService : JWTSigningAndValidationService {
      * @throws InvalidKeySpecException If the keys in the JWKs are not valid
      * @throws NoSuchAlgorithmException If there is no appropriate algorithm to tie the keys to.
      */
-    constructor(keyStore: JWKSetKeyStore?): this(keyStore?.let { s ->
+    constructor(keyStore: JWKSetKeyStore?, defaultSignerKeyId: String): this(keyStore?.let { s ->
         // use the key ID that's built into the key itself, otherwise use a random key id
         s.keys.associateBy {
             it.keyID?.takeIf { it.isNotEmpty() } ?: UUID.randomUUID().toString()
         }
-    } ?: emptyMap())
+    } ?: emptyMap(), defaultSignerKeyId)
 
 
     var defaultSigningAlgorithmName: String?
-        get() = defaultSigningAlgorithm?.name
+        get() = defaultSigningAlgorithm.name
         set(value) {
             defaultSigningAlgorithm = JWSAlgorithm.parse(value)
         }
@@ -148,11 +149,6 @@ class DefaultJWTSigningAndValidationService : JWTSigningAndValidationService {
             } catch (e: JOSEException) {
                 logger.warn("Exception loading signer/verifier", e)
             }
-        }
-
-        if (defaultSignerKeyId == null && keys.size == 1) {
-            // if there's only one key, it's the default
-            defaultSignerKeyId = keys.keys.single()
         }
     }
 

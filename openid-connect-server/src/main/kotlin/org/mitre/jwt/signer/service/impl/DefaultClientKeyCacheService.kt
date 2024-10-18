@@ -87,7 +87,8 @@ class DefaultClientKeyCacheService(
     private inner class JWKSetVerifierBuilder : CacheLoader<JWKSet, JWTSigningAndValidationService> {
         @Throws(Exception::class)
         override fun load(key: JWKSet): JWTSigningAndValidationService {
-            return DefaultJWTSigningAndValidationService(JWKSetKeyStore(key))
+            val defaultKeyId = requireNotNull(key.keys.firstOrNull(), { "Missing key" }).keyID
+            return DefaultJWTSigningAndValidationService(JWKSetKeyStore(key), defaultKeyId)
         }
     }
 

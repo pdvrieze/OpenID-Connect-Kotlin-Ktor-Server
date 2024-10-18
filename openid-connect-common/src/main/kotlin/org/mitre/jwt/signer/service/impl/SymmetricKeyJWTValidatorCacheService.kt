@@ -68,8 +68,8 @@ class SymmetricKeyJWTValidatorCacheService {
                     .keyUse(KeyUse.SIGNATURE)
                     .keyID(id)
                     .build()
-                val keys: Map<String, JWK> = mapOf(id to jwk)
-                val service: JWTSigningAndValidationService = DefaultJWTSigningAndValidationService(keys)
+
+                val service: JWTSigningAndValidationService = DefaultJWTSigningAndValidationService(jwk)
 
                 return service
             } catch (e: NoSuchAlgorithmException) {

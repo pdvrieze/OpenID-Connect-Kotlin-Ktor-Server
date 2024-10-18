@@ -64,8 +64,9 @@ class KtorJWKSetCacheService(private val httpClient: HttpClient = HttpClient(Jav
         val jwkSet = JWKSet.parse(response.bodyAsText())
 
         val keyStore = JWKSetKeyStore(jwkSet)
+        val defaultKeyId = requireNotNull(jwkSet.keys.firstOrNull(), { "Missing key" }).keyID
 
-        val service: JWTSigningAndValidationService = DefaultJWTSigningAndValidationService(keyStore)
+        val service: JWTSigningAndValidationService = DefaultJWTSigningAndValidationService(keyStore, defaultKeyId)
 
         return service
     }

@@ -2,7 +2,6 @@ package org.mitre.oauth2.model
 
 import com.nimbusds.jwt.JWT
 import com.nimbusds.jwt.JWTParser
-import com.nimbusds.jwt.SignedJWT
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.*
@@ -14,7 +13,7 @@ interface OAuth2AccessToken {
     val tokenType: String
     val isExpired: Boolean
     @Deprecated("Use expirationInstant")
-    val expiration: Date get() = Date.from(expirationInstant)
+    val expiration: Date? get() = Date.from(expirationInstant)
     val expirationInstant: Instant
     val expiresIn: Int
         get() {

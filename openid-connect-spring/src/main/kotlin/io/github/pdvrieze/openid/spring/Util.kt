@@ -39,7 +39,7 @@ fun OAuth2AccessToken.toSpring(): SpringOAuth2AccessToken {
         override fun isExpired(): Boolean = original.isExpired
 
         @Suppress("DEPRECATION")
-        override fun getExpiration(): Date = original.expiration
+        override fun getExpiration(): Date? = original.expiration
 
         override fun getExpiresIn(): Int = original.expiresIn
 
