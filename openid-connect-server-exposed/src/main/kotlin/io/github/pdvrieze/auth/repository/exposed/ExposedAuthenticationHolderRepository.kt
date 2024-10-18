@@ -7,6 +7,7 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.batchInsert
 import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.mitre.data.DefaultPageCriteria
@@ -68,8 +69,31 @@ class ExposedAuthenticationHolderRepository(database: Database) :
     override fun save(a: AuthenticationHolderEntity): AuthenticationHolderEntity = transaction {
         val oldId = a.id
 
+        val inputUserAuth = a.userAuth
+        val userName = inputUserAuth?.name
+
+        val userAuth: SavedUserAuthentication?
+        if (userName != null) {
+            val userAuthId =
+                SavedUserAuths.select(SavedUserAuths.id)
+                    .where {
+                        (SavedUserAuths.name eq userName)
+                            .and { SavedUserAuths.authenticated eq inputUserAuth.isAuthenticated }
+                    }.singleOrNull()
+                    ?.get(SavedUserAuths.id)
+                    ?: SavedUserAuths.insertAndGetId {
+                        it[this.name] = userName
+                        it[this.authenticated] = inputUserAuth.isAuthenticated
+                    }
+            userAuth = SavedUserAuthentication(name = userName, id = userAuthId.value)
+        } else {
+            userAuth = null
+        }
+
+        val actualUserAuthId = userAuth?.id
+
         val id = AuthenticationHolders.save(a.id) { b ->
-            b[userAuthId] = a.userAuth?.id
+            b[userAuthId] = actualUserAuthId
             b[approved] = a.isApproved
             b[redirectUri] = a.redirectUri
             b[clientId] = a.clientId
