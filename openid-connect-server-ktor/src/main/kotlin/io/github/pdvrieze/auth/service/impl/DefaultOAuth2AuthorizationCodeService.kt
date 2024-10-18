@@ -56,7 +56,7 @@ class DefaultOAuth2AuthorizationCodeService(
         val code = generator.generate()
 
         // attach the authorization so that we can look it up later
-        var authHolder = AuthenticationHolderEntity()
+        var authHolder = AuthenticationHolderEntity(userAuth = authentication.userAuthentication)
         authHolder.authentication = authentication
         authHolder = authenticationHolderRepository.save(authHolder)
 

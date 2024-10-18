@@ -48,6 +48,8 @@ import org.mitre.util.getLogger
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
+import java.time.Duration
+import java.time.Instant
 import java.util.*
 
 /**
@@ -167,8 +169,8 @@ class DefaultOAuth2ProviderTokenService(
         val atvsecs = client.accessTokenValiditySeconds
         // make it expire if necessary
         if (atvsecs != null && atvsecs > 0) {
-            val expiration = Date(System.currentTimeMillis() + (atvsecs * 1000L))
-            tokenBuilder.expiration = expiration
+            val expiration = Instant.now() + Duration.ofSeconds(atvsecs.toLong())
+            tokenBuilder.expirationInstant = expiration
         }
 
         // attach the authorization so that we can look it up later

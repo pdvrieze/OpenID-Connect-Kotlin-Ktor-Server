@@ -141,12 +141,12 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
     suspend fun RoutingContext.respondWithAuthCode(
         authRequest: OAuth2Request,
         auth: Authentication,
-        redirectUri: String,
+        effectiveRedirectUri: String,
         state: String?,
     ) {
         val code = authcodeService.createAuthorizationCode(authRequest, auth)
         return call.respondRedirect {
-            takeFrom(redirectUri)
+            takeFrom(effectiveRedirectUri)
             parameters.append("code", code)
             if (state != null) parameters.append("state", state)
         }
@@ -299,7 +299,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         val granter = openIdContext.tokenGranters[grantType]
             ?: return jsonErrorView(OAuthErrorCodes.UNSUPPORTED_GRANT_TYPE)
 
-        val accessToken = granter.getAccessToken(client, req.oAuth2Request)
+        val accessToken = granter.getAccessToken(client, req)
 
         val response = buildJsonObject {
             put("access_token", accessToken.value)

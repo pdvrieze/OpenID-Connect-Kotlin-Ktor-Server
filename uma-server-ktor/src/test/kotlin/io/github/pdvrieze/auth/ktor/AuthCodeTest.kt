@@ -6,8 +6,13 @@ import com.nimbusds.jose.jwk.RSAKey
 import com.nimbusds.jwt.SignedJWT
 import io.github.pdvrieze.auth.repository.exposed.AccessTokenPermissions
 import io.github.pdvrieze.auth.repository.exposed.AccessTokens
+import io.github.pdvrieze.auth.repository.exposed.AuthenticationHolderRequestParameters
+import io.github.pdvrieze.auth.repository.exposed.AuthenticationHolderResponseTypes
+import io.github.pdvrieze.auth.repository.exposed.AuthenticationHolderScopes
 import io.github.pdvrieze.auth.repository.exposed.AuthenticationHolders
 import io.github.pdvrieze.auth.repository.exposed.AuthorizationCodes
+import io.github.pdvrieze.auth.repository.exposed.SavedUserAuthAuthorities
+import io.github.pdvrieze.auth.repository.exposed.SavedUserAuths
 import io.github.pdvrieze.auth.repository.exposed.SystemScopes
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -29,6 +34,7 @@ import org.mitre.oauth2.web.TokenAPI
 import org.mitre.openid.connect.filter.PlainAuthorizationRequestEndpoint
 import org.mitre.util.asString
 import org.mitre.web.FormAuthEndpoint
+import java.time.Duration
 import java.time.Instant
 import java.util.*
 import kotlin.test.Test
@@ -48,7 +54,12 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
     var scope2Id: Long = -1L
 
     override val deletableTables: List<Table>
-        get() = listOf(AuthorizationCodes, AuthenticationHolders, AccessTokenPermissions, AccessTokens)
+        get() = listOf(
+            AccessTokenPermissions, AccessTokens,
+            AuthorizationCodes,
+            AuthenticationHolderResponseTypes, AuthenticationHolderScopes, AuthenticationHolderRequestParameters, AuthenticationHolders,
+            SavedUserAuthAuthorities, SavedUserAuths,
+        )
 
     @Before
     override fun setUp() {
@@ -69,6 +80,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
             clientSecret = clientSecret,
             redirectUris = setOf(REDIRECT_URI),
             scope = setOf("scope1", "scope2"),
+            accessTokenValiditySeconds = 60*5, // 5 minutes
         )
 
         clientId = testContext.clientDetailsService.saveNewClient(newClient).clientId!!
@@ -78,6 +90,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
     fun testSetup() {
         val client = assertNotNull(testContext.clientDetailsService.loadClientByClientId(clientId), "Missing client")
         assertNotNull(client.clientSecret, "Missing client secret")
+        assertEquals(300, client.accessTokenValiditySeconds)
     }
 
     @Test
@@ -92,7 +105,11 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
         assertEquals(REDIRECT_URI, actualBase)
         val code = assertNotNull(respUri.parameters["code"])
 
-        assertNotNull(testContext.authorizationCodeRepository.getByCode(code))
+        val storedCode = assertNotNull(testContext.authorizationCodeRepository.getByCode(code))
+        val storedHolder = assertNotNull(storedCode.authenticationHolder)
+        val storedUser = assertNotNull(storedHolder.userAuth, "Missing user auth in authorization code acquisition")
+        assertEquals("user", storedUser.name)
+        assertTrue(storedUser.isAuthenticated)
 
         assertNull(respUri.parameters["state"])
     }
@@ -147,11 +164,13 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
 
         val cs = accessToken.jwtClaimsSet
 
-        assertEquals(cs.issuer, "https://example.com/")
-        assertEquals(cs.subject, "user")
+        assertEquals("https://example.com/", cs.issuer)
+        assertEquals("user", cs.subject)
 
-        val exp = assertNotNull(cs.expirationTime).toInstant()
-        assertTrue(Instant.now().isAfter(exp))
+        val exp = assertNotNull(cs.expirationTime, "Missing expiration time").toInstant()
+        val n = Instant.now()
+        assertTrue(n.isBefore(exp))
+        assertTrue((n + Duration.ofMinutes(5)).isAfter(exp))
 
         // iat (issued at) may be present (in seconds from epoch)
         // expect audience (aud) to include auth server: RFC7523 (ch 3, bullet 3)
