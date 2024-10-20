@@ -157,7 +157,6 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
         assertTrue(accessToken.verify(JWT_VERIFIER))
 
         assertNull(accessTokenResponse.refreshToken, "Not allowed per RFC 6749, section 4.4.3")
-        assertNull(accessTokenResponse.state)
 
         assertEquals("MyClient", accessToken.jwtClaimsSet.subject)
     }

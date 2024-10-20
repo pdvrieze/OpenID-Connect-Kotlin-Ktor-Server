@@ -16,6 +16,7 @@ import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.convert.OAuth2Request
 import org.mitre.oauth2.service.ClientLoadingResult
+import org.mitre.oauth2.token.TokenGranter
 import org.mitre.oauth2.view.respondJson
 import org.mitre.openid.connect.request.ConnectRequestParameters
 import org.mitre.openid.connect.service.LoginHintExtracter
@@ -93,7 +94,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
 //                session.removeAttribute(ConnectRequestParameters.LOGIN_HINT)
 //            }
 
-        val prompt = authRequest.extensions[ConnectRequestParameters.PROMPT] as? String?
+        val prompt = authRequest.extensions[ConnectRequestParameters.PROMPT]
         if (prompt != null) {
             val cont = promptFlow(prompt, authRequest, client, auth)
             if (!cont) return
@@ -167,7 +168,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         effectiveRedirectUri: String,
         state: String?,
     ) {
-        val granter = openIdContext.tokenGranters[responseType] ?: return jsonErrorView(OAuthErrorCodes.UNSUPPORTED_GRANT_TYPE)
+        val granter = getGranter(responseType) ?: return jsonErrorView(OAuthErrorCodes.UNSUPPORTED_GRANT_TYPE)
         val r = OAuth2RequestAuthentication(authRequest, SavedUserAuthentication.from(auth))
         val accessToken = granter.getAccessToken(client, r,).jwt.serialize()
         return call.respondRedirect {
@@ -254,6 +255,14 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         return true
     }
 
+    private fun RoutingContext.getGranter(tokenType: String): TokenGranter? = when {
+        tokenType.indexOf(' ') < 0 -> openIdContext.tokenGranters[tokenType]
+        else ->  {
+            val sortedType = tokenType.split(' ').sorted().joinToString(" ")
+            openIdContext.tokenGranters[sortedType]
+        }
+    }
+
     fun RoutingContext.getAuthenticatedClient(postParams: Parameters): ClientLoadingResult {
         val requestClientId: String? = call.request.queryParameters["client_id"]
 
@@ -308,7 +317,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
 
         val grantType = postParams["grant_type"] ?: return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
 
-        val granter = openIdContext.tokenGranters[grantType]
+        val granter = getGranter(grantType)
             ?: return jsonErrorView(OAuthErrorCodes.UNSUPPORTED_GRANT_TYPE)
 
         val client = when (val c = getAuthenticatedClient(postParams)) {
@@ -370,5 +379,4 @@ data class AuthTokenResponse(
     val tokenType: String,
     val expiresIn: Int? = null,
     val refreshToken: String? = null,
-    val state: String? = null
 )
