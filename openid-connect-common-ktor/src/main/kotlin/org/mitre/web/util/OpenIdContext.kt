@@ -129,6 +129,8 @@ fun RoutingContext.resolveAuthenticatedUser(): Authentication? {
 }
 
 //region Direct accessors to regular services
+val RoutingContext.authRequestFactory: OAuth2RequestFactory
+    get() = openIdContext.authRequestFactory
 val RoutingContext.approvedSiteService: ApprovedSiteService
     get() = openIdContext.approvedSiteService
 val RoutingContext.blacklistedSiteService: BlacklistedSiteService

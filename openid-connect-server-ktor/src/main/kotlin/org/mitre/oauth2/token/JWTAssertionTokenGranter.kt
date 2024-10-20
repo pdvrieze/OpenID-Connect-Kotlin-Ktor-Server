@@ -16,7 +16,8 @@ class JWTAssertionTokenGranter constructor(
     private val validator: AssertionValidator,
     private val assertionFactory: AssertionOAuth2RequestFactory
 ) : AbstractTokenGranter(tokenServices, clientDetailsService, requestFactory, grantType) {
-
+    override val isGrantAllowsRefresh: Boolean
+        get() = TODO("Unclear grant type")
 
     companion object {
         val logger = org.mitre.util.getLogger<JWTAssertionTokenGranter>()

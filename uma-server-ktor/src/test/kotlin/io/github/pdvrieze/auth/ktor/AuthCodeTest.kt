@@ -20,7 +20,6 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.testing.*
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -28,8 +27,8 @@ import org.junit.Before
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.web.TokenAPI
+import org.mitre.openid.connect.filter.AuthTokenResponse
 import org.mitre.openid.connect.filter.PlainAuthorizationRequestEndpoint
-import org.mitre.util.asString
 import org.mitre.web.FormAuthEndpoint
 import java.time.Duration
 import java.time.Instant
@@ -132,6 +131,29 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
     }
 
     @Test
+    fun testClientCredentialsGrant() = testEndpoint {
+        val r2 = nonRedirectingClient.submitForm(
+            "/token",
+            formParameters = parameters {
+                append("grant_type", "client_credentials")
+                append("scope", "scope1")
+            }
+        ) {
+            basicAuth(clientId, clientSecret)
+        }
+        assertEquals(HttpStatusCode.OK, r2.status)
+        val accessTokenResponse = r2.body<AuthTokenResponse>()// Json.parseToJsonElement(r2.bodyAsText()).jsonObject
+        assertEquals("Bearer", accessTokenResponse.tokenType)
+        val accessToken = SignedJWT.parse(accessTokenResponse.accessToken)
+        assertTrue(accessToken.verify(JWT_VERIFIER))
+
+        assertNull(accessTokenResponse.refreshToken, "Not allowed per RFC 6749, section 4.4.3")
+        assertNull(accessTokenResponse.state)
+
+        assertEquals("MyClient", accessToken.jwtClaimsSet.subject)
+    }
+
+    @Test
     fun testGetAuthorizationCodeWithState() = testEndpoint {
         val state = UUID.randomUUID().toString()
         val r = getUser("/authorize?response_type=code&client_id=$clientId&state=$state", HttpStatusCode.Found, client = nonRedirectingClient)
@@ -170,9 +192,9 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
             basicAuth(clientId, clientSecret)
         }
         assertEquals(HttpStatusCode.OK, r2.status)
-        val accessTokenResponse = r2.body<JsonObject>()// Json.parseToJsonElement(r2.bodyAsText()).jsonObject
-        assertEquals("Bearer", accessTokenResponse["token_type"].asString())
-        val accessToken = SignedJWT.parse(accessTokenResponse["access_token"].asString())
+        val accessTokenResponse = r2.body<AuthTokenResponse>()// Json.parseToJsonElement(r2.bodyAsText()).jsonObject
+        assertEquals("Bearer", accessTokenResponse.tokenType)
+        val accessToken = SignedJWT.parse(accessTokenResponse.accessToken)
 
 
         assertTrue(accessToken.verify(JWT_VERIFIER))

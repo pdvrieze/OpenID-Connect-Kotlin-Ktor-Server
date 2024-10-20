@@ -211,7 +211,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
         whenever(clientDetailsService.loadClientByClientId(ArgumentMatchers.anyString())) doReturn (null)
 
         assertThrows<InvalidClientException> {
-            service.createAccessToken(authentication)
+            service.createAccessToken(authentication, xxx)
         }
     }
 
@@ -222,7 +222,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
     fun createAccessToken_noRefresh(): Unit = runBlocking {
         whenever(client.isAllowRefresh) doReturn (false)
 
-        val token = service.createAccessToken(authentication)
+        val token = service.createAccessToken(authentication, xxx)
 
         verify(clientDetailsService).loadClientByClientId(ArgumentMatchers.anyString())
         verify(authenticationHolderRepository).save(isA<AuthenticationHolderEntity>())
@@ -259,7 +259,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
             refreshToken
         }
 
-        val token = service.createAccessToken(authentication)
+        val token = service.createAccessToken(authentication, xxx)
 
         verify(tokenRepository, atMost(1)).getRefreshTokenById(ArgumentMatchers.anyLong())
 
@@ -283,7 +283,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
         whenever(client.refreshTokenValiditySeconds) doReturn (refreshTokenValiditySeconds)
 
         val start = System.currentTimeMillis()
-        val token = service.createAccessToken(authentication)
+        val token = service.createAccessToken(authentication, xxx)
         val end = System.currentTimeMillis()
 
         // Accounting for some delta for time skew on either side.
@@ -306,7 +306,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
 
     @Test
     fun createAccessToken_checkClient(): Unit = runBlocking {
-        val token: OAuth2AccessToken = service.createAccessToken(authentication)
+        val token: OAuth2AccessToken = service.createAccessToken(authentication, xxx)
 
         verify(scopeService, atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
 
@@ -315,7 +315,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
 
     @Test
     fun createAccessToken_checkScopes(): Unit = runBlocking {
-        val token = service.createAccessToken(authentication)
+        val token = service.createAccessToken(authentication, xxx)
 
         verify(scopeService, atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
 
@@ -329,7 +329,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
 
         whenever(authenticationHolderRepository.save(isA<AuthenticationHolderEntity>())) doReturn (authHolder)
 
-        val token = service.createAccessToken(authentication)
+        val token = service.createAccessToken(authentication, xxx)
 
         Assertions.assertEquals(authentication, token.authenticationHolder.authentication)
         verify(authenticationHolderRepository).save(isA<AuthenticationHolderEntity>())

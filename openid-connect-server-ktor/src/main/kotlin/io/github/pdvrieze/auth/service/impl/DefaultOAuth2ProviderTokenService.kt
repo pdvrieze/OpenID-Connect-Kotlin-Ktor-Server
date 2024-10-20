@@ -117,7 +117,7 @@ class DefaultOAuth2ProviderTokenService(
     }
 
 
-    override suspend fun createAccessToken(authentication: OAuth2RequestAuthentication): OAuth2AccessToken {
+    override suspend fun createAccessToken(authentication: OAuth2RequestAuthentication, isAllowRefresh: Boolean): OAuth2AccessToken {
         // look up our client
         val request = authentication.oAuth2Request
 
@@ -181,7 +181,7 @@ class DefaultOAuth2ProviderTokenService(
         tokenBuilder.setAuthenticationHolder(authHolder)
 
         // attach a refresh token, if this client is allowed to request them and the user gets the offline scope
-        if (client.isAllowRefresh && SystemScopeService.OFFLINE_ACCESS in scope) {
+        if (isAllowRefresh && client.isAllowRefresh && SystemScopeService.OFFLINE_ACCESS in scope) {
             val savedRefreshToken = createRefreshToken(client, authHolder)
 
             tokenBuilder.setRefreshToken(savedRefreshToken)

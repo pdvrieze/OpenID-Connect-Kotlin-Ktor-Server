@@ -132,7 +132,7 @@ class SpringOAuth2ProviderTokenService : OAuth2TokenEntityService {
 
     @Transactional(value = "defaultTransactionManager")
     @Throws(AuthenticationException::class, InvalidClientException::class)
-    override suspend fun createAccessToken(authentication: OAuth2RequestAuthentication): OAuth2AccessToken {
+    override suspend fun createAccessToken(authentication: OAuth2RequestAuthentication, isAllowRefresh: Boolean): OAuth2AccessToken {
 
         // look up our client
         val request = authentication.oAuth2Request

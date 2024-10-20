@@ -20,7 +20,7 @@ class DeviceTokenGranter protected constructor(
     requestFactory: OAuth2RequestFactory,
     private val deviceCodeService: DeviceCodeService,
 ) : AbstractTokenGranter(tokenServices, clientDetailsService, requestFactory, GRANT_TYPE) {
-
+    override val isGrantAllowsRefresh: Boolean get() = true
 
     companion object {
         const val GRANT_TYPE: String = "urn:ietf:params:oauth:grant-type:device_code"

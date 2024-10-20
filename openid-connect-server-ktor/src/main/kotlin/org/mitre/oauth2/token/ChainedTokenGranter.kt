@@ -14,6 +14,9 @@ class ChainedTokenGranter constructor(// keep down-cast versions so we can get t
     // TODO: remove cast to ClientDetails service, but that means inhertence needs to be different
 ) : AbstractTokenGranter(tokenServices, clientResolver, requestFactory, GRANT_TYPE) {
 
+    override val isGrantAllowsRefresh: Boolean
+        get() = TODO("not implemented")
+
     companion object {
         const val GRANT_TYPE: String = "urn:ietf:params:oauth:grant_type:redelegate"
     }

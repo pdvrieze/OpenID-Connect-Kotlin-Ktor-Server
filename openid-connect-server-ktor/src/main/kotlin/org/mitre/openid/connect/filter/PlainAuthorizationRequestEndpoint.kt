@@ -6,10 +6,10 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
-import org.mitre.oauth2.exception.OAuth2Exception
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.mitre.oauth2.exception.OAuthErrorCodes
+import org.mitre.oauth2.exception.httpCode
 import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuthClientDetails
@@ -25,6 +25,7 @@ import org.mitre.util.getLogger
 import org.mitre.web.OpenIdSessionStorage
 import org.mitre.web.htmlLoginView
 import org.mitre.web.util.KtorEndpoint
+import org.mitre.web.util.authRequestFactory
 import org.mitre.web.util.authcodeService
 import org.mitre.web.util.clientDetailsService
 import org.mitre.web.util.openIdContext
@@ -50,7 +51,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
             }
         }
         post("/token") {
-            exchangeAccessToken()
+            getAccessToken()
         }
     }
 
@@ -168,7 +169,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
     ) {
         val granter = openIdContext.tokenGranters[responseType] ?: return jsonErrorView(OAuthErrorCodes.UNSUPPORTED_GRANT_TYPE)
         val r = OAuth2RequestAuthentication(authRequest, SavedUserAuthentication.from(auth))
-        val accessToken = granter.getAccessToken(client, r).jwt.serialize()
+        val accessToken = granter.getAccessToken(client, r,).jwt.serialize()
         return call.respondRedirect {
             takeFrom(effectiveRedirectUri)
             if (state != null) parameters.append("state", state)
@@ -253,21 +254,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         return true
     }
 
-    @OptIn(ExperimentalEncodingApi::class)
-    private suspend fun RoutingContext.exchangeAccessToken() {
-
-        val postParams = call.receiveParameters()
-
-        if (postParams.entries().any { it.value.size != 1 }) {
-            return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
-        }
-
-        logger.info("Query parameters: ${postParams.entries().joinToString { (k, v) -> "$k=\"${v.single()}\"" }}")
-
-        val grantType = postParams["grant_type"] ?: return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
-        val code = postParams["code"] ?: return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
-        val redirectUri = postParams["redirect_uri"] // can be null if also not in original request
-
+    fun RoutingContext.getAuthenticatedClient(postParams: Parameters): ClientLoadingResult {
         val requestClientId: String? = call.request.queryParameters["client_id"]
 
         val creds : UserPasswordCredential
@@ -279,58 +266,67 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
                     "Basic" -> {
                         creds = call.request.basicAuthenticationCredentials()!!
                     }
-                    else -> return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
+                    else -> return ClientLoadingResult(OAuthErrorCodes.INVALID_REQUEST)
                 }
 
                 postParams.getAll("client_id")?.run {
-                    if(size > 1) return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
+                    if(size > 1) return ClientLoadingResult(OAuthErrorCodes.INVALID_REQUEST)
                     if (requestClientId!= null && requestClientId != get(0)) {
                         //mismatch between client ids
-                        return jsonErrorView(OAuthErrorCodes.INVALID_CLIENT)
+                        return ClientLoadingResult(OAuthErrorCodes.INVALID_CLIENT)
                     }
                 }
 
                 if (postParams.contains("client_secret")) {
                     // double authorization is not allowed
-                    return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
+                    return ClientLoadingResult(OAuthErrorCodes.INVALID_REQUEST)
                 }
             }
 
             else -> {
                 val cid = postParams.getAll("client_id")?.singleOrNull()
                 val clientSecret = postParams.getAll("client_secret")?.singleOrNull()
-                if (cid == null || clientSecret == null) return jsonErrorView(OAuthErrorCodes.INVALID_CLIENT, HttpStatusCode.Unauthorized)
+                if (cid == null || clientSecret == null) return ClientLoadingResult(OAuthErrorCodes.INVALID_CLIENT, HttpStatusCode.Unauthorized.value)
 
                 creds = UserPasswordCredential(cid, clientSecret)
             }
         }
 
-        val client = when (val c = clientDetailsService.loadClientAuthenticated(creds.name, creds.password)) {
-            is ClientLoadingResult.Unauthorized,
-            is ClientLoadingResult.Missing -> return jsonErrorView(OAuthErrorCodes.INVALID_CLIENT, HttpStatusCode.Unauthorized)
+        return clientDetailsService.loadClientAuthenticated(creds.name, creds.password)
+    }
 
-            is ClientLoadingResult.Found -> c.client
+    @OptIn(ExperimentalEncodingApi::class)
+    private suspend fun RoutingContext.getAccessToken() {
+
+        val postParams = call.receiveParameters()
+
+        if (postParams.entries().any { it.value.size != 1 }) {
+            return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
         }
 
+        logger.info("Query parameters: ${postParams.entries().joinToString { (k, v) -> "$k=\"${v.single()}\"" }}")
 
-        val req = try {
-            authcodeService.consumeAuthorizationCode(code)
-        } catch (e: OAuth2Exception) { return jsonErrorView(e.oauth2ErrorCode) }
-
-        // don't allow redirect uri mismatch
-        if (req.oAuth2Request.redirectUri != redirectUri) return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
+        val grantType = postParams["grant_type"] ?: return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
 
         val granter = openIdContext.tokenGranters[grantType]
             ?: return jsonErrorView(OAuthErrorCodes.UNSUPPORTED_GRANT_TYPE)
 
-        val accessToken = granter.getAccessToken(client, req)
+        val client = when (val c = getAuthenticatedClient(postParams)) {
+            is ClientLoadingResult.Unauthorized,
+            is ClientLoadingResult.Missing -> return jsonErrorView(OAuthErrorCodes.INVALID_CLIENT, HttpStatusCode.Unauthorized)
+            is ClientLoadingResult.Error -> return jsonErrorView(c.errorCode, c.status?.let{HttpStatusCode.fromValue(it) } ?: c.errorCode.httpCode ?: HttpStatusCode.BadRequest)
 
-        val response = buildJsonObject {
-            put("access_token", accessToken.value)
-            put("token_type", "Bearer")
-            put("expires_in", accessToken.expiresIn)
-            accessToken.refreshToken?.let { put("refresh_token", it.value) }
+            is ClientLoadingResult.Found -> c.client
         }
+
+        val accessToken = granter.grant(grantType, authRequestFactory.createAuthorizationRequest(postParams, client), client)
+
+        val response = AuthTokenResponse (
+            accessToken.value,
+            "Bearer",
+            accessToken.expiresIn,
+            accessToken.refreshToken?.value
+        )
 
         return call.respondJson(response)
     }
@@ -365,3 +361,14 @@ companion object Plugin: BaseApplicationPlugin<ApplicationCallPipeline, Unit, Au
 }
 */
 }
+
+
+@Serializable
+data class AuthTokenResponse(
+    @SerialName("access_token")
+    val accessToken: String,
+    val tokenType: String,
+    val expiresIn: Int? = null,
+    val refreshToken: String? = null,
+    val state: String? = null
+)
