@@ -143,7 +143,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
         }
         assertEquals(HttpStatusCode.OK, r2.status)
         val accessTokenResponse = r2.body<AuthTokenResponse>()// Json.parseToJsonElement(r2.bodyAsText()).jsonObject
-        assertEquals("Bearer", accessTokenResponse.tokenType)
+        assertEquals("bearer", accessTokenResponse.tokenType.lowercase())
         val accessToken = SignedJWT.parse(accessTokenResponse.accessToken)
         assertTrue(accessToken.verify(JWT_VERIFIER))
 
@@ -193,7 +193,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
         }
         assertEquals(HttpStatusCode.OK, r2.status)
         val accessTokenResponse = r2.body<AuthTokenResponse>()// Json.parseToJsonElement(r2.bodyAsText()).jsonObject
-        assertEquals("Bearer", accessTokenResponse.tokenType)
+        assertEquals("bearer", accessTokenResponse.tokenType.lowercase())
         val accessToken = SignedJWT.parse(accessTokenResponse.accessToken)
 
 
