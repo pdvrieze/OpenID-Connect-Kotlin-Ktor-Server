@@ -8,6 +8,7 @@ import io.github.pdvrieze.auth.repository.exposed.AuthenticationHolderResponseTy
 import io.github.pdvrieze.auth.repository.exposed.AuthenticationHolderScopes
 import io.github.pdvrieze.auth.repository.exposed.AuthenticationHolders
 import io.github.pdvrieze.auth.repository.exposed.AuthorizationCodes
+import io.github.pdvrieze.auth.repository.exposed.RefreshTokens
 import io.github.pdvrieze.auth.repository.exposed.SavedUserAuthAuthorities
 import io.github.pdvrieze.auth.repository.exposed.SavedUserAuths
 import io.github.pdvrieze.auth.repository.exposed.SystemScopes
@@ -16,6 +17,7 @@ import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.testing.*
@@ -25,7 +27,10 @@ import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.Before
 import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.OAuth2RequestAuthentication
+import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.SystemScope
+import org.mitre.oauth2.model.convert.OAuth2Request
 import org.mitre.oauth2.web.TokenAPI
 import org.mitre.openid.connect.filter.AuthTokenResponse
 import org.mitre.openid.connect.filter.PlainAuthorizationRequestEndpoint
@@ -42,7 +47,6 @@ import kotlin.test.assertTrue
 class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAuthEndpoint) {
 
     lateinit var clientId: String
-    lateinit var clientSecret: String
 
     lateinit var nonRedirectingClient: HttpClient
 
@@ -52,6 +56,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
     override val deletableTables: List<Table>
         get() = listOf(
             AccessTokenPermissions, AccessTokens,
+            RefreshTokens,
             AuthorizationCodes,
             AuthenticationHolderResponseTypes, AuthenticationHolderScopes, AuthenticationHolderRequestParameters, AuthenticationHolders,
             SavedUserAuthAuthorities, SavedUserAuths,
@@ -70,22 +75,26 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
         scope1Id = testContext.scopeRepository.save(SystemScope("scope1")).id!!
         scope2Id = testContext.scopeRepository.save(SystemScope("scope2")).id!!
 
-        clientSecret = testContext.clientDetailsService.generateClientSecret()!!
-        val newClient = ClientDetailsEntity(
+        val newClientBuilder = ClientDetailsEntity.Builder(
             clientId = "MyClient",
-            clientSecret = clientSecret,
-            redirectUris = setOf(REDIRECT_URI),
-            scope = setOf("scope1", "scope2"),
+            redirectUris = mutableSetOf(REDIRECT_URI),
+            scope = mutableSetOf("scope1", "scope2", "offline_access"),
             accessTokenValiditySeconds = 60*5, // 5 minutes
+            authorizedGrantTypes = mutableSetOf("refresh_token", "token", "authorization_code", "client_credentials"),
+            refreshTokenValiditySeconds = 60*5,
         )
+        val cs = testContext.clientDetailsService.generateClientSecret(newClientBuilder)!!
+        clientSecret = cs
+        newClientBuilder.clientSecret = cs
 
-        clientId = testContext.clientDetailsService.saveNewClient(newClient).clientId!!
+        clientId = testContext.clientDetailsService.saveNewClient(newClientBuilder).clientId!!
     }
 
     @Test
     fun testSetup() {
         val client = assertNotNull(testContext.clientDetailsService.loadClientByClientId(clientId), "Missing client")
         assertNotNull(client.clientSecret, "Missing client secret")
+        assertTrue(client.isAllowRefresh)
         assertEquals(300, client.accessTokenValiditySeconds)
     }
 
@@ -132,7 +141,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
 
     @Test
     fun testClientCredentialsGrant() = testEndpoint {
-        val r2 = nonRedirectingClient.submitForm(
+        val r = nonRedirectingClient.submitForm(
             "/token",
             formParameters = parameters {
                 append("grant_type", "client_credentials")
@@ -141,8 +150,8 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
         ) {
             basicAuth(clientId, clientSecret)
         }
-        assertEquals(HttpStatusCode.OK, r2.status)
-        val accessTokenResponse = r2.body<AuthTokenResponse>()// Json.parseToJsonElement(r2.bodyAsText()).jsonObject
+        assertEquals(HttpStatusCode.OK, r.status)
+        val accessTokenResponse = r.body<AuthTokenResponse>()// Json.parseToJsonElement(r2.bodyAsText()).jsonObject
         assertEquals("bearer", accessTokenResponse.tokenType.lowercase())
         val accessToken = SignedJWT.parse(accessTokenResponse.accessToken)
         assertTrue(accessToken.verify(JWT_VERIFIER))
@@ -151,6 +160,35 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
         assertNull(accessTokenResponse.state)
 
         assertEquals("MyClient", accessToken.jwtClaimsSet.subject)
+    }
+
+    @Test
+    fun testRefreshAccessToken() = testEndpoint {
+        val tokenParams = mapOf("client_id" to clientId, "scope" to "offline_access")
+        val req = OAuth2RequestAuthentication(
+            OAuth2Request(tokenParams, clientId, scope = setOf("offline_access")),
+            SavedUserAuthentication("user")
+        )
+        val origToken = testContext.tokenService.createAccessToken(req, true)
+        val refreshToken = assertNotNull(origToken.refreshToken)
+        val r = submitClient(
+            url = "/token",
+            formParameters = parameters {
+                append("grant_type", "refresh_token")
+                append("refresh_token", refreshToken.value)
+            }
+        )
+        val b = r.bodyAsText()
+        val refreshedTokenResponse = Json.decodeFromString<AuthTokenResponse>(b)
+        val accessToken = SignedJWT.parse(refreshedTokenResponse.accessToken)
+        assertTrue(accessToken.verify(JWT_VERIFIER))
+
+        assertEquals("user", accessToken.jwtClaimsSet.subject)
+        assertEquals("MyClient", accessToken.jwtClaimsSet.getStringClaim("azp"))
+        assertEquals("https://example.com/", accessToken.jwtClaimsSet.issuer)
+        val n = Instant.now()
+        assertTrue(n.isAfter(accessToken.jwtClaimsSet.issueTime.toInstant()))
+        assertTrue(n.isBefore(accessToken.jwtClaimsSet.expirationTime.toInstant()))
     }
 
     @Test

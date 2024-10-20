@@ -5,6 +5,7 @@ import org.mitre.oauth2.exception.OAuthErrorCodes
 import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuthClientDetails
+import org.mitre.oauth2.model.convert.OAuth2Request
 import org.mitre.oauth2.resolver.ClientResolver
 import org.mitre.oauth2.service.OAuth2TokenEntityService
 import org.mitre.openid.connect.request.OAuth2RequestFactory
@@ -25,6 +26,24 @@ class RefreshTokenGranter(
     grantType: String = "refresh_token"
 ) : AbstractTokenGranter(tokenService, clientResolver, requestFactory, grantType) {
     override val isGrantAllowsRefresh: Boolean get() = true
+    override suspend fun grant(
+        grantType: String,
+        request: OAuth2Request,
+        authenticatedClient: OAuthClientDetails,
+    ): OAuth2AccessToken {
+        return super.grant(grantType, request, authenticatedClient)
+    }
+
+    override fun validateGrantType(grantType: String, clientDetails: OAuthClientDetails) {
+        super.validateGrantType(grantType, clientDetails)
+    }
+
+    override suspend fun getOAuth2Authentication(
+        client: OAuthClientDetails,
+        request: OAuth2Request,
+    ): OAuth2RequestAuthentication {
+        return super.getOAuth2Authentication(client, request)
+    }
 
     override suspend fun getAccessToken(
         client: OAuthClientDetails,

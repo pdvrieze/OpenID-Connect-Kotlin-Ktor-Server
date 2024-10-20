@@ -8,6 +8,7 @@ import io.github.pdvrieze.auth.ktor.plugins.configureRouting
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
+import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
@@ -20,8 +21,10 @@ import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.Before
 import org.mitre.oauth2.model.GrantedAuthority
+import org.mitre.oauth2.service.ClientLoadingResult
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.OpenIdContextPlugin
+import org.mitre.web.util.openIdContext
 import kotlin.test.assertEquals
 
 abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, private val includeAuthzFilter: Boolean) {
@@ -30,6 +33,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
     constructor(includeAuthzFilter: Boolean = false, vararg endpoints: KtorEndpoint) : this(endpoints, includeAuthzFilter)
 
     protected lateinit var testContext: TestContext
+    lateinit var clientSecret: String
 
     private val endpoints = endpoints.toList()
 
@@ -64,7 +68,9 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
                         when (cred.name) {
                             "admin" -> UserIdPrincipal(cred.name).takeIf { cred.password == "secret" }
                             "user" -> UserIdPrincipal(cred.name).takeIf { cred.password == "userSecret" }
-                            "client" -> UserIdPrincipal(cred.name).takeIf { cred.password == "clientSecret" }
+                            "MyClient" -> UserIdPrincipal(cred.name).takeIf {
+                                openIdContext.clientDetailsService.loadClientAuthenticated(cred.name, cred.password) is ClientLoadingResult.Found
+                            }
                             else -> null
                         }
                     }
@@ -117,7 +123,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         return getUnAuth(url, statusCode, client) {
-            basicAuth("client", "clientSecret")
+            basicAuth("MyClient", clientSecret)
             block()
         }
     }
@@ -165,7 +171,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         return putUnAuth(url, statusCode, client) {
-            basicAuth("client", "clientSecret")
+            basicAuth("MyClient", clientSecret)
             block()
         }
     }
@@ -213,7 +219,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         return postUnAuth(url, statusCode, client) {
-            basicAuth("client", "clientSecret")
+            basicAuth("MyClient", clientSecret)
             block()
         }
     }
@@ -225,6 +231,58 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         return postUnAuth(url, statusCode, client) {
+            basicAuth("admin", "secret")
+            block()
+        }
+    }
+
+    suspend fun ApplicationTestBuilder.submitUnAuth(
+        url: String,
+        formParameters: Parameters,
+        statusCode: HttpStatusCode = HttpStatusCode.OK,
+        client: HttpClient = this.client,
+        block: HttpRequestBuilder.() -> Unit = {},
+    ): HttpResponse {
+        val r = client.submitForm(url, formParameters, false, block)
+        assertEquals(statusCode, r.status, "Unexpected response status: ${r.status}")
+
+        return r
+    }
+
+    suspend fun ApplicationTestBuilder.submitUser(
+        url: String,
+        formParameters: Parameters,
+        statusCode: HttpStatusCode = HttpStatusCode.OK,
+        client: HttpClient = this.client,
+        block: HttpRequestBuilder.() -> Unit = {},
+    ): HttpResponse {
+        return submitUnAuth(url, formParameters, statusCode, client) {
+            basicAuth("user", "userSecret")
+            block()
+        }
+    }
+
+    suspend fun ApplicationTestBuilder.submitClient(
+        url: String,
+        formParameters: Parameters,
+        statusCode: HttpStatusCode = HttpStatusCode.OK,
+        client: HttpClient = this.client,
+        block: HttpRequestBuilder.() -> Unit = {},
+    ): HttpResponse {
+        return submitUnAuth(url, formParameters, statusCode, client) {
+            basicAuth("MyClient", clientSecret)
+            block()
+        }
+    }
+
+    suspend fun ApplicationTestBuilder.submitAdmin(
+        url: String,
+        formParameters: Parameters,
+        statusCode: HttpStatusCode = HttpStatusCode.OK,
+        client: HttpClient = this.client,
+        block: HttpRequestBuilder.() -> Unit = {},
+    ): HttpResponse {
+        return submitUnAuth(url, formParameters, statusCode, client) {
             basicAuth("admin", "secret")
             block()
         }
@@ -261,7 +319,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         return deleteUnAuth(url, statusCode, client) {
-            basicAuth("client", "clientSecret")
+            basicAuth("MyClient", clientSecret)
             block()
         }
     }
@@ -282,7 +340,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
         override fun resolveAuthServiceAuthorities(name: String): Collection<GrantedAuthority> {
             return when (name) {
                 "admin" -> listOf(GrantedAuthority.ROLE_ADMIN, GrantedAuthority.ROLE_USER, GrantedAuthority.ROLE_CLIENT)
-                "client" -> listOf(GrantedAuthority.ROLE_CLIENT)
+                "MyClient" -> listOf(GrantedAuthority.ROLE_CLIENT)
                 "user" -> listOf(GrantedAuthority.ROLE_USER)
                 else -> emptyList()
             }
