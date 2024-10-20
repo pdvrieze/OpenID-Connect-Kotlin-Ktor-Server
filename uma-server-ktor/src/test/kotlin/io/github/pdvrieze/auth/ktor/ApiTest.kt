@@ -1,6 +1,8 @@
 package io.github.pdvrieze.auth.ktor
 
+import com.nimbusds.jose.crypto.RSASSAVerifier
 import com.nimbusds.jose.jwk.JWK
+import com.nimbusds.jose.jwk.RSAKey
 import io.github.pdvrieze.auth.ktor.plugins.OpenIdConfigurator
 import io.github.pdvrieze.auth.ktor.plugins.configureRouting
 import io.ktor.client.*
@@ -302,5 +304,8 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
             |    "dq": "d1mMMHrJ2_RuOrMSpU7QloCqN1wfL4q6vOMdB2EMfPPB2yO7DAcEKDzg4eaJyVlk6P2ZrMU4Oo6XN89-Y1X3I740i_gHIg2VMw_KJapo4JEKLXbeycXeEG9nuK4_JLKke49kEdQ0fdya2_PpJjnqqrn56Q4NfEBJeqEfE0L8i4M",
             |    "n": "i40NAPDU3RZCAJDZWeaaZohtPgzevuxA1lJCtELewlYoKZktXZDl7Uzafu65vAFyOyqIDUuTSqbmPNFRA6cDNkK992PUepzEPtx9qthBBiYEoUwWtwkkui-sxpON2RJOePZmLOkfCuxq57bhiUsFIKf8am_Dw101mo49Keo9AQRNhscgnhB6VrDq0qGqTpf0ESaWbMlzwObV0a6NVT5susnnWXyUvwO7P57X30OtxMZrfPrRr_KDbkA9fX_MLOhnS4Rj0aYyJ7ClWUtKRQV8M0Sm0z56VD39MDPrKklP4wPm889-gFCpl0Y4ajMhSWD811LQwn0OFHj7pM59XE7Fkw"
             |}""".trimMargin()
+
+        val JWT_VERIFIER = RSASSAVerifier(JWK.parse(SIGNING_KEY).toPublicJWK() as RSAKey)
+
     }
 }

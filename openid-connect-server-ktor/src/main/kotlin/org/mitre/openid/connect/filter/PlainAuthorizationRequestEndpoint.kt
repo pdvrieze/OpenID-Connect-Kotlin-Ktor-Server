@@ -11,7 +11,9 @@ import kotlinx.serialization.json.put
 import org.mitre.oauth2.exception.OAuth2Exception
 import org.mitre.oauth2.exception.OAuthErrorCodes
 import org.mitre.oauth2.model.Authentication
+import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuthClientDetails
+import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.convert.OAuth2Request
 import org.mitre.oauth2.service.ClientLoadingResult
 import org.mitre.oauth2.view.respondJson
@@ -26,11 +28,11 @@ import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.authcodeService
 import org.mitre.web.util.clientDetailsService
 import org.mitre.web.util.openIdContext
+import org.mitre.web.util.scopeService
 import org.mitre.web.util.update
 import java.net.URISyntaxException
 import kotlin.collections.component1
 import kotlin.collections.component2
-import kotlin.collections.set
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 /**
@@ -58,23 +60,15 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
 
 
     private suspend fun RoutingContext.startAuthorizationFlow() {
-//    private suspend fun PipelineContext<Unit, PipelineCall>.doIntercept(subject: Any) {
-        // skip everything that's not an authorize URL
-//        if (!call.request.path().startsWith("/authorize")) return // skip intercept
-
-
-        // we have to create our own auth request in order to get at all the parmeters appropriately
-        val authRequest: OAuth2Request?
-
-
         val params =
             call.request.queryParameters.let { if (call.request.httpMethod == HttpMethod.Post) it + call.receiveParameters() else it }
-        for ((key, values) in params.entries()) {
+        for ((_, values) in params.entries()) {
             // Any repeated parameter is invalid per RFC 6749/ 4.1
             if (values.size != 1) return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
         }
 
-        authRequest = openIdContext.authRequestFactory.createAuthorizationRequest(params)
+        // we have to create our own auth request in order to get at all the parmeters appropriately
+        val authRequest: OAuth2Request = openIdContext.authRequestFactory.createAuthorizationRequest(params)
         if (authRequest.clientId.isBlank()) return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
 
         val client = clientDetailsService.loadClientByClientId(authRequest.clientId)
@@ -82,6 +76,10 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
 
         val auth = openIdContext.resolveAuthenticatedUser(call)
         val state = params["state"]
+
+        // TODO check redirect uri validity (if in the auth request)
+        val redirectUri = authRequest.redirectUri ?: client.redirectUris.singleOrNull()
+        ?: return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
 
         // save the login hint to the session
         // but first check to see if the login hint makes any sense
@@ -120,15 +118,21 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
             }
         }
 
-        // TODO check redirect uri validity (if in the auth request)
-        val redirectUri = authRequest.redirectUri ?: client.redirectUris.singleOrNull()
-        ?: return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
+        val responseType = params["response_type"] ?: return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
 
 
+
+        if (!scopeService.scopesMatch(client.scope?: emptySet(), authRequest.scope)) {
+            return jsonErrorView(OAuthErrorCodes.INVALID_SCOPE)
+        }
         // TODO check scopes
 
         if (auth != null) {
-            return respondWithAuthCode(authRequest, auth, redirectUri, state)
+            when (responseType) {
+                "code" -> return respondWithAuthCode(authRequest, auth, redirectUri, state)
+                "token" -> return respondImplicitFlow(responseType, client, authRequest, auth, redirectUri, state)
+                else -> return jsonErrorView(OAuthErrorCodes.UNSUPPORTED_GRANT_TYPE)
+            }
         }
 
         call.sessions.update<OpenIdSessionStorage> {
@@ -137,6 +141,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         }
         htmlLoginView(loginHint, null, null)
     }
+
 
     suspend fun RoutingContext.respondWithAuthCode(
         authRequest: OAuth2Request,
@@ -149,6 +154,25 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
             takeFrom(effectiveRedirectUri)
             parameters.append("code", code)
             if (state != null) parameters.append("state", state)
+        }
+    }
+
+
+    suspend fun RoutingContext.respondImplicitFlow(
+        responseType: String,
+        client: OAuthClientDetails,
+        authRequest: OAuth2Request,
+        auth: Authentication,
+        effectiveRedirectUri: String,
+        state: String?,
+    ) {
+        val granter = openIdContext.tokenGranters[responseType] ?: return jsonErrorView(OAuthErrorCodes.UNSUPPORTED_GRANT_TYPE)
+        val r = OAuth2RequestAuthentication(authRequest, SavedUserAuthentication.from(auth))
+        val accessToken = granter.getAccessToken(client, r).jwt.serialize()
+        return call.respondRedirect {
+            takeFrom(effectiveRedirectUri)
+            if (state != null) parameters.append("state", state)
+            fragment = accessToken
         }
     }
 
@@ -309,17 +333,6 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         }
 
         return call.respondJson(response)
-    }
-
-    private fun createRequestMap(parameterMap: Map<String, Array<String>?>): Map<String, String> {
-        val requestMap: MutableMap<String, String> = HashMap()
-        for ((key, value) in parameterMap) {
-            if (!value.isNullOrEmpty()) {
-                requestMap[key] = value[0] // add the first value only (which is what Spring seems to do)
-            }
-        }
-
-        return requestMap
     }
 
 

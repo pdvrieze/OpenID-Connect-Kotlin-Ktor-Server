@@ -1,8 +1,5 @@
 package io.github.pdvrieze.auth.ktor
 
-import com.nimbusds.jose.crypto.RSASSAVerifier
-import com.nimbusds.jose.jwk.JWK
-import com.nimbusds.jose.jwk.RSAKey
 import com.nimbusds.jwt.SignedJWT
 import io.github.pdvrieze.auth.repository.exposed.AccessTokenPermissions
 import io.github.pdvrieze.auth.repository.exposed.AccessTokens
@@ -96,7 +93,6 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
     @Test
     fun testGetAuthorizationCodeNoState() = testEndpoint {
         val r = getUser("/authorize?response_type=code&client_id=$clientId", HttpStatusCode.Found, client = nonRedirectingClient)
-        assertEquals(HttpStatusCode.Found, r.status)
         val respUri = parseUrl(assertNotNull(r.headers[HttpHeaders.Location]))!!
         val actualBase = URLBuilder(respUri.protocolWithAuthority).apply {
             pathSegments = respUri.segments
@@ -112,6 +108,27 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
         assertTrue(storedUser.isAuthenticated)
 
         assertNull(respUri.parameters["state"])
+    }
+
+    @Test
+    fun testImplicitFlowNoState() = testEndpoint {
+        val r = getUser("/authorize?response_type=token&client_id=$clientId", HttpStatusCode.Found, client = nonRedirectingClient)
+        assertEquals(HttpStatusCode.Found, r.status)
+        val respUri = parseUrl(assertNotNull(r.headers[HttpHeaders.Location]))!!
+
+        assertNull(respUri.parameters["state"])
+        val actualBase = URLBuilder(respUri.protocolWithAuthority).apply {
+            pathSegments = respUri.segments
+        }.buildString()
+
+        assertEquals(REDIRECT_URI, actualBase)
+        val accessToken = assertNotNull(respUri.fragment)
+
+        val accessJWT = SignedJWT.parse(accessToken)
+        assertTrue(accessJWT.verify(JWT_VERIFIER))
+
+        assertEquals("user", accessJWT.jwtClaimsSet.subject)
+
     }
 
     @Test
@@ -158,9 +175,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
         val accessToken = SignedJWT.parse(accessTokenResponse["access_token"].asString())
 
 
-        val key = JWK.parse(SIGNING_KEY).toPublicJWK()
-        val verifier = RSASSAVerifier(key as RSAKey)
-        assertTrue(accessToken.verify(verifier))
+        assertTrue(accessToken.verify(JWT_VERIFIER))
 
         val cs = accessToken.jwtClaimsSet
 
@@ -193,6 +208,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
 
     companion object {
         const val REDIRECT_URI = "http://localhost:1234/clientApp"
+
     }
 
 }

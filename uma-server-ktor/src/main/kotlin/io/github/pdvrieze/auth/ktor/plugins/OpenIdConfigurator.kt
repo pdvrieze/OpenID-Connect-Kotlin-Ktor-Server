@@ -56,6 +56,7 @@ import org.mitre.oauth2.service.impl.DefaultOAuth2ClientDetailsEntityService
 import org.mitre.oauth2.service.impl.DefaultOAuth2ProviderTokenService
 import org.mitre.oauth2.service.impl.DefaultSystemScopeService
 import org.mitre.oauth2.token.AuthorizationCodeTokenGranter
+import org.mitre.oauth2.token.ImplicitTokenGranter
 import org.mitre.oauth2.token.TokenGranter
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.config.JsonMessageSource
@@ -299,7 +300,8 @@ data class OpenIdConfigurator(
 
         override val tokenGranters: Map<String, TokenGranter> =
             listOf(
-                AuthorizationCodeTokenGranter(tokenService, authcodeService, clientDetailsService, authRequestFactory)
+                AuthorizationCodeTokenGranter(tokenService, authcodeService, clientDetailsService, authRequestFactory),
+                ImplicitTokenGranter(tokenService, clientDetailsService, authRequestFactory)
             ).associateBy { it.grantType }
 
         override val htmlViews: HtmlViews = DefaultHtmlViews()
