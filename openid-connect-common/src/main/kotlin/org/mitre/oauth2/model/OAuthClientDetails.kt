@@ -265,7 +265,9 @@ interface OAuthClientDetails {
         codeChallengeMethod: PKCEAlgorithm? = this.codeChallengeMethod,
         accessTokenValiditySeconds: Int? = this.accessTokenValiditySeconds,
         refreshTokenValiditySeconds: Int? = this.refreshTokenValiditySeconds,
-        authorities: Set<GrantedAuthority> = this.authorities
+        authorities: Set<GrantedAuthority> = this.authorities,
+        resourceIds: Set<String> = this.resourceIds,
+        additionalInformation: Map<String, Any> = this.additionalInformation,
     ): ClientDetailsEntity
 
     companion object {

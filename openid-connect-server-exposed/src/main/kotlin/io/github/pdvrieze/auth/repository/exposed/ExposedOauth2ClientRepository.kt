@@ -227,7 +227,7 @@ private fun ResultRow.toClient(): OAuthClientDetails {
 
     val r = this
     with(ClientDetails) {
-        return ClientDetailsEntity(
+        return ClientDetailsEntity.Builder(
             id = id,
             clientId = r[clientId],
             clientSecret = r[clientSecret],
@@ -277,6 +277,7 @@ private fun ResultRow.toClient(): OAuthClientDetails {
             softwareStatement = r[softwareStatement]?.let { JWTParser.parse(it) },
             codeChallengeMethod = r[codeChallengeMethod]?.let { PKCEAlgorithm.parse(it) },
             accessTokenValiditySeconds = r[accessTokenValiditySeconds]?.toInt(),
-        )
+            refreshTokenValiditySeconds = r[refreshTokenValiditySeconds]?.toInt(),
+        ).build()
     }
 }

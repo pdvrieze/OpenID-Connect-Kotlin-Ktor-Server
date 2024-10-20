@@ -68,9 +68,11 @@ import kotlinx.serialization.Transient as KXS_Transient
 
 /**
  * @author jricher
+ *
+ * @property authorities Fields to support the ClientDetails interface
  */
 @Serializable
-open class ClientDetailsEntity(
+open class ClientDetailsEntity private constructor(
     override var id: Long? = null,
 
     /** Fields from the OAuth2 Dynamic Registration Specification  */
@@ -217,26 +219,184 @@ open class ClientDetailsEntity(
     @SerialName(CODE_CHALLENGE_METHOD)
     override var codeChallengeMethod: @Serializable PKCEAlgorithm? = null,
 
-    @KXS_Transient
+//    @KXS_Transient
     override var accessTokenValiditySeconds: Int? = 0,
+//    @KXS_Transient
+    override var authorities: Set<GrantedAuthority> = HashSet(), // = HashSet()
+//    @KXS_Transient
+    override var refreshTokenValiditySeconds: Int? = 0, // 0
+//    @KXS_Transient
+    override var resourceIds: Set<String> = HashSet(),
+    @KXS_Transient
+    override val additionalInformation: Map<String, Any> = HashMap(),
+    @KXS_Transient
+    private val dummy: Unit = Unit,
 ) : OAuthClientDetails/*, SpringClientDetails*/ {
 
-    /** Fields to support the ClientDetails interface  */
-    @KXS_Transient
-    override var authorities: Set<GrantedAuthority> = HashSet()
+    constructor(
+        id: Long? = null,
+        clientId: String? = null, // client_id
+        clientSecret: String? = null, // client_secret
+        redirectUris: Set<String> = HashSet(), // redirect_uris
+        clientName: String? = null, // client_name
+        clientUri: String? = null, // client_uri
+        logoUri: String? = null, // logo_uri
+        contacts: Set<String>? = null, // contacts
+        tosUri: String? = null, // tos_uri
+        tokenEndpointAuthMethod: AuthMethod? = AuthMethod.SECRET_BASIC, // token_endpoint_auth_method
+        scope: Set<String>? = HashSet(), // scope
+        authorizedGrantTypes: Set<String> = HashSet(), // grant_types
+        responseTypes: MutableSet<String> = HashSet(), // response_types
+        policyUri: String? = null,
+        jwksUri: String? = null, // URI pointer to keys
+        jwks: JWKSet? = null, // public key stored by value
+        softwareId: String? = null,
+        softwareVersion: String? = null,
+        applicationType: AppType = AppType.WEB, // application_type
+        sectorIdentifierUri: String? = null, // sector_identifier_uri
+        subjectType: SubjectType? = null, // subject_type
+        requestObjectSigningAlg: JWSAlgorithm? = null, // request_object_signing_alg
+        userInfoSignedResponseAlg: JWSAlgorithm? = null, // user_info_signed_response_alg
+        userInfoEncryptedResponseAlg: JWEAlgorithm? = null, // user_info_encrypted_response_alg
+        userInfoEncryptedResponseEnc: EncryptionMethod? = null, // user_info_encrypted_response_enc
+        idTokenSignedResponseAlg: JWSAlgorithm? = null, // id_token_signed_response_alg
+        idTokenEncryptedResponseAlg: JWEAlgorithm? = null, // id_token_encrypted_response_alg
+        idTokenEncryptedResponseEnc: EncryptionMethod? = null, // id_token_encrypted_response_enc
+        tokenEndpointAuthSigningAlg: JWSAlgorithm? = null, // token_endpoint_auth_signing_alg
+        defaultMaxAge: Long? = null, // default_max_age
+        requireAuthTime: Boolean? = null, // require_auth_time
+        defaultACRvalues: Set<String>? = null, // default_acr_values
+        initiateLoginUri: String? = null, // initiate_login_uri
+        postLogoutRedirectUris: Set<String>? = null, // post_logout_redirect_uris
+        requestUris: Set<String>? = null, // request_uris
+        clientDescription: String = "", // human-readable description
+        isReuseRefreshToken: Boolean = true, // do we let someone reuse a refresh token?
+        isDynamicallyRegistered: Boolean = false, // was this client dynamically registered?
+        isAllowIntrospection: Boolean = false, // do we let this client call the introspection endpoint?
+        idTokenValiditySeconds: Int = DEFAULT_ID_TOKEN_VALIDITY_SECONDS, //timeout for id tokens
+        createdAt: Date? = null, // time the client was created
+        isClearAccessTokensOnRefresh: Boolean = true, // do we clear access tokens on refresh?
+        deviceCodeValiditySeconds: Int? = null, // timeout for device codes
+        claimsRedirectUris: Set<String>? = null,
+        softwareStatement: JWT? = null,
+        codeChallengeMethod: PKCEAlgorithm? = null,
+        accessTokenValiditySeconds: Int? = 0,
+        authorities: Set<GrantedAuthority>, // = HashSet()
+        refreshTokenValiditySeconds: Int?, // 0
+        resourceIds: Set<String>, // = HashSet()
+        additionalInformation: Map<String, Any>, // = HashMap()
+    ) : this(
+        id = id,
+        clientId = clientId,
+        clientSecret = clientSecret,
+        redirectUris = redirectUris,
+        clientName = clientName,
+        clientUri = clientUri,
+        logoUri = logoUri,
+        contacts = contacts,
+        tosUri = tosUri,
+        tokenEndpointAuthMethod = tokenEndpointAuthMethod,
+        scope = scope,
+        authorizedGrantTypes = authorizedGrantTypes,
+        responseTypes = responseTypes,
+        policyUri = policyUri,
+        jwksUri = jwksUri,
+        jwks = jwks,
+        softwareId = softwareId,
+        softwareVersion = softwareVersion,
+        applicationType = applicationType,
+        sectorIdentifierUri = sectorIdentifierUri,
+        subjectType = subjectType,
+        requestObjectSigningAlg = requestObjectSigningAlg,
+        userInfoSignedResponseAlg = userInfoSignedResponseAlg,
+        userInfoEncryptedResponseAlg = userInfoEncryptedResponseAlg,
+        userInfoEncryptedResponseEnc = userInfoEncryptedResponseEnc,
+        idTokenSignedResponseAlg = idTokenSignedResponseAlg,
+        idTokenEncryptedResponseAlg = idTokenEncryptedResponseAlg,
+        idTokenEncryptedResponseEnc = idTokenEncryptedResponseEnc,
+        tokenEndpointAuthSigningAlg = tokenEndpointAuthSigningAlg,
+        defaultMaxAge = defaultMaxAge,
+        requireAuthTime = requireAuthTime,
+        defaultACRvalues = defaultACRvalues,
+        initiateLoginUri = initiateLoginUri,
+        postLogoutRedirectUris = postLogoutRedirectUris,
+        requestUris = requestUris,
+        clientDescription = clientDescription,
+        isReuseRefreshToken = isReuseRefreshToken,
+        isDynamicallyRegistered = isDynamicallyRegistered,
+        isAllowIntrospection = isAllowIntrospection,
+        idTokenValiditySeconds = if (idTokenValiditySeconds>0) idTokenValiditySeconds else 5*60,
+        createdAt = createdAt,
+        isClearAccessTokensOnRefresh = isClearAccessTokensOnRefresh,
+        deviceCodeValiditySeconds = deviceCodeValiditySeconds,
+        claimsRedirectUris = claimsRedirectUris,
+        softwareStatement = softwareStatement,
+        codeChallengeMethod = codeChallengeMethod,
+        accessTokenValiditySeconds = accessTokenValiditySeconds,
+        authorities = authorities,
+        refreshTokenValiditySeconds = refreshTokenValiditySeconds,
+        resourceIds = resourceIds,
+        additionalInformation = additionalInformation,
+        dummy = Unit,
+    )
 
-    @KXS_Transient
-    override var refreshTokenValiditySeconds: Int? = 0 // in seconds
-
-    @KXS_Transient
-    override var resourceIds: Set<String> = HashSet()
-
-    @KXS_Transient
-    override val additionalInformation: Map<String, Any> = HashMap()
+    constructor(builder: Builder): this(
+        id = builder.id,
+        clientId = builder.clientId,
+        clientSecret = builder.clientSecret,
+        redirectUris = builder.redirectUris,
+        clientName = builder.clientName,
+        clientUri = builder.clientUri,
+        logoUri = builder.logoUri,
+        contacts = builder.contacts,
+        tosUri = builder.tosUri,
+        tokenEndpointAuthMethod = builder.tokenEndpointAuthMethod,
+        scope = builder.scope?.toHashSet(),
+        authorizedGrantTypes = builder.authorizedGrantTypes,
+        responseTypes = builder.responseTypes,
+        policyUri = builder.policyUri,
+        jwksUri = builder.jwksUri,
+        jwks = builder.jwks,
+        softwareId = builder.softwareId,
+        softwareVersion = builder.softwareVersion,
+        applicationType = builder.applicationType,
+        sectorIdentifierUri = builder.sectorIdentifierUri,
+        subjectType = builder.subjectType,
+        requestObjectSigningAlg = builder.requestObjectSigningAlg,
+        userInfoSignedResponseAlg = builder.userInfoSignedResponseAlg,
+        userInfoEncryptedResponseAlg = builder.userInfoEncryptedResponseAlg,
+        userInfoEncryptedResponseEnc = builder.userInfoEncryptedResponseEnc,
+        idTokenSignedResponseAlg = builder.idTokenSignedResponseAlg,
+        idTokenEncryptedResponseAlg = builder.idTokenEncryptedResponseAlg,
+        idTokenEncryptedResponseEnc = builder.idTokenEncryptedResponseEnc,
+        tokenEndpointAuthSigningAlg = builder.tokenEndpointAuthSigningAlg,
+        defaultMaxAge = builder.defaultMaxAge,
+        requireAuthTime = builder.requireAuthTime,
+        defaultACRvalues = builder.defaultACRvalues,
+        initiateLoginUri = builder.initiateLoginUri,
+        postLogoutRedirectUris = builder.postLogoutRedirectUris,
+        requestUris = builder.requestUris,
+        clientDescription = builder.clientDescription,
+        isReuseRefreshToken = builder.isReuseRefreshToken,
+        isDynamicallyRegistered = builder.isDynamicallyRegistered,
+        isAllowIntrospection = builder.isAllowIntrospection,
+        idTokenValiditySeconds = builder.idTokenValiditySeconds ?: DEFAULT_ID_TOKEN_VALIDITY_SECONDS,
+        createdAt = builder.createdAt,
+        isClearAccessTokensOnRefresh = builder.isClearAccessTokensOnRefresh,
+        deviceCodeValiditySeconds = builder.deviceCodeValiditySeconds,
+        claimsRedirectUris = builder.claimsRedirectUris,
+        softwareStatement = builder.softwareStatement,
+        codeChallengeMethod = builder.codeChallengeMethod,
+        accessTokenValiditySeconds = builder.accessTokenValiditySeconds,
+        authorities = builder.authorities,
+        refreshTokenValiditySeconds = builder.refreshTokenValiditySeconds,
+        resourceIds = builder.resourceIds,
+        additionalInformation = builder.additionalInformation,
+        dummy = Unit,
+    )
 
     override fun withId(id: Long): OAuthClientDetails {
-        this.id = id
-        return this
+        return copy(id = id)
     }
 
     override fun copy(
@@ -289,6 +449,8 @@ open class ClientDetailsEntity(
         accessTokenValiditySeconds: Int?,
         refreshTokenValiditySeconds: Int?,
         authorities: Set<GrantedAuthority>,
+        resourceIds: Set<String>,
+        additionalInformation: Map<String, Any>,
     ): ClientDetailsEntity {
         return ClientDetailsEntity(
             id = id,
@@ -337,17 +499,17 @@ open class ClientDetailsEntity(
             claimsRedirectUris = claimsRedirectUris,
             softwareStatement = softwareStatement,
             codeChallengeMethod = codeChallengeMethod,
-        ).also {
-            it.setAccessTokenValiditySeconds(accessTokenValiditySeconds)
-            it.setRefreshTokenValiditySeconds(refreshTokenValiditySeconds)
-            it.setAuthorities(authorities)
-
-        }
+            accessTokenValiditySeconds = accessTokenValiditySeconds,
+            authorities = authorities,
+            refreshTokenValiditySeconds = refreshTokenValiditySeconds,
+            resourceIds = resourceIds.toSet(),
+            additionalInformation = additionalInformation.toMap(),
+        )
     }
 
     protected open fun prePersist() {
         // make sure that ID tokens always time out, default to 5 minutes
-        if (idTokenValiditySeconds == null) {
+        if (idTokenValiditySeconds <=0 ) {
             idTokenValiditySeconds = DEFAULT_ID_TOKEN_VALIDITY_SECONDS
         }
     }
@@ -463,7 +625,9 @@ open class ClientDetailsEntity(
         override var codeChallengeMethod: PKCEAlgorithm? = null,
         var accessTokenValiditySeconds: Int? = null,
         var refreshTokenValiditySeconds: Int? = null,
-        var authorities: MutableSet<GrantedAuthority> = hashSetOf()
+        var authorities: MutableSet<GrantedAuthority> = hashSetOf(),
+        var resourceIds: MutableSet<String> = HashSet(),
+        var additionalInformation: MutableMap<String, Any> = HashMap(),
     ): OAuthClientDetails.Builder {
 
         constructor(entity: OAuthClientDetails) :this(
@@ -511,62 +675,13 @@ open class ClientDetailsEntity(
             isClearAccessTokensOnRefresh = entity.isClearAccessTokensOnRefresh,
             accessTokenValiditySeconds = entity.accessTokenValiditySeconds,
             refreshTokenValiditySeconds = entity.refreshTokenValiditySeconds,
-            authorities = entity.authorities.toHashSet()
+            authorities = entity.authorities.toHashSet(),
+            resourceIds = entity.resourceIds.toHashSet(), // = HashSet()
+            additionalInformation = entity.additionalInformation.toMutableMap(), // = HashMap()
         )
 
         override fun build(): ClientDetailsEntity {
-            return ClientDetailsEntity(
-                id = id,
-                clientId = clientId,
-                clientSecret = clientSecret,
-                redirectUris = redirectUris,
-                clientName = clientName,
-                clientUri = clientUri,
-                logoUri = logoUri,
-                contacts = contacts,
-                tosUri = tosUri,
-                tokenEndpointAuthMethod = tokenEndpointAuthMethod,
-                scope = scope?.toHashSet(),
-                authorizedGrantTypes = authorizedGrantTypes,
-                responseTypes = responseTypes,
-                policyUri = policyUri,
-                jwksUri = jwksUri,
-                jwks = jwks,
-                softwareId = softwareId,
-                softwareVersion = softwareVersion,
-                applicationType = applicationType,
-                sectorIdentifierUri = sectorIdentifierUri,
-                subjectType = subjectType,
-                requestObjectSigningAlg = requestObjectSigningAlg,
-                userInfoSignedResponseAlg = userInfoSignedResponseAlg,
-                userInfoEncryptedResponseAlg = userInfoEncryptedResponseAlg,
-                userInfoEncryptedResponseEnc = userInfoEncryptedResponseEnc,
-                idTokenSignedResponseAlg = idTokenSignedResponseAlg,
-                idTokenEncryptedResponseAlg = idTokenEncryptedResponseAlg,
-                idTokenEncryptedResponseEnc = idTokenEncryptedResponseEnc,
-                tokenEndpointAuthSigningAlg = tokenEndpointAuthSigningAlg,
-                defaultMaxAge = defaultMaxAge,
-                requireAuthTime = requireAuthTime,
-                defaultACRvalues = defaultACRvalues,
-                initiateLoginUri = initiateLoginUri,
-                postLogoutRedirectUris = postLogoutRedirectUris,
-                requestUris = requestUris,
-                clientDescription = clientDescription,
-                isReuseRefreshToken = isReuseRefreshToken,
-                isDynamicallyRegistered = isDynamicallyRegistered,
-                isAllowIntrospection = isAllowIntrospection,
-                idTokenValiditySeconds = idTokenValiditySeconds ?: DEFAULT_ID_TOKEN_VALIDITY_SECONDS,
-                createdAt = createdAt,
-                isClearAccessTokensOnRefresh = isClearAccessTokensOnRefresh,
-                deviceCodeValiditySeconds = deviceCodeValiditySeconds,
-                claimsRedirectUris = claimsRedirectUris,
-                softwareStatement = softwareStatement,
-                codeChallengeMethod = codeChallengeMethod,
-                accessTokenValiditySeconds = accessTokenValiditySeconds,
-            ).also {
-                it.refreshTokenValiditySeconds = refreshTokenValiditySeconds
-                it.authorities = authorities
-            }
+            return ClientDetailsEntity(this)
         }
     }
 
@@ -620,6 +735,11 @@ open class ClientDetailsEntity(
                 claimsRedirectUris = original.claimsRedirectUris,
                 softwareStatement = original.softwareStatement,
                 codeChallengeMethod = original.codeChallengeMethod,
+                accessTokenValiditySeconds = original.accessTokenValiditySeconds,
+                authorities = original.authorities,
+                refreshTokenValiditySeconds = original.refreshTokenValiditySeconds,
+                resourceIds = original.resourceIds,
+                additionalInformation = original.additionalInformation,
             ).also {
                 it.setAuthorities(original.authorities)
             }

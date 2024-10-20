@@ -225,10 +225,10 @@ class DefaultOAuth2ProviderTokenService(
 
         val rtvalSecs = client.refreshTokenValiditySeconds
         // make it expire if necessary
-        if (rtvalSecs != null) {
-            val expiration = Date(System.currentTimeMillis() + (rtvalSecs * 1000L))
-            refreshToken.expiration = expiration
-            refreshClaims.expirationTime(expiration)
+        if (rtvalSecs != null && rtvalSecs > 0) {
+            val refreshInst = Instant.now() + Duration.ofSeconds(rtvalSecs.toLong())
+            refreshToken.expirationInstant = refreshInst
+            refreshClaims.expirationTime(Date.from(refreshInst))
         }
 
         // set a random identifier

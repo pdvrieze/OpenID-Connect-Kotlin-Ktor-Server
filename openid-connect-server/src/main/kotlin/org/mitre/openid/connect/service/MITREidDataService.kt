@@ -444,11 +444,11 @@ interface MITREidDataService {
         )
 
         fun toClientDetailsEntity(): ClientDetailsEntity {
-            return ClientDetailsEntity(
+            return ClientDetailsEntity.Builder(
                 id = null,
                 clientId = clientId,
                 clientSecret = secret,
-                redirectUris = redirectUris,
+                redirectUris = redirectUris.toHashSet(),
                 clientName = clientName,
                 clientUri = clientUri,
                 logoUri = logoUri,
@@ -476,10 +476,10 @@ interface MITREidDataService {
                 tokenEndpointAuthSigningAlg = tokenEndpointAuthSigningAlg,
                 defaultMaxAge = defaultMaxAge,
                 requireAuthTime = requireAuthTime,
-                defaultACRvalues = defaultACRValues,
+                defaultACRvalues = defaultACRValues?.toHashSet(),
                 initiateLoginUri = initiateLoginUri,
-                postLogoutRedirectUris = postLogoutRedirectUris,
-                requestUris = requestUris,
+                postLogoutRedirectUris = postLogoutRedirectUris?.toHashSet(),
+                requestUris = requestUris?.toHashSet(),
                 clientDescription = description,
                 isReuseRefreshToken = isReuseRefreshToken,
                 isDynamicallyRegistered = isDynamicallyRegistered,
@@ -488,15 +488,15 @@ interface MITREidDataService {
                 createdAt = createdAt,
                 isClearAccessTokensOnRefresh = isClearAccessTokensOnRefresh,
                 deviceCodeValiditySeconds = deviceCodeValiditySeconds,
-                claimsRedirectUris = claimsRedirectUris,
+                claimsRedirectUris = claimsRedirectUris?.toHashSet(),
                 softwareStatement = softwareStatement,
                 codeChallengeMethod = codeChallengeMethod,
-            ).also { client ->
-                accessTokenValiditySeconds?.let { client.setAccessTokenValiditySeconds(it) }
-                refreshTokenValiditySeconds?.let { client.setRefreshTokenValiditySeconds(it) }
-                client.setAuthorities(authorities)
-                resourceIds?.let { client.setResourceIds(it) }
-            }
+                accessTokenValiditySeconds = accessTokenValiditySeconds,
+                refreshTokenValiditySeconds = refreshTokenValiditySeconds,
+                authorities = authorities.toHashSet(),
+                resourceIds = resourceIds?.toHashSet() ?: HashSet(),
+                additionalInformation = HashMap(),
+            ).build()
         }
     }
 

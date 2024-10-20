@@ -85,7 +85,7 @@ import java.util.*
  */
 @Serializable(RegisteredClient.Serializer::class)
 class RegisteredClient(
-    val client: OAuthClientDetails = ClientDetailsEntity(),
+    val client: OAuthClientDetails = ClientDetailsEntity.Builder(id=null).build(),
     // these fields are needed in addition to the ones in ClientDetailsEntity
     val registrationAccessToken: String? = null,
     val registrationClientUri: String? = null,
@@ -398,10 +398,10 @@ class RegisteredClient(
 //            clientSecretExpiresAt = clientSecretExpiresAt,
 //            clientIdIssuedAt = clientIdIssuedAt,
 
-            val details = ClientDetailsEntity(
+            val details = ClientDetailsEntity.Builder(
                 clientId = clientId,
                 clientSecret = clientSecret,
-                redirectUris = redirectUris,
+                redirectUris = redirectUris.toHashSet(),
                 clientName = clientName,
                 clientUri = clientUri,
                 logoUri = logoUri,
@@ -431,18 +431,18 @@ class RegisteredClient(
                 tokenEndpointAuthSigningAlg = tokenEndpointAuthSigningAlg,
                 defaultMaxAge = defaultMaxAge,
                 requireAuthTime = requireAuthTime,
-                defaultACRvalues = defaultACRvalues,
+                defaultACRvalues = defaultACRvalues?.toHashSet(),
                 initiateLoginUri = initiateLoginUri,
-                postLogoutRedirectUris = postLogoutRedirectUris,
-                requestUris = requestUris,
+                postLogoutRedirectUris = postLogoutRedirectUris?.toHashSet(),
+                requestUris = requestUris?.toHashSet(),
                 createdAt = clientIdIssuedAt?.let(Date::from),
-                claimsRedirectUris = claimsRedirectUris,
+                claimsRedirectUris = claimsRedirectUris?.toHashSet(),
                 softwareStatement = softwareStatement,
                 codeChallengeMethod = codeChallengeMethod,
             )
 
             return RegisteredClient(
-                details,
+                details.build(),
                 registrationAccessToken,
                 registrationClientUri,
                 clientSecretExpiresAt?.let { Date.from(it) },
