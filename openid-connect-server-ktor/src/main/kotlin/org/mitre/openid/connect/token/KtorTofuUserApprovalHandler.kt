@@ -20,7 +20,7 @@ package org.mitre.openid.connect.token
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import org.mitre.oauth2.model.Authentication
-import org.mitre.oauth2.model.convert.OAuth2Request
+import org.mitre.oauth2.model.convert.AuthorizationRequest
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.openid.connect.request.ConnectRequestParameters
@@ -65,7 +65,7 @@ class KtorTofuUserApprovalHandler(
      *
      * @return                        true if the site is approved, false otherwise
      */
-    fun isApproved(authorizationRequest: OAuth2Request, userAuthentication: Authentication): Boolean {
+    fun isApproved(authorizationRequest: AuthorizationRequest, userAuthentication: Authentication): Boolean {
         // if this request is already approved, pass that info through
         // (this flag may be set by updateBeforeApproval, which can also do funny things with scopes, etc)
 
@@ -90,9 +90,9 @@ class KtorTofuUserApprovalHandler(
      * @return                        the updated AuthorizationRequest
      */
     fun checkForPreApproval(
-        authorizationRequest: OAuth2Request,
+        authorizationRequest: AuthorizationRequest,
         userAuthentication: Authentication
-    ): OAuth2Request {
+    ): AuthorizationRequest {
         //First, check database to see if the user identified by the userAuthentication has stored an approval decision
         var newApproved = authorizationRequest.isApproved
         val newExtensions: MutableMap<String, String> = HashMap<String, String>(authorizationRequest.extensions)
@@ -151,9 +151,9 @@ class KtorTofuUserApprovalHandler(
 
 
     fun updateAfterApproval(
-        authorizationRequest: OAuth2Request,
+        authorizationRequest: AuthorizationRequest,
         userAuthentication: Authentication
-    ): OAuth2Request {
+    ): AuthorizationRequest {
         val userId = userAuthentication.name
         val clientId = authorizationRequest.clientId
         val client = clientDetailsService.loadClientByClientId(clientId)!!
@@ -231,7 +231,7 @@ class KtorTofuUserApprovalHandler(
     }
 
     fun getUserApprovalRequest(
-        authorizationRequest: OAuth2Request,
+        authorizationRequest: AuthorizationRequest,
         userAuthentication: Authentication
     ): Map<String, Any> {
         val model: MutableMap<String, Any> = HashMap()

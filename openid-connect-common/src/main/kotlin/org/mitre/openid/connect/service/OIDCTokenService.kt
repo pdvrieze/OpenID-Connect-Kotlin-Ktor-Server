@@ -21,7 +21,7 @@ import com.nimbusds.jwt.JWT
 import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuthClientDetails
-import org.mitre.oauth2.model.convert.OAuth2Request
+import org.mitre.oauth2.model.convert.AuthorizationRequest
 import java.util.*
 
 /**
@@ -34,7 +34,7 @@ interface OIDCTokenService {
      * Create an id token with the information provided.
      */
     suspend fun createIdToken(
-        client: OAuthClientDetails, request: OAuth2Request, issueTime: Date?,
+        client: OAuthClientDetails, request: AuthorizationRequest, issueTime: Date?,
         sub: String?, accessToken: OAuth2AccessToken.Builder
     ): JWT?
 

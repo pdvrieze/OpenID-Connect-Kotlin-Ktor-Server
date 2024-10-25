@@ -26,7 +26,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.SystemScope
-import org.mitre.oauth2.model.convert.OAuth2Request
+import org.mitre.oauth2.model.convert.AuthorizationRequest
 import org.mitre.openid.connect.request.ConnectRequestParameters
 import org.mitre.util.getLogger
 import org.mitre.web.OpenIdSessionStorage
@@ -58,7 +58,7 @@ object OAuthConfirmationController: KtorEndpoint {
             get("/oauth/confirm_access") {
                 val authentication = requireRole(GrantedAuthority.ROLE_USER) { return@get }
 
-                val authRequest: OAuth2Request = call.sessions.get<OpenIdSessionStorage>()?.authorizationRequest
+                val authRequest: AuthorizationRequest = call.sessions.get<OpenIdSessionStorage>()?.authorizationRequest
                     ?: return@get call.respond(HttpStatusCode.BadRequest)
 
                 // Check the "prompt" parameter to see if we need to do special processing

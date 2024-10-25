@@ -77,7 +77,7 @@ object ResourceSetRegistrationEndpoint: KtorEndpoint {
         }
 
         // if it's an OAuth mediated call, it's on behalf of a client, so store that
-        rs.clientId = auth.oAuth2Request.clientId
+        rs.clientId = auth.authorizationRequest.clientId
         rs.owner = auth.name // the username is going to be in the auth object
 
         rs = validateScopes(scopeService, rs)
@@ -153,9 +153,9 @@ object ResourceSetRegistrationEndpoint: KtorEndpoint {
     }
 
     if (auth is OAuth2RequestAuthentication &&
-        auth.oAuth2Request.clientId != rs.clientId
+        auth.authorizationRequest.clientId != rs.clientId
     ) {
-        logger.warn("Unauthorized resource set request from bad client; expected ${rs.clientId} got ${auth.oAuth2Request.clientId}")
+        logger.warn("Unauthorized resource set request from bad client; expected ${rs.clientId} got ${auth.authorizationRequest.clientId}")
         return jsonErrorView(OAuthErrorCodes.ACCESS_DENIED)
     }
 
@@ -173,7 +173,7 @@ object ResourceSetRegistrationEndpoint: KtorEndpoint {
         val resourceSets: Collection<ResourceSet>
         if (auth is OAuth2RequestAuthentication) {
             // if it's an OAuth mediated call, it's on behalf of a client, so look that up too
-            resourceSets = resourceSetService.getAllForOwnerAndClient(owner, auth.oAuth2Request.clientId)
+            resourceSets = resourceSetService.getAllForOwnerAndClient(owner, auth.authorizationRequest.clientId)
         } else {
             // otherwise get everything for the current user
             resourceSets = resourceSetService.getAllForOwner(owner)

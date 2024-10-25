@@ -74,7 +74,7 @@ object IntrospectionEndpoint: KtorEndpoint {
             // get out the client that was issued the access token (not the token being introspected)
             val o2a = auth
 
-            val authClientId = o2a.oAuth2Request.clientId
+            val authClientId = o2a.authorizationRequest.clientId
             authClient = checkNotNull(clientDetailsService.loadClientByClientId(authClientId))
 
             // the owner is the user who authorized the token in the first place

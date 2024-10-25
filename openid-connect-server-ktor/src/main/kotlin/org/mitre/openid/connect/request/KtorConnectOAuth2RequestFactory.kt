@@ -31,7 +31,7 @@ import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
 import org.mitre.jwt.signer.service.ClientKeyCacheService
 import org.mitre.oauth2.exception.InvalidClientException
 import org.mitre.oauth2.model.PKCEAlgorithm
-import org.mitre.oauth2.model.convert.OAuth2Request
+import org.mitre.oauth2.model.convert.AuthorizationRequest
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.request.ConnectRequestParameters.AUD
 import org.mitre.openid.connect.request.ConnectRequestParameters.CLIENT_ID
@@ -52,7 +52,7 @@ class KtorConnectOAuth2RequestFactory constructor(
 ) : KtorOAuth2RequestFactory(
     clientDetailsService,
 ) {
-    override suspend fun createAuthorizationRequest(inputParams: Parameters): OAuth2Request {
+    override suspend fun createAuthorizationRequest(inputParams: Parameters): AuthorizationRequest {
         val baseRequest =  super.createAuthorizationRequest(inputParams)
 
         val jwt = inputParams[REQUEST]?.let { parseToJwt(it, baseRequest) }
@@ -112,7 +112,7 @@ class KtorConnectOAuth2RequestFactory constructor(
         )
     }
 
-    private suspend fun parseToJwt(jwtString: String, request: OAuth2Request): JWT {
+    private suspend fun parseToJwt(jwtString: String, request: AuthorizationRequest): JWT {
         val jwt = JWTParser.parse(jwtString)
 
         when (jwt) {
@@ -192,7 +192,7 @@ class KtorConnectOAuth2RequestFactory constructor(
         error("Unexpected JWT type (Neither plain, signed or encrypted)")
     }
 
-    private fun processResponseTypes(claims: JWTClaimsSet, request: OAuth2Request): Set<String>? {
+    private fun processResponseTypes(claims: JWTClaimsSet, request: AuthorizationRequest): Set<String>? {
         val responseTypes = claims.getStringClaim(ConnectRequestParameters.RESPONSE_TYPE)
             ?.splitToSequence(' ')?.filterNotTo(HashSet()) { it.isBlank() }
 
@@ -206,7 +206,7 @@ class KtorConnectOAuth2RequestFactory constructor(
         return request.responseTypes
     }
 
-    private fun processRedirectUri(claims: JWTClaimsSet, request: OAuth2Request): String? {
+    private fun processRedirectUri(claims: JWTClaimsSet, request: AuthorizationRequest): String? {
         val redirectUri = claims.getStringClaim(ConnectRequestParameters.REDIRECT_URI)
         if (redirectUri != null) {
             if (redirectUri != request.redirectUri) {
@@ -219,7 +219,7 @@ class KtorConnectOAuth2RequestFactory constructor(
 
     private fun MutableMap<String, String>.processRequestObject(
         claims: JWTClaimsSet,
-        request: OAuth2Request
+        request: AuthorizationRequest
     ) {
         val extensions = this
         // parse the request object
@@ -272,7 +272,7 @@ class KtorConnectOAuth2RequestFactory constructor(
         }
     }
 
-    private fun processState(claims: JWTClaimsSet, request: OAuth2Request): String? {
+    private fun processState(claims: JWTClaimsSet, request: AuthorizationRequest): String? {
         val state = claims.getStringClaim(ConnectRequestParameters.STATE)
         if (state != null) {
             if (state != request.state) {
@@ -283,7 +283,7 @@ class KtorConnectOAuth2RequestFactory constructor(
         return request.state
     }
 
-    private fun processScope(claims: JWTClaimsSet, request: OAuth2Request): Set<String> {
+    private fun processScope(claims: JWTClaimsSet, request: AuthorizationRequest): Set<String> {
         val scope = claims.getStringClaim(ConnectRequestParameters.SCOPE).splitToSequence(' ')
             .filterNotTo(HashSet()) { it.isBlank() }
         if (scope.isNotEmpty()) {

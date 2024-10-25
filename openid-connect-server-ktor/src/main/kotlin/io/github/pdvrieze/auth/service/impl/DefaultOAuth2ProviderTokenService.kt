@@ -36,7 +36,7 @@ import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.PKCEAlgorithm
 import org.mitre.oauth2.model.PKCEAlgorithm.Companion.parse
 import org.mitre.oauth2.model.SystemScope
-import org.mitre.oauth2.model.convert.OAuth2Request
+import org.mitre.oauth2.model.convert.AuthorizationRequest
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.oauth2.service.ClientDetailsEntityService
@@ -119,7 +119,7 @@ class DefaultOAuth2ProviderTokenService(
 
     override suspend fun createAccessToken(authentication: OAuth2RequestAuthentication, isAllowRefresh: Boolean): OAuth2AccessToken {
         // look up our client
-        val request = authentication.oAuth2Request
+        val request = authentication.authorizationRequest
 
         val client: OAuthClientDetails = clientDetailsService.loadClientByClientId(request.clientId)
             ?: throw InvalidClientException("Client not found: " + request.clientId)
@@ -190,7 +190,7 @@ class DefaultOAuth2ProviderTokenService(
         tokenBuilder.scope = scope
 
         //Add approved site reference, if any
-        val originalAuthRequest = authHolder.authentication.oAuth2Request
+        val originalAuthRequest = authHolder.authentication.authorizationRequest
 
         if (originalAuthRequest.extensionStrings?.containsKey("approved_site") == true) {
             val apId = (originalAuthRequest.extensionStrings!!["approved_site"] as String).toLong()
@@ -247,7 +247,7 @@ class DefaultOAuth2ProviderTokenService(
         return savedRefreshToken
     }
 
-    override suspend fun refreshAccessToken(refreshTokenValue: String, tokenRequest: OAuth2Request): OAuth2AccessToken {
+    override suspend fun refreshAccessToken(refreshTokenValue: String, tokenRequest: AuthorizationRequest): OAuth2AccessToken {
         // throw an invalid token exception if there's no refresh token value at all
         require(refreshTokenValue.isNotBlank()) { "Invalid refresh token: $refreshTokenValue" }
 
@@ -286,7 +286,7 @@ class DefaultOAuth2ProviderTokenService(
 
         // get the stored scopes from the authentication holder's authorization request; these are the scopes associated with the refresh token
         val refreshScopesRequested: Set<String> =
-            HashSet(refreshToken.authenticationHolder.authentication.oAuth2Request.scope)
+            HashSet(refreshToken.authenticationHolder.authentication.authorizationRequest.scope)
         val refreshScopes: Set<SystemScope>? = scopeService.fromStrings(refreshScopesRequested)?.let {
             // remove any of the special system scopes
             scopeService.removeReservedScopes(it)

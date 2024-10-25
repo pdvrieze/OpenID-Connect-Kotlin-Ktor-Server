@@ -41,7 +41,7 @@ abstract class ConnectTokenEnhancer: TokenEnhancer {
     abstract val connectTokenService: OIDCTokenService
 
     override suspend fun enhance(accessToken: OAuth2AccessToken.Builder, authentication: OAuth2RequestAuthentication) {
-        val originalAuthRequest = authentication.oAuth2Request
+        val originalAuthRequest = authentication.authorizationRequest
 
         val clientId = originalAuthRequest.clientId
         val client = checkNotNull(clientService.loadClientByClientId(clientId)) { "Missing client ${clientId}" }
@@ -59,7 +59,7 @@ abstract class ConnectTokenEnhancer: TokenEnhancer {
 
         // TODO set "typ: at+jwt" for OAuth access tokens (but not openid connect)
 
-        val audience = authentication.oAuth2Request.extensionStrings?.get("aud")
+        val audience = authentication.authorizationRequest.extensionStrings?.get("aud")
         if (!audience.isNullOrEmpty()) {
             builder.audience(listOf(audience))
         }

@@ -63,7 +63,7 @@ object UserInfoEndpoint: KtorEndpoint {
         val claimsRequestJsonString = call.request.queryParameters["claims"]?.takeIf { it.isNotEmpty() }
 
         val username = auth.name
-        val userInfo = userInfoService.getByUsernameAndClientId(username, auth.oAuth2Request.clientId) ?: run {
+        val userInfo = userInfoService.getByUsernameAndClientId(username, auth.authorizationRequest.clientId) ?: run {
             logger.error("getInfo failed; user not found: $username")
             return call.respond(HttpStatusCode.NotFound)
         }
@@ -71,7 +71,7 @@ object UserInfoEndpoint: KtorEndpoint {
         // content negotiation
 
         // start off by seeing if the client has registered for a signed/encrypted JWT from here
-        val client = checkNotNull(clientDetailsService.loadClientByClientId(auth.oAuth2Request.clientId))
+        val client = checkNotNull(clientDetailsService.loadClientByClientId(auth.authorizationRequest.clientId))
 
         val acceptedResponses = getSortedAcceptHeader()
 
@@ -118,9 +118,9 @@ object UserInfoEndpoint: KtorEndpoint {
                 symmetricCacheService = symetricCacheService,
                 translator = scopeClaimTranslationService,
                 userInfo = userInfo,
-                scope = auth.oAuth2Request.scope,
+                scope = auth.authorizationRequest.scope,
                 client = client,
-                authorizedClaims = auth.oAuth2Request.extensions["claims"],
+                authorizedClaims = auth.authorizationRequest.extensions["claims"],
                 requestedClaims = claimsRequestJsonString,
             )
         }

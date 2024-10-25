@@ -37,7 +37,7 @@ import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuthClientDetails
-import org.mitre.oauth2.model.convert.OAuth2Request
+import org.mitre.oauth2.model.convert.AuthorizationRequest
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.service.OAuth2TokenEntityService
 import org.mitre.oauth2.service.SystemScopeService
@@ -65,7 +65,7 @@ class KtorOIDCTokenService(
 
     override suspend fun createIdToken(
         client: OAuthClientDetails,
-        request: OAuth2Request,
+        request: AuthorizationRequest,
         issueTime: Date?,
         sub: String?,
         accessToken: OAuth2AccessToken.Builder
@@ -204,7 +204,7 @@ class KtorOIDCTokenService(
 
         // create a new token
         val authorizationParameters: Map<String, String> = hashMapOf()
-        val clientAuth = OAuth2Request(
+        val clientAuth = AuthorizationRequest(
             authorizationParameters, client.clientId!!,
             hashSetOf(LocalGrantedAuthority("ROLE_CLIENT")), true,
             scope ?: emptySet(), null, null, null, extensionStrings = null
@@ -253,7 +253,7 @@ class KtorOIDCTokenService(
      * @param accessToken the access token
      */
     protected fun addCustomIdTokenClaims(
-        idClaims: JWTClaimsSet.Builder, client: OAuthClientDetails, request: OAuth2Request?,
+        idClaims: JWTClaimsSet.Builder, client: OAuthClientDetails, request: AuthorizationRequest?,
         sub: String?, accessToken: OAuth2AccessToken.Builder?
     ) {
     }

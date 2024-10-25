@@ -15,7 +15,7 @@ import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.SavedUserAuthentication
-import org.mitre.oauth2.model.convert.OAuth2Request
+import org.mitre.oauth2.model.convert.AuthorizationRequest
 import org.mitre.oauth2.service.IntrospectionResultAssembler
 import org.mitre.openid.connect.model.UserInfo
 import org.mitre.uma.model.Permission
@@ -343,7 +343,7 @@ class TestKtorDefaultIntrospectionResultAssembler {
         }
     }
 
-    private fun oauth2AuthenticationWithUser(request: OAuth2Request, username: String): OAuth2RequestAuthentication {
+    private fun oauth2AuthenticationWithUser(request: AuthorizationRequest, username: String): OAuth2RequestAuthentication {
         val userAuthentication = object : Authentication {
             override val name: String get() = username
             override val authorities: Collection<GrantedAuthority> get() = emptySet()
@@ -353,14 +353,14 @@ class TestKtorDefaultIntrospectionResultAssembler {
     }
 
     private fun oauth2Authentication(
-        request: OAuth2Request,
+        request: AuthorizationRequest,
         userAuthentication: Authentication?
     ): OAuth2RequestAuthentication {
         return OAuth2RequestAuthentication(request, userAuthentication?.let { SavedUserAuthentication.from(it) })
     }
 
-    private fun oauth2Request(clientId: String, scopes: Set<String>? = null): OAuth2Request {
-        return OAuth2Request(
+    private fun oauth2Request(clientId: String, scopes: Set<String>? = null): AuthorizationRequest {
+        return AuthorizationRequest(
             requestParameters = emptyMap(),
             clientId = clientId,
             authorities = emptySet(),

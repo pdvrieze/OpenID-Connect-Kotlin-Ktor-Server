@@ -5,7 +5,7 @@ import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuthClientDetails
-import org.mitre.oauth2.model.convert.OAuth2Request
+import org.mitre.oauth2.model.convert.AuthorizationRequest
 import org.mitre.oauth2.resolver.OAuth2TokenResolver
 
 interface OAuth2TokenEntityService : OAuth2TokenResolver {
@@ -37,7 +37,7 @@ interface OAuth2TokenEntityService : OAuth2TokenResolver {
     //region Authorization Server
     suspend fun createAccessToken(authentication: OAuth2RequestAuthentication, isAllowRefresh: Boolean): OAuth2AccessToken
 
-    suspend fun refreshAccessToken(refreshTokenValue: String, tokenRequest: OAuth2Request /*TokenRequest*/): OAuth2AccessToken
+    suspend fun refreshAccessToken(refreshTokenValue: String, tokenRequest: AuthorizationRequest /*TokenRequest*/): OAuth2AccessToken
 
     fun getAccessToken(authentication: OAuth2RequestAuthentication): OAuth2AccessToken
     //endregion

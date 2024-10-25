@@ -27,8 +27,8 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonElement
 import org.mitre.oauth2.model.convert.AuthenticationSerializer
+import org.mitre.oauth2.model.convert.AuthorizationRequest
 import org.mitre.oauth2.model.convert.KXS_OAuth2Authentication
-import org.mitre.oauth2.model.convert.OAuth2Request
 import org.mitre.oauth2.model.convert.SimpleGrantedAuthorityStringConverter
 import kotlinx.serialization.Serializable as KXS_Serializable
 import java.io.Serializable as IoSerializable
@@ -64,7 +64,7 @@ class AuthenticationHolderEntity(
         set(authentication) {
             // pull apart the request and save its bits
 
-            val o2Request = authentication.oAuth2Request
+            val o2Request = authentication.authorizationRequest
             authorities = o2Request.authorities.toHashSet()
             clientId = o2Request.clientId
             extensions = o2Request.extensionStrings?.toMap()
@@ -82,8 +82,8 @@ class AuthenticationHolderEntity(
             }
         }
 
-    private fun createOAuth2Request(): OAuth2Request {
-        return OAuth2Request(
+    private fun createOAuth2Request(): AuthorizationRequest {
+        return AuthorizationRequest(
             requestParameters = requestParameters ?: emptyMap(),
             clientId = clientId!!,
             authorities = authorities?.toSet() ?: emptySet(),
@@ -182,7 +182,7 @@ class AuthenticationHolderEntity(
         @SerialName("extensions")
         @EncodeDefault val extensions: Map<String, String> = emptyMap(),
         @SerialName("authorizationRequest")
-        val authorizationRequest: OAuth2Request? = null,
+        val authorizationRequest: AuthorizationRequest? = null,
         @SerialName("savedUserAuthentication")
         val userAuth: @Serializable(AuthenticationSerializer::class) Authentication? = null,
     ) : SerialDelegate {

@@ -1,23 +1,23 @@
 package org.mitre.oauth2.model
 
-import org.mitre.oauth2.model.convert.OAuth2Request
+import org.mitre.oauth2.model.convert.AuthorizationRequest
 
 /**
  * Authentication representing the request using an OAuth2 Access token.
  */
 class OAuth2RequestAuthentication(
-    val oAuth2Request: OAuth2Request,
+    val authorizationRequest: AuthorizationRequest,
     val userAuthentication: SavedUserAuthentication?
 ) : Authentication {
 
     override val authorities: Collection<GrantedAuthority> =
-        userAuthentication?.authorities ?: oAuth2Request.authorities
+        userAuthentication?.authorities ?: authorizationRequest.authorities
 
     override val isAuthenticated: Boolean
-        get() = oAuth2Request.isApproved && (userAuthentication == null || userAuthentication.isAuthenticated)
+        get() = authorizationRequest.isApproved && (userAuthentication == null || userAuthentication.isAuthenticated)
 
     override val name: String
-        get() = userAuthentication?.name ?: oAuth2Request.clientId
+        get() = userAuthentication?.name ?: authorizationRequest.clientId
 
     val isClientOnly: Boolean
         get() = userAuthentication == null

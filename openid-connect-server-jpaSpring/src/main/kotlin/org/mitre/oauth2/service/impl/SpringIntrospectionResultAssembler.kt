@@ -76,7 +76,7 @@ class SpringIntrospectionResultAssembler : IntrospectionResultAssembler {
             result[IntrospectionResultAssembler.USER_ID] = it.name
         }
 
-        result[IntrospectionResultAssembler.CLIENT_ID] = authentication.oAuth2Request.clientId
+        result[IntrospectionResultAssembler.CLIENT_ID] = authentication.authorizationRequest.clientId
 
         result[IntrospectionResultAssembler.TOKEN_TYPE] = accessToken.tokenType
 
@@ -93,7 +93,7 @@ class SpringIntrospectionResultAssembler : IntrospectionResultAssembler {
 
         result[IntrospectionResultAssembler.ACTIVE] = true
 
-        val scopes: Set<String> = authScopes.intersect(authentication.oAuth2Request.scope)
+        val scopes: Set<String> = authScopes.intersect(authentication.authorizationRequest.scope)
 
         result[IntrospectionResultAssembler.SCOPE] =
             scopes.joinToString(IntrospectionResultAssembler.SCOPE_SEPARATOR)
@@ -122,7 +122,7 @@ class SpringIntrospectionResultAssembler : IntrospectionResultAssembler {
             result[IntrospectionResultAssembler.USER_ID] = it.name
         }
 
-        result[IntrospectionResultAssembler.CLIENT_ID] = authentication.oAuth2Request.clientId
+        result[IntrospectionResultAssembler.CLIENT_ID] = authentication.authorizationRequest.clientId
 
         return result
     }

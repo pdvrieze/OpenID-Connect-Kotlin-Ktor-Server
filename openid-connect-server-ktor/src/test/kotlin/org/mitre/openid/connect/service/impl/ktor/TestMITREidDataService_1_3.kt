@@ -38,7 +38,7 @@ import org.mitre.oauth2.model.PKCEAlgorithm
 import org.mitre.oauth2.model.PKCEAlgorithm.Companion.parse
 import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.SystemScope
-import org.mitre.oauth2.model.convert.OAuth2Request
+import org.mitre.oauth2.model.convert.AuthorizationRequest
 import org.mitre.openid.connect.ktor.assertIs
 import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.openid.connect.model.BlacklistedSite
@@ -758,7 +758,7 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
     @Test
     @Throws(IOException::class)
     fun testExportAuthenticationHolders() {
-        val req1 = OAuth2Request(
+        val req1 = AuthorizationRequest(
             clientId = "client1",
             isApproved = true,
             redirectUri = "http://foo.com",
@@ -771,7 +771,7 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
         holder1.id = 1L
         holder1.authentication = auth1
 
-        val req2 = OAuth2Request(
+        val req2 = AuthorizationRequest(
             clientId = "client2",
             isApproved = true,
             redirectUri = "http://bar.com",

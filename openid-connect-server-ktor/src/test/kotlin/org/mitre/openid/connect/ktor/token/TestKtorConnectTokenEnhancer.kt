@@ -12,7 +12,7 @@ import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RequestAuthentication
-import org.mitre.oauth2.model.convert.OAuth2Request
+import org.mitre.oauth2.model.convert.AuthorizationRequest
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.service.OIDCTokenService
@@ -44,7 +44,7 @@ class TestKtorConnectTokenEnhancer {
     @Mock
     private lateinit var authentication: OAuth2RequestAuthentication
 
-    private val request: OAuth2Request = OAuth2Request(clientId = CLIENT_ID)
+    private val request: AuthorizationRequest = AuthorizationRequest(clientId = CLIENT_ID)
 
     private lateinit var enhancer: ConnectTokenEnhancer
 
@@ -65,7 +65,7 @@ class TestKtorConnectTokenEnhancer {
             clientId = CLIENT_ID
         )
         whenever(clientService.loadClientByClientId(ArgumentMatchers.anyString())).thenReturn(client)
-        whenever(authentication.oAuth2Request).thenReturn(request)
+        whenever(authentication.authorizationRequest).thenReturn(request)
         whenever(jwtService.defaultSigningAlgorithm).thenReturn(JWSAlgorithm.RS256)
         whenever(jwtService.defaultSignerKeyId).thenReturn(KEY_ID)
     }

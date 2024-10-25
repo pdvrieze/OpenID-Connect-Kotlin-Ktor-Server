@@ -3,7 +3,7 @@ package org.mitre.oauth2.service
 import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.SavedUserAuthentication
-import org.mitre.oauth2.model.convert.OAuth2Request
+import org.mitre.oauth2.model.convert.AuthorizationRequest
 
 interface OAuth2AuthorizationCodeService {
     /**
@@ -16,7 +16,7 @@ interface OAuth2AuthorizationCodeService {
      */
     fun createAuthorizationCode(authentication: OAuth2RequestAuthentication): String
 
-    fun createAuthorizationCode(request: OAuth2Request, auth: Authentication): String {
+    fun createAuthorizationCode(request: AuthorizationRequest, auth: Authentication): String {
         val authentication = OAuth2RequestAuthentication(request, SavedUserAuthentication.from(auth))
         return createAuthorizationCode(authentication)
     }

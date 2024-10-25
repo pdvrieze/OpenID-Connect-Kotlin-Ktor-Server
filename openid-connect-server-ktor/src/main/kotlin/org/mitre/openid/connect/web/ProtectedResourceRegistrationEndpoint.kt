@@ -173,9 +173,9 @@ object ProtectedResourceRegistrationEndpoint: KtorEndpoint {
         val auth = requireRole(GrantedAuthority.ROLE_CLIENT, SystemScopeService.RESOURCE_TOKEN_SCOPE) { return }
         val client = clientDetailsService.loadClientByClientId(call.parameters["id"]!!)
 
-        if (client == null || client.clientId != auth.oAuth2Request.clientId) {
+        if (client == null || client.clientId != auth.authorizationRequest.clientId) {
             // client mismatch
-            logger.error("readResourceConfiguration failed, client ID mismatch: ${call.parameters["id"]} and ${auth.oAuth2Request.clientId} do not match.")
+            logger.error("readResourceConfiguration failed, client ID mismatch: ${call.parameters["id"]} and ${auth.authorizationRequest.clientId} do not match.")
 
             return call.respond(HttpStatusCode.Forbidden)
         }
@@ -208,9 +208,9 @@ object ProtectedResourceRegistrationEndpoint: KtorEndpoint {
 
         val oldClient = clientDetailsService.loadClientByClientId(clientId)
 
-        if (oldClient?.clientId != auth.oAuth2Request.clientId || oldClient.clientId != newClient.clientId) {
+        if (oldClient?.clientId != auth.authorizationRequest.clientId || oldClient.clientId != newClient.clientId) {
             // client mismatch
-            logger.error("updateProtectedResource failed, client ID mismatch: $clientId and ${auth.oAuth2Request.clientId} do not match.")
+            logger.error("updateProtectedResource failed, client ID mismatch: $clientId and ${auth.authorizationRequest.clientId} do not match.")
             return call.respond(HttpStatusCode.Forbidden)
         }
 
@@ -291,13 +291,13 @@ object ProtectedResourceRegistrationEndpoint: KtorEndpoint {
 
         if (client == null) {
             // client mismatch
-            logger.error("readClientConfiguration failed, client ID mismatch: $clientId and ${auth.oAuth2Request.clientId} do not match.")
+            logger.error("readClientConfiguration failed, client ID mismatch: $clientId and ${auth.authorizationRequest.clientId} do not match.")
             return call.respond(HttpStatusCode.Forbidden)
         }
 
-        if (client.clientId != auth.oAuth2Request.clientId) {
+        if (client.clientId != auth.authorizationRequest.clientId) {
             // client mismatch
-            logger.error("readClientConfiguration failed, client ID mismatch: $clientId and ${auth.oAuth2Request.clientId} do not match.")
+            logger.error("readClientConfiguration failed, client ID mismatch: $clientId and ${auth.authorizationRequest.clientId} do not match.")
             return call.respond(HttpStatusCode.Forbidden)
         }
 
@@ -339,7 +339,7 @@ object ProtectedResourceRegistrationEndpoint: KtorEndpoint {
         client: OAuthClientDetails
     ): OAuth2AccessTokenEntity {
         val config = openIdContext.config
-        val details = auth.oAuth2Request// as OAuth2AuthenticationDetails
+        val details = auth.authorizationRequest// as OAuth2AuthenticationDetails
         val token = tokenService.readAccessToken(TODO("details.tokenValue"))
 
         val regTokenLifeTime = config.regTokenLifeTime

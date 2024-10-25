@@ -30,7 +30,7 @@ import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.SystemScope
-import org.mitre.oauth2.model.convert.OAuth2Request
+import org.mitre.oauth2.model.convert.AuthorizationRequest
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2ClientRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
@@ -705,7 +705,7 @@ class TestSpringMITREidDataService_1_1 {
     @Test
     @Throws(IOException::class)
     fun testImportAuthenticationHolders() {
-        val req1 = OAuth2Request(
+        val req1 = AuthorizationRequest(
             clientId = "client1",
             isApproved = true,
             redirectUri = "http://foo.com",
@@ -717,7 +717,7 @@ class TestSpringMITREidDataService_1_1 {
         holder1.id = 1L
         holder1.authentication = auth1
 
-        val req2 = OAuth2Request(
+        val req2 = AuthorizationRequest(
             clientId = "client2",
             isApproved = true,
             redirectUri = "http://bar.com",
@@ -768,8 +768,8 @@ class TestSpringMITREidDataService_1_1 {
         val savedAuthHolders = capturedAuthHolders.allValues
 
         assertEquals(2, savedAuthHolders.size)
-        assertEquals(holder1.authentication.oAuth2Request.clientId, savedAuthHolders[0].authentication.oAuth2Request.clientId)
-        assertEquals(holder2.authentication.oAuth2Request.clientId, savedAuthHolders[1].authentication.oAuth2Request.clientId)
+        assertEquals(holder1.authentication.authorizationRequest.clientId, savedAuthHolders[0].authentication.authorizationRequest.clientId)
+        assertEquals(holder2.authentication.authorizationRequest.clientId, savedAuthHolders[1].authentication.authorizationRequest.clientId)
     }
 
     @Test
@@ -855,7 +855,7 @@ class TestSpringMITREidDataService_1_1 {
 
         // unused by mockito (causs unnecessary stubbing exception
 //		when(mockedClient1.getClientId()).thenReturn("mocked_client_1");
-        val req1 = OAuth2Request(
+        val req1 = AuthorizationRequest(
             clientId = "client1",
             isApproved = true,
             redirectUri = "http://foo.com",
@@ -882,7 +882,7 @@ class TestSpringMITREidDataService_1_1 {
 
         // unused by mockito (causs unnecessary stubbing exception
 //		when(mockedClient2.getClientId()).thenReturn("mocked_client_2");
-        val req2 = OAuth2Request(
+        val req2 = AuthorizationRequest(
             clientId = "client2",
             isApproved = true,
             redirectUri = "http://bar.com",

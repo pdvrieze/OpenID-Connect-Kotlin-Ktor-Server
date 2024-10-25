@@ -31,7 +31,7 @@ suspend inline fun RoutingContext.requireScope(
         call.respond(HttpStatusCode.Unauthorized)
         return onMissing(null)
     }
-    if (scope !in authentication.oAuth2Request.scope) {
+    if (scope !in authentication.authorizationRequest.scope) {
         call.respond(HttpStatusCode.Forbidden)
         return onMissing(authentication)
     }
@@ -54,7 +54,7 @@ suspend inline fun RoutingContext.requireRole(requiredRole: GrantedAuthority, va
         call.respond(HttpStatusCode.Forbidden)
         return onMissing(authentication)
     }
-    if (scopes.any { it !in authentication.oAuth2Request.scope }) {
+    if (scopes.any { it !in authentication.authorizationRequest.scope }) {
         call.respond(HttpStatusCode.Forbidden)
         return onMissing(authentication)
     }

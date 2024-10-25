@@ -6,8 +6,12 @@ import kotlinx.serialization.json.JsonObject
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.service.SystemScopeService
 
+/**
+ * Object representing a request for authorization (in the authorization endpoint).
+ * This request does not have authentication information present.
+ */
 @Serializable
-class OAuth2Request(
+class AuthorizationRequest(
     @SerialName("authorizationParameters")
     val requestParameters: Map<String, String> = emptyMap(),
     val clientId: String,
@@ -40,8 +44,8 @@ class OAuth2Request(
         state: String? = this.state,
         approvalParameters: JsonObject? = this.approvalParameters,
         extensionStrings: Map<String, String>? = this.extensionStrings?.toMap(),
-    ) : OAuth2Request {
-        return OAuth2Request(
+    ) : AuthorizationRequest {
+        return AuthorizationRequest(
             requestParameters = requestParameters,
             clientId = clientId,
             authorities = authorities,

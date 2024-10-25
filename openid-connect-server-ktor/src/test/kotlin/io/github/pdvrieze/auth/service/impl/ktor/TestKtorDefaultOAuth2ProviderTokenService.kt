@@ -17,7 +17,7 @@ import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.SystemScope
-import org.mitre.oauth2.model.convert.OAuth2Request
+import org.mitre.oauth2.model.convert.AuthorizationRequest
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.oauth2.service.ClientDetailsEntityService
@@ -57,10 +57,10 @@ class TestKtorDefaultOAuth2ProviderTokenService {
     private lateinit var badClient: ClientDetailsEntity
     private lateinit var refreshToken: OAuth2RefreshTokenEntity
     private lateinit var accessToken: OAuth2AccessTokenEntity
-    private lateinit var tokenRequest: OAuth2Request
+    private lateinit var tokenRequest: AuthorizationRequest
 
     // for use when refreshing access tokens
-    private lateinit var storedAuthRequest: OAuth2Request
+    private lateinit var storedAuthRequest: AuthorizationRequest
     private lateinit var storedAuthentication: OAuth2RequestAuthentication
     private lateinit var storedAuthHolder: AuthenticationHolderEntity
     private lateinit var storedScope: Set<String>
@@ -102,12 +102,12 @@ class TestKtorDefaultOAuth2ProviderTokenService {
         )
 
         authentication = mock<OAuth2RequestAuthentication>()
-        val clientAuth = OAuth2Request(
+        val clientAuth = AuthorizationRequest(
             clientId = clientId,
             isApproved = true,
             scope = scope,
         )
-        whenever(authentication.oAuth2Request) doReturn (clientAuth)
+        whenever(authentication.authorizationRequest) doReturn (clientAuth)
 
         client = mock<ClientDetailsEntity>()
         whenever(client.clientId) doReturn (clientId)
@@ -133,7 +133,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
 
         accessToken = mock<OAuth2AccessTokenEntity>()
 
-        tokenRequest = OAuth2Request(clientId = clientId)
+        tokenRequest = AuthorizationRequest(clientId = clientId)
 
         storedAuthentication = authentication
         storedAuthRequest = clientAuth
@@ -143,7 +143,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
         whenever(refreshToken.authenticationHolder) doReturn (storedAuthHolder)
         whenever(storedAuthHolder.authentication) doReturn (storedAuthentication)
         whenever(storedAuthHolder.id) doReturn (33)
-        whenever(storedAuthentication.oAuth2Request) doReturn (storedAuthRequest)
+        whenever(storedAuthentication.authorizationRequest) doReturn (storedAuthRequest)
 
         whenever(authenticationHolderRepository.save(isA())) doReturn (storedAuthHolder)
         whenever(authenticationHolderRepository.getById(33)) doReturn (storedAuthHolder)
@@ -240,12 +240,12 @@ class TestKtorDefaultOAuth2ProviderTokenService {
      */
     @Test
     fun createAccessToken_yesRefresh(): Unit = runBlocking {
-        val clientAuth = OAuth2Request(
+        val clientAuth = AuthorizationRequest(
             clientId = clientId,
             isApproved = true,
             scope = hashSetOf(SystemScopeService.OFFLINE_ACCESS),
         )
-        whenever(authentication.oAuth2Request) doReturn (clientAuth)
+        whenever(authentication.authorizationRequest) doReturn (clientAuth)
         whenever(client.isAllowRefresh) doReturn (true)
         lateinit var refreshToken: OAuth2RefreshTokenEntity
         whenever(tokenRepository.saveRefreshToken(isA<OAuth2RefreshTokenEntity>())) doAnswer { mock ->
@@ -356,7 +356,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
 
     @Test
     fun refreshAccessToken_clientMismatch(): Unit = runBlocking {
-        tokenRequest = OAuth2Request(clientId = badClientId)
+        tokenRequest = AuthorizationRequest(clientId = badClientId)
 
         assertThrows<InvalidClientException> {
             service.refreshAccessToken(refreshTokenValue, tokenRequest)

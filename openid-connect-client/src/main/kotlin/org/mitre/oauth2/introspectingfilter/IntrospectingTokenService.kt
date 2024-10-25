@@ -37,7 +37,7 @@ import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.oauth2.model.SavedUserAuthentication
-import org.mitre.oauth2.model.convert.OAuth2Request
+import org.mitre.oauth2.model.convert.AuthorizationRequest
 import org.mitre.util.asBoolean
 import org.mitre.util.getLogger
 import java.time.Instant
@@ -123,8 +123,8 @@ class IntrospectingTokenService(
         return null
     }
 
-    private fun createStoredRequest(token: JsonObject): OAuth2Request {
-        return json.decodeFromJsonElement(org.mitre.oauth2.model.convert.OAuth2Request.serializer(), token)
+    private fun createStoredRequest(token: JsonObject): AuthorizationRequest {
+        return json.decodeFromJsonElement(org.mitre.oauth2.model.convert.AuthorizationRequest.serializer(), token)
     }
 
     private fun createUserAuthentication(token: JsonObject): Authentication? {

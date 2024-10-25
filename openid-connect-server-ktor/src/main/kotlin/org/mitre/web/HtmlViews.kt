@@ -6,7 +6,7 @@ import org.mitre.oauth2.exception.OAuth2Exception
 import org.mitre.oauth2.exception.OAuthErrorCode
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.SystemScope
-import org.mitre.oauth2.model.convert.OAuth2Request
+import org.mitre.oauth2.model.convert.AuthorizationRequest
 import org.mitre.web.util.openIdContext
 
 suspend fun RoutingContext.htmlAboutView() {
@@ -14,7 +14,7 @@ suspend fun RoutingContext.htmlAboutView() {
 }
 
 suspend fun RoutingContext.htmlApproveView(
-    authRequest: OAuth2Request?,
+    authRequest: AuthorizationRequest?,
     client: OAuthClientDetails,
     redirectUri: String?,
     scopes: Set<SystemScope>,

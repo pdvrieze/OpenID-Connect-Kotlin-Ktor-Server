@@ -16,28 +16,28 @@ import org.mitre.oauth2.model.SavedUserAuthentication
 
 
 object OAuth2AuthenticationSerializer : KSerializer<OAuth2RequestAuthentication> {
-    private val oAuth2RequestSerializer: KSerializer<OAuth2Request> = OAuth2Request.serializer()
+    private val authorizationRequestSerializer: KSerializer<AuthorizationRequest> = AuthorizationRequest.serializer()
     private val savedUserAuthenticationSerializer: KSerializer<Authentication> = AuthenticationSerializer
 
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor("org.springframework.security.oauth2.provider.OAuth2Authentication") {
-        element("clientAuthorization", oAuth2RequestSerializer.descriptor)
+        element("clientAuthorization", authorizationRequestSerializer.descriptor)
         element("savedUserAuthentication", savedUserAuthenticationSerializer.descriptor)
     }
 
     override fun serialize(encoder: Encoder, value: OAuth2RequestAuthentication) {
         encoder.encodeStructure(descriptor) {
-            encodeSerializableElement(descriptor, 0, oAuth2RequestSerializer.nullable, value.oAuth2Request)
+            encodeSerializableElement(descriptor, 0, authorizationRequestSerializer.nullable, value.authorizationRequest)
             encodeSerializableElement(descriptor, 1, savedUserAuthenticationSerializer.nullable, value.userAuthentication)
         }
     }
 
     override fun deserialize(decoder: Decoder): OAuth2RequestAuthentication {
         return decoder.decodeStructure(descriptor) {
-            var storedRequest: OAuth2Request? = null
+            var storedRequest: AuthorizationRequest? = null
             var userAuthentication: SavedUserAuthentication? = null
             while (true) {
                 when (val i = decodeElementIndex(descriptor)) {
-                    0 -> storedRequest = decodeSerializableElement(descriptor, i, oAuth2RequestSerializer, storedRequest)
+                    0 -> storedRequest = decodeSerializableElement(descriptor, i, authorizationRequestSerializer, storedRequest)
                     1 -> userAuthentication =
                         decodeSerializableElement(descriptor, i, savedUserAuthenticationSerializer, userAuthentication) as SavedUserAuthentication
                     CompositeDecoder.DECODE_DONE -> break

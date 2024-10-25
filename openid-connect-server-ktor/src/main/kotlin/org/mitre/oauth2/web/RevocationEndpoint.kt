@@ -57,7 +57,7 @@ object RevocationEndpoint : KtorEndpoint {
                     // get out the client that was issued the access token (not the token being revoked)
                     val o2a = auth
 
-                    val authClientId = o2a.oAuth2Request.clientId
+                    val authClientId = o2a.authorizationRequest.clientId
                     authClient = clientService.loadClientByClientId(authClientId)
                         ?: return@get call.respond(HttpStatusCode.BadRequest)
 

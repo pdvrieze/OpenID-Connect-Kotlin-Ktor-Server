@@ -20,7 +20,7 @@ import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.SavedUserAuthentication
-import org.mitre.oauth2.model.convert.OAuth2Request
+import org.mitre.oauth2.model.convert.AuthorizationRequest
 import org.mitre.oauth2.service.ClientLoadingResult
 import org.mitre.oauth2.token.TokenGranter
 import org.mitre.oauth2.view.respondJson
@@ -75,7 +75,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         }
 
         // we have to create our own auth request in order to get at all the parmeters appropriately
-        val authRequest: OAuth2Request = openIdContext.authRequestFactory.createAuthorizationRequest(params)
+        val authRequest: AuthorizationRequest = openIdContext.authRequestFactory.createAuthorizationRequest(params)
         if (authRequest.clientId.isBlank()) return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
 
         val client = clientDetailsService.loadClientByClientId(authRequest.clientId)
@@ -150,7 +150,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
 
 
     suspend fun RoutingContext.respondWithAuthCode(
-        authRequest: OAuth2Request,
+        authRequest: AuthorizationRequest,
         auth: Authentication,
         effectiveRedirectUri: String,
         state: String?,
@@ -172,7 +172,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
     suspend fun RoutingContext.respondImplicitFlow(
         responseType: NormalizedResponseType,
         client: OAuthClientDetails,
-        authRequest: OAuth2Request,
+        authRequest: AuthorizationRequest,
         auth: Authentication,
         effectiveRedirectUri: String,
         state: String?,
@@ -201,7 +201,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
             if (accessToken != null) p.append("access_token", accessToken)
             p.append("token_type", "Bearer")
             if (idToken != null) p.append("id_token", idToken)
-            if (r.oAuth2Request.scope.isNotEmpty()) p.append("scope", r.oAuth2Request.scope.joinToString(" "))
+            if (r.authorizationRequest.scope.isNotEmpty()) p.append("scope", r.authorizationRequest.scope.joinToString(" "))
 
             if(p != parameters) {
                 fragment = p.entries().joinToString("&") { (k, v) -> "${k.encodeURLParameter()}=${v.single().encodeURLParameter()}"}
@@ -212,7 +212,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
     suspend fun RoutingContext.respondHybridFlow(
         responseType: NormalizedResponseType,
         client: OAuthClientDetails,
-        authRequest: OAuth2Request,
+        authRequest: AuthorizationRequest,
         auth: Authentication,
         effectiveRedirectUri: String,
         state: String?,
@@ -236,7 +236,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
 
     private suspend fun RoutingContext.promptFlow(
         prompt: String,
-        authRequest: OAuth2Request,
+        authRequest: AuthorizationRequest,
         client: OAuthClientDetails?,
         auth: Authentication?,
     ): Boolean {

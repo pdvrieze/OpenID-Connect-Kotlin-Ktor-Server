@@ -14,7 +14,7 @@ import org.mitre.oauth2.exception.OAuthErrorCode
 import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.SystemScope
-import org.mitre.oauth2.model.convert.OAuth2Request
+import org.mitre.oauth2.model.convert.AuthorizationRequest
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.config.UIConfiguration
 import org.mitre.openid.connect.model.DefaultUserInfo
@@ -37,7 +37,7 @@ class DefaultHtmlViews(): HtmlViews {
     }
 
     override suspend fun RoutingContext.approve(
-        authRequest: OAuth2Request?,
+        authRequest: AuthorizationRequest?,
         client: OAuthClientDetails,
         redirectUri: String?,
         scopes: Set<SystemScope>,

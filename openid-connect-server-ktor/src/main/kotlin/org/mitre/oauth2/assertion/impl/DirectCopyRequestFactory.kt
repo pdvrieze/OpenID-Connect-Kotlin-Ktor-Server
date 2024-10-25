@@ -4,7 +4,7 @@ import com.nimbusds.jwt.JWT
 import io.ktor.util.*
 import org.mitre.oauth2.assertion.AssertionOAuth2RequestFactory
 import org.mitre.oauth2.model.OAuthClientDetails
-import org.mitre.oauth2.model.convert.OAuth2Request
+import org.mitre.oauth2.model.convert.AuthorizationRequest
 import org.mitre.oauth2.token.TokenRequest
 import java.text.ParseException
 
@@ -21,7 +21,7 @@ class DirectCopyRequestFactory : AssertionOAuth2RequestFactory {
         client: OAuthClientDetails,
         tokenRequest: TokenRequest,
         assertion: JWT,
-    ): OAuth2Request? {
+    ): AuthorizationRequest? {
         try {
             val claims = assertion.jwtClaimsSet
             val scope = claims.getStringClaim("scope")?.splitToSequence(' ')?.filterNotTo(HashSet()) { it.isBlank()}
@@ -29,7 +29,7 @@ class DirectCopyRequestFactory : AssertionOAuth2RequestFactory {
 
             val resources = claims.audience.toSet()
 
-            return OAuth2Request(
+            return AuthorizationRequest(
                 requestParameters = tokenRequest.requestParameters.toMap().mapValues { it.value.first() },
                 clientId = client.clientId!!,
                 authorities = client.authorities,

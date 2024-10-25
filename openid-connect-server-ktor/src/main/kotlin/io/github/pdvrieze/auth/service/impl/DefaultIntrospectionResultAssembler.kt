@@ -85,7 +85,7 @@ class DefaultIntrospectionResultAssembler : JsonIntrospectionResultAssembler {
             put(IntrospectionResultAssembler.USER_ID, it.name)
         }
 
-        put(IntrospectionResultAssembler.CLIENT_ID, authentication.oAuth2Request.clientId)
+        put(IntrospectionResultAssembler.CLIENT_ID, authentication.authorizationRequest.clientId)
 
         put(IntrospectionResultAssembler.TOKEN_TYPE, accessToken.tokenType)
         }
@@ -103,7 +103,7 @@ class DefaultIntrospectionResultAssembler : JsonIntrospectionResultAssembler {
 
             put(IntrospectionResultAssembler.ACTIVE, true)
 
-            val scopes: Set<String> = authScopes.intersect(authentication.oAuth2Request.scope)
+            val scopes: Set<String> = authScopes.intersect(authentication.authorizationRequest.scope)
 
             put(IntrospectionResultAssembler.SCOPE, scopes.joinToString(IntrospectionResultAssembler.SCOPE_SEPARATOR))
 
@@ -131,7 +131,7 @@ class DefaultIntrospectionResultAssembler : JsonIntrospectionResultAssembler {
                 put(IntrospectionResultAssembler.USER_ID, it.name)
             }
 
-            put(IntrospectionResultAssembler.CLIENT_ID, authentication.oAuth2Request.clientId)
+            put(IntrospectionResultAssembler.CLIENT_ID, authentication.authorizationRequest.clientId)
         }
         return result
     }

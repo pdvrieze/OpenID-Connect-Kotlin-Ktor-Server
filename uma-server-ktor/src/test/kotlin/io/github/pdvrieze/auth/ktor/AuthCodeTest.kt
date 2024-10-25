@@ -30,7 +30,7 @@ import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.SystemScope
-import org.mitre.oauth2.model.convert.OAuth2Request
+import org.mitre.oauth2.model.convert.AuthorizationRequest
 import org.mitre.oauth2.web.TokenAPI
 import org.mitre.openid.connect.filter.AuthTokenResponse
 import org.mitre.openid.connect.filter.PlainAuthorizationRequestEndpoint
@@ -177,7 +177,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
     fun testRefreshAccessToken() = testEndpoint {
         val tokenParams = mapOf("client_id" to clientId, "scope" to "offline_access")
         val req = OAuth2RequestAuthentication(
-            OAuth2Request(tokenParams, clientId, scope = setOf("offline_access")),
+            AuthorizationRequest(tokenParams, clientId, scope = setOf("offline_access")),
             SavedUserAuthentication("user")
         )
         val origToken = testContext.tokenService.createAccessToken(req, true)

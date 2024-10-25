@@ -6,12 +6,12 @@ import org.mitre.oauth2.exception.OAuth2Exception
 import org.mitre.oauth2.exception.OAuthErrorCode
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.SystemScope
-import org.mitre.oauth2.model.convert.OAuth2Request
+import org.mitre.oauth2.model.convert.AuthorizationRequest
 
 interface HtmlViews {
     suspend fun RoutingContext.about()
     suspend fun RoutingContext.approve(
-        authRequest: OAuth2Request?,
+        authRequest: AuthorizationRequest?,
         client: OAuthClientDetails,
         redirectUri: String?,
         scopes: Set<SystemScope>,

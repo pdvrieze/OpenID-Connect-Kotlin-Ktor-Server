@@ -1,6 +1,6 @@
 package org.mitre.oauth2.model
 
-import org.mitre.oauth2.model.convert.OAuth2Request
+import org.mitre.oauth2.model.convert.AuthorizationRequest
 
 interface Authentication {
     val authorities: Collection<GrantedAuthority>
@@ -8,8 +8,8 @@ interface Authentication {
     val name: String
 }
 
-val Authentication.oAuth2Request: OAuth2Request?
+val Authentication.authorizationRequest: AuthorizationRequest?
     get() = when (this) {
-        is OAuth2RequestAuthentication -> oAuth2Request
+        is OAuth2RequestAuthentication -> authorizationRequest
         else -> null
     }

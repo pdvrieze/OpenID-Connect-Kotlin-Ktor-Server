@@ -5,7 +5,7 @@ import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2RefreshToken
 import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.SavedUserAuthentication
-import org.mitre.oauth2.model.convert.OAuth2Request
+import org.mitre.oauth2.model.convert.AuthorizationRequest
 import org.mitre.openid.connect.model.OIDCAuthenticationToken
 import org.mitre.openid.connect.model.PendingOIDCAuthenticationToken
 import org.springframework.security.core.Authentication
@@ -83,9 +83,9 @@ fun SavedUserAuthentication.toSpring(): SpringAuthentication {
 
 
 fun OAuth2RequestAuthentication.toSpring(): SpringOAuth2Authentication =
-    SpringOAuth2Authentication(oAuth2Request.toSpring(), userAuthentication?.toSpring())
+    SpringOAuth2Authentication(authorizationRequest.toSpring(), userAuthentication?.toSpring())
 
-fun OAuth2Request.toSpring(): SpringOAuth2Request =
+fun AuthorizationRequest.toSpring(): SpringOAuth2Request =
     SpringOAuth2Request(
         requestParameters,
         clientId,
@@ -162,7 +162,7 @@ fun OIDCAuthenticationToken.toSpring(): SpringAuthentication {
 
 fun SpringOAuth2Authentication.fromSpring(): OAuth2RequestAuthentication {
     return OAuth2RequestAuthentication(
-        oAuth2Request = oAuth2Request.fromSpring(),
+        authorizationRequest = oAuth2Request.fromSpring(),
         userAuthentication = userAuthentication?.fromSpring(),
     )
 }
@@ -177,8 +177,8 @@ fun Authentication.fromSpring(): SavedUserAuthentication? {
     )
 }
 
-fun SpringOAuth2Request.fromSpring(): OAuth2Request {
-    return OAuth2Request(
+fun SpringOAuth2Request.fromSpring(): AuthorizationRequest {
+    return AuthorizationRequest(
         requestParameters = requestParameters,
         clientId = clientId,
         authorities = authorities.mapTo(HashSet()) { LocalGrantedAuthority(it.authority) },

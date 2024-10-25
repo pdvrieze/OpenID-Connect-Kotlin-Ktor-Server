@@ -32,7 +32,7 @@ import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.PKCEAlgorithm
 import org.mitre.oauth2.model.PKCEAlgorithm.Companion.parse
 import org.mitre.oauth2.model.SystemScope
-import org.mitre.oauth2.model.convert.OAuth2Request
+import org.mitre.oauth2.model.convert.AuthorizationRequest
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.oauth2.service.ClientDetailsEntityService
@@ -135,7 +135,7 @@ class SpringOAuth2ProviderTokenService : OAuth2TokenEntityService {
     override suspend fun createAccessToken(authentication: OAuth2RequestAuthentication, isAllowRefresh: Boolean): OAuth2AccessToken {
 
         // look up our client
-        val request = authentication.oAuth2Request
+        val request = authentication.authorizationRequest
 
         val client: OAuthClientDetails = clientDetailsService.loadClientByClientId(request.clientId)
             ?: throw InvalidClientException("Client not found: " + request.clientId)
@@ -204,7 +204,7 @@ class SpringOAuth2ProviderTokenService : OAuth2TokenEntityService {
         }
 
         //Add approved site reference, if any
-        val originalAuthRequest = authHolder.authentication.oAuth2Request
+        val originalAuthRequest = authHolder.authentication.authorizationRequest
 
         if (originalAuthRequest.extensionStrings?.containsKey("approved_site") == true) {
             val apId = (originalAuthRequest.extensionStrings!!["approved_site"] as String).toLong()
@@ -263,7 +263,7 @@ class SpringOAuth2ProviderTokenService : OAuth2TokenEntityService {
 
     @Transactional(value = "defaultTransactionManager")
     @Throws(AuthenticationException::class)
-    override suspend fun refreshAccessToken(refreshTokenValue: String, authRequest: OAuth2Request): OAuth2AccessToken {
+    override suspend fun refreshAccessToken(refreshTokenValue: String, authRequest: AuthorizationRequest): OAuth2AccessToken {
         if (refreshTokenValue.isNullOrEmpty()) {
             // throw an invalid token exception if there's no refresh token value at all
             throw InvalidTokenException("Invalid refresh token: $refreshTokenValue")
@@ -303,7 +303,7 @@ class SpringOAuth2ProviderTokenService : OAuth2TokenEntityService {
 
         // get the stored scopes from the authentication holder's authorization request; these are the scopes associated with the refresh token
         val refreshScopesRequested: Set<String> =
-            HashSet(refreshToken.authenticationHolder.authentication.oAuth2Request.scope)
+            HashSet(refreshToken.authenticationHolder.authentication.authorizationRequest.scope)
         val refreshScopes: Set<SystemScope>? = scopeService.fromStrings(refreshScopesRequested)?.let {
             // remove any of the special system scopes
             scopeService.removeReservedScopes(it)

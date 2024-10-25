@@ -56,7 +56,7 @@ class DefaultUmaTokenService(
 
         tokenBuilder.setAuthenticationHolder(authHolder)
 
-        val client = clientService.loadClientByClientId(o2auth.oAuth2Request.clientId)!!
+        val client = clientService.loadClientByClientId(o2auth.authorizationRequest.clientId)!!
         tokenBuilder.setClient(client)
 
         val ticketScopes = ticket.permission.scopes

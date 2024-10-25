@@ -29,7 +29,7 @@ import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuthClientDetails
-import org.mitre.oauth2.model.convert.OAuth2Request
+import org.mitre.oauth2.model.convert.AuthorizationRequest
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
@@ -47,7 +47,7 @@ class TestSpringOIDCTokenService {
         expirationInstant = Instant.now().plusSeconds(120),
         jwt = PlainJWT(JWTClaimsSet.Builder().build()),
     )
-    private val request: OAuth2Request = OAuth2Request(clientId = CLIENT_ID)
+    private val request: AuthorizationRequest = AuthorizationRequest(clientId = CLIENT_ID)
 
     @Mock
     private lateinit var jwtService: JWTSigningAndValidationService
@@ -68,7 +68,7 @@ class TestSpringOIDCTokenService {
             override fun addCustomIdTokenClaims(
                 idClaims: JWTClaimsSet.Builder,
                 client: OAuthClientDetails,
-                request: org.mitre.oauth2.model.convert.OAuth2Request?,
+                request: org.mitre.oauth2.model.convert.AuthorizationRequest?,
                 sub: String?,
                 accessToken: OAuth2AccessToken.Builder?
             ) {

@@ -225,14 +225,14 @@ object DynamicClientRegistrationEndpoint: KtorEndpoint {
 
         val client = clientDetailsService.loadClientByClientId(clientId)
 
-        if (client != null && client.clientId == auth.oAuth2Request.clientId) {
+        if (client != null && client.clientId == auth.authorizationRequest.clientId) {
             val token = rotateRegistrationTokenIfNecessary(auth, client)
             val registered = RegisteredClient(client, token.value, clientRegistrationUri(client))
 
             return clientInformationResponseView(registered, HttpStatusCode.OK)
         } else {
             // client mismatch
-            logger.error("readClientConfiguration failed, client ID mismatch: $clientId and ${auth.oAuth2Request.clientId} do not match.")
+            logger.error("readClientConfiguration failed, client ID mismatch: $clientId and ${auth.authorizationRequest.clientId} do not match.")
             return call.respond(HttpStatusCode.Forbidden)
         }
     }
@@ -258,10 +258,10 @@ object DynamicClientRegistrationEndpoint: KtorEndpoint {
 
         val oldClient = clientDetailsService.loadClientByClientId(clientId)
 
-        if (newClient == null || oldClient == null || oldClient.clientId != auth.oAuth2Request.clientId || oldClient.clientId != newClient.clientId
+        if (newClient == null || oldClient == null || oldClient.clientId != auth.authorizationRequest.clientId || oldClient.clientId != newClient.clientId
         ) {
             // client mismatch
-            logger.error("updateClient failed, client ID mismatch: $clientId and ${auth.oAuth2Request.clientId} do not match.")
+            logger.error("updateClient failed, client ID mismatch: $clientId and ${auth.authorizationRequest.clientId} do not match.")
             return call.respond(HttpStatusCode.Forbidden)
         }
 
@@ -322,12 +322,12 @@ object DynamicClientRegistrationEndpoint: KtorEndpoint {
         val clientId = call.parameters["id"]!!
         val client = clientDetailsService.loadClientByClientId(clientId)
 
-        if (client != null && client.clientId == auth.oAuth2Request.clientId) {
+        if (client != null && client.clientId == auth.authorizationRequest.clientId) {
             clientDetailsService.deleteClient(client)
             return call.respond(HttpStatusCode.NoContent)
         } else {
             // client mismatch
-            logger.error("readClientConfiguration failed, client ID mismatch: $clientId and ${auth.oAuth2Request.clientId} do not match.")
+            logger.error("readClientConfiguration failed, client ID mismatch: $clientId and ${auth.authorizationRequest.clientId} do not match.")
             return call.respond(HttpStatusCode.Forbidden)
         }
     }
@@ -621,7 +621,7 @@ object DynamicClientRegistrationEndpoint: KtorEndpoint {
         auth: OAuth2RequestAuthentication,
         client: OAuthClientDetails
     ): OAuth2AccessTokenEntity {
-        val details = auth.oAuth2Request
+        val details = auth.authorizationRequest
         val token = tokenService.readAccessToken(/*details.tokenValue*/TODO("Fix token handling"))
         val config = openIdContext.config
 
