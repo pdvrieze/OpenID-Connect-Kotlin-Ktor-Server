@@ -10,6 +10,6 @@ interface Authentication {
 
 val Authentication.authorizationRequest: AuthorizationRequest?
     get() = when (this) {
-        is OAuth2RequestAuthentication -> authorizationRequest
+        is AuthenticatedAuthorizationRequest -> authorizationRequest
         else -> null
     }

@@ -19,7 +19,7 @@ import io.github.pdvrieze.openid.spring.fromSpring
 import io.github.pdvrieze.openid.spring.toSpring
 import org.mitre.oauth2.exception.AuthorizationPendingException
 import org.mitre.oauth2.exception.DeviceCodeExpiredException
-import org.mitre.oauth2.model.OAuth2RequestAuthentication
+import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.service.DeviceCodeService
@@ -80,7 +80,7 @@ class DeviceTokenGranter protected constructor(
 
                 val userAuth = dc.authenticationHolder?.userAuth?.let { a -> SavedUserAuthentication.from(a) }
                 val auth =
-                    OAuth2RequestAuthentication(requestFactory.createOAuth2Request(client, tokenRequest).fromSpring(), userAuth)
+                    AuthenticatedAuthorizationRequest(requestFactory.createOAuth2Request(client, tokenRequest).fromSpring(), userAuth)
 
                 deviceCodeService.clearDeviceCode(deviceCode, client)
 

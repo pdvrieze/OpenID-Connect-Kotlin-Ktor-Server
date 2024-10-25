@@ -2,7 +2,7 @@ package org.mitre.oauth2.token
 
 import org.mitre.oauth2.exception.OAuth2Exception
 import org.mitre.oauth2.exception.OAuthErrorCodes
-import org.mitre.oauth2.model.OAuth2RequestAuthentication
+import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.convert.AuthorizationRequest
 import org.mitre.oauth2.resolver.ClientResolver
@@ -22,7 +22,7 @@ class AuthorizationCodeTokenGranter(
     override suspend fun getOAuth2Authentication(
         client: OAuthClientDetails,
         request: AuthorizationRequest,
-    ): OAuth2RequestAuthentication {
+    ): AuthenticatedAuthorizationRequest {
         val code = request.requestParameters["code"] ?: throw OAuth2Exception(OAuthErrorCodes.INVALID_REQUEST)
         val authorizationCode = authorizationCodeService.consumeAuthorizationCode(code)
         if (authorizationCode.authorizationRequest.redirectUri != request.redirectUri)

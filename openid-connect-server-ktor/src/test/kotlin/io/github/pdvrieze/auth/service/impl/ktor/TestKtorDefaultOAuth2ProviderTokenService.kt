@@ -10,12 +10,12 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.oauth2.exception.InvalidClientException
 import org.mitre.oauth2.exception.InvalidScopeException
 import org.mitre.oauth2.exception.InvalidTokenException
+import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
-import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.convert.AuthorizationRequest
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
@@ -52,7 +52,7 @@ import java.util.*
 @MockitoSettings(strictness = Strictness.WARN)
 class TestKtorDefaultOAuth2ProviderTokenService {
     // Test Fixture:
-    private lateinit var authentication: OAuth2RequestAuthentication
+    private lateinit var authentication: AuthenticatedAuthorizationRequest
     private lateinit var client: ClientDetailsEntity
     private lateinit var badClient: ClientDetailsEntity
     private lateinit var refreshToken: OAuth2RefreshTokenEntity
@@ -61,7 +61,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
 
     // for use when refreshing access tokens
     private lateinit var storedAuthRequest: AuthorizationRequest
-    private lateinit var storedAuthentication: OAuth2RequestAuthentication
+    private lateinit var storedAuthentication: AuthenticatedAuthorizationRequest
     private lateinit var storedAuthHolder: AuthenticationHolderEntity
     private lateinit var storedScope: Set<String>
 
@@ -101,7 +101,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
             approvedSiteService = approvedSiteService,
         )
 
-        authentication = mock<OAuth2RequestAuthentication>()
+        authentication = mock<AuthenticatedAuthorizationRequest>()
         val clientAuth = AuthorizationRequest(
             clientId = clientId,
             isApproved = true,
@@ -141,7 +141,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
         storedScope = scope.toHashSet()
 
         whenever(refreshToken.authenticationHolder) doReturn (storedAuthHolder)
-        whenever(storedAuthHolder.authentication) doReturn (storedAuthentication)
+        whenever(storedAuthHolder.authenticatedAuthorizationRequest) doReturn (storedAuthentication)
         whenever(storedAuthHolder.id) doReturn (33)
         whenever(storedAuthentication.authorizationRequest) doReturn (storedAuthRequest)
 
@@ -164,7 +164,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
 
         // unused by mockito (causs unnecessary stubbing exception
 //		when(scopeService.removeRestrictedAndReservedScopes(anySet())).then(returnsFirstArg());
-        whenever(tokenEnhancer.enhance(isA<OAuth2AccessTokenEntity.Builder>(), isA<OAuth2RequestAuthentication>()))
+        whenever(tokenEnhancer.enhance(isA<OAuth2AccessTokenEntity.Builder>(), isA<AuthenticatedAuthorizationRequest>()))
             .thenAnswer { invocation ->
                 Unit
 //                val args = invocation.arguments
@@ -325,13 +325,13 @@ class TestKtorDefaultOAuth2ProviderTokenService {
     @Test
     fun createAccessToken_checkAttachedAuthentication(): Unit = runBlocking {
         val authHolder = mock<AuthenticationHolderEntity>()
-        whenever(authHolder.authentication) doReturn (authentication)
+        whenever(authHolder.authenticatedAuthorizationRequest) doReturn (authentication)
 
         whenever(authenticationHolderRepository.save(isA<AuthenticationHolderEntity>())) doReturn (authHolder)
 
         val token = service.createAccessToken(authentication, xxx)
 
-        Assertions.assertEquals(authentication, token.authenticationHolder.authentication)
+        Assertions.assertEquals(authentication, token.authenticationHolder.authenticatedAuthorizationRequest)
         verify(authenticationHolderRepository).save(isA<AuthenticationHolderEntity>())
         verify(scopeService, atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
     }

@@ -19,9 +19,9 @@ package org.mitre.oauth2.service.impl
 
 import org.mitre.data.AbstractPageOperationTemplate
 import org.mitre.oauth2.exception.InvalidGrantException
+import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.AuthorizationCodeEntity
-import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.AuthorizationCodeRepository
 import org.mitre.oauth2.service.OAuth2AuthorizationCodeService
@@ -52,12 +52,12 @@ class DefaultOAuth2AuthorizationCodeService(
      * code is consumed
      * @return                    the authorization code
      */
-    override fun createAuthorizationCode(authentication: OAuth2RequestAuthentication): String {
+    override fun createAuthorizationCode(authentication: AuthenticatedAuthorizationRequest): String {
         val code = generator.generate()
 
         // attach the authorization so that we can look it up later
         var authHolder = AuthenticationHolderEntity(userAuth = authentication.userAuthentication)
-        authHolder.authentication = authentication
+        authHolder.authenticatedAuthorizationRequest = authentication
         authHolder = authenticationHolderRepository.save(authHolder)
 
         // set the auth code to expire
@@ -79,11 +79,11 @@ class DefaultOAuth2AuthorizationCodeService(
      * @return            the authentication that made the original request
      * @throws            InvalidGrantException, if an AuthorizationCodeEntity is not found with the given value
      */
-    override fun consumeAuthorizationCode(code: String): OAuth2RequestAuthentication {
+    override fun consumeAuthorizationCode(code: String): AuthenticatedAuthorizationRequest {
         val result = authcodeRepository.getByCode(code)
             ?: throw InvalidGrantException("JpaAuthorizationCodeRepository: no authorization code found for value $code")
 
-        val auth = result.authenticationHolder!!.authentication
+        val auth = result.authenticationHolder!!.authenticatedAuthorizationRequest
 
         authcodeRepository.remove(result)
 

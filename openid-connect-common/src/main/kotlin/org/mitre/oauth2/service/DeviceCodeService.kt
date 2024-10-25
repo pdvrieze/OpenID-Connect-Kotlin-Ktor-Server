@@ -1,8 +1,8 @@
 package org.mitre.oauth2.service
 
 import org.mitre.oauth2.exception.DeviceCodeCreationException
+import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.DeviceCode
-import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuthClientDetails
 
 /**
@@ -11,7 +11,7 @@ import org.mitre.oauth2.model.OAuthClientDetails
 interface DeviceCodeService {
     fun lookUpByUserCode(userCode: String): DeviceCode?
 
-    fun approveDeviceCode(dc: DeviceCode, o2Auth: OAuth2RequestAuthentication): DeviceCode?
+    fun approveDeviceCode(dc: DeviceCode, o2Auth: AuthenticatedAuthorizationRequest): DeviceCode?
 
     fun findDeviceCode(deviceCode: String, client: OAuthClientDetails): DeviceCode?
 

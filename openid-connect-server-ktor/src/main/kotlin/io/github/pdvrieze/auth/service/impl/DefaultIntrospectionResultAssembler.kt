@@ -42,7 +42,7 @@ class DefaultIntrospectionResultAssembler : JsonIntrospectionResultAssembler {
     ): JsonObject {
         val result = buildJsonObject {
             val result = this
-            val authentication = accessToken.authenticationHolder.authentication
+            val authentication = accessToken.authenticationHolder.authenticatedAuthorizationRequest
 
 
         put(IntrospectionResultAssembler.ACTIVE, true)
@@ -99,7 +99,7 @@ class DefaultIntrospectionResultAssembler : JsonIntrospectionResultAssembler {
         authScopes: Set<String>
     ): JsonObject {
         val result = buildJsonObject {
-            val authentication = refreshToken.authenticationHolder.authentication
+            val authentication = refreshToken.authenticationHolder.authenticatedAuthorizationRequest
 
             put(IntrospectionResultAssembler.ACTIVE, true)
 

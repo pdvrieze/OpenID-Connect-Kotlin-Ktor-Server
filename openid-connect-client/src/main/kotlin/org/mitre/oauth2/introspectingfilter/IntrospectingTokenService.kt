@@ -29,11 +29,11 @@ import kotlinx.serialization.json.jsonPrimitive
 import org.mitre.oauth2.introspectingfilter.service.IntrospectionAuthorityGranter
 import org.mitre.oauth2.introspectingfilter.service.IntrospectionConfigurationService
 import org.mitre.oauth2.introspectingfilter.service.impl.SimpleIntrospectionAuthorityGranter
+import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.LocalGrantedAuthority
 import org.mitre.oauth2.model.OAuth2AccessToken
-import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.oauth2.model.SavedUserAuthentication
@@ -79,7 +79,7 @@ class IntrospectingTokenService(
     var isCacheTokens: Boolean = true
 
     // Inner class to store in the hash map
-    private inner class TokenCacheObject(var token: OAuth2AccessToken, var auth: OAuth2RequestAuthentication) {
+    private inner class TokenCacheObject(var token: OAuth2AccessToken, var auth: AuthenticatedAuthorizationRequest) {
         var cacheExpire: Instant? = null
 
         init {
@@ -206,7 +206,7 @@ class IntrospectingTokenService(
         val userAuth = createUserAuthentication(tokenResponse)?.let {
             it as? SavedUserAuthentication ?: SavedUserAuthentication(it)
         }
-        val auth = OAuth2RequestAuthentication(createStoredRequest(tokenResponse), userAuth)
+        val auth = AuthenticatedAuthorizationRequest(createStoredRequest(tokenResponse), userAuth)
         // create an OAuth2AccessToken
         val token = createAccessToken(tokenResponse, accessToken)
 
@@ -223,7 +223,7 @@ class IntrospectingTokenService(
         return null
     }
 
-    private suspend fun loadAuthentication(accessToken: String): OAuth2RequestAuthentication? {
+    private suspend fun loadAuthentication(accessToken: String): AuthenticatedAuthorizationRequest? {
         // First check if the in memory cache has an Authentication object, and
         // that it is still valid
         // If Valid, return it

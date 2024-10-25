@@ -16,9 +16,9 @@
 package org.mitre.oauth2.service.impl
 
 import org.mitre.data.AbstractPageOperationTemplate
+import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.DeviceCode
-import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.repository.DeviceCodeRepository
 import org.mitre.oauth2.service.DeviceCodeService
@@ -80,13 +80,13 @@ class SpringDeviceCodeService : DeviceCodeService {
     }
 
 
-    override fun approveDeviceCode(dc: DeviceCode, o2Auth: OAuth2RequestAuthentication): DeviceCode? {
+    override fun approveDeviceCode(dc: DeviceCode, o2Auth: AuthenticatedAuthorizationRequest): DeviceCode? {
         val found = requireNotNull(repository.getById(dc.id.requireId())) { "No device code found"}
 
         found.isApproved = true
 
         val authHolder = AuthenticationHolderEntity()
-        authHolder.authentication = o2Auth
+        authHolder.authenticatedAuthorizationRequest = o2Auth
 
         found.authenticationHolder = authHolder
 

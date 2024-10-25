@@ -16,8 +16,8 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import org.mitre.oauth2.exception.OAuthErrorCodes
 import org.mitre.oauth2.exception.httpCode
+import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.Authentication
-import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.convert.AuthorizationRequest
@@ -177,7 +177,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         effectiveRedirectUri: String,
         state: String?,
     ) {
-        val r = OAuth2RequestAuthentication(authRequest, SavedUserAuthentication.from(auth))
+        val r = AuthenticatedAuthorizationRequest(authRequest, SavedUserAuthentication.from(auth))
         val accessToken = if(responseType.token) {
             val granter = getGranter("token") ?: return jsonErrorView(OAuthErrorCodes.UNSUPPORTED_GRANT_TYPE)
 

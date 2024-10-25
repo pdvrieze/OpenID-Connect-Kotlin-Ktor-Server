@@ -31,10 +31,10 @@ import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
 import kotlinx.serialization.SerializationException
 import org.mitre.oauth2.exception.OAuthErrorCodes.*
+import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
-import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.model.RegisteredClient
@@ -618,7 +618,7 @@ object DynamicClientRegistrationEndpoint: KtorEndpoint {
 	 * Rotates the registration token if it's expired, otherwise returns it
 	 */
     private fun RoutingContext.rotateRegistrationTokenIfNecessary(
-        auth: OAuth2RequestAuthentication,
+        auth: AuthenticatedAuthorizationRequest,
         client: OAuthClientDetails
     ): OAuth2AccessTokenEntity {
         val details = auth.authorizationRequest

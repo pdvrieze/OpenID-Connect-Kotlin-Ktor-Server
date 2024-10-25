@@ -28,7 +28,6 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonElement
 import org.mitre.oauth2.model.convert.AuthenticationSerializer
 import org.mitre.oauth2.model.convert.AuthorizationRequest
-import org.mitre.oauth2.model.convert.KXS_OAuth2Authentication
 import org.mitre.oauth2.model.convert.SimpleGrantedAuthorityStringConverter
 import kotlinx.serialization.Serializable as KXS_Serializable
 import java.io.Serializable as IoSerializable
@@ -58,9 +57,9 @@ class AuthenticationHolderEntity(
     var scope: Set<String>? = null,
     var requestParameters: Map<String, String>? = null,
 ) {
-    var authentication: OAuth2RequestAuthentication
+    var authenticatedAuthorizationRequest: AuthenticatedAuthorizationRequest
         get() =// TODO: memoize this
-            OAuth2RequestAuthentication(createOAuth2Request(), userAuth)
+            AuthenticatedAuthorizationRequest(createAuthorizationRequest(), userAuth)
         set(authentication) {
             // pull apart the request and save its bits
 
@@ -82,7 +81,7 @@ class AuthenticationHolderEntity(
             }
         }
 
-    private fun createOAuth2Request(): AuthorizationRequest {
+    private fun createAuthorizationRequest(): AuthorizationRequest {
         return AuthorizationRequest(
             requestParameters = requestParameters ?: emptyMap(),
             clientId = clientId!!,
@@ -112,15 +111,15 @@ class AuthenticationHolderEntity(
         return AuthenticationHolderEntity(
             id = id,
             userAuth = userAuth,
-            authorities = authorities,
-            resourceIds = resourceIds,
+            authorities = authorities?.toList(),
+            resourceIds = resourceIds?.toHashSet(),
             isApproved = isApproved,
             redirectUri = redirectUri,
-            responseTypes = responseTypes,
-            extensions = extensions,
+            responseTypes = responseTypes?.toSet(),
+            extensions = extensions?.toMap(HashMap()),
             clientId = clientId,
-            scope = scope,
-            requestParameters = requestParameters,
+            scope = scope?.toHashSet(),
+            requestParameters = requestParameters?.toMap(HashMap()),
         )
     }
 
@@ -142,18 +141,18 @@ class AuthenticationHolderEntity(
         @SerialName("ownerId")
         val ownerId: JsonElement? = null,
         @SerialName("authentication")
-        val _authentication: KXS_OAuth2Authentication? = null,
+        val _authentication: AuthenticatedAuthorizationRequest? = null,
     ) : SerialDelegate {
         constructor(e: AuthenticationHolderEntity) : this(
             currentId = e.id,
-            _authentication = e.authentication
+            _authentication = e.authenticatedAuthorizationRequest
         )
 
         override fun toAuthenticationHolder(): AuthenticationHolderEntity {
             return AuthenticationHolderEntity(
                 id = currentId,
             ).also {
-                if (_authentication != null) it.authentication = _authentication
+                if (_authentication != null) it.authenticatedAuthorizationRequest = _authentication
             }
         }
     }

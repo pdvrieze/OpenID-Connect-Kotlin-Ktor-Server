@@ -27,9 +27,9 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.long
 import org.mitre.oauth2.exception.OAuthErrorCodes
 import org.mitre.oauth2.exception.OAuthErrorCodes.INVALID_REQUEST
+import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.GrantedAuthority
-import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.oauth2.view.respondJson
 import org.mitre.oauth2.web.AuthenticationUtilities.ensureOAuthScope
@@ -72,7 +72,7 @@ object ResourceSetRegistrationEndpoint: KtorEndpoint {
             return jsonErrorView(INVALID_REQUEST, "Resource request was missing body.")
         }
 
-        if (auth !is OAuth2RequestAuthentication) {
+        if (auth !is AuthenticatedAuthorizationRequest) {
             return jsonErrorView(INVALID_REQUEST, "This call must be made with an OAuth token")
         }
 
@@ -152,7 +152,7 @@ object ResourceSetRegistrationEndpoint: KtorEndpoint {
         return jsonErrorView(OAuthErrorCodes.ACCESS_DENIED)
     }
 
-    if (auth is OAuth2RequestAuthentication &&
+    if (auth is AuthenticatedAuthorizationRequest &&
         auth.authorizationRequest.clientId != rs.clientId
     ) {
         logger.warn("Unauthorized resource set request from bad client; expected ${rs.clientId} got ${auth.authorizationRequest.clientId}")
@@ -171,7 +171,7 @@ object ResourceSetRegistrationEndpoint: KtorEndpoint {
         val owner = auth.name
 
         val resourceSets: Collection<ResourceSet>
-        if (auth is OAuth2RequestAuthentication) {
+        if (auth is AuthenticatedAuthorizationRequest) {
             // if it's an OAuth mediated call, it's on behalf of a client, so look that up too
             resourceSets = resourceSetService.getAllForOwnerAndClient(owner, auth.authorizationRequest.clientId)
         } else {

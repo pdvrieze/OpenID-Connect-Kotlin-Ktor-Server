@@ -1,22 +1,25 @@
 package org.mitre.oauth2.model
 
+import kotlinx.serialization.Serializable
+import org.mitre.oauth2.model.convert.AuthenticatedAuthorizationRequestSerializer
 import org.mitre.oauth2.model.convert.AuthorizationRequest
 
 /**
- * Authentication representing the request using an OAuth2 Access token.
+ * Object representing an authorization request that has been associated with a user.
  */
-class OAuth2RequestAuthentication(
+@Serializable(AuthenticatedAuthorizationRequestSerializer::class)
+class AuthenticatedAuthorizationRequest(
     val authorizationRequest: AuthorizationRequest,
     val userAuthentication: SavedUserAuthentication?
-) : Authentication {
+) {
 
-    override val authorities: Collection<GrantedAuthority> =
+    val authorities: Collection<GrantedAuthority> =
         userAuthentication?.authorities ?: authorizationRequest.authorities
 
-    override val isAuthenticated: Boolean
+    val isAuthenticated: Boolean
         get() = authorizationRequest.isApproved && (userAuthentication == null || userAuthentication.isAuthenticated)
 
-    override val name: String
+    val name: String
         get() = userAuthentication?.name ?: authorizationRequest.clientId
 
     val isClientOnly: Boolean

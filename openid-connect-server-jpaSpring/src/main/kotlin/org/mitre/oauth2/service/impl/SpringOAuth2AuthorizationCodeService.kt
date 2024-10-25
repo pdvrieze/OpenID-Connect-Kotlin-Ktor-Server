@@ -65,7 +65,7 @@ class SpringOAuth2AuthorizationCodeService : AuthorizationCodeServices {
 
         // attach the authorization so that we can look it up later
         var authHolder = AuthenticationHolderEntity()
-        authHolder.authentication = authentication.fromSpring()
+        authHolder.authenticatedAuthorizationRequest = authentication.fromSpring()
         authHolder = authenticationHolderRepository.save(authHolder)
 
         // set the auth code to expire
@@ -92,7 +92,7 @@ class SpringOAuth2AuthorizationCodeService : AuthorizationCodeServices {
         val result = repository.getByCode(code)
             ?: throw InvalidGrantException("JpaAuthorizationCodeRepository: no authorization code found for value $code")
 
-        val auth = result.authenticationHolder!!.authentication
+        val auth = result.authenticationHolder!!.authenticatedAuthorizationRequest
 
         repository.remove(result)
 

@@ -26,8 +26,8 @@ import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.Before
+import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.ClientDetailsEntity
-import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.convert.AuthorizationRequest
@@ -176,7 +176,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
     @Test
     fun testRefreshAccessToken() = testEndpoint {
         val tokenParams = mapOf("client_id" to clientId, "scope" to "offline_access")
-        val req = OAuth2RequestAuthentication(
+        val req = AuthenticatedAuthorizationRequest(
             AuthorizationRequest(tokenParams, clientId, scope = setOf("offline_access")),
             SavedUserAuthentication("user")
         )

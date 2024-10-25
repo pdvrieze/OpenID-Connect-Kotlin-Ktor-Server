@@ -19,9 +19,9 @@ import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
+import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
-import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.OAuth2TokenEntityService
@@ -44,13 +44,13 @@ class DefaultUmaTokenService(
 ) : UmaTokenService {
 
     override fun createRequestingPartyToken(
-        o2auth: OAuth2RequestAuthentication,
+        o2auth: AuthenticatedAuthorizationRequest,
         ticket: PermissionTicket,
         policy: Policy
     ): OAuth2AccessTokenEntity {
         val tokenBuilder = OAuth2AccessTokenEntity.Builder()
         val authHolder = AuthenticationHolderEntity().run {
-            authentication = o2auth
+            authenticatedAuthorizationRequest = o2auth
             authenticationHolderRepository.save(this)
         }
 

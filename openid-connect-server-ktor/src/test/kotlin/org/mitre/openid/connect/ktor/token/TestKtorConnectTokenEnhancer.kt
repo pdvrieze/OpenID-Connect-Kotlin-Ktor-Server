@@ -8,10 +8,10 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
+import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
-import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.convert.AuthorizationRequest
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
@@ -42,7 +42,7 @@ class TestKtorConnectTokenEnhancer {
     private lateinit var connectTokenService: OIDCTokenService
 
     @Mock
-    private lateinit var authentication: OAuth2RequestAuthentication
+    private lateinit var authentication: AuthenticatedAuthorizationRequest
 
     private val request: AuthorizationRequest = AuthorizationRequest(clientId = CLIENT_ID)
 
@@ -79,7 +79,7 @@ class TestKtorConnectTokenEnhancer {
             override fun addCustomAccessTokenClaims(
                 builder: JWTClaimsSet.Builder,
                 token: OAuth2AccessToken.Builder,
-                authentication: OAuth2RequestAuthentication?
+                authentication: AuthenticatedAuthorizationRequest?
             ) {
                 builder.claim("test", "foo")
             }

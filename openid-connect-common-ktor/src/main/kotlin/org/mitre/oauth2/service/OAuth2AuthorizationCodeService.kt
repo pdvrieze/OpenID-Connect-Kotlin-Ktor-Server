@@ -1,7 +1,7 @@
 package org.mitre.oauth2.service
 
+import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.Authentication
-import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.convert.AuthorizationRequest
 
@@ -14,10 +14,10 @@ interface OAuth2AuthorizationCodeService {
      * code is consumed
      * @return                    the authorization code
      */
-    fun createAuthorizationCode(authentication: OAuth2RequestAuthentication): String
+    fun createAuthorizationCode(authentication: AuthenticatedAuthorizationRequest): String
 
     fun createAuthorizationCode(request: AuthorizationRequest, auth: Authentication): String {
-        val authentication = OAuth2RequestAuthentication(request, SavedUserAuthentication.from(auth))
+        val authentication = AuthenticatedAuthorizationRequest(request, SavedUserAuthentication.from(auth))
         return createAuthorizationCode(authentication)
     }
 
@@ -31,7 +31,7 @@ interface OAuth2AuthorizationCodeService {
      * @return            the authentication that made the original request
      * @throws            InvalidGrantException, if an AuthorizationCodeEntity is not found with the given value
      */
-    fun consumeAuthorizationCode(code: String): OAuth2RequestAuthentication
+    fun consumeAuthorizationCode(code: String): AuthenticatedAuthorizationRequest
 
     /**
      * Find and remove all expired auth codes.

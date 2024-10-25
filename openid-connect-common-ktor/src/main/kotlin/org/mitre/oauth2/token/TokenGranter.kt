@@ -1,7 +1,7 @@
 package org.mitre.oauth2.token
 
+import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.OAuth2AccessToken
-import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.convert.AuthorizationRequest
 
@@ -13,13 +13,13 @@ interface TokenGranter {
     suspend fun getOAuth2Authentication(
         client: OAuthClientDetails,
         request: AuthorizationRequest,
-    ): OAuth2RequestAuthentication {
-        return OAuth2RequestAuthentication(request, null)
+    ): AuthenticatedAuthorizationRequest {
+        return AuthenticatedAuthorizationRequest(request, null)
     }
 
     suspend fun getAccessToken(
         client: OAuthClientDetails,
-        tokenRequest: OAuth2RequestAuthentication,
+        tokenRequest: AuthenticatedAuthorizationRequest,
         isAllowRefresh: Boolean = isGrantAllowsRefresh,
     ): OAuth2AccessToken
 

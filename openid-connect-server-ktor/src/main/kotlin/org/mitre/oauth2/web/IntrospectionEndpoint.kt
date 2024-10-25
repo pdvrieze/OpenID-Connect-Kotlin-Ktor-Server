@@ -23,10 +23,10 @@ import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.mitre.oauth2.exception.InvalidTokenException
+import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
-import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.service.JsonIntrospectionResultAssembler
 import org.mitre.oauth2.service.SystemScopeService
@@ -67,7 +67,7 @@ object IntrospectionEndpoint: KtorEndpoint {
         val authClient: OAuthClientDetails
         val authScopes: MutableSet<String> = HashSet()
 
-        if (auth is OAuth2RequestAuthentication) {
+        if (auth is AuthenticatedAuthorizationRequest) {
             // the client authenticated with OAuth, do our UMA checks
             AuthenticationUtilities.ensureOAuthScope(auth, SystemScopeService.UMA_PROTECTION_SCOPE)
 
@@ -130,7 +130,7 @@ object IntrospectionEndpoint: KtorEndpoint {
             tokenClient = accessToken.client
 
             // get the user information of the user that authorized this token in the first place
-            val userName = accessToken.authenticationHolder.authentication.name
+            val userName = accessToken.authenticationHolder.authenticatedAuthorizationRequest.name
             user = openIdContext.userInfoService.getByUsernameAndClientId(userName, tokenClient!!.clientId!!)
         } catch (e: InvalidTokenException) {
             logger.info("Invalid access token. Checking refresh token.")
@@ -142,7 +142,7 @@ object IntrospectionEndpoint: KtorEndpoint {
                 tokenClient = refreshToken!!.client
 
                 // get the user information of the user that authorized this token in the first place
-                val userName = refreshToken.authenticationHolder.authentication.name
+                val userName = refreshToken.authenticationHolder.authenticatedAuthorizationRequest.name
                 user = userInfoService.getByUsernameAndClientId(userName, tokenClient!!.clientId!!)
             } catch (e2: InvalidTokenException) {
                 logger.error("Invalid refresh token")

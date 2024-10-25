@@ -19,11 +19,8 @@ package org.mitre.oauth2.web
 
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.OAuth2TokenEntityService
-import org.mitre.oauth2.view.TokenApiView
 import org.mitre.openid.connect.service.OIDCTokenService
 import org.mitre.openid.connect.view.HttpCodeView
-import org.mitre.openid.connect.view.JsonEntityView
-import org.mitre.openid.connect.view.JsonErrorView
 import org.mitre.openid.connect.web.RootController
 import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
@@ -70,7 +67,7 @@ class TokenAPI {
             m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
             m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] = "The requested token with id $id could not be found."
             return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
-        } else if (token.authenticationHolder.authentication.name != p.name) {
+        } else if (token.authenticationHolder.authenticatedAuthorizationRequest.name != p.name) {
             logger.error("getToken failed; token does not belong to principal " + p.name)
             m[HttpCodeView.CODE] = HttpStatus.FORBIDDEN
             m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] = "You do not have permission to view this token"
@@ -90,7 +87,7 @@ class TokenAPI {
             m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
             m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] = "The requested token with id $id could not be found."
             return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
-        } else if (token.authenticationHolder.authentication.name != p.name) {
+        } else if (token.authenticationHolder.authenticatedAuthorizationRequest.name != p.name) {
             logger.error("getToken failed; token does not belong to principal " + p.name)
             m[HttpCodeView.CODE] = HttpStatus.FORBIDDEN
             m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] = "You do not have permission to view this token"
@@ -187,7 +184,7 @@ class TokenAPI {
             m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
             m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] = "The requested token with id $id could not be found."
             return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
-        } else if (token.authenticationHolder!!.authentication.name != p.name) {
+        } else if (token.authenticationHolder!!.authenticatedAuthorizationRequest.name != p.name) {
             logger.error("refresh token " + id + " does not belong to principal " + p.name)
             m[HttpCodeView.CODE] = HttpStatus.FORBIDDEN
             m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] = "You do not have permission to view this token"
@@ -207,7 +204,7 @@ class TokenAPI {
             m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
             m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] = "The requested token with id $id could not be found."
             return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
-        } else if (token.authenticationHolder!!.authentication.name != p.name) {
+        } else if (token.authenticationHolder!!.authenticatedAuthorizationRequest.name != p.name) {
             logger.error("refresh token " + id + " does not belong to principal " + p.name)
             m[HttpCodeView.CODE] = HttpStatus.FORBIDDEN
             m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] = "You do not have permission to view this token"

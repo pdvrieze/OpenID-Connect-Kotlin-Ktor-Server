@@ -77,7 +77,7 @@ object TokenAPI : KtorEndpoint {
         if (token == null) {
             logger.error("getToken failed; token not found: $id")
             return jsonErrorView(INVALID_TOKEN, HttpStatusCode.NotFound, "The requested token with id $id could not be found.")
-        } else if (token.authenticationHolder.authentication.name != p.name) {
+        } else if (token.authenticationHolder.authenticatedAuthorizationRequest.name != p.name) {
             logger.error("getToken failed; token does not belong to principal " + p.name)
             return jsonErrorView(ACCESS_DENIED, "You do not have permission to view this token")
         } else {
@@ -94,7 +94,7 @@ object TokenAPI : KtorEndpoint {
         if (token == null) {
             logger.error("getToken failed; token not found: $id")
             return jsonErrorView(INVALID_TOKEN, HttpStatusCode.NotFound, "The requested token with id $id could not be found.")
-        } else if (token.authenticationHolder.authentication.name != p.name) {
+        } else if (token.authenticationHolder.authenticatedAuthorizationRequest.name != p.name) {
             logger.error("getToken failed; token does not belong to principal " + p.name)
             return jsonErrorView(ACCESS_DENIED, "You do not have permission to delete this token")
         } else {
@@ -162,7 +162,7 @@ object TokenAPI : KtorEndpoint {
                 return jsonErrorView(INVALID_TOKEN, HttpStatusCode.NotFound, "The requested token with id $id could not be found.")
             }
 
-        if (token.authenticationHolder.authentication.name != p.name) {
+        if (token.authenticationHolder.authenticatedAuthorizationRequest.name != p.name) {
             logger.error("refresh token $id does not belong to principal ${p.name}")
             return jsonErrorView(ACCESS_DENIED, "You do not have permission to view this token")
         }
@@ -181,7 +181,7 @@ object TokenAPI : KtorEndpoint {
                 return jsonErrorView(INVALID_TOKEN, HttpStatusCode.NotFound, "The requested token with id $id could not be found.")
             }
 
-        if (token.authenticationHolder.authentication.name != p.name) {
+        if (token.authenticationHolder.authenticatedAuthorizationRequest.name != p.name) {
             logger.error("refresh token $id does not belong to principal ${p.name}")
             return jsonErrorView(ACCESS_DENIED, "You do not have permission to view this token")
         }

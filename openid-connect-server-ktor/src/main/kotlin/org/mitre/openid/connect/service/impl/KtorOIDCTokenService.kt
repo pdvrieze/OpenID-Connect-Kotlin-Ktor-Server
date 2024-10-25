@@ -30,12 +30,12 @@ import com.nimbusds.jwt.SignedJWT
 import org.mitre.jwt.signer.service.ClientKeyCacheService
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.jwt.signer.service.impl.SymmetricKeyJWTValidatorCacheService
+import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.LocalGrantedAuthority
 import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
-import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.convert.AuthorizationRequest
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
@@ -209,14 +209,14 @@ class KtorOIDCTokenService(
             hashSetOf(LocalGrantedAuthority("ROLE_CLIENT")), true,
             scope ?: emptySet(), null, null, null, extensionStrings = null
         )
-        val authentication = OAuth2RequestAuthentication(clientAuth, null)
+        val authentication = AuthenticatedAuthorizationRequest(clientAuth, null)
 
         val tokenBuilder = OAuth2AccessTokenEntity.Builder()
         tokenBuilder.setClient(client)
         tokenBuilder.scope = scope ?: emptySet()
 
         var authHolder = AuthenticationHolderEntity()
-        authHolder.authentication = authentication
+        authHolder.authenticatedAuthorizationRequest = authentication
         authHolder = authenticationHolderRepository.save(authHolder)
         tokenBuilder.setAuthenticationHolder(authHolder)
 

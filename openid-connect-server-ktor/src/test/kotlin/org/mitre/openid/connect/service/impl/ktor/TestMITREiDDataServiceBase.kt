@@ -4,11 +4,11 @@ import com.nimbusds.jwt.JWTParser
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.platform.commons.util.ReflectionUtils
+import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
-import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.convert.AuthorizationRequest
@@ -622,11 +622,11 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
             redirectUri = "http://foo.com",
         )
         val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
-        val auth1 = OAuth2RequestAuthentication(req1, mockAuth1)
+        val auth1 = AuthenticatedAuthorizationRequest(req1, mockAuth1)
 
         val holder1 = AuthenticationHolderEntity()
         holder1.id = 1L
-        holder1.authentication = auth1
+        holder1.authenticatedAuthorizationRequest = auth1
 
         val req2 = AuthorizationRequest(
             clientId = "client2",
@@ -634,11 +634,11 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
             redirectUri = "http://bar.com",
         )
         val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
-        val auth2 = OAuth2RequestAuthentication(req2, mockAuth2)
+        val auth2 = AuthenticatedAuthorizationRequest(req2, mockAuth2)
 
         val holder2 = AuthenticationHolderEntity()
         holder2.id = 2L
-        holder2.authentication = auth2
+        holder2.authenticatedAuthorizationRequest = auth2
 
         val configJson = (buildString {
             append("{")
@@ -684,8 +684,8 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
         val savedAuthHolders = capturedAuthHolders.allValues
 
         assertEquals(2, savedAuthHolders.size)
-        assertEquals(holder1.authentication.authorizationRequest.clientId, savedAuthHolders[0].authentication.authorizationRequest.clientId)
-        assertEquals(holder2.authentication.authorizationRequest.clientId, savedAuthHolders[1].authentication.authorizationRequest.clientId)
+        assertEquals(holder1.authenticatedAuthorizationRequest.authorizationRequest.clientId, savedAuthHolders[0].authenticatedAuthorizationRequest.authorizationRequest.clientId)
+        assertEquals(holder2.authenticatedAuthorizationRequest.authorizationRequest.clientId, savedAuthHolders[1].authenticatedAuthorizationRequest.authorizationRequest.clientId)
     }
 
     protected fun testImportSystemScopes(hasRestricted: Boolean) {
@@ -795,11 +795,11 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
             redirectUri = "http://foo.com",
         )
         val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
-        val auth1 = OAuth2RequestAuthentication(req1, mockAuth1)
+        val auth1 = AuthenticatedAuthorizationRequest(req1, mockAuth1)
 
         val holder1 = AuthenticationHolderEntity()
         holder1.id = 1L
-        holder1.authentication = auth1
+        holder1.authenticatedAuthorizationRequest = auth1
 
         val token1 = OAuth2RefreshTokenEntity(
             id = 1L,
@@ -822,11 +822,11 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
         )
 
         val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
-        val auth2 = OAuth2RequestAuthentication(req2, mockAuth2)
+        val auth2 = AuthenticatedAuthorizationRequest(req2, mockAuth2)
 
         val holder2 = AuthenticationHolderEntity()
         holder2.id = 2L
-        holder2.authentication = auth2
+        holder2.authenticatedAuthorizationRequest = auth2
 
         val token2 = OAuth2RefreshTokenEntity(
             id = 2L,

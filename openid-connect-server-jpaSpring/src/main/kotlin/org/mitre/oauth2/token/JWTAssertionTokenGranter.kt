@@ -6,8 +6,8 @@ import io.github.pdvrieze.openid.spring.toSpring
 import kotlinx.coroutines.runBlocking
 import org.mitre.jwt.assertion.AssertionValidator
 import org.mitre.oauth2.assertion.AssertionOAuth2RequestFactory
+import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.LocalGrantedAuthority
-import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.OAuth2TokenEntityService
 import org.mitre.openid.connect.assertion.JWTBearerAssertionAuthenticationToken
@@ -75,7 +75,7 @@ class JWTAssertionTokenGranter @Autowired constructor(
     }
 
     override fun getAccessToken(client: ClientDetails, tokenRequest: TokenRequest): SpringOAuth2AccessToken {
-        val auth: OAuth2RequestAuthentication = getOAuth2Authentication(client, tokenRequest)!!.fromSpring()
+        val auth: AuthenticatedAuthorizationRequest = getOAuth2Authentication(client, tokenRequest)!!.fromSpring()
         return runBlocking { tokenServices.createAccessToken(auth, xxx).toSpring() }
     }
 

@@ -3,9 +3,9 @@ package org.mitre.web.util
 import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.GrantedAuthority
-import org.mitre.oauth2.model.OAuth2RequestAuthentication
 
 suspend inline fun RoutingContext.requireRole(requiredRole: GrantedAuthority, onMissing: (Authentication?) -> Nothing): Authentication {
     val authentication = resolveAuthenticatedUser() ?: run {
@@ -22,11 +22,13 @@ suspend inline fun RoutingContext.requireRole(requiredRole: GrantedAuthority, on
 suspend inline fun RoutingContext.requireScope(
     scope: String,
     onMissing: (Authentication?) -> Nothing,
-): OAuth2RequestAuthentication {
+): AuthenticatedAuthorizationRequest {
     val authentication = resolveAuthenticatedUser() ?: run {
         call.respond(HttpStatusCode.Unauthorized)
         return onMissing(null)
     }
+    TODO()
+/*
     if (authentication !is OAuth2RequestAuthentication)  {
         call.respond(HttpStatusCode.Unauthorized)
         return onMissing(null)
@@ -36,16 +38,19 @@ suspend inline fun RoutingContext.requireScope(
         return onMissing(authentication)
     }
     return authentication
+*/
 }
 
 /**
  * Variant that also requires scopes to be present
  */
-suspend inline fun RoutingContext.requireRole(requiredRole: GrantedAuthority, vararg scopes: String, onMissing: (Authentication?) -> Nothing): OAuth2RequestAuthentication {
+suspend inline fun RoutingContext.requireRole(requiredRole: GrantedAuthority, vararg scopes: String, onMissing: (Authentication?) -> Nothing): AuthenticatedAuthorizationRequest {
     val authentication = resolveAuthenticatedUser() ?: run {
         call.respond(HttpStatusCode.Unauthorized)
         return onMissing(null)
     }
+    TODO()
+/*
     if (authentication !is OAuth2RequestAuthentication) {
         call.respond(HttpStatusCode.Unauthorized)
         return onMissing(authentication)
@@ -60,6 +65,7 @@ suspend inline fun RoutingContext.requireRole(requiredRole: GrantedAuthority, va
     }
 
     return authentication
+*/
 }
 
 suspend inline fun RoutingContext.requireRoleOf(requiredRole1: GrantedAuthority, requiredRole2: GrantedAuthority, onMissing: (Authentication?) -> Nothing): Authentication {

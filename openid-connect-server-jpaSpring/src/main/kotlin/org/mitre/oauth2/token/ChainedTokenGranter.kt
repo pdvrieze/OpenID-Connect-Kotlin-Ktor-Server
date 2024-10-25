@@ -20,7 +20,7 @@ package org.mitre.oauth2.token
 import io.github.pdvrieze.openid.spring.fromSpring
 import io.github.pdvrieze.openid.spring.toSpring
 import kotlinx.coroutines.runBlocking
-import org.mitre.oauth2.model.OAuth2RequestAuthentication
+import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.resolver.ClientResolver
 import org.mitre.oauth2.service.OAuth2TokenEntityService
 import org.springframework.beans.factory.annotation.Autowired
@@ -77,7 +77,7 @@ class ChainedTokenGranter @Autowired constructor(// keep down-cast versions so w
 
             // create a new access token
             val authentication =
-                OAuth2RequestAuthentication(requestFactory.createOAuth2Request(client, tokenRequest).fromSpring(), incomingToken.authenticationHolder.authentication.userAuthentication)
+                AuthenticatedAuthorizationRequest(requestFactory.createOAuth2Request(client, tokenRequest).fromSpring(), incomingToken.authenticationHolder.authenticatedAuthorizationRequest.userAuthentication)
 
             return authentication.toSpring()
         } else {

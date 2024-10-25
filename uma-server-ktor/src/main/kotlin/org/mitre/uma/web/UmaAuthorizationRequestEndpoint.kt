@@ -14,7 +14,6 @@ import kotlinx.serialization.json.putJsonObject
 import org.mitre.oauth2.exception.OAuthErrorCodes
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.oauth2.view.respondJson
-import org.mitre.oauth2.web.AuthenticationUtilities
 import org.mitre.openid.connect.view.JsonErrorView
 import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.util.asString
@@ -57,7 +56,6 @@ object UmaAuthorizationRequestEndpoint : KtorEndpoint {
     //    @RequestMapping(method = [RequestMethod.POST], consumes = [MimeTypeUtils.APPLICATION_JSON_VALUE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.authorizationRequest() {
         val auth = requireScope(SystemScopeService.UMA_AUTHORIZATION_SCOPE) { return }
-        AuthenticationUtilities.ensureOAuthScope(auth, SystemScopeService.UMA_AUTHORIZATION_SCOPE)
 
         val obj = Json.parseToJsonElement(call.receiveText())
         if (obj !is JsonObject) {

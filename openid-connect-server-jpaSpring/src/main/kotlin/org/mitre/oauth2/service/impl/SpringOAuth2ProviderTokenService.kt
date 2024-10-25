@@ -23,11 +23,11 @@ import com.nimbusds.jwt.PlainJWT
 import org.mitre.data.AbstractPageOperationTemplate
 import org.mitre.data.DefaultPageCriteria
 import org.mitre.oauth2.TokenEnhancer
+import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
-import org.mitre.oauth2.model.OAuth2RequestAuthentication
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.PKCEAlgorithm
 import org.mitre.oauth2.model.PKCEAlgorithm.Companion.parse
@@ -132,7 +132,7 @@ class SpringOAuth2ProviderTokenService : OAuth2TokenEntityService {
 
     @Transactional(value = "defaultTransactionManager")
     @Throws(AuthenticationException::class, InvalidClientException::class)
-    override suspend fun createAccessToken(authentication: OAuth2RequestAuthentication, isAllowRefresh: Boolean): OAuth2AccessToken {
+    override suspend fun createAccessToken(authentication: AuthenticatedAuthorizationRequest, isAllowRefresh: Boolean): OAuth2AccessToken {
 
         // look up our client
         val request = authentication.authorizationRequest
@@ -191,7 +191,7 @@ class SpringOAuth2ProviderTokenService : OAuth2TokenEntityService {
 
         // attach the authorization so that we can look it up later
         var authHolder = AuthenticationHolderEntity()
-        authHolder.authentication = authentication
+        authHolder.authenticatedAuthorizationRequest = authentication
         authHolder = authenticationHolderRepository.save(authHolder)
 
         tokenBuilder.setAuthenticationHolder(authHolder)
@@ -204,7 +204,7 @@ class SpringOAuth2ProviderTokenService : OAuth2TokenEntityService {
         }
 
         //Add approved site reference, if any
-        val originalAuthRequest = authHolder.authentication.authorizationRequest
+        val originalAuthRequest = authHolder.authenticatedAuthorizationRequest.authorizationRequest
 
         if (originalAuthRequest.extensionStrings?.containsKey("approved_site") == true) {
             val apId = (originalAuthRequest.extensionStrings!!["approved_site"] as String).toLong()
@@ -303,7 +303,7 @@ class SpringOAuth2ProviderTokenService : OAuth2TokenEntityService {
 
         // get the stored scopes from the authentication holder's authorization request; these are the scopes associated with the refresh token
         val refreshScopesRequested: Set<String> =
-            HashSet(refreshToken.authenticationHolder.authentication.authorizationRequest.scope)
+            HashSet(refreshToken.authenticationHolder.authenticatedAuthorizationRequest.authorizationRequest.scope)
         val refreshScopes: Set<SystemScope>? = scopeService.fromStrings(refreshScopesRequested)?.let {
             // remove any of the special system scopes
             scopeService.removeReservedScopes(it)
@@ -353,7 +353,7 @@ class SpringOAuth2ProviderTokenService : OAuth2TokenEntityService {
 
         tokenBuilder.setAuthenticationHolder(authHolder)
 
-        tokenEnhancer.enhance(tokenBuilder, authHolder.authentication)
+        tokenEnhancer.enhance(tokenBuilder, authHolder.authenticatedAuthorizationRequest)
 
         val token = tokenBuilder.build(clientDetailsService, authenticationHolderRepository, tokenRepository)
 
@@ -363,13 +363,13 @@ class SpringOAuth2ProviderTokenService : OAuth2TokenEntityService {
     }
 
     @Throws(AuthenticationException::class)
-    override fun loadAuthentication(accessTokenValue: String): OAuth2RequestAuthentication {
+    override fun loadAuthentication(accessTokenValue: String): AuthenticatedAuthorizationRequest {
         val accessToken = clearExpiredAccessToken(tokenRepository.getAccessTokenByValue(accessTokenValue))
 
         if (accessToken == null) {
             throw InvalidTokenException("Invalid access token: $accessTokenValue")
         } else {
-            return accessToken.authenticationHolder.authentication
+            return accessToken.authenticationHolder.authenticatedAuthorizationRequest
         }
     }
 
@@ -388,7 +388,7 @@ class SpringOAuth2ProviderTokenService : OAuth2TokenEntityService {
     /**
      * Get an access token by its authentication object.
      */
-    override fun getAccessToken(authentication: OAuth2RequestAuthentication): OAuth2AccessToken {
+    override fun getAccessToken(authentication: AuthenticatedAuthorizationRequest): OAuth2AccessToken {
         // TODO: implement this against the new service (#825)
         throw UnsupportedOperationException("Unable to look up access token from authentication object.")
     }
