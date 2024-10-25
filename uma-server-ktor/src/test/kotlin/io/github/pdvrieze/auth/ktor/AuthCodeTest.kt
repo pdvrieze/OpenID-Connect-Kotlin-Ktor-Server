@@ -96,7 +96,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
 
     @Test
     fun testImplicitFlowNoState() = testEndpoint {
-        val r = getUser("/authorize?response_type=token&client_id=$clientId", HttpStatusCode.Found, client = nonRedirectingClient)
+        val r = getUser("/authorize?response_type=token&scope=offline_access%20scope2&client_id=$clientId", HttpStatusCode.Found, client = nonRedirectingClient)
         assertEquals(HttpStatusCode.Found, r.status)
         val respUri = parseUrl(assertNotNull(r.headers[HttpHeaders.Location]))!!
 
@@ -124,6 +124,10 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
         assertTrue(accessJWT.verify(JWT_VERIFIER))
 
         assertEquals("user", accessJWT.jwtClaimsSet.subject)
+
+        val expectedScope = setOf("offline_access", "scope2")
+        assertEquals(expectedScope, accessJWT.jwtClaimsSet.getStringClaim("scope").splitToSequence(" ").toSet())
+        assertEquals("at+jwt", accessJWT.header.type.type.lowercase())
 
     }
 
@@ -174,7 +178,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
         assertEquals("user", cs.subject)
         assertEquals("MyClient", cs.getStringClaim("azp"))
         assertEquals("https://example.com/", cs.issuer)
-        assertEquals("at+jwt", cs.getStringClaim("typ")) // required by RFC9068 for plain access tokens
+        assertEquals("at+jwt", accessToken.header.type.type) // required by RFC9068 for plain access tokens
 
         val n = Instant.now()
         assertTrue(n.isAfter(cs.issueTime.toInstant()))
@@ -231,7 +235,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
 
         assertEquals("https://example.com/", cs.issuer)
         assertEquals("user", cs.subject)
-        assertEquals("at+jwt", cs.getStringClaim("typ")) // required by RFC9068 for plain access tokens
+        assertEquals("at+jwt", accessToken.header.type.type) // required by RFC9068 for plain access tokens
 
         val exp = assertNotNull(cs.expirationTime, "Missing expiration time").toInstant()
         val n = Instant.now()

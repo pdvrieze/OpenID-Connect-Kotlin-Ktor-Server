@@ -17,6 +17,7 @@
  */
 package org.mitre.openid.connect.token
 
+import com.nimbusds.jose.JOSEObjectType
 import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
@@ -24,6 +25,7 @@ import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.oauth2.TokenEnhancer
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.OAuth2AccessToken
+import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
@@ -45,7 +47,10 @@ abstract class ConnectTokenEnhancer: TokenEnhancer {
 
         val clientId = originalAuthRequest.clientId
         val client = checkNotNull(clientService.loadClientByClientId(clientId)) { "Missing client ${clientId}" }
-        val hasOpenIdScope = originalAuthRequest.scope.contains(SystemScopeService.OPENID_SCOPE)
+
+        val scope = (accessToken as? OAuth2AccessTokenEntity.Builder)?.scope ?: client.scope ?: emptySet()
+
+        val hasOpenIdScope = scope.contains(SystemScopeService.OPENID_SCOPE)
 
         val builder = JWTClaimsSet.Builder()
             .claim("azp", clientId)
@@ -55,7 +60,9 @@ abstract class ConnectTokenEnhancer: TokenEnhancer {
             .subject(authentication.name)
             .jwtID(UUID.randomUUID().toString()) // set a random NONCE in the middle of it
 
-        if (!hasOpenIdScope) builder.claim("typ", "at+jwt")
+        if (!hasOpenIdScope) {
+            builder.claim("scope", scope.joinToString(" "))
+        }
 
         // TODO set "typ: at+jwt" for OAuth access tokens (but not openid connect)
 
@@ -66,14 +73,16 @@ abstract class ConnectTokenEnhancer: TokenEnhancer {
 
         addCustomAccessTokenClaims(builder, accessToken, authentication)
 
-        val claims = builder.build()
-
         val signingAlg = jwtService.defaultSigningAlgorithm
-        val header = JWSHeader.Builder(signingAlg)
+        val headerBuilder = JWSHeader.Builder(signingAlg)
             .keyID(jwtService.defaultSignerKeyId)
-            .build()
 
-        val signed = SignedJWT(header, claims)
+        if (!hasOpenIdScope) {
+            headerBuilder.type(ACCESSSTOKEN_TYPE)
+        }
+
+        val signed = SignedJWT(headerBuilder.build(), builder.build())
+
 
         jwtService.signJwt(signed)
 
@@ -95,7 +104,7 @@ abstract class ConnectTokenEnhancer: TokenEnhancer {
             if (userInfo != null) {
                 val idToken = connectTokenService.createIdToken(
                     client,
-                    originalAuthRequest, claims.issueTime,
+                    originalAuthRequest, builder.build().issueTime,
                     userInfo.subject,
                     accessToken
                 )
@@ -123,6 +132,9 @@ abstract class ConnectTokenEnhancer: TokenEnhancer {
     }
 
     companion object {
+
+        val ACCESSSTOKEN_TYPE: JOSEObjectType = JOSEObjectType("at+jwt")
+
         /**
          * Logger for this class
          */
