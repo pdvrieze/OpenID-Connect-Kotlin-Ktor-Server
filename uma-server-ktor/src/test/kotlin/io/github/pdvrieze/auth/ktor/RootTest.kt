@@ -1,6 +1,5 @@
 package io.github.pdvrieze.auth.ktor
 
-import io.github.pdvrieze.auth.ktor.plugins.OpenIdConfigurator
 import io.github.pdvrieze.auth.ktor.plugins.configureRouting
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -8,38 +7,17 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.testing.*
-import org.junit.Before
 import org.mitre.openid.connect.web.RootController
-import org.mitre.web.util.OpenIdContext
 import org.mitre.web.util.OpenIdContextPlugin
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class RootTest {
-
-    private lateinit var testContext: OpenIdContext
-
-    @Before
-    fun setUp() {
-        testContext = OpenIdConfigurator("https://example.com/").resolveDefault()
-/*
-        transaction {
-            UserInfos.insert { st ->
-                st[sub] = "user"
-                st[email] = "user@example.com"
-                st[givenName] = "Joe"
-                st[familyName] = "Bloggs"
-            }
-        }
-*/
-    }
+class RootTest : ApiTest(RootController) {
 
     @Test
-    fun testRoot() = testApplication {
-        configureApplication()
-
+    fun testRoot() = testEndpoint {
 
         val recv1 = client.get("/").apply {
             assertTrue(status.isSuccess(), "Unexpected response : $status" )
@@ -61,9 +39,7 @@ class RootTest {
     }
 
     @Test
-    fun testAbout() = testApplication {
-        configureApplication()
-
+    fun testAbout() = testEndpoint {
         val recv = client.get("/").apply {
             assertTrue(status.isSuccess(), "Unexpected response : $status" )
         }.bodyAsText()
@@ -71,44 +47,34 @@ class RootTest {
     }
 
     @Test
-    fun testStats() = testApplication {
-        configureApplication()
-
+    fun testStats() = testEndpoint {
         client.get("/").apply {
             assertTrue(status.isSuccess(), "Unexpected response : $status" )
         }
     }
 
     @Test
-    fun testContacts() = testApplication {
-        configureApplication()
-
+    fun testContacts() = testEndpoint {
         client.get("/").apply {
             assertTrue(status.isSuccess(), "Unexpected response : $status" )
         }
     }
 
     @Test
-    fun testManage() = testApplication {
-        configureApplication()
-
-        client.get("/manage") {
-            basicAuth("admin", "secret")
-        }.apply {
+    fun testManage() = testEndpoint {
+        getAdmin("/manage").apply {
             assertTrue(status.isSuccess(), "Unexpected response : $status" )
         }
     }
 
     @Test
-    fun testManageUnAuth() = testApplication {
-        configureApplication()
-
+    fun testManageUnAuth() = testEndpoint {
         client.get("/manage").apply {
             assertEquals(HttpStatusCode.Unauthorized, status, "Unexpected response : $status" )
         }
     }
 
-    private fun ApplicationTestBuilder.configureApplication() {
+    private fun ApplicationTestBuilder.configureApplication2() {
         application {
             install(OpenIdContextPlugin) { context = testContext }
             install(Authentication) {

@@ -40,20 +40,20 @@ object FormAuthEndpoint: KtorEndpoint {
             when(val authorizationRequest = oldSession?.authorizationRequest) {
                 null -> {
                     call.authentication.principal(principal)
-                    call.respondRedirect(formParams["redirect"]?.takeIf { ! URI.create(it).isAbsolute } ?: "/")
+                    return call.respondRedirect(formParams["redirect"]?.takeIf { ! URI.create(it).isAbsolute } ?: "/")
                 }
 
                 else -> with (PlainAuthorizationRequestEndpoint) {
                     val redirect = oldSession.redirectUri ?: return jsonErrorView(OAuthErrorCodes.SERVER_ERROR)
                     val auth = openIdContext.principalToAuthentication(principal) ?: return jsonErrorView(OAuthErrorCodes.SERVER_ERROR)
-                    respondWithAuthCode(authorizationRequest, auth, redirect, oldSession.state)
+                    return respondWithAuthCode(authorizationRequest, auth, redirect, oldSession.state)
                 }
             }
         }
 
         val locales = call.request.acceptLanguageItems().map { Locale(it.value) }
         val error = openIdContext.messageSource.resolveCode("login.error", locales)?.format(null)
-        call.response.status(HttpStatusCode.Unauthorized)
+
         return htmlLoginView(formParams["username"], error, formParams["redirect"], HttpStatusCode.Unauthorized)
     }
 

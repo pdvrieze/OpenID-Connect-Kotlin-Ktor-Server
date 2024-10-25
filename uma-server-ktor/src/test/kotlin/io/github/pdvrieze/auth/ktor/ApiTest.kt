@@ -3,8 +3,10 @@ package io.github.pdvrieze.auth.ktor
 import com.nimbusds.jose.crypto.RSASSAVerifier
 import com.nimbusds.jose.jwk.JWK
 import com.nimbusds.jose.jwk.RSAKey
+import io.github.pdvrieze.auth.ktor.AuthCodeTest.Companion.REDIRECT_URI
 import io.github.pdvrieze.auth.ktor.plugins.OpenIdConfigurator
 import io.github.pdvrieze.auth.ktor.plugins.configureRouting
+import io.github.pdvrieze.auth.repository.exposed.*
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
@@ -21,6 +23,7 @@ import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.Before
+import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.service.ClientLoadingResult
 import org.mitre.openid.connect.view.OAuthError
@@ -37,23 +40,55 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
 
     protected lateinit var testContext: TestContext
     lateinit var clientSecret: String
+    lateinit var clientId: String
 
     private val endpoints = endpoints.toList()
 
-    protected open val deletableTables: List<Table> = emptyList()
+    protected open val deletableTables: List<Table> = listOf(
+        AccessTokenPermissions, AccessTokens,
+        RefreshTokens,
+        AuthorizationCodes,
+        AuthenticationHolderResponseTypes, AuthenticationHolderScopes, AuthenticationHolderRequestParameters, AuthenticationHolders,
+        SavedUserAuthAuthorities, SavedUserAuths,
+        SystemScopes,
+        ClientRedirectUris, ClientClaimsRedirectUris, ClientScopes, ClientResponseTypes, ClientGrantTypes, ClientDetails,
+    )
 
     @Before
     open fun setUp() {
-        val configurator = OpenIdConfigurator("https://example.com/")
+        val configurator =
+            OpenIdConfigurator("https://example.com/", verifyCredential = { isValidPassword(it.name, it.password) })
         val key = JWK.parse(SIGNING_KEY)
         configurator.signingKeySet = mapOf(key.keyID to key)
 
-        testContext = TestContext(configurator)
+        val newClientBuilder = ClientDetailsEntity.Builder(
+            clientId = "MyClient",
+            redirectUris = mutableSetOf(REDIRECT_URI),
+            scope = mutableSetOf("scope1", "scope2", "offline_access"),
+            accessTokenValiditySeconds = 60*5, // 5 minutes
+            authorizedGrantTypes = mutableSetOf("refresh_token", "token", "authorization_code", "client_credentials"),
+            refreshTokenValiditySeconds = 60*5,
+        )
+
+        testContext = TestContext(configurator, newClientBuilder.clientId!!)
         transaction(configurator.database) {
             for (table in deletableTables) {
                 table.deleteAll()
             }
         }
+
+        val cs = testContext.clientDetailsService.generateClientSecret(newClientBuilder)!!
+        clientSecret = cs
+        newClientBuilder.clientSecret = cs
+
+        clientId = testContext.clientDetailsService.saveNewClient(newClientBuilder).clientId!!
+    }
+
+    private fun isValidPassword(userName: String, password: String): Boolean = when(userName) {
+        "admin" -> password == "secret"
+        "user" -> password == "userSecret"
+        clientId -> password == clientSecret
+        else -> false
     }
 
 
@@ -69,14 +104,13 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
             }
             install(OpenIdContextPlugin) { this.context = this@ApiTest.testContext }
             authentication {
-                this.basic {
-                    this.validate { cred ->
-                        when (cred.name) {
-                            "admin" -> UserIdPrincipal(cred.name).takeIf { cred.password == "secret" }
-                            "user" -> UserIdPrincipal(cred.name).takeIf { cred.password == "userSecret" }
-                            "MyClient" -> UserIdPrincipal(cred.name).takeIf {
+                basic {
+                    validate { cred ->
+                        when {
+                            cred.name == clientId -> UserIdPrincipal(cred.name).takeIf {
                                 openIdContext.clientDetailsService.loadClientAuthenticated(cred.name, cred.password) is ClientLoadingResult.Found
                             }
+                            isValidPassword(cred.name, cred.password) -> UserIdPrincipal(cred.name)
                             else -> null
                         }
                     }
@@ -129,7 +163,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         return getUnAuth(url, statusCode, client) {
-            basicAuth("MyClient", clientSecret)
+            basicAuth(clientId, clientSecret)
             block()
         }
     }
@@ -177,7 +211,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         return putUnAuth(url, statusCode, client) {
-            basicAuth("MyClient", clientSecret)
+            basicAuth(clientId, clientSecret)
             block()
         }
     }
@@ -225,7 +259,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         return postUnAuth(url, statusCode, client) {
-            basicAuth("MyClient", clientSecret)
+            basicAuth(clientId, clientSecret)
             block()
         }
     }
@@ -276,7 +310,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         return submitUnAuth(url, formParameters, statusCode, client) {
-            basicAuth("MyClient", clientSecret)
+            basicAuth(clientId, clientSecret)
             block()
         }
     }
@@ -325,7 +359,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         return deleteUnAuth(url, statusCode, client) {
-            basicAuth("MyClient", clientSecret)
+            basicAuth(clientId, clientSecret)
             block()
         }
     }
@@ -353,12 +387,12 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
         }
     }
 
-    class TestContext(configurator: OpenIdConfigurator): OpenIdConfigurator.DefaultContext(configurator) {
+    class TestContext(configurator: OpenIdConfigurator, private val clientId: String): OpenIdConfigurator.DefaultContext(configurator) {
         override fun resolveAuthServiceAuthorities(name: String): Collection<GrantedAuthority> {
             return when (name) {
                 "admin" -> listOf(GrantedAuthority.ROLE_ADMIN, GrantedAuthority.ROLE_USER, GrantedAuthority.ROLE_CLIENT)
-                "MyClient" -> listOf(GrantedAuthority.ROLE_CLIENT)
                 "user" -> listOf(GrantedAuthority.ROLE_USER)
+                clientId -> listOf(GrantedAuthority.ROLE_CLIENT)
                 else -> emptyList()
             }
         }

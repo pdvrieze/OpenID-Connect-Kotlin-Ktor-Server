@@ -24,7 +24,7 @@ class ScopeTest: ApiTest(ScopeAPI) {
     val nonexistingScopeId: Long get() = maxOf(scope1Id, scope2Id) + 1
 
     override val deletableTables: List<Table>
-        get() = listOf(SystemScopes)
+        get() = super.deletableTables + listOf(SystemScopes)
 
     @Before
     override fun setUp() {

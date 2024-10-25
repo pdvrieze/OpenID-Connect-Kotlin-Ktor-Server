@@ -1,17 +1,6 @@
 package io.github.pdvrieze.auth.ktor
 
 import com.nimbusds.jwt.SignedJWT
-import io.github.pdvrieze.auth.repository.exposed.AccessTokenPermissions
-import io.github.pdvrieze.auth.repository.exposed.AccessTokens
-import io.github.pdvrieze.auth.repository.exposed.AuthenticationHolderRequestParameters
-import io.github.pdvrieze.auth.repository.exposed.AuthenticationHolderResponseTypes
-import io.github.pdvrieze.auth.repository.exposed.AuthenticationHolderScopes
-import io.github.pdvrieze.auth.repository.exposed.AuthenticationHolders
-import io.github.pdvrieze.auth.repository.exposed.AuthorizationCodes
-import io.github.pdvrieze.auth.repository.exposed.RefreshTokens
-import io.github.pdvrieze.auth.repository.exposed.SavedUserAuthAuthorities
-import io.github.pdvrieze.auth.repository.exposed.SavedUserAuths
-import io.github.pdvrieze.auth.repository.exposed.SystemScopes
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -22,12 +11,8 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.testing.*
 import kotlinx.serialization.json.Json
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.deleteAll
-import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.Before
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
-import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.convert.AuthorizationRequest
@@ -46,48 +31,17 @@ import kotlin.test.assertTrue
 
 class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAuthEndpoint) {
 
-    lateinit var clientId: String
-
     lateinit var nonRedirectingClient: HttpClient
 
     var scope1Id: Long = -1L
     var scope2Id: Long = -1L
 
-    override val deletableTables: List<Table>
-        get() = listOf(
-            AccessTokenPermissions, AccessTokens,
-            RefreshTokens,
-            AuthorizationCodes,
-            AuthenticationHolderResponseTypes, AuthenticationHolderScopes, AuthenticationHolderRequestParameters, AuthenticationHolders,
-            SavedUserAuthAuthorities, SavedUserAuths,
-        )
-
     @Before
     override fun setUp() {
         super.setUp()
 
-        transaction { SystemScopes.deleteAll() }
-
-        testContext.clientDetailsService.allClients.toList().forEach { client ->
-            testContext.clientDetailsService.deleteClient(client)
-        }
-
         scope1Id = testContext.scopeRepository.save(SystemScope("scope1")).id!!
         scope2Id = testContext.scopeRepository.save(SystemScope("scope2")).id!!
-
-        val newClientBuilder = ClientDetailsEntity.Builder(
-            clientId = "MyClient",
-            redirectUris = mutableSetOf(REDIRECT_URI),
-            scope = mutableSetOf("scope1", "scope2", "offline_access"),
-            accessTokenValiditySeconds = 60*5, // 5 minutes
-            authorizedGrantTypes = mutableSetOf("refresh_token", "token", "authorization_code", "client_credentials"),
-            refreshTokenValiditySeconds = 60*5,
-        )
-        val cs = testContext.clientDetailsService.generateClientSecret(newClientBuilder)!!
-        clientSecret = cs
-        newClientBuilder.clientSecret = cs
-
-        clientId = testContext.clientDetailsService.saveNewClient(newClientBuilder).clientId!!
     }
 
     @Test

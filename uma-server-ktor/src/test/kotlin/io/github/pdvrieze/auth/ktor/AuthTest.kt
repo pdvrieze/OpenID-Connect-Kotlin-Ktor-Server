@@ -1,6 +1,5 @@
 package io.github.pdvrieze.auth.ktor
 
-import io.github.pdvrieze.auth.ktor.plugins.OpenIdConfigurator
 import io.github.pdvrieze.auth.ktor.plugins.configureRouting
 import io.ktor.client.plugins.cookies.*
 import io.ktor.client.request.*
@@ -13,10 +12,8 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import io.ktor.server.testing.*
-import org.junit.Before
 import org.mitre.web.FormAuthEndpoint
 import org.mitre.web.OpenIdSessionStorage
-import org.mitre.web.util.OpenIdContext
 import org.mitre.web.util.OpenIdContextPlugin
 import kotlin.test.Test
 import kotlin.test.assertContains
@@ -26,35 +23,14 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-class AuthTest {
-
-    private lateinit var testContext: OpenIdContext
-
-    @Before
-    fun setUp() {
-        testContext = OpenIdConfigurator(
-            issuer = "https://example.com/",
-            verifyCredential = ::verifyPwd
-        ).resolveDefault()
-        /*
-                transaction {
-                    UserInfos.insert { st ->
-                        st[sub] = "user"
-                        st[email] = "user@example.com"
-                        st[givenName] = "Joe"
-                        st[familyName] = "Bloggs"
-                    }
-                }
-        */
-    }
+class AuthTest : ApiTest(FormAuthEndpoint) {
 
     private fun verifyPwd(credential: UserPasswordCredential): Boolean {
         return credential.name == "admin" && credential.password == "secret"
     }
 
     @Test
-    fun testFormLoginForm() = testApplication {
-        configureApplication()
+    fun testFormLoginForm() = testEndpoint {
 
         client.get("/login").apply {
             assertTrue(status.isSuccess(), "Unexpected response: $status")
@@ -76,8 +52,7 @@ class AuthTest {
     }
 
     @Test
-    fun testFormLoginFormRedirect() = testApplication {
-        configureApplication()
+    fun testFormLoginFormRedirect() = testEndpoint {
 
         client.get("/login?redirect_uri=/user").apply {
             assertTrue(status.isSuccess(), "Unexpected response: $status")
@@ -95,8 +70,7 @@ class AuthTest {
     }
 
     @Test
-    public fun testMissingUser() = testApplication {
-        configureApplication()
+    public fun testMissingUser() = testEndpoint {
 
         val loginResp = client.submitForm(
             url = "/login",
@@ -109,8 +83,7 @@ class AuthTest {
     }
 
     @Test
-    public fun testInvalidPwd() = testApplication {
-        configureApplication()
+    public fun testInvalidPwd() = testEndpoint {
 
         val loginResp = client.submitForm(
             url = "/login",
@@ -123,8 +96,7 @@ class AuthTest {
     }
 
     @Test
-    public fun testDoLogin() = testApplication {
-        configureApplication()
+    public fun testDoLogin() = testEndpoint {
 
         val nonRedirectingClient = createClient {
             followRedirects = false
@@ -147,7 +119,7 @@ class AuthTest {
 
     @Test
     public fun testLoginUserInfo() = testApplication {
-        configureApplication()
+        customConfigure()
 
         val client = createClient {
             followRedirects = true
@@ -178,7 +150,7 @@ class AuthTest {
 
     @Test
     public fun testDoLoginRedirect() = testApplication {
-        configureApplication()
+        customConfigure()
 
         val nonRedirectingClient = createClient {
             followRedirects = false
@@ -203,7 +175,11 @@ class AuthTest {
 
     }
 
-    private fun ApplicationTestBuilder.configureApplication() {
+    override fun configureApplication(testBuilder: ApplicationTestBuilder) {
+        super.configureApplication(testBuilder)
+    }
+
+    private fun ApplicationTestBuilder.customConfigure() {
         application {
             install(OpenIdContextPlugin) { context = testContext }
             install(Sessions) {
@@ -216,8 +192,8 @@ class AuthTest {
             }
             authentication {
                 session<OpenIdSessionStorage> {
-                    validate {
-                        it.principal
+                    validate { session ->
+                        session.principal
                     }
                 }
             }
