@@ -66,10 +66,32 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
         val storedCode = assertNotNull(testContext.authorizationCodeRepository.getByCode(code))
         val storedHolder = assertNotNull(storedCode.authenticationHolder)
         val storedUser = assertNotNull(storedHolder.userAuth, "Missing user auth in authorization code acquisition")
+        assertEquals(setOf("offline_access", "scope1", "scope2"), storedHolder.scope)
         assertEquals("user", storedUser.name)
         assertTrue(storedUser.isAuthenticated)
 
         assertNull(respUri.parameters["state"])
+        assertNull(respUri.parameters["scope"])
+    }
+
+    @Test
+    fun testGetAuthorizationCodeState() = testEndpoint {
+        val r = getUser("/authorize?response_type=code&client_id=$clientId&state=34u923&scope=scope2", HttpStatusCode.Found, client = nonRedirectingClient)
+        val respUri = parseUrl(assertNotNull(r.headers[HttpHeaders.Location]))!!
+        val actualBase = URLBuilder(respUri.protocolWithAuthority).apply {
+            pathSegments = respUri.segments
+        }.buildString()
+
+        assertEquals(REDIRECT_URI, actualBase)
+        val code = assertNotNull(respUri.parameters["code"])
+        assertEquals("34u923", respUri.parameters["state"])
+
+        val storedCode = assertNotNull(testContext.authorizationCodeRepository.getByCode(code))
+        val storedHolder = assertNotNull(storedCode.authenticationHolder)
+        val storedUser = assertNotNull(storedHolder.userAuth, "Missing user auth in authorization code acquisition")
+        assertEquals(setOf("scope2"), storedHolder.scope)
+        assertEquals("user", storedUser.name)
+        assertTrue(storedUser.isAuthenticated)
     }
 
     @Test
