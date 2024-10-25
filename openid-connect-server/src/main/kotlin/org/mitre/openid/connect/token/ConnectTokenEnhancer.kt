@@ -45,6 +45,7 @@ abstract class ConnectTokenEnhancer: TokenEnhancer {
 
         val clientId = originalAuthRequest.clientId
         val client = checkNotNull(clientService.loadClientByClientId(clientId)) { "Missing client ${clientId}" }
+        val hasOpenIdScope = originalAuthRequest.scope.contains(SystemScopeService.OPENID_SCOPE)
 
         val builder = JWTClaimsSet.Builder()
             .claim("azp", clientId)
@@ -53,6 +54,10 @@ abstract class ConnectTokenEnhancer: TokenEnhancer {
             .expirationTime(accessToken.expiration)
             .subject(authentication.name)
             .jwtID(UUID.randomUUID().toString()) // set a random NONCE in the middle of it
+
+        if (!hasOpenIdScope) builder.claim("typ", "at+jwt")
+
+        // TODO set "typ: at+jwt" for OAuth access tokens (but not openid connect)
 
         val audience = authentication.oAuth2Request.extensionStrings?.get("aud")
         if (!audience.isNullOrEmpty()) {
@@ -64,11 +69,10 @@ abstract class ConnectTokenEnhancer: TokenEnhancer {
         val claims = builder.build()
 
         val signingAlg = jwtService.defaultSigningAlgorithm
-        val header = JWSHeader(
-            signingAlg, null, null, null, null, null, null, null, null, null,
-            jwtService.defaultSignerKeyId, true,
-            null, null
-        )
+        val header = JWSHeader.Builder(signingAlg)
+            .keyID(jwtService.defaultSignerKeyId)
+            .build()
+
         val signed = SignedJWT(header, claims)
 
         jwtService.signJwt(signed)
@@ -84,9 +88,7 @@ abstract class ConnectTokenEnhancer: TokenEnhancer {
          * Also, there must be a user authentication involved in the request for it to be considered
          * OIDC and not OAuth, so we check for that as well.
          */
-        if (originalAuthRequest.scope.contains(SystemScopeService.OPENID_SCOPE)
-            && !authentication.isClientOnly
-        ) {
+        if (hasOpenIdScope && !authentication.isClientOnly) {
             val username = authentication.name
             val userInfo = userInfoService.getByUsernameAndClientId(username, clientId)
 

@@ -14,6 +14,7 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.sessions.*
 import io.ktor.server.testing.*
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.sql.Table
@@ -22,6 +23,8 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.Before
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.service.ClientLoadingResult
+import org.mitre.openid.connect.view.OAuthError
+import org.mitre.web.OpenIdSessionStorage
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.OpenIdContextPlugin
 import org.mitre.web.util.openIdContext
@@ -61,8 +64,11 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
             }
         }
         testBuilder.application {
-            this.install(OpenIdContextPlugin) { this.context = this@ApiTest.testContext }
-            this.authentication {
+            install(Sessions) {
+                cookie<OpenIdSessionStorage>(OpenIdSessionStorage.COOKIE_NAME, SessionStorageMemory())
+            }
+            install(OpenIdContextPlugin) { this.context = this@ApiTest.testContext }
+            authentication {
                 this.basic {
                     this.validate { cred ->
                         when (cred.name) {
@@ -99,7 +105,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         val r = client.get(url, block)
-        assertEquals(statusCode, r.status, "Unexpected response status: ${r.status}")
+        assertEquals(statusCode, r.status, "Unexpected response status: ${r.getStatusErrorDetails()}")
 
         return r
     }
@@ -147,7 +153,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         val r = client.put(url, block)
-        assertEquals(statusCode, r.status, "Unexpected response status: ${r.status}")
+        assertEquals(statusCode, r.status, "Unexpected response status: ${r.getStatusErrorDetails()}")
 
         return r
     }
@@ -195,7 +201,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         val r = client.post(url, block)
-        assertEquals(statusCode, r.status, "Unexpected response status: ${r.status}")
+        assertEquals(statusCode, r.status, "Unexpected response status: ${r.getStatusErrorDetails()}")
 
         return r
     }
@@ -244,7 +250,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         val r = client.submitForm(url, formParameters, false, block)
-        assertEquals(statusCode, r.status, "Unexpected response status: ${r.status}")
+        assertEquals(statusCode, r.status, "Unexpected response status: ${r.getStatusErrorDetails()}")
 
         return r
     }
@@ -295,7 +301,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         val r = client.delete(url, block)
-        assertEquals(statusCode, r.status, "Unexpected response status: ${r.status}")
+        assertEquals(statusCode, r.status, "Unexpected response status: ${r.getStatusErrorDetails()}")
 
         return r
     }
@@ -333,6 +339,17 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
         return deleteUnAuth(url, statusCode, client) {
             basicAuth("admin", "secret")
             block()
+        }
+    }
+
+    suspend fun HttpResponse.getStatusErrorDetails() = buildString {
+        append(status)
+        if (!status.isSuccess() && contentType() == ContentType.Application.Json) {
+            val body = bodyAsText()
+            val error = runCatching { Json.decodeFromString<OAuthError>(body).toString() }.getOrDefault(body)
+            if (error.isNotBlank()) {
+                append(' ').append(error)
+            }
         }
     }
 

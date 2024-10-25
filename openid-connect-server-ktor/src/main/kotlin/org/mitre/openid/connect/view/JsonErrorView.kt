@@ -2,6 +2,8 @@ package org.mitre.openid.connect.view
 
 import io.ktor.http.*
 import io.ktor.server.routing.*
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import org.mitre.oauth2.exception.OAuthErrorCode
@@ -38,10 +40,7 @@ suspend fun RoutingContext.jsonErrorView(
     code: HttpStatusCode = errorCode.httpCode ?: HttpStatusCode.BadRequest,
     errorMessage: String? = null,
 ) = call.respondJson(
-    buildJsonObject {
-        put("error", errorCode.code)
-        if (errorMessage != null) put("error_description", errorMessage)
-    },
+    OAuthError(errorCode, errorMessage),
     code
 )
 
@@ -57,4 +56,18 @@ object JsonErrorView {
     const val ERROR_MESSAGE: String = "errorMessage"
     const val ERROR: String = "error"
     const val VIEWNAME: String = "jsonErrorView"
+}
+
+@Serializable
+data class OAuthError(
+    @SerialName("error") val errorCode: String,
+    @SerialName("error_description") val errorDescription: String? = null,
+) {
+    constructor(errorCode: OAuthErrorCode, errorDescription: String? = null) : this(errorCode.code, errorDescription)
+
+    override fun toString(): String = buildString {
+        append("OAuth error(").append(errorCode)
+        if (errorDescription != null) append(": ").append(errorDescription)
+        append(')')
+    }
 }

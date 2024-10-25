@@ -130,7 +130,19 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
         }.buildString()
 
         assertEquals(REDIRECT_URI, actualBase)
-        val accessToken = assertNotNull(respUri.fragment)
+        val fragParams: Map<String, List<String?>> = respUri.fragment.splitToSequence('&')
+            .map {
+                val i = it.indexOf('=')
+                when  {
+                    i<0 -> it.decodeURLQueryComponent() to null
+                    else -> it.substring(0, i).decodeURLQueryComponent() to it.substring(i + 1).decodeURLQueryComponent()
+                }
+            }.groupBy { it: Pair<String, String?> -> it.first }
+            .mapValues { it: Map.Entry<String, List<Pair<String, String?>>> -> it.value.map { it.second } }
+
+
+        val accessToken = assertNotNull(fragParams["access_token"]?.singleOrNull())
+        assertEquals("Bearer", fragParams["token_type"]?.singleOrNull())
 
         val accessJWT = SignedJWT.parse(accessToken)
         assertTrue(accessJWT.verify(JWT_VERIFIER))
@@ -182,12 +194,15 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
         val accessToken = SignedJWT.parse(refreshedTokenResponse.accessToken)
         assertTrue(accessToken.verify(JWT_VERIFIER))
 
-        assertEquals("user", accessToken.jwtClaimsSet.subject)
-        assertEquals("MyClient", accessToken.jwtClaimsSet.getStringClaim("azp"))
-        assertEquals("https://example.com/", accessToken.jwtClaimsSet.issuer)
+        val cs = accessToken.jwtClaimsSet
+        assertEquals("user", cs.subject)
+        assertEquals("MyClient", cs.getStringClaim("azp"))
+        assertEquals("https://example.com/", cs.issuer)
+        assertEquals("at+jwt", cs.getStringClaim("typ")) // required by RFC9068 for plain access tokens
+
         val n = Instant.now()
-        assertTrue(n.isAfter(accessToken.jwtClaimsSet.issueTime.toInstant()))
-        assertTrue(n.isBefore(accessToken.jwtClaimsSet.expirationTime.toInstant()))
+        assertTrue(n.isAfter(cs.issueTime.toInstant()))
+        assertTrue(n.isBefore(cs.expirationTime.toInstant()))
     }
 
     @Test
@@ -240,6 +255,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
 
         assertEquals("https://example.com/", cs.issuer)
         assertEquals("user", cs.subject)
+        assertEquals("at+jwt", cs.getStringClaim("typ")) // required by RFC9068 for plain access tokens
 
         val exp = assertNotNull(cs.expirationTime, "Missing expiration time").toInstant()
         val n = Instant.now()

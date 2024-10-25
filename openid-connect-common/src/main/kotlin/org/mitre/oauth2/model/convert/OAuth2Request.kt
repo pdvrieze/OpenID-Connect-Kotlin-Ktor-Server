@@ -4,6 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import org.mitre.oauth2.model.GrantedAuthority
+import org.mitre.oauth2.service.SystemScopeService
 
 @Serializable
 class OAuth2Request(
@@ -24,6 +25,8 @@ class OAuth2Request(
 ) {
     val denied: Boolean get() = ! isApproved
     val extensions: Map<String, String> get() = extensionStrings ?: emptyMap()
+
+    val isOpenId get() = SystemScopeService.OPENID_SCOPE in scope
 
     fun copy(
         requestParameters: Map<String, String> = this.requestParameters,

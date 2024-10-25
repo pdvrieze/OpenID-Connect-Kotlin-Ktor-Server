@@ -9,13 +9,16 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import org.mitre.oauth2.model.convert.OAuth2Request
+import org.mitre.openid.connect.filter.NormalizedResponseType
 
 @Serializable
 data class OpenIdSessionStorage(
     val authorizationRequest: OAuth2Request? = null,
-    val principal: @Serializable(UserIdPrincipalSerializer::class) UserIdPrincipal? = null,
+    val principal: @Serializable(with = UserIdPrincipalSerializer::class) UserIdPrincipal? = null,
     val redirectUri: String? = null,
     val state: String? = null,
+    val loginHint: String? = null,
+    val responseType: NormalizedResponseType? = null,
 ) {
 
     companion object {

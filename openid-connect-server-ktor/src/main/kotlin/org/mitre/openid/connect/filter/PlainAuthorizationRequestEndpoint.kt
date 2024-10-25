@@ -6,8 +6,14 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import org.mitre.oauth2.exception.OAuthErrorCodes
 import org.mitre.oauth2.exception.httpCode
 import org.mitre.oauth2.model.Authentication
@@ -31,7 +37,6 @@ import org.mitre.web.util.authcodeService
 import org.mitre.web.util.clientDetailsService
 import org.mitre.web.util.openIdContext
 import org.mitre.web.util.scopeService
-import org.mitre.web.util.update
 import java.net.URISyntaxException
 import kotlin.collections.component1
 import kotlin.collections.component2
@@ -88,15 +93,16 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         val loginHint =
             loginHintExtracter.extractHint(authRequest.extensions[ConnectRequestParameters.LOGIN_HINT])
 
-//            if (!loginHint.isNullOrEmpty()) {
-//                session.setAttribute(ConnectRequestParameters.LOGIN_HINT, loginHint)
-//            } else {
-//                session.removeAttribute(ConnectRequestParameters.LOGIN_HINT)
-//            }
+        val responseType = (params["response_type"] ?: return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST))
+            .normalizeResponseType()
+
+        val pendingSession = call.sessions.get<OpenIdSessionStorage>()?.copy(loginHint = loginHint, responseType = responseType)
+            ?: OpenIdSessionStorage(loginHint = loginHint, responseType = responseType)
 
         val prompt = authRequest.extensions[ConnectRequestParameters.PROMPT]
         if (prompt != null) {
             val cont = promptFlow(prompt, authRequest, client, auth)
+            call.sessions.set(pendingSession)
             if (!cont) return
         } else {
             val max = authRequest.extensions[ConnectRequestParameters.MAX_AGE]?.let {
@@ -120,27 +126,25 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
             }
         }
 
-        val responseType = params["response_type"] ?: return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
-
-
-
         if (!scopeService.scopesMatch(client.scope?: emptySet(), authRequest.scope)) {
             return jsonErrorView(OAuthErrorCodes.INVALID_SCOPE)
         }
         // TODO check scopes
 
         if (auth != null) {
-            when (responseType) {
-                "code" -> return respondWithAuthCode(authRequest, auth, redirectUri, state)
-                "token" -> return respondImplicitFlow(responseType, client, authRequest, auth, redirectUri, state)
+            when {
+                responseType.isAuthCodeFlow -> return respondWithAuthCode(authRequest, auth, redirectUri, state)
+
+                responseType.isImplicitFlow -> return respondImplicitFlow(responseType, client, authRequest, auth, redirectUri, state)
+
+                responseType.isHybridFlow -> return respondHybridFlow(responseType, client, authRequest, auth, redirectUri, state)
+
                 else -> return jsonErrorView(OAuthErrorCodes.UNSUPPORTED_GRANT_TYPE)
             }
         }
 
-        call.sessions.update<OpenIdSessionStorage> {
-            // not logged in
-            OpenIdSessionStorage(authorizationRequest = authRequest, redirectUri = redirectUri, state = state)
-        }
+        call.sessions.set(pendingSession.copy(authorizationRequest = authRequest, redirectUri = redirectUri, state = state))
+
         htmlLoginView(loginHint, null, null)
     }
 
@@ -154,27 +158,79 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         val code = authcodeService.createAuthorizationCode(authRequest, auth)
         return call.respondRedirect {
             takeFrom(effectiveRedirectUri)
-            parameters.append("code", code)
+            when {
+                authRequest.isOpenId && authRequest.requestParameters["response_mode"] == "fragment" ->
+                    fragment = code
+
+                else -> parameters.append("code", code)
+            }
             if (state != null) parameters.append("state", state)
         }
     }
 
 
     suspend fun RoutingContext.respondImplicitFlow(
-        responseType: String,
+        responseType: NormalizedResponseType,
         client: OAuthClientDetails,
         authRequest: OAuth2Request,
         auth: Authentication,
         effectiveRedirectUri: String,
         state: String?,
     ) {
-        val granter = getGranter(responseType) ?: return jsonErrorView(OAuthErrorCodes.UNSUPPORTED_GRANT_TYPE)
         val r = OAuth2RequestAuthentication(authRequest, SavedUserAuthentication.from(auth))
-        val accessToken = granter.getAccessToken(client, r,).jwt.serialize()
+        val accessToken = if(responseType.token) {
+            val granter = getGranter("token") ?: return jsonErrorView(OAuthErrorCodes.UNSUPPORTED_GRANT_TYPE)
+
+            granter.getAccessToken(client, r).jwt.serialize()
+        } else null
+
+        val idToken = if(responseType.idToken) {
+            val granter = getGranter("id_token") ?: return jsonErrorView(OAuthErrorCodes.UNSUPPORTED_GRANT_TYPE)
+            granter.getAccessToken(client, r,).jwt.serialize() // should use separate function using DefaultOIDCTokenService
+        } else null
+
         return call.respondRedirect {
             takeFrom(effectiveRedirectUri)
-            if (state != null) parameters.append("state", state)
-            fragment = accessToken
+
+            val p = when {
+                authRequest.isOpenId && authRequest.requestParameters["response_mode"] == "query" -> parameters
+                else -> ParametersBuilder()
+            }
+
+            if (state != null) p.append("state", state)
+            if (accessToken != null) p.append("access_token", accessToken)
+            p.append("token_type", "Bearer")
+            if (idToken != null) p.append("id_token", idToken)
+            if (r.oAuth2Request.scope.isNotEmpty()) p.append("scope", r.oAuth2Request.scope.joinToString(" "))
+
+            if(p != parameters) {
+                fragment = p.entries().joinToString("&") { (k, v) -> "${k.encodeURLParameter()}=${v.single().encodeURLParameter()}"}
+            }
+        }
+    }
+
+    suspend fun RoutingContext.respondHybridFlow(
+        responseType: NormalizedResponseType,
+        client: OAuthClientDetails,
+        authRequest: OAuth2Request,
+        auth: Authentication,
+        effectiveRedirectUri: String,
+        state: String?,
+    ) {
+        val code = authcodeService.createAuthorizationCode(authRequest, auth)
+        return call.respondRedirect {
+            takeFrom(effectiveRedirectUri)
+            val p = when {
+                authRequest.isOpenId && authRequest.requestParameters["response_mode"] == "fragment" -> ParametersBuilder()
+                else -> parameters
+            }
+
+            p.append("code", code)
+            if (state != null) p.append("state", state)
+
+            if(p != parameters) {
+                fragment = p.entries().joinToString("&") { (k, v) -> "${k.encodeURLParameter()}=${v.single().encodeURLParameter()}"}
+            }
         }
     }
 
@@ -255,12 +311,8 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         return true
     }
 
-    private fun RoutingContext.getGranter(tokenType: String): TokenGranter? = when {
-        tokenType.indexOf(' ') < 0 -> openIdContext.tokenGranters[tokenType]
-        else ->  {
-            val sortedType = tokenType.split(' ').sorted().joinToString(" ")
-            openIdContext.tokenGranters[sortedType]
-        }
+    private fun RoutingContext.getGranter(grantType: String): TokenGranter? {
+        return openIdContext.tokenGranters[grantType]
     }
 
     fun RoutingContext.getAuthenticatedClient(postParams: Parameters): ClientLoadingResult {
@@ -315,7 +367,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
 
         logger.info("Query parameters: ${postParams.entries().joinToString { (k, v) -> "$k=\"${v.single()}\"" }}")
 
-        val grantType = postParams["grant_type"] ?: return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
+        val grantType = (postParams["grant_type"] ?: return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST))
 
         val granter = getGranter(grantType)
             ?: return jsonErrorView(OAuthErrorCodes.UNSUPPORTED_GRANT_TYPE)
@@ -371,6 +423,47 @@ companion object Plugin: BaseApplicationPlugin<ApplicationCallPipeline, Unit, Au
 */
 }
 
+/**
+ * Converts response types to lowercase (it is case-insensitive) and sort it (multi-value is order independent)
+ */
+private fun String.normalizeResponseType(): NormalizedResponseType {
+    var token = false
+    var idToken = false
+    var code = false
+    for (type in splitToSequence(' ')) {
+        when (type) {
+            "token" -> token = true
+            "id_token" -> idToken = true
+            "code" -> code = true
+        }
+    }
+    return NormalizedResponseType(code, token, idToken)
+}
+
+@Serializable(ResponseTypeSerializer::class)
+data class NormalizedResponseType(val code: Boolean, val token: Boolean, val idToken: Boolean) {
+    val isAuthCodeFlow get() = code && !(idToken || token)
+    val isImplicitFlow get() = !code && (idToken || token)
+    val isHybridFlow get() = code && (idToken || token)
+
+    override fun toString(): String = buildList<String> {
+        if (code) add("code")
+        if (idToken) add("id_token")
+        if(token) add("token")
+    }.joinToString(" ")
+}
+
+internal class ResponseTypeSerializer() : KSerializer<NormalizedResponseType> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("ResponseType", PrimitiveKind.STRING)
+
+    override fun serialize(encoder: Encoder, value: NormalizedResponseType) {
+        encoder.encodeString(value.toString())
+    }
+
+    override fun deserialize(decoder: Decoder): NormalizedResponseType {
+        return decoder.decodeString().normalizeResponseType()
+    }
+}
 
 @Serializable
 data class AuthTokenResponse(
