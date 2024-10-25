@@ -25,6 +25,7 @@ import java.time.Instant
 import java.util.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -119,6 +120,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
 
         val accessToken = assertNotNull(fragParams["access_token"]?.singleOrNull())
         assertEquals("Bearer", fragParams["token_type"]?.singleOrNull())
+        assertFalse("refresh_token" in fragParams)
 
         val accessJWT = SignedJWT.parse(accessToken)
         assertTrue(accessJWT.verify(JWT_VERIFIER))
@@ -126,6 +128,43 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
         assertEquals("user", accessJWT.jwtClaimsSet.subject)
 
         val expectedScope = setOf("offline_access", "scope2")
+        assertEquals(expectedScope, accessJWT.jwtClaimsSet.getStringClaim("scope").splitToSequence(" ").toSet())
+        assertEquals("at+jwt", accessJWT.header.type.type.lowercase())
+
+    }
+
+    @Test
+    fun testImplicitFlowState() = testEndpoint {
+        val r = getUser("/authorize?response_type=token&state=dsf890l&scope=scope1&client_id=$clientId", HttpStatusCode.Found, client = nonRedirectingClient)
+        assertEquals(HttpStatusCode.Found, r.status)
+        val respUri = parseUrl(assertNotNull(r.headers[HttpHeaders.Location]))!!
+
+        assertEquals("dsf890l", respUri.parameters["state"])
+        val actualBase = URLBuilder(respUri.protocolWithAuthority).apply {
+            pathSegments = respUri.segments
+        }.buildString()
+
+        assertEquals(REDIRECT_URI, actualBase)
+        val fragParams: Map<String, List<String?>> = respUri.fragment.splitToSequence('&')
+            .map {
+                val i = it.indexOf('=')
+                when  {
+                    i<0 -> it.decodeURLQueryComponent() to null
+                    else -> it.substring(0, i).decodeURLQueryComponent() to it.substring(i + 1).decodeURLQueryComponent()
+                }
+            }.groupBy { it: Pair<String, String?> -> it.first }
+            .mapValues { it: Map.Entry<String, List<Pair<String, String?>>> -> it.value.map { it.second } }
+
+
+        val accessToken = assertNotNull(fragParams["access_token"]?.singleOrNull())
+        assertEquals("Bearer", fragParams["token_type"]?.singleOrNull())
+
+        val accessJWT = SignedJWT.parse(accessToken)
+        assertTrue(accessJWT.verify(JWT_VERIFIER))
+
+        assertEquals("user", accessJWT.jwtClaimsSet.subject)
+
+        val expectedScope = setOf("scope1")
         assertEquals(expectedScope, accessJWT.jwtClaimsSet.getStringClaim("scope").splitToSequence(" ").toSet())
         assertEquals("at+jwt", accessJWT.header.type.type.lowercase())
 
