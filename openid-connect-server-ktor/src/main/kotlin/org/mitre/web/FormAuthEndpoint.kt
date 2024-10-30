@@ -12,6 +12,7 @@ import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.openIdContext
 import java.net.URI
+import java.time.Instant
 import java.util.*
 
 object FormAuthEndpoint: KtorEndpoint {
@@ -35,7 +36,7 @@ object FormAuthEndpoint: KtorEndpoint {
 
             val principal = UserIdPrincipal(userName)
             val oldSession = call.sessions.get<OpenIdSessionStorage>()
-            call.sessions.set(OpenIdSessionStorage(principal = principal))
+            call.sessions.set(OpenIdSessionStorage(principal = principal, authTime = Instant.now()))
 
             when(val authorizationRequest = oldSession?.authorizationRequest) {
                 null -> {

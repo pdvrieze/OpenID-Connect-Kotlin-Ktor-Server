@@ -17,50 +17,12 @@
  */
 package org.mitre.openid.connect.web
 
-import io.ktor.server.routing.*
-import org.mitre.util.getLogger
-import java.util.*
-
 /**
  * This class sets a timestamp on the current HttpSession
  * when someone successfully authenticates.
  *
  * @author jricher
  */
-//@Component("authenticationTimeStamper")
-class AuthenticationTimeStamper {
-    /**
-     * Set the timestamp on the session to mark when the authentication happened,
-     * useful for calculating authentication age. This gets stored in the sesion
-     * and can get pulled out by other components.
-     */
-    suspend fun RoutingContext.onAuthenticationSuccess(
-//        request: HttpServletRequest,
-//        response: HttpServletResponse,
-//        authentication: Authentication
-    ) {
-        val authTimestamp = Date()
-
-//        val session = request.session
-//
-//        session.setAttribute(AUTH_TIMESTAMP, authTimestamp)
-//
-//        if (session.getAttribute(AuthorizationRequestFilter.PROMPT_REQUESTED) != null) {
-//            session.setAttribute(AuthorizationRequestFilter.PROMPTED, Boolean.TRUE)
-//            session.removeAttribute(AuthorizationRequestFilter.PROMPT_REQUESTED)
-//        }
-//
-//        Companion.logger.info("Successful Authentication of ${authentication.name} at $authTimestamp")
-//
-//        super.onAuthenticationSuccess(request, response, authentication)
-    }
-
-    companion object {
-        /**
-         * Logger for this class
-         */
-        private val logger = getLogger<AuthenticationTimeStamper>()
-
-        const val AUTH_TIMESTAMP: String = "AUTH_TIMESTAMP"
-    }
+object AuthenticationTimeStamper {
+    const val AUTH_TIMESTAMP: String = "AUTH_TIMESTAMP"
 }

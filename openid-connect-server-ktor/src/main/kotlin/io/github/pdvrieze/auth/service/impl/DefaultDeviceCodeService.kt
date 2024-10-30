@@ -78,14 +78,11 @@ class DefaultDeviceCodeService : DeviceCodeService {
 	 * @see org.mitre.oauth2.service.DeviceCodeService#approveDeviceCode(org.mitre.oauth2.model.DeviceCode)
 	 */
     override fun approveDeviceCode(dc: DeviceCode, auth: AuthenticatedAuthorizationRequest): DeviceCode? {
-        val found = requireNotNull(repository.getById(dc.id.requireId())) { "No device code found"}
+        val found = requireNotNull(repository.getById(dc.id.requireId())) { "No device code found" }
 
         found.isApproved = true
 
-        val authHolder = AuthenticationHolderEntity()
-        authHolder.authenticatedAuthorizationRequest = auth
-
-        found.authenticationHolder = authHolder
+        found.authenticationHolder = AuthenticationHolderEntity(auth)
 
         return repository.save(found)
     }

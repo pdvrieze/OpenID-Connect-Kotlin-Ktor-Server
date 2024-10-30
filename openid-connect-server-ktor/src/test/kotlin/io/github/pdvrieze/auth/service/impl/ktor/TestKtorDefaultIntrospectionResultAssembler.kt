@@ -369,6 +369,7 @@ class TestKtorDefaultIntrospectionResultAssembler {
             resourceIds = null,
             redirectUri = null,
             responseTypes = null,
+            requestTime = xxxx,
             extensionStrings = null
         )
     }

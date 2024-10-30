@@ -10,6 +10,7 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import org.mitre.oauth2.model.convert.AuthorizationRequest
 import org.mitre.openid.connect.filter.NormalizedResponseType
+import org.mitre.openid.connect.model.convert.ISOInstant
 
 @Serializable
 data class OpenIdSessionStorage(
@@ -19,7 +20,17 @@ data class OpenIdSessionStorage(
     val state: String? = null,
     val loginHint: String? = null,
     val responseType: NormalizedResponseType? = null,
+    val authTime: ISOInstant?,
+    val pendingPrompts: Set<String>? = null,
 ) {
+
+    init {
+        if (principal != null) {
+            requireNotNull(authTime) { "Missing authorization time in session principal" }
+        } else {
+            require(authTime == null) { "Authorization time set, but no principal" }
+        }
+    }
 
     companion object {
         val COOKIE_NAME: String = "_openid_session"

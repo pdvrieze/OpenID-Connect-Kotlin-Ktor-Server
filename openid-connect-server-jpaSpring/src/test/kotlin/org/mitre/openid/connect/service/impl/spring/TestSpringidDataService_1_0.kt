@@ -703,6 +703,7 @@ class TestSpringidDataService_1_0 {
             clientId = "client1",
             isApproved = true,
             redirectUri = "http://foo.com",
+            requestTime = xxxx,
         )
         val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
         val auth1 = AuthenticatedAuthorizationRequest(req1, mockAuth1)
@@ -715,6 +716,7 @@ class TestSpringidDataService_1_0 {
             clientId = "client2",
             isApproved =  true,
             redirectUri = "http://bar.com",
+            requestTime = xxxx,
         )
         val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
         val auth2 = AuthenticatedAuthorizationRequest(req2, mockAuth2)
@@ -874,6 +876,7 @@ class TestSpringidDataService_1_0 {
             clientId = "client1",
             isApproved = true,
             redirectUri = "http://foo.com",
+            requestTime = xxxx,
         )
         val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
         val auth1 = AuthenticatedAuthorizationRequest(req1, mockAuth1)
@@ -901,6 +904,7 @@ class TestSpringidDataService_1_0 {
             clientId = "client2",
             isApproved = true,
             redirectUri = "http://bar.com",
+            requestTime = xxxx,
         )
 
         val mockAuth2 = SavedUserAuthentication(name ="mockAuth2")

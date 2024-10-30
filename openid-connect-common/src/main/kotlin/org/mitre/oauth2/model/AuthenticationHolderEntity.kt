@@ -29,6 +29,8 @@ import kotlinx.serialization.json.JsonElement
 import org.mitre.oauth2.model.convert.AuthenticationSerializer
 import org.mitre.oauth2.model.convert.AuthorizationRequest
 import org.mitre.oauth2.model.convert.SimpleGrantedAuthorityStringConverter
+import org.mitre.openid.connect.model.convert.ISOInstant
+import java.time.Instant
 import kotlinx.serialization.Serializable as KXS_Serializable
 import java.io.Serializable as IoSerializable
 
@@ -56,7 +58,34 @@ class AuthenticationHolderEntity(
     var clientId: String? = null,
     var scope: Set<String>? = null,
     var requestParameters: Map<String, String>? = null,
+    val requestTime: ISOInstant,
 ) {
+
+    constructor(
+        authentication: AuthenticatedAuthorizationRequest
+    ): this(
+        authentication.userAuthentication,
+        authentication.authorizationRequest
+    )
+
+    constructor(
+        authentication: Authentication?,
+        o2Request: AuthorizationRequest
+    ): this(
+        id = null,
+        userAuth = authentication?.let(SavedUserAuthentication::from),
+        authorities = o2Request.authorities.toHashSet(),
+        resourceIds = o2Request.resourceIds?.toHashSet(),
+        isApproved = o2Request.isApproved,
+        redirectUri = o2Request.redirectUri,
+        responseTypes = o2Request.responseTypes?.toHashSet(),
+        extensions = o2Request.extensionStrings?.toMap(),
+        clientId = o2Request.clientId,
+        scope = o2Request.scope.toHashSet(),
+        requestParameters = o2Request.requestParameters.toMap(),
+        requestTime = o2Request.requestTime,
+    )
+
     var authenticatedAuthorizationRequest: AuthenticatedAuthorizationRequest
         get() =// TODO: memoize this
             AuthenticatedAuthorizationRequest(createAuthorizationRequest(), userAuth)
@@ -91,6 +120,7 @@ class AuthenticationHolderEntity(
             resourceIds = resourceIds,
             redirectUri = redirectUri,
             responseTypes = responseTypes,
+            requestTime = requestTime,
             extensionStrings = extensions?.let { m -> m.mapValues { it.toString() } } ?: emptyMap<String, String>(),
         )
     }
@@ -107,6 +137,7 @@ class AuthenticationHolderEntity(
         clientId: String? = this.clientId,
         scope: Set<String>? = this.scope,
         requestParameters: Map<String, String>? = this.requestParameters,
+        requestTime: Instant = this.requestTime,
     ): AuthenticationHolderEntity {
         return AuthenticationHolderEntity(
             id = id,
@@ -120,6 +151,7 @@ class AuthenticationHolderEntity(
             clientId = clientId,
             scope = scope?.toHashSet(),
             requestParameters = requestParameters?.toMap(HashMap()),
+            requestTime = requestTime,
         )
     }
 
@@ -151,6 +183,7 @@ class AuthenticationHolderEntity(
         override fun toAuthenticationHolder(): AuthenticationHolderEntity {
             return AuthenticationHolderEntity(
                 id = currentId,
+                requestTime = Instant.EPOCH // at least have a "valid" value (min doesn't work)
             ).also {
                 if (_authentication != null) it.authenticatedAuthorizationRequest = _authentication
             }
@@ -211,8 +244,8 @@ class AuthenticationHolderEntity(
                 extensions = extensions,
                 clientId = clientId,
                 scope = scope,
-                requestParameters = requestParameters
-
+                requestParameters = requestParameters,
+                requestTime = authorizationRequest?.requestTime ?: Instant.MIN,
             )
         }
     }

@@ -5,6 +5,7 @@ import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.convert.AuthorizationRequest
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.util.getLogger
+import java.time.Instant
 
 open class KtorOAuth2RequestFactory constructor(
     protected val clientDetailsService: ClientDetailsEntityService,
@@ -34,6 +35,7 @@ open class KtorOAuth2RequestFactory constructor(
             resourceIds = client.resourceIds,
             redirectUri = inputParams["redirect_uri"],
             responseTypes = responseTypes,
+            requestTime = Instant.now(),
         )
     }
 

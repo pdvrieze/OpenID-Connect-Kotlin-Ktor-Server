@@ -44,19 +44,16 @@ class DefaultUmaTokenService(
 ) : UmaTokenService {
 
     override fun createRequestingPartyToken(
-        o2auth: AuthenticatedAuthorizationRequest,
+        authorizationRequest: AuthenticatedAuthorizationRequest,
         ticket: PermissionTicket,
         policy: Policy
     ): OAuth2AccessTokenEntity {
         val tokenBuilder = OAuth2AccessTokenEntity.Builder()
-        val authHolder = AuthenticationHolderEntity().run {
-            authenticatedAuthorizationRequest = o2auth
-            authenticationHolderRepository.save(this)
-        }
+        val authHolder = authenticationHolderRepository.save(AuthenticationHolderEntity(authorizationRequest))
 
         tokenBuilder.setAuthenticationHolder(authHolder)
 
-        val client = clientService.loadClientByClientId(o2auth.authorizationRequest.clientId)!!
+        val client = clientService.loadClientByClientId(authorizationRequest.authorizationRequest.clientId)!!
         tokenBuilder.setClient(client)
 
         val ticketScopes = ticket.permission.scopes

@@ -96,6 +96,26 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
     }
 
     @Test
+    fun testGetAuthorizationCodeStateNoAuth() = testEndpoint {
+        val r = getUnAuth("/authorize?response_type=code&client_id=$clientId&state=34u923&scope=scope2", HttpStatusCode.Unauthorized, client = nonRedirectingClient)
+        val respUri = parseUrl(assertNotNull(r.headers[HttpHeaders.Location]))!!
+        val actualBase = URLBuilder(respUri.protocolWithAuthority).apply {
+            pathSegments = respUri.segments
+        }.buildString()
+
+        assertEquals(REDIRECT_URI, actualBase)
+        val code = assertNotNull(respUri.parameters["code"])
+        assertEquals("34u923", respUri.parameters["state"])
+
+        val storedCode = assertNotNull(testContext.authorizationCodeRepository.getByCode(code))
+        val storedHolder = assertNotNull(storedCode.authenticationHolder)
+        val storedUser = assertNotNull(storedHolder.userAuth, "Missing user auth in authorization code acquisition")
+        assertEquals(setOf("scope2"), storedHolder.scope)
+        assertEquals("user", storedUser.name)
+        assertTrue(storedUser.isAuthenticated)
+    }
+
+    @Test
     fun testImplicitFlowNoState() = testEndpoint {
         val r = getUser("/authorize?response_type=token&scope=offline_access%20scope2&client_id=$clientId", HttpStatusCode.Found, client = nonRedirectingClient)
         assertEquals(HttpStatusCode.Found, r.status)
@@ -196,7 +216,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
     fun testRefreshAccessToken() = testEndpoint {
         val tokenParams = mapOf("client_id" to clientId, "scope" to "offline_access")
         val req = AuthenticatedAuthorizationRequest(
-            AuthorizationRequest(tokenParams, clientId, scope = setOf("offline_access")),
+            AuthorizationRequest(tokenParams, clientId, scope = setOf("offline_access"), requestTime = Instant.now()),
             SavedUserAuthentication("user")
         )
         val origToken = testContext.tokenService.createAccessToken(req, true)

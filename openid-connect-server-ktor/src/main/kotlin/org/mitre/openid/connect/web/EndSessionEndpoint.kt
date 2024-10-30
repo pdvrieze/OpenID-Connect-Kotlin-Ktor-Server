@@ -71,10 +71,10 @@ object EndSessionEndpoint: KtorEndpoint {
         var client: OAuthClientDetails? = null // pulled from ID token's audience field
 
         if (!postLogoutRedirectUri.isNullOrEmpty()) {
-            call.sessions.update<OpenIdSessionStorage> { it?.copy(redirectUri = postLogoutRedirectUri) ?: OpenIdSessionStorage(redirectUri = postLogoutRedirectUri) }
+            call.sessions.update<OpenIdSessionStorage> { it?.copy(redirectUri = postLogoutRedirectUri) ?: OpenIdSessionStorage(redirectUri = postLogoutRedirectUri, authTime = null) }
         }
         if (!state.isNullOrEmpty()) {
-            call.sessions.update<OpenIdSessionStorage> { it?.copy(state = state) ?: OpenIdSessionStorage(state = state) }
+            call.sessions.update<OpenIdSessionStorage> { it?.copy(state = state) ?: OpenIdSessionStorage(state = state, authTime = null) }
         }
 
 

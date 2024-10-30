@@ -47,6 +47,7 @@ import org.mitre.openid.connect.service.OIDCTokenService
 import org.mitre.openid.connect.util.IdTokenHashUtils
 import org.mitre.openid.connect.web.AuthenticationTimeStamper
 import org.mitre.util.getLogger
+import java.time.Instant
 import java.util.*
 
 /**
@@ -207,7 +208,7 @@ class KtorOIDCTokenService(
         val clientAuth = AuthorizationRequest(
             authorizationParameters, client.clientId!!,
             hashSetOf(LocalGrantedAuthority("ROLE_CLIENT")), true,
-            scope ?: emptySet(), null, null, null, extensionStrings = null
+            scope ?: emptySet(), null, null, null, requestTime = Instant.now(), extensionStrings = null
         )
         val authentication = AuthenticatedAuthorizationRequest(clientAuth, null)
 
@@ -215,9 +216,7 @@ class KtorOIDCTokenService(
         tokenBuilder.setClient(client)
         tokenBuilder.scope = scope ?: emptySet()
 
-        var authHolder = AuthenticationHolderEntity()
-        authHolder.authenticatedAuthorizationRequest = authentication
-        authHolder = authenticationHolderRepository.save(authHolder)
+        val authHolder = authenticationHolderRepository.save(AuthenticationHolderEntity(authentication))
         tokenBuilder.setAuthenticationHolder(authHolder)
 
         val claims = JWTClaimsSet.Builder()

@@ -5,6 +5,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.service.SystemScopeService
+import org.mitre.openid.connect.model.convert.ISOInstant
+import java.time.Instant
 
 /**
  * Object representing a request for authorization (in the authorization endpoint).
@@ -24,6 +26,7 @@ class AuthorizationRequest(
     val responseTypes: Set<String>? = null,
     val state: String? = null,
     val approvalParameters: JsonObject? = null,
+    val requestTime: ISOInstant,
     @SerialName("extensionStrings")
     val extensionStrings: Map<String, String>? = null,
 ) {
@@ -43,6 +46,7 @@ class AuthorizationRequest(
         responseTypes: Set<String>? = this.responseTypes?.toSet(),
         state: String? = this.state,
         approvalParameters: JsonObject? = this.approvalParameters,
+        requestTime: Instant = this.requestTime,
         extensionStrings: Map<String, String>? = this.extensionStrings?.toMap(),
     ) : AuthorizationRequest {
         return AuthorizationRequest(
@@ -55,6 +59,7 @@ class AuthorizationRequest(
             redirectUri = redirectUri,
             responseTypes = responseTypes,
             approvalParameters = approvalParameters,
+            requestTime = requestTime,
             extensionStrings = extensionStrings,
         )
     }

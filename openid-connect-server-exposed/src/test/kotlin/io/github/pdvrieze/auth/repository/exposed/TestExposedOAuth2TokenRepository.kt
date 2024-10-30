@@ -86,7 +86,7 @@ class TestExposedOAuth2TokenRepository {
             val userAuth = SavedUserAuthentication(name = name, id = userAuthId.value)
 
             val authHolderId = AuthenticationHolders.insertAndGetId { it[this.userAuthId] = userAuthId.value }
-            val authHolder = AuthenticationHolderEntity(id = authHolderId.value, userAuth = userAuth)
+            val authHolder = AuthenticationHolderEntity(id = authHolderId.value, userAuth = userAuth, requestTime = Instant.now())
 
             val accessTokenId = AccessTokens.insertAndGetId {
                 it[this.authHolderId] = authHolderId.value
@@ -108,7 +108,7 @@ class TestExposedOAuth2TokenRepository {
             val userAuth = SavedUserAuthentication(name = name, id = userAuthId.value)
 
             val authHolderId = AuthenticationHolders.insertAndGetId { it[this.userAuthId] = userAuthId.value }
-            val authHolder = AuthenticationHolderEntity(userAuth = userAuth)
+            val authHolder = AuthenticationHolderEntity(userAuth = userAuth, requestTime = Instant.now())
 
             val refreshTokenId = RefreshTokens.insertAndGetId {
                 it[this.authHolderId] = authHolderId.value

@@ -106,6 +106,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
             clientId = clientId,
             isApproved = true,
             scope = scope,
+            requestTime = xxxx,
         )
         whenever(authentication.authorizationRequest) doReturn (clientAuth)
 
@@ -133,7 +134,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
 
         accessToken = mock<OAuth2AccessTokenEntity>()
 
-        tokenRequest = AuthorizationRequest(clientId = clientId)
+        tokenRequest = AuthorizationRequest(clientId = clientId, requestTime = xxxx)
 
         storedAuthentication = authentication
         storedAuthRequest = clientAuth
@@ -244,6 +245,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
             clientId = clientId,
             isApproved = true,
             scope = hashSetOf(SystemScopeService.OFFLINE_ACCESS),
+            requestTime = xxxx,
         )
         whenever(authentication.authorizationRequest) doReturn (clientAuth)
         whenever(client.isAllowRefresh) doReturn (true)
@@ -356,7 +358,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
 
     @Test
     fun refreshAccessToken_clientMismatch(): Unit = runBlocking {
-        tokenRequest = AuthorizationRequest(clientId = badClientId)
+        tokenRequest = AuthorizationRequest(clientId = badClientId, requestTime = xxxx)
 
         assertThrows<InvalidClientException> {
             service.refreshAccessToken(refreshTokenValue, tokenRequest)

@@ -904,7 +904,7 @@ interface MITREidDataService {
         const val CLIENTS: String = "clients"
         const val SYSTEMSCOPES: String = "systemScopes"
 
-        private val DUMMY_AUTH_HOLDER = AuthenticationHolderEntity()
+        private val DUMMY_AUTH_HOLDER = AuthenticationHolderEntity(requestTime = Instant.now())
     }
 }
 

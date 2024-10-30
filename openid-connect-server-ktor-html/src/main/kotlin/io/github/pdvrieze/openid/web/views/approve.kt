@@ -322,20 +322,20 @@ fun HTML.approve(
                             }
                             val authorize_label=messageText("approve.label.authorize")
                             val deny_label = message("approve.label.deny")
-                            input(type=InputType.hidden, name="user_oauth_approval") {
+                            hiddenInput(name="user_oauth_approval") {
                                 id="user_oauth_approval"
                                 value="true"
                             }
-                            input(type=InputType.hidden, name="${_csrf.parameterName}") { value="${_csrf.token}" }
-                            input(name="authorize", type=InputType.submit, classes="btn btn-success btn-large") {
-                                onClick="\$('#user_oauth_approval').attr('value',true)"
-                        
-                                value="$authorize_label"
+                            hiddenInput(name= _csrf.parameterName) { value= _csrf.token }
+                            submitInput(name="authorize", classes="btn btn-success btn-large") {
+                                onClick = "\$('#user_oauth_approval').attr('value',true)"
+
+                                value = authorize_label
                             }
                             +Entities.nbsp
-                            input(name="deny", type=InputType.submit, classes="btn btn-secondary btn-large") {
-                                value="${deny_label}"
-                                onClick="$('#user_oauth_approval').attr('value',false)"
+                            submitInput(name="deny", classes="btn btn-secondary btn-large") {
+                                value = "$deny_label"
+                                onClick = "$('#user_oauth_approval').attr('value',false)"
                             }   
                         } // row
 

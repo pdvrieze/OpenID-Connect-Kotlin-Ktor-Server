@@ -7,6 +7,7 @@ import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.convert.AuthorizationRequest
 import org.mitre.oauth2.token.TokenRequest
 import java.text.ParseException
+import java.time.Instant
 
 /**
  * Takes an assertion from a trusted source, looks for the fields:
@@ -38,7 +39,8 @@ class DirectCopyRequestFactory : AssertionOAuth2RequestFactory {
                 resourceIds = resources,
                 redirectUri = null,
                 responseTypes = null,
-                state = null
+                state = null,
+                requestTime = Instant.now(),
             )
         } catch (e: ParseException) {
             return null

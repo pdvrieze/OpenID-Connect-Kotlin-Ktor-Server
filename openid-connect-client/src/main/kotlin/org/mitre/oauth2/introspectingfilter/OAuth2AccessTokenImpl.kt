@@ -44,8 +44,9 @@ class OAuth2AccessTokenImpl(introspectionResponse: JsonObject, tokenString: Stri
         get() = expirationInstant.isBefore(Instant.now())
 
     override val client: Nothing? get() = null
+    // TODO this should probably not be present at all
     override val authenticationHolder: AuthenticationHolderEntity =
-        AuthenticationHolderEntity()
+        AuthenticationHolderEntity(requestTime = Instant.MIN)
 
     override fun builder(): OAuth2AccessToken.Builder {
         return Builder(this)

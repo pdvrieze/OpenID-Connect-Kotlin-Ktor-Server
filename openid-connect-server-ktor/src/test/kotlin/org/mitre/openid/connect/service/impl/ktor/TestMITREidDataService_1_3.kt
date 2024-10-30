@@ -762,6 +762,7 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
             clientId = "client1",
             isApproved = true,
             redirectUri = "http://foo.com",
+            requestTime = xxxx,
         )
         val mockAuth1: SavedUserAuthentication =  SavedUserAuthentication(name = "mockAuth1")
 //            UsernamePasswordAuthenticationToken("user1", "pass1", AuthorityUtils.commaSeparatedStringToAuthorityList("ROLE_USER"))
@@ -775,6 +776,7 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
             clientId = "client2",
             isApproved = true,
             redirectUri = "http://bar.com",
+            requestTime = xxxx,
         )
         val auth2 = AuthenticatedAuthorizationRequest(req2, null)
 

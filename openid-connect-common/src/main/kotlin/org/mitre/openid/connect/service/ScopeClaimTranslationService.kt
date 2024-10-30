@@ -21,7 +21,7 @@ package org.mitre.openid.connect.service
  * @author jricher
  */
 interface ScopeClaimTranslationService {
-    fun getClaimsForScope(scope: String): Set<String>?
+    fun getClaimsForScope(scope: String): Set<String>
 
-    fun getClaimsForScopeSet(scopes: Set<String>): Set<String>?
+    fun getClaimsForScopeSet(scopes: Set<String>): Set<String>
 }

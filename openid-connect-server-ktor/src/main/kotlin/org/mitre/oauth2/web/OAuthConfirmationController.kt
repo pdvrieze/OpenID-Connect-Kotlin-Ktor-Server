@@ -28,18 +28,19 @@ import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.convert.AuthorizationRequest
 import org.mitre.openid.connect.request.ConnectRequestParameters
+import org.mitre.openid.connect.request.ConnectRequestParameters.PROMPT_LOGIN
+import org.mitre.openid.connect.request.ConnectRequestParameters.PROMPT_NONE
+import org.mitre.openid.connect.request.ConnectRequestParameters.PROMPT_SELECT_ACCOUNT
 import org.mitre.util.getLogger
 import org.mitre.web.OpenIdSessionStorage
 import org.mitre.web.htmlApproveView
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.clientDetailsService
-import org.mitre.web.util.redirectResolver
 import org.mitre.web.util.requireRole
 import org.mitre.web.util.scopeClaimTranslationService
 import org.mitre.web.util.scopeService
 import org.mitre.web.util.statsService
 import org.mitre.web.util.userInfoService
-import java.net.URISyntaxException
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
@@ -58,12 +59,16 @@ object OAuthConfirmationController: KtorEndpoint {
             get("/oauth/confirm_access") {
                 val authentication = requireRole(GrantedAuthority.ROLE_USER) { return@get }
 
-                val authRequest: AuthorizationRequest = call.sessions.get<OpenIdSessionStorage>()?.authorizationRequest
+                val pendingSession = call.sessions.get<OpenIdSessionStorage>()?.let{ it.copy(pendingPrompts = it.pendingPrompts?.filterNotTo(HashSet()) { it == ConnectRequestParameters.PROMPT_CONSENT })}
+                val authRequest: AuthorizationRequest = pendingSession?.authorizationRequest
                     ?: return@get call.respond(HttpStatusCode.BadRequest)
 
                 // Check the "prompt" parameter to see if we need to do special processing
-                val prompt = authRequest.extensions.get(ConnectRequestParameters.PROMPT)
-                val prompts = prompt?.split(ConnectRequestParameters.PROMPT_SEPARATOR)?: emptyList()
+                val prompts = pendingSession.pendingPrompts ?: emptySet()
+
+                check(arrayOf(PROMPT_NONE, PROMPT_LOGIN, PROMPT_SELECT_ACCOUNT).none { it in prompts }) {
+                    "Confirmation is always after login"
+                }
 
                 val client: OAuthClientDetails?
                 try {
@@ -81,29 +86,7 @@ object OAuthConfirmationController: KtorEndpoint {
                     return@get call.respond(HttpStatusCode.NotFound)
                 }
 
-                if (prompts.contains("none")) {
-                    // if we've got a redirect URI then we'll send it
-                    // TODO no longer use spring, remove cast
-                    val url = authRequest.redirectUri?.let{ redirectResolver.resolveRedirect(it, client) }
-                        ?:return@get call.respond(HttpStatusCode.Forbidden)
-
-                    try {
-                        val uriBuilder = URLBuilder(url)
-
-                        uriBuilder.parameters["error"] = "interaction_required"
-                        val state = authRequest.state
-                        if (! state.isNullOrEmpty()) {
-                            uriBuilder.parameters["state"] = state // copy the state parameter if one was given
-                        }
-                        return@get call.respondRedirect(uriBuilder.build())
-                    } catch (e: URISyntaxException) {
-                        logger.error("Can't build redirect URI for prompt=none, sending error instead", e)
-                        return@get call.respond(HttpStatusCode.Forbidden)
-                    }
-                }
-
                 val redirect_uri = authRequest.redirectUri
-
 
                 // pre-process the scopes
                 val scopes: Set<SystemScope>? = scopeService.fromStrings(authRequest.scope)
@@ -132,7 +115,7 @@ object OAuthConfirmationController: KtorEndpoint {
                         val scopeValue = systemScope.value!!
 
                         val claims = scopeClaimTranslationService.getClaimsForScope(scopeValue)
-                        for (claim in claims!!) {
+                        for (claim in claims) {
                             (userJson[claim] as? JsonPrimitive)?.let {
                                 // TODO: this skips the address claim
                                 claimValues[claim] = it.toString()
@@ -144,13 +127,15 @@ object OAuthConfirmationController: KtorEndpoint {
                 }
 
                 // client stats
-                val count = statsService.getCountForClientId(client.clientId!!)!!.approvedSiteCount ?: 0
+                val count = statsService.getCountForClientId(client.clientId!!)?.approvedSiteCount ?: 0
 
                 // if the client is over a week old and has more than one registration, don't give such a big warning
                 // instead, tag as "Generally Recognized As Safe" (gras)
                 val lastWeek = Instant.now().minus(1, ChronoUnit.WEEKS)
                 val createdAt = client.createdAt
                 val gras = count > 1 && createdAt != null && createdAt.toInstant().isBefore(lastWeek)
+
+                call.sessions.set(pendingSession)
 
                 htmlApproveView(
                     authRequest = authRequest,

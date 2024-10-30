@@ -188,6 +188,7 @@ fun SpringOAuth2Request.fromSpring(): AuthorizationRequest {
         redirectUri = redirectUri,
         responseTypes = responseTypes,
         approvalParameters = null,
+        requestTime = xxxx,
         extensionStrings = extensions?.mapValues { it.toString() }
     )
 }

@@ -269,7 +269,7 @@ class OAuth2AccessTokenEntity(
                 expirationInstant = (expiration?.toInstant() ?: Instant.MIN),
                 jwt = jwt ?: PlainJWT(JWTClaimsSet.Builder().build()),
                 client = client,
-                authenticationHolder = authenticationHolder ?: AuthenticationHolderEntity(),
+                authenticationHolder = authenticationHolder ?: AuthenticationHolderEntity(requestTime = Instant.now()),
                 refreshToken = refreshToken,
                 scope = scope ?: emptySet(),
                 tokenType = tokenType,

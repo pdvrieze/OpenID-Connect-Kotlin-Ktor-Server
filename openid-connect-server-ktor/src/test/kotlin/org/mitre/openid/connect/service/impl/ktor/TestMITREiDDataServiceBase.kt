@@ -620,6 +620,7 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
             clientId = "client1",
             isApproved = true,
             redirectUri = "http://foo.com",
+            requestTime = xxxx,
         )
         val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
         val auth1 = AuthenticatedAuthorizationRequest(req1, mockAuth1)
@@ -632,6 +633,7 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
             clientId = "client2",
             isApproved =  true,
             redirectUri = "http://bar.com",
+            requestTime = xxxx,
         )
         val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
         val auth2 = AuthenticatedAuthorizationRequest(req2, mockAuth2)
@@ -793,6 +795,7 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
             clientId = "client1",
             isApproved = true,
             redirectUri = "http://foo.com",
+            requestTime = xxxx,
         )
         val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
         val auth1 = AuthenticatedAuthorizationRequest(req1, mockAuth1)
@@ -819,6 +822,7 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
             clientId = "client2",
             isApproved = true,
             redirectUri = "http://bar.com",
+            requestTime = xxxx,
         )
 
         val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")

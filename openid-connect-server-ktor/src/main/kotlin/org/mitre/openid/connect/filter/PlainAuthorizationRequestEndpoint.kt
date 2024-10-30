@@ -25,6 +25,9 @@ import org.mitre.oauth2.service.ClientLoadingResult
 import org.mitre.oauth2.token.TokenGranter
 import org.mitre.oauth2.view.respondJson
 import org.mitre.openid.connect.request.ConnectRequestParameters
+import org.mitre.openid.connect.request.ConnectRequestParameters.PROMPT_CONSENT
+import org.mitre.openid.connect.request.ConnectRequestParameters.PROMPT_LOGIN
+import org.mitre.openid.connect.request.ConnectRequestParameters.PROMPT_SELECT_ACCOUNT
 import org.mitre.openid.connect.service.LoginHintExtracter
 import org.mitre.openid.connect.service.impl.RemoveLoginHintsWithHTTP
 import org.mitre.openid.connect.view.jsonErrorView
@@ -38,6 +41,7 @@ import org.mitre.web.util.clientDetailsService
 import org.mitre.web.util.openIdContext
 import org.mitre.web.util.scopeService
 import java.net.URISyntaxException
+import java.time.Instant
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.io.encoding.ExperimentalEncodingApi
@@ -49,11 +53,9 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
     private val loginHintExtracter: LoginHintExtracter = RemoveLoginHintsWithHTTP()
     override fun Route.addRoutes() {
         authenticate(optional = true) {
-            get("authorize") {
-                startAuthorizationFlow()
-            }
+            get("authorize") { startAuthorizationFlow(call.request.queryParameters) }
             post("authorize") {
-                startAuthorizationFlow()
+                startAuthorizationFlow(call.request.queryParameters + call.receiveParameters())
             }
         }
         post("/token") {
@@ -65,10 +67,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
 
 //    override fun doFilter(req: ServletRequest, res: ServletResponse, chain: FilterChain) {
 
-
-    private suspend fun RoutingContext.startAuthorizationFlow() {
-        val params =
-            call.request.queryParameters.let { if (call.request.httpMethod == HttpMethod.Post) it + call.receiveParameters() else it }
+    private suspend fun RoutingContext.startAuthorizationFlow(params: Parameters) {
         for ((_, values) in params.entries()) {
             // Any repeated parameter is invalid per RFC 6749/ 4.1
             if (values.size != 1) return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
@@ -81,7 +80,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         val client = clientDetailsService.loadClientByClientId(authRequest.clientId)
             ?: return jsonErrorView(OAuthErrorCodes.INVALID_CLIENT)
 
-        val auth = openIdContext.resolveAuthenticatedUser(call)
+        var auth = openIdContext.resolveAuthenticatedUser(call)
         val state = params["state"]
 
         // TODO check redirect uri validity (if in the auth request)
@@ -96,33 +95,28 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         val responseType = (params["response_type"] ?: return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST))
             .normalizeResponseType()
 
-        val pendingSession = call.sessions.get<OpenIdSessionStorage>()?.copy(loginHint = loginHint, responseType = responseType)
-            ?: OpenIdSessionStorage(loginHint = loginHint, responseType = responseType)
+        var pendingSession = call.sessions.get<OpenIdSessionStorage>()?.copy(loginHint = loginHint, responseType = responseType)
+            ?: OpenIdSessionStorage(loginHint = loginHint, responseType = responseType, authTime = null)
 
-        val prompt = authRequest.extensions[ConnectRequestParameters.PROMPT]
-        if (prompt != null) {
-            val cont = promptFlow(prompt, authRequest, client, auth)
-            call.sessions.set(pendingSession)
-            if (!cont) return
+        val prompts = when {
+            pendingSession.pendingPrompts != null -> pendingSession.pendingPrompts
+            else -> authRequest.extensions[ConnectRequestParameters.PROMPT]?.splitToSequence(' ')?.toHashSet()
+        }
+        if (prompts != null) {
+            pendingSession = promptFlow(prompts, authRequest, client, auth, pendingSession) ?: return
         } else {
             val max = authRequest.extensions[ConnectRequestParameters.MAX_AGE]?.let {
                 it.toLongOrNull() ?: return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
             } ?: client.defaultMaxAge
-            if (max != null) {
+            val authTime = pendingSession.authTime
+            if (max != null && authTime != null) {
                 // default to the client's stored value, check the string parameter
 
-                //                    val authTime = session.getAttribute(AuthenticationTimeStamper.AUTH_TIMESTAMP) as Date?
-
-                /*                  TODO("This belongs in the authorization bit")
-                                val now = Date()
-                                if (authTime != null) {
-                                    val seconds = (now.time - authTime.time) / 1000
-                                    if (seconds > max) {
-                                        // session is too old, log the user out and continue
-                                        SecurityContextHolder.getContext().authentication = null
-                                    }
-                                }
-            */
+                val now = Instant.now()
+                if(now.isAfter(authTime.plusSeconds(max))) {
+                    pendingSession = pendingSession.copy(principal = null, authTime = null)
+                    auth = null
+                }
             }
         }
 
@@ -131,7 +125,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         }
         // TODO check scopes
 
-        if (auth != null) {
+        if (auth != null) { // If we are still authenticated
             when {
                 responseType.isAuthCodeFlow -> return respondWithAuthCode(authRequest, auth, redirectUri, state)
 
@@ -235,22 +229,25 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
     }
 
     private suspend fun RoutingContext.promptFlow(
-        prompt: String,
+        prompts: Set<String>,
         authRequest: AuthorizationRequest,
         client: OAuthClientDetails?,
         auth: Authentication?,
-    ): Boolean {
-        TODO("Not correct, not fully implemented")
+        pendingSession: OpenIdSessionStorage,
+    ): OpenIdSessionStorage? {
+        @Suppress("NAME_SHADOWING")
+        var pendingSession = pendingSession
         // we have a "prompt" parameter
-        val prompts = prompt.split(ConnectRequestParameters.PROMPT_SEPARATOR)
 
         if (ConnectRequestParameters.PROMPT_NONE in prompts) {
-            // see if the user's logged in
+            if (prompts.size!=1) {
+                jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
+                return null
+            }
             if (auth != null) {
-                // user's been logged in already (by session management)
+                // user's been logged in already (with regular ktor auth - eg. sessions)
                 // we're OK, continue without prompting
-                return true//
-//                        chain.doFilter(req, res)
+                return pendingSession.copy(pendingPrompts = null)
             }
             logger.info("Client requested no prompt")
             // user hasn't been logged in, we need to "return an error"
@@ -270,45 +267,33 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
                         uriBuilder.parameters.append(ConnectRequestParameters.STATE, requestState)
                     }
 
+                    call.sessions.set(pendingSession)
                     call.respondRedirect(uriBuilder.build()) // TODO ensure this doesn't continue further
-                    return false
+                    return null
                 } catch (e: URISyntaxException) {
+                    call.sessions.set(pendingSession)
                     logger.error("Can't build redirect URI for prompt=none, sending error instead", e)
                     jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
-                    return false
+                    return null
                 }
             }
             jsonErrorView(OAuthErrorCodes.ACCESS_DENIED)
-            return false
+            return null
+        }
 
-        } else if (prompts.contains(ConnectRequestParameters.PROMPT_LOGIN)) {
+        // select account is not quite supported by the UI/system
+        if (PROMPT_LOGIN in prompts || PROMPT_SELECT_ACCOUNT in prompts) {
             // first see if the user's already been prompted in this session
+            return pendingSession.copy(principal = null, authTime = null) // this
+        }
 
-            if (true /*session.getAttribute(PROMPTED) == null*/) {
-                // user hasn't been PROMPTED yet, we need to check
-
-//                        session.setAttribute(PROMPT_REQUESTED, true)
-
-                // see if the user's logged in
-                val auth = openIdContext.resolveAuthenticatedUser(call)
-                if (auth != null) {
-                    // TODO this can not be done in ktor
-                    // user's been logged in already (by session management)
-                    // log them out and continue
-//                            call.authentication
-//                            SecurityContextHolder.getContext().authentication = null
-//                } else {
-                    // user hasn't been logged in yet, we can keep going since we'll get there
-                }
-//            } else {
-                // user has been PROMPTED, we're fine but first, undo the prompt tag
-                // session.removeAttribute(PROMPTED)
-                // no interception
-            }
-            return true
+        if (PROMPT_CONSENT in prompts) {
+            call.sessions.set(pendingSession)
+            call.respondRedirect("/oauth/confirm_access")
+            return null
         }
         // prompt parameter is a value we don't care about, not our business
-        return true
+        return pendingSession
     }
 
     private fun RoutingContext.getGranter(grantType: String): TokenGranter? {

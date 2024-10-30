@@ -223,7 +223,7 @@ class DefaultOIDCTokenService : OIDCTokenService {
         val clientAuth = AuthorizationRequest(
             authorizationParameters, client.clientId!!,
             hashSetOf(GrantedAuthority("ROLE_CLIENT")), true,
-            scope ?: emptySet(), null, null, null, extensionStrings = null
+            scope ?: emptySet(), null, null, null, requestTime = xxxx, extensionStrings = null
         )
         val authentication = AuthenticatedAuthorizationRequest(clientAuth, null)
 

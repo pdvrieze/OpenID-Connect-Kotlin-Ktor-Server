@@ -174,9 +174,7 @@ class DefaultOAuth2ProviderTokenService(
         }
 
         // attach the authorization so that we can look it up later
-        var authHolder = AuthenticationHolderEntity()
-        authHolder.authenticatedAuthorizationRequest = authentication
-        authHolder = authenticationHolderRepository.save(authHolder)
+        val authHolder = authenticationHolderRepository.save(AuthenticationHolderEntity(authentication))
 
         tokenBuilder.setAuthenticationHolder(authHolder)
 

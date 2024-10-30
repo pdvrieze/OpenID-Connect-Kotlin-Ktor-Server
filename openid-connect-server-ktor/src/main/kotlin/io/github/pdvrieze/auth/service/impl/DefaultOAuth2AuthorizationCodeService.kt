@@ -56,9 +56,7 @@ class DefaultOAuth2AuthorizationCodeService(
         val code = generator.generate()
 
         // attach the authorization so that we can look it up later
-        var authHolder = AuthenticationHolderEntity(userAuth = authentication.userAuthentication)
-        authHolder.authenticatedAuthorizationRequest = authentication
-        authHolder = authenticationHolderRepository.save(authHolder)
+        val authHolder = authenticationHolderRepository.save(AuthenticationHolderEntity(authentication))
 
         // set the auth code to expire
         val expiration = Date.from(Instant.now()+ authCodeExpirationSeconds)

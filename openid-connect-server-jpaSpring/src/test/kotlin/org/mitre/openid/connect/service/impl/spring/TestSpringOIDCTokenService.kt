@@ -47,7 +47,7 @@ class TestSpringOIDCTokenService {
         expirationInstant = Instant.now().plusSeconds(120),
         jwt = PlainJWT(JWTClaimsSet.Builder().build()),
     )
-    private val request: AuthorizationRequest = AuthorizationRequest(clientId = CLIENT_ID)
+    private val request: AuthorizationRequest = AuthorizationRequest(clientId = CLIENT_ID, requestTime = xxxx)
 
     @Mock
     private lateinit var jwtService: JWTSigningAndValidationService

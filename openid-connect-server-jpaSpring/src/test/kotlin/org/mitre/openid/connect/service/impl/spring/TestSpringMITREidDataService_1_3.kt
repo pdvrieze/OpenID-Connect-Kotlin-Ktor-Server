@@ -1341,6 +1341,7 @@ class TestSpringMITREidDataService_1_3 {
             clientId = "client1",
             isApproved = true,
             redirectUri = "http://foo.com",
+            requestTime = xxxx,
         )
         val mockAuth1: SavedUserAuthentication =  SavedUserAuthentication(name = "mockAuth1")
 //            UsernamePasswordAuthenticationToken("user1", "pass1", AuthorityUtils.commaSeparatedStringToAuthorityList("ROLE_USER"))
@@ -1354,6 +1355,7 @@ class TestSpringMITREidDataService_1_3 {
             clientId = "client2",
             isApproved = true,
             redirectUri = "http://bar.com",
+            requestTime = xxxx,
         )
         val auth2 = AuthenticatedAuthorizationRequest(req2, null)
 
@@ -1453,6 +1455,7 @@ class TestSpringMITREidDataService_1_3 {
             clientId = "client1",
             isApproved = true,
             redirectUri = "http://foo.com",
+            requestTime = xxxx,
         )
         val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
         val auth1 = AuthenticatedAuthorizationRequest(req1, mockAuth1)
@@ -1465,6 +1468,7 @@ class TestSpringMITREidDataService_1_3 {
             clientId = "client2",
             isApproved = true,
             redirectUri = "http://bar.com",
+            requestTime = xxxx,
         )
         val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
         val auth2 = AuthenticatedAuthorizationRequest(req2, mockAuth2)
@@ -1710,6 +1714,7 @@ class TestSpringMITREidDataService_1_3 {
             clientId = "client1",
             isApproved = true,
             redirectUri = "http://foo.com",
+            requestTime = xxxx,
         )
         val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
         val auth1 = AuthenticatedAuthorizationRequest(req1, mockAuth1)
@@ -1736,6 +1741,7 @@ class TestSpringMITREidDataService_1_3 {
             clientId = "client2",
             isApproved = true,
             redirectUri = "http://bar.com",
+            requestTime = xxxx,
         )
         val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
         val auth2 = AuthenticatedAuthorizationRequest(req2, mockAuth2)

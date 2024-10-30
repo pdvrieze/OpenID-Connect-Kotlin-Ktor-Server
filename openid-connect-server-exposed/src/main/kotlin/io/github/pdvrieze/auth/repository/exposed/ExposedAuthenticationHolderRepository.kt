@@ -97,6 +97,7 @@ class ExposedAuthenticationHolderRepository(database: Database) :
             b[approved] = a.isApproved
             b[redirectUri] = a.redirectUri
             b[clientId] = a.clientId
+            b[requestTime] = a.requestTime
         }
 
         if (oldId!=null) {
@@ -223,7 +224,8 @@ private fun ResultRow.toAuthenticationHolder(): AuthenticationHolderEntity {
             extensions = extensions,
             clientId = r[clientId],
             scope = scope,
-            requestParameters = requestParameters
+            requestParameters = requestParameters,
+            requestTime = r[requestTime]
         )
     }
 }

@@ -44,7 +44,7 @@ class TestKtorConnectTokenEnhancer {
     @Mock
     private lateinit var authentication: AuthenticatedAuthorizationRequest
 
-    private val request: AuthorizationRequest = AuthorizationRequest(clientId = CLIENT_ID)
+    private val request: AuthorizationRequest = AuthorizationRequest(clientId = CLIENT_ID, requestTime = xxxx)
 
     private lateinit var enhancer: ConnectTokenEnhancer
 
