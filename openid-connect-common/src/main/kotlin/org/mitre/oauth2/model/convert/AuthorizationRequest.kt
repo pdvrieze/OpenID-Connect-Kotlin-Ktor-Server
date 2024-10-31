@@ -58,6 +58,7 @@ class AuthorizationRequest(
             resourceIds = resourceIds,
             redirectUri = redirectUri,
             responseTypes = responseTypes,
+            state = state,
             approvalParameters = approvalParameters,
             requestTime = requestTime,
             extensionStrings = extensionStrings,

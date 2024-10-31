@@ -36,6 +36,7 @@ open class KtorOAuth2RequestFactory constructor(
             redirectUri = inputParams["redirect_uri"],
             responseTypes = responseTypes,
             requestTime = Instant.now(),
+            state = inputParams["state"],
         )
     }
 

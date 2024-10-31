@@ -62,7 +62,7 @@ class KtorConnectOAuth2RequestFactory constructor(
 
         val client = finalClientId?.let { clientDetailsService.loadClientByClientId(it) }
 
-        val extensions = buildMap<String, String> {
+        val extensions = buildMap {
 
             inputParams[ConnectRequestParameters.PROMPT]?.let { put(ConnectRequestParameters.PROMPT, it) }
             inputParams[ConnectRequestParameters.NONCE]?.let { put(ConnectRequestParameters.NONCE, it) }

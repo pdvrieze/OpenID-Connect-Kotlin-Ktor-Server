@@ -116,6 +116,20 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
     }
 
     @Test
+    fun testGetAuthorizationCodeStateNoAuthPromptNone() = testEndpoint {
+        val r = getUnAuth("/authorize?response_type=code&client_id=$clientId&redirect_uri=$REDIRECT_URI&prompt=none&state=34u923&scope=scope2", HttpStatusCode.Found, client = nonRedirectingClient)
+        val respUri = parseUrl(assertNotNull(r.headers[HttpHeaders.Location]))!!
+        val actualBase = URLBuilder(respUri.protocolWithAuthority).apply {
+            pathSegments = respUri.segments
+        }.buildString()
+
+        assertEquals(REDIRECT_URI, actualBase)
+
+        assertEquals("login_required", respUri.parameters["error"])
+        assertEquals("34u923", respUri.parameters["state"])
+    }
+
+    @Test
     fun testImplicitFlowNoState() = testEndpoint {
         val r = getUser("/authorize?response_type=token&scope=offline_access%20scope2&client_id=$clientId", HttpStatusCode.Found, client = nonRedirectingClient)
         assertEquals(HttpStatusCode.Found, r.status)
