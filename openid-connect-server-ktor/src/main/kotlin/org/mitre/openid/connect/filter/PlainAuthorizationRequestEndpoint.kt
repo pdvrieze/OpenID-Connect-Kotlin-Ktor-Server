@@ -139,7 +139,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
 
         call.sessions.set(pendingSession.copy(authorizationRequest = authRequest, redirectUri = redirectUri, state = state))
 
-        htmlLoginView(loginHint, null, null)
+        htmlLoginView(loginHint, null, null, status = HttpStatusCode.Unauthorized)
     }
 
 

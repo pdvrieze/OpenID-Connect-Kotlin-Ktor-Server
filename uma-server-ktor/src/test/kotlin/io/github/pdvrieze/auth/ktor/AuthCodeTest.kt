@@ -98,21 +98,21 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
     @Test
     fun testGetAuthorizationCodeStateNoAuth() = testEndpoint {
         val r = getUnAuth("/authorize?response_type=code&client_id=$clientId&state=34u923&scope=scope2", HttpStatusCode.Unauthorized, client = nonRedirectingClient)
-        val respUri = parseUrl(assertNotNull(r.headers[HttpHeaders.Location]))!!
-        val actualBase = URLBuilder(respUri.protocolWithAuthority).apply {
-            pathSegments = respUri.segments
-        }.buildString()
+        assertNull(r.headers[HttpHeaders.Location])
+        assertEquals(ContentType.Text.Html, r.contentType()?.withoutParameters())
 
-        assertEquals(REDIRECT_URI, actualBase)
-        val code = assertNotNull(respUri.parameters["code"])
-        assertEquals("34u923", respUri.parameters["state"])
+        val responseText = r.bodyAsText()
+        val regex = Regex("(<input\\b[^>]*\\bname=(['\"])password\\2[^>]*>)")
+        val matches = regex.findAll(responseText)
+        assertEquals(1, matches.count())
 
-        val storedCode = assertNotNull(testContext.authorizationCodeRepository.getByCode(code))
-        val storedHolder = assertNotNull(storedCode.authenticationHolder)
-        val storedUser = assertNotNull(storedHolder.userAuth, "Missing user auth in authorization code acquisition")
-        assertEquals(setOf("scope2"), storedHolder.scope)
-        assertEquals("user", storedUser.name)
-        assertTrue(storedUser.isAuthenticated)
+        val form = Regex("(<form\\b[^>]*>)").findAll(responseText).single().groups[1]!!.value
+
+        val action = Regex("\\baction=(['\"])([^'\"]*)\\1").findAll(form).single().groups[2]!!.value
+        val method = Regex("\\bmethod=(['\"])([^'\"]*)\\1").findAll(form).single().groups[2]!!.value
+
+        assertEquals("https://example.com/login", action)
+        assertEquals("post", method)
     }
 
     @Test
