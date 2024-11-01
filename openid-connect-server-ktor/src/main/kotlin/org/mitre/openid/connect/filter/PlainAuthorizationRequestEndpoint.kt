@@ -24,6 +24,7 @@ import org.mitre.oauth2.model.convert.AuthorizationRequest
 import org.mitre.oauth2.service.ClientLoadingResult
 import org.mitre.oauth2.token.TokenGranter
 import org.mitre.oauth2.view.respondJson
+import org.mitre.oauth2.web.OAuthConfirmationController
 import org.mitre.openid.connect.request.ConnectRequestParameters
 import org.mitre.openid.connect.request.ConnectRequestParameters.PROMPT_CONSENT
 import org.mitre.openid.connect.request.ConnectRequestParameters.PROMPT_LOGIN
@@ -40,6 +41,7 @@ import org.mitre.web.util.authcodeService
 import org.mitre.web.util.clientDetailsService
 import org.mitre.web.util.openIdContext
 import org.mitre.web.util.scopeService
+import org.mitre.web.util.userApprovalHandler
 import java.net.URISyntaxException
 import java.time.Instant
 import kotlin.collections.component1
@@ -126,12 +128,24 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         // TODO check scopes
 
         if (auth != null) { // If we are still authenticated
+
+            val approvedAuthRequest = when {
+                userApprovalHandler.isApproved(authRequest, auth) -> userApprovalHandler.updateAfterApproval(authRequest, auth)
+
+                else -> userApprovalHandler.checkForPreApproval(authRequest, auth, prompts)
+            }
+
             when {
-                responseType.isAuthCodeFlow -> return respondWithAuthCode(authRequest, auth, redirectUri, state)
+                !approvedAuthRequest.isApproved -> {
+                    call.sessions.set(pendingSession.copy(authorizationRequest = authRequest, redirectUri = redirectUri, state = state))
+                    return respondWithApprovalRequest(approvedAuthRequest, auth, prompts, client, redirectUri)
+                }
 
-                responseType.isImplicitFlow -> return respondImplicitFlow(responseType, client, authRequest, auth, redirectUri, state)
+                responseType.isAuthCodeFlow -> return respondWithAuthCode(approvedAuthRequest, auth, redirectUri, state)
 
-                responseType.isHybridFlow -> return respondHybridFlow(responseType, client, authRequest, auth, redirectUri, state)
+                responseType.isImplicitFlow -> return respondImplicitFlow(responseType, client, approvedAuthRequest, auth, redirectUri, state)
+
+                responseType.isHybridFlow -> return respondHybridFlow(responseType, client, approvedAuthRequest, auth, redirectUri, state)
 
                 else -> return jsonErrorView(OAuthErrorCodes.UNSUPPORTED_GRANT_TYPE)
             }
@@ -228,10 +242,20 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         }
     }
 
+    private suspend fun RoutingContext.respondWithApprovalRequest(
+        authRequest: AuthorizationRequest,
+        auth: Authentication,
+        prompts: Set<String>?,
+        client: OAuthClientDetails,
+        redirectUri: String?,
+    ) {
+        with (OAuthConfirmationController) { confirmAccess(auth, authRequest, prompts ?: emptySet(), client, redirectUri) }
+    }
+
     private suspend fun RoutingContext.promptFlow(
         prompts: Set<String>,
         authRequest: AuthorizationRequest,
-        client: OAuthClientDetails?,
+        client: OAuthClientDetails,
         auth: Authentication?,
         pendingSession: OpenIdSessionStorage,
     ): OpenIdSessionStorage? {
@@ -252,7 +276,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
             logger.info("Client requested no prompt")
             // user hasn't been logged in, we need to "return an error"
             val redirectUri = authRequest.redirectUri
-            if (client != null && redirectUri != null) {
+            if (redirectUri != null) {
                 // if we've got a redirect URI then we'll send it
 
                 // TODO Stuck to spring/ClientDetails
@@ -287,8 +311,9 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
             return pendingSession.copy(principal = null, authTime = null) // this
         }
 
-        if (PROMPT_CONSENT in prompts) {
+        if (auth != null && PROMPT_CONSENT in prompts) {
             call.sessions.set(pendingSession)
+            respondWithApprovalRequest(authRequest, auth, prompts, client, authRequest.redirectUri)
             call.respondRedirect("/oauth/confirm_access")
             return null
         }

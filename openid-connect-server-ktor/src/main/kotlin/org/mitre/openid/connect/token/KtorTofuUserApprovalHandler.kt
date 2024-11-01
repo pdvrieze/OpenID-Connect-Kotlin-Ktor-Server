@@ -30,6 +30,7 @@ import org.mitre.openid.connect.web.AuthenticationTimeStamper
 import org.mitre.util.asBoolean
 import org.mitre.util.asString
 import org.mitre.util.asStringSet
+import java.time.Duration
 import java.time.Instant
 import java.util.*
 
@@ -52,7 +53,7 @@ class KtorTofuUserApprovalHandler(
     val whitelistedSiteService: WhitelistedSiteService,
     val clientDetailsService: ClientDetailsEntityService,
     val systemScopes: SystemScopeService,
-) {
+) : UserApprovalHandler {
 
     /**
      * Check if the user has already stored a positive approval decision for this site; or if the
@@ -65,7 +66,7 @@ class KtorTofuUserApprovalHandler(
      *
      * @return                        true if the site is approved, false otherwise
      */
-    fun isApproved(authorizationRequest: AuthorizationRequest, userAuthentication: Authentication): Boolean {
+    override fun isApproved(authorizationRequest: AuthorizationRequest, userAuthentication: Authentication): Boolean {
         // if this request is already approved, pass that info through
         // (this flag may be set by updateBeforeApproval, which can also do funny things with scopes, etc)
 
@@ -89,9 +90,10 @@ class KtorTofuUserApprovalHandler(
      *
      * @return                        the updated AuthorizationRequest
      */
-    fun checkForPreApproval(
+    override fun checkForPreApproval(
         authorizationRequest: AuthorizationRequest,
-        userAuthentication: Authentication
+        userAuthentication: Authentication,
+        prompts: Set<String>?
     ): AuthorizationRequest {
         //First, check database to see if the user identified by the userAuthentication has stored an approval decision
         var newApproved = authorizationRequest.isApproved
@@ -103,11 +105,7 @@ class KtorTofuUserApprovalHandler(
         //lookup ApprovedSites by userId and clientId
         var alreadyApproved = false
 
-        // find out if we're supposed to force a prompt on the user or not
-        val prompt = authorizationRequest.extensions[ConnectRequestParameters.PROMPT] as String?
-        val prompts = prompt?.split(ConnectRequestParameters.PROMPT_SEPARATOR) ?: emptyList()
-
-        if (ConnectRequestParameters.PROMPT_CONSENT !in prompts) {
+        if (prompts == null || ConnectRequestParameters.PROMPT_CONSENT !in prompts) {
             // if the prompt parameter is set to "consent" then we can't use approved sites or whitelisted sites
             // otherwise, we need to check them below
 
@@ -150,7 +148,7 @@ class KtorTofuUserApprovalHandler(
     }
 
 
-    fun updateAfterApproval(
+    override fun updateAfterApproval(
         authorizationRequest: AuthorizationRequest,
         userAuthentication: Authentication
     ): AuthorizationRequest {
@@ -194,9 +192,7 @@ class KtorTofuUserApprovalHandler(
                         var timeout: Date? = null
                         if (remember == "one-hour") {
                             // set the timeout to one hour from now
-                            val cal = Calendar.getInstance()
-                            cal.add(Calendar.HOUR, 1)
-                            timeout = cal.time
+                            timeout = Date.from(Instant.now()+Duration.ofHours(1))
                         }
 
                         val newSite = approvedSiteService.createApprovedSite(clientId, userId, timeout, allowedScopes)

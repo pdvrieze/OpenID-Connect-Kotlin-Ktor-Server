@@ -23,6 +23,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import kotlinx.serialization.json.JsonPrimitive
+import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.SystemScope
@@ -56,7 +57,7 @@ object OAuthConfirmationController: KtorEndpoint {
         }
     }
 
-    private suspend fun RoutingContext.confirmAccess() {
+    internal suspend fun RoutingContext.confirmAccess() {
         val authentication = requireRole(GrantedAuthority.ROLE_USER) { return }
 
         val pendingSession = call.sessions.get<OpenIdSessionStorage>()?.let{ it.copy(pendingPrompts = it.pendingPrompts?.filterNotTo(HashSet()) { it == ConnectRequestParameters.PROMPT_CONSENT })}
@@ -65,10 +66,6 @@ object OAuthConfirmationController: KtorEndpoint {
 
         // Check the "prompt" parameter to see if we need to do special processing
         val prompts = pendingSession.pendingPrompts ?: emptySet()
-
-        check(arrayOf(PROMPT_NONE, PROMPT_LOGIN, PROMPT_SELECT_ACCOUNT).none { it in prompts }) {
-            "Confirmation is always after login"
-        }
 
         val client: OAuthClientDetails
         try {
@@ -85,7 +82,26 @@ object OAuthConfirmationController: KtorEndpoint {
             return call.respond(HttpStatusCode.BadRequest)
         }
 
-        val redirect_uri = authRequest.redirectUri
+        call.sessions.set(pendingSession)
+        try {
+            confirmAccess(authentication, authRequest, prompts, client, authRequest.redirectUri)
+        } catch (e: Exception) {
+            call.sessions.clear<OpenIdSessionStorage>()
+            throw e
+        }
+    }
+
+    internal suspend fun RoutingContext.confirmAccess(
+        authentication: Authentication,
+        authRequest: AuthorizationRequest,
+        prompts: Set<String>,
+        client: OAuthClientDetails,
+        redirect_uri: String?,
+    ) {
+
+        check(arrayOf(PROMPT_NONE, PROMPT_LOGIN, PROMPT_SELECT_ACCOUNT).none { it in prompts }) {
+            "Confirmation is always after login"
+        }
 
         // pre-process the scopes
         val scopes: Set<SystemScope>? = scopeService.fromStrings(authRequest.scope)
@@ -130,11 +146,10 @@ object OAuthConfirmationController: KtorEndpoint {
 
         // if the client is over a week old and has more than one registration, don't give such a big warning
         // instead, tag as "Generally Recognized As Safe" (gras)
-        val lastWeek = Instant.now().minus(1, ChronoUnit.WEEKS)
+        val lastWeek = Instant.now().minus(7, ChronoUnit.DAYS) // use 7 days as weeks is not supported
         val createdAt = client.createdAt
         val gras = count > 1 && createdAt != null && createdAt.toInstant().isBefore(lastWeek)
 
-        call.sessions.set(pendingSession)
 
         htmlApproveView(
             authRequest = authRequest,

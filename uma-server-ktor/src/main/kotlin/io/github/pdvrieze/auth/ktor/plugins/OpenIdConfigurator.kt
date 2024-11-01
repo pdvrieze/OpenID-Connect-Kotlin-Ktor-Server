@@ -86,6 +86,7 @@ import org.mitre.openid.connect.service.impl.ktor.DefaultBlacklistedSiteService
 import org.mitre.openid.connect.service.impl.ktor.DefaultUserInfoService
 import org.mitre.openid.connect.service.impl.ktor.KtorInMemoryClientLogoLoadingService
 import org.mitre.openid.connect.token.ConnectTokenEnhancerImpl
+import org.mitre.openid.connect.token.KtorTofuUserApprovalHandler
 import org.mitre.uma.repository.PermissionRepository
 import org.mitre.uma.repository.ResourceSetRepository
 import org.mitre.uma.service.ClaimsProcessingService
@@ -299,6 +300,9 @@ data class OpenIdConfigurator(
 
         override val assertionFactory: AssertionOAuth2RequestFactory =
             DirectCopyRequestFactory()
+
+        override val userApprovalHandler: KtorTofuUserApprovalHandler =
+            KtorTofuUserApprovalHandler(approvedSiteService, whitelistedSiteService, clientDetailsService, scopeService)
 
         // TODO: create password grant, but don't enable by default
         override val tokenGranters: Map<String, TokenGranter> =

@@ -40,6 +40,7 @@ import org.mitre.openid.connect.service.ScopeClaimTranslationService
 import org.mitre.openid.connect.service.StatsService
 import org.mitre.openid.connect.service.UserInfoService
 import org.mitre.openid.connect.service.WhitelistedSiteService
+import org.mitre.openid.connect.token.UserApprovalHandler
 import org.mitre.uma.repository.PermissionRepository
 import org.mitre.uma.repository.ResourceSetRepository
 import org.mitre.uma.service.ClaimsProcessingService
@@ -86,6 +87,8 @@ interface OpenIdContext {
     val clientLogoLoadingService: ClientLogoLoadingService
     val assertionValidator: AssertionValidator
     val tokenGranters: Map<String, TokenGranter>
+
+    val userApprovalHandler: UserApprovalHandler
     //endregion
 
     //region Regular repositories
@@ -183,6 +186,9 @@ val RoutingContext.assertionValidator: AssertionValidator
 
 val RoutingContext.tokenGranters: Map<String, TokenGranter>
     get() = openIdContext.tokenGranters
+
+val RoutingContext.userApprovalHandler: UserApprovalHandler
+    get() = openIdContext.userApprovalHandler
 
 //endregion
 

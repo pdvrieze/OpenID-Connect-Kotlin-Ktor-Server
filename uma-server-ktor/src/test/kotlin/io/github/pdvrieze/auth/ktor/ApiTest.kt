@@ -45,10 +45,12 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
     private val endpoints = endpoints.toList()
 
     protected open val deletableTables: List<Table> = listOf(
+        WhitelistedSites,
+        ApprovedSiteScopes, ApprovedSites,
         AccessTokenPermissions, AccessTokens,
         RefreshTokens,
         AuthorizationCodes,
-        AuthenticationHolderResponseTypes, AuthenticationHolderScopes, AuthenticationHolderRequestParameters, AuthenticationHolders,
+        AuthenticationHolderExtensions, AuthenticationHolderResponseTypes, AuthenticationHolderScopes, AuthenticationHolderRequestParameters, AuthenticationHolders,
         SavedUserAuthAuthorities, SavedUserAuths,
         SystemScopes,
         ClientRedirectUris, ClientClaimsRedirectUris, ClientScopes, ClientResponseTypes, ClientGrantTypes, ClientDetails,
@@ -56,6 +58,8 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
 
     @Before
     open fun setUp() {
+        System.setProperty("kotlinx.coroutines.test.default_timeout", "30min")
+
         val configurator =
             OpenIdConfigurator("https://example.com/", verifyCredential = { isValidPassword(it.name, it.password) })
         val key = JWK.parse(SIGNING_KEY)

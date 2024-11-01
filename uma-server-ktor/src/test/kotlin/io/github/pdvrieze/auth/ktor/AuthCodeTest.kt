@@ -45,6 +45,10 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
         scope2Id = testContext.scopeRepository.save(SystemScope("scope2")).id!!
     }
 
+    private fun preAuthorizeAccess() {
+        testContext.approvedSiteService.createApprovedSite(clientId, "user", Date.from(Instant.now().plusSeconds(60)), CLIENT_SCOPE)
+    }
+
     @Test
     fun testSetup() {
         val client = assertNotNull(testContext.clientDetailsService.loadClientByClientId(clientId), "Missing client")
@@ -55,6 +59,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
 
     @Test
     fun testGetAuthorizationCodeNoState() = testEndpoint {
+        preAuthorizeAccess()
         val r = getUser("/authorize?response_type=code&client_id=$clientId", HttpStatusCode.Found, client = nonRedirectingClient)
         val respUri = parseUrl(assertNotNull(r.headers[HttpHeaders.Location]))!!
         val actualBase = URLBuilder(respUri.protocolWithAuthority).apply {
@@ -77,6 +82,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
 
     @Test
     fun testGetAuthorizationCodeState() = testEndpoint {
+        preAuthorizeAccess()
         val r = getUser("/authorize?response_type=code&client_id=$clientId&state=34u923&scope=scope2", HttpStatusCode.Found, client = nonRedirectingClient)
         val respUri = parseUrl(assertNotNull(r.headers[HttpHeaders.Location]))!!
         val actualBase = URLBuilder(respUri.protocolWithAuthority).apply {
@@ -116,6 +122,36 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
     }
 
     @Test
+    fun testGetAuthorizationCodeStateAuthenticatedNotAuthorized() = testEndpoint {
+        val r = getUser("/authorize?response_type=code&client_id=$clientId&state=34u923&scope=scope2", HttpStatusCode.OK, client = nonRedirectingClient)
+        assertNull(r.headers[HttpHeaders.Location])
+        assertEquals(ContentType.Text.Html, r.contentType()?.withoutParameters())
+
+        val responseText = r.bodyAsText()
+        val inputs = Regex("<input\\b[^>]*\\bname=(['\"])([^'\"]*)\\1[^>]*>").findAll(responseText).groupBy(
+            keySelector = { it.groups[2]?.value },
+            valueTransform = { it.value }
+        )
+
+        assertNull(inputs["passwords"])
+        assertEquals(1, assertNotNull(inputs["scope_scope2"]).size) // we only ask for scope 2
+        assertEquals(3, assertNotNull(inputs["remember"]).size)
+        assertEquals(1, assertNotNull(inputs["SDFHLK_CSRF"]).size) // important to ensure request from here
+        assertEquals(1, assertNotNull(inputs["deny"]).size)
+        assertEquals(1, assertNotNull(inputs["authorize"]).size)
+        assertEquals(1, assertNotNull(inputs["user_oauth_approval"]).size)
+
+
+        val form = Regex("<form\\b[^>]*\\bname=\"confirmationForm\"[^>]*>").findAll(responseText).single().value
+
+        val action = Regex("\\baction=(['\"])([^'\"]*)\\1").findAll(form).single().groups[2]!!.value
+        val method = Regex("\\bmethod=(['\"])([^'\"]*)\\1").findAll(form).single().groups[2]!!.value
+
+        assertEquals("https://example.com/authorize", action)
+        assertEquals("post", method)
+    }
+
+    @Test
     fun testGetAuthorizationCodeStateNoAuthPromptNone() = testEndpoint {
         val r = getUnAuth("/authorize?response_type=code&client_id=$clientId&redirect_uri=$REDIRECT_URI&prompt=none&state=34u923&scope=scope2", HttpStatusCode.Found, client = nonRedirectingClient)
         val respUri = parseUrl(assertNotNull(r.headers[HttpHeaders.Location]))!!
@@ -131,6 +167,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
 
     @Test
     fun testImplicitFlowNoState() = testEndpoint {
+        preAuthorizeAccess()
         val r = getUser("/authorize?response_type=token&scope=offline_access%20scope2&client_id=$clientId", HttpStatusCode.Found, client = nonRedirectingClient)
         assertEquals(HttpStatusCode.Found, r.status)
         val respUri = parseUrl(assertNotNull(r.headers[HttpHeaders.Location]))!!
@@ -169,6 +206,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
 
     @Test
     fun testImplicitFlowState() = testEndpoint {
+        preAuthorizeAccess()
         val r = getUser("/authorize?response_type=token&state=dsf890l&scope=scope1&client_id=$clientId", HttpStatusCode.Found, client = nonRedirectingClient)
         assertEquals(HttpStatusCode.Found, r.status)
         val respUri = parseUrl(assertNotNull(r.headers[HttpHeaders.Location]))!!
@@ -260,6 +298,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
 
     @Test
     fun testGetAuthorizationCodeWithState() = testEndpoint {
+        preAuthorizeAccess()
         val state = UUID.randomUUID().toString()
         val r = getUser("/authorize?response_type=code&client_id=$clientId&state=$state", HttpStatusCode.Found, client = nonRedirectingClient)
         assertEquals(HttpStatusCode.Found, r.status)
@@ -277,6 +316,8 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
 
     @Test
     fun testAuthorizationCodeFlowSimpleNoState() = testEndpoint {
+        preAuthorizeAccess()
+
         val r = getUser("/authorize?response_type=code&client_id=$clientId", HttpStatusCode.Found, client = nonRedirectingClient)
         assertEquals(HttpStatusCode.Found, r.status)
         val respUri = parseUrl(assertNotNull(r.headers[HttpHeaders.Location]))!!
@@ -336,7 +377,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
 
     companion object {
         const val REDIRECT_URI = "http://localhost:1234/clientApp"
-
+        val CLIENT_SCOPE = setOf("scope1", "scope2", "offline_access")
     }
 
 }

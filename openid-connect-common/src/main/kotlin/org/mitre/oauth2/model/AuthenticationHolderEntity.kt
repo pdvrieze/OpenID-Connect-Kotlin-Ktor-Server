@@ -121,7 +121,7 @@ class AuthenticationHolderEntity(
             redirectUri = redirectUri,
             responseTypes = responseTypes,
             requestTime = requestTime,
-            extensionStrings = extensions?.let { m -> m.mapValues { it.toString() } } ?: emptyMap<String, String>(),
+            extensionStrings = extensions?.let { m -> m.mapValues { (_, v) -> v.toString() } } ?: emptyMap<String, String>(),
         )
     }
 
