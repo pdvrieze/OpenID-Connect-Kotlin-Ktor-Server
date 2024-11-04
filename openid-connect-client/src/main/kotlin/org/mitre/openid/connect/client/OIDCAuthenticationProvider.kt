@@ -95,7 +95,7 @@ class OIDCAuthenticationProvider internal constructor(config: Config) : Authenti
     val symmetricCacheService: SymmetricKeyJWTValidatorCacheService = config.symmetricCacheService
 
     // signer based on keypair for this client (for outgoing auth requests)
-    private val authenticationSignerService: JWTSigningAndValidationService? = config.authenticationSignerService
+    private val authenticationSignerService: JWTSigningAndValidationService = config.authenticationSignerService
 
     //    private var httpClient: HttpClient? = null
     private val httpClient = HttpClient(Java)
@@ -765,5 +765,4 @@ data class ClientSession(
     val state: String? = null,
     val nonce: String? = null,
     val codeVerifier: String? = null,
-) {
-}
+)

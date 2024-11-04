@@ -8,9 +8,9 @@ import kotlinx.html.div
 import kotlinx.html.h1
 import kotlinx.html.p
 import kotlinx.html.span
-import org.mitre.oauth2.exception.OAuthErrorCodes
 import org.mitre.oauth2.exception.OAuth2Exception
 import org.mitre.oauth2.exception.OAuthErrorCode
+import org.mitre.oauth2.exception.OAuthErrorCodes
 
 fun HTML.error(
     context: WebContext,
@@ -38,12 +38,12 @@ fun HTML.error(
         with(context.intl) {
             div(classes="offset1 span10") {
                 div(classes="hero-unit") {
-                    h1() {span() {message("error.header",  )}
+                    h1 {span {message("error.header",  )}
                         span(classes="text-error") { +errorCodeString }
                     }
-                    p() {
+                    p {
                         message("error.message",  )
-                        blockQuote(classes="text-error") {b() { +errorMessage }}
+                        blockQuote(classes="text-error") {b { +errorMessage }}
                     }
 
                 }

@@ -47,7 +47,7 @@ object WhitelistAPI : KtorEndpoint {
     override fun Route.addRoutes() {
         route("/api/whitelist") {
             authenticate {
-                get() { getAllWhitelistedSites() }
+                get { getAllWhitelistedSites() }
                 post { addNewWhitelistedSite() }
                 put("/{id}") { updateWhitelistedSite() }
                 delete("/{id}") { deleteWhitelistedSite() }

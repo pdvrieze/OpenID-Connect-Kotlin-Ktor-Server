@@ -68,7 +68,7 @@ class TestSpringOIDCTokenService {
             override fun addCustomIdTokenClaims(
                 idClaims: JWTClaimsSet.Builder,
                 client: OAuthClientDetails,
-                request: org.mitre.oauth2.model.convert.AuthorizationRequest?,
+                request: AuthorizationRequest?,
                 sub: String?,
                 accessToken: OAuth2AccessToken.Builder?
             ) {

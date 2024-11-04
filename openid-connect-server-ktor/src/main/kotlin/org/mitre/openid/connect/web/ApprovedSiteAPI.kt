@@ -40,7 +40,7 @@ object ApprovedSiteAPI : KtorEndpoint {
 
     override fun Route.addRoutes() {
         route("/api/approved") {
-            get() { getAllApprovedSites() }
+            get { getAllApprovedSites() }
             delete("/{id}") { deleteApprovedSite() }
             get("/{id}") { getApprovedSite() }
         }

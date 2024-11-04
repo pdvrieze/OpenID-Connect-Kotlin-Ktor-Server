@@ -233,7 +233,7 @@ class OpenIdContextPlugin(val context: OpenIdContext) {
     private val configuration: ConfigurationImpl = ConfigurationImpl()
 
     companion object :
-        BaseApplicationPlugin<ApplicationCallPipeline, OpenIdContextPlugin.Configuration, OpenIdContextPlugin> {
+        BaseApplicationPlugin<ApplicationCallPipeline, Configuration, OpenIdContextPlugin> {
 
         override val key = AttributeKey<OpenIdContextPlugin>("openid-context")
 

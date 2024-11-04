@@ -178,6 +178,7 @@ class OAuth2AccessTokenEntity(
                 if (authenticationHolder?.id != value) {
                     authenticationHolder = null
                 }
+                field = value
             }
 
         private var authenticationHolder: AuthenticationHolderEntity? = null

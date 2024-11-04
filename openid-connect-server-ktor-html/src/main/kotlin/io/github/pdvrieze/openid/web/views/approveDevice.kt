@@ -120,7 +120,7 @@ fun HTML.approveDevice(
                                             button(type=ButtonType.button, classes="close",) {
                                                 attributes["data-dismiss"]="modal"
                                                 attributes["aria-hidden"]="true"
-                                                +Entities.times;
+                                                +Entities.times
                                             }
                                             h3 {
                                                 id="logoModalLabel"

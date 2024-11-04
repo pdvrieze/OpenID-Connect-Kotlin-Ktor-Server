@@ -27,13 +27,13 @@ import org.mitre.web.util.OpenIdContext
 import org.mitre.web.util.openIdContext
 import java.util.*
 
-class DefaultHtmlViews(): HtmlViews {
+class DefaultHtmlViews : HtmlViews {
 
     private fun RoutingContext.createContext(): WebContext {
         return DefaultWebContext(call)
     }
 
-    public suspend fun RoutingContext.respondOID(status: HttpStatusCode = HttpStatusCode.OK, block: HTML.(WebContext) -> Unit) {
+    suspend fun RoutingContext.respondOID(status: HttpStatusCode = HttpStatusCode.OK, block: HTML.(WebContext) -> Unit) {
         return call.respondHtml(status) {
             val ctx = createContext()
             block(ctx)

@@ -51,9 +51,9 @@ class ApprovedSiteAPI {
     fun getAllApprovedSites(m: ModelMap, p: Principal): String {
         val all = approvedSiteService.getByUserId(p.name)
 
-        m[org.mitre.openid.connect.view.JsonEntityView.ENTITY] = all
+        m[JsonEntityView.ENTITY] = all
 
-        return org.mitre.openid.connect.view.JsonApprovedSiteView.VIEWNAME
+        return JsonApprovedSiteView.VIEWNAME
     }
 
     /**
@@ -66,18 +66,18 @@ class ApprovedSiteAPI {
         if (approvedSite == null) {
             logger.error("deleteApprovedSite failed; no approved site found for id: $id")
             m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
-            m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] =
+            m[JsonErrorView.ERROR_MESSAGE] =
                 "Could not delete approved site. The requested approved site with id: $id could not be found."
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            return JsonErrorView.VIEWNAME
         } else if (approvedSite.userId != p.name) {
             logger.error(
                 "deleteApprovedSite failed; principal "
                         + p.name + " does not own approved site" + id
             )
             m[HttpCodeView.CODE] = HttpStatus.FORBIDDEN
-            m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] =
+            m[JsonErrorView.ERROR_MESSAGE] =
                 "You do not have permission to delete this approved site. The approved site decision will not be deleted."
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            return JsonErrorView.VIEWNAME
         } else {
             m[HttpCodeView.CODE] = HttpStatus.OK
             approvedSiteService.remove(approvedSite)
@@ -95,19 +95,19 @@ class ApprovedSiteAPI {
         if (approvedSite == null) {
             logger.error("getApprovedSite failed; no approved site found for id: $id")
             m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
-            m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] = "The requested approved site with id: $id could not be found."
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            m[JsonErrorView.ERROR_MESSAGE] = "The requested approved site with id: $id could not be found."
+            return JsonErrorView.VIEWNAME
         } else if (approvedSite.userId != p.name) {
             logger.error(
                 "getApprovedSite failed; principal "
                         + p.name + " does not own approved site" + id
             )
             m[HttpCodeView.CODE] = HttpStatus.FORBIDDEN
-            m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] = "You do not have permission to view this approved site."
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            m[JsonErrorView.ERROR_MESSAGE] = "You do not have permission to view this approved site."
+            return JsonErrorView.VIEWNAME
         } else {
-            m[org.mitre.openid.connect.view.JsonEntityView.ENTITY] = approvedSite
-            return org.mitre.openid.connect.view.JsonApprovedSiteView.VIEWNAME
+            m[JsonEntityView.ENTITY] = approvedSite
+            return JsonApprovedSiteView.VIEWNAME
         }
     }
 

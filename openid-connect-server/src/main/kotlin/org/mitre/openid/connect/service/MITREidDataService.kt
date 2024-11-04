@@ -535,8 +535,7 @@ interface MITREidDataService {
         @SerialName("systemScopes")
         @EncodeDefault
         override val systemScopes: List<SystemScope> = emptyList(),
-    ) : ConfigurationData {
-    }
+    ) : ConfigurationData
 
     @Serializable
     open class ConfigurationData10 : ConfigurationDataBase {
@@ -823,7 +822,7 @@ interface MITREidDataService {
         private val dateFormatter = DateTimeFormatter.ISO_DATE_TIME.withLocale(Locale.ENGLISH)
 
         @JvmStatic
-        public fun utcToInstant(value: String?): Instant? {
+        fun utcToInstant(value: String?): Instant? {
             if (value == null) return null
 
             try {
@@ -835,7 +834,7 @@ interface MITREidDataService {
         }
 
         @JvmStatic
-        public fun utcToDate(value: String?): Date? {
+        fun utcToDate(value: String?): Date? {
             if (value == null) return null
 
             try {
@@ -847,30 +846,30 @@ interface MITREidDataService {
         }
 
         @JvmStatic
-        public fun toUTCString(value: Instant?): String? {
+        fun toUTCString(value: Instant?): String? {
             if (value == null) return null
 
             return dateFormatter.format(value)
         }
 
         @JvmStatic
-        public fun toUTCString(value: Date?): String? {
+        fun toUTCString(value: Date?): String? {
             if (value == null) return null
 
             return dateFormatter.format(value.toInstant())
         }
 
-        public fun Any?.warnIgnored(name: String): Nothing? {
+        fun Any?.warnIgnored(name: String): Nothing? {
             if (this!=null) logger.warn("Attribute $name ignored as unsupported on the service version")
             return null
         }
 
-        public fun Boolean.warnIgnored(name: String, default: Boolean = false): Boolean {
+        fun Boolean.warnIgnored(name: String, default: Boolean = false): Boolean {
             if (this!=default) logger.warn("Attribute $name ignored as unsupported on the service version")
             return default
         }
 
-        public fun MutableMap<*,*>.warnIgnored(name: String) {
+        fun MutableMap<*,*>.warnIgnored(name: String) {
             if (this.isNotEmpty()) logger.warn("Attribute $name ignored as unsupported on the service version")
             clear()
         }

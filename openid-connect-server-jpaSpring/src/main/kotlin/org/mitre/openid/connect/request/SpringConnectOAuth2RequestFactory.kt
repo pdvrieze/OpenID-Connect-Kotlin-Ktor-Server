@@ -185,7 +185,7 @@ class SpringConnectOAuth2RequestFactory @Autowired constructor(
                 val encryptedJWT = jwt
 
                 // decrypt the jwt if we can
-                encryptionService!!.decryptJwt(encryptedJWT)
+                encryptionService.decryptJwt(encryptedJWT)
 
                 // TODO: what if the content is a signed JWT? (#525)
                 if (encryptedJWT.state != JWEObject.State.DECRYPTED) {

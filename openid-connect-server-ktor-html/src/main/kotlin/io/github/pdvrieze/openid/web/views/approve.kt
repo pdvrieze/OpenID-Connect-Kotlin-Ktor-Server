@@ -81,13 +81,13 @@ fun HTML.approve(
                                         comment("client is dynamically registered")
 
                                         div("alert alert-block ${if (count == 0) "alert-error" else "alert-warn"}") {
-                                            h4() {
+                                            h4 {
                                                 i("icon-globe") {}
                                                 message("approve.caution.title")
                                             }
 
-                                            p() { message("approve.dynamically_registered", client.createdAt) }
-                                            p() {
+                                            p { message("approve.dynamically_registered", client.createdAt) }
+                                            p {
                                                 when (count) {
                                                     0 -> message("approve.caution.message.none", count)
                                                     1 -> message("approve.caution.message.singular", count)
@@ -145,51 +145,51 @@ fun HTML.approve(
                                     div(classes = "muted moreInformationContainer") {
                                         +client.clientDescription
                                         if (((!clientUri.isNullOrBlank())) || ((!client.policyUri.isNullOrBlank())) || ((!client.tosUri.isNullOrBlank())) || ((!contacts.isNullOrBlank()))) {
-                                            div() {
+                                            div {
                                                 id = "toggleMoreInformation"
                                                 style = "cursor: pointer;"
-                                                small() {
+                                                small {
                                                     i(classes = "icon-chevron-right")
                                                     message("approve.more_information",)
                                                 }
                                             }
                                             div(classes = "hide") {
                                                 id = "moreInformation"
-                                                ul() {
+                                                ul {
                                                     if ((!clientUri.isNullOrBlank())) {
-                                                        li() {
+                                                        li {
                                                             message("approve.home_page",)
                                                             +": "
                                                             a("$clientUri") { +clientUri }
                                                         }
                                                     }
                                                     if ((!client.policyUri.isNullOrBlank())) {
-                                                        li() {
+                                                        li {
                                                             message("Policy",)
                                                             +": "
                                                             a(href = "${client.policyUri}") { +(client.policyUri!!) }
                                                         }
                                                     }
                                                     if ((!client.tosUri.isNullOrBlank())) {
-                                                        li() {
+                                                        li {
                                                             message("approve.terms",)
                                                             +": "
                                                             a(href = "${client.tosUri}") { +client.tosUri!! }
                                                         }
                                                     }
                                                     if (((!contacts.isNullOrBlank()))) {
-                                                        li() { message("approve.contacts"); +": $contacts" }
+                                                        li { message("approve.contacts"); +": $contacts" }
                                                     }
                                                 }
                                             }
                                         }
                                     }
                                 } // client description
-                                div() { // redirect block
+                                div { // redirect block
                                     when {
                                         client.redirectUris.isNullOrEmpty() ->
                                             div(classes = "alert alert-block alert-error") {
-                                                h4() {
+                                                h4 {
                                                     i(classes = "icon-info-sign") {}
                                                     message("approve.warning")
                                                     +":"
@@ -211,7 +211,7 @@ fun HTML.approve(
                             div(classes = "span4") {
                                 fieldSet(classes = "well") {
                                     style = "text-align: left"
-                                    legend() {
+                                    legend {
                                         style = "margin-bottom: 0;"
                                         message("approve.access_to")
                                         +": "
@@ -316,7 +316,7 @@ fun HTML.approve(
                         } // div row
                         
                         div(classes="row") {
-                            h3() {
+                            h3 {
                                 message("approve.do_authorize")
                                 +"\"${client.clientName ?: client.clientId}\"?"
                             }

@@ -86,12 +86,12 @@ class MITREidDataService_1_3 : MITREidDataService {
         val newClients = clientRepository.allClients.map { MITREidDataService.ClientDetailsConfiguration(ClientDetailsEntity.from(it)) }
         return MITREidDataService.ExtendedConfiguration12(
             clients = newClients,
-            grants = approvedSiteRepository.all?.map {
+            grants = approvedSiteRepository.all.map {
                 val approvedAccessTokens =
                     tokenRepository.getAccessTokensForApprovedSite(it).mapTo(HashSet()) { it.id!! }
                 ApprovedSite.SerialDelegate(it, approvedAccessTokens)
-            } ?: emptyList(),
-            whitelistedSites = wlSiteRepository.all?.toList() ?: emptyList(),
+            },
+            whitelistedSites = wlSiteRepository.all.toList(),
             blacklistedSites = blSiteRepository.all.toList(),
             authenticationHolders = authHolderRepository.all.map { AuthenticationHolderEntity.SerialDelegate12(it) },
             accessTokens = tokenRepository.allAccessTokens.map { OAuth2AccessTokenEntity.SerialDelegate(it) },

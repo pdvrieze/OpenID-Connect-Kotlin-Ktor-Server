@@ -44,7 +44,7 @@ class TestKtorBlacklistAwareRedirectResolver {
         whenever(blacklistService.isBlacklisted(ArgumentMatchers.anyString())) doReturn false
 
         whenever(client.authorizedGrantTypes) doReturn setOf("authorization_code")
-        whenever(client.registeredRedirectUri) doReturn setOf(goodUri, blacklistedUri)
+        whenever(client.redirectUris) doReturn setOf(goodUri, blacklistedUri)
 
         whenever(config.isHeartMode) doReturn false
 
@@ -65,7 +65,7 @@ class TestKtorBlacklistAwareRedirectResolver {
         whenever(blacklistService.isBlacklisted(blacklistedUri)) doReturn true
 
         whenever(client.authorizedGrantTypes) doReturn setOf("authorization_code")
-        whenever(client.registeredRedirectUri) doReturn setOf(goodUri, blacklistedUri)
+        whenever(client.redirectUris) doReturn setOf(goodUri, blacklistedUri)
 
         whenever(config.isHeartMode) doReturn false
 

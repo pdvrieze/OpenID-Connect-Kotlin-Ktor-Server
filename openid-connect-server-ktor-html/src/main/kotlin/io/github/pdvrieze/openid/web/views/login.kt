@@ -33,7 +33,7 @@ fun HTML.login(
             div("container-fluid main") {
                 with(context.intl) {
 
-                    h1() {message("login.login_with_username_and_password",  )}
+                    h1 {message("login.login_with_username_and_password",  )}
 
                     if (paramError != null) {
                         div(classes="alert alert-error") {message("login.error")}
@@ -43,7 +43,7 @@ fun HTML.login(
                     div(classes="row-fluid") {
                         div(classes="span6 offset1 well") {
                             form(action=loginActionUrl, method=FormMethod.post) {
-                                div() {
+                                div {
                                     div(classes="input-prepend input-block-level") {
                                         span(classes = "add-on") { i(classes = "icon-user") }
                                         input(type=InputType.text,   name="username") {
@@ -57,7 +57,7 @@ fun HTML.login(
                                         }
                                     }
                                 }
-                                div() {
+                                div {
                                     div("input-prepend input-block-level") {
                                         span("add-on") {i("icon-lock")}
                                         input(InputType.password, name="password") {
@@ -70,7 +70,7 @@ fun HTML.login(
                                         }
                                     }
                                 }
-                                div() {
+                                div {
                                     _csrf.requireSession()
                                     if (redirectUri != null) {
                                         hiddenInput(name = "redirect") { value=redirectUri }

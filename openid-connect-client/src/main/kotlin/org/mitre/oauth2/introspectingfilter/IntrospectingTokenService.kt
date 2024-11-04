@@ -124,7 +124,7 @@ class IntrospectingTokenService(
     }
 
     private fun createStoredRequest(token: JsonObject): AuthorizationRequest {
-        return json.decodeFromJsonElement(org.mitre.oauth2.model.convert.AuthorizationRequest.serializer(), token)
+        return json.decodeFromJsonElement(AuthorizationRequest.serializer(), token)
     }
 
     private fun createUserAuthentication(token: JsonObject): Authentication? {
@@ -152,8 +152,8 @@ class IntrospectingTokenService(
         val introspectionUrl: String
         val client: RegisteredClient
         try {
-            introspectionUrl = introspectionConfigurationService!!.getIntrospectionUrl(accessToken)
-            client = introspectionConfigurationService!!.getClientConfiguration(accessToken)
+            introspectionUrl = introspectionConfigurationService.getIntrospectionUrl(accessToken)
+            client = introspectionConfigurationService.getClientConfiguration(accessToken)
         } catch (e: IllegalArgumentException) {
             logger.error("Unable to load introspection URL or client configuration", e)
             return null

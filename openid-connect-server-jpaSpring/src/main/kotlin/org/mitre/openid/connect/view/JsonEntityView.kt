@@ -50,10 +50,10 @@ class JsonEntityView : AbstractView() {
 
         try {
             // TODO this is very bad, but the whole model approach is not good enough.
-            val obj = model[JsonEntityView.ENTITY]
+            val obj = model[ENTITY]
 
             @OptIn(InternalSerializationApi::class)
-            val ser = obj!!.javaClass.kotlin.serializer()!!
+            val ser = obj!!.javaClass.kotlin.serializer()
             Json.encodeToStream(ser, obj, response.outputStream)
         } catch (e: IOException) {
             Companion.logger.error("IOException in JsonEntityView.java: ", e)

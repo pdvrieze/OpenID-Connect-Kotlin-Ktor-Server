@@ -73,7 +73,7 @@ class JWKSetCacheServiceImpl : JWKSetCacheService {
          */
         @Throws(Exception::class)
         override fun load(keyUrl: String): JWTSigningAndValidationService {
-            val jsonString: String? = TODO() //restTemplate.getForObject(keyUrl, String::class.java)
+            val jsonString: String = TODO() //restTemplate.getForObject(keyUrl, String::class.java)
             val jwkSet = JWKSet.parse(jsonString)
 
             val keyStore = JWKSetKeyStore(jwkSet)

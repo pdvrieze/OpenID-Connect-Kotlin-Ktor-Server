@@ -59,7 +59,7 @@ class KtorInMemoryClientLogoLoadingService(
             throw IllegalArgumentException("Unable to load client image")
         }
 
-        val bytes = response.readBytes()
+        val bytes = response.readRawBytes()
         return CachedImage(
             data = bytes,
             contentType = response.contentType()!!.contentType,

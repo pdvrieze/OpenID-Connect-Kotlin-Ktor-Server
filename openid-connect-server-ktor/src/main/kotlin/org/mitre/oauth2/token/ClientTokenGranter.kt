@@ -34,10 +34,6 @@ class RefreshTokenGranter(
         return super.grant(grantType, request, authenticatedClient)
     }
 
-    override fun validateGrantType(grantType: String, clientDetails: OAuthClientDetails) {
-        super.validateGrantType(grantType, clientDetails)
-    }
-
     override suspend fun getOAuth2Authentication(
         client: OAuthClientDetails,
         request: AuthorizationRequest,

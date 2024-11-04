@@ -57,7 +57,7 @@ class BlacklistAwareRedirectResolver(
     /* (non-Javadoc)
 	 * @see org.springframework.security.oauth2.provider.endpoint.DefaultRedirectResolver#redirectMatches(java.lang.String, java.lang.String)
 	 */
-    public override fun redirectMatches(requestedRedirect: String, redirectUri: String): Boolean {
+    override fun redirectMatches(requestedRedirect: String, redirectUri: String): Boolean {
         return when {
             isStrictMatch ->
                 // we're doing a strict string match for all clients

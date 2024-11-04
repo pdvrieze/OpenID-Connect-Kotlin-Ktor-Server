@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletRequest
 class ConfigurationBeanLocaleResolver {
     private lateinit var config: ConfigurationPropertiesBean
 
-    val defaultLocale: Locale?
+    val defaultLocale: Locale
         get() {
             return config.locale
         }

@@ -24,6 +24,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.utils.io.errors.*
+import kotlinx.io.IOException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.mitre.oauth2.exception.AuthenticationException
@@ -88,7 +89,7 @@ class DynamicRegistrationClientConfigurationService(
     }
 
     @Throws(Exception::class)
-    suspend fun loadImpl(serverConfig: ServerConfiguration): RegisteredClient? {
+    suspend fun loadImpl(serverConfig: ServerConfiguration): RegisteredClient {
 
 
         val knownClient = registeredClientService.getByIssuer(serverConfig.issuer!!)

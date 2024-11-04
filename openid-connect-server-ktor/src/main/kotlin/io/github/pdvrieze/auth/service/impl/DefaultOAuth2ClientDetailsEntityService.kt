@@ -363,7 +363,7 @@ class DefaultOAuth2ClientDetailsEntityService(
         checkSectorIdentifierUri(newClientBuilder)
 
         // make sure a client doesn't get any special system scopes
-        ensureNoReservedScopes(newClientBuilder)!!
+        ensureNoReservedScopes(newClientBuilder)
 
         val cleanedClient = newClientBuilder.build()
 

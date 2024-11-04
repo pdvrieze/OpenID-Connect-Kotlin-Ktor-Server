@@ -46,7 +46,7 @@ class RedirectingFormAuthenticationProvider internal constructor(config: Config)
         }
     }
 
-    public class Config internal constructor(name: String?) : AuthenticationProvider.Config(name) {
+    class Config internal constructor(name: String?) : AuthenticationProvider.Config(name) {
         internal var authenticationFunction: AuthenticationFunction<UserPasswordCredential> = { null }
 
         internal var challengeFunction: RedirectingFormAuthChallengeFunction = {
@@ -56,24 +56,24 @@ class RedirectingFormAuthenticationProvider internal constructor(config: Config)
         /**
          * Specifies a POST parameter name used to fetch a username.
          */
-        public var userParamName: String = "user"
+        var userParamName: String = "user"
 
         /**
          * Specifies a POST parameter name used to fetch a password.
          */
-        public var passwordParamName: String = "password"
+        var passwordParamName: String = "password"
 
         /**
          * Specifies a response sent to the client if authentication fails.
          */
-        public fun challenge(function: RedirectingFormAuthChallengeFunction) {
+        fun challenge(function: RedirectingFormAuthChallengeFunction) {
             challengeFunction = function
         }
 
         /**
          * Specifies a redirect URL in a case of failed authentication.
          */
-        public fun challenge(redirectUrl: String) {
+        fun challenge(redirectUrl: String) {
             challenge {
                 call.respondRedirect(redirectUrl)
             }
@@ -82,7 +82,7 @@ class RedirectingFormAuthenticationProvider internal constructor(config: Config)
         /**
          * Specifies a redirect URL in a case of failed authentication.
          */
-        public fun challenge(redirect: Url) {
+        fun challenge(redirect: Url) {
             challenge(redirect.toString())
         }
 
@@ -90,7 +90,7 @@ class RedirectingFormAuthenticationProvider internal constructor(config: Config)
          * Sets a validation function that checks a specified [UserPasswordCredential] instance and
          * returns [Principal] in a case of successful authentication or null if authentication fails.
          */
-        public fun validate(body: suspend ApplicationCall.(UserPasswordCredential) -> UserIdPrincipal?) {
+        fun validate(body: suspend ApplicationCall.(UserPasswordCredential) -> UserIdPrincipal?) {
             authenticationFunction = body
         }
 
@@ -104,7 +104,7 @@ class RedirectingFormAuthenticationProvider internal constructor(config: Config)
  * Form-based authentication uses a web form to collect credential information and authenticate a user.
  * To learn how to configure it, see [Form-based authentication](https://ktor.io/docs/form.html).
  */
-public fun AuthenticationConfig.redirectingForm(
+fun AuthenticationConfig.redirectingForm(
     name: String? = null,
     configure: RedirectingFormAuthenticationProvider.Config.() -> Unit
 ) {
@@ -115,11 +115,11 @@ public fun AuthenticationConfig.redirectingForm(
 /**
  * A context for [FormAuthChallengeFunction].
  */
-public class RedirectingFormAuthChallengeContext(public val call: ApplicationCall)
+class RedirectingFormAuthChallengeContext(val call: ApplicationCall)
 
 /**
  * Specifies what to send back if form-based authentication fails.
  */
-public typealias RedirectingFormAuthChallengeFunction = suspend RedirectingFormAuthChallengeContext.(UserPasswordCredential?) -> Unit
+typealias RedirectingFormAuthChallengeFunction = suspend RedirectingFormAuthChallengeContext.(UserPasswordCredential?) -> Unit
 
 private val redirectingFormAuthenticationChallengeKey: Any = "RedirectingFormAuth"

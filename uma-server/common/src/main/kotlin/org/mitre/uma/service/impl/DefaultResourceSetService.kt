@@ -89,8 +89,8 @@ class DefaultResourceSetService(
             // nothing to check, no problem!
             return true
         }
-        for (policy in rs.policies!!) {
-            if (!rs.scopes.containsAll(policy.scopes!!)) {
+        for (policy in rs.policies) {
+            if (!rs.scopes.containsAll(policy.scopes)) {
                 return false
             }
         }

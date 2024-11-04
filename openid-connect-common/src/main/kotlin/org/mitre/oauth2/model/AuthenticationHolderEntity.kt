@@ -149,7 +149,7 @@ class AuthenticationHolderEntity(
     }
 
     @KXS_Serializable
-    public class SerialDelegate10(
+    class SerialDelegate10(
         @SerialName("id")
         val currentId: Long? = null,
         @SerialName("ownerId")
@@ -172,7 +172,7 @@ class AuthenticationHolderEntity(
 
     @OptIn(ExperimentalSerializationApi::class)
     @KXS_Serializable
-    public class SerialDelegate12(
+    class SerialDelegate12(
         @SerialName("id")
         val currentId: Long,
         @SerialName("requestParameters")

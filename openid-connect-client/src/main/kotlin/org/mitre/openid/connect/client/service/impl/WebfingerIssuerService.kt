@@ -26,6 +26,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.util.*
 import io.ktor.utils.io.errors.*
+import kotlinx.io.IOException
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject

@@ -359,7 +359,7 @@ class SpringOAuth2ClientDetailsEntityService : SpringClientDetailsEntityService 
             throw IllegalArgumentException("Neither old client or new client can be null!")
         }
 
-        val registeredRedirectUri = newClient.registeredRedirectUri
+        val registeredRedirectUri = newClient.redirectUris
         if (registeredRedirectUri != null) {
             for (uri in registeredRedirectUri) {
                 require(!blacklistedSiteService.isBlacklisted(uri)) { "Client URI is blacklisted: $uri" }

@@ -72,7 +72,7 @@ class SignedAuthRequestUrlBuilder : AuthRequestUrlBuilder {
 
 
         val alg = clientConfig.requestObjectSigningAlg
-            ?: signingAndValidationService.defaultSigningAlgorithm!!
+            ?: signingAndValidationService.defaultSigningAlgorithm
 
         val jwt = SignedJWT(JWSHeader(alg), claims)
 

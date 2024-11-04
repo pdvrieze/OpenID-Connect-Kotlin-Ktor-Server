@@ -57,9 +57,9 @@ class WhitelistAPI {
     fun getAllWhitelistedSites(m: ModelMap): String {
         val all = whitelistService.all
 
-        m[org.mitre.openid.connect.view.JsonEntityView.ENTITY] = all
+        m[JsonEntityView.ENTITY] = all
 
-        return org.mitre.openid.connect.view.JsonEntityView.VIEWNAME
+        return JsonEntityView.VIEWNAME
     }
 
     /**
@@ -77,13 +77,13 @@ class WhitelistAPI {
         } catch (e: SerializationException) {
             logger.error("addNewWhitelistedSite failed due to SerializationException", e)
             m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
-            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "Could not save new whitelisted site. The server encountered a JSON syntax exception. Contact a system administrator for assistance.")
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Could not save new whitelisted site. The server encountered a JSON syntax exception. Contact a system administrator for assistance.")
+            return JsonErrorView.VIEWNAME
         } catch (e: IllegalStateException) {
             logger.error("addNewWhitelistedSite failed due to IllegalStateException", e)
             m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
-            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "Could not save new whitelisted site. The server encountered an IllegalStateException. Refresh and try again - if the problem persists, contact a system administrator for assistance.")
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Could not save new whitelisted site. The server encountered an IllegalStateException. Refresh and try again - if the problem persists, contact a system administrator for assistance.")
+            return JsonErrorView.VIEWNAME
         }
 
         // save the id of the person who created this
@@ -91,9 +91,9 @@ class WhitelistAPI {
 
         val newWhitelist = whitelistService.saveNew(whitelist)
 
-        m[org.mitre.openid.connect.view.JsonEntityView.ENTITY] = newWhitelist
+        m[JsonEntityView.ENTITY] = newWhitelist
 
-        return org.mitre.openid.connect.view.JsonEntityView.VIEWNAME
+        return JsonEntityView.VIEWNAME
     }
 
     /**
@@ -116,15 +116,15 @@ class WhitelistAPI {
         } catch (e: SerializationException) {
             logger.error("updateWhitelistedSite failed due to SerializationException", e)
             m[HttpCodeView.CODE] = HttpStatus.BAD_REQUEST
-            m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] =
+            m[JsonErrorView.ERROR_MESSAGE] =
                 "Could not update whitelisted site. The server encountered a JSON syntax exception. Contact a system administrator for assistance."
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            return JsonErrorView.VIEWNAME
         } catch (e: IllegalStateException) {
             logger.error("updateWhitelistedSite failed due to IllegalStateException", e)
             m[HttpCodeView.CODE] = HttpStatus.BAD_REQUEST
-            m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] =
+            m[JsonErrorView.ERROR_MESSAGE] =
                 "Could not update whitelisted site. The server encountered an IllegalStateException. Refresh and try again - if the problem persists, contact a system administrator for assistance."
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            return JsonErrorView.VIEWNAME
         }
 
         val oldWhitelist = whitelistService.getById(id)
@@ -132,15 +132,15 @@ class WhitelistAPI {
         if (oldWhitelist == null) {
             logger.error("updateWhitelistedSite failed; whitelist with id $id could not be found.")
             m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
-            m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] =
+            m[JsonErrorView.ERROR_MESSAGE] =
                 "Could not update whitelisted site. The requested whitelisted site with id ${id} could not be found."
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            return JsonErrorView.VIEWNAME
         } else {
             val newWhitelist = whitelistService.update(oldWhitelist, whitelist)
 
-            m[org.mitre.openid.connect.view.JsonEntityView.ENTITY] = newWhitelist
+            m[JsonEntityView.ENTITY] = newWhitelist
 
-            return org.mitre.openid.connect.view.JsonEntityView.VIEWNAME
+            return JsonEntityView.VIEWNAME
         }
     }
 
@@ -155,9 +155,9 @@ class WhitelistAPI {
         if (whitelist == null) {
             logger.error("deleteWhitelistedSite failed; whitelist with id $id could not be found.")
             m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
-            m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] =
+            m[JsonErrorView.ERROR_MESSAGE] =
                 "Could not delete whitelisted site. The requested whitelisted site with id ${id} could not be found."
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            return JsonErrorView.VIEWNAME
         } else {
             m[HttpCodeView.CODE] = HttpStatus.OK
             whitelistService.remove(whitelist)
@@ -175,12 +175,12 @@ class WhitelistAPI {
         if (whitelist == null) {
             logger.error("getWhitelistedSite failed; whitelist with id $id could not be found.")
             m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
-            m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] = "The requested whitelisted site with id ${id} could not be found."
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            m[JsonErrorView.ERROR_MESSAGE] = "The requested whitelisted site with id ${id} could not be found."
+            return JsonErrorView.VIEWNAME
         } else {
-            m[org.mitre.openid.connect.view.JsonEntityView.ENTITY] = whitelist
+            m[JsonEntityView.ENTITY] = whitelist
 
-            return org.mitre.openid.connect.view.JsonEntityView.VIEWNAME
+            return JsonEntityView.VIEWNAME
         }
     }
 

@@ -32,8 +32,8 @@ class MatchAllClaimsOnAnyPolicy : org.mitre.uma.service.ClaimsProcessingService 
 	 */
     override fun claimsAreSatisfied(rs: ResourceSet, ticket: PermissionTicket): ClaimProcessingResult {
         val allUnmatched: MutableCollection<Claim> = HashSet()
-        for (policy in rs.policies!!) {
-            val unmatched = checkIndividualClaims(policy.claimsRequired!!, ticket.claimsSupplied!!)
+        for (policy in rs.policies) {
+            val unmatched = checkIndividualClaims(policy.claimsRequired, ticket.claimsSupplied!!)
             if (unmatched.isEmpty()) {
                 // we found something that's satisfied the claims, let's go with it!
                 return ClaimProcessingResult(policy)
@@ -56,7 +56,7 @@ class MatchAllClaimsOnAnyPolicy : org.mitre.uma.service.ClaimsProcessingService 
         // see if each of the required claims has a counterpart in the supplied claims set
         for (required in claimsRequired) {
             for (supplied in claimsSupplied) {
-                if (required.issuer!!.containsAll(supplied.issuer!!)) {
+                if (required.issuer.containsAll(supplied.issuer)) {
                     // it's from the right issuer
 
                     if (required.name == supplied.name && required.value == supplied.value) {

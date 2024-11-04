@@ -168,7 +168,7 @@ class PolicyAPI {
             return HttpCodeView.VIEWNAME
         }
 
-        for (claim in p.claimsRequired!!) {
+        for (claim in p.claimsRequired) {
             if (claim.id != null) {
                 logger.warn("Tried to add a policy with a non-null claim ID: " + claim.id)
                 m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
@@ -219,7 +219,7 @@ class PolicyAPI {
             return HttpCodeView.VIEWNAME
         }
 
-        for (policy in rs.policies!!) {
+        for (policy in rs.policies) {
             if (policy.id == pid) {
                 // found it!
                 m.addAttribute(JsonEntityView.ENTITY, policy)
@@ -274,11 +274,11 @@ class PolicyAPI {
                 // find the existing claim IDs, make sure we're not overwriting anything from another policy
 
                 val claimIds: MutableSet<Long?> = HashSet()
-                for (claim in policy.claimsRequired!!) {
+                for (claim in policy.claimsRequired) {
                     claimIds.add(claim.id)
                 }
 
-                for (claim in p.claimsRequired!!) {
+                for (claim in p.claimsRequired) {
                     if (claim.id != null && !claimIds.contains(claim.id)) {
                         logger.warn("Tried to add a policy with a an unmatched claim ID: got " + claim.id + " expected " + claimIds)
                         m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
@@ -332,7 +332,7 @@ class PolicyAPI {
         }
 
 
-        for (policy in rs.policies!!) {
+        for (policy in rs.policies) {
             if (policy.id == pid) {
                 // found it!
                 val newPolicies = rs.policies.toMutableList().apply { remove(policy) }

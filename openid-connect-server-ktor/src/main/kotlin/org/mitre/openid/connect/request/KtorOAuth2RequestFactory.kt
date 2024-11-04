@@ -7,7 +7,7 @@ import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.util.getLogger
 import java.time.Instant
 
-open class KtorOAuth2RequestFactory constructor(
+open class KtorOAuth2RequestFactory(
     protected val clientDetailsService: ClientDetailsEntityService,
 ) : OAuth2RequestFactory {
 

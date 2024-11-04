@@ -42,7 +42,7 @@ object ClaimsCollectionEndpoint : KtorEndpoint {
     override fun Route.addRoutes() {
         route("/rqp_claims") {
             authenticate {
-                get() { collectClaims()}
+                get { collectClaims()}
             }
 
         }

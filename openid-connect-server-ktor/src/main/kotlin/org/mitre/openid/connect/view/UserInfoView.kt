@@ -67,7 +67,7 @@ object UserInfoView {
         // different, whereas we are only interested in matching the Entry<>'s key values.
         val result = mutableMapOf<String, JsonElement>()
         for ((key, value) in obj.entries) {
-            if (allowedByScope!!.contains(key)
+            if (allowedByScope.contains(key)
                 || authorizedByClaims.contains(key)
             ) {
                 // it's allowed either by scope or by the authorized claims (either way is fine with us)

@@ -57,9 +57,9 @@ class BlacklistAPI {
     fun getAllBlacklistedSites(m: ModelMap): String {
         val all = blacklistService.all
 
-        m[org.mitre.openid.connect.view.JsonEntityView.ENTITY] = all
+        m[JsonEntityView.ENTITY] = all
 
-        return org.mitre.openid.connect.view.JsonEntityView.VIEWNAME
+        return JsonEntityView.VIEWNAME
     }
 
     /**
@@ -71,22 +71,22 @@ class BlacklistAPI {
         try {
             val blacklist = Json.decodeFromString<BlacklistedSite>(jsonString)
             val newBlacklist = blacklistService.saveNew(blacklist)
-            m[org.mitre.openid.connect.view.JsonEntityView.ENTITY] = newBlacklist
+            m[JsonEntityView.ENTITY] = newBlacklist
         } catch (e: SerializationException) {
             logger.error("addNewBlacklistedSite failed due to SerializationException: ", e)
             m[HttpCodeView.CODE] = HttpStatus.BAD_REQUEST
-            m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] =
+            m[JsonErrorView.ERROR_MESSAGE] =
                 "Could not save new blacklisted site. The server encountered a JSON syntax exception. Contact a system administrator for assistance."
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            return JsonErrorView.VIEWNAME
         } catch (e: IllegalStateException) {
             logger.error("addNewBlacklistedSite failed due to IllegalStateException", e)
             m[HttpCodeView.CODE] = HttpStatus.BAD_REQUEST
-            m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] =
+            m[JsonErrorView.ERROR_MESSAGE] =
                 "Could not save new blacklisted site. The server encountered an IllegalStateException. Refresh and try again - if the problem persists, contact a system administrator for assistance."
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            return JsonErrorView.VIEWNAME
         }
 
-        return org.mitre.openid.connect.view.JsonEntityView.VIEWNAME
+        return JsonEntityView.VIEWNAME
     }
 
     /**
@@ -109,15 +109,15 @@ class BlacklistAPI {
         } catch (e: SerializationException) {
             logger.error("updateBlacklistedSite failed due to SerializationException", e)
             m[HttpCodeView.CODE] = HttpStatus.BAD_REQUEST
-            m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] =
+            m[JsonErrorView.ERROR_MESSAGE] =
                 "Could not update blacklisted site. The server encountered a JSON syntax exception. Contact a system administrator for assistance."
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            return JsonErrorView.VIEWNAME
         } catch (e: IllegalStateException) {
             logger.error("updateBlacklistedSite failed due to IllegalStateException", e)
             m[HttpCodeView.CODE] = HttpStatus.BAD_REQUEST
-            m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] =
+            m[JsonErrorView.ERROR_MESSAGE] =
                 "Could not update blacklisted site. The server encountered an IllegalStateException. Refresh and try again - if the problem persists, contact a system administrator for assistance."
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            return JsonErrorView.VIEWNAME
         }
 
 
@@ -126,15 +126,15 @@ class BlacklistAPI {
         if (oldBlacklist == null) {
             logger.error("updateBlacklistedSite failed; blacklist with id $id could not be found")
             m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
-            m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] =
+            m[JsonErrorView.ERROR_MESSAGE] =
                 "Could not update blacklisted site. The requested blacklist with id " + id + "could not be found."
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            return JsonErrorView.VIEWNAME
         } else {
             val newBlacklist = blacklistService.update(oldBlacklist, blacklist)
 
-            m[org.mitre.openid.connect.view.JsonEntityView.ENTITY] = newBlacklist
+            m[JsonEntityView.ENTITY] = newBlacklist
 
-            return org.mitre.openid.connect.view.JsonEntityView.VIEWNAME
+            return JsonEntityView.VIEWNAME
         }
     }
 
@@ -147,9 +147,9 @@ class BlacklistAPI {
 
         if (blacklist == null) {
             logger.error("deleteBlacklistedSite failed; blacklist with id $id could not be found")
-            m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] =
+            m[JsonErrorView.ERROR_MESSAGE] =
                 "Could not delete bladklist. The requested bladklist with id $id could not be found."
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            return JsonErrorView.VIEWNAME
         } else {
             m[HttpCodeView.CODE] = HttpStatus.OK
             blacklistService.remove(blacklist)
@@ -167,13 +167,13 @@ class BlacklistAPI {
         if (blacklist == null) {
             logger.error("getBlacklistedSite failed; blacklist with id $id could not be found")
             m[HttpCodeView.CODE] = HttpStatus.NOT_FOUND
-            m[org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE] =
+            m[JsonErrorView.ERROR_MESSAGE] =
                 "Could not delete bladklist. The requested bladklist with id $id could not be found."
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            return JsonErrorView.VIEWNAME
         } else {
-            m[org.mitre.openid.connect.view.JsonEntityView.ENTITY] = blacklist
+            m[JsonEntityView.ENTITY] = blacklist
 
-            return org.mitre.openid.connect.view.JsonEntityView.VIEWNAME
+            return JsonEntityView.VIEWNAME
         }
     }
 

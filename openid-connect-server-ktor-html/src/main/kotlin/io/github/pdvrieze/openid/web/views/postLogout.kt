@@ -18,7 +18,7 @@ fun HTML.postLogout(context: WebContext) {
 
                 div(classes="well", ) {
                     style="text-align: center"
-                    h1() { message("logout.post.header")}
+                    h1 { message("logout.post.header")}
                     div {
                         val a = context.authentication
                         if (a != null && GrantedAuthority.ROLE_USER !in a.authorities) {

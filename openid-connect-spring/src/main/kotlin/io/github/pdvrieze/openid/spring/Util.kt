@@ -168,7 +168,7 @@ fun SpringOAuth2Authentication.fromSpring(): AuthenticatedAuthorizationRequest {
     )
 }
 
-fun Authentication.fromSpring(): SavedUserAuthentication? {
+fun Authentication.fromSpring(): SavedUserAuthentication {
     return SavedUserAuthentication(
         name = name,
         id = null,

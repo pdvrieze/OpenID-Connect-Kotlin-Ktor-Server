@@ -607,7 +607,7 @@ data class NormalizedResponseType(val code: Boolean, val token: Boolean, val idT
     }.joinToString(" ")
 }
 
-internal class ResponseTypeSerializer() : KSerializer<NormalizedResponseType> {
+internal class ResponseTypeSerializer : KSerializer<NormalizedResponseType> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("ResponseType", PrimitiveKind.STRING)
 
     override fun serialize(encoder: Encoder, value: NormalizedResponseType) {

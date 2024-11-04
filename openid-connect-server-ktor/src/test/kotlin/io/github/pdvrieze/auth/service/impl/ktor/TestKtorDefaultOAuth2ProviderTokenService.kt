@@ -168,8 +168,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
 //		when(scopeService.removeRestrictedAndReservedScopes(anySet())).then(returnsFirstArg());
         whenever(tokenEnhancer.enhance(isA<OAuth2AccessTokenEntity.Builder>(), isA<AuthenticatedAuthorizationRequest>()))
             .thenAnswer { invocation ->
-                Unit
-//                val args = invocation.arguments
+                //                val args = invocation.arguments
 //                args[0] as OAuth2AccessTokenEntity
             }
 

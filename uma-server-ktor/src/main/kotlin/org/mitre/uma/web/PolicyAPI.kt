@@ -186,7 +186,7 @@ object PolicyAPI: KtorEndpoint {
         }
 
         // if we made it this far, we haven't found it
-        val policy = rs.policies.firstOrNull() { it.id == pid } ?: return call.respond(HttpStatusCode.NotFound)
+        val policy = rs.policies.firstOrNull { it.id == pid } ?: return call.respond(HttpStatusCode.NotFound)
 
         return call.respondJson(policy)
     }

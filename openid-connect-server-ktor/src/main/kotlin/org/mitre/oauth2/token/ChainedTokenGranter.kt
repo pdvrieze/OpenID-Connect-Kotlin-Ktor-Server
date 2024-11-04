@@ -7,7 +7,7 @@ import org.mitre.openid.connect.request.OAuth2RequestFactory
 /**
  * @author jricher
  */
-class ChainedTokenGranter constructor(// keep down-cast versions so we can get to the right queries
+class ChainedTokenGranter(// keep down-cast versions so we can get to the right queries
     tokenServices: OAuth2TokenEntityService,
     clientResolver: ClientResolver,
     requestFactory: OAuth2RequestFactory

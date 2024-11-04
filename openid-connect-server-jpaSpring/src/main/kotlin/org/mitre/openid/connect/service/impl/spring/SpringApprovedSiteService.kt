@@ -157,7 +157,7 @@ class SpringApprovedSiteService : ApprovedSiteService {
 
     private val expired_predicate: (ApprovedSite?) -> Boolean = { input -> input != null && input.isExpired }
     private val expired
-        get() = approvedSiteRepository.all?.filter(expired_predicate)
+        get() = approvedSiteRepository.all.filter(expired_predicate)
 
     override fun getApprovedAccessTokens(
         approvedSite: ApprovedSite

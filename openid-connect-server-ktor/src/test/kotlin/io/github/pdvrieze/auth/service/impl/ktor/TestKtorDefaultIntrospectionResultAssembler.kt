@@ -384,7 +384,7 @@ class TestKtorDefaultIntrospectionResultAssembler {
 
     private fun permission(resourceSetId: Long, vararg scopes: String): Permission {
         val permission = org.mockito.kotlin.mock<Permission>(defaultAnswer = org.mockito.Mockito.RETURNS_DEEP_STUBS)
-        org.mockito.kotlin.given(permission.resourceSet!!.id).willReturn(resourceSetId)
+        org.mockito.kotlin.given(permission.resourceSet.id).willReturn(resourceSetId)
         org.mockito.kotlin.given(permission.scopes).willReturn(scopes(*scopes))
         return permission
     }

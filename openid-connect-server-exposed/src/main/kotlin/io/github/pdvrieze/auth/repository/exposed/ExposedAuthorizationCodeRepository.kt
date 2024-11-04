@@ -22,11 +22,11 @@ class ExposedAuthorizationCodeRepository(database: Database, private val authHol
 
         return transaction(database) {
             val newId = AuthorizationCodes.save(oldId) { b ->
-                b[AuthorizationCodes.code] = authorizationCode.code
+                b[code] = authorizationCode.code
                 authorizationCode.authenticationHolder?.let { ah ->
-                    b[AuthorizationCodes.authHolderId] = ah.id
+                    b[authHolderId] = ah.id
                 }
-                b[AuthorizationCodes.expiration] = authorizationCode.expiration?.toInstant()
+                b[expiration] = authorizationCode.expiration?.toInstant()
             }
             authorizationCode.copy(id = newId)
         }

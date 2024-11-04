@@ -117,7 +117,7 @@ class DeviceEndpoint {
             val dc = deviceCodeService.createNewDeviceCode(requestedScopes, client, parameters)
 
             val response: MutableMap<String, Any?> = HashMap()
-            response["device_code"] = dc!!.deviceCode
+            response["device_code"] = dc.deviceCode
             response["user_code"] = dc.userCode
             response["verification_uri"] = config.issuer + USER_URL
             if (client.deviceCodeValiditySeconds != null) {

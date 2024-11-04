@@ -10,7 +10,7 @@ import kotlinx.html.li
 private inline fun UL.navMenuItem(isActive: Boolean, url: String, crossinline message: A.() -> Unit) {
     when {
         isActive -> li("active") { a_data(href = "") { message() } }
-        else -> li() { a_data(href = url) { message() } }
+        else -> li { a_data(href = url) { message() } }
     }
 }
 

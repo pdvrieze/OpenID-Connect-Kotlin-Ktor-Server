@@ -154,7 +154,7 @@ class RegisteredClient(
         get() = client.redirectUris
 
     val registeredRedirectUri: Set<String>?
-        get() = client.registeredRedirectUri
+        get() = client.redirectUris
 
     val resourceIds: Set<String>
         get() = client.resourceIds

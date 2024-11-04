@@ -13,8 +13,8 @@ fun HTML.contact(context: WebContext) {
         with(context.intl) {
             div(classes = "span10") {
                 div(classes = "hero-unit") {
-                    h2() { message("contact.title") }
-                    p() { message("contact.body") }
+                    h2 { message("contact.title") }
+                    p { message("contact.body") }
                 }
             }
         }

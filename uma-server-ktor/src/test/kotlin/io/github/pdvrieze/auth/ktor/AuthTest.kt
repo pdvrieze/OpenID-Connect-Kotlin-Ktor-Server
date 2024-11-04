@@ -70,7 +70,7 @@ class AuthTest : ApiTest(FormAuthEndpoint) {
     }
 
     @Test
-    public fun testMissingUser() = testEndpoint {
+    fun testMissingUser() = testEndpoint {
 
         val loginResp = client.submitForm(
             url = "/login",
@@ -83,7 +83,7 @@ class AuthTest : ApiTest(FormAuthEndpoint) {
     }
 
     @Test
-    public fun testInvalidPwd() = testEndpoint {
+    fun testInvalidPwd() = testEndpoint {
 
         val loginResp = client.submitForm(
             url = "/login",
@@ -96,7 +96,7 @@ class AuthTest : ApiTest(FormAuthEndpoint) {
     }
 
     @Test
-    public fun testDoLogin() = testEndpoint {
+    fun testDoLogin() = testEndpoint {
 
         val nonRedirectingClient = createClient {
             followRedirects = false
@@ -118,7 +118,7 @@ class AuthTest : ApiTest(FormAuthEndpoint) {
     }
 
     @Test
-    public fun testLoginUserInfo() = testApplication {
+    fun testLoginUserInfo() = testApplication {
         customConfigure()
 
         val client = createClient {
@@ -149,7 +149,7 @@ class AuthTest : ApiTest(FormAuthEndpoint) {
     }
 
     @Test
-    public fun testDoLoginRedirect() = testApplication {
+    fun testDoLoginRedirect() = testApplication {
         customConfigure()
 
         val nonRedirectingClient = createClient {
@@ -175,10 +175,6 @@ class AuthTest : ApiTest(FormAuthEndpoint) {
 
     }
 
-    override fun configureApplication(testBuilder: ApplicationTestBuilder) {
-        super.configureApplication(testBuilder)
-    }
-
     private fun ApplicationTestBuilder.customConfigure() {
         application {
             install(OpenIdContextPlugin) { context = testContext }
@@ -198,7 +194,7 @@ class AuthTest : ApiTest(FormAuthEndpoint) {
                 }
             }
 
-            configureRouting() {
+            configureRouting {
                 with(FormAuthEndpoint) { addRoutes() }
                 authenticate {
                     get("/user") {

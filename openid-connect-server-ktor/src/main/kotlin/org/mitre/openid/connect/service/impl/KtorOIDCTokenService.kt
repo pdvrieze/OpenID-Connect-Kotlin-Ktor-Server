@@ -104,7 +104,7 @@ class KtorOIDCTokenService(
         idClaims.audience(listOf(client.clientId))
         idClaims.jwtID(UUID.randomUUID().toString()) // set a random NONCE in the middle of it
 
-        val nonce = request.extensions[ConnectRequestParameters.NONCE] as String?
+        val nonce = request.extensions[ConnectRequestParameters.NONCE]
         if (!nonce.isNullOrEmpty()) {
             idClaims.claim("nonce", nonce)
         }
@@ -113,7 +113,7 @@ class KtorOIDCTokenService(
 
         if (responseTypes!=null && responseTypes.contains("token")) {
             // calculate the token hash
-            val at_hash = IdTokenHashUtils.getAccessTokenHash(signingAlg!!, accessToken)
+            val at_hash = IdTokenHashUtils.getAccessTokenHash(signingAlg, accessToken)
             idClaims.claim("at_hash", at_hash)
         }
 
@@ -174,12 +174,12 @@ class KtorOIDCTokenService(
     /**
      * @throws AuthenticationException
      */
-    override fun createRegistrationAccessToken(client: OAuthClientDetails): OAuth2AccessTokenEntity? {
+    override fun createRegistrationAccessToken(client: OAuthClientDetails): OAuth2AccessTokenEntity {
         return createAssociatedToken(client, hashSetOf(SystemScopeService.REGISTRATION_TOKEN_SCOPE))
     }
 
 
-    override fun createResourceAccessToken(client: OAuthClientDetails): OAuth2AccessTokenEntity? {
+    override fun createResourceAccessToken(client: OAuthClientDetails): OAuth2AccessTokenEntity {
         return createAssociatedToken(client, hashSetOf(SystemScopeService.RESOURCE_TOKEN_SCOPE))
     }
 

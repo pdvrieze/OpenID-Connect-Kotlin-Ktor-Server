@@ -120,7 +120,7 @@ class DefaultOIDCTokenService : OIDCTokenService {
         idClaims.audience(listOf(client.clientId))
         idClaims.jwtID(UUID.randomUUID().toString()) // set a random NONCE in the middle of it
 
-        val nonce = request.extensions[ConnectRequestParameters.NONCE] as String?
+        val nonce = request.extensions[ConnectRequestParameters.NONCE]
         if (!nonce.isNullOrEmpty()) {
             idClaims.claim("nonce", nonce)
         }
@@ -129,7 +129,7 @@ class DefaultOIDCTokenService : OIDCTokenService {
 
         if (responseTypes!=null && responseTypes.contains("token")) {
             // calculate the token hash
-            val at_hash = IdTokenHashUtils.getAccessTokenHash(signingAlg!!, accessToken)
+            val at_hash = IdTokenHashUtils.getAccessTokenHash(signingAlg, accessToken)
             idClaims.claim("at_hash", at_hash)
         }
 

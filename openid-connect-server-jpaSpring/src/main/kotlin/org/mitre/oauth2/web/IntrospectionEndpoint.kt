@@ -103,7 +103,7 @@ class IntrospectionEndpoint {
             // directly authenticated clients get a subset of any scopes that they've registered for
             authClient.scope?.let { authScopes.addAll(it) }
 
-            if (!org.mitre.oauth2.web.AuthenticationUtilities.hasRole(auth, "ROLE_CLIENT")
+            if (!AuthenticationUtilities.hasRole(auth, "ROLE_CLIENT")
                 || !authClient.isAllowIntrospection
             ) {
                 // this client isn't allowed to do direct introspection
@@ -146,7 +146,7 @@ class IntrospectionEndpoint {
 
                 refreshToken = tokenServices.getRefreshToken(tokenValue)
 
-                tokenClient = refreshToken!!.client
+                tokenClient = refreshToken.client
 
                 // get the user information of the user that authorized this token in the first place
                 val userName = refreshToken.authenticationHolder.authenticatedAuthorizationRequest.name

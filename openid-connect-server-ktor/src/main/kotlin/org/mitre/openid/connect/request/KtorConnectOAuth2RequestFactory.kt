@@ -45,7 +45,7 @@ import java.text.ParseException
 
 
 // TODO Spring specific
-class KtorConnectOAuth2RequestFactory constructor(
+class KtorConnectOAuth2RequestFactory(
     clientDetailsService: ClientDetailsEntityService,
     val validators: ClientKeyCacheService,
     val encryptionService: JWTEncryptionAndDecryptionService,
@@ -113,9 +113,7 @@ class KtorConnectOAuth2RequestFactory constructor(
     }
 
     private suspend fun parseToJwt(jwtString: String, request: AuthorizationRequest): JWT {
-        val jwt = JWTParser.parse(jwtString)
-
-        when (jwt) {
+        when (val jwt = JWTParser.parse(jwtString)) {
             is SignedJWT -> {
                 // it's a signed JWT, check the signature
 

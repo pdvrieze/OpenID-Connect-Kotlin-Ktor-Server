@@ -46,7 +46,7 @@ import org.mitre.web.util.userInfoService
 object UserInfoEndpoint: KtorEndpoint {
     override fun Route.addRoutes() {
         route("/userinfo") {
-            get() { getInfo() }
+            get { getInfo() }
             post { getInfo() }
         }
     }

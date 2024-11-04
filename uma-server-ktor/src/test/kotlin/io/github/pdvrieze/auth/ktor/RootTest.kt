@@ -91,7 +91,7 @@ class RootTest : ApiTest(RootController) {
                 }
             }
 
-            configureRouting() {
+            configureRouting {
                 with(RootController) { addRoutes() }
             }
         }

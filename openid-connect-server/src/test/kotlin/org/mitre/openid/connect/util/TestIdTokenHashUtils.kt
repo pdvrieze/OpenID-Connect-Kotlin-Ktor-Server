@@ -62,7 +62,7 @@ class TestIdTokenHashUtils {
         whenever(mockToken256.jwt)
             .thenReturn(JWTParser.parse("eyJhbGciOiJub25lIn0.eyJhbGciOiJIUzI1NiIsInN1YiI6ImV4YW1wbGVfdXNlciIsImlzcyI6Ind3dy5leGFtcGxlLmNvbSIsInR5cCI6IkpXVCJ9."))
 
-        mockToken256.jwt!!.serialize()
+        mockToken256.jwt.serialize()
         val expectedHash = Base64URL("EP1gXNeESRH-n57baopfTQ")
 
         val resultHash = getAccessTokenHash(JWSAlgorithm.HS256, mockToken256)
@@ -89,7 +89,7 @@ class TestIdTokenHashUtils {
          * base64url of hash = BWfFK73PQI36M1rg9R6VjMyWOE0-XvBK
          */
 
-        mockToken384.jwt!!.serialize()
+        mockToken384.jwt.serialize()
         val expectedHash = Base64URL("BWfFK73PQI36M1rg9R6VjMyWOE0-XvBK")
 
         val resultHash = getAccessTokenHash(JWSAlgorithm.ES384, mockToken384)
@@ -116,7 +116,7 @@ class TestIdTokenHashUtils {
          * base64url of hash = vGH3QMY-knpACkLgzdkTqu3C9jtvbf2Wk_RSu2vAx8k
          */
 
-        mockToken512.jwt!!.serialize()
+        mockToken512.jwt.serialize()
         val expectedHash = Base64URL("vGH3QMY-knpACkLgzdkTqu3C9jtvbf2Wk_RSu2vAx8k")
 
         val resultHash = getAccessTokenHash(JWSAlgorithm.RS512, mockToken512)

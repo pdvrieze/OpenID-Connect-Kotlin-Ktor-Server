@@ -45,7 +45,7 @@ import org.mitre.web.util.userInfoService
 
 object IntrospectionEndpoint: KtorEndpoint {
     override fun Route.addRoutes() {
-        authenticate() {
+        authenticate {
             get("/introspection") {
                 val tokenValue = call.request.queryParameters["token"]
                 val tokenType = call.request.queryParameters["token_type_hint"]
@@ -139,7 +139,7 @@ object IntrospectionEndpoint: KtorEndpoint {
 
                 refreshToken = tokenService.getRefreshToken(tokenValue)
 
-                tokenClient = refreshToken!!.client
+                tokenClient = refreshToken.client
 
                 // get the user information of the user that authorized this token in the first place
                 val userName = refreshToken.authenticationHolder.authenticatedAuthorizationRequest.name

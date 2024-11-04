@@ -30,9 +30,9 @@ fun HTML.manage(context: WebContext) {
                 div(classes = "modal-header") {
                     button(type = ButtonType.button, classes = "close") {
                         attributes["data-dismiss"] = "modal"
-                        +Entities.times;
+                        +Entities.times
                     }
-                    h3() { id = "modalAlertLabel" }
+                    h3 { id = "modalAlertLabel" }
                 }
                 div(classes = "modal-body") {}
                 div(classes = "modal-footer") {
@@ -48,23 +48,23 @@ fun HTML.manage(context: WebContext) {
                     sidebar(context)
                     div(classes = "span10") {
                         div(classes = "content span12") {
-                            div() { id = "breadcrumbs" }
+                            div { id = "breadcrumbs" }
                             div(classes = "sheet hide fade",) {
                                 id = "loadingbox"
                                 attributes["data-sheet-parent"] = "#breadcrumbs"
                                 div(classes = "sheet-body") {
-                                    p() {
+                                    p {
                                         message("manage.loading",)
                                         +":"
                                     }
-                                    p() { span() { id = "loading" } }
+                                    p { span { id = "loading" } }
                                 }
                             }
-                            div() {
+                            div {
                                 id = "content"
                                 div(classes = "well") {
-                                    div() {
-                                        h3() {
+                                    div {
+                                        h3 {
                                             message("manage.loading",)
                                             +"..."
                                         }

@@ -19,7 +19,7 @@ import java.util.*
 class ExposedPermissionRepository(database: Database, private val resourceSets: ResourceSetRepository) :
     RepositoryBase(database, Permissions, PermissionScopes, PermissionTickets), PermissionRepository {
 
-    override fun save(p: PermissionTicket): PermissionTicket? {
+    override fun save(p: PermissionTicket): PermissionTicket {
         val oldId = p.id
 
         val newId = transaction {
@@ -43,7 +43,7 @@ class ExposedPermissionRepository(database: Database, private val resourceSets: 
         }
     }
 
-    override val all: Collection<PermissionTicket>?
+    override val all: Collection<PermissionTicket>
         get() {
             return transaction {
                 PermissionTickets.selectAll().map { it.toPermissionTicket() }
@@ -54,7 +54,7 @@ class ExposedPermissionRepository(database: Database, private val resourceSets: 
         val newId = transaction {
             val oldId = p.id
             val newId = Permissions.save(oldId) { b ->
-                b[resourceSetId] = p.resourceSet?.id
+                b[resourceSetId] = p.resourceSet.id
             }
             if (oldId != null) {
                 PermissionScopes.deleteWhere { ownerId eq oldId }
@@ -72,7 +72,7 @@ class ExposedPermissionRepository(database: Database, private val resourceSets: 
         return Permissions.selectAll().where { Permissions.id eq permissionId }.map { it.toPermission() }.singleOrNull()
     }
 
-    override fun getPermissionTicketsForResourceSet(rs: ResourceSet): Collection<PermissionTicket>? {
+    override fun getPermissionTicketsForResourceSet(rs: ResourceSet): Collection<PermissionTicket> {
         return PermissionTickets.join(Permissions, JoinType.INNER, PermissionTickets.permissionId, Permissions.id)
             .select(PermissionTickets.columns)
             .where { Permissions.resourceSetId eq rs.id }

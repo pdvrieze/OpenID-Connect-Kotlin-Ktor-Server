@@ -22,77 +22,77 @@ interface SpringClientDetailsEntityService : /*ClientDetailsEntityService, */Cli
 
 class SpringClientDetailsEntity(private val base: OAuthClientDetails.Builder) : OAuthClientDetails {
 
-    constructor(clientDetails: OAuthClientDetails) : this(clientDetails.builder()) {}
+    constructor(clientDetails: OAuthClientDetails) : this(clientDetails.builder())
 
     override var clientId: String? = base.clientId
 
-    override val id: Long?
+    override val id: Long
         get() = TODO("not implemented")
-    override val clientSecret: String?
+    override val clientSecret: String
         get() = TODO("not implemented")
-    override val scope: Set<String>?
+    override val scope: Set<String>
         get() = TODO("not implemented")
     override val authorizedGrantTypes: Set<String>
         get() = TODO("not implemented")
-    override val tokenEndpointAuthMethod: OAuthClientDetails.AuthMethod?
+    override val tokenEndpointAuthMethod: OAuthClientDetails.AuthMethod
         get() = TODO("not implemented")
     override val redirectUris: Set<String>
         get() = TODO("not implemented")
-    override val clientName: String?
+    override val clientName: String
         get() = TODO("not implemented")
-    override val clientUri: String?
+    override val clientUri: String
         get() = TODO("not implemented")
-    override val logoUri: String?
+    override val logoUri: String
         get() = TODO("not implemented")
-    override val contacts: Set<String>?
+    override val contacts: Set<String>
         get() = TODO("not implemented")
-    override val tosUri: String?
+    override val tosUri: String
         get() = TODO("not implemented")
     override val responseTypes: Set<String>
         get() = TODO("not implemented")
-    override val policyUri: String?
+    override val policyUri: String
         get() = TODO("not implemented")
-    override val jwksUri: String?
+    override val jwksUri: String
         get() = TODO("not implemented")
-    override val jwks: JWKSet?
+    override val jwks: JWKSet
         get() = TODO("not implemented")
-    override val softwareId: String?
+    override val softwareId: String
         get() = TODO("not implemented")
-    override val softwareVersion: String?
+    override val softwareVersion: String
         get() = TODO("not implemented")
     override val applicationType: OAuthClientDetails.AppType
         get() = TODO("not implemented")
-    override val sectorIdentifierUri: String?
+    override val sectorIdentifierUri: String
         get() = TODO("not implemented")
-    override val subjectType: OAuthClientDetails.SubjectType?
+    override val subjectType: OAuthClientDetails.SubjectType
         get() = TODO("not implemented")
-    override val requestObjectSigningAlg: JWSAlgorithm?
+    override val requestObjectSigningAlg: JWSAlgorithm
         get() = TODO("not implemented")
-    override val userInfoSignedResponseAlg: JWSAlgorithm?
+    override val userInfoSignedResponseAlg: JWSAlgorithm
         get() = TODO("not implemented")
-    override val userInfoEncryptedResponseAlg: JWEAlgorithm?
+    override val userInfoEncryptedResponseAlg: JWEAlgorithm
         get() = TODO("not implemented")
-    override val userInfoEncryptedResponseEnc: EncryptionMethod?
+    override val userInfoEncryptedResponseEnc: EncryptionMethod
         get() = TODO("not implemented")
-    override val idTokenSignedResponseAlg: JWSAlgorithm?
+    override val idTokenSignedResponseAlg: JWSAlgorithm
         get() = TODO("not implemented")
-    override val idTokenEncryptedResponseAlg: JWEAlgorithm?
+    override val idTokenEncryptedResponseAlg: JWEAlgorithm
         get() = TODO("not implemented")
-    override val idTokenEncryptedResponseEnc: EncryptionMethod?
+    override val idTokenEncryptedResponseEnc: EncryptionMethod
         get() = TODO("not implemented")
-    override val tokenEndpointAuthSigningAlg: JWSAlgorithm?
+    override val tokenEndpointAuthSigningAlg: JWSAlgorithm
         get() = TODO("not implemented")
-    override val defaultMaxAge: Long?
+    override val defaultMaxAge: Long
         get() = TODO("not implemented")
-    override val requireAuthTime: Boolean?
+    override val requireAuthTime: Boolean
         get() = TODO("not implemented")
-    override val defaultACRvalues: Set<String>?
+    override val defaultACRvalues: Set<String>
         get() = TODO("not implemented")
-    override val initiateLoginUri: String?
+    override val initiateLoginUri: String
         get() = TODO("not implemented")
-    override val postLogoutRedirectUris: Set<String>?
+    override val postLogoutRedirectUris: Set<String>
         get() = TODO("not implemented")
-    override val requestUris: Set<String>?
+    override val requestUris: Set<String>
         get() = TODO("not implemented")
     override val clientDescription: String
         get() = TODO("not implemented")
@@ -102,25 +102,25 @@ class SpringClientDetailsEntity(private val base: OAuthClientDetails.Builder) : 
         get() = TODO("not implemented")
     override val isAllowIntrospection: Boolean
         get() = TODO("not implemented")
-    override val idTokenValiditySeconds: Int?
+    override val idTokenValiditySeconds: Int
         get() = TODO("not implemented")
-    override val createdAt: Date?
+    override val createdAt: Date
         get() = TODO("not implemented")
     override val isClearAccessTokensOnRefresh: Boolean
         get() = TODO("not implemented")
-    override val deviceCodeValiditySeconds: Int?
+    override val deviceCodeValiditySeconds: Int
         get() = TODO("not implemented")
-    override val claimsRedirectUris: Set<String>?
+    override val claimsRedirectUris: Set<String>
         get() = TODO("not implemented")
-    override val softwareStatement: JWT?
+    override val softwareStatement: JWT
         get() = TODO("not implemented")
-    override val codeChallengeMethod: PKCEAlgorithm?
+    override val codeChallengeMethod: PKCEAlgorithm
         get() = TODO("not implemented")
     override val authorities: Set<org.mitre.oauth2.model.GrantedAuthority>
         get() = TODO("not implemented")
-    override val accessTokenValiditySeconds: Int?
+    override val accessTokenValiditySeconds: Int
         get() = TODO("not implemented")
-    override val refreshTokenValiditySeconds: Int?
+    override val refreshTokenValiditySeconds: Int
         get() = TODO("not implemented")
     override val resourceIds: Set<String>
         get() = TODO("not implemented")

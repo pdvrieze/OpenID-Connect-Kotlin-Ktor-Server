@@ -9,7 +9,7 @@ import org.mitre.openid.connect.request.OAuth2RequestFactory
 /**
  * @author jricher
  */
-class JWTAssertionTokenGranter constructor(
+class JWTAssertionTokenGranter(
     tokenServices: OAuth2TokenEntityService,
     clientDetailsService: ClientDetailsEntityService,
     requestFactory: OAuth2RequestFactory,

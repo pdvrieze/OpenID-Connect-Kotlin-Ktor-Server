@@ -89,7 +89,7 @@ object DefaultMixins: Mixins {
             content = QuotedString("")
             // Fixes Opera/contenteditable bug:
             // http://nicolasgallagher.com/micro-clearfix-hack/#comment-36952
-            lineHeight = 0.px.lh;
+            lineHeight = 0.px.lh
         }
         rule("&:after") {
             clear = Clear.both
@@ -105,7 +105,7 @@ object DefaultMixins: Mixins {
 
         // Webkit
         declarations["outline"] = "5px auto -webkit-focus-ring-color"
-        outlineOffset = -2.px;
+        outlineOffset = -2.px
     }
 
     /** Center-align a block level element */
@@ -181,23 +181,23 @@ object DefaultMixins: Mixins {
         declarations["font"] = "0/0px a"
         color = Color.transparent
         declarations["text-shadow"] = "none"
-        backgroundColor = Color.transparent;
-        borderWidth = 0.px;
+        backgroundColor = Color.transparent
+        borderWidth = 0.px
     }
     //endregion
 
     //region Fonts
 
     override fun CssBuilder.fontFamilySerif(vars: Styles.Vars) {
-        fontFamily = vars.serifFontFamily;
+        fontFamily = vars.serifFontFamily
     }
 
     override fun CssBuilder.fontFamilySansSerif(vars: Styles.Vars) {
-        fontFamily = vars.sansFontFamily;
+        fontFamily = vars.sansFontFamily
     }
 
     override fun CssBuilder.fontFamilyMonospace(vars: Styles.Vars) {
-        fontFamily = vars.monoFontFamily;
+        fontFamily = vars.monoFontFamily
     }
 
     override fun CssBuilder.fontShorthand(
@@ -820,7 +820,7 @@ object DefaultMixins: Mixins {
         with(core) {
             // generate .spanx and .offsetx
             spanX (gridColumns)
-            offsetX (gridColumns);
+            offsetX (gridColumns)
         }
     }
 
@@ -892,8 +892,8 @@ object DefaultMixins: Mixins {
 
             // generate .spanX and .offsetX
             with(fluid) {
-                spanX(gridColumns);
-                offsetX (gridColumns);
+                spanX(gridColumns)
+                offsetX (gridColumns)
             }
         }
     }

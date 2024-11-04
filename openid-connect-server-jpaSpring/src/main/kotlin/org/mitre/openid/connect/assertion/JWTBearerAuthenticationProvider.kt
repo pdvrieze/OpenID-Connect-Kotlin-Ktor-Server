@@ -49,7 +49,7 @@ class JWTBearerAuthenticationProvider(
      * Try to validate the client credentials by parsing and validating the JWT.
      */
     suspend fun authenticate(authentication: Authentication): Authentication {
-        val jwtAuth = authentication as org.mitre.openid.connect.assertion.JWTBearerAssertionAuthenticationToken
+        val jwtAuth = authentication as JWTBearerAssertionAuthenticationToken
 
 
         try {
@@ -149,7 +149,7 @@ class JWTBearerAuthenticationProvider(
             val authorities: MutableSet<GrantedAuthority> = HashSet(client.authorities)
             authorities.add(GrantedAuthority.ROLE_CLIENT)
 
-            return org.mitre.openid.connect.assertion.JWTBearerAssertionAuthenticationToken(jwt, authorities)
+            return JWTBearerAssertionAuthenticationToken(jwt, authorities)
         } catch (e: InvalidClientException) {
             throw UsernameNotFoundException("Could not find client: " + jwtAuth.name)
         } catch (e: ParseException) {
@@ -163,7 +163,7 @@ class JWTBearerAuthenticationProvider(
      * We support [JWTBearerAssertionAuthenticationToken]s only.
      */
     fun supports(authentication: Class<*>): Boolean {
-        return (org.mitre.openid.connect.assertion.JWTBearerAssertionAuthenticationToken::class.java.isAssignableFrom(authentication))
+        return (JWTBearerAssertionAuthenticationToken::class.java.isAssignableFrom(authentication))
     }
 
     companion object {

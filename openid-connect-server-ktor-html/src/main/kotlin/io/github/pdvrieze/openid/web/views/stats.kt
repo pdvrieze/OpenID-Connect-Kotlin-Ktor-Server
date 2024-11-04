@@ -18,9 +18,9 @@ fun HTML.stats(
         return baseView(context, title, "Statistics", true) {
             div(classes = "span10") {
                 div(classes = "hero-unit") {
-                    h2() { message("statistics.title") }
+                    h2 { message("statistics.title") }
 
-                    p() {
+                    p {
                         message("statistics.number_users", statsSummary["userCount"])
                         +" "
                         message("statistics.number_clients", statsSummary["clientCount"])

@@ -29,8 +29,8 @@ class ScopeTest: ApiTest(ScopeAPI) {
     @Before
     override fun setUp() {
         super.setUp()
-        scope1Id = testContext.scopeRepository.save(SystemScope(null,"test", "Test Scope Description"))!!.id!!
-        scope2Id = testContext.scopeRepository.save(SystemScope(null,"test2", "Other Scope Description"))!!.id!!
+        scope1Id = testContext.scopeRepository.save(SystemScope(null,"test", "Test Scope Description")).id!!
+        scope2Id = testContext.scopeRepository.save(SystemScope(null,"test2", "Other Scope Description")).id!!
     }
 
     //region Unauthorized accesses

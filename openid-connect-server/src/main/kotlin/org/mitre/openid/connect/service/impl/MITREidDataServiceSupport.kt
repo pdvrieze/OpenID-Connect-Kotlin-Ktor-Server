@@ -17,6 +17,5 @@ package org.mitre.openid.connect.service.impl
 
 abstract class MITREidDataServiceSupport {
 
-    companion object {
-    }
+    companion object
 }

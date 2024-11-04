@@ -42,7 +42,7 @@ class DefaultApprovedSiteService(
 
     fun getStatsService(): StatsService = statsService
 
-    override val all: Collection<ApprovedSite>?
+    override val all: Collection<ApprovedSite>
         get() = approvedSiteRepository.all
 
     override fun save(approvedSite: ApprovedSite): ApprovedSite {
@@ -61,9 +61,8 @@ class DefaultApprovedSiteService(
         val accessTokens = getApprovedAccessTokens(approvedSite)
 
         for (token in accessTokens) {
-            if (token.refreshToken != null) {
-                tokenRepository.removeRefreshToken(token.refreshToken!!)
-            }
+            token.refreshToken?.let { tokenRepository.removeRefreshToken(it) }
+
             tokenRepository.removeAccessToken(token)
         }
 
@@ -91,21 +90,21 @@ class DefaultApprovedSiteService(
         return save(approvedSite)
     }
 
-    override fun getByClientIdAndUserId(clientId: String, userId: String): Collection<ApprovedSite>? {
+    override fun getByClientIdAndUserId(clientId: String, userId: String): Collection<ApprovedSite> {
         return approvedSiteRepository.getByClientIdAndUserId(clientId, userId)
     }
 
     /**
      * @see org.mitre.openid.connect.repository.ApprovedSiteRepository.getByUserId
      */
-    override fun getByUserId(userId: String): Collection<ApprovedSite>? {
+    override fun getByUserId(userId: String): Collection<ApprovedSite> {
         return approvedSiteRepository.getByUserId(userId)
     }
 
     /**
      * @see org.mitre.openid.connect.repository.ApprovedSiteRepository.getByClientId
      */
-    override fun getByClientId(clientId: String): Collection<ApprovedSite>? {
+    override fun getByClientId(clientId: String): Collection<ApprovedSite> {
         return approvedSiteRepository.getByClientId(clientId)
     }
 
@@ -135,7 +134,7 @@ class DefaultApprovedSiteService(
 
     private val expired_predicate: (ApprovedSite?) -> Boolean = { input -> input != null && input.isExpired }
     private val expired
-        get() = approvedSiteRepository.all?.filter(expired_predicate)
+        get() = approvedSiteRepository.all.filter(expired_predicate)
 
     override fun getApprovedAccessTokens(
         approvedSite: ApprovedSite

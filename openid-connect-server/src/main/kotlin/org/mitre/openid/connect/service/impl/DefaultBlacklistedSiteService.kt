@@ -73,7 +73,7 @@ abstract class AbstractBlacklistedSiteService : BlacklistedSiteService {
 
         // TODO: rewrite this to do regex matching and use the Guava predicates collection
         for (blacklistedSite in sites) {
-            if ((blacklistedSite.uri ?: "") == uri) {
+            if (blacklistedSite.uri == uri) {
                 return true
             }
         }

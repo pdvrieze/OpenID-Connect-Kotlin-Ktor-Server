@@ -95,12 +95,12 @@ class DiscoveryEndpoint {
                 if (user == null) {
                     // user wasn't found, see if the local part of the username matches, plus our issuer host
 
-                    user = resourceUri.userInfo?.let { userService.getByUsername(it) } // first part is the username
+                    user = resourceUri.userInfo.let { userService.getByUsername(it) } // first part is the username
 
                     if (user != null) {
                         // username matched, check the host component
                         val issuerComponents = UriComponentsBuilder.fromHttpUrl(config.issuer).build()
-                        if ((issuerComponents.host ?: "") != (resourceUri.domain ?: "")) {
+                        if ((issuerComponents.host ?: "") != resourceUri.domain) {
                             logger.info("Host mismatch, expected " + issuerComponents.host + " got " + resourceUri.domain)
                             model.addAttribute(HttpCodeView.CODE, HttpStatus.NOT_FOUND)
                             return HttpCodeView.VIEWNAME

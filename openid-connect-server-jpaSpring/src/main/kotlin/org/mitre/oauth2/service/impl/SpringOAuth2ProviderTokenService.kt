@@ -204,8 +204,8 @@ class SpringOAuth2ProviderTokenService : OAuth2TokenEntityService {
         //Add approved site reference, if any
         val originalAuthRequest = authHolder.authenticatedAuthorizationRequest.authorizationRequest
 
-        if (originalAuthRequest.extensions?.containsKey("approved_site") == true) {
-            val apId = (originalAuthRequest.extensions!!["approved_site"] as String).toLong()
+        if (originalAuthRequest.extensions.containsKey("approved_site") == true) {
+            val apId = (originalAuthRequest.extensions["approved_site"] as String).toLong()
             val ap = approvedSiteService.getById(apId)
 
             tokenBuilder.approvedSite = ap
@@ -494,7 +494,7 @@ class SpringOAuth2ProviderTokenService : OAuth2TokenEntityService {
         for (token in allTokens) {
 
             // if it only has the registration scope, then it's a registration token
-            when (token.scope?.singleOrNull()) {
+            when (token.scope.singleOrNull()) {
                 SystemScopeService.REGISTRATION_TOKEN_SCOPE,
                     SystemScopeService.RESOURCE_TOKEN_SCOPE -> return token
             }

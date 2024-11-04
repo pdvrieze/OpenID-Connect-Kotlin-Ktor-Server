@@ -160,7 +160,7 @@ class OAuthConfirmationController {
                 val scopeValue = systemScope!!.value!!
 
                 val claims = scopeClaimTranslationService.getClaimsForScope(scopeValue)
-                for (claim in claims!!) {
+                for (claim in claims) {
                     (userJson[claim] as? JsonPrimitive)?.let {
                         // TODO: this skips the address claim
                         claimValues[claim] = it.toString()

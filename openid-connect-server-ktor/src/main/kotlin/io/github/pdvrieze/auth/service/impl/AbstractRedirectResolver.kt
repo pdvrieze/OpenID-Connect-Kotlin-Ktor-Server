@@ -23,7 +23,7 @@ abstract class AbstractRedirectResolver(
             throw InvalidGrantException("A redirect_uri can only be used by implicit or authorization_code grant types.")
         }
 
-        val redirectUris = client.registeredRedirectUri
+        val redirectUris = client.redirectUris
 
         return if (!redirectUris.isNullOrEmpty()) {
             obtainMatchingRedirect(redirectUris, requestedRedirect)

@@ -33,7 +33,6 @@ import org.mitre.openid.connect.service.MITREidDataService.Companion.SYSTEMSCOPE
 import org.mitre.openid.connect.service.MITREidDataService.Companion.WHITELISTEDSITES
 import org.mitre.openid.connect.service.MITREidDataServiceMaps
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.anyLong
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Captor
@@ -876,7 +875,7 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
             val _id = invocation.arguments[0] as Long
             fakeRefreshTokenTable[_id]
         }
-        whenever(clientRepository.getClientByClientId(ArgumentMatchers.anyString())).thenAnswer { invocation ->
+        whenever(clientRepository.getClientByClientId(anyString())).thenAnswer { invocation ->
             val _clientId = invocation.arguments[0] as String
             val _client = mock<ClientDetailsEntity>()
             // unused by mockito (causs unnecessary stubbing exception

@@ -100,10 +100,10 @@ class ProtectedResourceRegistrationEndpoint {
             validateAuth(newClientBuilder)
         } catch (ve: ValidationException) {
             // validation failed, return an error
-            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR, ve.error)
-            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, ve.errorDescription)
+            m.addAttribute(JsonErrorView.ERROR, ve.error)
+            m.addAttribute(JsonErrorView.ERROR_MESSAGE, ve.errorDescription)
             m.addAttribute(HttpCodeView.CODE, ve.status)
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            return JsonErrorView.VIEWNAME
         }
 
 
@@ -154,15 +154,15 @@ class ProtectedResourceRegistrationEndpoint {
             m.addAttribute("client", registered)
             m.addAttribute(HttpCodeView.CODE, HttpStatus.CREATED) // http 201
 
-            return org.mitre.openid.connect.view.ClientInformationResponseView.VIEWNAME
+            return ClientInformationResponseView.VIEWNAME
         } catch (e: IllegalArgumentException) {
             logger.error("Couldn't save client", e)
 
-            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR, "invalid_client_metadata")
-            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "Unable to save client due to invalid or inconsistent metadata.")
+            m.addAttribute(JsonErrorView.ERROR, "invalid_client_metadata")
+            m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Unable to save client due to invalid or inconsistent metadata.")
             m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST) // http 400
 
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            return JsonErrorView.VIEWNAME
         }
     }
 
@@ -202,7 +202,7 @@ class ProtectedResourceRegistrationEndpoint {
             m.addAttribute("client", registered)
             m.addAttribute(HttpCodeView.CODE, HttpStatus.OK) // http 200
 
-            return org.mitre.openid.connect.view.ClientInformationResponseView.VIEWNAME
+            return ClientInformationResponseView.VIEWNAME
         } else {
             // client mismatch
             logger.error(
@@ -297,10 +297,10 @@ class ProtectedResourceRegistrationEndpoint {
             validateAuth(newClient)
         } catch (ve: ValidationException) {
             // validation failed, return an error
-            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR, ve.error)
-            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, ve.errorDescription)
+            m.addAttribute(JsonErrorView.ERROR, ve.error)
+            m.addAttribute(JsonErrorView.ERROR_MESSAGE, ve.errorDescription)
             m.addAttribute(HttpCodeView.CODE, ve.status)
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            return JsonErrorView.VIEWNAME
         }
 
 
@@ -318,15 +318,15 @@ class ProtectedResourceRegistrationEndpoint {
             m.addAttribute("client", registered)
             m.addAttribute(HttpCodeView.CODE, HttpStatus.OK) // http 200
 
-            return org.mitre.openid.connect.view.ClientInformationResponseView.VIEWNAME
+            return ClientInformationResponseView.VIEWNAME
         } catch (e: IllegalArgumentException) {
             logger.error("Couldn't save client", e)
 
-            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR, "invalid_client_metadata")
-            m.addAttribute(org.mitre.openid.connect.view.JsonErrorView.ERROR_MESSAGE, "Unable to save client due to invalid or inconsistent metadata.")
+            m.addAttribute(JsonErrorView.ERROR, "invalid_client_metadata")
+            m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Unable to save client due to invalid or inconsistent metadata.")
             m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST) // http 400
 
-            return org.mitre.openid.connect.view.JsonErrorView.VIEWNAME
+            return JsonErrorView.VIEWNAME
         }
     }
 
@@ -396,7 +396,7 @@ class ProtectedResourceRegistrationEndpoint {
             try {
                 // Re-issue the token if it has been issued before [currentTime - validity]
                 val validToDate = Date(System.currentTimeMillis() - config.regTokenLifeTime!! * 1000)
-                if (token.jwt!!.jwtClaimsSet.issueTime.before(validToDate)) {
+                if (token.jwt.jwtClaimsSet.issueTime.before(validToDate)) {
                     logger.info("Rotating the registration access token for " + client.clientId)
                     tokenService.revokeAccessToken(token)
                     val newToken = connectTokenService.createResourceAccessToken(client)

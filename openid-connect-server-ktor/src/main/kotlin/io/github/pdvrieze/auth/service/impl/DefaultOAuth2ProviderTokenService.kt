@@ -125,9 +125,9 @@ class DefaultOAuth2ProviderTokenService(
             ?: throw InvalidClientException("Client not found: " + request.clientId)
 
         // handle the PKCE code challenge if present
-        if (request.extensions?.containsKey(ConnectRequestParameters.CODE_CHALLENGE) == true) {
-            val challenge = request.extensions!![ConnectRequestParameters.CODE_CHALLENGE]
-            val alg = parse(request.extensions!![ConnectRequestParameters.CODE_CHALLENGE_METHOD]!!)
+        if (request.extensions.containsKey(ConnectRequestParameters.CODE_CHALLENGE) == true) {
+            val challenge = request.extensions[ConnectRequestParameters.CODE_CHALLENGE]
+            val alg = parse(request.extensions[ConnectRequestParameters.CODE_CHALLENGE_METHOD]!!)
 
             val verifier = request.requestParameters[ConnectRequestParameters.CODE_VERIFIER]
 
@@ -190,8 +190,8 @@ class DefaultOAuth2ProviderTokenService(
         //Add approved site reference, if any
         val originalAuthRequest = authHolder.authenticatedAuthorizationRequest.authorizationRequest
 
-        if (originalAuthRequest.extensions?.containsKey("approved_site") == true) {
-            val apId = (originalAuthRequest.extensions!!["approved_site"] as String).toLong()
+        if (originalAuthRequest.extensions.containsKey("approved_site") == true) {
+            val apId = (originalAuthRequest.extensions["approved_site"] as String).toLong()
             val ap = approvedSiteService.getById(apId)
 
             tokenBuilder.approvedSite = ap

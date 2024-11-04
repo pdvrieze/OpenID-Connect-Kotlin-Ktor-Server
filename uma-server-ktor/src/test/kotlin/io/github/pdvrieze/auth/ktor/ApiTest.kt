@@ -121,7 +121,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
                 }
             }
 
-            this.configureRouting() {
+            this.configureRouting {
                 for (endpoint in this@ApiTest.endpoints) {
                     with(endpoint) { addRoutes() }
                 }

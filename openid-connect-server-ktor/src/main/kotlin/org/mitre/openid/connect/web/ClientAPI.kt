@@ -217,7 +217,7 @@ object ClientAPI: KtorEndpoint {
         val auth = requireRole(GrantedAuthority.ROLE_ADMIN) { return }
         val id = call.parameters["id"]!!.toLong()
 
-        val clientBuilder: ClientDetailsEntity.Builder
+        val clientBuilder: Builder
 
         val rawJson:  JsonObject
 
