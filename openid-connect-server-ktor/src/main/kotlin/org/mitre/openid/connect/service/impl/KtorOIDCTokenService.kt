@@ -206,9 +206,12 @@ class KtorOIDCTokenService(
         // create a new token
         val authorizationParameters: Map<String, String> = hashMapOf()
         val clientAuth = AuthorizationRequest(
-            authorizationParameters, client.clientId!!,
-            hashSetOf(LocalGrantedAuthority("ROLE_CLIENT")), true,
-            scope ?: emptySet(), null, null, null, requestTime = Instant.now(), extensionStrings = null
+            requestParameters = authorizationParameters,
+            clientId = client.clientId!!,
+            authorities = hashSetOf(LocalGrantedAuthority("ROLE_CLIENT")),
+            isApproved = true,
+            scope = scope ?: emptySet(),
+            requestTime = Instant.now()
         )
         val authentication = AuthenticatedAuthorizationRequest(clientAuth, null)
 

@@ -66,7 +66,7 @@ abstract class ConnectTokenEnhancer: TokenEnhancer {
 
         // TODO set "typ: at+jwt" for OAuth access tokens (but not openid connect)
 
-        val audience = authentication.authorizationRequest.extensionStrings?.get("aud")
+        val audience = authentication.authorizationRequest.extensions["aud"]
         if (!audience.isNullOrEmpty()) {
             builder.audience(listOf(audience))
         }

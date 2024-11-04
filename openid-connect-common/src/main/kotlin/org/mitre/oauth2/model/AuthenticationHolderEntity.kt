@@ -82,7 +82,7 @@ class AuthenticationHolderEntity(
         isApproved = o2Request.isApproved,
         redirectUri = o2Request.redirectUri,
         responseTypes = o2Request.responseTypes?.toHashSet(),
-        extensions = o2Request.extensionStrings?.toMap(),
+        extensions = o2Request.extensions,
         clientId = o2Request.clientId,
         scope = o2Request.scope.toHashSet(),
         requestParameters = o2Request.requestParameters.toMap(),

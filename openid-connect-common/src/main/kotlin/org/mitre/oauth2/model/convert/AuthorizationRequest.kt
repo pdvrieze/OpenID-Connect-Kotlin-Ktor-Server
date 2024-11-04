@@ -25,10 +25,11 @@ class AuthorizationRequest(
     val responseTypes: Set<String>? = null,
     val state: String? = null,
     val requestTime: ISOInstant? = null,
-    @SerialName("extensionStrings")
-    val extensionStrings: Map<String, String>? = null,
+    private val extensionStrings: Map<String, String>? = null,
 ) {
+    @SerialName("extensionStrings")
     val denied: Boolean get() = ! isApproved
+
     val extensions: Map<String, String> get() = extensionStrings ?: emptyMap()
 
     val isOpenId get() = SystemScopeService.OPENID_SCOPE in scope
@@ -38,26 +39,26 @@ class AuthorizationRequest(
         clientId: String = this.clientId,
         authorities: Set<GrantedAuthority> = this.authorities,
         isApproved: Boolean = this.isApproved,
-        scope: Set<String> = this.scope.toSet(),
-        resourceIds: Set<String>? = this.resourceIds?.toSet(),
+        scope: Set<String> = this.scope,
+        resourceIds: Set<String>? = this.resourceIds,
         redirectUri: String? = this.redirectUri,
-        responseTypes: Set<String>? = this.responseTypes?.toSet(),
+        responseTypes: Set<String>? = this.responseTypes,
         state: String? = this.state,
         requestTime: Instant? = this.requestTime,
-        extensionStrings: Map<String, String>? = this.extensionStrings?.toMap(),
+        extensionStrings: Map<String, String>? = this.extensionStrings,
     ) : AuthorizationRequest {
         return AuthorizationRequest(
             requestParameters = requestParameters,
             clientId = clientId,
             authorities = authorities,
             isApproved = isApproved,
-            scope = scope,
-            resourceIds = resourceIds,
+            scope = scope.toSet(),
+            resourceIds = resourceIds?.toSet(),
             redirectUri = redirectUri,
-            responseTypes = responseTypes,
+            responseTypes = responseTypes?.toSet(),
             state = state,
             requestTime = requestTime,
-            extensionStrings = extensionStrings,
+            extensionStrings = extensionStrings?.toMap(),
         )
     }
 }

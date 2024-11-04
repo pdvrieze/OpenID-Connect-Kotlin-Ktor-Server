@@ -96,7 +96,7 @@ fun AuthorizationRequest.toSpring(): SpringOAuth2Request =
         resourceIds,
         redirectUri,
         responseTypes,
-        extensionStrings
+        extensions
     )
 
 fun PendingOIDCAuthenticationToken.toSpring(): SpringAuthentication {
