@@ -155,7 +155,7 @@ class TestKtorDefaultOAuth2ClientDetailsEntityService {
     fun saveNewClient_idWasAssigned() {
         // Set up a mock client.
 
-        val client = ClientDetailsEntity.Builder(scope = hashSetOf("foo"))
+        val client = ClientDetailsEntity.Builder(clientId = "client", scope = hashSetOf("foo"))
 //        whenever(client.id) doReturn (null)
 
         service.saveNewClient(client)
@@ -168,7 +168,7 @@ class TestKtorDefaultOAuth2ClientDetailsEntityService {
      */
     @Test
     fun saveNewClient_yesOfflineAccess() {
-        val client = service.saveNewClient(ClientDetailsEntity.Builder(authorizedGrantTypes = setOf("refresh_token")))
+        val client = service.saveNewClient(ClientDetailsEntity.Builder(clientId = "client", authorizedGrantTypes = setOf("refresh_token")))
 
         Assertions.assertTrue(client.scope.let { it != null && SystemScopeService.OFFLINE_ACCESS in it })
     }
@@ -179,7 +179,7 @@ class TestKtorDefaultOAuth2ClientDetailsEntityService {
     @Test
     fun saveNewClient_noOfflineAccess() {
 
-        val client = service.saveNewClient(ClientDetailsEntity.Builder(scope = setOf("foo")))
+        val client = service.saveNewClient(ClientDetailsEntity.Builder(clientId = "client", scope = setOf("foo")))
 
         verify(scopeService, atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
 
@@ -242,7 +242,7 @@ class TestKtorDefaultOAuth2ClientDetailsEntityService {
         val oldClient = mock<ClientDetailsEntity>()
 
         val badSite = "badsite.xxx"
-        val newClient = ClientDetailsEntity.Builder(scope = hashSetOf("foo"), redirectUris = hashSetOf(badSite))
+        val newClient = ClientDetailsEntity.Builder(clientId = "client", scope = hashSetOf("foo"), redirectUris = hashSetOf(badSite))
 
 
         whenever(blacklistedSiteService.isBlacklisted(badSite)) doReturn (true)
@@ -254,10 +254,10 @@ class TestKtorDefaultOAuth2ClientDetailsEntityService {
 
     @Test
     fun updateClient_yesOfflineAccess() {
-        val oldClient = ClientDetailsEntity.Builder(id = 1L).build() // Needs a hard-coded id as there is no jpa
+        val oldClient = ClientDetailsEntity.Builder(id = 1L, clientId = "client").build() // Needs a hard-coded id as there is no jpa
 
         val grantTypes: MutableSet<String> = hashSetOf("refresh_token")
-        var client: OAuthClientDetails = ClientDetailsEntity.Builder(authorizedGrantTypes = grantTypes).build()
+        var client: OAuthClientDetails = ClientDetailsEntity.Builder(clientId = "client", authorizedGrantTypes = grantTypes).build()
 
         client = service.updateClient(oldClient, client)
 
@@ -268,11 +268,11 @@ class TestKtorDefaultOAuth2ClientDetailsEntityService {
 
     @Test
     fun updateClient_noOfflineAccess() {
-        val oldClient = ClientDetailsEntity.Builder(id = 1L).build() // Needs a hard-coded id as there is no jpa
+        val oldClient = ClientDetailsEntity.Builder(id = 1L, clientId = "").build() // Needs a hard-coded id as there is no jpa
 
         (oldClient.scope as MutableSet).add(SystemScopeService.OFFLINE_ACCESS)
 
-        val client = service.updateClient(oldClient, ClientDetailsEntity.Builder().build())
+        val client = service.updateClient(oldClient, ClientDetailsEntity.Builder(clientId = "client").build())
 
         verify(scopeService, atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
 
@@ -284,6 +284,7 @@ class TestKtorDefaultOAuth2ClientDetailsEntityService {
         whenever(config.isHeartMode) doReturn true
 
         val client = ClientDetailsEntity.Builder(
+            clientId = "client",
             authorizedGrantTypes = setOf(
                 "authorization_code",
                 "implicit",
@@ -305,6 +306,7 @@ class TestKtorDefaultOAuth2ClientDetailsEntityService {
         whenever(config.isHeartMode) doReturn (true)
 
         val client = ClientDetailsEntity.Builder(
+            clientId = "client",
             authorizedGrantTypes = setOf("implicit", "authorization_code", "client_credentials"),
 
             tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.NONE,
@@ -324,6 +326,7 @@ class TestKtorDefaultOAuth2ClientDetailsEntityService {
         whenever(config.isHeartMode) doReturn (true)
 
         val client = ClientDetailsEntity.Builder(
+            clientId = "client",
             authorizedGrantTypes = setOf("client_credentials", "authorization_code", "implicit"),
             tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.PRIVATE_KEY,
             jwksUri = "https://foo.bar/jwks",
@@ -339,6 +342,7 @@ class TestKtorDefaultOAuth2ClientDetailsEntityService {
         whenever(config.isHeartMode) doReturn (true)
 
         val client = ClientDetailsEntity.Builder(
+            clientId = "client",
             authorizedGrantTypes = hashSetOf("authorization_code"),
             tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.SECRET_POST,
             redirectUris = hashSetOf("https://foo.bar/"),
@@ -355,6 +359,7 @@ class TestKtorDefaultOAuth2ClientDetailsEntityService {
         whenever(config.isHeartMode) doReturn (true)
 
         val client = ClientDetailsEntity.Builder(
+            clientId = "client",
             authorizedGrantTypes = mutableSetOf("implicit"),
             tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.PRIVATE_KEY,
             redirectUris = hashSetOf("https://foo.bar/"),
@@ -371,6 +376,7 @@ class TestKtorDefaultOAuth2ClientDetailsEntityService {
         whenever(config.isHeartMode) doReturn (true)
 
         val client = ClientDetailsEntity.Builder(
+            clientId = "client",
             authorizedGrantTypes = hashSetOf("client_credentials"),
             tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.SECRET_BASIC,
             redirectUris = hashSetOf("https://foo.bar/"),
@@ -387,6 +393,7 @@ class TestKtorDefaultOAuth2ClientDetailsEntityService {
         whenever(config.isHeartMode) doReturn (true)
 
         val client = ClientDetailsEntity.Builder(
+            clientId = "client",
             authorizedGrantTypes = hashSetOf("authorization_code"),
             tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.PRIVATE_KEY
         ).build()
@@ -401,6 +408,7 @@ class TestKtorDefaultOAuth2ClientDetailsEntityService {
         whenever(config.isHeartMode) doReturn (true)
 
         val client = ClientDetailsEntity.Builder(
+            clientId = "client",
             authorizedGrantTypes = mutableSetOf("implicit"),
             tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.NONE
         ).build()
@@ -415,6 +423,7 @@ class TestKtorDefaultOAuth2ClientDetailsEntityService {
         whenever(config.isHeartMode) doReturn true
 
         val client = ClientDetailsEntity.Builder(
+            clientId = "client",
             authorizedGrantTypes = setOf("client_credentials"),
             tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.PRIVATE_KEY,
             redirectUris = setOf("http://foo.bar/"),
@@ -430,6 +439,7 @@ class TestKtorDefaultOAuth2ClientDetailsEntityService {
         whenever(config.isHeartMode) doReturn (true)
 
         val client = ClientDetailsEntity.Builder(
+            clientId = "client",
             authorizedGrantTypes = hashSetOf("authorization_code"),
             tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.PRIVATE_KEY,
             redirectUris = hashSetOf("http://foo.bar/"),
@@ -447,6 +457,7 @@ class TestKtorDefaultOAuth2ClientDetailsEntityService {
 
         val grantTypes: Set<String> = setOf("authorization_code")
         val client = ClientDetailsEntity.Builder(
+            clientId = "client",
             authorizedGrantTypes = grantTypes,
             tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.PRIVATE_KEY,
             redirectUris = hashSetOf("https://foo.bar/"),
@@ -464,6 +475,7 @@ class TestKtorDefaultOAuth2ClientDetailsEntityService {
         whenever(config.isHeartMode) doReturn (true)
 
         val client = ClientDetailsEntity.Builder(
+            clientId = "client",
             authorizedGrantTypes = setOf("authorization_code", "refresh_token"),
             tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.PRIVATE_KEY,
             redirectUris = setOf("https://foo.bar/"),
@@ -481,6 +493,7 @@ class TestKtorDefaultOAuth2ClientDetailsEntityService {
         whenever(config.isHeartMode) doReturn (true)
 
         val client = ClientDetailsEntity.Builder(
+            clientId = "client",
             authorizedGrantTypes = setOf("authorization_code", "refresh_token"),
             tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.PRIVATE_KEY,
             redirectUris = setOf("http://foo.bar/"),
@@ -497,6 +510,7 @@ class TestKtorDefaultOAuth2ClientDetailsEntityService {
         whenever(config.isHeartMode) doReturn (true)
 
         val client = ClientDetailsEntity.Builder(
+            clientId = "client",
             authorizedGrantTypes = setOf("authorization_code", "refresh_token"),
             tokenEndpointAuthMethod = OAuthClientDetails.AuthMethod.PRIVATE_KEY,
             redirectUris = setOf("http://localhost/", "https://foo.bar", "foo://bar"),

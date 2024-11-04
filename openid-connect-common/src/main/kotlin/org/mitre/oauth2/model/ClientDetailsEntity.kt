@@ -77,7 +77,7 @@ open class ClientDetailsEntity private constructor(
 
     /** Fields from the OAuth2 Dynamic Registration Specification  */
     @SerialName(CLIENT_ID)
-    override var clientId: String? = null, // client_id
+    override var clientId: String, // client_id
 
     @SerialName(CLIENT_SECRET)
     override var clientSecret: String? = null, // client_secret
@@ -235,7 +235,7 @@ open class ClientDetailsEntity private constructor(
 
     constructor(
         id: Long? = null,
-        clientId: String? = null, // client_id
+        clientId: String, // client_id
         clientSecret: String? = null, // client_secret
         redirectUris: Set<String> = HashSet(), // redirect_uris
         clientName: String? = null, // client_name
@@ -342,7 +342,7 @@ open class ClientDetailsEntity private constructor(
 
     constructor(builder: Builder): this(
         id = builder.id,
-        clientId = builder.clientId,
+        clientId = requireNotNull(builder.clientId) { "Client ID not set" },
         clientSecret = builder.clientSecret,
         redirectUris = builder.redirectUris,
         clientName = builder.clientName,
@@ -401,7 +401,7 @@ open class ClientDetailsEntity private constructor(
 
     override fun copy(
         id: Long?,
-        clientId: String?,
+        clientId: String,
         clientSecret: String?,
         redirectUris: Set<String>,
         clientName: String?,
@@ -529,7 +529,7 @@ open class ClientDetailsEntity private constructor(
     /**
      * @param clientId The OAuth2 client_id, must be unique to this client
      */
-    fun setClientId(clientId: String?, dummy: Unit = Unit) {
+    fun setClientId(clientId: String, dummy: Unit = Unit) {
         this.clientId = clientId
     }
 

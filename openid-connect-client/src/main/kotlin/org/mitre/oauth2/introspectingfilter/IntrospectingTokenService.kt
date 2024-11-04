@@ -165,7 +165,7 @@ class IntrospectingTokenService(
         val form = ParametersBuilder()
 
         val clientId = client.clientId!!
-        val clientSecret = client.clientSecret!!
+        val clientSecret = client.clientSecret ?: return null
 
         if (AuthMethod.SECRET_BASIC == client.tokenEndpointAuthMethod) {
             // use BASIC auth if configured to do so

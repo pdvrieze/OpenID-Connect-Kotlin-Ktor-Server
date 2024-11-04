@@ -46,6 +46,7 @@ class ClientDetailsEntityJsonProcessorTest {
     fun testParse() {
         val json = """  {
    "application_type": "web",
+   "client_id": "client",
    "redirect_uris":
      ["https://client.example.org/callback",
       "https://client.example.org/callback2"],

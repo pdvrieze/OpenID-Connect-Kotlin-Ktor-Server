@@ -85,7 +85,7 @@ import java.util.*
  */
 @Serializable(RegisteredClient.Serializer::class)
 class RegisteredClient(
-    val client: OAuthClientDetails = ClientDetailsEntity.Builder(id=null).build(),
+    val client: OAuthClientDetails,
     // these fields are needed in addition to the ones in ClientDetailsEntity
     val registrationAccessToken: String? = null,
     val registrationClientUri: String? = null,

@@ -24,7 +24,7 @@ class SpringClientDetailsEntity(private val base: OAuthClientDetails.Builder) : 
 
     constructor(clientDetails: OAuthClientDetails) : this(clientDetails.builder())
 
-    override var clientId: String? = base.clientId
+    override var clientId: String = base.clientId ?: ""
 
     override val id: Long
         get() = TODO("not implemented")
@@ -133,7 +133,7 @@ class SpringClientDetailsEntity(private val base: OAuthClientDetails.Builder) : 
 
     override fun copy(
         id: Long?,
-        clientId: String?,
+        clientId: String,
         clientSecret: String?,
         redirectUris: Set<String>,
         clientName: String?,

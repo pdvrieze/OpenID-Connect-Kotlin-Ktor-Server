@@ -113,8 +113,8 @@ class TestSpringApprovedSiteService {
     @Rollback
     fun clearApprovedSitesForClient_null() {
         val otherId = "a different id"
-        (client as ClientDetailsEntity).setClientId(otherId)
-        service.clearApprovedSitesForClient(client)
+        val otherClient = client.copy(clientId = otherId)
+        service.clearApprovedSitesForClient(otherClient)
         // unused by mockito (causs unnecessary stubbing exception
 //		whenever(repository.getByClientId(otherId)).thenReturn(new HashSet<ApprovedSite>());
         verify(repository, never()).remove(isA<ApprovedSite>())

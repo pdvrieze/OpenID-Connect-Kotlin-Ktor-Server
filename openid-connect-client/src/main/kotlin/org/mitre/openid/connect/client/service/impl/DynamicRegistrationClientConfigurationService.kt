@@ -80,7 +80,7 @@ class DynamicRegistrationClientConfigurationService(
         // make sure the template doesn't have unwanted fields set on it
         this.template = template?.copy(
             client = template.client.copy(
-                clientId = null,
+                clientId = "newClientId",
                 clientSecret = null,
             ),
             registrationClientUri = null,

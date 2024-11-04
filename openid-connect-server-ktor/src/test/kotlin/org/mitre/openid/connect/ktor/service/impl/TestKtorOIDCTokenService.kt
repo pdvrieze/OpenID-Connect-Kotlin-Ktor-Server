@@ -41,7 +41,7 @@ class TestKtorOIDCTokenService {
     private val authenticationHolderRepository: AuthenticationHolderRepository = mock()
 
     private val configBean = ConfigurationPropertiesBean("http://localhost", "topbar")
-    private val client = ClientDetailsEntity.Builder().build()
+    private val client = ClientDetailsEntity.Builder(clientId = CLIENT_ID).build()
     private val request: AuthorizationRequest = AuthorizationRequest(clientId = CLIENT_ID, requestTime = Instant.now())
     private val accessToken = OAuth2AccessTokenEntity(
         authenticationHolder = AuthenticationHolderEntity(AuthenticatedAuthorizationRequest(request, null)),
@@ -56,7 +56,6 @@ class TestKtorOIDCTokenService {
     fun prepare() {
         configBean.issuer = "https://auth.example.org/"
 
-        client.setClientId(CLIENT_ID)
         whenever(jwtService.defaultSigningAlgorithm).thenReturn(JWSAlgorithm.RS256)
         whenever(jwtService.defaultSignerKeyId).thenReturn(KEY_ID)
     }

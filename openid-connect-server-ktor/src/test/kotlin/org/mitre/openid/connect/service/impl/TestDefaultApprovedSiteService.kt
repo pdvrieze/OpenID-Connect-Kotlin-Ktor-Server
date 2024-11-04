@@ -95,8 +95,7 @@ class TestDefaultApprovedSiteService {
     @Test
     fun clearApprovedSitesForClient_null() {
         val otherId = "a different id"
-        (client as ClientDetailsEntity).setClientId(otherId)
-        service.clearApprovedSitesForClient(client)
+        service.clearApprovedSitesForClient(client.copy(clientId = otherId))
         // unused by mockito (causs unnecessary stubbing exception
 //		whenever(repository.getByClientId(otherId)).thenReturn(new HashSet<ApprovedSite>());
         verify(repository, never()).remove(isA<ApprovedSite>())

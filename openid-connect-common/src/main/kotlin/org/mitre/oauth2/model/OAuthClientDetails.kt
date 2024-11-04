@@ -47,7 +47,7 @@ import kotlinx.serialization.Transient as KXS_Transient
 interface OAuthClientDetails {
     val id: Long?
 
-    val clientId: String?
+    val clientId: String
 
     val clientSecret: String?
 
@@ -218,7 +218,7 @@ interface OAuthClientDetails {
 
     fun copy(
         id: Long? = this.id,
-        clientId: String? = this.clientId,
+        clientId: String = this.clientId,
         clientSecret: String? = this.clientSecret,
         redirectUris: Set<String> = this.redirectUris,
         clientName: String? = this.clientName,
