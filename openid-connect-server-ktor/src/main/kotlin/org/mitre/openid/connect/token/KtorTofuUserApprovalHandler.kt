@@ -165,14 +165,9 @@ class KtorTofuUserApprovalHandler(
             null -> null
 
             else -> buildJsonObject {
-                authorizationRequest.approvalParameters?.let { for((k, v) in it.entries) { put(k, v) } }
-
                 // This must be re-parsed here because SECOAUTH forces us to call things in a strange order
                 if (oldApprovalParameters["user_oauth_approval"] == "true") {
                     newApproved = true
-
-                    // process scopes from user input
-                    val approvalParams = authorizationRequest.approvalParameters
 
                     //This is a scope parameter from the approval page. The value sent back should
                     //be the scope string. Check to make sure it is contained in the client's
@@ -230,7 +225,6 @@ class KtorTofuUserApprovalHandler(
         return authorizationRequest.copy(
             isApproved = newApproved,
             scope = newScope,
-            approvalParameters = newApprovalParameters,
             extensionStrings = newExtensions.takeIf { it.isNotEmpty() },
         )
     }

@@ -2,7 +2,6 @@ package org.mitre.oauth2.model.convert
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonObject
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.openid.connect.model.convert.ISOInstant
@@ -25,7 +24,6 @@ class AuthorizationRequest(
     val redirectUri: String? = null,
     val responseTypes: Set<String>? = null,
     val state: String? = null,
-    val approvalParameters: JsonObject? = null,
     val requestTime: ISOInstant? = null,
     @SerialName("extensionStrings")
     val extensionStrings: Map<String, String>? = null,
@@ -45,7 +43,6 @@ class AuthorizationRequest(
         redirectUri: String? = this.redirectUri,
         responseTypes: Set<String>? = this.responseTypes?.toSet(),
         state: String? = this.state,
-        approvalParameters: JsonObject? = this.approvalParameters,
         requestTime: Instant? = this.requestTime,
         extensionStrings: Map<String, String>? = this.extensionStrings?.toMap(),
     ) : AuthorizationRequest {
@@ -59,7 +56,6 @@ class AuthorizationRequest(
             redirectUri = redirectUri,
             responseTypes = responseTypes,
             state = state,
-            approvalParameters = approvalParameters,
             requestTime = requestTime,
             extensionStrings = extensionStrings,
         )
