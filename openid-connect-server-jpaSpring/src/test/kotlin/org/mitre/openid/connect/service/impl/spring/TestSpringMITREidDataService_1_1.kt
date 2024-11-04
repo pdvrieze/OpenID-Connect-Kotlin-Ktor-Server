@@ -72,6 +72,7 @@ import org.springframework.format.datetime.DateFormatter
 import org.springframework.util.ReflectionUtils
 import java.io.IOException
 import java.text.ParseException
+import java.time.Instant
 import java.util.*
 
 @ExtendWith(MockitoExtension::class)
@@ -399,7 +400,7 @@ class TestSpringMITREidDataService_1_1 {
     @Test
     @Throws(IOException::class)
     fun testImportClients() {
-        val client1 = ClientDetailsEntity(
+        val client1 = ClientDetailsEntity.Builder(
             id = 1L,
             accessTokenValiditySeconds = 3600,
             clientId = "client1",
@@ -408,9 +409,9 @@ class TestSpringMITREidDataService_1_1 {
             scope = hashSetOf("foo", "bar", "baz", "dolphin"),
             authorizedGrantTypes = hashSetOf("implicit", "authorization_code", "urn:ietf:params:oauth:grant_type:redelegate", "refresh_token"),
             isAllowIntrospection = true,
-        )
+        ).build()
 
-        val client2 = ClientDetailsEntity(
+        val client2 = ClientDetailsEntity.Builder(
             id = 2L,
             accessTokenValiditySeconds = 3600,
             clientId = "client2",
@@ -419,7 +420,7 @@ class TestSpringMITREidDataService_1_1 {
             scope = hashSetOf("foo", "dolphin", "electric-wombat"),
             authorizedGrantTypes = hashSetOf("client_credentials", "urn:ietf:params:oauth:grant_type:redelegate"),
             isAllowIntrospection = false,
-        )
+        ).build()
 
         val configJson = ("{" +
                 "\"" + SYSTEMSCOPES + "\": [], " +
@@ -709,27 +710,23 @@ class TestSpringMITREidDataService_1_1 {
             clientId = "client1",
             isApproved = true,
             redirectUri = "http://foo.com",
-            requestTime = xxxx,
+            requestTime = Instant.now(),
         )
         val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
         val auth1 = AuthenticatedAuthorizationRequest(req1, mockAuth1)
 
-        val holder1 = AuthenticationHolderEntity()
-        holder1.id = 1L
-        holder1.authenticatedAuthorizationRequest = auth1
+        val holder1 = AuthenticationHolderEntity(auth1, 1L)
 
         val req2 = AuthorizationRequest(
             clientId = "client2",
             isApproved = true,
             redirectUri = "http://bar.com",
-            requestTime = xxxx,
+            requestTime = Instant.now(),
         )
         val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
         val auth2 = AuthenticatedAuthorizationRequest(req2, mockAuth2)
 
-        val holder2 = AuthenticationHolderEntity()
-        holder2.id = 2L
-        holder2.authenticatedAuthorizationRequest = auth2
+        val holder2 = AuthenticationHolderEntity(auth2, 2L)
 
         val configJson = ("{" +
                 "\"" + CLIENTS + "\": [], " +
@@ -861,14 +858,12 @@ class TestSpringMITREidDataService_1_1 {
             clientId = "client1",
             isApproved = true,
             redirectUri = "http://foo.com",
-            requestTime = xxxx,
+            requestTime = Instant.now(),
         )
         val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
         val auth1 = AuthenticatedAuthorizationRequest(req1, mockAuth1)
 
-        val holder1 = AuthenticationHolderEntity()
-        holder1.id = 1L
-        holder1.authenticatedAuthorizationRequest = auth1
+        val holder1 = AuthenticationHolderEntity(auth1, 1L)
 
         val token1 = OAuth2RefreshTokenEntity(
             id = 1L,
@@ -889,15 +884,13 @@ class TestSpringMITREidDataService_1_1 {
             clientId = "client2",
             isApproved = true,
             redirectUri = "http://bar.com",
-            requestTime = xxxx,
+            requestTime = Instant.now(),
         )
 
         val mockAuth2 = SavedUserAuthentication(name ="mockAuth2")
         val auth2 = AuthenticatedAuthorizationRequest(req2, mockAuth2)
 
-        val holder2 = AuthenticationHolderEntity()
-        holder2.id = 2L
-        holder2.authenticatedAuthorizationRequest = auth2
+        val holder2 = AuthenticationHolderEntity(auth2, 2L)
 
         val token2 = OAuth2RefreshTokenEntity(
             id = 2L,

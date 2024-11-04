@@ -85,8 +85,7 @@ class SpringDeviceCodeService : DeviceCodeService {
 
         found.isApproved = true
 
-        val authHolder = AuthenticationHolderEntity()
-        authHolder.authenticatedAuthorizationRequest = o2Auth
+        val authHolder = AuthenticationHolderEntity(o2Auth)
 
         found.authenticationHolder = authHolder
 

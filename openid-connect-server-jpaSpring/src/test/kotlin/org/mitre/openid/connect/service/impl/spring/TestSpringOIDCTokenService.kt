@@ -41,13 +41,13 @@ import java.util.*
 @ExtendWith(MockitoExtension::class)
 class TestSpringOIDCTokenService {
     private val configBean = ConfigurationPropertiesBean(javaClass.name, "topbar")
-    private val client = ClientDetailsEntity()
+    private val client = ClientDetailsEntity.Builder().build()
+    private val request: AuthorizationRequest = AuthorizationRequest(clientId = CLIENT_ID, requestTime = Instant.now())
     private val accessToken = OAuth2AccessTokenEntity(
-        authenticationHolder = AuthenticationHolderEntity(),
+        authenticationHolder = AuthenticationHolderEntity(requestTime = request.requestTime),
         expirationInstant = Instant.now().plusSeconds(120),
         jwt = PlainJWT(JWTClaimsSet.Builder().build()),
     )
-    private val request: AuthorizationRequest = AuthorizationRequest(clientId = CLIENT_ID, requestTime = xxxx)
 
     @Mock
     private lateinit var jwtService: JWTSigningAndValidationService

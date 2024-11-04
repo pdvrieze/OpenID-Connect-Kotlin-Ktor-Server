@@ -1,12 +1,18 @@
 package org.mitre.oauth2.service
 
+import com.nimbusds.jose.EncryptionMethod
+import com.nimbusds.jose.JWEAlgorithm
 import com.nimbusds.jose.JWSAlgorithm
+import com.nimbusds.jose.jwk.JWKSet
+import com.nimbusds.jwt.JWT
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuthClientDetails
+import org.mitre.oauth2.model.PKCEAlgorithm
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.oauth2.provider.ClientDetails
 import org.springframework.security.oauth2.provider.ClientDetailsService
+import java.util.*
 
 interface SpringClientDetailsEntityService : /*ClientDetailsEntityService, */ClientDetailsService {
 
@@ -14,56 +20,172 @@ interface SpringClientDetailsEntityService : /*ClientDetailsEntityService, */Cli
 
 }
 
-class SpringClientDetailsEntity(base: OAuthClientDetails) : ClientDetailsEntity(
-    id = base.id,
-    clientId = base.clientId,
-    clientSecret = base.clientSecret,
-    redirectUris = base.redirectUris,
-    clientName = base.clientName,
-    clientUri = base.clientUri,
-    logoUri = base.logoUri,
-    contacts = base.contacts,
-    tosUri = base.tosUri,
-    tokenEndpointAuthMethod = base.tokenEndpointAuthMethod,
-    scope = base.scope,
-    authorizedGrantTypes = base.authorizedGrantTypes,
-    responseTypes = base.responseTypes.toHashSet(),
-    policyUri = base.policyUri,
-    jwksUri = base.jwksUri,
-    jwks = base.jwks,
-    softwareId = base.softwareId,
-    softwareVersion = base.softwareVersion,
-    applicationType = base.applicationType,
-    sectorIdentifierUri = base.sectorIdentifierUri,
-    subjectType = base.subjectType,
-    requestObjectSigningAlg = base.requestObjectSigningAlg,
-    userInfoSignedResponseAlg = base.userInfoSignedResponseAlg,
-    userInfoEncryptedResponseAlg = base.userInfoEncryptedResponseAlg,
-    userInfoEncryptedResponseEnc = base.userInfoEncryptedResponseEnc,
-    idTokenSignedResponseAlg = base.idTokenSignedResponseAlg,
-    idTokenEncryptedResponseAlg = base.idTokenEncryptedResponseAlg,
-    idTokenEncryptedResponseEnc = base.idTokenEncryptedResponseEnc,
-    tokenEndpointAuthSigningAlg = base.tokenEndpointAuthSigningAlg,
-    defaultMaxAge = base.defaultMaxAge,
-    requireAuthTime = base.requireAuthTime,
-    defaultACRvalues = base.defaultACRvalues,
-    initiateLoginUri = base.initiateLoginUri,
-    postLogoutRedirectUris = base.postLogoutRedirectUris,
-    requestUris = base.requestUris,
-    clientDescription = base.clientDescription,
-    isReuseRefreshToken = base.isReuseRefreshToken,
-    isDynamicallyRegistered = base.isDynamicallyRegistered,
-    isAllowIntrospection = base.isAllowIntrospection,
-    idTokenValiditySeconds = base.idTokenValiditySeconds ?: -1,
-    createdAt = base.createdAt,
-    isClearAccessTokensOnRefresh = base.isClearAccessTokensOnRefresh,
-    deviceCodeValiditySeconds = base.deviceCodeValiditySeconds,
-    claimsRedirectUris = base.claimsRedirectUris,
-    softwareStatement = base.softwareStatement,
-    codeChallengeMethod = base.codeChallengeMethod,
-    accessTokenValiditySeconds = base.accessTokenValiditySeconds
-) {
-    override var clientId: String? = super.clientId
+class SpringClientDetailsEntity(private val base: OAuthClientDetails.Builder) : OAuthClientDetails {
+
+    constructor(clientDetails: OAuthClientDetails) : this(clientDetails.builder()) {}
+
+    override var clientId: String? = base.clientId
+
+    override val id: Long?
+        get() = TODO("not implemented")
+    override val clientSecret: String?
+        get() = TODO("not implemented")
+    override val scope: Set<String>?
+        get() = TODO("not implemented")
+    override val authorizedGrantTypes: Set<String>
+        get() = TODO("not implemented")
+    override val tokenEndpointAuthMethod: OAuthClientDetails.AuthMethod?
+        get() = TODO("not implemented")
+    override val redirectUris: Set<String>
+        get() = TODO("not implemented")
+    override val clientName: String?
+        get() = TODO("not implemented")
+    override val clientUri: String?
+        get() = TODO("not implemented")
+    override val logoUri: String?
+        get() = TODO("not implemented")
+    override val contacts: Set<String>?
+        get() = TODO("not implemented")
+    override val tosUri: String?
+        get() = TODO("not implemented")
+    override val responseTypes: Set<String>
+        get() = TODO("not implemented")
+    override val policyUri: String?
+        get() = TODO("not implemented")
+    override val jwksUri: String?
+        get() = TODO("not implemented")
+    override val jwks: JWKSet?
+        get() = TODO("not implemented")
+    override val softwareId: String?
+        get() = TODO("not implemented")
+    override val softwareVersion: String?
+        get() = TODO("not implemented")
+    override val applicationType: OAuthClientDetails.AppType
+        get() = TODO("not implemented")
+    override val sectorIdentifierUri: String?
+        get() = TODO("not implemented")
+    override val subjectType: OAuthClientDetails.SubjectType?
+        get() = TODO("not implemented")
+    override val requestObjectSigningAlg: JWSAlgorithm?
+        get() = TODO("not implemented")
+    override val userInfoSignedResponseAlg: JWSAlgorithm?
+        get() = TODO("not implemented")
+    override val userInfoEncryptedResponseAlg: JWEAlgorithm?
+        get() = TODO("not implemented")
+    override val userInfoEncryptedResponseEnc: EncryptionMethod?
+        get() = TODO("not implemented")
+    override val idTokenSignedResponseAlg: JWSAlgorithm?
+        get() = TODO("not implemented")
+    override val idTokenEncryptedResponseAlg: JWEAlgorithm?
+        get() = TODO("not implemented")
+    override val idTokenEncryptedResponseEnc: EncryptionMethod?
+        get() = TODO("not implemented")
+    override val tokenEndpointAuthSigningAlg: JWSAlgorithm?
+        get() = TODO("not implemented")
+    override val defaultMaxAge: Long?
+        get() = TODO("not implemented")
+    override val requireAuthTime: Boolean?
+        get() = TODO("not implemented")
+    override val defaultACRvalues: Set<String>?
+        get() = TODO("not implemented")
+    override val initiateLoginUri: String?
+        get() = TODO("not implemented")
+    override val postLogoutRedirectUris: Set<String>?
+        get() = TODO("not implemented")
+    override val requestUris: Set<String>?
+        get() = TODO("not implemented")
+    override val clientDescription: String
+        get() = TODO("not implemented")
+    override val isReuseRefreshToken: Boolean
+        get() = TODO("not implemented")
+    override val isDynamicallyRegistered: Boolean
+        get() = TODO("not implemented")
+    override val isAllowIntrospection: Boolean
+        get() = TODO("not implemented")
+    override val idTokenValiditySeconds: Int?
+        get() = TODO("not implemented")
+    override val createdAt: Date?
+        get() = TODO("not implemented")
+    override val isClearAccessTokensOnRefresh: Boolean
+        get() = TODO("not implemented")
+    override val deviceCodeValiditySeconds: Int?
+        get() = TODO("not implemented")
+    override val claimsRedirectUris: Set<String>?
+        get() = TODO("not implemented")
+    override val softwareStatement: JWT?
+        get() = TODO("not implemented")
+    override val codeChallengeMethod: PKCEAlgorithm?
+        get() = TODO("not implemented")
+    override val authorities: Set<org.mitre.oauth2.model.GrantedAuthority>
+        get() = TODO("not implemented")
+    override val accessTokenValiditySeconds: Int?
+        get() = TODO("not implemented")
+    override val refreshTokenValiditySeconds: Int?
+        get() = TODO("not implemented")
+    override val resourceIds: Set<String>
+        get() = TODO("not implemented")
+    override val additionalInformation: Map<String, Any>
+        get() = TODO("not implemented")
+
+    override fun builder(): OAuthClientDetails.Builder {
+        return base
+    }
+
+    override fun copy(
+        id: Long?,
+        clientId: String?,
+        clientSecret: String?,
+        redirectUris: Set<String>,
+        clientName: String?,
+        clientUri: String?,
+        logoUri: String?,
+        contacts: Set<String>?,
+        tosUri: String?,
+        tokenEndpointAuthMethod: OAuthClientDetails.AuthMethod?,
+        scope: Set<String>?,
+        authorizedGrantTypes: Set<String>,
+        responseTypes: Set<String>,
+        policyUri: String?,
+        jwksUri: String?,
+        jwks: JWKSet?,
+        softwareId: String?,
+        softwareVersion: String?,
+        applicationType: OAuthClientDetails.AppType,
+        sectorIdentifierUri: String?,
+        subjectType: OAuthClientDetails.SubjectType?,
+        requestObjectSigningAlg: JWSAlgorithm?,
+        userInfoSignedResponseAlg: JWSAlgorithm?,
+        userInfoEncryptedResponseAlg: JWEAlgorithm?,
+        userInfoEncryptedResponseEnc: EncryptionMethod?,
+        idTokenSignedResponseAlg: JWSAlgorithm?,
+        idTokenEncryptedResponseAlg: JWEAlgorithm?,
+        idTokenEncryptedResponseEnc: EncryptionMethod?,
+        tokenEndpointAuthSigningAlg: JWSAlgorithm?,
+        defaultMaxAge: Long?,
+        requireAuthTime: Boolean?,
+        defaultACRvalues: Set<String>?,
+        initiateLoginUri: String?,
+        postLogoutRedirectUris: Set<String>?,
+        requestUris: Set<String>?,
+        clientDescription: String,
+        isReuseRefreshToken: Boolean,
+        isDynamicallyRegistered: Boolean,
+        isAllowIntrospection: Boolean,
+        idTokenValiditySeconds: Int?,
+        createdAt: Date?,
+        isClearAccessTokensOnRefresh: Boolean,
+        deviceCodeValiditySeconds: Int?,
+        claimsRedirectUris: Set<String>?,
+        softwareStatement: JWT?,
+        codeChallengeMethod: PKCEAlgorithm?,
+        accessTokenValiditySeconds: Int?,
+        refreshTokenValiditySeconds: Int?,
+        authorities: Set<org.mitre.oauth2.model.GrantedAuthority>,
+        resourceIds: Set<String>,
+        additionalInformation: Map<String, Any>,
+    ): ClientDetailsEntity {
+        TODO("not implemented")
+    }
 
     val clientDetails: OIDClientDetails = OIDClientDetails()
 

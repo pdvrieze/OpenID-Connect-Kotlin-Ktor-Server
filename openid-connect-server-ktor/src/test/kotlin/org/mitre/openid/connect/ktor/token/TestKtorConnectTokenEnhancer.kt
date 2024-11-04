@@ -24,6 +24,7 @@ import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.whenever
 import java.text.ParseException
+import java.time.Instant
 
 @ExtendWith(MockitoExtension::class)
 class TestKtorConnectTokenEnhancer {
@@ -44,7 +45,7 @@ class TestKtorConnectTokenEnhancer {
     @Mock
     private lateinit var authentication: AuthenticatedAuthorizationRequest
 
-    private val request: AuthorizationRequest = AuthorizationRequest(clientId = CLIENT_ID, requestTime = xxxx)
+    private val request: AuthorizationRequest = AuthorizationRequest(clientId = CLIENT_ID, requestTime = Instant.now())
 
     private lateinit var enhancer: ConnectTokenEnhancer
 
@@ -61,9 +62,9 @@ class TestKtorConnectTokenEnhancer {
             connectTokenServiceProvider = { connectTokenService }
         )
 
-        val client = ClientDetailsEntity(
+        val client = ClientDetailsEntity.Builder(
             clientId = CLIENT_ID
-        )
+        ).build()
         whenever(clientService.loadClientByClientId(ArgumentMatchers.anyString())).thenReturn(client)
         whenever(authentication.authorizationRequest).thenReturn(request)
         whenever(jwtService.defaultSigningAlgorithm).thenReturn(JWSAlgorithm.RS256)

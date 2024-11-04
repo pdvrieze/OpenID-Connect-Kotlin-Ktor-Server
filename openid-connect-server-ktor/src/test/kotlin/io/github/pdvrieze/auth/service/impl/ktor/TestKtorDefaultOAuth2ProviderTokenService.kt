@@ -43,6 +43,7 @@ import org.mockito.kotlin.reset
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
+import java.time.Instant
 import java.util.*
 
 /**
@@ -106,7 +107,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
             clientId = clientId,
             isApproved = true,
             scope = scope,
-            requestTime = xxxx,
+            requestTime = Instant.now(),
         )
         whenever(authentication.authorizationRequest) doReturn (clientAuth)
 
@@ -134,7 +135,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
 
         accessToken = mock<OAuth2AccessTokenEntity>()
 
-        tokenRequest = AuthorizationRequest(clientId = clientId, requestTime = xxxx)
+        tokenRequest = AuthorizationRequest(clientId = clientId, requestTime = Instant.now())
 
         storedAuthentication = authentication
         storedAuthRequest = clientAuth
@@ -212,7 +213,11 @@ class TestKtorDefaultOAuth2ProviderTokenService {
         whenever(clientDetailsService.loadClientByClientId(ArgumentMatchers.anyString())) doReturn (null)
 
         assertThrows<InvalidClientException> {
-            service.createAccessToken(authentication, xxx)
+            service.createAccessToken(authentication, false)
+        }
+
+        assertThrows<InvalidClientException> {
+            service.createAccessToken(authentication, true)
         }
     }
 
@@ -223,7 +228,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
     fun createAccessToken_noRefresh(): Unit = runBlocking {
         whenever(client.isAllowRefresh) doReturn (false)
 
-        val token = service.createAccessToken(authentication, xxx)
+        val token = service.createAccessToken(authentication, true)
 
         verify(clientDetailsService).loadClientByClientId(ArgumentMatchers.anyString())
         verify(authenticationHolderRepository).save(isA<AuthenticationHolderEntity>())
@@ -245,7 +250,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
             clientId = clientId,
             isApproved = true,
             scope = hashSetOf(SystemScopeService.OFFLINE_ACCESS),
-            requestTime = xxxx,
+            requestTime = Instant.now(),
         )
         whenever(authentication.authorizationRequest) doReturn (clientAuth)
         whenever(client.isAllowRefresh) doReturn (true)
@@ -261,7 +266,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
             refreshToken
         }
 
-        val token = service.createAccessToken(authentication, xxx)
+        val token = service.createAccessToken(authentication, true)
 
         verify(tokenRepository, atMost(1)).getRefreshTokenById(ArgumentMatchers.anyLong())
 
@@ -285,7 +290,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
         whenever(client.refreshTokenValiditySeconds) doReturn (refreshTokenValiditySeconds)
 
         val start = System.currentTimeMillis()
-        val token = service.createAccessToken(authentication, xxx)
+        val token = service.createAccessToken(authentication, true)
         val end = System.currentTimeMillis()
 
         // Accounting for some delta for time skew on either side.
@@ -308,7 +313,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
 
     @Test
     fun createAccessToken_checkClient(): Unit = runBlocking {
-        val token: OAuth2AccessToken = service.createAccessToken(authentication, xxx)
+        val token: OAuth2AccessToken = service.createAccessToken(authentication, true)
 
         verify(scopeService, atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
 
@@ -317,7 +322,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
 
     @Test
     fun createAccessToken_checkScopes(): Unit = runBlocking {
-        val token = service.createAccessToken(authentication, xxx)
+        val token = service.createAccessToken(authentication, true)
 
         verify(scopeService, atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
 
@@ -331,7 +336,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
 
         whenever(authenticationHolderRepository.save(isA<AuthenticationHolderEntity>())) doReturn (authHolder)
 
-        val token = service.createAccessToken(authentication, xxx)
+        val token = service.createAccessToken(authentication, true)
 
         Assertions.assertEquals(authentication, token.authenticationHolder.authenticatedAuthorizationRequest)
         verify(authenticationHolderRepository).save(isA<AuthenticationHolderEntity>())
@@ -358,7 +363,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
 
     @Test
     fun refreshAccessToken_clientMismatch(): Unit = runBlocking {
-        tokenRequest = AuthorizationRequest(clientId = badClientId, requestTime = xxxx)
+        tokenRequest = AuthorizationRequest(clientId = badClientId, requestTime = Instant.now())
 
         assertThrows<InvalidClientException> {
             service.refreshAccessToken(refreshTokenValue, tokenRequest)

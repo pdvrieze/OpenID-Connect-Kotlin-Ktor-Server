@@ -48,9 +48,7 @@ class TestDefaultApprovedSiteService {
     fun prepare() {
         service = DefaultApprovedSiteService(repository, tokenRepository, statsService)
 
-        client = ClientDetailsEntity().also {
-            it.setClientId(clientId)
-        }
+        client = ClientDetailsEntity.Builder(clientId = clientId).build()
 
         site1 = ApprovedSite(
             id = 1L,

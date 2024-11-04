@@ -79,7 +79,7 @@ class TestJpaOAuth2TokenRepository {
             entityManager.merge(it)
         }
 
-        val authHolder = AuthenticationHolderEntity().let {
+        val authHolder = AuthenticationHolderEntity(requestTime = Instant.now()).let {
             it.userAuth = userAuth
             entityManager.merge(it)
         }
@@ -99,7 +99,7 @@ class TestJpaOAuth2TokenRepository {
             entityManager.merge(it)
         }
 
-        val authHolder = AuthenticationHolderEntity().let {
+        val authHolder = AuthenticationHolderEntity(requestTime = Instant.now()).let {
             it.userAuth = userAuth
             entityManager.merge(it)
         }

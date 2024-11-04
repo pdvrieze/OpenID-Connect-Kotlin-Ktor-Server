@@ -82,34 +82,38 @@ class TestSpringUserInfoService {
             subject = regularSub,
         )
 
-        publicClient1 = ClientDetailsEntity()
-        publicClient1.setClientId(publicClientId1)
+        publicClient1 = ClientDetailsEntity.Builder(clientId = publicClientId1).build()
 
-        publicClient2 = ClientDetailsEntity()
-        publicClient2.setClientId(publicClientId2)
-        publicClient2.subjectType = SubjectType.PUBLIC
+        publicClient2 = ClientDetailsEntity.Builder(
+            clientId = publicClientId2,
+            subjectType = SubjectType.PUBLIC
+        ).build()
 
         // pairwise set 1
-        pairwiseClient1 = ClientDetailsEntity()
-        pairwiseClient1.setClientId(pairwiseClientId1)
-        pairwiseClient1.subjectType = SubjectType.PAIRWISE
-        pairwiseClient1.sectorIdentifierUri = sectorIdentifier1
+        pairwiseClient1 = ClientDetailsEntity.Builder(
+            clientId = pairwiseClientId1,
+            subjectType = SubjectType.PAIRWISE,
+            sectorIdentifierUri = sectorIdentifier1
+        ).build()
 
-        pairwiseClient2 = ClientDetailsEntity()
-        pairwiseClient2.setClientId(pairwiseClientId2)
-        pairwiseClient2.subjectType = SubjectType.PAIRWISE
-        pairwiseClient2.sectorIdentifierUri = sectorIdentifier2
+        pairwiseClient2 = ClientDetailsEntity.Builder(
+            clientId = pairwiseClientId2,
+            subjectType = SubjectType.PAIRWISE,
+            sectorIdentifierUri = sectorIdentifier2
+        ).build()
 
         // pairwise set 2
-        pairwiseClient3 = ClientDetailsEntity()
-        pairwiseClient3.setClientId(pairwiseClientId3)
-        pairwiseClient3.subjectType = SubjectType.PAIRWISE
-        pairwiseClient3.sectorIdentifierUri = sectorIdentifier3
+        pairwiseClient3 = ClientDetailsEntity.Builder(
+            clientId = pairwiseClientId3,
+            subjectType = SubjectType.PAIRWISE,
+            sectorIdentifierUri = sectorIdentifier3
+        ).build()
 
         // pairwise with null sector
-        pairwiseClient4 = ClientDetailsEntity()
-        pairwiseClient4.setClientId(pairwiseClientId4)
-        pairwiseClient4.subjectType = SubjectType.PAIRWISE
+        pairwiseClient4 = ClientDetailsEntity.Builder(
+            clientId = pairwiseClientId4,
+            subjectType = SubjectType.PAIRWISE,
+        ).build()
     }
 
     /**

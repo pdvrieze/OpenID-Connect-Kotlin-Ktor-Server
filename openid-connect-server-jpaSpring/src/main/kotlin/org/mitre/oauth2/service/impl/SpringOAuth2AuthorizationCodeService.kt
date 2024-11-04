@@ -63,9 +63,10 @@ class SpringOAuth2AuthorizationCodeService : AuthorizationCodeServices {
     override fun createAuthorizationCode(authentication: SpringOAuth2Authentication): String {
         val code = generator.generate()
 
+        val req = authentication.fromSpring()
         // attach the authorization so that we can look it up later
-        var authHolder = AuthenticationHolderEntity()
-        authHolder.authenticatedAuthorizationRequest = authentication.fromSpring()
+        var authHolder = AuthenticationHolderEntity(requestTime = req.authorizationRequest.requestTime)
+        authHolder.authenticatedAuthorizationRequest = req
         authHolder = authenticationHolderRepository.save(authHolder)
 
         // set the auth code to expire

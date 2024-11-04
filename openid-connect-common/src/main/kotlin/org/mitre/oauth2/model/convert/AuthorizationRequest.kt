@@ -26,7 +26,7 @@ class AuthorizationRequest(
     val responseTypes: Set<String>? = null,
     val state: String? = null,
     val approvalParameters: JsonObject? = null,
-    val requestTime: ISOInstant,
+    val requestTime: ISOInstant? = null,
     @SerialName("extensionStrings")
     val extensionStrings: Map<String, String>? = null,
 ) {
@@ -46,7 +46,7 @@ class AuthorizationRequest(
         responseTypes: Set<String>? = this.responseTypes?.toSet(),
         state: String? = this.state,
         approvalParameters: JsonObject? = this.approvalParameters,
-        requestTime: Instant = this.requestTime,
+        requestTime: Instant? = this.requestTime,
         extensionStrings: Map<String, String>? = this.extensionStrings?.toMap(),
     ) : AuthorizationRequest {
         return AuthorizationRequest(

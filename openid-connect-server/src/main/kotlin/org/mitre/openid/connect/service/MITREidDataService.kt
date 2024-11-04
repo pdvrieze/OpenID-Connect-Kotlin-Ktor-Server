@@ -408,7 +408,7 @@ interface MITREidDataService {
             logoUri = s.logoUri,
             contacts = s.contacts,
             tosUri = s.tosUri,
-            tokenEndpointAuthMethod = requireNotNull(s.tokenEndpointAuthMethod) { "Missing authentication method" },
+            tokenEndpointAuthMethod = s.tokenEndpointAuthMethod ?: OAuthClientDetails.AuthMethod.SECRET_BASIC,
             grantTypes = s.authorizedGrantTypes,
             responseTypes = s.responseTypes,
             policyUri = s.policyUri,

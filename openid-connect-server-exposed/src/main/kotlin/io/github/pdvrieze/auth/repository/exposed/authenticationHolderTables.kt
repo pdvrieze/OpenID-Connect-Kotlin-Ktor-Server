@@ -10,7 +10,7 @@ object AuthenticationHolders : LongIdTable("authentication_holder") {
     val approved = bool("approved").nullable()
     val redirectUri = varchar("redirect_uri", 2048).nullable()
     val clientId = varchar("client_id", 256).nullable()
-    val requestTime = timestamp("request_time")
+    val requestTime = timestamp("request_time").nullable()
 }
 
 object AuthenticationHolderAuthorities : Table("authentication_holder_authority") {

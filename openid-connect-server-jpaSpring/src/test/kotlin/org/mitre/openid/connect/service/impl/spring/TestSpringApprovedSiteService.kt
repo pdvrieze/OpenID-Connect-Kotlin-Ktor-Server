@@ -65,9 +65,7 @@ class TestSpringApprovedSiteService {
      */
     @BeforeEach
     fun prepare() {
-        client = ClientDetailsEntity().also {
-            it.setClientId(clientId)
-        }
+        client = ClientDetailsEntity.Builder(clientId = clientId).build()
 
         site1 = ApprovedSite(
             id = 1L,

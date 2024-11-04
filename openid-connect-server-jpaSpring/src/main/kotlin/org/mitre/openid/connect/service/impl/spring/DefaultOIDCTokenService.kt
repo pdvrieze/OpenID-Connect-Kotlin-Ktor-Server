@@ -49,6 +49,7 @@ import org.mitre.openid.connect.web.AuthenticationTimeStamper
 import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.time.Instant
 import java.util.*
 
 /**
@@ -221,9 +222,12 @@ class DefaultOIDCTokenService : OIDCTokenService {
         // create a new token
         val authorizationParameters: Map<String, String> = hashMapOf()
         val clientAuth = AuthorizationRequest(
-            authorizationParameters, client.clientId!!,
-            hashSetOf(GrantedAuthority("ROLE_CLIENT")), true,
-            scope ?: emptySet(), null, null, null, requestTime = xxxx, extensionStrings = null
+            requestParameters = authorizationParameters,
+            clientId = client.clientId!!,
+            authorities = hashSetOf(GrantedAuthority("ROLE_CLIENT")),
+            isApproved = true,
+            scope = scope ?: emptySet(),
+            requestTime = Instant.now(),
         )
         val authentication = AuthenticatedAuthorizationRequest(clientAuth, null)
 
@@ -231,7 +235,7 @@ class DefaultOIDCTokenService : OIDCTokenService {
         tokenBuilder.setClient(client)
         tokenBuilder.scope = scope ?: emptySet()
 
-        var authHolder = AuthenticationHolderEntity()
+        var authHolder = AuthenticationHolderEntity(requestTime = authentication.authorizationRequest.requestTime)
         authHolder.authenticatedAuthorizationRequest = authentication
         authHolder = authenticationHolderRepository.save(authHolder)
         tokenBuilder.setAuthenticationHolder(authHolder)

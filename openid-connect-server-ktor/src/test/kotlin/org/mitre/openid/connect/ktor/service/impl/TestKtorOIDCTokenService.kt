@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.jwt.signer.service.ClientKeyCacheService
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.jwt.signer.service.impl.SymmetricKeyJWTValidatorCacheService
+import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
@@ -40,13 +41,13 @@ class TestKtorOIDCTokenService {
     private val authenticationHolderRepository: AuthenticationHolderRepository = mock()
 
     private val configBean = ConfigurationPropertiesBean("http://localhost", "topbar")
-    private val client = ClientDetailsEntity()
+    private val client = ClientDetailsEntity.Builder().build()
+    private val request: AuthorizationRequest = AuthorizationRequest(clientId = CLIENT_ID, requestTime = Instant.now())
     private val accessToken = OAuth2AccessTokenEntity(
-        authenticationHolder = AuthenticationHolderEntity(),
+        authenticationHolder = AuthenticationHolderEntity(AuthenticatedAuthorizationRequest(request, null)),
         expirationInstant = Instant.now().plusSeconds(120),
         jwt = PlainJWT(JWTClaimsSet.Builder().build()),
     )
-    private val request: AuthorizationRequest = AuthorizationRequest(clientId = CLIENT_ID, requestTime = xxxx)
 
     @Mock
     private lateinit var jwtService: JWTSigningAndValidationService

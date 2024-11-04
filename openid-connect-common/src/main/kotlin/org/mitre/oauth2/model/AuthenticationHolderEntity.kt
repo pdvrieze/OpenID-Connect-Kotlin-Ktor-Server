@@ -58,21 +58,24 @@ class AuthenticationHolderEntity(
     var clientId: String? = null,
     var scope: Set<String>? = null,
     var requestParameters: Map<String, String>? = null,
-    val requestTime: ISOInstant,
+    val requestTime: ISOInstant?,
 ) {
 
     constructor(
-        authentication: AuthenticatedAuthorizationRequest
+        authentication: AuthenticatedAuthorizationRequest,
+        id: Long? = null,
     ): this(
         authentication.userAuthentication,
-        authentication.authorizationRequest
+        authentication.authorizationRequest,
+        id,
     )
 
     constructor(
         authentication: Authentication?,
-        o2Request: AuthorizationRequest
+        o2Request: AuthorizationRequest,
+        id: Long? = null
     ): this(
-        id = null,
+        id = id,
         userAuth = authentication?.let(SavedUserAuthentication::from),
         authorities = o2Request.authorities.toHashSet(),
         resourceIds = o2Request.resourceIds?.toHashSet(),
@@ -137,7 +140,7 @@ class AuthenticationHolderEntity(
         clientId: String? = this.clientId,
         scope: Set<String>? = this.scope,
         requestParameters: Map<String, String>? = this.requestParameters,
-        requestTime: Instant = this.requestTime,
+        requestTime: Instant? = this.requestTime,
     ): AuthenticationHolderEntity {
         return AuthenticationHolderEntity(
             id = id,
@@ -173,7 +176,7 @@ class AuthenticationHolderEntity(
         @SerialName("ownerId")
         val ownerId: JsonElement? = null,
         @SerialName("authentication")
-        val _authentication: AuthenticatedAuthorizationRequest? = null,
+        val _authentication: AuthenticatedAuthorizationRequest/*? = null*/,
     ) : SerialDelegate {
         constructor(e: AuthenticationHolderEntity) : this(
             currentId = e.id,
@@ -182,11 +185,9 @@ class AuthenticationHolderEntity(
 
         override fun toAuthenticationHolder(): AuthenticationHolderEntity {
             return AuthenticationHolderEntity(
+                _authentication,
                 id = currentId,
-                requestTime = Instant.EPOCH // at least have a "valid" value (min doesn't work)
-            ).also {
-                if (_authentication != null) it.authenticatedAuthorizationRequest = _authentication
-            }
+            )
         }
     }
 

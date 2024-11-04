@@ -341,7 +341,7 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
 
     @Test
     protected open fun testImportClients() {
-        val client1 = ClientDetailsEntity(
+        val client1 = ClientDetailsEntity.Builder(
             id = 1L,
             accessTokenValiditySeconds = 3600,
             clientId = "client1",
@@ -350,9 +350,9 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
             scope = hashSetOf("foo", "bar", "baz", "dolphin"),
             authorizedGrantTypes = hashSetOf("implicit", "authorization_code", "urn:ietf:params:oauth:grant_type:redelegate", "refresh_token"),
             isAllowIntrospection = true,
-        )
+        ).build()
 
-        val client2 = ClientDetailsEntity(
+        val client2 = ClientDetailsEntity.Builder(
             id = 2L,
             accessTokenValiditySeconds = 3600,
             clientId = "client2",
@@ -361,7 +361,7 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
             scope = hashSetOf("foo", "dolphin", "electric-wombat"),
             authorizedGrantTypes = hashSetOf("client_credentials", "urn:ietf:params:oauth:grant_type:redelegate"),
             isAllowIntrospection = false,
-        )
+        ).build()
 
         val configJson = ("{\"$SYSTEMSCOPES\": [], " +
                 "\"$ACCESSTOKENS\": [], " +
@@ -620,26 +620,24 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
             clientId = "client1",
             isApproved = true,
             redirectUri = "http://foo.com",
-            requestTime = xxxx,
+            requestTime = Instant.now(),
         )
         val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
         val auth1 = AuthenticatedAuthorizationRequest(req1, mockAuth1)
 
-        val holder1 = AuthenticationHolderEntity()
-        holder1.id = 1L
+        val holder1 = AuthenticationHolderEntity(id = 1L, requestTime = Instant.now())
         holder1.authenticatedAuthorizationRequest = auth1
 
         val req2 = AuthorizationRequest(
             clientId = "client2",
             isApproved =  true,
             redirectUri = "http://bar.com",
-            requestTime = xxxx,
+            requestTime = Instant.now(),
         )
         val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
         val auth2 = AuthenticatedAuthorizationRequest(req2, mockAuth2)
 
-        val holder2 = AuthenticationHolderEntity()
-        holder2.id = 2L
+        val holder2 = AuthenticationHolderEntity(id = 2L, requestTime = Instant.now())
         holder2.authenticatedAuthorizationRequest = auth2
 
         val configJson = (buildString {
@@ -795,13 +793,12 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
             clientId = "client1",
             isApproved = true,
             redirectUri = "http://foo.com",
-            requestTime = xxxx,
+            requestTime = Instant.now(),
         )
         val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
         val auth1 = AuthenticatedAuthorizationRequest(req1, mockAuth1)
 
-        val holder1 = AuthenticationHolderEntity()
-        holder1.id = 1L
+        val holder1 = AuthenticationHolderEntity(id = 1L, requestTime = Instant.now())
         holder1.authenticatedAuthorizationRequest = auth1
 
         val token1 = OAuth2RefreshTokenEntity(
@@ -822,14 +819,13 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
             clientId = "client2",
             isApproved = true,
             redirectUri = "http://bar.com",
-            requestTime = xxxx,
+            requestTime = Instant.now(),
         )
 
         val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
         val auth2 = AuthenticatedAuthorizationRequest(req2, mockAuth2)
 
-        val holder2 = AuthenticationHolderEntity()
-        holder2.id = 2L
+        val holder2 = AuthenticationHolderEntity(id = 2L, requestTime = Instant.now())
         holder2.authenticatedAuthorizationRequest = auth2
 
         val token2 = OAuth2RefreshTokenEntity(

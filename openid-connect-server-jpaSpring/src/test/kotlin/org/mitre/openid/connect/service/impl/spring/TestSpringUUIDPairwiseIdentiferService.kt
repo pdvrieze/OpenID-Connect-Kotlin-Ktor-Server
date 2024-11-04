@@ -70,39 +70,39 @@ class TestSpringUUIDPairwiseIdentiferService {
         )
 
         // pairwise set 1
-        pairwiseClient1 = ClientDetailsEntity(
+        pairwiseClient1 = ClientDetailsEntity.Builder(
             clientId = pairwiseClientId1,
             subjectType = SubjectType.PAIRWISE,
             sectorIdentifierUri = sectorIdentifier1,
-        )
+        ).build()
 
-        pairwiseClient2 = ClientDetailsEntity(
+        pairwiseClient2 = ClientDetailsEntity.Builder(
             clientId = pairwiseClientId2,
             subjectType = SubjectType.PAIRWISE,
             sectorIdentifierUri = sectorIdentifier2,
-        )
+        ).build()
 
         // pairwise set 2
-        pairwiseClient3 = ClientDetailsEntity(
+        pairwiseClient3 = ClientDetailsEntity.Builder(
             clientId = pairwiseClientId3,
             subjectType = SubjectType.PAIRWISE,
             sectorIdentifierUri = sectorIdentifier3,
             redirectUris = pairwiseClient3RedirectUris,
-        )
+        ).build()
 
         // pairwise with null sector
-        pairwiseClient4 = ClientDetailsEntity(
+        pairwiseClient4 = ClientDetailsEntity.Builder(
             clientId = pairwiseClientId4,
             subjectType = SubjectType.PAIRWISE,
             redirectUris = pairwiseClient4RedirectUris,
-        )
+        ).build()
 
         // pairwise with multiple redirects and no sector (error)
-        pairwiseClient5 = ClientDetailsEntity(
+        pairwiseClient5 = ClientDetailsEntity.Builder(
             clientId = pairwiseClientId5,
             subjectType = SubjectType.PAIRWISE,
             redirectUris = pairwiseClient5RedirectUris,
-        )
+        ).build()
 
         // saved pairwise identifier from repository
         savedPairwiseIdentifier = PairwiseIdentifier(

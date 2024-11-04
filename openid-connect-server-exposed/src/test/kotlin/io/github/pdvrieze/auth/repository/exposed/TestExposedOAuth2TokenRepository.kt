@@ -80,13 +80,17 @@ class TestExposedOAuth2TokenRepository {
 
     private fun createAccessToken(name: String): OAuth2AccessTokenEntity {
         return transaction(database) {
+            val requestTime = Instant.now()
 
             val userAuthId = SavedUserAuths.select(SavedUserAuths.id).where { SavedUserAuths.name eq name }.singleOrNull()?.get(SavedUserAuths.id)
                 ?: SavedUserAuths.insertAndGetId { it[this.name] = name }
             val userAuth = SavedUserAuthentication(name = name, id = userAuthId.value)
 
-            val authHolderId = AuthenticationHolders.insertAndGetId { it[this.userAuthId] = userAuthId.value }
-            val authHolder = AuthenticationHolderEntity(id = authHolderId.value, userAuth = userAuth, requestTime = Instant.now())
+            val authHolderId = AuthenticationHolders.insertAndGetId {
+                it[this.userAuthId] = userAuthId.value
+                it[this.requestTime] = requestTime
+            }
+            val authHolder = AuthenticationHolderEntity(id = authHolderId.value, userAuth = userAuth, requestTime = requestTime)
 
             val accessTokenId = AccessTokens.insertAndGetId {
                 it[this.authHolderId] = authHolderId.value
@@ -95,7 +99,7 @@ class TestExposedOAuth2TokenRepository {
             OAuth2AccessTokenEntity(
                 id = accessTokenId.value,
                 authenticationHolder = authHolder,
-                expirationInstant = Instant.now().plusSeconds(120),
+                expirationInstant = requestTime.plusSeconds(120),
                 jwt = PlainJWT(JWTClaimsSet.Builder().build()),
             )
         }
@@ -103,12 +107,16 @@ class TestExposedOAuth2TokenRepository {
 
     private fun createRefreshToken(name: String): OAuth2RefreshTokenEntity {
         return transaction(database) {
+            val requestTime = Instant.now()
             val userAuthId = SavedUserAuths.select(SavedUserAuths.id).where { SavedUserAuths.name eq name }.singleOrNull()?.get(SavedUserAuths.id)
                 ?: SavedUserAuths.insertAndGetId { it[this.name] = name }
             val userAuth = SavedUserAuthentication(name = name, id = userAuthId.value)
 
-            val authHolderId = AuthenticationHolders.insertAndGetId { it[this.userAuthId] = userAuthId.value }
-            val authHolder = AuthenticationHolderEntity(userAuth = userAuth, requestTime = Instant.now())
+            val authHolderId = AuthenticationHolders.insertAndGetId {
+                it[this.userAuthId] = userAuthId.value
+                it[this.requestTime] = requestTime
+            }
+            val authHolder = AuthenticationHolderEntity(userAuth = userAuth, requestTime = requestTime)
 
             val refreshTokenId = RefreshTokens.insertAndGetId {
                 it[this.authHolderId] = authHolderId.value
