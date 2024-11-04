@@ -35,7 +35,7 @@ interface UserApprovalHandler {
     fun checkForPreApproval(
         authorizationRequest: AuthorizationRequest,
         userAuthentication: Authentication,
-        prompts: Set<String>?
+        prompts: Set<Any>?
     ): AuthorizationRequest
 
     fun updateAfterApproval(

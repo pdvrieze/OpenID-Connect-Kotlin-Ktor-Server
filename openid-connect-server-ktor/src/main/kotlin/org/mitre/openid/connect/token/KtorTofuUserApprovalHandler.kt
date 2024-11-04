@@ -24,6 +24,7 @@ import org.mitre.oauth2.model.convert.AuthorizationRequest
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.openid.connect.request.ConnectRequestParameters
+import org.mitre.openid.connect.request.Prompt
 import org.mitre.openid.connect.service.ApprovedSiteService
 import org.mitre.openid.connect.service.WhitelistedSiteService
 import org.mitre.openid.connect.web.AuthenticationTimeStamper
@@ -94,7 +95,7 @@ class KtorTofuUserApprovalHandler(
     override fun checkForPreApproval(
         authorizationRequest: AuthorizationRequest,
         userAuthentication: Authentication,
-        prompts: Set<String>?
+        prompts: Set<Any>?
     ): AuthorizationRequest {
         //First, check database to see if the user identified by the userAuthentication has stored an approval decision
         var newApproved = authorizationRequest.isApproved
@@ -106,7 +107,7 @@ class KtorTofuUserApprovalHandler(
         //lookup ApprovedSites by userId and clientId
         var alreadyApproved = false
 
-        if (prompts == null || ConnectRequestParameters.PROMPT_CONSENT !in prompts) {
+        if (prompts == null || Prompt.CONSENT !in prompts) {
             // if the prompt parameter is set to "consent" then we can't use approved sites or whitelisted sites
             // otherwise, we need to check them below
 

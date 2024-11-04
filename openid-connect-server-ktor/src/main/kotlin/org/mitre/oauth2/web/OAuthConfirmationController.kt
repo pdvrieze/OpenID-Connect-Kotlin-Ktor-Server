@@ -28,10 +28,7 @@ import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.convert.AuthorizationRequest
-import org.mitre.openid.connect.request.ConnectRequestParameters
-import org.mitre.openid.connect.request.ConnectRequestParameters.PROMPT_LOGIN
-import org.mitre.openid.connect.request.ConnectRequestParameters.PROMPT_NONE
-import org.mitre.openid.connect.request.ConnectRequestParameters.PROMPT_SELECT_ACCOUNT
+import org.mitre.openid.connect.request.Prompt
 import org.mitre.util.getLogger
 import org.mitre.web.OpenIdSessionStorage
 import org.mitre.web.htmlApproveView
@@ -60,7 +57,9 @@ object OAuthConfirmationController: KtorEndpoint {
     internal suspend fun RoutingContext.confirmAccess() {
         val authentication = requireRole(GrantedAuthority.ROLE_USER) { return }
 
-        val pendingSession = call.sessions.get<OpenIdSessionStorage>()?.let{ it.copy(pendingPrompts = it.pendingPrompts?.filterNotTo(HashSet()) { it == ConnectRequestParameters.PROMPT_CONSENT })}
+        val pendingSession = call.sessions.get<OpenIdSessionStorage>()?.let{
+            it.copy(pendingPrompts = Prompt.CONSENT.removeFrom(it.pendingPrompts))
+        }
         val authRequest: AuthorizationRequest = pendingSession?.authorizationRequest
             ?: return call.respond(HttpStatusCode.BadRequest)
 
@@ -94,12 +93,12 @@ object OAuthConfirmationController: KtorEndpoint {
     internal suspend fun RoutingContext.confirmAccess(
         authentication: Authentication,
         authRequest: AuthorizationRequest,
-        prompts: Set<String>,
+        prompts: Set<Prompt>,
         client: OAuthClientDetails,
         redirect_uri: String?,
     ) {
 
-        check(arrayOf(PROMPT_NONE, PROMPT_LOGIN, PROMPT_SELECT_ACCOUNT).none { it in prompts }) {
+        check(arrayOf(Prompt.NONE, Prompt.LOGIN, Prompt.SELECT_ACCOUNT).none { it in prompts }) {
             "Confirmation is always after login"
         }
 

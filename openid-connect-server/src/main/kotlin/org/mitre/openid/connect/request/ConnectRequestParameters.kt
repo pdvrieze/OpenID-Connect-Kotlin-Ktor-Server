@@ -30,10 +30,10 @@ object ConnectRequestParameters {
     const val PROMPT: String = "prompt"
 
     // prompt values
-    const val PROMPT_LOGIN: String = "login"
-    const val PROMPT_NONE: String = "none"
-    const val PROMPT_CONSENT: String = "consent"
-    const val PROMPT_SELECT_ACCOUNT: String = "select_account"
+    val PROMPT_LOGIN: Prompt = Prompt.LOGIN
+    val PROMPT_NONE: Prompt = Prompt.NONE
+    val PROMPT_CONSENT: Prompt = Prompt.CONSENT
+    val PROMPT_SELECT_ACCOUNT: Prompt = Prompt.SELECT_ACCOUNT
     const val PROMPT_SEPARATOR: String = " "
 
     // extensions

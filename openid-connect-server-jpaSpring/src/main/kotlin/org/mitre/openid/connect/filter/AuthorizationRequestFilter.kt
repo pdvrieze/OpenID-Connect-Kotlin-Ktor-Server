@@ -21,6 +21,7 @@ import org.apache.http.client.utils.URIBuilder
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.request.ConnectRequestParameters
+import org.mitre.openid.connect.request.Prompt
 import org.mitre.openid.connect.service.LoginHintExtracter
 import org.mitre.openid.connect.service.impl.RemoveLoginHintsWithHTTP
 import org.mitre.openid.connect.web.AuthenticationTimeStamper
@@ -105,9 +106,9 @@ class AuthorizationRequestFilter : GenericFilterBean() {
             if (extPrompt != null) {
                 // we have a "prompt" parameter
                 val prompt = extPrompt
-                val prompts = prompt.split(ConnectRequestParameters.PROMPT_SEPARATOR)
+                val prompts = Prompt.parseSet(prompt)
 
-                if (ConnectRequestParameters.PROMPT_NONE in prompts) {
+                if (Prompt.NONE in prompts) {
                     // see if the user's logged in
                     val auth = SecurityContextHolder.getContext().authentication
 
@@ -144,7 +145,7 @@ class AuthorizationRequestFilter : GenericFilterBean() {
                         response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied")
                         return
                     }
-                } else if (prompts.contains(ConnectRequestParameters.PROMPT_LOGIN)) {
+                } else if (prompts.contains(Prompt.LOGIN)) {
                     // first see if the user's already been prompted in this session
 
                     if (session.getAttribute(PROMPTED) == null) {

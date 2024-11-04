@@ -11,6 +11,7 @@ import kotlinx.serialization.encoding.Encoder
 import org.mitre.oauth2.model.convert.AuthorizationRequest
 import org.mitre.openid.connect.filter.NormalizedResponseType
 import org.mitre.openid.connect.model.convert.ISOInstant
+import org.mitre.openid.connect.request.Prompt
 
 @Serializable
 data class OpenIdSessionStorage(
@@ -21,7 +22,7 @@ data class OpenIdSessionStorage(
     val loginHint: String? = null,
     val responseType: NormalizedResponseType? = null,
     val authTime: ISOInstant? = null,
-    val pendingPrompts: Set<String>? = null,
+    val pendingPrompts: Set<Prompt>? = null,
 ) {
 
     constructor() : this(principal = null)

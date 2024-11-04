@@ -27,9 +27,7 @@ import org.mitre.oauth2.token.TokenGranter
 import org.mitre.oauth2.view.respondJson
 import org.mitre.oauth2.web.OAuthConfirmationController
 import org.mitre.openid.connect.request.ConnectRequestParameters
-import org.mitre.openid.connect.request.ConnectRequestParameters.PROMPT_CONSENT
-import org.mitre.openid.connect.request.ConnectRequestParameters.PROMPT_LOGIN
-import org.mitre.openid.connect.request.ConnectRequestParameters.PROMPT_SELECT_ACCOUNT
+import org.mitre.openid.connect.request.Prompt
 import org.mitre.openid.connect.service.LoginHintExtracter
 import org.mitre.openid.connect.service.impl.RemoveLoginHintsWithHTTP
 import org.mitre.openid.connect.view.jsonErrorView
@@ -122,7 +120,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
 
         val prompts = when {
             pendingSession.pendingPrompts != null -> pendingSession.pendingPrompts
-            else -> authRequest.extensions[ConnectRequestParameters.PROMPT]?.splitToSequence(' ')?.toHashSet()
+            else -> authRequest.extensions[ConnectRequestParameters.PROMPT]?.let { Prompt.parseSet(it) }
         }
         if (prompts != null) {
             pendingSession = promptFlow(prompts, authRequest, client, auth, pendingSession) ?: return
@@ -268,7 +266,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
     private suspend fun RoutingContext.respondWithApprovalRequest(
         authRequest: AuthorizationRequest,
         auth: Authentication,
-        prompts: Set<String>?,
+        prompts: Set<Prompt>?,
         client: OAuthClientDetails,
         redirectUri: String?,
     ) {
@@ -276,7 +274,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
     }
 
     private suspend fun RoutingContext.promptFlow(
-        prompts: Set<String>,
+        prompts: Set<Prompt>,
         authRequest: AuthorizationRequest,
         client: OAuthClientDetails,
         auth: Authentication?,
@@ -286,8 +284,8 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         var pendingSession = pendingSession
         // we have a "prompt" parameter
 
-        if (ConnectRequestParameters.PROMPT_NONE in prompts) {
-            if (prompts.size!=1) {
+        if (Prompt.NONE in prompts) {
+            if (prompts.size != 1) {
                 jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
                 return null
             }
@@ -329,12 +327,12 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         }
 
         // select account is not quite supported by the UI/system
-        if (PROMPT_LOGIN in prompts || PROMPT_SELECT_ACCOUNT in prompts) {
+        if (Prompt.LOGIN in prompts || Prompt.SELECT_ACCOUNT in prompts) {
             // first see if the user's already been prompted in this session
             return pendingSession.copy(principal = null, authTime = null) // this
         }
 
-        if (auth != null && PROMPT_CONSENT in prompts) {
+        if (auth != null && Prompt.CONSENT in prompts) {
             call.sessions.set(pendingSession)
             respondWithApprovalRequest(authRequest, auth, prompts, client, authRequest.redirectUri)
 //            call.respondRedirect("/oauth/confirm_access")
@@ -357,7 +355,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
             val oldSession = call.sessions.get<OpenIdSessionStorage>() ?:
                 return htmlErrorView(OAuthErrorCodes.INVALID_REQUEST, "Missing session")
 
-            val prompts = oldSession.pendingPrompts?.let { it.filterTo(HashSet()) { it !in arrayOf(PROMPT_LOGIN, PROMPT_SELECT_ACCOUNT) } }
+            val prompts = oldSession.pendingPrompts?.let { it.filterTo(HashSet()) { it !in arrayOf(Prompt.LOGIN, Prompt.SELECT_ACCOUNT) } }
 
             val authRequest = oldSession.authorizationRequest
                 ?: return htmlErrorView(OAuthErrorCodes.INVALID_REQUEST, "Missing authorization request", HttpStatusCode.BadRequest)
@@ -370,8 +368,8 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
 
             val paramMap = formParams.flattenEntries().associate { it }
             val approvedAuthRequest = when {
-                PROMPT_CONSENT !in (oldSession.pendingPrompts ?: emptySet()) &&
-                userApprovalHandler.isApproved(authRequest, auth, paramMap) ->
+                Prompt.CONSENT !in (oldSession.pendingPrompts ?: emptySet()) &&
+                        userApprovalHandler.isApproved(authRequest, auth, paramMap) ->
                     userApprovalHandler.updateAfterApproval(authRequest, auth, paramMap)
 
                 else -> userApprovalHandler.checkForPreApproval(authRequest, auth, oldSession.pendingPrompts)
