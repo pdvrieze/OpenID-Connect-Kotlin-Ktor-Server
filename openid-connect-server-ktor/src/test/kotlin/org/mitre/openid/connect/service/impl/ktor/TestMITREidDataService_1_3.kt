@@ -769,8 +769,7 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
 //            UsernamePasswordAuthenticationToken("user1", "pass1", AuthorityUtils.commaSeparatedStringToAuthorityList("ROLE_USER"))
         val auth1 = AuthenticatedAuthorizationRequest(req1, mockAuth1)
 
-        val holder1 = AuthenticationHolderEntity(id = 1L, requestTime = req1.requestTime)
-        holder1.authenticatedAuthorizationRequest = auth1
+        val holder1 = AuthenticationHolderEntity(auth1, id = 1L)
 
         val req2 = AuthorizationRequest(
             clientId = "client2",
@@ -780,8 +779,7 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
         )
         val auth2 = AuthenticatedAuthorizationRequest(req2, null)
 
-        val holder2 = AuthenticationHolderEntity(id = 2L, requestTime = req2.requestTime)
-        holder2.authenticatedAuthorizationRequest = auth2
+        val holder2 = AuthenticationHolderEntity(auth2, 2L)
 
         val allAuthHolders: List<AuthenticationHolderEntity> = listOf(holder1, holder2)
 

@@ -625,8 +625,7 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
         val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
         val auth1 = AuthenticatedAuthorizationRequest(req1, mockAuth1)
 
-        val holder1 = AuthenticationHolderEntity(id = 1L, requestTime = Instant.now())
-        holder1.authenticatedAuthorizationRequest = auth1
+        val holder1 = AuthenticationHolderEntity(auth1, id = 1L)
 
         val req2 = AuthorizationRequest(
             clientId = "client2",
@@ -637,8 +636,7 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
         val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
         val auth2 = AuthenticatedAuthorizationRequest(req2, mockAuth2)
 
-        val holder2 = AuthenticationHolderEntity(id = 2L, requestTime = Instant.now())
-        holder2.authenticatedAuthorizationRequest = auth2
+        val holder2 = AuthenticationHolderEntity(auth2, id = 2L)
 
         val configJson = (buildString {
             append("{")
@@ -798,8 +796,7 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
         val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
         val auth1 = AuthenticatedAuthorizationRequest(req1, mockAuth1)
 
-        val holder1 = AuthenticationHolderEntity(id = 1L, requestTime = Instant.now())
-        holder1.authenticatedAuthorizationRequest = auth1
+        val holder1 = AuthenticationHolderEntity(auth1, id = 1L)
 
         val token1 = OAuth2RefreshTokenEntity(
             id = 1L,
@@ -825,8 +822,7 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
         val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
         val auth2 = AuthenticatedAuthorizationRequest(req2, mockAuth2)
 
-        val holder2 = AuthenticationHolderEntity(id = 2L, requestTime = Instant.now())
-        holder2.authenticatedAuthorizationRequest = auth2
+        val holder2 = AuthenticationHolderEntity(auth2, id = 2L)
 
         val token2 = OAuth2RefreshTokenEntity(
             id = 2L,

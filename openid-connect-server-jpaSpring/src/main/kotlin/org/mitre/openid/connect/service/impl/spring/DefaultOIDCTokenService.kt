@@ -235,9 +235,7 @@ class DefaultOIDCTokenService : OIDCTokenService {
         tokenBuilder.setClient(client)
         tokenBuilder.scope = scope ?: emptySet()
 
-        var authHolder = AuthenticationHolderEntity(requestTime = authentication.authorizationRequest.requestTime)
-        authHolder.authenticatedAuthorizationRequest = authentication
-        authHolder = authenticationHolderRepository.save(authHolder)
+        val authHolder = authenticationHolderRepository.save(AuthenticationHolderEntity(authentication))
         tokenBuilder.setAuthenticationHolder(authHolder)
 
         val claims = JWTClaimsSet.Builder()

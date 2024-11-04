@@ -89,29 +89,8 @@ class AuthenticationHolderEntity(
         requestTime = o2Request.requestTime,
     )
 
-    var authenticatedAuthorizationRequest: AuthenticatedAuthorizationRequest
-        get() =// TODO: memoize this
-            AuthenticatedAuthorizationRequest(createAuthorizationRequest(), userAuth)
-        set(authentication) {
-            // pull apart the request and save its bits
-
-            val o2Request = authentication.authorizationRequest
-            authorities = o2Request.authorities.toHashSet()
-            clientId = o2Request.clientId
-            extensions = o2Request.extensionStrings?.toMap()
-            redirectUri = o2Request.redirectUri
-            requestParameters = o2Request.requestParameters.toMap()
-            resourceIds = o2Request.resourceIds?.toHashSet()
-            responseTypes = o2Request.responseTypes?.toHashSet()
-            scope = HashSet(o2Request.scope)
-            isApproved = o2Request.isApproved
-
-            if (authentication.userAuthentication != null) {
-                this.userAuth = SavedUserAuthentication(authentication.userAuthentication)
-            } else {
-                this.userAuth = null
-            }
-        }
+    val authenticatedAuthorizationRequest: AuthenticatedAuthorizationRequest
+        get() = AuthenticatedAuthorizationRequest(createAuthorizationRequest(), userAuth)
 
     private fun createAuthorizationRequest(): AuthorizationRequest {
         return AuthorizationRequest(
