@@ -7,3 +7,4 @@ interface KtorEndpoint {
     val json get() = Json.Default
     fun Route.addRoutes()
 }
+

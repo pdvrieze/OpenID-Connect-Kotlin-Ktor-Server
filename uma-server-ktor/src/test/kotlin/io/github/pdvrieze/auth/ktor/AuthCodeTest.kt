@@ -20,10 +20,12 @@ import org.mitre.oauth2.web.TokenAPI
 import org.mitre.openid.connect.filter.AuthTokenResponse
 import org.mitre.openid.connect.filter.PlainAuthorizationRequestEndpoint
 import org.mitre.web.FormAuthEndpoint
+import org.mitre.web.OpenIdSessionStorage
 import java.time.Duration
 import java.time.Instant
 import java.util.*
 import kotlin.test.Test
+import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
@@ -117,7 +119,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
         val action = Regex("\\baction=(['\"])([^'\"]*)\\1").findAll(form).single().groups[2]!!.value
         val method = Regex("\\bmethod=(['\"])([^'\"]*)\\1").findAll(form).single().groups[2]!!.value
 
-        assertEquals("https://example.com/login", action)
+        assertEquals("https://example.com/authorize/login", action)
         assertEquals("post", method)
     }
 
@@ -136,7 +138,11 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
         assertNull(inputs["passwords"])
         assertEquals(1, assertNotNull(inputs["scope_scope2"]).size) // we only ask for scope 2
         assertEquals(3, assertNotNull(inputs["remember"]).size)
-        assertEquals(1, assertNotNull(inputs["SDFHLK_CSRF"]).size) // important to ensure request from here
+
+        val sessionCookie = r.setCookie().singleOrNull { it.name == OpenIdSessionStorage.COOKIE_NAME }
+        assertNotNull(sessionCookie) // a session cookie is required
+        // We use sessions for CSRF
+        // assertEquals(1, assertNotNull(inputs["SDFHLK_CSRF"]).size) // important to ensure request from here
         assertEquals(1, assertNotNull(inputs["deny"]).size)
         assertEquals(1, assertNotNull(inputs["authorize"]).size)
         assertEquals(1, assertNotNull(inputs["user_oauth_approval"]).size)
@@ -316,6 +322,212 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
 
     @Test
     fun testAuthorizationCodeFlowSimpleNoState() = testEndpoint {
+        // Initial request starts login flow (and creates the session cookie)
+        var sessionCookie = run {
+            val loginResp = getUnAuth("/authorize?response_type=code&client_id=$clientId", HttpStatusCode.Unauthorized, client = nonRedirectingClient)
+            assertNull(loginResp.headers[HttpHeaders.Location])
+            assertEquals(ContentType.Text.Html, loginResp.contentType()?.withoutParameters())
+
+            val responseText = loginResp.bodyAsText()
+
+            val form = Regex("<form\\b[^>]*>").findAll(responseText).single().value
+
+            val action = Regex("\\baction=(['\"])([^'\"]*)\\1").findAll(form).single().groups[2]!!.value
+            val method = Regex("\\bmethod=(['\"])([^'\"]*)\\1").findAll(form).single().groups[2]!!.value
+            assertEquals("post", method)
+            assertEquals("https://example.com/authorize/login", action)
+
+            loginResp.setCookie().single { it.name == OpenIdSessionStorage.COOKIE_NAME }
+        }
+
+        run { // Respond to the login form without the cookie (this should be invalid, CSRF)
+            val missingSession = submitUnAuth(
+                url = "/authorize/login",
+                formParameters = Parameters.build {
+                    append("userName", "user")
+                    append("password", "userSecret")
+                },
+                statusCode = HttpStatusCode.BadRequest
+            )
+            val content = missingSession.bodyAsText()
+            assertContains(content, "invalid_request")
+            assertContains(content, "Missing session")
+        }
+
+        run { // Actually log in the user (with cookie)
+            val withSession = submitUnAuth(
+                url = "/authorize/login",
+                formParameters = Parameters.build {
+                    append("userName", "user")
+                    append("password", "userSecret")
+                },
+                statusCode = HttpStatusCode.OK,
+            ) {
+                headers {
+                    append(HttpHeaders.Cookie, renderCookieHeader(sessionCookie))
+                }
+            }
+
+            sessionCookie = withSession.setCookie().single { it.name == OpenIdSessionStorage.COOKIE_NAME }
+
+            val content = withSession.bodyAsText()
+            val form = Regex("<form\\b[^>]*>").findAll(content).single { "logoutForm" !in it.value}.value
+
+            val action = Regex("\\baction=(['\"])([^'\"]*)\\1").findAll(form).single().groups[2]!!.value
+            val method = Regex("\\bmethod=(['\"])([^'\"]*)\\1").findAll(form).single().groups[2]!!.value
+            val inputs = Regex("<input\\b[^>]*\\bname=(['\"])([^'\"]*)\\1[^>]*>").findAll(content).groupBy(
+                keySelector = { it.groups[2]?.value },
+                valueTransform = { it.value }
+            )
+
+            assertEquals("post", method)
+            assertEquals("https://example.com/authorize", action)
+
+            assertContains(assertNotNull(inputs["scope_scope1"]?.singleOrNull()), "checkbox")
+            assertContains(assertNotNull(inputs["scope_scope2"]?.singleOrNull()), "checkbox")
+            assertContains(assertNotNull(inputs["scope_offline_access"]?.singleOrNull()), "checkbox")
+
+            val remembers = assertNotNull(inputs["remember"])
+            assertEquals(3, remembers.size)
+            for (r in remembers) {
+                assertContains(r, "radio")
+            }
+            assertTrue(remembers.count { "value=\"until-revoked\"" in it } == 1)
+            assertTrue(remembers.count { "value=\"one-hour\"" in it } == 1)
+            assertTrue(remembers.count { "value=\"none\"" in it } == 1)
+
+            assertContains(assertNotNull(inputs["user_oauth_approval"]?.singleOrNull()), "hidden")
+            assertContains(assertNotNull(inputs["authorize"]?.singleOrNull()), "submit")
+            assertContains(assertNotNull(inputs["deny"]?.singleOrNull()), "submit")
+        }
+
+        run { // Approve the request
+            val approved = submitUnAuth(
+                url = "/authorize",
+                formParameters = Parameters.build {
+                    append("scope_scope1", "scope1")
+                    append("scope_scope2", "scope2")
+                    append("scope_offline_access", "offline_access")
+                    append("remember", "one-hour")
+                    append("authorize", "Authorize")
+                    append("user_oauth_approval", "true")
+                },
+                statusCode = HttpStatusCode.Found,
+            ) {
+                headers {
+                    append(HttpHeaders.Cookie, renderCookieHeader(sessionCookie))
+                }
+            }
+
+            val respUri = parseUrl(assertNotNull(approved.headers[HttpHeaders.Location]))!!
+            val actualBase = URLBuilder(respUri.protocolWithAuthority).apply {
+                pathSegments = respUri.segments
+            }.buildString()
+
+            assertEquals(REDIRECT_URI, actualBase)
+            val code = assertNotNull(respUri.parameters["code"])
+
+            val r2 = nonRedirectingClient.submitForm(
+                "/token",
+                formParameters = parameters {
+                    append("grant_type", "authorization_code")
+                    append("code", code)
+                }
+            ) {
+                basicAuth(clientId, clientSecret)
+            }
+            assertEquals(HttpStatusCode.OK, r2.status)
+            val accessTokenResponse = r2.body<AuthTokenResponse>()// Json.parseToJsonElement(r2.bodyAsText()).jsonObject
+            assertEquals("bearer", accessTokenResponse.tokenType.lowercase())
+            val accessToken = SignedJWT.parse(accessTokenResponse.accessToken)
+
+
+            assertTrue(accessToken.verify(JWT_VERIFIER))
+
+            val cs = accessToken.jwtClaimsSet
+
+            assertEquals("https://example.com/", cs.issuer)
+            assertEquals("user", cs.subject)
+            assertEquals("at+jwt", accessToken.header.type.type) // required by RFC9068 for plain access tokens
+
+            val exp = assertNotNull(cs.expirationTime, "Missing expiration time").toInstant()
+            val n = Instant.now()
+            assertTrue(n.isBefore(exp))
+            assertTrue((n + Duration.ofMinutes(5)).isAfter(exp))
+
+        }
+
+/*
+        assertNull(inputs["passwords"])
+        assertEquals(1, assertNotNull(inputs["scope_scope2"]).size) // we only ask for scope 2
+        assertEquals(3, assertNotNull(inputs["remember"]).size)
+
+        assertNotNull(sessionCookie) // a session cookie is required
+        // We use sessions for CSRF
+        // assertEquals(1, assertNotNull(inputs["SDFHLK_CSRF"]).size) // important to ensure request from here
+        assertEquals(1, assertNotNull(inputs["deny"]).size)
+        assertEquals(1, assertNotNull(inputs["authorize"]).size)
+        assertEquals(1, assertNotNull(inputs["user_oauth_approval"]).size)
+
+
+        val form = Regex("<form\\b[^>]*\\bname=\"confirmationForm\"[^>]*>").findAll(responseText).single().value
+
+        val action = Regex("\\baction=(['\"])([^'\"]*)\\1").findAll(form).single().groups[2]!!.value
+        val method = Regex("\\bmethod=(['\"])([^'\"]*)\\1").findAll(form).single().groups[2]!!.value
+
+        assertEquals("https://example.com/authorize", action)
+        assertEquals("post", method)
+
+        TODO()
+
+        val respUri = parseUrl(assertNotNull(loginResp.headers[HttpHeaders.Location]))!!
+        val actualBase = URLBuilder(respUri.protocolWithAuthority).apply {
+            pathSegments = respUri.segments
+        }.buildString()
+
+        assertEquals(REDIRECT_URI, actualBase)
+        val code = assertNotNull(respUri.parameters["code"])
+
+        val r2 = nonRedirectingClient.submitForm(
+            "/token",
+            formParameters = parameters {
+                append("grant_type", "authorization_code")
+                append("code", code)
+            }
+        ) {
+            basicAuth(clientId, clientSecret)
+        }
+        assertEquals(HttpStatusCode.OK, r2.status)
+        val accessTokenResponse = r2.body<AuthTokenResponse>()// Json.parseToJsonElement(r2.bodyAsText()).jsonObject
+        assertEquals("bearer", accessTokenResponse.tokenType.lowercase())
+        val accessToken = SignedJWT.parse(accessTokenResponse.accessToken)
+
+
+        assertTrue(accessToken.verify(JWT_VERIFIER))
+
+        val cs = accessToken.jwtClaimsSet
+
+        assertEquals("https://example.com/", cs.issuer)
+        assertEquals("user", cs.subject)
+        assertEquals("at+jwt", accessToken.header.type.type) // required by RFC9068 for plain access tokens
+
+        val exp = assertNotNull(cs.expirationTime, "Missing expiration time").toInstant()
+        val n = Instant.now()
+        assertTrue(n.isBefore(exp))
+        assertTrue((n + Duration.ofMinutes(5)).isAfter(exp))
+*/
+
+        // iat (issued at) may be present (in seconds from epoch)
+        // expect audience (aud) to include auth server: RFC7523 (ch 3, bullet 3)
+        // expect exp (expiration)
+        // opt expect amr = [ "password" ] - authentication methods used
+        // opt expect authorized party - the client id that received the token
+
+        // TODO("exchange code for token")
+    }
+
+    @Test
+    fun testAuthorizationCodeFlowSimpleNoStatePreAuthorized() = testEndpoint {
         preAuthorizeAccess()
 
         val r = getUser("/authorize?response_type=code&client_id=$clientId", HttpStatusCode.Found, client = nonRedirectingClient)

@@ -49,7 +49,7 @@ import java.util.*
  * @throws NoSuchAlgorithmException If there is no appropriate algorithm to tie the keys to.
  */
 
-class DefaultJWTSigningAndValidationService(keys: Map<String, JWK>, override val defaultSignerKeyId: String) : JWTSigningAndValidationService {
+class DefaultJWTSigningAndValidationService(keys: Map<String, JWK>, override val defaultSignerKeyId: String = keys.keys.single()) : JWTSigningAndValidationService {
 
     constructor(key: JWK, defaultSignerKeyId: String = key.keyID ?: UUID.randomUUID().toString()) :
             this(mapOf(defaultSignerKeyId to key), defaultSignerKeyId)
@@ -82,7 +82,7 @@ class DefaultJWTSigningAndValidationService(keys: Map<String, JWK>, override val
      * @throws InvalidKeySpecException If the keys in the JWKs are not valid
      * @throws NoSuchAlgorithmException If there is no appropriate algorithm to tie the keys to.
      */
-    constructor(keyStore: JWKSetKeyStore?, defaultSignerKeyId: String): this(keyStore?.let { s ->
+    constructor(keyStore: JWKSetKeyStore?, defaultSignerKeyId: String = keyStore!!.keys.single().keyID): this(keyStore?.let { s ->
         // use the key ID that's built into the key itself, otherwise use a random key id
         s.keys.associateBy {
             it.keyID?.takeIf { it.isNotEmpty() } ?: UUID.randomUUID().toString()

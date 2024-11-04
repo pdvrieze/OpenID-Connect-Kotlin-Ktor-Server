@@ -391,7 +391,7 @@ open class ClientDetailsEntity private constructor(
         authorities = builder.authorities,
         refreshTokenValiditySeconds = builder.refreshTokenValiditySeconds,
         resourceIds = builder.resourceIds,
-        additionalInformation = builder.additionalInformation,
+        additionalInformation = builder.additionalInformation ?: emptyMap(),
         dummy = Unit,
     )
 
@@ -580,16 +580,16 @@ open class ClientDetailsEntity private constructor(
         override var id: Long? = null,
         override var clientId: String? = null,
         override var clientSecret: String? = null,
-        override var scope: MutableSet<String>? = hashSetOf(),
-        override var authorizedGrantTypes: MutableSet<String> = hashSetOf(),
+        scope: Set<String>? = hashSetOf(),
+        authorizedGrantTypes: Set<String> = hashSetOf(),
         override var tokenEndpointAuthMethod: AuthMethod? = null,
-        override var redirectUris: MutableSet<String> = hashSetOf(),
+        redirectUris: Set<String> = hashSetOf(),
         override var clientName: String? = null,
         override var clientUri: String? = null,
         override var logoUri: String? = null,
-        override var contacts: Set<String>? = null,
+        contacts: Set<String>? = null,
         override var tosUri: String? = null,
-        override var responseTypes: MutableSet<String> = hashSetOf(),
+        responseTypes: Set<String> = hashSetOf(),
         override var policyUri: String? = null,
         override var jwksUri: String? = null,
         override var jwks: JWKSet? = null,
@@ -608,10 +608,10 @@ open class ClientDetailsEntity private constructor(
         override var tokenEndpointAuthSigningAlg: JWSAlgorithm? = null,
         override var defaultMaxAge: Long? = null,
         override var requireAuthTime: Boolean? = null,
-        override var defaultACRvalues: MutableSet<String>? = null,
+        defaultACRvalues: Set<String>? = null,
         override var initiateLoginUri: String? = null,
-        override var postLogoutRedirectUris: MutableSet<String>? = null,
-        override var requestUris: MutableSet<String>? = null,
+        postLogoutRedirectUris: Set<String>? = null,
+        requestUris: Set<String>? = null,
         override var clientDescription: String = "",
         override var isReuseRefreshToken: Boolean = true,
         override var isDynamicallyRegistered: Boolean = false,
@@ -620,15 +620,28 @@ open class ClientDetailsEntity private constructor(
         override var createdAt: Date? = null,
         override var isClearAccessTokensOnRefresh: Boolean = true,
         override var deviceCodeValiditySeconds: Int? = null,
-        override var claimsRedirectUris: MutableSet<String>? = null,
+        claimsRedirectUris: Set<String>? = null,
         override var softwareStatement: JWT? = null,
         override var codeChallengeMethod: PKCEAlgorithm? = null,
         var accessTokenValiditySeconds: Int? = null,
         var refreshTokenValiditySeconds: Int? = null,
-        var authorities: MutableSet<GrantedAuthority> = hashSetOf(),
-        var resourceIds: MutableSet<String> = HashSet(),
-        var additionalInformation: MutableMap<String, Any> = HashMap(),
+        authorities: Set<GrantedAuthority> = HashSet(),
+        resourceIds: Set<String> = HashSet(),
+        additionalInformation: MutableMap<String, Any>? = null,
     ): OAuthClientDetails.Builder {
+
+        override var scope: MutableSet<String>? = scope?.toHashSet()
+        override var authorizedGrantTypes: MutableSet<String> = authorizedGrantTypes.toMutableSet()
+        override var redirectUris: MutableSet<String> = redirectUris.toMutableSet()
+        override var contacts: MutableSet<String>? = contacts?.toHashSet()
+        override var responseTypes: MutableSet<String> = responseTypes.toHashSet()
+        override var defaultACRvalues: MutableSet<String>? = defaultACRvalues?.toHashSet()
+        override var postLogoutRedirectUris: MutableSet<String>? = postLogoutRedirectUris?.toHashSet()
+        override var requestUris: MutableSet<String>? = requestUris?.toHashSet()
+        override var claimsRedirectUris: MutableSet<String>? = claimsRedirectUris?.toHashSet()
+        var authorities: MutableSet<GrantedAuthority> = authorities.toHashSet()
+        var resourceIds: MutableSet<String> = resourceIds.toHashSet()
+        var additionalInformation = additionalInformation?.let { HashMap(it)}
 
         constructor(entity: OAuthClientDetails) :this(
             id = entity.id,

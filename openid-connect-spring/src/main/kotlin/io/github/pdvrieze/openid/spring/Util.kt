@@ -10,6 +10,7 @@ import org.mitre.openid.connect.model.OIDCAuthenticationToken
 import org.mitre.openid.connect.model.PendingOIDCAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.authority.SimpleGrantedAuthority
+import java.time.Instant
 import java.util.*
 import org.springframework.security.core.Authentication as SpringAuthentication
 import org.springframework.security.core.GrantedAuthority as SpringGrantedAuthority
@@ -188,7 +189,7 @@ fun SpringOAuth2Request.fromSpring(): AuthorizationRequest {
         redirectUri = redirectUri,
         responseTypes = responseTypes,
         approvalParameters = null,
-        requestTime = xxxx,
+        requestTime = Instant.EPOCH,
         extensionStrings = extensions?.mapValues { it.toString() }
     )
 }

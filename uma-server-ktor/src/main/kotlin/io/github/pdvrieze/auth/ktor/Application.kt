@@ -37,6 +37,7 @@ fun Application.module() {
                 httpOnly = true
                 secure = ! this@module.developmentMode // secure except in development mode
                 maxAge = null
+                sameSite = SameSite.Strict
             }
         }
 

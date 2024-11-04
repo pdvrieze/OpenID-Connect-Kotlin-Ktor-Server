@@ -20,9 +20,11 @@ data class OpenIdSessionStorage(
     val state: String? = null,
     val loginHint: String? = null,
     val responseType: NormalizedResponseType? = null,
-    val authTime: ISOInstant?,
+    val authTime: ISOInstant? = null,
     val pendingPrompts: Set<String>? = null,
 ) {
+
+    constructor() : this(principal = null)
 
     init {
         if (principal != null) {

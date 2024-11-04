@@ -14,6 +14,7 @@ dependencies {
     implementation(projects.openidConnectServerKtor)
 
     implementation(libs.ktor.server.html.builder)
+    implementation(libs.ktor.server.sessions)
     implementation(libs.kotlinx.html)
     implementation(libs.kotlin.wrappers.css)
     implementation(libs.kotlinx.serialization.json)

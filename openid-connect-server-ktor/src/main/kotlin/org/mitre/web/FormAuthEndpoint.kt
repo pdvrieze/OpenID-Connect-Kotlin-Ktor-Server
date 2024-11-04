@@ -10,6 +10,7 @@ import org.mitre.oauth2.exception.OAuthErrorCodes
 import org.mitre.openid.connect.filter.PlainAuthorizationRequestEndpoint
 import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.web.util.KtorEndpoint
+import org.mitre.web.util.config
 import org.mitre.web.util.openIdContext
 import java.net.URI
 import java.time.Instant
@@ -21,11 +22,11 @@ object FormAuthEndpoint: KtorEndpoint {
         post("login") { doLogin() }
     }
 
-    suspend fun RoutingContext.showLoginRequest() {
-        return htmlLoginView(null, null, call.request.queryParameters["redirect_uri"])
+    suspend fun RoutingContext.showLoginRequest(loginActionUrl: String = config.issuerUrl("login")) {
+        return htmlLoginView(loginActionUrl, null, null, call.request.queryParameters["redirect_uri"])
     }
 
-    suspend fun RoutingContext.doLogin() {
+    suspend fun RoutingContext.doLogin(loginActionUrl: String = config.issuerUrl("login")) {
         val formParams = call.receiveParameters()
 
         val userName = formParams["username"]
@@ -55,7 +56,7 @@ object FormAuthEndpoint: KtorEndpoint {
         val locales = call.request.acceptLanguageItems().map { Locale(it.value) }
         val error = openIdContext.messageSource.resolveCode("login.error", locales)?.format(null)
 
-        return htmlLoginView(formParams["username"], error, formParams["redirect"], HttpStatusCode.Unauthorized)
+        return htmlLoginView(loginActionUrl, formParams["username"], error, formParams["redirect"], HttpStatusCode.Unauthorized)
     }
 
 }

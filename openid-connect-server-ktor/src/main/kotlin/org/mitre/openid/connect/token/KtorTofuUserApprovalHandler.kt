@@ -27,9 +27,6 @@ import org.mitre.openid.connect.request.ConnectRequestParameters
 import org.mitre.openid.connect.service.ApprovedSiteService
 import org.mitre.openid.connect.service.WhitelistedSiteService
 import org.mitre.openid.connect.web.AuthenticationTimeStamper
-import org.mitre.util.asBoolean
-import org.mitre.util.asString
-import org.mitre.util.asStringSet
 import java.time.Duration
 import java.time.Instant
 import java.util.*
@@ -66,7 +63,11 @@ class KtorTofuUserApprovalHandler(
      *
      * @return                        true if the site is approved, false otherwise
      */
-    override fun isApproved(authorizationRequest: AuthorizationRequest, userAuthentication: Authentication): Boolean {
+    override fun isApproved(
+        authorizationRequest: AuthorizationRequest,
+        userAuthentication: Authentication,
+        postParams: Map<String, String>
+    ): Boolean {
         // if this request is already approved, pass that info through
         // (this flag may be set by updateBeforeApproval, which can also do funny things with scopes, etc)
 
@@ -75,7 +76,7 @@ class KtorTofuUserApprovalHandler(
         } else {
             // if not, check to see if the user has approved it
             // TODO: make parameter name configurable?
-            authorizationRequest.approvalParameters?.get("user_oauth_approval")?.asBoolean() ?: false
+            postParams["user_oauth_approval"] == "true" && postParams["authorize"] == "Authorize"
         }
     }
 
@@ -150,7 +151,8 @@ class KtorTofuUserApprovalHandler(
 
     override fun updateAfterApproval(
         authorizationRequest: AuthorizationRequest,
-        userAuthentication: Authentication
+        userAuthentication: Authentication,
+        postParams: Map<String, String>
     ): AuthorizationRequest {
         val userId = userAuthentication.name
         val clientId = authorizationRequest.clientId
@@ -159,35 +161,52 @@ class KtorTofuUserApprovalHandler(
         var newScope = authorizationRequest.scope
         val newExtensions = HashMap<String, String>(authorizationRequest.extensions)
 
-        val newApprovalParameters = when(val oldApprovalParameters = authorizationRequest.approvalParameters) {
+        val newApprovalParameters = when(val oldApprovalParameters = postParams) {
             null -> null
 
             else -> buildJsonObject {
                 authorizationRequest.approvalParameters?.let { for((k, v) in it.entries) { put(k, v) } }
 
                 // This must be re-parsed here because SECOAUTH forces us to call things in a strange order
-                if (oldApprovalParameters["user_oauth_approval"]?.asBoolean() == true) {
+                if (oldApprovalParameters["user_oauth_approval"] == "true") {
                     newApproved = true
 
                     // process scopes from user input
-                    val allowedScopes: MutableSet<String> = hashSetOf()
                     val approvalParams = authorizationRequest.approvalParameters
 
                     //This is a scope parameter from the approval page. The value sent back should
                     //be the scope string. Check to make sure it is contained in the client's
                     //registered allowed scopes.
-                    oldApprovalParameters.asSequence()
+                    val allowedScopes = oldApprovalParameters.asSequence()
                         .filter { it.key.startsWith("scope_")  }
-                        .map { it.value.asStringSet() ?: emptySet() }
+                        .map { setOf(it.value) }
                         //Make sure this scope is allowed for the given client
                         .filter { scopes -> systemScopes.scopesMatch(client.scope, scopes) }
-                        .flatMapTo(allowedScopes) { it }
+                        .flatMapTo(HashSet()) { it }
 
                     // inject the user-allowed scopes into the auth request
                     newScope = allowedScopes
 
                     //Only store an ApprovedSite if the user has checked "remember this decision":
-                    val remember = oldApprovalParameters["remember"]?.asString()
+                    when(postParams["remember"]) {
+                        "one-hour" -> {
+                            val timeout: Date? = Date.from(Instant.now()+Duration.ofHours(1))
+
+                            val newSite = approvedSiteService.createApprovedSite(clientId, userId, timeout, allowedScopes)
+                            val newSiteId = newSite.id.toString()
+                            put(ConnectRequestParameters.APPROVED_SITE, newSiteId)
+
+                        }
+                        "until-revoked" -> {
+                            val newSite = approvedSiteService.createApprovedSite(clientId, userId, null as Date?, allowedScopes)
+                            val newSiteId = newSite.id.toString()
+                            put(ConnectRequestParameters.APPROVED_SITE, newSiteId)
+                        }
+                        else -> { // default to not remembering
+
+                        }
+                    }
+                    val remember = oldApprovalParameters["remember"]
                     if (!remember.isNullOrEmpty() && remember != "none") {
                         var timeout: Date? = null
                         if (remember == "one-hour") {

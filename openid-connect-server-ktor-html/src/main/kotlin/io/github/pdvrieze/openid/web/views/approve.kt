@@ -326,7 +326,8 @@ fun HTML.approve(
                                 id="user_oauth_approval"
                                 value="true"
                             }
-                            hiddenInput(name= _csrf.parameterName) { value= _csrf.token }
+                            _csrf.requireSession()
+                            /*hiddenInput(name= _csrf.parameterName) { value= _csrf.token }*/
                             submitInput(name="authorize", classes="btn btn-success btn-large") {
                                 onClick = "\$('#user_oauth_approval').attr('value',true)"
 

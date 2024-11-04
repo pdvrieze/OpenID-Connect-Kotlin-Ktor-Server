@@ -9,6 +9,7 @@ import kotlinx.html.*
 
 fun HTML.login(
     context: WebContext,
+    loginActionUrl: String,
     loginHint: String?,
     paramError: String?,
     redirectUri: String?,
@@ -41,7 +42,7 @@ fun HTML.login(
 
                     div(classes="row-fluid") {
                         div(classes="span6 offset1 well") {
-                            form(action=context.issuerUrl("login"), method=FormMethod.post) {
+                            form(action=loginActionUrl, method=FormMethod.post) {
                                 div() {
                                     div(classes="input-prepend input-block-level") {
                                         span(classes = "add-on") { i(classes = "icon-user") }
@@ -70,9 +71,7 @@ fun HTML.login(
                                     }
                                 }
                                 div() {
-                                    hiddenInput(name= _csrf.parameterName) {
-                                        value= _csrf.token
-                                    }
+                                    _csrf.requireSession()
                                     if (redirectUri != null) {
                                         hiddenInput(name = "redirect") { value=redirectUri }
                                     }

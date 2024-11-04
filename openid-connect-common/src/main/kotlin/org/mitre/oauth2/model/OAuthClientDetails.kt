@@ -286,7 +286,7 @@ interface OAuthClientDetails {
         var clientName: String?
         var clientUri: String?
         var logoUri: String?
-        var contacts: Set<String>?
+        var contacts: MutableSet<String>?
         var tosUri: String?
         var responseTypes: MutableSet<String>
         var policyUri: String?

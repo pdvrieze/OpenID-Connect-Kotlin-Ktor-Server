@@ -57,7 +57,8 @@ fun HTML.requestUserCode(
                                         }
                                     }
                                 }
-                                input(InputType.hidden, name= _csrf.parameterName ) { value= _csrf.token }
+                                _csrf.requireSession()
+                                /*input(InputType.hidden, name= _csrf.parameterName ) { value= _csrf.token }*/
                                 input(InputType.submit, name = "approve", classes = "btn btn-info btn-large") {
                                     value = authorize_label
                                 }

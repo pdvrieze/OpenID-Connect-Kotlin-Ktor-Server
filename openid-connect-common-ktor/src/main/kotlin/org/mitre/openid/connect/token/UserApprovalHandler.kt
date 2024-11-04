@@ -15,7 +15,11 @@ interface UserApprovalHandler {
      *
      * @return                        true if the site is approved, false otherwise
      */
-    fun isApproved(authorizationRequest: AuthorizationRequest, userAuthentication: Authentication): Boolean
+    fun isApproved(
+        authorizationRequest: AuthorizationRequest,
+        userAuthentication: Authentication,
+        postParams: Map<String, String>
+    ): Boolean
 
     /**
      * Check if the user has already stored a positive approval decision for this site; or if the
@@ -36,7 +40,8 @@ interface UserApprovalHandler {
 
     fun updateAfterApproval(
         authorizationRequest: AuthorizationRequest,
-        userAuthentication: Authentication
+        userAuthentication: Authentication,
+        postParams: Map<String, String>
     ): AuthorizationRequest
 
 }

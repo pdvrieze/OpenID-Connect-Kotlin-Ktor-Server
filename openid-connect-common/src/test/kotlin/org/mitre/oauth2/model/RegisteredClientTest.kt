@@ -39,7 +39,7 @@ class RegisteredClientTest {
             clientSecretExpiresAt = Date(1577858400L * 1000L),
             registrationAccessToken = "this.is.an.access.token.value.ffx83",
             registrationClientUri = "https://server.example.com/connect/register?client_id=s6BhdRkqt3",
-            client = ClientDetailsEntity(
+            client = ClientDetailsEntity.Builder(
                 clientId = "s6BhdRkqt3",
                 clientSecret = "ZJYCqe3GGRvdrudKyZS0XhGv_Z45DuKhCUk0gBR1vZk",
                 applicationType = OAuthClientDetails.AppType.WEB,
@@ -54,7 +54,7 @@ class RegisteredClientTest {
                 userInfoEncryptedResponseEnc = EncryptionMethod.A128CBC_HS256,
                 contacts = setOf("ve7jtb@example.org", "mary@example.org"),
                 requestUris = setOf("https://client.example.org/rf.txt#qpXaRLh_n93TTR9F252ValdatUQvQiJi5BDub2BeznA"),
-            ),
+            ).build(),
         )
 
 
@@ -82,7 +82,7 @@ class RegisteredClientTest {
      */
     @Test
     fun testRegisteredClientClientDetailsEntity() {
-        val c = ClientDetailsEntity(
+        val c = ClientDetailsEntity.Builder(
             clientId = "s6BhdRkqt3",
             clientSecret = "ZJYCqe3GGRvdrudKyZS0XhGv_Z45DuKhCUk0gBR1vZk",
             applicationType = OAuthClientDetails.AppType.WEB,
@@ -97,7 +97,7 @@ class RegisteredClientTest {
             userInfoEncryptedResponseEnc = EncryptionMethod.A128CBC_HS256,
             contacts = setOf("ve7jtb@example.org", "mary@example.org"),
             requestUris = setOf("https://client.example.org/rf.txt#qpXaRLh_n93TTR9F252ValdatUQvQiJi5BDub2BeznA"),
-        )
+        ).build()
 
 
         // Create a RegisteredClient based on a ClientDetailsEntity object and set several properties
@@ -133,7 +133,7 @@ class RegisteredClientTest {
      */
     @Test
     fun testRegisteredClientClientDetailsEntityStringString() {
-        val c = ClientDetailsEntity(
+        val c = ClientDetailsEntity.Builder(
             clientId = "s6BhdRkqt3",
             clientSecret = "ZJYCqe3GGRvdrudKyZS0XhGv_Z45DuKhCUk0gBR1vZk",
             applicationType = OAuthClientDetails.AppType.WEB,
@@ -148,7 +148,7 @@ class RegisteredClientTest {
             userInfoEncryptedResponseEnc = EncryptionMethod.A128CBC_HS256,
             contacts = setOf("ve7jtb@example.org", "mary@example.org"),
             requestUris = setOf("https://client.example.org/rf.txt#qpXaRLh_n93TTR9F252ValdatUQvQiJi5BDub2BeznA"),
-        )
+        ).build()
 
         // Create a RegisteredClient based on a ClientDetails, a token, and a server URI
         val rc =

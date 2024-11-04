@@ -87,6 +87,13 @@ class ConfigurationPropertiesBean {
 
     var isAllowCompleteDeviceCodeUri: Boolean = false
 
+    fun issuerUrl(subPath: String): String {
+        return when {
+            issuer.endsWith('/') -> "$issuer$subPath"
+            else -> "$issuer/$subPath"
+        }
+    }
+
     /**
      * Endpoints protected by TLS must have https scheme in the URI.
      * @throws HttpsUrlRequiredException

@@ -34,7 +34,7 @@ class ClientDetailsEntityTest {
     fun testClientDetailsEntity() {
         val now = Date()
 
-        val c = ClientDetailsEntity(
+        val c = ClientDetailsEntity.Builder(
             clientId = "s6BhdRkqt3",
             clientSecret = "ZJYCqe3GGRvdrudKyZS0XhGv_Z45DuKhCUk0gBR1vZk",
             applicationType = OAuthClientDetails.AppType.WEB,
@@ -51,8 +51,7 @@ class ClientDetailsEntityTest {
             requestUris = setOf("https://client.example.org/rf.txt#qpXaRLh_n93TTR9F252ValdatUQvQiJi5BDub2BeznA"),
             createdAt = now,
             accessTokenValiditySeconds = 600
-        ).apply {
-        }
+        ).build()
 
 
         assertEquals("s6BhdRkqt3", c.clientId)

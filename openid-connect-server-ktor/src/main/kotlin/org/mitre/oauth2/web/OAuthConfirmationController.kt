@@ -158,8 +158,8 @@ object OAuthConfirmationController: KtorEndpoint {
             scopes = sortedScopes,
             claims = claimsForScopes,
             approvedSiteCount = count,
-            contacts = client.contacts?.joinToString(),
             isGras = gras,
+            contacts = client.contacts?.joinToString(),
         )
     }
 

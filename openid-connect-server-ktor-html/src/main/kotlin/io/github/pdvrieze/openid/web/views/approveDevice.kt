@@ -265,9 +265,8 @@ fun HTML.approveDevice(
                             input(InputType.hidden, name = "user_code") {
                                 value = "\${ dc.userCode }" // TODO dc.userCode is not defined
                             }
-                            input(InputType.hidden, name = _csrf.parameterName) {
-                                value = _csrf.token
-                            }
+                            _csrf.requireSession()
+                            /*input(InputType.hidden, name = _csrf.parameterName) { value = _csrf.token }*/
                             input(InputType.submit, name = "authorize", classes = "btn btn-success btn-large") {
                                 onClick = "\$('#user_oauth_approval').attr('value',true)"
                                 value = messageText("approve.label.authorize")

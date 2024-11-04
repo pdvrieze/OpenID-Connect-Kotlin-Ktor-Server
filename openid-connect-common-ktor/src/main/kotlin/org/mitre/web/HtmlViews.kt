@@ -15,10 +15,10 @@ interface HtmlViews {
         client: OAuthClientDetails,
         redirectUri: String?,
         scopes: Set<SystemScope>,
-        claims:  Map<String?, Map<String, String>>,
+        claims: Map<String?, Map<String, String>>,
         count: Int,
-        contacts: String? = null,
         isGras: Boolean,
+        contacts: String? = null,
         consent: Boolean = true,
         authenticationException: OAuth2Exception? = null,
     )
@@ -26,9 +26,9 @@ interface HtmlViews {
     suspend fun RoutingContext.approveDevice(
         client: OAuthClientDetails,
         scopes: Set<SystemScope>,
-        claims:  Map<String?, Map<String, String>>,
-        exception: OAuth2Exception?,
-        count:Int = 0,
+        claims: Map<String?, Map<String, String>>,
+        exception: OAuth2Exception? = null,
+        count: Int = 0,
         gras: Boolean = false,
         contacts: String? = null,
     )
@@ -43,22 +43,26 @@ interface HtmlViews {
     @Deprecated("Avoid errors without any context")
     suspend fun RoutingContext.error()
     suspend fun RoutingContext.error(
-        error: OAuth2Exception
+        error: OAuth2Exception,
+        statusCode: HttpStatusCode = HttpStatusCode.InternalServerError,
     )
 
     suspend fun RoutingContext.error(
         errorCode: OAuthErrorCode,
         errorMessage: String,
+        statusCode: HttpStatusCode = errorCode.rawHttpCode?.let { HttpStatusCode.fromValue(it) } ?: HttpStatusCode.OK,
     )
 
     suspend fun RoutingContext.error(
         errorCodeString: String,
         errorMessage: String,
+        statusCode: HttpStatusCode = HttpStatusCode.OK,
     )
 
     suspend fun RoutingContext.home()
 
     suspend fun RoutingContext.login(
+        loginActionUrl: String,
         loginHint: String?,
         paramError: String?,
         redirectUri: String?,

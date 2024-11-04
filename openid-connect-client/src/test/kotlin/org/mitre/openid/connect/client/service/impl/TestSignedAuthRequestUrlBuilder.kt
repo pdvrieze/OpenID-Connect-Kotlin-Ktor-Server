@@ -85,8 +85,7 @@ class TestSignedAuthRequestUrlBuilder {
             RSAKey(Base64URL(n), Base64URL(e), Base64URL(d), KeyUse.SIGNATURE, null, Algorithm(alg), kid, null, null, null, null, null)
         val keys: MutableMap<String, JWK> = mutableMapOf("client" to key)
 
-        signingAndValidationService = DefaultJWTSigningAndValidationService(keys)
-        signingAndValidationService.defaultSignerKeyId = "client"
+        signingAndValidationService = DefaultJWTSigningAndValidationService(keys, "client")
         signingAndValidationService.defaultSigningAlgorithmName = alg
 
         urlBuilder.signingAndValidationService = signingAndValidationService

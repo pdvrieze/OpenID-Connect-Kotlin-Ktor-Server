@@ -7,6 +7,8 @@ import io.ktor.server.application.*
 import io.ktor.server.html.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
+import io.ktor.server.sessions.*
+import kotlinx.html.HTML
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
 import org.mitre.oauth2.exception.OAuth2Exception
@@ -20,6 +22,7 @@ import org.mitre.openid.connect.config.UIConfiguration
 import org.mitre.openid.connect.model.DefaultUserInfo
 import org.mitre.openid.connect.model.UserInfo
 import org.mitre.web.HtmlViews
+import org.mitre.web.OpenIdSessionStorage
 import org.mitre.web.util.OpenIdContext
 import org.mitre.web.util.openIdContext
 import java.util.*
@@ -28,6 +31,16 @@ class DefaultHtmlViews(): HtmlViews {
 
     private fun RoutingContext.createContext(): WebContext {
         return DefaultWebContext(call)
+    }
+
+    public suspend fun RoutingContext.respondOID(status: HttpStatusCode = HttpStatusCode.OK, block: HTML.(WebContext) -> Unit) {
+        return call.respondHtml(status) {
+            val ctx = createContext()
+            block(ctx)
+            if (ctx is DefaultWebContext && ctx.requiresSession) {
+                call.sessions.getOrSet { OpenIdSessionStorage() } // set it only if not yet set
+            }
+        }
     }
 
     override suspend fun RoutingContext.about() {
@@ -41,10 +54,10 @@ class DefaultHtmlViews(): HtmlViews {
         client: OAuthClientDetails,
         redirectUri: String?,
         scopes: Set<SystemScope>,
-        claims:  Map<String?, Map<String, String>>,
+        claims: Map<String?, Map<String, String>>,
         count: Int,
-        contacts: String?,
         isGras: Boolean,
+        contacts: String?,
         consent: Boolean,
         authenticationException: OAuth2Exception?,
     ) {
@@ -57,9 +70,9 @@ class DefaultHtmlViews(): HtmlViews {
     override suspend fun RoutingContext.approveDevice(
         client: OAuthClientDetails,
         scopes: Set<SystemScope>,
-        claims:  Map<String?, Map<String, String>>,
+        claims: Map<String?, Map<String, String>>,
         exception: OAuth2Exception?,
-        count:Int,
+        count: Int,
         isGras: Boolean,
         contacts: String?,
     ) {
@@ -90,20 +103,24 @@ class DefaultHtmlViews(): HtmlViews {
         }
     }
 
-    override suspend fun RoutingContext.error(error: OAuth2Exception) {
-        call.respondHtml {
+    override suspend fun RoutingContext.error(error: OAuth2Exception, statusCode: HttpStatusCode) {
+        call.respondHtml(statusCode) {
             error(createContext(), error)
         }
     }
 
-    override suspend fun RoutingContext.error(errorCode: OAuthErrorCode, errorMessage: String) {
-        call.respondHtml {
+    override suspend fun RoutingContext.error(
+        errorCode: OAuthErrorCode,
+        errorMessage: String,
+        statusCode: HttpStatusCode
+    ) {
+        call.respondHtml(statusCode) {
             error(createContext(), errorCode, errorMessage)
         }
     }
 
-    override suspend fun RoutingContext.error(errorCodeString: String, errorMessage: String) {
-        call.respondHtml {
+    override suspend fun RoutingContext.error(errorCodeString: String, errorMessage: String, statusCode: HttpStatusCode) {
+        call.respondHtml(statusCode) {
             error(createContext(), errorCodeString, errorMessage)
         }
     }
@@ -115,13 +132,14 @@ class DefaultHtmlViews(): HtmlViews {
     }
 
     override suspend fun RoutingContext.login(
+        loginActionUrl: String,
         loginHint: String?,
         paramError: String?,
         redirectUri: String?,
         status: HttpStatusCode,
     ) {
         call.respondHtml(status) {
-            login(createContext(), loginHint, paramError, redirectUri)
+            login(createContext(), loginActionUrl, loginHint, paramError, redirectUri)
         }
     }
 
@@ -156,15 +174,29 @@ class DefaultHtmlViews(): HtmlViews {
         }
     }
 
-    private class DefaultWebContext(private val openIdContext: OpenIdContext, applicationCall: ApplicationCall) : WebContext {
+    private class DefaultWebContext(
+        private val openIdContext: OpenIdContext,
+        applicationCall: ApplicationCall,
+    ) : WebContext {
 
-        constructor(applicationCall: ApplicationCall) : this(applicationCall.openIdContext, applicationCall)
+        var requiresSession: Boolean = false
+
+        constructor(applicationCall: ApplicationCall) :
+                this(applicationCall.openIdContext, applicationCall)
 
         override val csrf: WebContext.ICsrf = object : WebContext.ICsrf {
             override val parameterName: String get() = "SDFHLK_CSRF"
 
+            override fun requireSession() {
+                requiresSession = true
+            }
+
             /** CSRF_TOKEN */
-            override val token: String get() = "DUMMY_TOKEN"
+            override val token: String get() {
+                applicationCall.sessions.getOrSet { OpenIdSessionStorage() }
+
+                error("Sessions are used for CSRF instead")
+            }
         }
 
         override val authentication: Authentication? by lazy { openIdContext.resolveAuthenticatedUser(applicationCall) }

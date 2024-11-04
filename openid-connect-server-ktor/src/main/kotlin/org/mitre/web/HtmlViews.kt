@@ -4,6 +4,7 @@ import io.ktor.http.*
 import io.ktor.server.routing.*
 import org.mitre.oauth2.exception.OAuth2Exception
 import org.mitre.oauth2.exception.OAuthErrorCode
+import org.mitre.oauth2.exception.httpCode
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.convert.AuthorizationRequest
@@ -18,17 +19,17 @@ suspend fun RoutingContext.htmlApproveView(
     client: OAuthClientDetails,
     redirectUri: String?,
     scopes: Set<SystemScope>,
-    claims:  Map<String?, Map<String, String>>,
+    claims: Map<String?, Map<String, String>>,
     approvedSiteCount: Int,
-    contacts: String? = null,
     isGras: Boolean,
+    contacts: String? = null,
     consent: Boolean = true,
     authenticationException: OAuth2Exception? = null,
 ) {
     with(openIdContext.htmlViews) {
         approve(
-            authRequest, client, redirectUri, scopes, claims, approvedSiteCount,
-            contacts, isGras, consent, authenticationException
+            authRequest, client, redirectUri, scopes, claims, approvedSiteCount, isGras,
+            contacts, consent, authenticationException,
         )
     }
 }
@@ -36,9 +37,9 @@ suspend fun RoutingContext.htmlApproveView(
 suspend fun RoutingContext.htmlApproveDeviceView(
     client: OAuthClientDetails,
     scopes: Set<SystemScope>,
-    claims:  Map<String?, Map<String, String>> = emptyMap(),
+    claims: Map<String?, Map<String, String>> = emptyMap(),
     exception: OAuth2Exception? = null,
-    count:Int = 0,
+    count: Int = 0,
     gras: Boolean = false,
     contacts: String? = null,
 ) {
@@ -65,23 +66,26 @@ suspend fun RoutingContext.htmlErrorView() {
 }
 
 suspend fun RoutingContext.htmlErrorView(
-        error: OAuth2Exception
+    error: OAuth2Exception,
+    statusCode: HttpStatusCode = HttpStatusCode.InternalServerError
 ) {
-    with(openIdContext.htmlViews) { error(error) }
+    with(openIdContext.htmlViews) { error(error, statusCode) }
 }
 
 suspend fun RoutingContext.htmlErrorView(
     errorCode: OAuthErrorCode,
     errorMessage: String,
+    statusCode: HttpStatusCode = errorCode.httpCode ?: HttpStatusCode.OK,
 ) {
-    with(openIdContext.htmlViews) { error(errorCode, errorMessage) }
+    with(openIdContext.htmlViews) { error(errorCode, errorMessage, statusCode) }
 }
 
 suspend fun RoutingContext.htmlErrorView(
-        errorCodeString: String,
-        errorMessage: String,
+    errorCodeString: String,
+    errorMessage: String,
+    statusCode: HttpStatusCode = HttpStatusCode.OK,
 ) {
-    with(openIdContext.htmlViews) { error(errorCodeString, errorMessage) }
+    with(openIdContext.htmlViews) { error(errorCodeString, errorMessage, statusCode) }
 }
 
 suspend fun RoutingContext.htmlHomeView() {
@@ -89,12 +93,13 @@ suspend fun RoutingContext.htmlHomeView() {
 }
 
 suspend fun RoutingContext.htmlLoginView(
+    loginActionUrl: String,
     loginHint: String?,
     paramError: String?,
     redirectUri: String?,
     status: HttpStatusCode = HttpStatusCode.OK,
 ) {
-    with(openIdContext.htmlViews) { login(loginHint, paramError, redirectUri, status) }
+    with(openIdContext.htmlViews) { login(loginActionUrl, loginHint, paramError, redirectUri, status,) }
 }
 
 suspend fun RoutingContext.htmlLogoutConfirmationView(client: OAuthClientDetails?) {

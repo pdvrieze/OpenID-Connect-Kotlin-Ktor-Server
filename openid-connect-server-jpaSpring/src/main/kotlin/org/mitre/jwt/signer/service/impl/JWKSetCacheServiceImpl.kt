@@ -78,7 +78,7 @@ class JWKSetCacheServiceImpl : JWKSetCacheService {
 
             val keyStore = JWKSetKeyStore(jwkSet)
 
-            val service: JWTSigningAndValidationService = DefaultJWTSigningAndValidationService(keyStore)
+            val service: JWTSigningAndValidationService = DefaultJWTSigningAndValidationService(keyStore, jwkSet.keys.single().keyID)
 
             return service
         }

@@ -6,6 +6,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
+import io.ktor.util.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -34,16 +35,19 @@ import org.mitre.openid.connect.service.impl.RemoveLoginHintsWithHTTP
 import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.util.getLogger
 import org.mitre.web.OpenIdSessionStorage
+import org.mitre.web.htmlErrorView
 import org.mitre.web.htmlLoginView
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.authRequestFactory
 import org.mitre.web.util.authcodeService
 import org.mitre.web.util.clientDetailsService
+import org.mitre.web.util.config
 import org.mitre.web.util.openIdContext
 import org.mitre.web.util.scopeService
 import org.mitre.web.util.userApprovalHandler
 import java.net.URISyntaxException
 import java.time.Instant
+import java.util.*
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.io.encoding.ExperimentalEncodingApi
@@ -55,11 +59,18 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
     private val loginHintExtracter: LoginHintExtracter = RemoveLoginHintsWithHTTP()
     override fun Route.addRoutes() {
         authenticate(optional = true) {
-            get("authorize") { startAuthorizationFlow(call.request.queryParameters) }
-            post("authorize") {
-                startAuthorizationFlow(call.request.queryParameters + call.receiveParameters())
+            get("/authorize") { startAuthorizationFlow(call.request.queryParameters) }
+            post("/authorize") {
+                val postParams = call.receiveParameters()
+                if ((postParams.getAll("user_oauth_approval")?.singleOrNull()) == "true") {
+                    processApproval(postParams)
+                } else {
+                    startAuthorizationFlow(call.request.queryParameters + postParams)
+                }
             }
+//            post("/authorize/approve") { processApproval(call.receiveParameters()) }
         }
+        post("/authorize/login") { doLogin() }
         post("/token") {
             getAccessToken()
         }
@@ -97,8 +108,17 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         val responseType = (params["response_type"] ?: return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST))
             .normalizeResponseType()
 
-        var pendingSession = call.sessions.get<OpenIdSessionStorage>()?.copy(loginHint = loginHint, responseType = responseType)
-            ?: OpenIdSessionStorage(loginHint = loginHint, responseType = responseType, authTime = null)
+        val hasSession: Boolean
+        var pendingSession = when (val s = call.sessions.get<OpenIdSessionStorage>()) {
+            null -> {
+                hasSession = false
+                OpenIdSessionStorage(loginHint = loginHint, responseType = responseType, authTime = null)
+            }
+            else -> {
+                hasSession = false
+                s.copy(loginHint = loginHint, responseType = responseType)
+            }
+        }
 
         val prompts = when {
             pendingSession.pendingPrompts != null -> pendingSession.pendingPrompts
@@ -128,9 +148,12 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         // TODO check scopes
 
         if (auth != null) { // If we are still authenticated
-
+            val paramMap = params.flattenEntries().associate { it }
             val approvedAuthRequest = when {
-                userApprovalHandler.isApproved(authRequest, auth) -> userApprovalHandler.updateAfterApproval(authRequest, auth)
+                userApprovalHandler.isApproved(authRequest, auth, paramMap) -> {
+                    if (!hasSession) return call.response.status(HttpStatusCode.Forbidden) // CSRF error
+                    userApprovalHandler.updateAfterApproval(authRequest, auth, paramMap)
+                }
 
                 else -> userApprovalHandler.checkForPreApproval(authRequest, auth, prompts)
             }
@@ -153,7 +176,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
 
         call.sessions.set(pendingSession.copy(authorizationRequest = authRequest, redirectUri = redirectUri, state = state))
 
-        htmlLoginView(loginHint, null, null, status = HttpStatusCode.Unauthorized)
+        htmlLoginView(config.issuerUrl("authorize/login"), loginHint, null, null, status = HttpStatusCode.Unauthorized)
     }
 
 
@@ -314,11 +337,134 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         if (auth != null && PROMPT_CONSENT in prompts) {
             call.sessions.set(pendingSession)
             respondWithApprovalRequest(authRequest, auth, prompts, client, authRequest.redirectUri)
-            call.respondRedirect("/oauth/confirm_access")
+//            call.respondRedirect("/oauth/confirm_access")
             return null
         }
         // prompt parameter is a value we don't care about, not our business
         return pendingSession
+    }
+
+    suspend fun RoutingContext.doLogin() {
+        val formParams = call.receiveParameters()
+
+        val userName = formParams["username"]
+        val password = formParams["password"]
+
+        if (!userName.isNullOrBlank() && !password.isNullOrBlank() &&
+            openIdContext.checkCredential(UserPasswordCredential(userName, password))) {
+
+            val principal = UserIdPrincipal(userName)
+            val oldSession = call.sessions.get<OpenIdSessionStorage>() ?:
+                return htmlErrorView(OAuthErrorCodes.INVALID_REQUEST, "Missing session")
+
+            val prompts = oldSession.pendingPrompts?.let { it.filterTo(HashSet()) { it !in arrayOf(PROMPT_LOGIN, PROMPT_SELECT_ACCOUNT) } }
+
+            val authRequest = oldSession.authorizationRequest
+                ?: return htmlErrorView(OAuthErrorCodes.INVALID_REQUEST, "Missing authorization request", HttpStatusCode.BadRequest)
+
+            val auth = openIdContext.principalToAuthentication(principal)
+                ?: return htmlErrorView(OAuthErrorCodes.SERVER_ERROR, "Invalid user")
+
+            val client = clientDetailsService.loadClientByClientId(authRequest.clientId)
+                ?: return htmlErrorView(OAuthErrorCodes.SERVER_ERROR, "Missing client")
+
+            val paramMap = formParams.flattenEntries().associate { it }
+            val approvedAuthRequest = when {
+                PROMPT_CONSENT !in (oldSession.pendingPrompts ?: emptySet()) &&
+                userApprovalHandler.isApproved(authRequest, auth, paramMap) ->
+                    userApprovalHandler.updateAfterApproval(authRequest, auth, paramMap)
+
+                else -> userApprovalHandler.checkForPreApproval(authRequest, auth, oldSession.pendingPrompts)
+            }
+
+
+
+            if (!approvedAuthRequest.isApproved) {
+
+                call.sessions.set(oldSession.copy(principal = principal, authTime = Instant.now()))
+                respondWithApprovalRequest(authRequest, auth, prompts, client, authRequest.redirectUri)
+//            call.respondRedirect("/oauth/confirm_access")
+                return
+
+            } else {
+                call.sessions.set(oldSession.copy(principal = principal, authTime = Instant.now()))
+                with(PlainAuthorizationRequestEndpoint) {
+                    val redirect = oldSession.redirectUri ?: return jsonErrorView(OAuthErrorCodes.SERVER_ERROR)
+
+                    return respondWithAuthCode(approvedAuthRequest, auth, redirect, oldSession.state)
+                }
+            }
+            /*
+                        val approvedAuthRequest = when {
+                userApprovalHandler.isApproved(authRequest, auth) -> {
+                    if (!hasSession) return call.response.status(HttpStatusCode.Forbidden) // CSRF error
+                    userApprovalHandler.updateAfterApproval(authRequest, auth)
+                }
+
+                else -> userApprovalHandler.checkForPreApproval(authRequest, auth, prompts)
+            }
+
+             */
+        }
+
+        val locales = call.request.acceptLanguageItems().map { Locale(it.value) }
+        val error = openIdContext.messageSource.resolveCode("login.error", locales)?.format(null)
+
+        return htmlLoginView(config.issuerUrl("authorize/login"), formParams["username"], error, formParams["redirect"], HttpStatusCode.Unauthorized)
+    }
+
+    private suspend fun RoutingContext.processApproval(params: Parameters) {
+        if (! call.queryParameters.isEmpty()) {
+            return htmlErrorView(OAuthErrorCodes.INVALID_REQUEST, "Unexpected query parameters")
+        }
+
+        if (params.getAll("user_oauth_approval")?.singleOrNull() != "true") {
+            return htmlErrorView(OAuthErrorCodes.INVALID_REQUEST, "Missing form data")
+        }
+        val oldSession = call.sessions.get<OpenIdSessionStorage>() ?: return htmlErrorView(OAuthErrorCodes.INVALID_REQUEST, "Missing session")
+        val authRequest = oldSession.authorizationRequest ?: return htmlErrorView(OAuthErrorCodes.INVALID_REQUEST, "Missing authorization request")
+
+        val pendingSession = oldSession.copy(pendingPrompts = null)
+
+        val principal = oldSession.principal ?: return htmlErrorView(OAuthErrorCodes.INVALID_REQUEST, "Missing user")
+
+        val auth = openIdContext.principalToAuthentication(principal)
+            ?: return htmlErrorView(OAuthErrorCodes.SERVER_ERROR, "Invalid user")
+
+        val paramMap = params.flattenEntries().associate { it }
+
+        val approvedAuthRequest = when {
+            userApprovalHandler.isApproved(authRequest, auth, paramMap) -> {
+                userApprovalHandler.updateAfterApproval(authRequest, auth, paramMap)
+            }
+
+            else -> authRequest
+        }
+
+        val redirectUri = oldSession.redirectUri!!
+
+        val client = clientDetailsService.loadClientByClientId(authRequest.clientId)
+            ?: return htmlErrorView(OAuthErrorCodes.SERVER_ERROR, "Missing client")
+
+        val responseType = oldSession.responseType!!
+        val state = oldSession.state
+
+        when {
+            !approvedAuthRequest.isApproved -> { // TODO respond with error
+                call.sessions.set(pendingSession.copy(authorizationRequest = authRequest, redirectUri = redirectUri, state = state))
+                return respondWithApprovalRequest(approvedAuthRequest, auth, null, client, redirectUri)
+            }
+
+            responseType.isAuthCodeFlow -> return respondWithAuthCode(approvedAuthRequest, auth, redirectUri, state)
+
+            responseType.isImplicitFlow -> return respondImplicitFlow(responseType, client, approvedAuthRequest, auth, redirectUri, state)
+
+            responseType.isHybridFlow -> return respondHybridFlow(responseType, client, approvedAuthRequest, auth, redirectUri, state)
+
+            else -> return jsonErrorView(OAuthErrorCodes.UNSUPPORTED_GRANT_TYPE)
+        }
+
+
     }
 
     private fun RoutingContext.getGranter(grantType: String): TokenGranter? {
