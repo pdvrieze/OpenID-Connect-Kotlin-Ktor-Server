@@ -190,21 +190,21 @@ class SpringClientDetailsEntity(private val base: OAuthClientDetails.Builder) : 
     val clientDetails: OIDClientDetails = OIDClientDetails()
 
     inner class OIDClientDetails : ClientDetails {
-        val requestObjectSigningAlg: JWSAlgorithm? get() = this@SpringClientDetailsEntity.requestObjectSigningAlg
+        val requestObjectSigningAlg: JWSAlgorithm get() = this@SpringClientDetailsEntity.requestObjectSigningAlg
 
         fun fromSpring(): SpringClientDetailsEntity = this@SpringClientDetailsEntity
 
-        override fun getClientId(): String? = this@SpringClientDetailsEntity.clientId
+        override fun getClientId(): String = this@SpringClientDetailsEntity.clientId
 
         override fun getResourceIds(): Set<String> = this@SpringClientDetailsEntity.resourceIds
 
         override fun isSecretRequired(): Boolean = this@SpringClientDetailsEntity.isSecretRequired
 
-        override fun getClientSecret(): String? = this@SpringClientDetailsEntity.clientSecret
+        override fun getClientSecret(): String = this@SpringClientDetailsEntity.clientSecret
 
         override fun isScoped(): Boolean = this@SpringClientDetailsEntity.isScoped
 
-        override fun getScope(): Set<String>? = this@SpringClientDetailsEntity.scope
+        override fun getScope(): Set<String> = this@SpringClientDetailsEntity.scope
 
         override fun getAuthorizedGrantTypes(): Set<String> = this@SpringClientDetailsEntity.authorizedGrantTypes
 
@@ -212,9 +212,9 @@ class SpringClientDetailsEntity(private val base: OAuthClientDetails.Builder) : 
 
         override fun getAuthorities(): Collection<GrantedAuthority> = this@SpringClientDetailsEntity.authorities.map { SimpleGrantedAuthority(it.authority)}
 
-        override fun getAccessTokenValiditySeconds(): Int? = this@SpringClientDetailsEntity.accessTokenValiditySeconds
+        override fun getAccessTokenValiditySeconds(): Int = this@SpringClientDetailsEntity.accessTokenValiditySeconds
 
-        override fun getRefreshTokenValiditySeconds(): Int? = this@SpringClientDetailsEntity.refreshTokenValiditySeconds
+        override fun getRefreshTokenValiditySeconds(): Int = this@SpringClientDetailsEntity.refreshTokenValiditySeconds
 
         override fun isAutoApprove(scope: String?): Boolean = false
 

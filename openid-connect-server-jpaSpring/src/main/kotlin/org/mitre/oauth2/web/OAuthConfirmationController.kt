@@ -174,7 +174,7 @@ class OAuthConfirmationController {
         model["claims"] = claimsForScopes
 
         // client stats
-        val count = statsService.getCountForClientId(client.clientId!!)!!.approvedSiteCount ?: 0
+        val count = statsService.getCountForClientId(client.clientId)!!.approvedSiteCount ?: 0
         model["count"] = count
 
 

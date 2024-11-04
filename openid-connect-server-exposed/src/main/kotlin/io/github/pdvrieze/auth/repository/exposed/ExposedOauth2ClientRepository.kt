@@ -153,13 +153,13 @@ private fun OAuthClientDetails.toUpdate(builder: UpdateBuilder<Int>) {
     val t = ClientDetails
     id?.let { builder[t.id] = it }
 
-    clientId?.let{ builder[ClientDetails.clientId] = it }
+    builder[ClientDetails.clientId] = clientId
     builder[ClientDetails.clientSecret] = clientSecret
     builder[ClientDetails.clientName] = clientName
     builder[ClientDetails.clientUri] = clientUri
     builder[ClientDetails.logoUri] = logoUri
     builder[ClientDetails.tosUri] = tosUri
-    tokenEndpointAuthMethod?.let { builder[ClientDetails.tokenEndpointAuthMethod] = it.value }
+    builder[ClientDetails.tokenEndpointAuthMethod] = tokenEndpointAuthMethod?.value
     builder[ClientDetails.policyUri] = policyUri
     builder[ClientDetails.jwksUri] = jwksUri
     builder[ClientDetails.jwks] = jwks?.toString()
@@ -167,15 +167,15 @@ private fun OAuthClientDetails.toUpdate(builder: UpdateBuilder<Int>) {
     builder[ClientDetails.softwareVersion] = softwareVersion
     builder[ClientDetails.applicationType] = applicationType.value
     builder[ClientDetails.sectorIdentifierUri] = sectorIdentifierUri
-    subjectType?.let { builder[ClientDetails.subjectType] = it.value }
-    requestObjectSigningAlg?.let { builder[ClientDetails.requestObjectSigningAlg] = it.name }
-    userInfoSignedResponseAlg?.let { builder[ClientDetails.userInfoSignedResponseAlg] = it.name }
-    userInfoEncryptedResponseAlg?.let { builder[ClientDetails.userInfoEncryptedResponseAlg] = it.name }
-    userInfoEncryptedResponseEnc?.let { builder[ClientDetails.userInfoEncryptedResponseEnc] = it.name }
-    idTokenSignedResponseAlg?.let { builder[ClientDetails.idTokenSignedResponseAlg] = it.name }
-    idTokenEncryptedResponseAlg?.let { builder[ClientDetails.idTokenEncryptedResponseAlg] = it.name }
-    idTokenEncryptedResponseEnc?.let { builder[ClientDetails.idTokenEncryptedResponseEnc] = it.name }
-    tokenEndpointAuthSigningAlg?.let { builder[ClientDetails.tokenEndpointAuthSigningAlg] = it.name }
+    builder[ClientDetails.subjectType] = subjectType?.value
+    builder[ClientDetails.requestObjectSigningAlg] = requestObjectSigningAlg?.name
+    builder[ClientDetails.userInfoSignedResponseAlg] = userInfoSignedResponseAlg?.name
+    builder[ClientDetails.userInfoEncryptedResponseAlg] = userInfoEncryptedResponseAlg?.name
+    builder[ClientDetails.userInfoEncryptedResponseEnc] = userInfoEncryptedResponseEnc?.name
+    builder[ClientDetails.idTokenSignedResponseAlg] = idTokenSignedResponseAlg?.name
+    builder[ClientDetails.idTokenEncryptedResponseAlg] = idTokenEncryptedResponseAlg?.name
+    builder[ClientDetails.idTokenEncryptedResponseEnc] = idTokenEncryptedResponseEnc?.name
+    builder[ClientDetails.tokenEndpointAuthSigningAlg] = tokenEndpointAuthSigningAlg?.name
     builder[ClientDetails.defaultMaxAge] = defaultMaxAge
     builder[ClientDetails.requireAuthTime] = requireAuthTime
     builder[ClientDetails.initiateLoginUri] = initiateLoginUri
@@ -183,14 +183,14 @@ private fun OAuthClientDetails.toUpdate(builder: UpdateBuilder<Int>) {
     builder[ClientDetails.reuseRefreshTokens] = isReuseRefreshToken
     builder[ClientDetails.dynamicallyRegistered] = isDynamicallyRegistered
     builder[ClientDetails.allowIntrospection] = isAllowIntrospection
-    accessTokenValiditySeconds?.let { builder[ClientDetails.accessTokenValiditySeconds] = it.toLong() }
-    refreshTokenValiditySeconds?.let { builder[ClientDetails.refreshTokenValiditySeconds] = it.toLong() }
-    idTokenValiditySeconds?.let { builder[ClientDetails.idTokenValiditySeconds] = it }
-    createdAt?.let { builder[ClientDetails.createdAt] = it.toInstant() }
+    builder[ClientDetails.accessTokenValiditySeconds] = accessTokenValiditySeconds?.toLong()
+    builder[ClientDetails.refreshTokenValiditySeconds] = refreshTokenValiditySeconds?.toLong()
+    builder[ClientDetails.idTokenValiditySeconds] = idTokenValiditySeconds ?: -1
+    builder[ClientDetails.createdAt] = createdAt?.toInstant()
     builder[ClientDetails.clearAccessTokensOnRefresh] = isClearAccessTokensOnRefresh
     builder[ClientDetails.deviceCodeValiditySeconds] = deviceCodeValiditySeconds
-    softwareStatement?.let { builder[ClientDetails.softwareStatement] = it.serialize() }
-    codeChallengeMethod?.let { builder[ClientDetails.codeChallengeMethod] = it.name }
+    builder[ClientDetails.softwareStatement] = softwareStatement?.serialize()
+    builder[ClientDetails.codeChallengeMethod] = codeChallengeMethod?.name
 }
 
 private fun ResultRow.toClient(): OAuthClientDetails {

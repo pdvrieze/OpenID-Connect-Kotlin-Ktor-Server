@@ -24,7 +24,7 @@ fun HTML.deviceApproved(
             div("container main") {
                 div(classes="well") {
                     style = "text-align: center"
-                    h1 { +(clientName ?: clientId!!) }
+                    h1 { +(clientName ?: clientId) }
 
                     when {
                         isApproved -> div(classes = "text-success") {

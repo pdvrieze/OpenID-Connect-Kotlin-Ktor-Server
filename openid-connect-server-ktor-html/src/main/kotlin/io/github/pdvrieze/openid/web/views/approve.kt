@@ -59,7 +59,7 @@ fun HTML.approve(
                     h1 {
                         message("approve.required_for")
                         +Entities.nbsp
-                        em { +(client.clientName ?: client.clientId!!) }
+                        em { +(client.clientName ?: client.clientId) }
                     }
                     form(action=context.issuerUrl("authorize"), method=FormMethod.post) {
                         name="confirmationForm"
@@ -123,7 +123,7 @@ fun HTML.approve(
                                         }
                                         h3 {
                                             id = "logoModalLabel"
-                                            +(client.clientName ?: client.clientId!!)
+                                            +(client.clientName ?: client.clientId)
                                         }
                                     }
                                     div(classes = "modal-body") {

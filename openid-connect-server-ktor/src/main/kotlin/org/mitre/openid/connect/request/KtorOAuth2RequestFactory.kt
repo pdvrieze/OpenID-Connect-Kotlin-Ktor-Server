@@ -28,7 +28,7 @@ open class KtorOAuth2RequestFactory(
 
         return AuthorizationRequest(
             requestParameters = inputParams.entries().associate { (k, v) -> k to v.first() },
-            clientId = client.clientId!!,
+            clientId = client.clientId,
             authorities = client.authorities,
             isApproved = false,
             scope = scopes,

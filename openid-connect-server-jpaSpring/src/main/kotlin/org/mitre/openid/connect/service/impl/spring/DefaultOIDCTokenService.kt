@@ -223,7 +223,7 @@ class DefaultOIDCTokenService : OIDCTokenService {
         val authorizationParameters: Map<String, String> = hashMapOf()
         val clientAuth = AuthorizationRequest(
             requestParameters = authorizationParameters,
-            clientId = client.clientId!!,
+            clientId = client.clientId,
             authorities = hashSetOf(GrantedAuthority("ROLE_CLIENT")),
             isApproved = true,
             scope = scope ?: emptySet(),

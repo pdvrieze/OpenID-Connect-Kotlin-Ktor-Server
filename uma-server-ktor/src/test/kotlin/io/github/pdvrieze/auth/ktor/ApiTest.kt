@@ -85,7 +85,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
         clientSecret = cs
         newClientBuilder.clientSecret = cs
 
-        clientId = testContext.clientDetailsService.saveNewClient(newClientBuilder).clientId!!
+        clientId = testContext.clientDetailsService.saveNewClient(newClientBuilder).clientId
     }
 
     private fun isValidPassword(userName: String, password: String): Boolean = when(userName) {

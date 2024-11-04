@@ -32,7 +32,7 @@ class DirectCopyRequestFactory : AssertionOAuth2RequestFactory {
 
             return AuthorizationRequest(
                 requestParameters = tokenRequest.requestParameters.toMap().mapValues { it.value.first() },
-                clientId = client.clientId!!,
+                clientId = client.clientId,
                 authorities = client.authorities,
                 isApproved = true,
                 scope = scope,

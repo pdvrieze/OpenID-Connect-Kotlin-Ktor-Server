@@ -21,7 +21,7 @@ class ConfigurationBeanLocaleResolver {
 
     fun resolveLocaleContext(request: HttpServletRequest): LocaleContext {
         return object : TimeZoneAwareLocaleContext {
-            override val locale: Locale? get() = defaultLocale
+            override val locale: Locale get() = defaultLocale
 
             override val timeZone: TimeZone? get() = defaultTimeZone
         }

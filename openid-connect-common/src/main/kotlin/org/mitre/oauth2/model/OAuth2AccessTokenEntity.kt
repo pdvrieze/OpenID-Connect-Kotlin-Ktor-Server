@@ -306,7 +306,7 @@ class OAuth2AccessTokenEntity(
             currentId = s.id!!,
             expiration = s.expirationInstant,
             value = s.jwt,
-            clientId = s.client!!.clientId!!,
+            clientId = s.client!!.clientId,
             authenticationHolderId = s.authenticationHolder.id!!,
             refreshTokenId = s.refreshToken?.id,
             scope = s.scope,

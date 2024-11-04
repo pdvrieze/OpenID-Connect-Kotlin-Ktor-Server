@@ -55,7 +55,7 @@ fun HTML.approveDevice(
                     style="text-align: center"
                     h1 {message("approve.required_for",  )
                         +Entities.nbsp
-                        +(clientName ?: clientId!!)
+                        +(clientName ?: clientId)
                     }
 
                     form(action = context.issuerUrl("device/approve"), method = FormMethod.post) {
@@ -124,7 +124,7 @@ fun HTML.approveDevice(
                                             }
                                             h3 {
                                                 id="logoModalLabel"
-                                                +(clientName ?: clientId!!)
+                                                +(clientName ?: clientId)
                                             }
                                         }
                                         div(classes="modal-body") {
@@ -255,7 +255,7 @@ fun HTML.approveDevice(
                         div(classes="row") {
                             h3 {
                                 message("approve.do_authorize")
-                                +(clientName ?: clientId!!)
+                                +(clientName ?: clientId)
                                 +"?"
                             }
                             input(InputType.hidden, name = "user_oauth_approval") {

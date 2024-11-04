@@ -133,7 +133,7 @@ class SpringApprovedSiteService : ApprovedSiteService {
 
 
     override fun clearApprovedSitesForClient(client: OAuthClientDetails) {
-        val approvedSites = approvedSiteRepository.getByClientId(client.clientId!!)
+        val approvedSites = approvedSiteRepository.getByClientId(client.clientId)
         if (approvedSites != null) {
             for (approvedSite in approvedSites) {
                 remove(approvedSite)
@@ -144,7 +144,7 @@ class SpringApprovedSiteService : ApprovedSiteService {
     override fun clearExpiredSites() {
         logger.debug("Clearing expired approved sites")
 
-        val expiredSites: Collection<ApprovedSite>? = expired
+        val expiredSites: Collection<ApprovedSite> = expired
         if (expiredSites != null) {
             if (expiredSites.isNotEmpty()) {
                 logger.info("Found ${expiredSites.size} expired approved sites.")

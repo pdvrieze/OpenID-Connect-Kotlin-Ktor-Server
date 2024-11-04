@@ -126,7 +126,7 @@ class RegisteredClient(
 
     val isScoped: Boolean get() = client.isScoped
 
-    val clientId: String?
+    val clientId: String
         get() = client.clientId
 
     val clientSecret: String?
@@ -153,7 +153,7 @@ class RegisteredClient(
     val redirectUris: Set<String>
         get() = client.redirectUris
 
-    val registeredRedirectUri: Set<String>?
+    val registeredRedirectUri: Set<String>
         get() = client.redirectUris
 
     val resourceIds: Set<String>

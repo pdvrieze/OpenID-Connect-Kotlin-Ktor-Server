@@ -164,7 +164,7 @@ class IntrospectingTokenService(
         val requestBuilder = HttpRequestBuilder(introspectionUrl)
         val form = ParametersBuilder()
 
-        val clientId = client.clientId!!
+        val clientId = client.clientId
         val clientSecret = client.clientSecret ?: return null
 
         if (AuthMethod.SECRET_BASIC == client.tokenEndpointAuthMethod) {

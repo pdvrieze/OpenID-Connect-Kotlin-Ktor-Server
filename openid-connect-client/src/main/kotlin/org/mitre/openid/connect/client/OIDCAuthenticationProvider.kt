@@ -397,7 +397,7 @@ class OIDCAuthenticationProvider internal constructor(config: Config) : Authenti
                         signer = authenticationSignerService
 
                         if (alg == null) {
-                            alg = authenticationSignerService!!.defaultSigningAlgorithm
+                            alg = authenticationSignerService.defaultSigningAlgorithm
                         }
                     }
 

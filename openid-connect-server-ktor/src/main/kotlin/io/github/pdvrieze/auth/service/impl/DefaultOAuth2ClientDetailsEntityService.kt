@@ -310,7 +310,7 @@ class DefaultOAuth2ClientDetailsEntityService(
         approvedSiteService.clearApprovedSitesForClient(client)
 
         // clear out any whitelisted sites for this client
-        val whitelistedSite = whitelistedSiteService.getByClientId(client.clientId!!)
+        val whitelistedSite = whitelistedSiteService.getByClientId(client.clientId)
         if (whitelistedSite != null) {
             whitelistedSiteService.remove(whitelistedSite)
         }

@@ -150,7 +150,7 @@ class ProtectedResourceRegistrationEndpoint {
 
             // send it all out to the view
             val registered =
-                RegisteredClient(savedClient, token.value, "${config.issuer}resource/${UriUtils.encodePathSegment(savedClient.clientId!!, "UTF-8")}")
+                RegisteredClient(savedClient, token.value, "${config.issuer}resource/${UriUtils.encodePathSegment(savedClient.clientId, "UTF-8")}")
             m.addAttribute("client", registered)
             m.addAttribute(HttpCodeView.CODE, HttpStatus.CREATED) // http 201
 

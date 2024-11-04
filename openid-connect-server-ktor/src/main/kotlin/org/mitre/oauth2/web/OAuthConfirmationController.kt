@@ -141,7 +141,7 @@ object OAuthConfirmationController: KtorEndpoint {
         }
 
         // client stats
-        val count = statsService.getCountForClientId(client.clientId!!)?.approvedSiteCount ?: 0
+        val count = statsService.getCountForClientId(client.clientId)?.approvedSiteCount ?: 0
 
         // if the client is over a week old and has more than one registration, don't give such a big warning
         // instead, tag as "Generally Recognized As Safe" (gras)
