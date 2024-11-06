@@ -97,10 +97,11 @@ class ExposedAuthenticationHolderRepository(database: Database) :
 
         val id = AuthenticationHolders.save(a.id) { b ->
             b[userAuthId] = actualUserAuthId
-            b[approved] = a.isApproved
-            b[redirectUri] = a.redirectUri
-            b[clientId] = a.clientId!!
-            b[requestTime] = a.requestTime
+            val r = a.authorizationRequest
+            b[approved] = r.isApproved
+            b[redirectUri] = r.redirectUri
+            b[clientId] = r.clientId
+            b[requestTime] = r.requestTime
         }
 
         if (oldId!=null) {
@@ -111,34 +112,35 @@ class ExposedAuthenticationHolderRepository(database: Database) :
             AuthenticationHolderScopes.deleteWhere { ownerId eq oldId }
             AuthenticationHolderRequestParameters.deleteWhere { ownerId eq oldId }
         }
+        val r = a.authorizationRequest
         with (AuthenticationHolderAuthorities) {
-            saveStrings(a.authorities?.map { it.authority }, this, ownerId, id, authority)
+            saveStrings(r.authorities.map { it.authority }, this, ownerId, id, authority)
         }
 
         with(AuthenticationHolderResourceIds) {
-            saveStrings(a.resourceIds, this, ownerId, id, resourceId)
+            saveStrings(r.resourceIds, this, ownerId, id, resourceId)
         }
 
         with(AuthenticationHolderResponseTypes) {
-            saveStrings(a.responseTypes, this, ownerId, id, responseType)
+            saveStrings(r.responseTypes, this, ownerId, id, responseType)
         }
 
         with(AuthenticationHolderScopes) {
-            saveStrings(a.scope, this, ownerId, id, scope)
+            saveStrings(r.scope, this, ownerId, id, scope)
         }
 
         AuthenticationHolderExtensions.let { t ->
-            a.extensions?.takeIf { it.isNotEmpty() }?.let { m ->
+            r.authHolderExtensions.takeIf { it.isNotEmpty() }?.let { m ->
                 t.batchInsert(m.entries) { (k, v) ->
                     this[t.ownerId] = id
                     this[t.extension] = k
-                    this[t.value] = v as? String ?: v.toString()
+                    this[t.value] = v
                 }
             }
         }
 
         AuthenticationHolderRequestParameters.let { t ->
-            a.requestParameters?.takeIf { it.isNotEmpty() }?.let { m ->
+            r.requestParameters.takeIf { it.isNotEmpty() }?.let { m ->
                 t.batchInsert(m.entries) { (k, v) ->
                     this[t.ownerId] = id
                     this[t.param] = k

@@ -93,7 +93,7 @@ class MITREidDataService_1_3 : MITREidDataService {
             },
             whitelistedSites = wlSiteRepository.all.toList(),
             blacklistedSites = blSiteRepository.all.toList(),
-            authenticationHolders = authHolderRepository.all.map { AuthenticationHolderEntity.SerialDelegate12(it) },
+            authenticationHolders = authHolderRepository.all.map { AuthenticationHolderEntity.SerialDelegate12(it as AuthenticationHolderEntity) },
             accessTokens = tokenRepository.allAccessTokens.map { OAuth2AccessTokenEntity.SerialDelegate(it) },
             refreshTokens = tokenRepository.allRefreshTokens.map { OAuth2RefreshTokenEntity.SerialDelegate(it) },
             systemScopes = sysScopeRepository.all.toList(),

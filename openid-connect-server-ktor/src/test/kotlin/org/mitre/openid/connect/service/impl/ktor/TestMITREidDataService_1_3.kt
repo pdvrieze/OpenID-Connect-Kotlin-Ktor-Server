@@ -845,19 +845,21 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<KtorIdDataService_
             if (compare == null) {
                 fail("Could not find matching authentication holder id: " + holder["id"].asString())
             } else {
-                assertEquals(compare.clientId, holder["clientId"].asString())
-                assertEquals(compare.isApproved, holder["approved"].asBoolean())
-                assertEquals(compare.redirectUri, holder["redirectUri"].asString())
-                if (compare.userAuth != null) {
+                val creq = compare.authorizationRequest
+                assertEquals(creq.clientId, holder["clientId"].asString())
+                assertEquals(creq.isApproved, holder["approved"].asBoolean())
+                assertEquals(creq.redirectUri, holder["redirectUri"].asString())
+                val cAuth = compare.userAuth
+                if (cAuth != null) {
                     assertIs<JsonObject>(holder["savedUserAuthentication"])
                     val savedAuth = holder["savedUserAuthentication"]!!.jsonObject
-                    assertEquals(compare.userAuth!!.name, savedAuth["name"].asString())
+                    assertEquals(cAuth.name, savedAuth["name"].asString())
                     val actualAuthenticated = when (val a = savedAuth["authenticated"]) {
                         is JsonNull -> null
                         else -> a.asBoolean()
                     }
-                    assertEquals(compare.userAuth!!.isAuthenticated, actualAuthenticated)
-                    assertEquals(compare.userAuth!!.sourceClass, savedAuth["sourceClass"]?.asString())
+                    assertEquals(cAuth.isAuthenticated, actualAuthenticated)
+                    assertEquals(cAuth.sourceClass, savedAuth["sourceClass"]?.asString())
                 }
                 checked.add(compare)
             }

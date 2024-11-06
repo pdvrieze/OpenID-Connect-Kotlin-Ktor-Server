@@ -1,8 +1,10 @@
 package org.mitre.oauth2.model
 
 import org.mitre.oauth2.model.request.AuthorizationRequest
-import org.mitre.openid.connect.model.convert.ISOInstant
 
+/**
+ * Class that holds an authenticated authorization request as stored in the database (it has an ID).
+ */
 interface AuthenticationHolder {
     fun copy(id: Long?): AuthenticationHolder
 
@@ -12,17 +14,6 @@ interface AuthenticationHolder {
     val id: Long?
     val userAuth: SavedUserAuthentication?
     val authorizationRequest: AuthorizationRequest
-
-    val authorities: Set<GrantedAuthority>? get() = authorizationRequest.authorities
-    val resourceIds: Set<String>? get() = authorizationRequest.resourceIds
-    val isApproved: Boolean get() = authorizationRequest.isApproved
-    val redirectUri: String? get() = authorizationRequest.redirectUri
-    val responseTypes: Set<String>? get() = authorizationRequest.responseTypes
-    val extensions: Map<String, String>? get() = authorizationRequest.authHolderExtensions
-    val clientId: String? get() = authorizationRequest.clientId
-    val scope: Set<String>? get() = authorizationRequest.scope
-    val requestParameters: Map<String, String>? get() = authorizationRequest.requestParameters
-    val requestTime: ISOInstant? get() = authorizationRequest.requestTime
 
     object DUMMY: AuthenticationHolder {
         override val id: Nothing? get() = null

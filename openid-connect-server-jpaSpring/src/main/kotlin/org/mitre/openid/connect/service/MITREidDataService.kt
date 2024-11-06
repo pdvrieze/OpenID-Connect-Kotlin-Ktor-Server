@@ -559,7 +559,7 @@ interface MITREidDataService {
             grants: List<ApprovedSite.SerialDelegate> = emptyList(),
             whitelistedSites: List<WhitelistedSite> = emptyList(),
             blacklistedSites: List<BlacklistedSite> = emptyList(),
-            authenticationHolders: List<AuthenticationHolder> = emptyList(),
+            authenticationHolders: List<AuthenticationHolderEntity> = emptyList(),
             accessTokens: List<OAuth2AccessTokenEntity.SerialDelegate> = emptyList(),
             refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate> = emptyList(),
             systemScopes: List<SystemScope> = emptyList(),

@@ -36,16 +36,16 @@ import java.time.Instant
 class AuthenticationHolderEntity(
     override var id: Long? = null,
     override var userAuth: SavedUserAuthentication? = null,
-    override var authorities: Set<GrantedAuthority>? = null,
-    override var resourceIds: Set<String>? = null,
-    override var isApproved: Boolean = false,
-    override var redirectUri: String? = null,
-    override var responseTypes: Set<String>? = null,
-    override var extensions: Map<String, String>? = null,
-    override var clientId: String? = null,
-    override var scope: Set<String>? = null,
-    override var requestParameters: Map<String, String>? = null,
-    override val requestTime: ISOInstant?,
+    var authorities: Set<GrantedAuthority>? = null,
+    var resourceIds: Set<String>? = null,
+    var isApproved: Boolean = false,
+    var redirectUri: String? = null,
+    var responseTypes: Set<String>? = null,
+    var extensions: Map<String, String>? = null,
+    var clientId: String? = null,
+    var scope: Set<String>? = null,
+    var requestParameters: Map<String, String>? = null,
+    val requestTime: ISOInstant?,
 ) : AuthenticationHolder {
 
     constructor(
@@ -107,16 +107,6 @@ class AuthenticationHolderEntity(
     fun copy(
         id: Long? = this.id,
         userAuth: SavedUserAuthentication? = this.userAuth,
-        authorities: Collection<GrantedAuthority>? = this.authorities,
-        resourceIds: Set<String>? = this.resourceIds,
-        isApproved: Boolean = this.isApproved,
-        redirectUri: String? = this.redirectUri,
-        responseTypes: Set<String>? = this.responseTypes,
-        extensions: Map<String, String>? = this.extensions,
-        clientId: String? = this.clientId,
-        scope: Set<String>? = this.scope,
-        requestParameters: Map<String, String>? = this.requestParameters,
-        requestTime: Instant? = this.requestTime,
     ): AuthenticationHolderEntity {
         return AuthenticationHolderEntity(
             id = id,
@@ -195,7 +185,7 @@ class AuthenticationHolderEntity(
         @SerialName("savedUserAuthentication")
         val userAuth: @Serializable(AuthenticationSerializer::class) Authentication? = null,
     ) : SerialDelegate {
-        constructor(e: AuthenticationHolder) : this(
+        constructor(e: AuthenticationHolderEntity) : this(
             currentId = e.id!!,
             requestParameters = e.requestParameters ?: emptyMap(),
             clientId = e.clientId,

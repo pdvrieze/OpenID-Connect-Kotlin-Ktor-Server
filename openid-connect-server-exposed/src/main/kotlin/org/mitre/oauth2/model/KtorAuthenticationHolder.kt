@@ -35,17 +35,6 @@ class KtorAuthenticationHolder private constructor(
         authorizationRequest = authorizationRequest,
     )
 
-    override val authorities: Set<GrantedAuthority>
-        get() = authorizationRequest.authorities
-    override val extensions: Map<String, String>
-        get() = authorizationRequest.authHolderExtensions
-    override val clientId: String
-        get() = authorizationRequest.clientId
-    override val scope: Set<String>
-        get() = authorizationRequest.scope
-    override val requestParameters: Map<String, String>
-        get() = authorizationRequest.requestParameters
-
     override fun copy(id: Long?): KtorAuthenticationHolder {
         return copy(id, this.userAuth)
     }
@@ -158,15 +147,15 @@ class KtorAuthenticationHolder private constructor(
     ) : SerialDelegate {
         constructor(e: AuthenticationHolder) : this(
             currentId = e.id!!,
-            requestParameters = e.requestParameters ?: emptyMap(),
-            clientId = requireNotNull(e.clientId) { "ClientId must be set" },
-            scope = e.scope,
-            resourceIds = e.resourceIds,
-            authorities = e.authorities?.toHashSet() ?: emptySet(),
-            isApproved = e.isApproved,
-            redirectUri = e.redirectUri,
-            responseTypes = e.responseTypes ?: emptySet(),
-            extensions = e.extensions?.asSequence()?.mapNotNull { (k, v) -> (v as? String)?.let { k to it } }?.associate { it } ?: emptyMap(),
+            requestParameters = e.authorizationRequest.requestParameters ?: emptyMap(),
+            clientId = requireNotNull(e.authorizationRequest.clientId) { "ClientId must be set" },
+            scope = e.authorizationRequest.scope,
+            resourceIds = e.authorizationRequest.resourceIds,
+            authorities = e.authorizationRequest.authorities.toHashSet(),
+            isApproved = e.authorizationRequest.isApproved,
+            redirectUri = e.authorizationRequest.redirectUri,
+            responseTypes = e.authorizationRequest.responseTypes ?: emptySet(),
+            extensions = e.authorizationRequest.authHolderExtensions.asSequence()?.mapNotNull { (k, v) -> (v as? String)?.let { k to it } }?.associate { it } ?: emptyMap(),
             userAuth = e.userAuth,
         )
 
