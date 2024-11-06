@@ -37,8 +37,8 @@ import org.mitre.oauth2.model.PKCEAlgorithm
 import org.mitre.oauth2.model.PKCEAlgorithm.Companion.parse
 import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.SystemScope
-import org.mitre.oauth2.model.request.AuthorizationRequest
 import org.mitre.oauth2.model.request.AuthorizationRequest.Approval
+import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2ClientRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
@@ -1340,24 +1340,22 @@ class TestSpringMITREidDataService_1_3 {
     @Throws(IOException::class)
     fun testExportAuthenticationHolders() {
         val now = Instant.now()
-        val req1 = AuthorizationRequest(
-            clientId = "client1",
-            approval = Approval(now.minusSeconds(3)),
-            redirectUri = "http://foo.com",
-            requestTime = now.minusSeconds(2),
-        )
-        val mockAuth1: SavedUserAuthentication =  SavedUserAuthentication(name = "mockAuth1")
+        val req1 = PlainAuthorizationRequest.Builder(clientId = "client1").also { b ->
+            b.approval = Approval(now.minusSeconds(3))
+            b.redirectUri = "http://foo.com"
+            b.requestTime = now.minusSeconds(2)
+        }.build()
+        val mockAuth1: SavedUserAuthentication = SavedUserAuthentication(name = "mockAuth1")
 //            UsernamePasswordAuthenticationToken("user1", "pass1", AuthorityUtils.commaSeparatedStringToAuthorityList("ROLE_USER"))
         val auth1 = AuthenticatedAuthorizationRequest(req1, mockAuth1)
 
         val holder1 = AuthenticationHolderEntity(auth1, 1L)
 
-        val req2 = AuthorizationRequest(
-            clientId = "client2",
-            approval = Approval(now.minusSeconds(1)),
-            redirectUri = "http://bar.com",
-            requestTime = now,
-        )
+        val req2 = PlainAuthorizationRequest.Builder(clientId = "client2").also { b ->
+            b.approval = Approval(now.minusSeconds(1))
+            b.redirectUri = "http://bar.com"
+            b.requestTime = now
+        }.build()
         val auth2 = AuthenticatedAuthorizationRequest(req2, null)
 
         val holder2 = AuthenticationHolderEntity(auth2, 2L)
@@ -1433,7 +1431,7 @@ class TestSpringMITREidDataService_1_3 {
                     assertIs<JsonObject>(holder["savedUserAuthentication"])
                     val savedAuth = holder["savedUserAuthentication"]!!.jsonObject
                     assertEquals(compare.userAuth!!.name, savedAuth["name"].asString())
-                    val actualAuthenticated =  when(val a = savedAuth["authenticated"]) {
+                    val actualAuthenticated = when (val a = savedAuth["authenticated"]) {
                         is JsonNull -> null
                         else -> a.asBoolean()
                     }
@@ -1451,23 +1449,21 @@ class TestSpringMITREidDataService_1_3 {
     @Throws(IOException::class)
     fun testImportAuthenticationHolders() {
         val now = Instant.now()
-        val req1 = AuthorizationRequest(
-            clientId = "client1",
-            approval = Approval(now.minusSeconds(3)),
-            redirectUri = "http://foo.com",
-            requestTime = now.minusSeconds(2),
-        )
+        val req1 = PlainAuthorizationRequest.Builder(clientId = "client1").also { b ->
+            b.approval = Approval(now.minusSeconds(3))
+            b.redirectUri = "http://foo.com"
+            b.requestTime = now.minusSeconds(2)
+        }.build()
         val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
         val auth1 = AuthenticatedAuthorizationRequest(req1, mockAuth1)
 
         val holder1 = AuthenticationHolderEntity(auth1, 1L)
 
-        val req2 = AuthorizationRequest(
-            clientId = "client2",
-            approval = Approval(now.minusSeconds(1)),
-            redirectUri = "http://bar.com",
-            requestTime = now,
-        )
+        val req2 = PlainAuthorizationRequest.Builder(clientId = "client2").also { b ->
+            b.approval = Approval(now.minusSeconds(1))
+            b.redirectUri = "http://bar.com"
+            b.requestTime = now
+        }.build()
         val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
         val auth2 = AuthenticatedAuthorizationRequest(req2, mockAuth2)
 
@@ -1707,12 +1703,11 @@ class TestSpringMITREidDataService_1_3 {
         whenever(mockedClient1.clientId).thenReturn("mocked_client_1")
 
         val now = Instant.now()
-        val req1 = AuthorizationRequest(
-            clientId = "client1",
-            approval = Approval(now.minusSeconds(3)),
-            redirectUri = "http://foo.com",
-            requestTime = now.minusSeconds(2),
-        )
+        val req1 = PlainAuthorizationRequest.Builder(clientId = "client1").also { b ->
+            b.approval = Approval(now.minusSeconds(3))
+            b.redirectUri = "http://foo.com"
+            b.requestTime = now.minusSeconds(2)
+        }.build()
         val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
         val auth1 = AuthenticatedAuthorizationRequest(req1, mockAuth1)
 
@@ -1732,12 +1727,11 @@ class TestSpringMITREidDataService_1_3 {
         val mockedClient2 = mock<ClientDetailsEntity>()
         whenever(mockedClient2.clientId).thenReturn("mocked_client_2")
 
-        val req2 = AuthorizationRequest(
-            clientId = "client2",
-            approval = Approval(now.minusSeconds(1)),
-            redirectUri = "http://bar.com",
-            requestTime = now,
-        )
+        val req2 = PlainAuthorizationRequest.Builder(clientId = "client2").also { b ->
+            b.approval = Approval(now.minusSeconds(1))
+            b.redirectUri = "http://bar.com"
+            b.requestTime = now
+        }.build()
         val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
         val auth2 = AuthenticatedAuthorizationRequest(req2, mockAuth2)
 

@@ -27,7 +27,6 @@ import org.mitre.openid.connect.request.ConnectRequestParameters
 import org.mitre.openid.connect.request.Prompt
 import org.mitre.openid.connect.service.ApprovedSiteService
 import org.mitre.openid.connect.service.WhitelistedSiteService
-import org.mitre.openid.connect.web.AuthenticationTimeStamper
 import java.time.Duration
 import java.time.Instant
 import java.util.*
@@ -214,16 +213,6 @@ class KtorTofuUserApprovalHandler(
         }
 
         return requestBuilder.build()
-    }
-
-    /**
-     * Get the auth time out of the current session and add it to the
-     * auth request in the extensions map.
-     *
-     */
-    private fun setAuthTimeXX(extensions: MutableMap<String, String>) {
-        // Get the session auth time, if we have it, and store it in the request
-        extensions[AuthenticationTimeStamper.AUTH_TIMESTAMP] = Instant.now().epochSecond.toString()
     }
 
     fun getUserApprovalRequest(

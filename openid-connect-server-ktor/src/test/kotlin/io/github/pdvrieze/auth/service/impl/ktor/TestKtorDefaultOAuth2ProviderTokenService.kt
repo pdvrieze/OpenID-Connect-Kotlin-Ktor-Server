@@ -19,6 +19,7 @@ import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.request.AuthorizationRequest
 import org.mitre.oauth2.model.request.AuthorizationRequest.Approval
+import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mitre.oauth2.model.request.update
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
@@ -105,12 +106,11 @@ class TestKtorDefaultOAuth2ProviderTokenService {
         )
 
         authentication = mock<AuthenticatedAuthorizationRequest>()
-        val clientAuth = AuthorizationRequest(
-            clientId = clientId,
-            approval = AuthorizationRequest.Approval(Instant.now()),
-            scope = scope,
-            requestTime = Instant.now(),
-        )
+        val clientAuth = PlainAuthorizationRequest.Builder(clientId = clientId).also { b ->
+            b.approval = AuthorizationRequest.Approval(Instant.now())
+            b.scope = scope
+            b.requestTime = Instant.now()
+        }.build()
         whenever(authentication.authorizationRequest) doReturn (clientAuth)
 
         client = mock<ClientDetailsEntity>()
@@ -137,7 +137,9 @@ class TestKtorDefaultOAuth2ProviderTokenService {
 
         accessToken = mock<OAuth2AccessTokenEntity>()
 
-        tokenRequest = AuthorizationRequest(clientId = clientId, requestTime = Instant.now())
+        tokenRequest = PlainAuthorizationRequest.Builder(clientId = clientId).also { b ->
+            b.requestTime = Instant.now()
+        }.build()
 
         storedAuthentication = authentication
         storedAuthRequest = clientAuth
@@ -248,12 +250,11 @@ class TestKtorDefaultOAuth2ProviderTokenService {
     @Test
     fun createAccessToken_yesRefresh(): Unit = runBlocking {
         val now = Instant.now()
-        val clientAuth = AuthorizationRequest(
-            clientId = clientId,
-            approval = Approval(now),
-            scope = hashSetOf(SystemScopeService.OFFLINE_ACCESS),
-            requestTime = now,
-        )
+        val clientAuth = PlainAuthorizationRequest.Builder(clientId = clientId).also { b ->
+            b.approval = Approval(now)
+            b.scope = hashSetOf(SystemScopeService.OFFLINE_ACCESS)
+            b.requestTime = now
+        }.build()
         whenever(authentication.authorizationRequest) doReturn (clientAuth)
         whenever(client.isAllowRefresh) doReturn (true)
         lateinit var refreshToken: OAuth2RefreshTokenEntity
@@ -365,7 +366,9 @@ class TestKtorDefaultOAuth2ProviderTokenService {
 
     @Test
     fun refreshAccessToken_clientMismatch(): Unit = runBlocking {
-        tokenRequest = AuthorizationRequest(clientId = badClientId, requestTime = Instant.now())
+        tokenRequest = PlainAuthorizationRequest.Builder(clientId = badClientId).also { b ->
+            b.requestTime = Instant.now()
+        }.build()
 
         assertThrows<InvalidClientException> {
             service.refreshAccessToken(refreshTokenValue, tokenRequest)

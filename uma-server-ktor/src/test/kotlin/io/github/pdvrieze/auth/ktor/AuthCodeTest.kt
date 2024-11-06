@@ -15,7 +15,7 @@ import org.junit.Before
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.SystemScope
-import org.mitre.oauth2.model.request.AuthorizationRequest
+import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mitre.oauth2.web.TokenAPI
 import org.mitre.openid.connect.filter.AuthTokenResponse
 import org.mitre.openid.connect.filter.PlainAuthorizationRequestEndpoint
@@ -273,10 +273,16 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
     @Test
     fun testRefreshAccessToken() = testEndpoint {
         val tokenParams = mapOf("client_id" to clientId, "scope" to "offline_access")
+        val requestTime = Instant.now()
         val req = AuthenticatedAuthorizationRequest(
-            AuthorizationRequest(tokenParams, clientId, scope = setOf("offline_access"), requestTime = Instant.now()),
+            PlainAuthorizationRequest.Builder(clientId).also { b ->
+                b.requestParameters = tokenParams
+                b.requestTime = requestTime
+                b.scope = setOf("offline_access")
+                b.requestTime = requestTime
+            }.build(),
             SavedUserAuthentication("user")
-        )
+ )
         val origToken = testContext.tokenService.createAccessToken(req, true)
         val refreshToken = assertNotNull(origToken.refreshToken)
         val r = submitClient(

@@ -16,6 +16,7 @@ import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.request.AuthorizationRequest
+import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mitre.oauth2.service.IntrospectionResultAssembler
 import org.mitre.openid.connect.model.UserInfo
 import org.mitre.uma.model.Permission
@@ -361,12 +362,11 @@ class TestKtorDefaultIntrospectionResultAssembler {
 
     private fun oauth2Request(clientId: String, scopes: Set<String>? = null): AuthorizationRequest {
         val now = Instant.now()
-        return AuthorizationRequest(
-            clientId = clientId,
-            approval = AuthorizationRequest.Approval(now),
-            scope = scopes ?: emptySet(),
-            requestTime = now,
-        )
+        return PlainAuthorizationRequest.Builder(clientId = clientId).also { b ->
+            b.approval = AuthorizationRequest.Approval(now)
+            b.scope = scopes ?: emptySet()
+            b.requestTime = now
+        }.build()
     }
 
     private fun scopes(vararg scopes: String): Set<String> {

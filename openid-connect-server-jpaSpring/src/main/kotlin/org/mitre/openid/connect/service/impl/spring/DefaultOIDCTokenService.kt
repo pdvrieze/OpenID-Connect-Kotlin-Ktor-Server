@@ -96,7 +96,7 @@ class DefaultOIDCTokenService : OIDCTokenService {
 
         // if the auth time claim was explicitly requested OR if the client always wants the auth time, put it in
         if (request.extensions.containsKey(ConnectRequestParameters.MAX_AGE)
-            || (request.extensions.containsKey("idtoken")) // TODO: parse the ID Token claims (#473) -- for now assume it could be in there
+            || request.extensions.containsKey("idtoken") // TODO: parse the ID Token claims (#473) -- for now assume it could be in there
             || (client.requireAuthTime == true)
         ) {
             when (val authTimestamp = request.extensions[AuthenticationTimeStamper.AUTH_TIMESTAMP]) {

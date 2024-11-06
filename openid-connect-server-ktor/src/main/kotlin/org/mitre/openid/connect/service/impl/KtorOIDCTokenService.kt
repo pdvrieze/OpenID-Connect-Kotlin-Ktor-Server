@@ -39,13 +39,13 @@ import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.request.AuthorizationRequest
 import org.mitre.oauth2.model.request.OpenIdAuthorizationRequest
+import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.service.OAuth2TokenEntityService
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.service.OIDCTokenService
 import org.mitre.openid.connect.util.IdTokenHashUtils
-import org.mitre.openid.connect.web.AuthenticationTimeStamper
 import org.mitre.util.getLogger
 import java.time.Instant
 import java.util.*
@@ -83,11 +83,11 @@ class KtorOIDCTokenService(
         if ((request is OpenIdAuthorizationRequest && (request.maxAge != null || request.idToken != null)) // TODO: parse the ID Token claims (#473) -- for now assume it could be in there
             || (client.requireAuthTime == true)
         ) {
-            when (val authTimestamp = request.authHolderExtensions[AuthenticationTimeStamper.AUTH_TIMESTAMP]) {
+            when (val approval = request.approval) {
                     // we couldn't find the timestamp!
                 null -> logger.warn("Unable to find authentication timestamp! There is likely something wrong with the configuration.")
 
-                else -> idClaims.claim("auth_time", authTimestamp.toLong() / 1000L)
+                else -> idClaims.claim("auth_time", approval.approvalTime.epochSecond)
             }
         }
 
@@ -205,14 +205,15 @@ class KtorOIDCTokenService(
         // create a new token
         val authorizationParameters: Map<String, String> = hashMapOf()
         val now = Instant.now()
-        val clientAuth = AuthorizationRequest(
-            requestParameters = authorizationParameters,
-            clientId = client.clientId,
-            authorities = hashSetOf(LocalGrantedAuthority("ROLE_CLIENT")),
-            approval = AuthorizationRequest.Approval(now),
-            scope = scope ?: emptySet(),
-            requestTime = now
-        )
+        val clientAuth =
+            PlainAuthorizationRequest.Builder(clientId = client.clientId).also<PlainAuthorizationRequest.Builder> { b ->
+                b.requestParameters = authorizationParameters
+                b.requestTime = now
+                b.authorities = hashSetOf(LocalGrantedAuthority("ROLE_CLIENT"))
+                b.approval = AuthorizationRequest.Approval(now)
+                b.scope = scope ?: emptySet()
+                b.requestTime = now
+            }.build()
         val authentication = AuthenticatedAuthorizationRequest(clientAuth, null)
 
         val tokenBuilder = OAuth2AccessTokenEntity.Builder()

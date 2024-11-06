@@ -30,6 +30,7 @@ import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.request.AuthorizationRequest
+import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
@@ -42,7 +43,9 @@ import java.util.*
 class TestSpringOIDCTokenService {
     private val configBean = ConfigurationPropertiesBean(javaClass.name, "topbar")
     private val client = ClientDetailsEntity.Builder(clientId = CLIENT_ID).build()
-    private val request: AuthorizationRequest = AuthorizationRequest(clientId = CLIENT_ID, requestTime = Instant.now())
+    private val request: AuthorizationRequest = PlainAuthorizationRequest.Builder(clientId = CLIENT_ID).also { b ->
+        b.requestTime = Instant.now()
+    }.build()
     private val accessToken = OAuth2AccessTokenEntity(
         authenticationHolder = AuthenticationHolderEntity(requestTime = request.requestTime),
         expirationInstant = Instant.now().plusSeconds(120),

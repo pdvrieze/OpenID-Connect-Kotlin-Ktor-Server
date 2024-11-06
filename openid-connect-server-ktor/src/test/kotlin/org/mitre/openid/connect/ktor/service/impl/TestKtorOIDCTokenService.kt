@@ -16,6 +16,7 @@ import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.request.AuthorizationRequest
+import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.service.OAuth2TokenEntityService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
@@ -42,7 +43,9 @@ class TestKtorOIDCTokenService {
 
     private val configBean = ConfigurationPropertiesBean("http://localhost", "topbar")
     private val client = ClientDetailsEntity.Builder(clientId = CLIENT_ID).build()
-    private val request: AuthorizationRequest = AuthorizationRequest(clientId = CLIENT_ID, requestTime = Instant.now())
+    private val request: AuthorizationRequest = PlainAuthorizationRequest.Builder(clientId = CLIENT_ID).also { b ->
+        b.requestTime = Instant.now()
+    }.build()
     private val accessToken = OAuth2AccessTokenEntity(
         authenticationHolder = AuthenticationHolderEntity(AuthenticatedAuthorizationRequest(request, null)),
         expirationInstant = Instant.now().plusSeconds(120),

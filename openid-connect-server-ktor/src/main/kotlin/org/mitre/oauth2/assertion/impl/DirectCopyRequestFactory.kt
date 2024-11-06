@@ -5,6 +5,7 @@ import io.ktor.util.*
 import org.mitre.oauth2.assertion.AssertionOAuth2RequestFactory
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.request.AuthorizationRequest
+import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mitre.oauth2.token.TokenRequest
 import java.text.ParseException
 import java.time.Instant
@@ -25,24 +26,21 @@ class DirectCopyRequestFactory : AssertionOAuth2RequestFactory {
     ): AuthorizationRequest? {
         try {
             val claims = assertion.jwtClaimsSet
-            val scope = claims.getStringClaim("scope")?.splitToSequence(' ')?.filterNotTo(HashSet()) { it.isBlank()}
+            val scope = claims.getStringClaim("scope")?.splitToSequence(' ')?.filterNotTo(HashSet()) { it.isBlank() }
                 ?: emptySet()
 
             val resources = claims.audience.toSet()
 
             val now = Instant.now()
-            return AuthorizationRequest(
-                requestParameters = tokenRequest.requestParameters.toMap().mapValues { it.value.first() },
-                clientId = client.clientId,
-                authorities = client.authorities,
-                approval = AuthorizationRequest.Approval(now),
-                scope = scope,
-                resourceIds = resources,
-                redirectUri = null,
-                responseTypes = null,
-                state = null,
-                requestTime = now,
-            )
+            return PlainAuthorizationRequest.Builder(clientId = client.clientId).also { b ->
+                b.requestParameters = tokenRequest.requestParameters.toMap().mapValues { it.value.first() }
+                b.requestTime = now
+                b.authorities = client.authorities
+                b.approval = AuthorizationRequest.Approval(now)
+                b.scope = scope
+                b.resourceIds = resources
+                b.requestTime = now
+            }.build()
         } catch (e: ParseException) {
             return null
         }

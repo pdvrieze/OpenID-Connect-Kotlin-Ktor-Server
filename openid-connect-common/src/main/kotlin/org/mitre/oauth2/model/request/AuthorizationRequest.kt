@@ -1,5 +1,6 @@
 package org.mitre.oauth2.model.request
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -69,7 +70,7 @@ interface AuthorizationRequest {
                 b.requestParameters = requestParameters
                 b.authorities = authorities
                 if(extensions != null) {
-                    extensions.get("AUTHZ_TIMESTAMP")?.let { timestamp ->
+                    extensions["AUTHZ_TIMESTAMP"]?.let { timestamp ->
                         b.approval = Approval(
                             extensions.get("approved_site")?.toLong(),
                             Instant.ofEpochSecond(timestamp.toLong())
@@ -148,6 +149,7 @@ interface AuthorizationRequest {
     companion object : KSerializer<AuthorizationRequest> {
         private val delegate = SerialDelegate.serializer()
 
+        @OptIn(ExperimentalSerializationApi::class)
         override val descriptor: SerialDescriptor =
             SerialDescriptor(delegate.descriptor.serialName.substringBeforeLast(".SerialDelegate"), delegate.descriptor)
 
@@ -161,20 +163,6 @@ interface AuthorizationRequest {
             return delegate.deserialize(decoder).toAuthRequest()
         }
 
-        operator fun invoke(
-            requestParameters: Map<String, String> = emptyMap(),
-            clientId: String,
-            authorities: Set<GrantedAuthority> = emptySet(),
-            approval: Approval? = null,
-            scope: Set<String> = emptySet(),
-            resourceIds: Set<String>? = null,
-            redirectUri: String? = null,
-            responseTypes: Set<String>? = null,
-            state: String? = null,
-            requestTime: ISOInstant? = null,
-        ): AuthorizationRequest {
-            return PlainAuthorizationRequest(requestParameters, clientId, authorities, approval, scope, resourceIds, redirectUri, responseTypes, state, requestTime)
-        }
     }
 
 }
