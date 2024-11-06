@@ -7,7 +7,7 @@ import org.mitre.oauth2.exception.OAuthErrorCode
 import org.mitre.oauth2.exception.httpCode
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.SystemScope
-import org.mitre.oauth2.model.convert.AuthorizationRequest
+import org.mitre.oauth2.model.request.AuthorizationRequest
 import org.mitre.web.util.openIdContext
 
 suspend fun RoutingContext.htmlAboutView() {

@@ -38,7 +38,7 @@ import org.mitre.oauth2.model.PKCEAlgorithm
 import org.mitre.oauth2.model.PKCEAlgorithm.Companion.parse
 import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.SystemScope
-import org.mitre.oauth2.model.convert.AuthorizationRequest
+import org.mitre.oauth2.model.request.AuthorizationRequest
 import org.mitre.openid.connect.ktor.assertIs
 import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.openid.connect.model.BlacklistedSite

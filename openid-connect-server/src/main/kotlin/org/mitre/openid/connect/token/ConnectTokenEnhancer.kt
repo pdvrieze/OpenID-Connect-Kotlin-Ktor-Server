@@ -26,6 +26,7 @@ import org.mitre.oauth2.TokenEnhancer
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
+import org.mitre.oauth2.model.request.OpenIdAuthorizationRequest
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
@@ -50,7 +51,8 @@ abstract class ConnectTokenEnhancer: TokenEnhancer {
 
         val scope = (accessToken as? OAuth2AccessTokenEntity.Builder)?.scope ?: client.scope ?: emptySet()
 
-        val hasOpenIdScope = scope.contains(SystemScopeService.OPENID_SCOPE)
+        val hasOpenIdScope = //originalAuthRequest is OpenIdAuthorizationRequest
+            scope.contains(SystemScopeService.OPENID_SCOPE)
 
         val builder = JWTClaimsSet.Builder()
             .claim("azp", clientId)
@@ -66,9 +68,11 @@ abstract class ConnectTokenEnhancer: TokenEnhancer {
 
         // TODO set "typ: at+jwt" for OAuth access tokens (but not openid connect)
 
-        val audience = authentication.authorizationRequest.extensions["aud"]
-        if (!audience.isNullOrEmpty()) {
-            builder.audience(listOf(audience))
+        if (originalAuthRequest is OpenIdAuthorizationRequest) {
+            val audience = originalAuthRequest.audience
+            if (!audience.isNullOrEmpty()) {
+                builder.audience(listOf(audience))
+            }
         }
 
         addCustomAccessTokenClaims(builder, accessToken, authentication)

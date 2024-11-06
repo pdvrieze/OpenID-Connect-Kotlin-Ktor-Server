@@ -37,12 +37,12 @@ import org.mitre.oauth2.model.LocalGrantedAuthority
 import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuthClientDetails
-import org.mitre.oauth2.model.convert.AuthorizationRequest
+import org.mitre.oauth2.model.request.AuthorizationRequest
+import org.mitre.oauth2.model.request.OpenIdAuthorizationRequest
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.service.OAuth2TokenEntityService
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
-import org.mitre.openid.connect.request.ConnectRequestParameters
 import org.mitre.openid.connect.service.OIDCTokenService
 import org.mitre.openid.connect.util.IdTokenHashUtils
 import org.mitre.openid.connect.web.AuthenticationTimeStamper
@@ -80,11 +80,10 @@ class KtorOIDCTokenService(
         val idClaims = JWTClaimsSet.Builder()
 
         // if the auth time claim was explicitly requested OR if the client always wants the auth time, put it in
-        if (request.extensions.containsKey(ConnectRequestParameters.MAX_AGE)
-            || (request.extensions.containsKey("idtoken")) // TODO: parse the ID Token claims (#473) -- for now assume it could be in there
+        if ((request is OpenIdAuthorizationRequest && (request.maxAge != null || request.idToken != null)) // TODO: parse the ID Token claims (#473) -- for now assume it could be in there
             || (client.requireAuthTime == true)
         ) {
-            when (val authTimestamp = request.extensions[AuthenticationTimeStamper.AUTH_TIMESTAMP]) {
+            when (val authTimestamp = request.authHolderExtensions[AuthenticationTimeStamper.AUTH_TIMESTAMP]) {
                     // we couldn't find the timestamp!
                 null -> logger.warn("Unable to find authentication timestamp! There is likely something wrong with the configuration.")
 
@@ -104,7 +103,7 @@ class KtorOIDCTokenService(
         idClaims.audience(listOf(client.clientId))
         idClaims.jwtID(UUID.randomUUID().toString()) // set a random NONCE in the middle of it
 
-        val nonce = request.extensions[ConnectRequestParameters.NONCE]
+        val nonce = (request as? OpenIdAuthorizationRequest)?.nonce
         if (!nonce.isNullOrEmpty()) {
             idClaims.claim("nonce", nonce)
         }

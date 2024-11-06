@@ -27,7 +27,7 @@ import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.SystemScope
-import org.mitre.oauth2.model.convert.AuthorizationRequest
+import org.mitre.oauth2.model.request.AuthorizationRequest
 import org.mitre.openid.connect.request.Prompt
 import org.mitre.util.getLogger
 import org.mitre.web.OpenIdSessionStorage

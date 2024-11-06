@@ -3,7 +3,7 @@ package org.mitre.oauth2.service
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.SavedUserAuthentication
-import org.mitre.oauth2.model.convert.AuthorizationRequest
+import org.mitre.oauth2.model.request.AuthorizationRequest
 
 interface OAuth2AuthorizationCodeService {
     /**

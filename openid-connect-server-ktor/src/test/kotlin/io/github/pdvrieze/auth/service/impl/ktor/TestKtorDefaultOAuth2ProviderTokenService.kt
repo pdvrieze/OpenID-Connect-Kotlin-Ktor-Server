@@ -17,7 +17,8 @@ import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.SystemScope
-import org.mitre.oauth2.model.convert.AuthorizationRequest
+import org.mitre.oauth2.model.request.AuthorizationRequest
+import org.mitre.oauth2.model.request.update
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.oauth2.service.ClientDetailsEntityService
@@ -441,7 +442,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
     fun refreshAccessToken_requestingLessScope(): Unit = runBlocking {
         val lessScope: Set<String> = hashSetOf("openid", "profile")
 
-        tokenRequest = tokenRequest.copy(scope = lessScope)
+        tokenRequest = tokenRequest.builder().apply { scope = lessScope }.build()
 
         val token = service.refreshAccessToken(refreshTokenValue, tokenRequest)
 
@@ -454,7 +455,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
     fun refreshAccessToken_requestingMoreScope(): Unit = runBlocking {
         val moreScope = storedScope + setOf("address", "phone")
 
-        tokenRequest = tokenRequest.copy(scope = moreScope)
+        tokenRequest = tokenRequest.update { this.scope = moreScope }
 
         assertThrows<InvalidScopeException> {
             service.refreshAccessToken(refreshTokenValue, tokenRequest)
@@ -470,7 +471,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
         val mixedScope: Set<String> =
             setOf("openid", "profile", "address", "phone") // no email or offline_access
 
-        tokenRequest = tokenRequest.copy(scope = mixedScope)
+        tokenRequest = tokenRequest.update { scope = mixedScope }
 
         assertThrows<InvalidScopeException> {
             service.refreshAccessToken(refreshTokenValue, tokenRequest)
@@ -481,7 +482,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
     fun refreshAccessToken_requestingEmptyScope(): Unit = runBlocking {
         val emptyScope: Set<String> = hashSetOf()
 
-        tokenRequest = tokenRequest.copy(scope = emptyScope)
+        tokenRequest = tokenRequest.update { scope = emptyScope }
 
         val token = service.refreshAccessToken(refreshTokenValue, tokenRequest)
 

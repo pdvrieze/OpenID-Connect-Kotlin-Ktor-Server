@@ -2,7 +2,7 @@ package org.mitre.oauth2.model
 
 import kotlinx.serialization.Serializable
 import org.mitre.oauth2.model.convert.AuthenticatedAuthorizationRequestSerializer
-import org.mitre.oauth2.model.convert.AuthorizationRequest
+import org.mitre.oauth2.model.request.AuthorizationRequest
 
 /**
  * Object representing an authorization request that has been associated with a user.

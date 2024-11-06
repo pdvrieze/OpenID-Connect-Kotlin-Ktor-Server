@@ -18,6 +18,7 @@
 package org.mitre.openid.connect.service.impl.spring
 
 import org.mitre.oauth2.model.AuthenticationHolderEntity
+import org.mitre.oauth2.model.request.jpa.extensions
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2ClientRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository

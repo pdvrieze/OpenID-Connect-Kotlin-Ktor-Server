@@ -36,7 +36,8 @@ import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.PKCEAlgorithm
 import org.mitre.oauth2.model.PKCEAlgorithm.Companion.parse
 import org.mitre.oauth2.model.SystemScope
-import org.mitre.oauth2.model.convert.AuthorizationRequest
+import org.mitre.oauth2.model.request.AuthorizationRequest
+import org.mitre.oauth2.model.request.OpenIdAuthorizationRequest
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.oauth2.service.ClientDetailsEntityService
@@ -124,10 +125,11 @@ class DefaultOAuth2ProviderTokenService(
         val client: OAuthClientDetails = clientDetailsService.loadClientByClientId(request.clientId)
             ?: throw InvalidClientException("Client not found: " + request.clientId)
 
+        val codeChallenge = (request as? OpenIdAuthorizationRequest)?.codeChallenge
         // handle the PKCE code challenge if present
-        if (request.extensions.containsKey(ConnectRequestParameters.CODE_CHALLENGE) == true) {
-            val challenge = request.extensions[ConnectRequestParameters.CODE_CHALLENGE]
-            val alg = parse(request.extensions[ConnectRequestParameters.CODE_CHALLENGE_METHOD]!!)
+        if (codeChallenge != null) {
+            val challenge = codeChallenge.challenge
+            val alg = parse(codeChallenge.method)
 
             val verifier = request.requestParameters[ConnectRequestParameters.CODE_VERIFIER]
 
@@ -190,11 +192,9 @@ class DefaultOAuth2ProviderTokenService(
         //Add approved site reference, if any
         val originalAuthRequest = authHolder.authenticatedAuthorizationRequest.authorizationRequest
 
-        if (originalAuthRequest.extensions.containsKey("approved_site") == true) {
-            val apId = (originalAuthRequest.extensions["approved_site"] as String).toLong()
-            val ap = approvedSiteService.getById(apId)
-
-            tokenBuilder.approvedSite = ap
+        val approvedSiteId = (originalAuthRequest as? OpenIdAuthorizationRequest)?.approvedSiteId
+        if (approvedSiteId != null) {
+            tokenBuilder.approvedSite = approvedSiteService.getById(approvedSiteId)
         }
 
         tokenEnhancer.enhance(tokenBuilder, authentication)

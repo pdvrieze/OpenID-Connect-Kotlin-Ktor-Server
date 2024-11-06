@@ -25,7 +25,7 @@ enum class Prompt(val value: String) {
     companion object {
 
         fun parseSet(list: String): EnumSet<Prompt> {
-            return list.splitToSequence(ConnectRequestParameters.PROMPT_SEPARATOR)
+            return list.splitToSequence(' ')
                 .mapNotNullTo(EnumSet.noneOf(Prompt::class.java)) { p ->
                     Prompt.entries.firstOrNull { it.value == p }
                 }

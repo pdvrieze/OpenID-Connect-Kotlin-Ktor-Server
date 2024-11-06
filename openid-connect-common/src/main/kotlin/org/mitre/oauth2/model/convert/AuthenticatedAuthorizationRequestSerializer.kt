@@ -12,6 +12,7 @@ import kotlinx.serialization.encoding.encodeStructure
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.SavedUserAuthentication
+import org.mitre.oauth2.model.request.AuthorizationRequest
 
 
 object AuthenticatedAuthorizationRequestSerializer : KSerializer<AuthenticatedAuthorizationRequest> {

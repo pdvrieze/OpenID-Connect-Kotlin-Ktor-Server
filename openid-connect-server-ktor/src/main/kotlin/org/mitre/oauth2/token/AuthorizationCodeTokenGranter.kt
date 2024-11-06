@@ -4,7 +4,7 @@ import org.mitre.oauth2.exception.OAuth2Exception
 import org.mitre.oauth2.exception.OAuthErrorCodes
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.OAuthClientDetails
-import org.mitre.oauth2.model.convert.AuthorizationRequest
+import org.mitre.oauth2.model.request.AuthorizationRequest
 import org.mitre.oauth2.resolver.ClientResolver
 import org.mitre.oauth2.service.OAuth2AuthorizationCodeService
 import org.mitre.oauth2.service.OAuth2TokenEntityService
@@ -24,10 +24,10 @@ class AuthorizationCodeTokenGranter(
         request: AuthorizationRequest,
     ): AuthenticatedAuthorizationRequest {
         val code = request.requestParameters["code"] ?: throw OAuth2Exception(OAuthErrorCodes.INVALID_REQUEST)
-        val authorizationCode = authorizationCodeService.consumeAuthorizationCode(code)
-        if (authorizationCode.authorizationRequest.redirectUri != request.redirectUri)
+        val authenticatedRequest = authorizationCodeService.consumeAuthorizationCode(code)
+        if (authenticatedRequest.authorizationRequest.redirectUri != request.redirectUri)
             throw OAuth2Exception(OAuthErrorCodes.INVALID_REQUEST)
-        return authorizationCode
+        return authenticatedRequest
     }
 }
 

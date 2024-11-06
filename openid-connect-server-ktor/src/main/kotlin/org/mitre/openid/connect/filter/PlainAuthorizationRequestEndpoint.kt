@@ -21,7 +21,8 @@ import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.SavedUserAuthentication
-import org.mitre.oauth2.model.convert.AuthorizationRequest
+import org.mitre.oauth2.model.request.AuthorizationRequest
+import org.mitre.oauth2.model.request.OpenIdAuthorizationRequest
 import org.mitre.oauth2.service.ClientLoadingResult
 import org.mitre.oauth2.token.TokenGranter
 import org.mitre.oauth2.view.respondJson
@@ -101,7 +102,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         // save the login hint to the session
         // but first check to see if the login hint makes any sense
         val loginHint =
-            loginHintExtracter.extractHint(authRequest.extensions[ConnectRequestParameters.LOGIN_HINT])
+            loginHintExtracter.extractHint((authRequest as? OpenIdAuthorizationRequest)?.loginHint)
 
         val responseType = (params["response_type"] ?: return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST))
             .normalizeResponseType()
@@ -120,14 +121,12 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
 
         val prompts = when {
             pendingSession.pendingPrompts != null -> pendingSession.pendingPrompts
-            else -> authRequest.extensions[ConnectRequestParameters.PROMPT]?.let { Prompt.parseSet(it) }
+            else -> (authRequest as? OpenIdAuthorizationRequest)?.prompts//.extensions[ConnectRequestParameters.PROMPT]?.let { Prompt.parseSet(it) }
         }
         if (prompts != null) {
             pendingSession = promptFlow(prompts, authRequest, client, auth, pendingSession) ?: return
         } else {
-            val max = authRequest.extensions[ConnectRequestParameters.MAX_AGE]?.let {
-                it.toLongOrNull() ?: return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
-            } ?: client.defaultMaxAge
+            val max = (authRequest as? OpenIdAuthorizationRequest)?.maxAge ?: client.defaultMaxAge
             val authTime = pendingSession.authTime
             if (max != null && authTime != null) {
                 // default to the client's stored value, check the string parameter
@@ -188,7 +187,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         return call.respondRedirect {
             takeFrom(effectiveRedirectUri)
             when {
-                authRequest.isOpenId && authRequest.requestParameters["response_mode"] == "fragment" ->
+                authRequest is OpenIdAuthorizationRequest && authRequest.requestParameters["response_mode"] == "fragment" ->
                     fragment = code
 
                 else -> parameters.append("code", code)
@@ -222,7 +221,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
             takeFrom(effectiveRedirectUri)
 
             val p = when {
-                authRequest.isOpenId && authRequest.requestParameters["response_mode"] == "query" -> parameters
+                authRequest is OpenIdAuthorizationRequest && authRequest.requestParameters["response_mode"] == "query" -> parameters
                 else -> ParametersBuilder()
             }
 
@@ -250,7 +249,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         return call.respondRedirect {
             takeFrom(effectiveRedirectUri)
             val p = when {
-                authRequest.isOpenId && authRequest.requestParameters["response_mode"] == "fragment" -> ParametersBuilder()
+                authRequest is OpenIdAuthorizationRequest && authRequest.requestParameters["response_mode"] == "fragment" -> ParametersBuilder()
                 else -> parameters
             }
 

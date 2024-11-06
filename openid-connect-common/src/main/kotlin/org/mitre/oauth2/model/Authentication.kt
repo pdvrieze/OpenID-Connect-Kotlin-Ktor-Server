@@ -1,6 +1,6 @@
 package org.mitre.oauth2.model
 
-import org.mitre.oauth2.model.convert.AuthorizationRequest
+import org.mitre.oauth2.model.request.AuthorizationRequest
 
 interface Authentication {
     val authorities: Collection<GrantedAuthority>

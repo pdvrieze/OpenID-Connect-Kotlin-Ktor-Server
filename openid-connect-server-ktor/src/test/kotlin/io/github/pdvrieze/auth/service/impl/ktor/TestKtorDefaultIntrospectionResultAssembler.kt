@@ -15,7 +15,7 @@ import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.SavedUserAuthentication
-import org.mitre.oauth2.model.convert.AuthorizationRequest
+import org.mitre.oauth2.model.request.AuthorizationRequest
 import org.mitre.oauth2.service.IntrospectionResultAssembler
 import org.mitre.openid.connect.model.UserInfo
 import org.mitre.uma.model.Permission
@@ -361,16 +361,10 @@ class TestKtorDefaultIntrospectionResultAssembler {
 
     private fun oauth2Request(clientId: String, scopes: Set<String>? = null): AuthorizationRequest {
         return AuthorizationRequest(
-            requestParameters = emptyMap(),
             clientId = clientId,
-            authorities = emptySet(),
             isApproved = true,
             scope = scopes ?: emptySet(),
-            resourceIds = null,
-            redirectUri = null,
-            responseTypes = null,
             requestTime = Instant.now(),
-            extensionStrings = null
         )
     }
 

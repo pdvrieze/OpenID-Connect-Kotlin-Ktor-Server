@@ -120,7 +120,7 @@ object UserInfoEndpoint: KtorEndpoint {
                 userInfo = userInfo,
                 scope = auth.authorizationRequest.scope,
                 client = client,
-                authorizedClaims = auth.authorizationRequest.extensions["claims"],
+                authorizedClaims = auth.authorizationRequest.authHolderExtensions["claims"],
                 requestedClaims = claimsRequestJsonString,
             )
         }

@@ -31,7 +31,9 @@ import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
 import org.mitre.jwt.signer.service.ClientKeyCacheService
 import org.mitre.oauth2.exception.InvalidClientException
 import org.mitre.oauth2.model.PKCEAlgorithm
-import org.mitre.oauth2.model.convert.AuthorizationRequest
+import org.mitre.oauth2.model.request.AuthorizationRequest
+import org.mitre.oauth2.model.request.CodeChallenge
+import org.mitre.oauth2.model.request.OpenIdAuthorizationRequest
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.openid.connect.request.ConnectRequestParameters.AUD
 import org.mitre.openid.connect.request.ConnectRequestParameters.CLIENT_ID
@@ -53,7 +55,7 @@ class KtorConnectOAuth2RequestFactory(
     clientDetailsService,
 ) {
     override suspend fun createAuthorizationRequest(inputParams: Parameters): AuthorizationRequest {
-        val baseRequest =  super.createAuthorizationRequest(inputParams)
+        val baseRequest = super.createAuthorizationRequest(inputParams)
 
         val jwt = inputParams[REQUEST]?.let { parseToJwt(it, baseRequest) }
 
@@ -61,6 +63,14 @@ class KtorConnectOAuth2RequestFactory(
             ?: jwt?.run { jwtClaimsSet.getStringClaim(CLIENT_ID).takeIf { it.isNotBlank() } }
 
         val client = finalClientId?.let { clientDetailsService.loadClientByClientId(it) }
+
+        val codeChallenge = inputParams[CODE_CHALLENGE]?.let { codeChallenge ->
+            val challengeMethod = inputParams[ConnectRequestParameters.CODE_CHALLENGE_METHOD]
+            CodeChallenge(codeChallenge, challengeMethod ?: PKCEAlgorithm.plain.name)
+        }
+
+        val audience = inputParams[AUD]
+        val maxAge = inputParams[MAX_AGE]?.toLong() ?: client?.defaultMaxAge
 
         val extensions = buildMap {
 
@@ -73,23 +83,25 @@ class KtorConnectOAuth2RequestFactory(
             inputParams[LOGIN_HINT]?.let { put(LOGIN_HINT, it) }
             inputParams[AUD]?.let { put(AUD, it) }
 
-            inputParams[CODE_CHALLENGE]?.let { codeChallenge ->
-                put(CODE_CHALLENGE, codeChallenge)
-                val challengeMethod = inputParams[ConnectRequestParameters.CODE_CHALLENGE_METHOD]
-                put(ConnectRequestParameters.CODE_CHALLENGE_METHOD, challengeMethod ?: PKCEAlgorithm.plain.name)
-
-            }
+            /*
+                        inputParams[CODE_CHALLENGE]?.let { codeChallenge ->
+                            put(CODE_CHALLENGE, codeChallenge)
+                            val challengeMethod = inputParams[ConnectRequestParameters.CODE_CHALLENGE_METHOD]
+                            put(ConnectRequestParameters.CODE_CHALLENGE_METHOD, challengeMethod ?: PKCEAlgorithm.plain.name)
+                        }
+            */
 
             if (jwt != null) {
                 processRequestObject(jwt.jwtClaimsSet, baseRequest)
             }
 
-            if (client!=null && baseRequest.extensions[MAX_AGE] == null && client.defaultMaxAge != null) {
-                put(MAX_AGE, client.defaultMaxAge.toString())
+            if (maxAge != null) {
+                put(MAX_AGE, maxAge.toString())
             }
         }
-        val newResponseTypes = jwt?.let { processResponseTypes(it.jwtClaimsSet, baseRequest) } ?: baseRequest.responseTypes
-        val newRedirectUri = jwt?.let{ processRedirectUri(it.jwtClaimsSet, baseRequest) } ?: baseRequest.redirectUri
+        val newResponseTypes =
+            jwt?.let { processResponseTypes(it.jwtClaimsSet, baseRequest) } ?: baseRequest.responseTypes
+        val newRedirectUri = jwt?.let { processRedirectUri(it.jwtClaimsSet, baseRequest) } ?: baseRequest.redirectUri
         val newState = jwt?.let { processState(it.jwtClaimsSet, baseRequest) } ?: baseRequest.state
         val newScope = jwt?.let { processScope(it.jwtClaimsSet, baseRequest) }
             ?: baseRequest.scope.takeIf { it.isNotEmpty() }
@@ -99,17 +111,17 @@ class KtorConnectOAuth2RequestFactory(
         //Add extension parameters to the 'extensions' map
 
 
-
-
-
-        return baseRequest.copy(
-            clientId = finalClientId ?: "",
-            scope = newScope,
-            redirectUri = newRedirectUri,
-            responseTypes = newResponseTypes,
-            state = newState,
-            extensionStrings = extensions,
-        )
+        return OpenIdAuthorizationRequest.Builder(baseRequest).also { b ->
+            b.setFromExtensions(extensions)
+            b.clientId = finalClientId ?: ""
+            b.scope = newScope
+            b.redirectUri = newRedirectUri
+            b.responseTypes = newResponseTypes
+            b.state = newState
+            b.codeChallenge = codeChallenge
+            b.audience = audience
+            b.maxAge = maxAge
+        }.build()
     }
 
     private suspend fun parseToJwt(jwtString: String, request: AuthorizationRequest): JWT {
@@ -118,7 +130,7 @@ class KtorConnectOAuth2RequestFactory(
                 // it's a signed JWT, check the signature
 
                 val clientId = request.clientId.takeIf { it.isNotBlank() } ?: jwt.jwtClaimsSet.getStringClaim(CLIENT_ID)
-                    ?: throw InvalidClientException("No client ID found")
+                ?: throw InvalidClientException("No client ID found")
 
                 // need to check clientId first so that we can load the client to check other fields
 
@@ -137,8 +149,10 @@ class KtorConnectOAuth2RequestFactory(
                 }
 
                 val validator = validators.getValidator(client, alg)
-                    ?: throw InvalidClientException("Unable to create signature validator for client $client and " +
-                                                            "algorithm $alg")
+                    ?: throw InvalidClientException(
+                        "Unable to create signature validator for client $client and " +
+                                "algorithm $alg"
+                    )
 
                 if (!validator.validateSignature(jwt)) {
                     throw InvalidClientException("Signature did not validate for presented JWT request object.")
@@ -157,13 +171,17 @@ class KtorConnectOAuth2RequestFactory(
 
                 when (client.requestObjectSigningAlg) {
                     null ->
-                        throw InvalidClientException("Client is not registered for unsigned request objects " +
-                                "(no request_object_signing_alg registered)")
+                        throw InvalidClientException(
+                            "Client is not registered for unsigned request objects " +
+                                    "(no request_object_signing_alg registered)"
+                        )
 
                     Algorithm.NONE -> return jwt // if we got here, we're OK, keep processing
 
-                    else -> throw InvalidClientException("Client is not registered for unsigned request objects " +
-                                "(request_object_signing_alg is ${client.requestObjectSigningAlg})")
+                    else -> throw InvalidClientException(
+                        "Client is not registered for unsigned request objects " +
+                                "(request_object_signing_alg is ${client.requestObjectSigningAlg})"
+                    )
                 }
             }
 
@@ -217,7 +235,7 @@ class KtorConnectOAuth2RequestFactory(
 
     private fun MutableMap<String, String>.processRequestObject(
         claims: JWTClaimsSet,
-        request: AuthorizationRequest
+        request: AuthorizationRequest,
     ) {
         val extensions = this
         // parse the request object

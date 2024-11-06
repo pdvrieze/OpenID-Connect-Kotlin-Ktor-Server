@@ -27,12 +27,12 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonElement
 import org.mitre.oauth2.model.convert.AuthenticationSerializer
-import org.mitre.oauth2.model.convert.AuthorizationRequest
 import org.mitre.oauth2.model.convert.SimpleGrantedAuthorityStringConverter
+import org.mitre.oauth2.model.request.AuthorizationRequest
+import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mitre.openid.connect.model.convert.ISOInstant
 import java.time.Instant
 import kotlinx.serialization.Serializable as KXS_Serializable
-import java.io.Serializable as IoSerializable
 
 /*
 @Entity
@@ -54,7 +54,7 @@ class AuthenticationHolderEntity(
     var isApproved: Boolean = false,
     var redirectUri: String? = null,
     var responseTypes: Set<String>? = null,
-    var extensions: Map<String, IoSerializable>? = null,
+    var extensions: Map<String, String>? = null,
     var clientId: String? = null,
     var scope: Set<String>? = null,
     var requestParameters: Map<String, String>? = null,
@@ -82,7 +82,7 @@ class AuthenticationHolderEntity(
         isApproved = o2Request.isApproved,
         redirectUri = o2Request.redirectUri,
         responseTypes = o2Request.responseTypes?.toHashSet(),
-        extensions = o2Request.extensions,
+        extensions = o2Request.authHolderExtensions,
         clientId = o2Request.clientId,
         scope = o2Request.scope.toHashSet(),
         requestParameters = o2Request.requestParameters.toMap(),
@@ -93,18 +93,18 @@ class AuthenticationHolderEntity(
         get() = AuthenticatedAuthorizationRequest(createAuthorizationRequest(), userAuth)
 
     private fun createAuthorizationRequest(): AuthorizationRequest {
-        return AuthorizationRequest(
-            requestParameters = requestParameters ?: emptyMap(),
-            clientId = clientId!!,
-            authorities = authorities?.toSet() ?: emptySet(),
-            isApproved = isApproved,
-            scope = scope ?: emptySet(),
-            resourceIds = resourceIds,
-            redirectUri = redirectUri,
-            responseTypes = responseTypes,
-            requestTime = requestTime,
-            extensionStrings = extensions?.let { m -> m.mapValues { (_, v) -> v.toString() } } ?: emptyMap<String, String>(),
-        )
+        return PlainAuthorizationRequest.Builder(clientId!!).also { b ->
+            b.requestParameters = requestParameters ?: emptyMap()
+            b.clientId = clientId!!
+            b.authorities = authorities?.toSet() ?: emptySet()
+            b.isApproved = isApproved
+            b.scope = scope ?: emptySet()
+            b.resourceIds = resourceIds
+            b.redirectUri = redirectUri
+            b.responseTypes = responseTypes
+            b.requestTime = requestTime
+//            extensionStrings = extensions?.let { m -> m.mapValues { (_, v) -> v } },
+        }.build()
     }
 
     fun copy(
@@ -115,7 +115,7 @@ class AuthenticationHolderEntity(
         isApproved: Boolean = this.isApproved,
         redirectUri: String? = this.redirectUri,
         responseTypes: Set<String>? = this.responseTypes,
-        extensions: Map<String, IoSerializable>? = this.extensions,
+        extensions: Map<String, String>? = this.extensions,
         clientId: String? = this.clientId,
         scope: Set<String>? = this.scope,
         requestParameters: Map<String, String>? = this.requestParameters,
@@ -129,7 +129,7 @@ class AuthenticationHolderEntity(
             isApproved = isApproved,
             redirectUri = redirectUri,
             responseTypes = responseTypes?.toSet(),
-            extensions = extensions?.toMap(HashMap()),
+            extensions = extensions,
             clientId = clientId,
             scope = scope?.toHashSet(),
             requestParameters = requestParameters?.toMap(HashMap()),

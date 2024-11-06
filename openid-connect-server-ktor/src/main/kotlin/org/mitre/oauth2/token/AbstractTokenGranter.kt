@@ -4,7 +4,7 @@ import org.mitre.oauth2.exception.InvalidClientException
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuthClientDetails
-import org.mitre.oauth2.model.convert.AuthorizationRequest
+import org.mitre.oauth2.model.request.AuthorizationRequest
 import org.mitre.oauth2.resolver.ClientResolver
 import org.mitre.oauth2.service.OAuth2TokenEntityService
 import org.mitre.openid.connect.request.OAuth2RequestFactory

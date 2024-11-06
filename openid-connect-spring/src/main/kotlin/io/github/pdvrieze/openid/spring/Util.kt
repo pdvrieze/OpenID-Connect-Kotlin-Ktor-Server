@@ -5,7 +5,9 @@ import org.mitre.oauth2.model.LocalGrantedAuthority
 import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2RefreshToken
 import org.mitre.oauth2.model.SavedUserAuthentication
-import org.mitre.oauth2.model.convert.AuthorizationRequest
+import org.mitre.oauth2.model.request.AuthorizationRequest
+import org.mitre.oauth2.model.request.OpenIdAuthorizationRequest
+import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mitre.openid.connect.model.OIDCAuthenticationToken
 import org.mitre.openid.connect.model.PendingOIDCAuthenticationToken
 import org.springframework.security.core.Authentication
@@ -96,7 +98,7 @@ fun AuthorizationRequest.toSpring(): SpringOAuth2Request =
         resourceIds,
         redirectUri,
         responseTypes,
-        extensions
+        authHolderExtensions
     )
 
 fun PendingOIDCAuthenticationToken.toSpring(): SpringAuthentication {
@@ -178,8 +180,22 @@ fun Authentication.fromSpring(): SavedUserAuthentication {
     )
 }
 
-fun SpringOAuth2Request.fromSpring(): AuthorizationRequest {
-    return AuthorizationRequest(
+fun SpringOAuth2Request.fromSpring(): AuthorizationRequest = when {
+    "openid" in scope -> OpenIdAuthorizationRequest.Builder(clientId).also { b ->
+        extensions?.mapValues { it.toString() }?.let { b.setFromExtensions(it) }
+        b.requestParameters = requestParameters
+        b.clientId = clientId
+        b.authorities = authorities.mapTo(HashSet()) { LocalGrantedAuthority(it.authority) }
+        b.isApproved = isApproved
+        b.scope = scope
+        b.resourceIds = resourceIds
+        b.redirectUri = redirectUri
+        b.responseTypes = responseTypes
+        b.state = requestParameters["state"]
+        b.requestTime = Instant.EPOCH
+    }.build()
+
+    else -> PlainAuthorizationRequest(
         requestParameters = requestParameters,
         clientId = clientId,
         authorities = authorities.mapTo(HashSet()) { LocalGrantedAuthority(it.authority) },
@@ -189,6 +205,6 @@ fun SpringOAuth2Request.fromSpring(): AuthorizationRequest {
         redirectUri = redirectUri,
         responseTypes = responseTypes,
         requestTime = Instant.EPOCH,
-        extensionStrings = extensions?.mapValues { it.toString() }
+        extensions = extensions?.mapValues { it.toString() } ?: emptyMap()
     )
 }

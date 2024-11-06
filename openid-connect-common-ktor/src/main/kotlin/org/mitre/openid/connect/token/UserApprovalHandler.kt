@@ -1,7 +1,7 @@
 package org.mitre.openid.connect.token
 
 import org.mitre.oauth2.model.Authentication
-import org.mitre.oauth2.model.convert.AuthorizationRequest
+import org.mitre.oauth2.model.request.AuthorizationRequest
 
 interface UserApprovalHandler {
     /**

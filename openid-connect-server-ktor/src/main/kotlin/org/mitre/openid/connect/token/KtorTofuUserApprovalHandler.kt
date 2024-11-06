@@ -20,7 +20,11 @@ package org.mitre.openid.connect.token
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import org.mitre.oauth2.model.Authentication
-import org.mitre.oauth2.model.convert.AuthorizationRequest
+import org.mitre.oauth2.model.request.AuthorizationRequest
+import org.mitre.oauth2.model.request.OpenIdAuthorizationRequest
+import org.mitre.oauth2.model.request.PlainAuthorizationRequest
+import org.mitre.oauth2.model.request.update
+import org.mitre.oauth2.model.request.updateOID
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.openid.connect.request.ConnectRequestParameters
@@ -99,7 +103,8 @@ class KtorTofuUserApprovalHandler(
     ): AuthorizationRequest {
         //First, check database to see if the user identified by the userAuthentication has stored an approval decision
         var newApproved = authorizationRequest.isApproved
-        val newExtensions: MutableMap<String, String> = HashMap<String, String>(authorizationRequest.extensions)
+        // TODO (extensions shouldn't be used directly, but programmed in)
+        val newExtensions: MutableMap<String, String> = HashMap<String, String>(authorizationRequest.authHolderExtensions)
 
         val userId = userAuthentication.name
         val clientId = authorizationRequest.clientId
@@ -146,7 +151,19 @@ class KtorTofuUserApprovalHandler(
         }
 
 
-        return authorizationRequest.copy(isApproved = newApproved, extensionStrings = newExtensions.takeIf { it.isNotEmpty() })
+        return when (authorizationRequest) {
+            is PlainAuthorizationRequest ->
+                authorizationRequest.update {
+                    isApproved = newApproved
+                    require(newExtensions.isEmpty())
+                }
+            is OpenIdAuthorizationRequest ->
+                authorizationRequest.updateOID {
+                    isApproved = newApproved
+                    setFromExtensions(newExtensions)
+                }
+            else -> error("Unexpected authorization request: $authorizationRequest")
+        }
     }
 
 
@@ -160,7 +177,7 @@ class KtorTofuUserApprovalHandler(
         val client = clientDetailsService.loadClientByClientId(clientId)!!
         var newApproved = authorizationRequest.isApproved
         var newScope = authorizationRequest.scope
-        val newExtensions = HashMap<String, String>(authorizationRequest.extensions)
+        val newExtensions = HashMap<String, String>(authorizationRequest.authHolderExtensions)
 
         val newApprovalParameters = when(val oldApprovalParameters = postParams) {
             null -> null
@@ -223,11 +240,11 @@ class KtorTofuUserApprovalHandler(
 
 
 
-        return authorizationRequest.copy(
-            isApproved = newApproved,
-            scope = newScope,
-            extensionStrings = newExtensions.takeIf { it.isNotEmpty() },
-        )
+        return authorizationRequest.update {
+            isApproved = newApproved
+            scope = newScope
+
+        }
     }
 
     /**

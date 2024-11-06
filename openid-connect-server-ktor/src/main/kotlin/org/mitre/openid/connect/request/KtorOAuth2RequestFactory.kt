@@ -2,7 +2,8 @@ package org.mitre.openid.connect.request
 
 import io.ktor.http.*
 import org.mitre.oauth2.model.OAuthClientDetails
-import org.mitre.oauth2.model.convert.AuthorizationRequest
+import org.mitre.oauth2.model.request.AuthorizationRequest
+import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.util.getLogger
 import java.time.Instant
@@ -26,7 +27,7 @@ open class KtorOAuth2RequestFactory(
             str.splitToSequence(' ').filterNot { it.isBlank() }
         }
 
-        return AuthorizationRequest(
+        return PlainAuthorizationRequest(
             requestParameters = inputParams.entries().associate { (k, v) -> k to v.first() },
             clientId = client.clientId,
             authorities = client.authorities,
@@ -35,8 +36,9 @@ open class KtorOAuth2RequestFactory(
             resourceIds = client.resourceIds,
             redirectUri = inputParams["redirect_uri"],
             responseTypes = responseTypes,
-            requestTime = Instant.now(),
             state = inputParams["state"],
+            requestTime = Instant.now(),
+            extensions = emptyMap(),
         )
     }
 

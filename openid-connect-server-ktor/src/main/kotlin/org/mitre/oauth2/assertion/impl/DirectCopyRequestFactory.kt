@@ -4,7 +4,7 @@ import com.nimbusds.jwt.JWT
 import io.ktor.util.*
 import org.mitre.oauth2.assertion.AssertionOAuth2RequestFactory
 import org.mitre.oauth2.model.OAuthClientDetails
-import org.mitre.oauth2.model.convert.AuthorizationRequest
+import org.mitre.oauth2.model.request.AuthorizationRequest
 import org.mitre.oauth2.token.TokenRequest
 import java.text.ParseException
 import java.time.Instant
