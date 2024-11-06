@@ -39,6 +39,7 @@ import org.mitre.oauth2.model.PKCEAlgorithm.Companion.parse
 import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.request.AuthorizationRequest
+import org.mitre.oauth2.model.request.AuthorizationRequest.Approval
 import org.mitre.openid.connect.ktor.assertIs
 import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.openid.connect.model.BlacklistedSite
@@ -759,11 +760,12 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
     @Test
     @Throws(IOException::class)
     fun testExportAuthenticationHolders() {
+        val now = Instant.now()
         val req1 = AuthorizationRequest(
             clientId = "client1",
-            isApproved = true,
+            approval = Approval(now.minusSeconds(3)),
             redirectUri = "http://foo.com",
-            requestTime = Instant.now(),
+            requestTime = now.minusSeconds(2),
         )
         val mockAuth1: SavedUserAuthentication =  SavedUserAuthentication(name = "mockAuth1")
 //            UsernamePasswordAuthenticationToken("user1", "pass1", AuthorityUtils.commaSeparatedStringToAuthorityList("ROLE_USER"))
@@ -773,9 +775,9 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
 
         val req2 = AuthorizationRequest(
             clientId = "client2",
-            isApproved = true,
+            approval = Approval(now.minusSeconds(1)),
             redirectUri = "http://bar.com",
-            requestTime = Instant.now(),
+            requestTime = now,
         )
         val auth2 = AuthenticatedAuthorizationRequest(req2, null)
 

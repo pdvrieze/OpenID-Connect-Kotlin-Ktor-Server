@@ -38,6 +38,7 @@ import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.request.AuthorizationRequest
+import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mitre.oauth2.model.request.jpa.extensions
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.service.OAuth2TokenEntityService
@@ -222,14 +223,14 @@ class DefaultOIDCTokenService : OIDCTokenService {
 
         // create a new token
         val authorizationParameters: Map<String, String> = hashMapOf()
-        val clientAuth = AuthorizationRequest(
-            requestParameters = authorizationParameters,
-            clientId = client.clientId,
-            authorities = hashSetOf(GrantedAuthority("ROLE_CLIENT")),
-            isApproved = true,
-            scope = scope ?: emptySet(),
-            requestTime = Instant.now(),
-        )
+        val clientAuth = PlainAuthorizationRequest.Builder(client.clientId).also { b ->
+            b.requestParameters = authorizationParameters
+            b.clientId = client.clientId
+            b.authorities = hashSetOf(GrantedAuthority("ROLE_CLIENT"))
+            b.approval = AuthorizationRequest.Approval(Instant.now())
+            b.scope = scope ?: emptySet()
+            b.requestTime = Instant.now()
+        }.build()
         val authentication = AuthenticatedAuthorizationRequest(clientAuth, null)
 
         val tokenBuilder = OAuth2AccessTokenEntity.Builder()

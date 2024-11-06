@@ -48,15 +48,16 @@ interface OpenIdAuthorizationRequest : AuthorizationRequest {
         }
 
         override fun setFromExtensions(extensions: Map<String, String>) {
-            extensions["code_challenge"]?.let { codeChallenge = CodeChallenge(it, extensions["code_challenge_method"]!!) }
-            extensions["aud"]?.let { audience = it }
-            extensions["max_age"]?.let { maxAge = it.toLong() }
-            extensions["approved_site"]?.let { approvedSiteId = it.toLong() }
-            extensions["login_hint"]?.let { loginHint = it }
-            extensions["prompt"]?.let { prompts = Prompt.parseSet(it) }
-            extensions["idtoken"]?.let { idToken = it }
-            extensions["nonce"]?.let { nonce = it }
-            this.extensions = extensions.takeIf { it.isNotEmpty() }
+            val extCpy = HashMap(extensions)
+            extCpy.remove("code_challenge")?.let { codeChallenge = CodeChallenge(it, extensions["code_challenge_method"]!!) }
+            extCpy.remove("aud")?.let { audience = it }
+            extCpy.remove("max_age")?.let { maxAge = it.toLong() }
+            extCpy.remove("approved_site")?.let { approvedSiteId = it.toLong() }
+            extCpy.remove("login_hint")?.let { loginHint = it }
+            extCpy.remove("prompt")?.let { prompts = Prompt.parseSet(it) }
+            extCpy.remove("idtoken")?.let { idToken = it }
+            extCpy.remove("nonce")?.let { nonce = it }
+            this.extensions = extCpy.takeIf { it.isNotEmpty() }
         }
     }
 

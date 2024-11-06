@@ -18,6 +18,7 @@ import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.request.AuthorizationRequest
+import org.mitre.oauth2.model.request.AuthorizationRequest.Approval
 import org.mitre.oauth2.model.request.update
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
@@ -106,7 +107,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
         authentication = mock<AuthenticatedAuthorizationRequest>()
         val clientAuth = AuthorizationRequest(
             clientId = clientId,
-            isApproved = true,
+            approval = AuthorizationRequest.Approval(Instant.now()),
             scope = scope,
             requestTime = Instant.now(),
         )
@@ -246,11 +247,12 @@ class TestKtorDefaultOAuth2ProviderTokenService {
      */
     @Test
     fun createAccessToken_yesRefresh(): Unit = runBlocking {
+        val now = Instant.now()
         val clientAuth = AuthorizationRequest(
             clientId = clientId,
-            isApproved = true,
+            approval = Approval(now),
             scope = hashSetOf(SystemScopeService.OFFLINE_ACCESS),
-            requestTime = Instant.now(),
+            requestTime = now,
         )
         whenever(authentication.authorizationRequest) doReturn (clientAuth)
         whenever(client.isAllowRefresh) doReturn (true)

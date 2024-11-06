@@ -12,6 +12,7 @@ import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.request.AuthorizationRequest
+import org.mitre.oauth2.model.request.AuthorizationRequest.Approval
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2ClientRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
@@ -615,11 +616,12 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
     }
 
     protected fun testImportAuthenticationHolders(wrapAuthentication:Boolean) {
+        val now = Instant.now()
         val req1 = AuthorizationRequest(
             clientId = "client1",
-            isApproved = true,
+            approval = Approval(now.minusSeconds(3)),
             redirectUri = "http://foo.com",
-            requestTime = Instant.now(),
+            requestTime = now.minusSeconds(2),
         )
         val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
         val auth1 = AuthenticatedAuthorizationRequest(req1, mockAuth1)
@@ -628,9 +630,9 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
 
         val req2 = AuthorizationRequest(
             clientId = "client2",
-            isApproved =  true,
+            approval = Approval(now.minusSeconds(1)),
             redirectUri = "http://bar.com",
-            requestTime = Instant.now(),
+            requestTime = now,
         )
         val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
         val auth2 = AuthenticatedAuthorizationRequest(req2, mockAuth2)
@@ -786,11 +788,12 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
 
         // unused by mockito (causs unnecessary stubbing exception
 //		when(mockedClient1.getClientId()).thenReturn("mocked_client_1");
+        val now = Instant.now()
         val req1 = AuthorizationRequest(
             clientId = "client1",
-            isApproved = true,
+            approval = Approval(now.minusSeconds(3)),
             redirectUri = "http://foo.com",
-            requestTime = Instant.now(),
+            requestTime = now.minusSeconds(2),
         )
         val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
         val auth1 = AuthenticatedAuthorizationRequest(req1, mockAuth1)
@@ -813,9 +816,9 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
 //		when(mockedClient2.getClientId()).thenReturn("mocked_client_2");
         val req2 = AuthorizationRequest(
             clientId = "client2",
-            isApproved = true,
+            approval = Approval(now.minusSeconds(1)),
             redirectUri = "http://bar.com",
-            requestTime = Instant.now(),
+            requestTime = now,
         )
 
         val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")

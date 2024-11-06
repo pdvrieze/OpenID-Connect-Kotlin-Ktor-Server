@@ -360,11 +360,12 @@ class TestKtorDefaultIntrospectionResultAssembler {
     }
 
     private fun oauth2Request(clientId: String, scopes: Set<String>? = null): AuthorizationRequest {
+        val now = Instant.now()
         return AuthorizationRequest(
             clientId = clientId,
-            isApproved = true,
+            approval = AuthorizationRequest.Approval(now),
             scope = scopes ?: emptySet(),
-            requestTime = Instant.now(),
+            requestTime = now,
         )
     }
 

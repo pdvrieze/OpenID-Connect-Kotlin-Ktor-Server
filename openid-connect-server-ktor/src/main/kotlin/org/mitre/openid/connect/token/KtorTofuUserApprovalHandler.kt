@@ -18,15 +18,11 @@
 package org.mitre.openid.connect.token
 
 import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
 import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.request.AuthorizationRequest
-import org.mitre.oauth2.model.request.OpenIdAuthorizationRequest
-import org.mitre.oauth2.model.request.PlainAuthorizationRequest
-import org.mitre.oauth2.model.request.update
-import org.mitre.oauth2.model.request.updateOID
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.SystemScopeService
+import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.openid.connect.request.ConnectRequestParameters
 import org.mitre.openid.connect.request.Prompt
 import org.mitre.openid.connect.service.ApprovedSiteService
@@ -101,8 +97,9 @@ class KtorTofuUserApprovalHandler(
         userAuthentication: Authentication,
         prompts: Set<Any>?
     ): AuthorizationRequest {
+        val requestBuilder = authorizationRequest.builder() // create a builder to update for
+
         //First, check database to see if the user identified by the userAuthentication has stored an approval decision
-        var newApproved = authorizationRequest.isApproved
         // TODO (extensions shouldn't be used directly, but programmed in)
         val newExtensions: MutableMap<String, String> = HashMap<String, String>(authorizationRequest.authHolderExtensions)
 
@@ -132,10 +129,9 @@ class KtorTofuUserApprovalHandler(
                         val apId = ap.id.toString()
                         newExtensions[ConnectRequestParameters.APPROVED_SITE] = apId
 
-                        newApproved = true
-                        alreadyApproved = true
+                        requestBuilder.approval = AuthorizationRequest.Approval(Instant.now()) // rather than using extensions
 
-                        setAuthTime(newExtensions)
+                        alreadyApproved = true
                     }
                 }
             }
@@ -143,27 +139,12 @@ class KtorTofuUserApprovalHandler(
             if (!alreadyApproved) {
                 val ws = whitelistedSiteService.getByClientId(clientId)
                 if (ws != null && systemScopes.scopesMatch(ws.allowedScopes, authorizationRequest.scope)) {
-                    newApproved = true
-
-                    setAuthTime(newExtensions)
+                    requestBuilder.approval = AuthorizationRequest.Approval(Instant.now())
                 }
             }
         }
 
-
-        return when (authorizationRequest) {
-            is PlainAuthorizationRequest ->
-                authorizationRequest.update {
-                    isApproved = newApproved
-                    require(newExtensions.isEmpty())
-                }
-            is OpenIdAuthorizationRequest ->
-                authorizationRequest.updateOID {
-                    isApproved = newApproved
-                    setFromExtensions(newExtensions)
-                }
-            else -> error("Unexpected authorization request: $authorizationRequest")
-        }
+        return requestBuilder.build()
     }
 
 
@@ -175,9 +156,9 @@ class KtorTofuUserApprovalHandler(
         val userId = userAuthentication.name
         val clientId = authorizationRequest.clientId
         val client = clientDetailsService.loadClientByClientId(clientId)!!
-        var newApproved = authorizationRequest.isApproved
-        var newScope = authorizationRequest.scope
-        val newExtensions = HashMap<String, String>(authorizationRequest.authHolderExtensions)
+        val requestBuilder = authorizationRequest.builder()
+
+        val newExtensions = HashMap(authorizationRequest.authHolderExtensions)
 
         val newApprovalParameters = when(val oldApprovalParameters = postParams) {
             null -> null
@@ -185,7 +166,6 @@ class KtorTofuUserApprovalHandler(
             else -> buildJsonObject {
                 // This must be re-parsed here because SECOAUTH forces us to call things in a strange order
                 if (oldApprovalParameters["user_oauth_approval"] == "true") {
-                    newApproved = true
 
                     //This is a scope parameter from the approval page. The value sent back should
                     //be the scope string. Check to make sure it is contained in the client's
@@ -198,25 +178,23 @@ class KtorTofuUserApprovalHandler(
                         .flatMapTo(HashSet()) { it }
 
                     // inject the user-allowed scopes into the auth request
-                    newScope = allowedScopes
+                    requestBuilder.scope = allowedScopes
+
+                    var approvedSite: ApprovedSite?
 
                     //Only store an ApprovedSite if the user has checked "remember this decision":
                     when(postParams["remember"]) {
                         "one-hour" -> {
                             val timeout: Date? = Date.from(Instant.now()+Duration.ofHours(1))
 
-                            val newSite = approvedSiteService.createApprovedSite(clientId, userId, timeout, allowedScopes)
-                            val newSiteId = newSite.id.toString()
-                            put(ConnectRequestParameters.APPROVED_SITE, newSiteId)
+                            approvedSite = approvedSiteService.createApprovedSite(clientId, userId, timeout, allowedScopes)
+                        }
 
-                        }
-                        "until-revoked" -> {
-                            val newSite = approvedSiteService.createApprovedSite(clientId, userId, null as Date?, allowedScopes)
-                            val newSiteId = newSite.id.toString()
-                            put(ConnectRequestParameters.APPROVED_SITE, newSiteId)
-                        }
+                        "until-revoked" ->
+                            approvedSite = approvedSiteService.createApprovedSite(clientId, userId, timeoutDate = null as Date?, allowedScopes = allowedScopes)
+
                         else -> { // default to not remembering
-
+                            approvedSite = null
                         }
                     }
                     val remember = oldApprovalParameters["remember"]
@@ -227,24 +205,15 @@ class KtorTofuUserApprovalHandler(
                             timeout = Date.from(Instant.now()+Duration.ofHours(1))
                         }
 
-                        val newSite = approvedSiteService.createApprovedSite(clientId, userId, timeout, allowedScopes)
-                        val newSiteId = newSite.id.toString()
-                        put(ConnectRequestParameters.APPROVED_SITE, newSiteId)
+                        approvedSite = approvedSiteService.createApprovedSite(clientId, userId, timeout, allowedScopes)
                     }
-
-                    setAuthTime(newExtensions)
+                    requestBuilder.approval = AuthorizationRequest.Approval(approvedSite, Instant.now())
                 }
             }
 
         }
 
-
-
-        return authorizationRequest.update {
-            isApproved = newApproved
-            scope = newScope
-
-        }
+        return requestBuilder.build()
     }
 
     /**
@@ -252,9 +221,9 @@ class KtorTofuUserApprovalHandler(
      * auth request in the extensions map.
      *
      */
-    private fun setAuthTime(extensions: MutableMap<String, String>) {
+    private fun setAuthTimeXX(extensions: MutableMap<String, String>) {
         // Get the session auth time, if we have it, and store it in the request
-        extensions[AuthenticationTimeStamper.AUTH_TIMESTAMP] =Date().time.toString()
+        extensions[AuthenticationTimeStamper.AUTH_TIMESTAMP] = Instant.now().epochSecond.toString()
     }
 
     fun getUserApprovalRequest(

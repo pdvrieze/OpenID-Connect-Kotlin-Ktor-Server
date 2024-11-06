@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.openid.connect.model.convert.ISOInstant
+import java.time.Instant
 
 /**
  * Object representing a request for authorization (in the authorization endpoint).
@@ -17,7 +18,7 @@ class PlainAuthorizationRequest(
     override val clientId: String,
     override val authorities: Set<GrantedAuthority> = emptySet(),
     @SerialName("approved")
-    override val isApproved: Boolean = false,
+    override val approval: AuthorizationRequest.Approval? = null,
     override val scope: Set<String> = emptySet(),
     override val resourceIds: Set<String>? = null,
     override val redirectUri: String? = null,
@@ -29,45 +30,23 @@ class PlainAuthorizationRequest(
 
     val isOpenId get() = SystemScopeService.OPENID_SCOPE in scope
 
-    override val authHolderExtensions: Map<String, String>
-        get() = emptyMap()
+    override val authHolderExtensions: Map<String, String> = buildMap {
+        approval?.let {
+            put("AUTHZ_TIMESTAMP", it.approvalTime.epochSecond.toString())
+            it.approvedSiteId?.let { s -> put("approved_site", s.toString()) }
+        }
+    }
+
 
     override fun builder(): Builder {
         return Builder(this)
     }
 
-    constructor(
-        requestParameters: Map<String, String> = emptyMap(),
-        clientId: String,
-        authorities: Set<GrantedAuthority> = emptySet(),
-        isApproved: Boolean = false,
-        scope: Set<String> = emptySet(),
-        resourceIds: Set<String>? = null,
-        redirectUri: String? = null,
-        responseTypes: Set<String>? = null,
-        state: String? = null,
-        requestTime: ISOInstant? = null,
-        extensionStrings: Map<String, String>?,
-        dummy: Unit = Unit
-    ) : this(
-        requestParameters = requestParameters,
-        clientId = clientId,
-        authorities = authorities,
-        isApproved = isApproved,
-        scope = scope,
-        resourceIds = resourceIds,
-        redirectUri = redirectUri,
-        responseTypes = responseTypes,
-        state = state,
-        requestTime = requestTime,
-        extensions = extensionStrings ?: emptyMap(),
-    )
-
     class Builder(clientId: String): AuthorizationRequest.Builder(clientId) {
         constructor(orig: PlainAuthorizationRequest) : this(orig.clientId) {
             requestParameters = orig.requestParameters
             authorities = orig.authorities
-            isApproved = orig.isApproved
+            approval = orig.approval
             scope = orig.scope
             resourceIds = orig.resourceIds
             redirectUri = orig.redirectUri
@@ -77,11 +56,22 @@ class PlainAuthorizationRequest(
         }
 
         override fun build(): PlainAuthorizationRequest {
-            return PlainAuthorizationRequest(requestParameters, clientId, authorities, isApproved, scope, resourceIds, redirectUri, responseTypes, state, requestTime)
+            return PlainAuthorizationRequest(requestParameters, clientId, authorities, approval, scope, resourceIds, redirectUri, responseTypes, state, requestTime)
         }
 
         override fun setFromExtensions(extensions: Map<String, String>) {
-            require(extensions.isEmpty()) { "No extensions expected in plain request" }
+            if (extensions.isNotEmpty()) {
+                val extCpy = HashMap(extensions)
+                extCpy.remove("AUTHZ_TIMESTAMP")?.let {
+                    approval = AuthorizationRequest.Approval(
+                        extCpy.remove("approved_site")?.toLong(),
+                        Instant.ofEpochSecond(it.toLong()),
+                    )
+                }
+
+                require(extCpy.isEmpty()) { "No extensions expected" }
+            }
+
         }
     }
 }

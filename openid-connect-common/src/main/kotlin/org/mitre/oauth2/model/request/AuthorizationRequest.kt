@@ -8,7 +8,9 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import org.mitre.oauth2.model.GrantedAuthority
+import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.openid.connect.model.convert.ISOInstant
+import java.time.Instant
 
 @Serializable(AuthorizationRequest.Companion::class)
 interface AuthorizationRequest {
@@ -18,7 +20,8 @@ interface AuthorizationRequest {
     val authorities: Set<GrantedAuthority>
 
     @SerialName("approved")
-    val isApproved: Boolean
+    val isApproved: Boolean get() = approval != null
+    val approval: Approval?
     val scope: Set<String>
     val resourceIds: Set<String>?
     val redirectUri: String?
@@ -33,6 +36,12 @@ interface AuthorizationRequest {
     val authHolderExtensions: Map<String, String>
 
     fun builder(): Builder
+
+    @Serializable
+    class Approval(val approvedSiteId: Long? = null, val approvalTime: ISOInstant) {
+        constructor(approvalTime: ISOInstant) : this(approvedSiteId = null, approvalTime)
+        constructor(approvedSite: ApprovedSite?, approvalTime: ISOInstant) : this(approvedSite?.id, approvalTime)
+    }
 
     @Serializable
     private class SerialDelegate(
@@ -53,13 +62,22 @@ interface AuthorizationRequest {
     ) {
 
         fun toAuthRequest(): AuthorizationRequest {
-            val builder: AuthorizationRequest.Builder = when {
+            val builder: Builder = when {
                 "openid" in scope -> OpenIdAuthorizationRequest.Builder(clientId)
                 else -> PlainAuthorizationRequest.Builder(clientId)
             }.also { b ->
                 b.requestParameters = requestParameters
                 b.authorities = authorities
-                b.isApproved = isApproved
+                if(extensions != null) {
+                    extensions.get("AUTHZ_TIMESTAMP")?.let { timestamp ->
+                        b.approval = Approval(
+                            extensions.get("approved_site")?.toLong(),
+                            Instant.ofEpochSecond(timestamp.toLong())
+                        )
+
+                    }
+                }
+
                 b.scope = scope
                 b.resourceIds = resourceIds
                 b.redirectUri = redirectUri
@@ -82,7 +100,7 @@ interface AuthorizationRequest {
             responseTypes = plainRequest.responseTypes,
             state = plainRequest.state,
             requestTime = plainRequest.requestTime,
-            extensions = plainRequest.extensions,
+            extensions = plainRequest.authHolderExtensions,
         )
 
         constructor(oidRequest: OpenIdAuthorizationRequest): this(
@@ -103,7 +121,7 @@ interface AuthorizationRequest {
     abstract class Builder(var clientId: String) {
         var requestParameters: Map<String, String> = emptyMap()
         var authorities: Set<GrantedAuthority> = emptySet()
-        var isApproved: Boolean = false
+        var approval: Approval? = null
         var scope: Set<String> = emptySet()
         var resourceIds: Set<String>? = null
         var redirectUri: String? = null
@@ -114,7 +132,7 @@ interface AuthorizationRequest {
         constructor(orig: AuthorizationRequest): this(orig.clientId) {
             requestParameters = orig.requestParameters
             authorities = orig.authorities
-            isApproved = orig.isApproved
+            approval = orig.approval
             scope = orig.scope
             resourceIds = orig.resourceIds
             redirectUri = orig.redirectUri
@@ -147,7 +165,7 @@ interface AuthorizationRequest {
             requestParameters: Map<String, String> = emptyMap(),
             clientId: String,
             authorities: Set<GrantedAuthority> = emptySet(),
-            isApproved: Boolean = false,
+            approval: Approval? = null,
             scope: Set<String> = emptySet(),
             resourceIds: Set<String>? = null,
             redirectUri: String? = null,
@@ -155,7 +173,7 @@ interface AuthorizationRequest {
             state: String? = null,
             requestTime: ISOInstant? = null,
         ): AuthorizationRequest {
-            return PlainAuthorizationRequest(requestParameters, clientId, authorities, isApproved, scope, resourceIds, redirectUri, responseTypes, state, requestTime)
+            return PlainAuthorizationRequest(requestParameters, clientId, authorities, approval, scope, resourceIds, redirectUri, responseTypes, state, requestTime)
         }
     }
 

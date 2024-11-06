@@ -10,7 +10,7 @@ class OpenIdAuthorizationRequestImpl internal constructor(
     override val requestParameters: Map<String, String> = builder.requestParameters
     override val clientId: String = builder.clientId
     override val authorities: Set<GrantedAuthority> = builder.authorities.toHashSet()
-    override val isApproved: Boolean = builder.isApproved
+    override val approval: AuthorizationRequest.Approval? = builder.approval
     override val scope: Set<String> = builder.scope.toHashSet()
     override val resourceIds: Set<String>? = builder.resourceIds?.toHashSet()
     override val redirectUri: String? = builder.redirectUri
@@ -27,10 +27,17 @@ class OpenIdAuthorizationRequestImpl internal constructor(
     override val idToken: String? = builder.idToken
     override val nonce: String? = builder.nonce
 
-
     val extensions: Map<String, String>? = builder.extensions?.toMap()
 
-    override val authHolderExtensions: Map<String, String> get() = extensions ?: emptyMap()
+    override val authHolderExtensions: Map<String, String> get() {
+        return buildMap {
+            extensions?.let { putAll(it) }
+            approval?.let {
+                put("AUTHZ_TIMESTAMP", it.approvalTime.epochSecond.toString())
+                it.approvedSiteId?.let { s -> put("approved_site", s.toString()) }
+            }
+        }
+    }
 
     override fun builder(): OpenIdAuthorizationRequest.Builder {
         return OpenIdAuthorizationRequest.Builder(this)

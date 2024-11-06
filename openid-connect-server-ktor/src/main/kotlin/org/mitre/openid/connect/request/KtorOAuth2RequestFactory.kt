@@ -27,19 +27,18 @@ open class KtorOAuth2RequestFactory(
             str.splitToSequence(' ').filterNot { it.isBlank() }
         }
 
-        return PlainAuthorizationRequest(
-            requestParameters = inputParams.entries().associate { (k, v) -> k to v.first() },
-            clientId = client.clientId,
-            authorities = client.authorities,
-            isApproved = false,
-            scope = scopes,
-            resourceIds = client.resourceIds,
-            redirectUri = inputParams["redirect_uri"],
-            responseTypes = responseTypes,
-            state = inputParams["state"],
-            requestTime = Instant.now(),
-            extensions = emptyMap(),
-        )
+        return PlainAuthorizationRequest.Builder(clientId = client.clientId).also { b ->
+            b.requestParameters = inputParams.entries().associate { (k, v) -> k to v.first() }
+            b.clientId = client.clientId
+            b.authorities = client.authorities
+            b.approval = null
+            b.scope = scopes
+            b.resourceIds = client.resourceIds
+            b.redirectUri = inputParams["redirect_uri"]
+            b.responseTypes = responseTypes
+            b.state = inputParams["state"]
+            b.requestTime = Instant.now()
+        }.build()
     }
 
 

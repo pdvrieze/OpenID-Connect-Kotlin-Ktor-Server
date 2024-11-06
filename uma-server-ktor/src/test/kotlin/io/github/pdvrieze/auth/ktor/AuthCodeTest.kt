@@ -457,66 +457,6 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
 
         }
 
-/*
-        assertNull(inputs["passwords"])
-        assertEquals(1, assertNotNull(inputs["scope_scope2"]).size) // we only ask for scope 2
-        assertEquals(3, assertNotNull(inputs["remember"]).size)
-
-        assertNotNull(sessionCookie) // a session cookie is required
-        // We use sessions for CSRF
-        // assertEquals(1, assertNotNull(inputs["SDFHLK_CSRF"]).size) // important to ensure request from here
-        assertEquals(1, assertNotNull(inputs["deny"]).size)
-        assertEquals(1, assertNotNull(inputs["authorize"]).size)
-        assertEquals(1, assertNotNull(inputs["user_oauth_approval"]).size)
-
-
-        val form = Regex("<form\\b[^>]*\\bname=\"confirmationForm\"[^>]*>").findAll(responseText).single().value
-
-        val action = Regex("\\baction=(['\"])([^'\"]*)\\1").findAll(form).single().groups[2]!!.value
-        val method = Regex("\\bmethod=(['\"])([^'\"]*)\\1").findAll(form).single().groups[2]!!.value
-
-        assertEquals("https://example.com/authorize", action)
-        assertEquals("post", method)
-
-        TODO()
-
-        val respUri = parseUrl(assertNotNull(loginResp.headers[HttpHeaders.Location]))!!
-        val actualBase = URLBuilder(respUri.protocolWithAuthority).apply {
-            pathSegments = respUri.segments
-        }.buildString()
-
-        assertEquals(REDIRECT_URI, actualBase)
-        val code = assertNotNull(respUri.parameters["code"])
-
-        val r2 = nonRedirectingClient.submitForm(
-            "/token",
-            formParameters = parameters {
-                append("grant_type", "authorization_code")
-                append("code", code)
-            }
-        ) {
-            basicAuth(clientId, clientSecret)
-        }
-        assertEquals(HttpStatusCode.OK, r2.status)
-        val accessTokenResponse = r2.body<AuthTokenResponse>()// Json.parseToJsonElement(r2.bodyAsText()).jsonObject
-        assertEquals("bearer", accessTokenResponse.tokenType.lowercase())
-        val accessToken = SignedJWT.parse(accessTokenResponse.accessToken)
-
-
-        assertTrue(accessToken.verify(JWT_VERIFIER))
-
-        val cs = accessToken.jwtClaimsSet
-
-        assertEquals("https://example.com/", cs.issuer)
-        assertEquals("user", cs.subject)
-        assertEquals("at+jwt", accessToken.header.type.type) // required by RFC9068 for plain access tokens
-
-        val exp = assertNotNull(cs.expirationTime, "Missing expiration time").toInstant()
-        val n = Instant.now()
-        assertTrue(n.isBefore(exp))
-        assertTrue((n + Duration.ofMinutes(5)).isAfter(exp))
-*/
-
         // iat (issued at) may be present (in seconds from epoch)
         // expect audience (aud) to include auth server: RFC7523 (ch 3, bullet 3)
         // expect exp (expiration)

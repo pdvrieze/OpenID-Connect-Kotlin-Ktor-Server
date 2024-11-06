@@ -186,7 +186,9 @@ fun SpringOAuth2Request.fromSpring(): AuthorizationRequest = when {
         b.requestParameters = requestParameters
         b.clientId = clientId
         b.authorities = authorities.mapTo(HashSet()) { LocalGrantedAuthority(it.authority) }
-        b.isApproved = isApproved
+        if (isApproved && b.approval == null) {
+            b.approval = AuthorizationRequest.Approval(Instant.EPOCH) // mark long ago //setFromExtensions should handle this
+        }
         b.scope = scope
         b.resourceIds = resourceIds
         b.redirectUri = redirectUri
@@ -195,16 +197,19 @@ fun SpringOAuth2Request.fromSpring(): AuthorizationRequest = when {
         b.requestTime = Instant.EPOCH
     }.build()
 
-    else -> PlainAuthorizationRequest(
-        requestParameters = requestParameters,
-        clientId = clientId,
-        authorities = authorities.mapTo(HashSet()) { LocalGrantedAuthority(it.authority) },
-        isApproved = isApproved,
-        scope = scope,
-        resourceIds = resourceIds,
-        redirectUri = redirectUri,
-        responseTypes = responseTypes,
-        requestTime = Instant.EPOCH,
-        extensions = extensions?.mapValues { it.toString() } ?: emptyMap()
-    )
+    else -> PlainAuthorizationRequest.Builder(clientId).also { b ->
+        b.setFromExtensions(extensions?.mapValues { it.toString() } ?: emptyMap())
+        b.requestParameters = requestParameters
+        b.clientId = clientId
+        b.authorities = authorities.mapTo(HashSet()) { LocalGrantedAuthority(it.authority) }
+        if (isApproved && b.approval == null) {
+            b.approval = AuthorizationRequest.Approval(Instant.EPOCH) // mark long ago //setFromExtensions should handle this
+        }
+
+        b.scope = scope
+        b.resourceIds = resourceIds
+        b.redirectUri = redirectUri
+        b.responseTypes = responseTypes
+        b.requestTime = Instant.EPOCH
+    }.build()
 }

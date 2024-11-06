@@ -94,10 +94,15 @@ class AuthenticationHolderEntity(
 
     private fun createAuthorizationRequest(): AuthorizationRequest {
         return PlainAuthorizationRequest.Builder(clientId!!).also { b ->
+            b.setFromExtensions(extensions?.let { m -> m.mapValues { (_, v) -> v } } ?: emptyMap())
+
             b.requestParameters = requestParameters ?: emptyMap()
             b.clientId = clientId!!
             b.authorities = authorities?.toSet() ?: emptySet()
-            b.isApproved = isApproved
+            if (isApproved && b.approval == null) {
+                b.approval = AuthorizationRequest.Approval(Instant.EPOCH) // mark long ago //setFromExtensions should handle this
+            }
+
             b.scope = scope ?: emptySet()
             b.resourceIds = resourceIds
             b.redirectUri = redirectUri

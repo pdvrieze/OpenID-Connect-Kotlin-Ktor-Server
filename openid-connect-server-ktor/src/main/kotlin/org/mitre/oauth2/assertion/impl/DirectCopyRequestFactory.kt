@@ -30,17 +30,18 @@ class DirectCopyRequestFactory : AssertionOAuth2RequestFactory {
 
             val resources = claims.audience.toSet()
 
+            val now = Instant.now()
             return AuthorizationRequest(
                 requestParameters = tokenRequest.requestParameters.toMap().mapValues { it.value.first() },
                 clientId = client.clientId,
                 authorities = client.authorities,
-                isApproved = true,
+                approval = AuthorizationRequest.Approval(now),
                 scope = scope,
                 resourceIds = resources,
                 redirectUri = null,
                 responseTypes = null,
                 state = null,
-                requestTime = Instant.now(),
+                requestTime = now,
             )
         } catch (e: ParseException) {
             return null
