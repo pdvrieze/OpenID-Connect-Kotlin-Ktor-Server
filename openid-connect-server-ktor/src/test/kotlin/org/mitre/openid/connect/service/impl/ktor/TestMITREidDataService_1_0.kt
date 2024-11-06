@@ -27,14 +27,14 @@ import org.mockito.quality.Strictness
 
 @ExtendWith(MockitoExtension::class)
 @MockitoSettings(strictness = Strictness.WARN)
-class TestMITREidDataService_1_0 : TestMITREiDDataServiceBase<MITREidDataService_1_0>() {
+class TestMITREidDataService_1_0 : TestMITREiDDataServiceBase<KtorIdDataService_1_0>() {
 
-    override lateinit var dataService: MITREidDataService_1_0
+    override lateinit var dataService: KtorIdDataService_1_0
 
     @BeforeEach
     fun prepare() {
-        dataService = MITREidDataService_1_0(clientRepository, approvedSiteRepository, wlSiteRepository, blSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository)
-        commonPrepare(MITREidDataService_1_0::class)
+        dataService = KtorIdDataService_1_0(clientRepository, approvedSiteRepository, wlSiteRepository, blSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository)
+        commonPrepare(KtorIdDataService_1_0::class)
     }
 
     @Test

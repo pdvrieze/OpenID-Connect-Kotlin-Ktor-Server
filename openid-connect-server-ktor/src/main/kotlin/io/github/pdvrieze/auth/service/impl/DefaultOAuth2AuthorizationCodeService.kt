@@ -20,8 +20,8 @@ package org.mitre.oauth2.service.impl
 import org.mitre.data.AbstractPageOperationTemplate
 import org.mitre.oauth2.exception.InvalidGrantException
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
-import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.AuthorizationCodeEntity
+import org.mitre.oauth2.model.KtorAuthenticationHolder
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.AuthorizationCodeRepository
 import org.mitre.oauth2.service.OAuth2AuthorizationCodeService
@@ -56,7 +56,7 @@ class DefaultOAuth2AuthorizationCodeService(
         val code = generator.generate()
 
         // attach the authorization so that we can look it up later
-        val authHolder = authenticationHolderRepository.save(AuthenticationHolderEntity(authentication))
+        val authHolder = authenticationHolderRepository.save(KtorAuthenticationHolder(authentication))
 
         // set the auth code to expire
         val expiration = Date.from(Instant.now()+ authCodeExpirationSeconds)

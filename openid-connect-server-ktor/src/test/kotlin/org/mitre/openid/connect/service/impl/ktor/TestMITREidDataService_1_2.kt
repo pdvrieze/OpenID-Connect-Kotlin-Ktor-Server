@@ -29,14 +29,14 @@ import java.util.*
 
 @ExtendWith(MockitoExtension::class)
 @MockitoSettings(strictness = Strictness.WARN)
-class TestMITREidDataService_1_2 : TestMITREiDDataServiceBase<MITREidDataService_1_2>() {
+class TestMITREidDataService_1_2 : TestMITREiDDataServiceBase<KtorIdDataService_1_2>() {
 
-    override lateinit var dataService: MITREidDataService_1_2
+    override lateinit var dataService: KtorIdDataService_1_2
 
     @BeforeEach
     fun prepare() {
-        dataService = MITREidDataService_1_2(clientRepository, approvedSiteRepository, wlSiteRepository, blSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository)
-        commonPrepare(MITREidDataService_1_2::class)
+        dataService = KtorIdDataService_1_2(clientRepository, approvedSiteRepository, wlSiteRepository, blSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository)
+        commonPrepare(KtorIdDataService_1_2::class)
     }
 
     private inner class refreshTokenIdComparator : Comparator<OAuth2RefreshTokenEntity> {

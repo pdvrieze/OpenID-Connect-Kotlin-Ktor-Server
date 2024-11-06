@@ -1,6 +1,8 @@
 /*******************************************************************************
  * Copyright 2018 The MIT Internet Trust Consortium
  *
+ * Portions copyright 2011-2013 The MITRE Corporation
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,25 +23,24 @@ import org.mitre.oauth2.repository.OAuth2ClientRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.oauth2.repository.SystemScopeRepository
 import org.mitre.oauth2.util.requireId
-import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.openid.connect.repository.ApprovedSiteRepository
 import org.mitre.openid.connect.repository.BlacklistedSiteRepository
 import org.mitre.openid.connect.repository.WhitelistedSiteRepository
 import org.mitre.openid.connect.service.DataServiceContext
-import org.mitre.openid.connect.service.MITREidDataService
-import org.mitre.openid.connect.service.MITREidDataService.Companion.warnIgnored
+import org.mitre.openid.connect.service.KtorIdDataService
+import org.mitre.openid.connect.service.KtorIdDataService.Companion.warnIgnored
 import org.mitre.openid.connect.service.MITREidDataServiceExtension
 import org.mitre.openid.connect.service.MITREidDataServiceMaps
 import org.mitre.util.getLogger
 
 /**
  *
- * Data service to import and export MITREid 1.2 configuration.
+ * Data service to import MITREid 1.1 configuration.
  *
  * @author jricher
  * @author arielak
  */
-class MITREidDataService_1_2(
+class KtorIdDataService_1_1(
     private val clientRepository: OAuth2ClientRepository,
     private val approvedSiteRepository: ApprovedSiteRepository,
     private val wlSiteRepository: WhitelistedSiteRepository,
@@ -48,7 +49,7 @@ class MITREidDataService_1_2(
     private val tokenRepository: OAuth2TokenRepository,
     private val sysScopeRepository: SystemScopeRepository,
     private val extensions: List<MITREidDataServiceExtension> = emptyList(),
-) : MITREidDataService {
+) : KtorIdDataService {
 
     private val maps = MITREidDataServiceMaps()
 
@@ -57,20 +58,26 @@ class MITREidDataService_1_2(
     }
 
     override fun exportData(): String {
-        throw UnsupportedOperationException("Can not export 1.2 format from this version.")
+        throw UnsupportedOperationException("Can not export 1.1 format from this version.")
     }
 
-    override fun importData(config: MITREidDataService.ExtendedConfiguration) {
+    override fun importData(config: KtorIdDataService.ExtendedConfiguration) {
         val context = DataServiceContext(THIS_VERSION, clientRepository, approvedSiteRepository, wlSiteRepository, blSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository, extensions, maps)
         context.importData(config)
     }
 
     override fun importData(configJson: String) {
-        importData(MITREidDataService.json.decodeFromString<MITREidDataService.ExtendedConfiguration12>(configJson))
+        importData(KtorIdDataService.json.decodeFromString<KtorIdDataService.ExtendedConfiguration10>(configJson))
     }
 
-    override fun importClient(context: DataServiceContext, client: MITREidDataService.ClientDetailsConfiguration) {
+    override fun importClient(context: DataServiceContext, client: KtorIdDataService.ClientDetailsConfiguration) {
         with(client) {
+            // New in 1.2
+            claimsRedirectUris = claimsRedirectUris.warnIgnored("claimsRedirectUris")
+            jwks = jwks.warnIgnored("jwks")
+            isClearAccessTokensOnRefresh = isClearAccessTokensOnRefresh
+                .takeIf { it==false }.warnIgnored("isClearAccessTokensOnRefresh") ?: true
+
             // New in 1.3
             codeChallengeMethod = codeChallengeMethod.warnIgnored("codeChallengeMethod")
             softwareId = softwareId.warnIgnored("softwareId")
@@ -82,15 +89,7 @@ class MITREidDataService_1_2(
         super.importClient(context, client)
     }
 
-    override fun importGrant(context: DataServiceContext, delegate: ApprovedSite.SerialDelegate) {
-        with(delegate) {
-            whitelistedSiteId = whitelistedSiteId.warnIgnored("whitelistedSiteId")
-        }
-        super.importGrant(context, delegate)
-    }
-
     override fun fixObjectReferences(context: DataServiceContext) {
-        logger.info("Fixing object references...")
         for ((oldRefreshTokenId, clientRef) in context.maps.refreshTokenToClientRefs) {
             val client = context.clientRepository.getClientByClientId(clientRef)
             val newRefreshTokenId = context.maps.refreshTokenOldToNewIdMap[oldRefreshTokenId]!!
@@ -115,7 +114,7 @@ class MITREidDataService_1_2(
             accessToken.client = client?.let(ClientDetailsEntity::from)
             context.tokenRepository.saveAccessToken(accessToken)
         }
-
+        context.maps.accessTokenToClientRefs.clear()
         for ((oldAccessTokenId, oldAuthHolderId) in context.maps.accessTokenToAuthHolderRefs) {
             val newAuthHolderId = context.maps.authHolderOldToNewIdMap[oldAuthHolderId]
                 ?: error("Missing authHolder map $oldAuthHolderId")
@@ -126,7 +125,6 @@ class MITREidDataService_1_2(
             accessToken.authenticationHolder = authHolder
             context.tokenRepository.saveAccessToken(accessToken)
         }
-
         for ((oldAccessTokenId, oldRefreshTokenId) in context.maps.accessTokenToRefreshTokenRefs) {
             val newRefreshTokenId = context.maps.refreshTokenOldToNewIdMap[oldRefreshTokenId]
                 ?: error("Missing map for old refresh token: $oldRefreshTokenId")
@@ -153,14 +151,13 @@ class MITREidDataService_1_2(
 
             context.approvedSiteRepository.save(site)
         }
-        logger.info("Done fixing object references.")
     }
 
     companion object {
         /**
          * Logger for this class
          */
-        private val logger = getLogger<MITREidDataService_1_2>()
-        private const val THIS_VERSION = MITREidDataService.MITREID_CONNECT_1_2
+        private val logger = getLogger<KtorIdDataService_1_1>()
+        private const val THIS_VERSION = KtorIdDataService.MITREID_CONNECT_1_1
     }
 }

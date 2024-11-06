@@ -17,9 +17,9 @@ package org.mitre.oauth2.service.impl
 
 import org.mitre.data.AbstractPageOperationTemplate
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
-import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.DeviceCode
 import org.mitre.oauth2.model.OAuthClientDetails
+import org.mitre.oauth2.model.jpa.AuthenticationHolderEntity
 import org.mitre.oauth2.repository.DeviceCodeRepository
 import org.mitre.oauth2.service.DeviceCodeService
 import org.mitre.oauth2.util.requireId

@@ -26,9 +26,9 @@ import org.mitre.openid.connect.repository.ApprovedSiteRepository
 import org.mitre.openid.connect.repository.BlacklistedSiteRepository
 import org.mitre.openid.connect.repository.WhitelistedSiteRepository
 import org.mitre.openid.connect.service.DataServiceContext
-import org.mitre.openid.connect.service.MITREidDataService
-import org.mitre.openid.connect.service.MITREidDataService.*
-import org.mitre.openid.connect.service.MITREidDataService.Companion.warnIgnored
+import org.mitre.openid.connect.service.KtorIdDataService
+import org.mitre.openid.connect.service.KtorIdDataService.*
+import org.mitre.openid.connect.service.KtorIdDataService.Companion.warnIgnored
 import org.mitre.openid.connect.service.MITREidDataServiceExtension
 import org.mitre.openid.connect.service.MITREidDataServiceMaps
 import org.mitre.util.getLogger
@@ -40,7 +40,7 @@ import org.mitre.util.getLogger
  * @author jricher
  * @author arielak
  */
-class MITREidDataService_1_0(
+class KtorIdDataService_1_0(
     private val clientRepository: OAuth2ClientRepository,
     private val approvedSiteRepository: ApprovedSiteRepository,
     private val wlSiteRepository: WhitelistedSiteRepository,
@@ -49,7 +49,7 @@ class MITREidDataService_1_0(
     private val tokenRepository: OAuth2TokenRepository,
     private val sysScopeRepository: SystemScopeRepository,
     private var extensions: List<MITREidDataServiceExtension> = emptyList(),
-) : MITREidDataService {
+) : KtorIdDataService {
 
     private val maps: MITREidDataServiceMaps = MITREidDataServiceMaps()
 
@@ -67,7 +67,7 @@ class MITREidDataService_1_0(
     }
 
     override fun importData(configJson: String) {
-        importData(MITREidDataService.json.decodeFromString<ExtendedConfiguration10>(configJson))
+        importData(KtorIdDataService.json.decodeFromString<ExtendedConfiguration10>(configJson))
     }
 
     override fun importClient(context: DataServiceContext, client: ClientDetailsConfiguration) {
@@ -99,7 +99,7 @@ class MITREidDataService_1_0(
         /**
          * Logger for this class
          */
-        private val logger = getLogger<MITREidDataService_1_0>()
-        private const val THIS_VERSION = MITREidDataService.MITREID_CONNECT_1_0
+        private val logger = getLogger<KtorIdDataService_1_0>()
+        private const val THIS_VERSION = KtorIdDataService.MITREID_CONNECT_1_0
     }
 }

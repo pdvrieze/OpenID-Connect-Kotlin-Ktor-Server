@@ -29,14 +29,14 @@ import java.text.ParseException
 
 @ExtendWith(MockitoExtension::class)
 @MockitoSettings(strictness = Strictness.WARN)
-class TestMITREidDataService_1_1 : TestMITREiDDataServiceBase<MITREidDataService_1_1>() {
+class TestMITREidDataService_1_1 : TestMITREiDDataServiceBase<KtorIdDataService_1_1>() {
 
-    override lateinit var dataService: MITREidDataService_1_1
+    override lateinit var dataService: KtorIdDataService_1_1
 
     @BeforeEach
     fun prepare() {
-        dataService = MITREidDataService_1_1(clientRepository, approvedSiteRepository, wlSiteRepository, blSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository)
-        commonPrepare(MITREidDataService_1_1::class)
+        dataService = KtorIdDataService_1_1(clientRepository, approvedSiteRepository, wlSiteRepository, blSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository)
+        commonPrepare(KtorIdDataService_1_1::class)
     }
 
     @Test

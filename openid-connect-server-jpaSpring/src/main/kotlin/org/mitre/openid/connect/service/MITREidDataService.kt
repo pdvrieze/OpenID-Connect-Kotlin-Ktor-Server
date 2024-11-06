@@ -26,7 +26,6 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonObject
 import org.mitre.oauth2.model.AuthenticationHolder
-import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.LocalGrantedAuthority
@@ -41,6 +40,7 @@ import org.mitre.oauth2.model.convert.JWKSetStringConverter
 import org.mitre.oauth2.model.convert.JWSAlgorithmStringConverter
 import org.mitre.oauth2.model.convert.JWTStringConverter
 import org.mitre.oauth2.model.convert.SimpleGrantedAuthorityStringConverter
+import org.mitre.oauth2.model.jpa.AuthenticationHolderEntity
 import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.openid.connect.model.BlacklistedSite
 import org.mitre.openid.connect.model.WhitelistedSite

@@ -13,9 +13,11 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.mitre.data.DefaultPageCriteria
 import org.mitre.data.PageCriteria
 import org.mitre.oauth2.model.AuthenticationHolder
-import org.mitre.oauth2.model.AuthenticationHolderEntity
+import org.mitre.oauth2.model.KtorAuthenticationHolder
 import org.mitre.oauth2.model.LocalGrantedAuthority
 import org.mitre.oauth2.model.SavedUserAuthentication
+import org.mitre.oauth2.model.request.OpenIdAuthorizationRequest
+import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 
 class ExposedAuthenticationHolderRepository(database: Database) :
@@ -97,7 +99,7 @@ class ExposedAuthenticationHolderRepository(database: Database) :
             b[userAuthId] = actualUserAuthId
             b[approved] = a.isApproved
             b[redirectUri] = a.redirectUri
-            b[clientId] = a.clientId
+            b[clientId] = a.clientId!!
             b[requestTime] = a.requestTime
         }
 
@@ -179,7 +181,7 @@ private fun ResultRow.toAuthenticationHolder(): AuthenticationHolder {
     val authorities = with(AuthenticationHolderAuthorities) {
         AuthenticationHolderAuthorities.select(authority)
             .where { ownerId eq authHolderId }
-            .map { LocalGrantedAuthority(it[authority]) }
+            .mapTo(HashSet()) { LocalGrantedAuthority(it[authority]) }
     }
 
     val resourceIds = with(AuthenticationHolderResourceIds) {
@@ -213,21 +215,26 @@ private fun ResultRow.toAuthenticationHolder(): AuthenticationHolder {
         .associate { it[param] to it[value] }
     }
 
+
+
     return with(AuthenticationHolders) {
-        AuthenticationHolderEntity(
-            id = authHolderId,
-            userAuth = userAuth,
-            authorities = authorities,
-            resourceIds = resourceIds,
-            isApproved = r[approved] ?: false,
-            redirectUri = r[redirectUri],
-            responseTypes = responseTypes,
-            extensions = extensions,
-            clientId = r[clientId],
-            scope = scope,
-            requestParameters = requestParameters,
-            requestTime = r[requestTime]
-        )
+        val clientId = r[clientId]
+        val authReq = when {
+            "openid" in scope -> OpenIdAuthorizationRequest.Builder(clientId)
+            else -> PlainAuthorizationRequest.Builder(clientId)
+        }.also { b ->
+            b.setFromExtensions(extensions)
+            b.authorities = authorities
+            b.resourceIds = resourceIds
+            b.redirectUri = r[redirectUri]
+            b.responseTypes = responseTypes
+            b.clientId = clientId
+            b.scope = scope
+            b.requestParameters = requestParameters
+            b.requestTime = r[requestTime]
+        }.build()
+
+        KtorAuthenticationHolder(userAuth, authReq, authHolderId)
     }
 }
 

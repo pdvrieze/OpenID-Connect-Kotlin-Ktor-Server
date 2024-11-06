@@ -48,7 +48,7 @@ class DefaultUmaTokenService(
         policy: Policy
     ): OAuth2AccessTokenEntity {
         val tokenBuilder = OAuth2AccessTokenEntity.Builder()
-        val authHolder = authenticationHolderRepository.save(org.mitre.oauth2.model.AuthenticationHolderEntity(authorizationRequest))
+        val authHolder = authenticationHolderRepository.save(org.mitre.oauth2.model.KtorAuthenticationHolder(authorizationRequest))
 
         tokenBuilder.setAuthenticationHolder(authHolder)
 

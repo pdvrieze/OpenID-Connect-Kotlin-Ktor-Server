@@ -20,7 +20,7 @@
 
     <description>OpenID Connect Server entities</description>
 
-    <entity class="org.mitre.oauth2.model.AuthenticationHolderEntity" name="AuthenticationHolderEntity">
+    <entity class="org.mitre.oauth2.model.jpa.AuthenticationHolderEntity" name="AuthenticationHolderEntity">
         <attributes>
             <!-- changing generated value to sequence strategy (Oracle doesn't support identity) -->
             <id name="id">

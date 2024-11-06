@@ -20,7 +20,7 @@ package org.mitre.oauth2.repository.impl
 import org.mitre.data.DefaultPageCriteria
 import org.mitre.data.PageCriteria
 import org.mitre.oauth2.model.AuthenticationHolder
-import org.mitre.oauth2.model.AuthenticationHolderEntity
+import org.mitre.oauth2.model.jpa.AuthenticationHolderEntity
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.util.jpa.JpaUtil.getResultPage
 import org.mitre.util.jpa.JpaUtil.saveOrUpdate

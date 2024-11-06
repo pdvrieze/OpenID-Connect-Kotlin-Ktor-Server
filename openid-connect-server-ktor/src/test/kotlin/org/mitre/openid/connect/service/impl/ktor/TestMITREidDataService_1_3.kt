@@ -30,8 +30,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.fail
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
-import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.KtorAuthenticationHolder
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.PKCEAlgorithm
@@ -44,15 +44,15 @@ import org.mitre.openid.connect.ktor.assertIs
 import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.openid.connect.model.BlacklistedSite
 import org.mitre.openid.connect.model.WhitelistedSite
-import org.mitre.openid.connect.service.MITREidDataService
-import org.mitre.openid.connect.service.MITREidDataService.Companion.ACCESSTOKENS
-import org.mitre.openid.connect.service.MITREidDataService.Companion.AUTHENTICATIONHOLDERS
-import org.mitre.openid.connect.service.MITREidDataService.Companion.BLACKLISTEDSITES
-import org.mitre.openid.connect.service.MITREidDataService.Companion.CLIENTS
-import org.mitre.openid.connect.service.MITREidDataService.Companion.GRANTS
-import org.mitre.openid.connect.service.MITREidDataService.Companion.REFRESHTOKENS
-import org.mitre.openid.connect.service.MITREidDataService.Companion.SYSTEMSCOPES
-import org.mitre.openid.connect.service.MITREidDataService.Companion.WHITELISTEDSITES
+import org.mitre.openid.connect.service.KtorIdDataService
+import org.mitre.openid.connect.service.KtorIdDataService.Companion.ACCESSTOKENS
+import org.mitre.openid.connect.service.KtorIdDataService.Companion.AUTHENTICATIONHOLDERS
+import org.mitre.openid.connect.service.KtorIdDataService.Companion.BLACKLISTEDSITES
+import org.mitre.openid.connect.service.KtorIdDataService.Companion.CLIENTS
+import org.mitre.openid.connect.service.KtorIdDataService.Companion.GRANTS
+import org.mitre.openid.connect.service.KtorIdDataService.Companion.REFRESHTOKENS
+import org.mitre.openid.connect.service.KtorIdDataService.Companion.SYSTEMSCOPES
+import org.mitre.openid.connect.service.KtorIdDataService.Companion.WHITELISTEDSITES
 import org.mitre.util.asBoolean
 import org.mitre.util.asString
 import org.mitre.util.getLogger
@@ -70,7 +70,7 @@ import java.util.*
 
 @ExtendWith(MockitoExtension::class)
 @MockitoSettings(strictness = Strictness.WARN)
-class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService_1_3>() {
+class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<KtorIdDataService_1_3>() {
 
     @Captor
     private lateinit var capturedRefreshTokens: ArgumentCaptor<OAuth2RefreshTokenEntity>
@@ -78,12 +78,12 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
     @Captor
     private lateinit var capturedAccessTokens: ArgumentCaptor<OAuth2AccessTokenEntity>
 
-    override lateinit var dataService: MITREidDataService_1_3
+    override lateinit var dataService: KtorIdDataService_1_3
 
     @BeforeEach
     fun prepare() {
-        dataService = MITREidDataService_1_3(clientRepository, approvedSiteRepository, wlSiteRepository, blSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository)
-        commonPrepare(MITREidDataService_1_3::class)
+        dataService = KtorIdDataService_1_3(clientRepository, approvedSiteRepository, wlSiteRepository, blSiteRepository, authHolderRepository, tokenRepository, sysScopeRepository)
+        commonPrepare(KtorIdDataService_1_3::class)
     }
 
     @Test
@@ -138,7 +138,7 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
         val mockedClient1 = mock<ClientDetailsEntity>()
         whenever(mockedClient1.clientId).thenReturn("mocked_client_1")
 
-        val mockedAuthHolder1 = mock<AuthenticationHolderEntity>()
+        val mockedAuthHolder1 = mock<KtorAuthenticationHolder>()
         whenever(mockedAuthHolder1.id).thenReturn(1L)
 
         val token1 = OAuth2RefreshTokenEntity(
@@ -154,7 +154,7 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
         val mockedClient2 = mock<ClientDetailsEntity>()
         whenever(mockedClient2.clientId).thenReturn("mocked_client_2")
 
-        val mockedAuthHolder2 = mock<AuthenticationHolderEntity>()
+        val mockedAuthHolder2 = mock<KtorAuthenticationHolder>()
         whenever(mockedAuthHolder2.id).thenReturn(2L)
 
         val token2 = OAuth2RefreshTokenEntity(
@@ -184,9 +184,9 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
         val root = elem.jsonObject
 
         // make sure the root is there
-        assertTrue(MITREidDataService.MITREID_CONNECT_1_3 in root)
+        assertTrue(KtorIdDataService.MITREID_CONNECT_1_3 in root)
 
-        val config = root[MITREidDataService.MITREID_CONNECT_1_3]!!.jsonObject
+        val config = root[KtorIdDataService.MITREID_CONNECT_1_3]!!.jsonObject
 
         // make sure all the root elements are there
         assertTrue(CLIENTS in config)
@@ -247,7 +247,7 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
         val mockedClient1 = mock<ClientDetailsEntity>()
         whenever(mockedClient1.clientId).thenReturn("mocked_client_1")
 
-        val mockedAuthHolder1 = mock<AuthenticationHolderEntity>()
+        val mockedAuthHolder1 = mock<KtorAuthenticationHolder>()
         whenever(mockedAuthHolder1.id).thenReturn(1L)
 
         val token1 = OAuth2AccessTokenEntity(
@@ -266,7 +266,7 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
         val mockedClient2 = mock<ClientDetailsEntity>()
         whenever(mockedClient2.clientId).thenReturn("mocked_client_2")
 
-        val mockedAuthHolder2 = mock<AuthenticationHolderEntity>()
+        val mockedAuthHolder2 = mock<KtorAuthenticationHolder>()
         whenever(mockedAuthHolder2.id).thenReturn(2L)
 
         val mockRefreshToken2 = mock<OAuth2RefreshTokenEntity>()
@@ -302,9 +302,9 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
         val root = elem
 
         // make sure the root is there
-        assertTrue(root.contains(MITREidDataService.MITREID_CONNECT_1_3))
+        assertTrue(root.contains(KtorIdDataService.MITREID_CONNECT_1_3))
 
-        val config = root[MITREidDataService.MITREID_CONNECT_1_3]!!.jsonObject
+        val config = root[KtorIdDataService.MITREID_CONNECT_1_3]!!.jsonObject
 
         // make sure all the root elements are there
         assertTrue(config.contains(CLIENTS))
@@ -408,9 +408,9 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
         val root = Json.parseToJsonElement(data).jsonObject
 
         // make sure the root is there
-        assertTrue(MITREidDataService.MITREID_CONNECT_1_3 in root)
+        assertTrue(KtorIdDataService.MITREID_CONNECT_1_3 in root)
 
-        val config = root[MITREidDataService.MITREID_CONNECT_1_3]!!.jsonObject
+        val config = root[KtorIdDataService.MITREID_CONNECT_1_3]!!.jsonObject
 
         // make sure all the root elements are there
         assertTrue(CLIENTS in config)
@@ -504,9 +504,9 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
         val root = Json.parseToJsonElement(data).jsonObject
 
         // make sure the root is there
-        assertTrue(MITREidDataService.MITREID_CONNECT_1_3 in root)
+        assertTrue(KtorIdDataService.MITREID_CONNECT_1_3 in root)
 
-        val config = root[MITREidDataService.MITREID_CONNECT_1_3]!!.jsonObject
+        val config = root[KtorIdDataService.MITREID_CONNECT_1_3]!!.jsonObject
 
         // make sure all the root elements are there
         assertTrue(CLIENTS in config)
@@ -591,9 +591,9 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
         val root = Json.parseToJsonElement(data).jsonObject
 
         // make sure the root is there
-        assertTrue(root.contains(MITREidDataService.MITREID_CONNECT_1_3))
+        assertTrue(root.contains(KtorIdDataService.MITREID_CONNECT_1_3))
 
-        val config = root[MITREidDataService.MITREID_CONNECT_1_3]!!.jsonObject
+        val config = root[KtorIdDataService.MITREID_CONNECT_1_3]!!.jsonObject
 
         // make sure all the root elements are there
         assertTrue(config.contains(CLIENTS))
@@ -696,9 +696,9 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
         val root = Json.parseToJsonElement(data).jsonObject
 
         // make sure the root is there
-        assertTrue(root.contains(MITREidDataService.MITREID_CONNECT_1_3))
+        assertTrue(root.contains(KtorIdDataService.MITREID_CONNECT_1_3))
 
-        val config = root[MITREidDataService.MITREID_CONNECT_1_3]!!.jsonObject
+        val config = root[KtorIdDataService.MITREID_CONNECT_1_3]!!.jsonObject
 
         // make sure all the root elements are there
         assertTrue(config.contains(CLIENTS))
@@ -770,7 +770,7 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
 //            UsernamePasswordAuthenticationToken("user1", "pass1", AuthorityUtils.commaSeparatedStringToAuthorityList("ROLE_USER"))
         val auth1 = AuthenticatedAuthorizationRequest(req1, mockAuth1)
 
-        val holder1 = AuthenticationHolderEntity(auth1, id = 1L)
+        val holder1 = KtorAuthenticationHolder(auth1, id = 1L)
 
         val req2 = PlainAuthorizationRequest.Builder(clientId = "client2").also { b ->
             b.approval = Approval(now.minusSeconds(1))
@@ -779,9 +779,9 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
         }.build()
         val auth2 = AuthenticatedAuthorizationRequest(req2, null)
 
-        val holder2 = AuthenticationHolderEntity(auth2, 2L)
+        val holder2 = KtorAuthenticationHolder(auth2, 2L)
 
-        val allAuthHolders: List<AuthenticationHolderEntity> = listOf(holder1, holder2)
+        val allAuthHolders: List<KtorAuthenticationHolder> = listOf(holder1, holder2)
 
         whenever(clientRepository.allClients).thenReturn(HashSet())
         whenever(approvedSiteRepository.all).thenReturn(HashSet())
@@ -800,9 +800,9 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
         val root = elem.jsonObject
 
         // make sure the root is there
-        assertTrue(root.contains(MITREidDataService.MITREID_CONNECT_1_3))
+        assertTrue(root.contains(KtorIdDataService.MITREID_CONNECT_1_3))
 
-        val config = root[MITREidDataService.MITREID_CONNECT_1_3]!!.jsonObject
+        val config = root[KtorIdDataService.MITREID_CONNECT_1_3]!!.jsonObject
 
         // make sure all the root elements are there
         assertTrue(config.contains(CLIENTS))
@@ -830,12 +830,12 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
 
         assertEquals(2, holders.size)
         // check for both of our clients in turn
-        val checked: MutableSet<AuthenticationHolderEntity> = HashSet()
+        val checked: MutableSet<KtorAuthenticationHolder> = HashSet()
         for (e in holders) {
             assertIs<JsonObject>(e)
             val holder = e.jsonObject
 
-            var compare: AuthenticationHolderEntity? = null
+            var compare: KtorAuthenticationHolder? = null
             if (holder["id"]!!.jsonPrimitive.long == holder1.id) {
                 compare = holder1
             } else if (holder["id"]!!.jsonPrimitive.long == holder2.id) {
@@ -915,9 +915,9 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<MITREidDataService
         val root = elem.jsonObject
 
         // make sure the root is there
-        assertTrue(MITREidDataService.MITREID_CONNECT_1_3 in root)
+        assertTrue(KtorIdDataService.MITREID_CONNECT_1_3 in root)
 
-        val config = root[MITREidDataService.MITREID_CONNECT_1_3]!!.jsonObject
+        val config = root[KtorIdDataService.MITREID_CONNECT_1_3]!!.jsonObject
 
         // make sure all the root elements are there
         assertTrue(CLIENTS in config)

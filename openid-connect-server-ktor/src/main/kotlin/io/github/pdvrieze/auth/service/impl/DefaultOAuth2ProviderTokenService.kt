@@ -29,7 +29,7 @@ import org.mitre.oauth2.exception.InvalidScopeException
 import org.mitre.oauth2.exception.InvalidTokenException
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.AuthenticationHolder
-import org.mitre.oauth2.model.AuthenticationHolderEntity
+import org.mitre.oauth2.model.KtorAuthenticationHolder
 import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
@@ -177,7 +177,7 @@ class DefaultOAuth2ProviderTokenService(
         }
 
         // attach the authorization so that we can look it up later
-        val authHolder = authenticationHolderRepository.save(AuthenticationHolderEntity(authentication))
+        val authHolder = authenticationHolderRepository.save(KtorAuthenticationHolder(authentication))
 
         tokenBuilder.setAuthenticationHolder(authHolder)
 

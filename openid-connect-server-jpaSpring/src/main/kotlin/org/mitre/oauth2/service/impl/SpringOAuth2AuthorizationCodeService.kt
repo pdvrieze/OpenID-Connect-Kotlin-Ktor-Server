@@ -20,8 +20,8 @@ package org.mitre.oauth2.service.impl
 import io.github.pdvrieze.openid.spring.fromSpring
 import io.github.pdvrieze.openid.spring.toSpring
 import org.mitre.data.AbstractPageOperationTemplate
-import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.AuthorizationCodeEntity
+import org.mitre.oauth2.model.jpa.AuthenticationHolderEntity
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.AuthorizationCodeRepository
 import org.mitre.util.getLogger

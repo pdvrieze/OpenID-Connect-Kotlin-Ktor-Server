@@ -22,9 +22,9 @@ import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.oauth2.util.requireId
 import org.mitre.openid.connect.service.IMITREidDataServiceMaps
-import org.mitre.openid.connect.service.MITREidDataService
-import org.mitre.openid.connect.service.MITREidDataService.Companion.toUTCString
-import org.mitre.openid.connect.service.MITREidDataService.Companion.utcToDate
+import org.mitre.openid.connect.service.KtorIdDataService
+import org.mitre.openid.connect.service.KtorIdDataService.Companion.toUTCString
+import org.mitre.openid.connect.service.KtorIdDataService.Companion.utcToDate
 import org.mitre.openid.connect.service.MITREidDataServiceExtension
 import org.mitre.openid.connect.service.MITREidDataServiceMaps
 import org.mitre.uma.model.Claim
@@ -325,7 +325,7 @@ class UmaDataServiceExtension_1_3(
 
         internal val json = Json { ignoreUnknownKeys = true }
 
-        private const val THIS_VERSION = MITREidDataService.MITREID_CONNECT_1_3
+        private const val THIS_VERSION = KtorIdDataService.MITREID_CONNECT_1_3
 
         private const val REGISTERED_CLIENT = "registeredClient"
         private const val URI = "uri"

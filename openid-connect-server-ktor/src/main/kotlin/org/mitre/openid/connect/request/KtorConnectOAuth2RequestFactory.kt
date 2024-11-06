@@ -41,7 +41,7 @@ import org.mitre.openid.connect.request.ConnectRequestParameters.CODE_CHALLENGE
 import org.mitre.openid.connect.request.ConnectRequestParameters.LOGIN_HINT
 import org.mitre.openid.connect.request.ConnectRequestParameters.MAX_AGE
 import org.mitre.openid.connect.request.ConnectRequestParameters.REQUEST
-import org.mitre.openid.connect.service.MITREidDataService
+import org.mitre.openid.connect.service.KtorIdDataService
 import org.mitre.util.getLogger
 import java.text.ParseException
 
@@ -317,7 +317,7 @@ class KtorConnectOAuth2RequestFactory(
             return null
         }
 
-        return MITREidDataService.json.parseToJsonElement(claimRequestString) as? JsonObject
+        return KtorIdDataService.json.parseToJsonElement(claimRequestString) as? JsonObject
     }
 
     companion object {

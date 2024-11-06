@@ -1,21 +1,4 @@
-/*******************************************************************************
- * Copyright 2018 The MIT Internet Trust Consortium
- *
- * Portions copyright 2011-2013 The MITRE Corporation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-package org.mitre.oauth2.model
+package org.mitre.oauth2.model.jpa
 
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -26,13 +9,17 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonElement
+import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
+import org.mitre.oauth2.model.Authentication
+import org.mitre.oauth2.model.AuthenticationHolder
+import org.mitre.oauth2.model.GrantedAuthority
+import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.convert.AuthenticationSerializer
 import org.mitre.oauth2.model.convert.SimpleGrantedAuthorityStringConverter
 import org.mitre.oauth2.model.request.AuthorizationRequest
 import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mitre.openid.connect.model.convert.ISOInstant
 import java.time.Instant
-import kotlinx.serialization.Serializable as KXS_Serializable
 
 /*
 @Entity
@@ -76,7 +63,7 @@ class AuthenticationHolderEntity(
         id: Long? = null
     ): this(
         id = id,
-        userAuth = authentication?.let(SavedUserAuthentication::from),
+        userAuth = authentication?.let(SavedUserAuthentication.Companion::from),
         authorities = o2Request.authorities.toHashSet(),
         resourceIds = o2Request.resourceIds?.toHashSet(),
         isApproved = o2Request.isApproved,
@@ -100,7 +87,8 @@ class AuthenticationHolderEntity(
             b.clientId = clientId!!
             b.authorities = authorities?.toSet() ?: emptySet()
             if (isApproved && b.approval == null) {
-                b.approval = AuthorizationRequest.Approval(Instant.EPOCH) // mark long ago //setFromExtensions should handle this
+                b.approval =
+                    AuthorizationRequest.Approval(Instant.EPOCH) // mark long ago //setFromExtensions should handle this
             }
 
             b.scope = scope ?: emptySet()
@@ -157,7 +145,7 @@ class AuthenticationHolderEntity(
         fun toAuthenticationHolder(): AuthenticationHolderEntity
     }
 
-    @KXS_Serializable
+    @Serializable
     class SerialDelegate10(
         @SerialName("id")
         val currentId: Long? = null,
@@ -180,7 +168,7 @@ class AuthenticationHolderEntity(
     }
 
     @OptIn(ExperimentalSerializationApi::class)
-    @KXS_Serializable
+    @Serializable
     class SerialDelegate12(
         @SerialName("id")
         val currentId: Long,
@@ -240,7 +228,8 @@ class AuthenticationHolderEntity(
     }
 
     @OptIn(ExperimentalSerializationApi::class)
-    abstract class SerializerBase<T: SerialDelegate>(version: String, private val delegate: KSerializer<T>): KSerializer<AuthenticationHolderEntity> {
+    abstract class SerializerBase<T: SerialDelegate>(version: String, private val delegate: KSerializer<T>):
+        KSerializer<AuthenticationHolderEntity> {
 
         override val descriptor: SerialDescriptor =
             SerialDescriptor("org.mitre.oauth2.model.AuthenticationHolderEntity.$version", delegate.descriptor)

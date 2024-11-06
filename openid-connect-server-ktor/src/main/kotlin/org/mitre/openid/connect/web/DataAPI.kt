@@ -30,8 +30,8 @@ import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.put
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.view.respondJson
-import org.mitre.openid.connect.service.MITREidDataService
-import org.mitre.openid.connect.service.impl.ktor.MITREidDataService_1_3
+import org.mitre.openid.connect.service.KtorIdDataService
+import org.mitre.openid.connect.service.impl.ktor.KtorIdDataService_1_3
 import org.mitre.util.getLogger
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.openIdContext
@@ -50,19 +50,19 @@ import java.util.*
 //@RequestMapping("/api/data")
 //@PreAuthorize("hasRole('ROLE_ADMIN')") // you need to be an admin to even think about this -- this is a potentially dangerous API!!
 class DataAPI(
-    val importers: List<MITREidDataService>,
-    val exporter : MITREidDataService_1_3,
+    val importers: List<KtorIdDataService>,
+    val exporter : KtorIdDataService_1_3,
 ) : KtorEndpoint {
 
-    private constructor(service: MITREidDataService_1_3): this(listOf(service), service)
+    private constructor(service: KtorIdDataService_1_3): this(listOf(service), service)
 
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
 
     private val supportedVersions: List<String> = listOf(
-        MITREidDataService.MITREID_CONNECT_1_0,
-        MITREidDataService.MITREID_CONNECT_1_1,
-        MITREidDataService.MITREID_CONNECT_1_2,
-        MITREidDataService.MITREID_CONNECT_1_3
+        KtorIdDataService.MITREID_CONNECT_1_0,
+        KtorIdDataService.MITREID_CONNECT_1_1,
+        KtorIdDataService.MITREID_CONNECT_1_2,
+        KtorIdDataService.MITREID_CONNECT_1_3
     )
 
     override fun Route.addRoutes() {
@@ -79,27 +79,27 @@ class DataAPI(
         requireRole(GrantedAuthority.ROLE_ADMIN) { return }
         val data = call.receive<RawData>()
 
-        val config: MITREidDataService.ExtendedConfiguration
+        val config: KtorIdDataService.ExtendedConfiguration
         val version: String
         when {
             data.config10 != null -> {
                 config = data.config10
-                version = MITREidDataService.MITREID_CONNECT_1_0
+                version = KtorIdDataService.MITREID_CONNECT_1_0
             }
 
             data.config11 != null -> {
                 config = data.config11
-                version = MITREidDataService.MITREID_CONNECT_1_1
+                version = KtorIdDataService.MITREID_CONNECT_1_1
             }
 
             data.config12 != null -> {
                 config = data.config12
-                version = MITREidDataService.MITREID_CONNECT_1_2
+                version = KtorIdDataService.MITREID_CONNECT_1_2
             }
 
             data.config13 != null -> {
                 config = data.config13
-                version = MITREidDataService.MITREID_CONNECT_1_3
+                version = KtorIdDataService.MITREID_CONNECT_1_3
             }
 
             else -> throw IllegalArgumentException("no supported version of configuration found")
@@ -164,7 +164,7 @@ class DataAPI(
                 put("exported-at", dateFormat.format(Date()))
                 put("exported-from", openIdContext.config.issuer,)
                 put("exported-by", prin.name,)
-                put(MITREidDataService.MITREID_CONNECT_1_3, json.encodeToJsonElement(exporter.toSerialConfig()))
+                put(KtorIdDataService.MITREID_CONNECT_1_3, json.encodeToJsonElement(exporter.toSerialConfig()))
             }
             return call.respondJson(conf)
 
@@ -178,13 +178,13 @@ class DataAPI(
     @Serializable
     private class RawData(
         @SerialName("mitreid-connect-1.0")
-        val config10: MITREidDataService.ExtendedConfiguration10? = null,
+        val config10: KtorIdDataService.ExtendedConfiguration10? = null,
         @SerialName("mitreid-connect-1.1")
-        val config11: MITREidDataService.ExtendedConfiguration10? = null,
+        val config11: KtorIdDataService.ExtendedConfiguration10? = null,
         @SerialName("mitreid-connect-1.2")
-        val config12: MITREidDataService.ExtendedConfiguration12? = null,
+        val config12: KtorIdDataService.ExtendedConfiguration12? = null,
         @SerialName("mitreid-connect-1.3")
-        val config13: MITREidDataService.ExtendedConfiguration12? = null,
+        val config13: KtorIdDataService.ExtendedConfiguration12? = null,
     )
 
     companion object {

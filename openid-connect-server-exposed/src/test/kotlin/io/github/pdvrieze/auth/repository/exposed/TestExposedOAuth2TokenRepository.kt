@@ -9,10 +9,11 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.mitre.oauth2.model.AuthenticationHolderEntity
+import org.mitre.oauth2.model.KtorAuthenticationHolder
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.SavedUserAuthentication
+import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2ClientRepository
 import java.time.Instant
@@ -87,11 +88,16 @@ class TestExposedOAuth2TokenRepository {
             val userAuth = SavedUserAuthentication(name = name, id = userAuthId.value)
 
             val authHolderId = AuthenticationHolders.insertAndGetId {
+                it[clientId] = "fooClient"
                 it[this.userAuthId] = userAuthId.value
                 it[this.requestTime] = requestTime
             }
             val authHolder =
-                AuthenticationHolderEntity(id = authHolderId.value, userAuth = userAuth, requestTime = requestTime)
+                KtorAuthenticationHolder(
+                    authentication = userAuth,
+                    o2Request = PlainAuthorizationRequest(clientId = "anyClient", requestTime = requestTime),
+                    id = authHolderId.value
+                )
 
             val accessTokenId = AccessTokens.insertAndGetId {
                 it[this.authHolderId] = authHolderId.value
@@ -114,11 +120,14 @@ class TestExposedOAuth2TokenRepository {
             val userAuth = SavedUserAuthentication(name = name, id = userAuthId.value)
 
             val authHolderId = AuthenticationHolders.insertAndGetId {
+                it[clientId] = "myClientId"
                 it[this.userAuthId] = userAuthId.value
                 it[this.requestTime] = requestTime
             }
-            val authHolder =
-                AuthenticationHolderEntity(userAuth = userAuth, requestTime = requestTime)
+            val authHolder = KtorAuthenticationHolder(
+                authentication = userAuth,
+                o2Request = PlainAuthorizationRequest(clientId = "foo", requestTime = requestTime)
+            )
 
             val refreshTokenId = RefreshTokens.insertAndGetId {
                 it[this.authHolderId] = authHolderId.value

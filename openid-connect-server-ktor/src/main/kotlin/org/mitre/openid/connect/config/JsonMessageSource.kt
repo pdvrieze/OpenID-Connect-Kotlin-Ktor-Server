@@ -5,7 +5,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonObject
-import org.mitre.openid.connect.service.MITREidDataService
+import org.mitre.openid.connect.service.KtorIdDataService
 import org.mitre.util.asString
 import org.mitre.util.getLogger
 import java.io.FileNotFoundException
@@ -112,7 +112,7 @@ class JsonMessageSource(private val baseResource: String, private val config: Co
 
                     val obj = input.use { r ->
                         val reader = InputStreamReader(r, "UTF-8")
-                        MITREidDataService.json.parseToJsonElement(reader.readText()).jsonObject
+                        KtorIdDataService.json.parseToJsonElement(reader.readText()).jsonObject
                     }
 
                     set.add(obj)

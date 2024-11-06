@@ -26,9 +26,9 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonObject
 import org.mitre.oauth2.model.AuthenticationHolder
-import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.GrantedAuthority
+import org.mitre.oauth2.model.KtorAuthenticationHolder
 import org.mitre.oauth2.model.LocalGrantedAuthority
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
@@ -55,7 +55,7 @@ import java.util.*
  * @author jricher
  * @author arielak
  */
-interface MITREidDataService {
+interface KtorIdDataService {
     /**
      * Write out the current server state as String.
      *
@@ -516,7 +516,7 @@ interface MITREidDataService {
     @Serializable
     open class ConfigurationData10 : ConfigurationDataBase {
         @SerialName("authenticationHolders")
-        internal val _authenticationHolders: List<AuthenticationHolderEntity.SerialDelegate10>
+        internal val _authenticationHolders: List<KtorAuthenticationHolder.SerialDelegate10>
 
         constructor(
             clients: List<ClientDetailsConfiguration> = emptyList(),
@@ -528,7 +528,7 @@ interface MITREidDataService {
             refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate> = emptyList(),
             systemScopes: List<SystemScope> = emptyList(),
         ) : super(clients, grants,whitelistedSites, blacklistedSites, accessTokens, refreshTokens, systemScopes) {
-            _authenticationHolders = authenticationHolders.map { AuthenticationHolderEntity.SerialDelegate10(it) }
+            _authenticationHolders = authenticationHolders.map { KtorAuthenticationHolder.SerialDelegate10(it) }
         }
 
         constructor(
@@ -536,7 +536,7 @@ interface MITREidDataService {
             grants: List<ApprovedSite.SerialDelegate> = emptyList(),
             whitelistedSites: List<WhitelistedSite> = emptyList(),
             blacklistedSites: List<BlacklistedSite> = emptyList(),
-            authenticationHolders: List<AuthenticationHolderEntity.SerialDelegate10> = emptyList(),
+            authenticationHolders: List<KtorAuthenticationHolder.SerialDelegate10> = emptyList(),
             accessTokens: List<OAuth2AccessTokenEntity.SerialDelegate> = emptyList(),
             refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate> = emptyList(),
             systemScopes: List<SystemScope> = emptyList(),
@@ -552,7 +552,7 @@ interface MITREidDataService {
     @Serializable
     open class ConfigurationData12 : ConfigurationDataBase {
         @SerialName("authenticationHolders")
-        internal val _authenticationHolders: List<AuthenticationHolderEntity.SerialDelegate12>
+        internal val _authenticationHolders: List<KtorAuthenticationHolder.SerialDelegate12>
 
         constructor(
             clients: List<ClientDetailsConfiguration> = emptyList(),
@@ -564,7 +564,7 @@ interface MITREidDataService {
             refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate> = emptyList(),
             systemScopes: List<SystemScope> = emptyList(),
         ) : super(clients, grants,whitelistedSites, blacklistedSites, accessTokens, refreshTokens, systemScopes) {
-            _authenticationHolders = authenticationHolders.map { AuthenticationHolderEntity.SerialDelegate12(it) }
+            _authenticationHolders = authenticationHolders.map { KtorAuthenticationHolder.SerialDelegate12(it) }
         }
 
         constructor(
@@ -572,7 +572,7 @@ interface MITREidDataService {
             grants: List<ApprovedSite.SerialDelegate> = emptyList(),
             whitelistedSites: List<WhitelistedSite> = emptyList(),
             blacklistedSites: List<BlacklistedSite> = emptyList(),
-            authenticationHolders: List<AuthenticationHolderEntity.SerialDelegate12> = emptyList(),
+            authenticationHolders: List<KtorAuthenticationHolder.SerialDelegate12> = emptyList(),
             accessTokens: List<OAuth2AccessTokenEntity.SerialDelegate> = emptyList(),
             refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate> = emptyList(),
             systemScopes: List<SystemScope> = emptyList(),
@@ -608,7 +608,7 @@ interface MITREidDataService {
             grants: List<ApprovedSite.SerialDelegate> = emptyList(),
             whitelistedSites: List<WhitelistedSite> = emptyList(),
             blacklistedSites: List<BlacklistedSite> = emptyList(),
-            authenticationHolders: List<AuthenticationHolderEntity.SerialDelegate10> = emptyList(),
+            authenticationHolders: List<KtorAuthenticationHolder.SerialDelegate10> = emptyList(),
             accessTokens: List<OAuth2AccessTokenEntity.SerialDelegate> = emptyList(),
             refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate> = emptyList(),
             systemScopes: List<SystemScope> = emptyList(),
@@ -624,8 +624,8 @@ interface MITREidDataService {
         @OptIn(ExperimentalSerializationApi::class)
         companion object : KSerializer<ExtendedConfiguration10> {
             private val delegate = ConfigurationData10.serializer()
-            private val authHoldersSerializer: KSerializer<List<AuthenticationHolderEntity.SerialDelegate10>> =
-                ListSerializer(AuthenticationHolderEntity.SerialDelegate10.serializer())
+            private val authHoldersSerializer: KSerializer<List<KtorAuthenticationHolder.SerialDelegate10>> =
+                ListSerializer(KtorAuthenticationHolder.SerialDelegate10.serializer())
 
             override val descriptor: SerialDescriptor = buildClassSerialDescriptor(
                 "${delegate.descriptor.serialName}.extended"
@@ -663,7 +663,7 @@ interface MITREidDataService {
                 var grants: List<ApprovedSite.SerialDelegate> = emptyList()
                 var whitelistedSites: List<WhitelistedSite> = emptyList()
                 var blacklistedSites: List<BlacklistedSite> = emptyList()
-                var authenticationHolders: List<AuthenticationHolderEntity.SerialDelegate10> = emptyList()
+                var authenticationHolders: List<KtorAuthenticationHolder.SerialDelegate10> = emptyList()
                 var accessTokens: List<OAuth2AccessTokenEntity.SerialDelegate> = emptyList()
                 var refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate> = emptyList()
                 var systemScopes: List<SystemScope> = emptyList()
@@ -713,7 +713,7 @@ interface MITREidDataService {
             grants: List<ApprovedSite.SerialDelegate> = emptyList(),
             whitelistedSites: List<WhitelistedSite> = emptyList(),
             blacklistedSites: List<BlacklistedSite> = emptyList(),
-            authenticationHolders: List<AuthenticationHolderEntity.SerialDelegate12> = emptyList(),
+            authenticationHolders: List<KtorAuthenticationHolder.SerialDelegate12> = emptyList(),
             accessTokens: List<OAuth2AccessTokenEntity.SerialDelegate> = emptyList(),
             refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate> = emptyList(),
             systemScopes: List<SystemScope> = emptyList(),
@@ -730,7 +730,7 @@ interface MITREidDataService {
         companion object : KSerializer<ExtendedConfiguration12> {
             private val delegate = ConfigurationData12.serializer()
             private val authHoldersSerializer =
-                ListSerializer(AuthenticationHolderEntity.SerialDelegate12.serializer())
+                ListSerializer(KtorAuthenticationHolder.SerialDelegate12.serializer())
 
             override val descriptor: SerialDescriptor = buildClassSerialDescriptor(
                 "${delegate.descriptor.serialName}.extended"
@@ -763,7 +763,7 @@ interface MITREidDataService {
                 var grants: List<ApprovedSite.SerialDelegate> = emptyList()
                 var whitelistedSites: List<WhitelistedSite> = emptyList()
                 var blacklistedSites: List<BlacklistedSite> = emptyList()
-                var authenticationHolders: List<AuthenticationHolderEntity.SerialDelegate12> = emptyList()
+                var authenticationHolders: List<KtorAuthenticationHolder.SerialDelegate12> = emptyList()
                 var accessTokens: List<OAuth2AccessTokenEntity.SerialDelegate> = emptyList()
                 var refreshTokens: List<OAuth2RefreshTokenEntity.SerialDelegate> = emptyList()
                 var systemScopes: List<SystemScope> = emptyList()
@@ -853,7 +853,7 @@ interface MITREidDataService {
         /**
          * Logger for this class
          */
-        private val logger = getLogger<MITREidDataService>()
+        private val logger = getLogger<KtorIdDataService>()
         val json: Json = Json {
             ignoreUnknownKeys = true
             prettyPrint = true

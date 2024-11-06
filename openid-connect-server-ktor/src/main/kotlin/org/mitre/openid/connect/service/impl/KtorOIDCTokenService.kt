@@ -31,8 +31,8 @@ import org.mitre.jwt.signer.service.ClientKeyCacheService
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.jwt.signer.service.impl.SymmetricKeyJWTValidatorCacheService
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
-import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.KtorAuthenticationHolder
 import org.mitre.oauth2.model.LocalGrantedAuthority
 import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
@@ -220,7 +220,7 @@ class KtorOIDCTokenService(
         tokenBuilder.setClient(client)
         tokenBuilder.scope = scope ?: emptySet()
 
-        val authHolder = authenticationHolderRepository.save(AuthenticationHolderEntity(authentication))
+        val authHolder = authenticationHolderRepository.save(KtorAuthenticationHolder(authentication))
         tokenBuilder.setAuthenticationHolder(authHolder)
 
         val claims = JWTClaimsSet.Builder()

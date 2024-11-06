@@ -39,7 +39,7 @@ fun JsonElement?.asLong(): Long {
 }
 
 fun JsonElement?.asString(): String {
-    require(this is JsonPrimitive) { "The element is not a primitive : ${this?.javaClass?.simpleName}"}
+    require(this is JsonPrimitive) { "The element is not a primitive : ${this?.javaClass?.simpleName} - '${toString()}'"}
     require(isString) { "Json string expected, but found other type: ${this.javaClass.name}" }
     return content
 }

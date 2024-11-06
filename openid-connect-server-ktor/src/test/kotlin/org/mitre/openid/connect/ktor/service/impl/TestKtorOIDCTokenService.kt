@@ -12,8 +12,8 @@ import org.mitre.jwt.signer.service.ClientKeyCacheService
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.jwt.signer.service.impl.SymmetricKeyJWTValidatorCacheService
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
-import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.KtorAuthenticationHolder
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.request.AuthorizationRequest
 import org.mitre.oauth2.model.request.PlainAuthorizationRequest
@@ -47,7 +47,7 @@ class TestKtorOIDCTokenService {
         b.requestTime = Instant.now()
     }.build()
     private val accessToken = OAuth2AccessTokenEntity(
-        authenticationHolder = AuthenticationHolderEntity(AuthenticatedAuthorizationRequest(request, null)),
+        authenticationHolder = KtorAuthenticationHolder(AuthenticatedAuthorizationRequest(request, null)),
         expirationInstant = Instant.now().plusSeconds(120),
         jwt = PlainJWT(JWTClaimsSet.Builder().build()),
     )

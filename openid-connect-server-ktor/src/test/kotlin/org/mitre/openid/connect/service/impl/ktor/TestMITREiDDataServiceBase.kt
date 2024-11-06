@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.platform.commons.util.ReflectionUtils
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
-import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.KtorAuthenticationHolder
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.SavedUserAuthentication
@@ -23,15 +23,15 @@ import org.mitre.openid.connect.model.WhitelistedSite
 import org.mitre.openid.connect.repository.ApprovedSiteRepository
 import org.mitre.openid.connect.repository.BlacklistedSiteRepository
 import org.mitre.openid.connect.repository.WhitelistedSiteRepository
-import org.mitre.openid.connect.service.MITREidDataService
-import org.mitre.openid.connect.service.MITREidDataService.Companion.ACCESSTOKENS
-import org.mitre.openid.connect.service.MITREidDataService.Companion.AUTHENTICATIONHOLDERS
-import org.mitre.openid.connect.service.MITREidDataService.Companion.BLACKLISTEDSITES
-import org.mitre.openid.connect.service.MITREidDataService.Companion.CLIENTS
-import org.mitre.openid.connect.service.MITREidDataService.Companion.GRANTS
-import org.mitre.openid.connect.service.MITREidDataService.Companion.REFRESHTOKENS
-import org.mitre.openid.connect.service.MITREidDataService.Companion.SYSTEMSCOPES
-import org.mitre.openid.connect.service.MITREidDataService.Companion.WHITELISTEDSITES
+import org.mitre.openid.connect.service.KtorIdDataService
+import org.mitre.openid.connect.service.KtorIdDataService.Companion.ACCESSTOKENS
+import org.mitre.openid.connect.service.KtorIdDataService.Companion.AUTHENTICATIONHOLDERS
+import org.mitre.openid.connect.service.KtorIdDataService.Companion.BLACKLISTEDSITES
+import org.mitre.openid.connect.service.KtorIdDataService.Companion.CLIENTS
+import org.mitre.openid.connect.service.KtorIdDataService.Companion.GRANTS
+import org.mitre.openid.connect.service.KtorIdDataService.Companion.REFRESHTOKENS
+import org.mitre.openid.connect.service.KtorIdDataService.Companion.SYSTEMSCOPES
+import org.mitre.openid.connect.service.KtorIdDataService.Companion.WHITELISTEDSITES
 import org.mitre.openid.connect.service.MITREidDataServiceMaps
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.anyLong
@@ -56,7 +56,7 @@ import java.time.temporal.ChronoField
 import java.util.*
 import kotlin.reflect.KClass
 
-abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
+abstract class TestMITREiDDataServiceBase<DS : KtorIdDataService> {
     @Mock
     protected open lateinit var clientRepository: OAuth2ClientRepository
 
@@ -120,7 +120,7 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
     protected lateinit var capturedApprovedSites: ArgumentCaptor<ApprovedSite>
 
     @Captor
-    protected lateinit var capturedAuthHolders: ArgumentCaptor<AuthenticationHolderEntity>
+    protected lateinit var capturedAuthHolders: ArgumentCaptor<KtorAuthenticationHolder>
 
     @Captor
     protected lateinit var capturedScope: ArgumentCaptor<SystemScope>
@@ -141,7 +141,7 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
         val mockedClient1 = mock<ClientDetailsEntity>()
         whenever(mockedClient1.clientId).thenReturn("mocked_client_1")
 
-        val mockedAuthHolder1 = mock<AuthenticationHolderEntity>()
+        val mockedAuthHolder1 = mock<KtorAuthenticationHolder>()
 
         // unused by mockito (causs unnecessary stubbing exception
         //		when(mockedAuthHolder1.getId()).thenReturn(1L);
@@ -159,7 +159,7 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
             whenever(mock.clientId).thenReturn("mocked_client_2")
         }
 
-        val mockedAuthHolder2 = mock<AuthenticationHolderEntity>()
+        val mockedAuthHolder2 = mock<KtorAuthenticationHolder>()
 
         val token2 = OAuth2RefreshTokenEntity(
             id = 2L,
@@ -206,7 +206,7 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
             }
         }
 
-        whenever(authHolderRepository.getById(anyLong())).thenAnswer { mock<AuthenticationHolderEntity>() }
+        whenever(authHolderRepository.getById(anyLong())).thenAnswer { mock<KtorAuthenticationHolder>() }
 
         maps.authHolderOldToNewIdMap[1L] = 678L
         maps.authHolderOldToNewIdMap[2L] = 679L
@@ -236,7 +236,7 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
             whenever(mock.clientId).thenReturn("mocked_client_1")
         }
 
-        val mockedAuthHolder1 = mock<AuthenticationHolderEntity>()
+        val mockedAuthHolder1 = mock<KtorAuthenticationHolder>()
 
         // unused by mockito (causs unnecessary stubbing exception
         //		when(mockedAuthHolder1.getId()).thenReturn(1L);
@@ -255,7 +255,7 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
         val mockedClient2 = mock<ClientDetailsEntity> {
             whenever(mock.clientId).thenReturn("mocked_client_2")
         }
-        val mockedAuthHolder2 = mock<AuthenticationHolderEntity>()
+        val mockedAuthHolder2 = mock<KtorAuthenticationHolder>()
         val mockRefreshToken2 = mock<OAuth2RefreshTokenEntity>()
 
         val token2 = OAuth2AccessTokenEntity(
@@ -311,7 +311,7 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
         }
 
         whenever(authHolderRepository.getById(anyLong()))
-            .thenAnswer { mock<AuthenticationHolderEntity>() }
+            .thenAnswer { mock<KtorAuthenticationHolder>() }
 
         whenever(tokenRepository.getRefreshTokenById(eq(1L))).thenReturn(mockRefreshToken2)
         whenever(tokenRepository.getRefreshTokenById(eq(402L))).thenAnswer {
@@ -625,7 +625,7 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
         val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
         val auth1 = AuthenticatedAuthorizationRequest(req1, mockAuth1)
 
-        val holder1 = AuthenticationHolderEntity(auth1, id = 1L)
+        val holder1 = KtorAuthenticationHolder(auth1, id = 1L)
 
         val req2 = PlainAuthorizationRequest.Builder(clientId = "client2").also { b ->
             b.approval = Approval(now.minusSeconds(1))
@@ -635,7 +635,7 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
         val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
         val auth2 = AuthenticatedAuthorizationRequest(req2, mockAuth2)
 
-        val holder2 = AuthenticationHolderEntity(auth2, id = 2L)
+        val holder2 = KtorAuthenticationHolder(auth2, id = 2L)
 
         val configJson = (buildString {
             append("{")
@@ -660,17 +660,18 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
 
         System.err.println(configJson)
 
-        val fakeDb: MutableMap<Long, AuthenticationHolderEntity> = HashMap()
-        whenever(authHolderRepository.save(isA<AuthenticationHolderEntity>()))
-            .thenAnswer(object : Answer<AuthenticationHolderEntity> {
+        val fakeDb: MutableMap<Long, KtorAuthenticationHolder> = HashMap()
+        whenever(authHolderRepository.save(isA<KtorAuthenticationHolder>()))
+            .thenAnswer(object : Answer<KtorAuthenticationHolder> {
                 var id: Long = 356L
 
                 @Throws(Throwable::class)
-                override fun answer(invocation: InvocationOnMock): AuthenticationHolderEntity {
-                    val _holder = invocation.arguments[0] as AuthenticationHolderEntity
-                    val hid = _holder.id ?: id++.also { _holder.id = it }
-                    fakeDb[hid] = _holder
-                    return _holder
+                override fun answer(invocation: InvocationOnMock): KtorAuthenticationHolder {
+                    val _holder = invocation.arguments[0] as KtorAuthenticationHolder
+                    val hid = _holder.id ?: id++
+                    val newHolder = _holder.copy(hid)
+                    fakeDb[hid] = newHolder
+                    return newHolder
                 }
             })
 
@@ -795,7 +796,7 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
         val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
         val auth1 = AuthenticatedAuthorizationRequest(req1, mockAuth1)
 
-        val holder1 = AuthenticationHolderEntity(auth1, id = 1L)
+        val holder1 = KtorAuthenticationHolder(auth1, id = 1L)
 
         val token1 = OAuth2RefreshTokenEntity(
             id = 1L,
@@ -820,7 +821,7 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
         val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
         val auth2 = AuthenticatedAuthorizationRequest(req2, mockAuth2)
 
-        val holder2 = AuthenticationHolderEntity(auth2, id = 2L)
+        val holder2 = KtorAuthenticationHolder(auth2, id = 2L)
 
         val token2 = OAuth2RefreshTokenEntity(
             id = 2L,
@@ -857,7 +858,7 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
         System.err.println(configJson)
 
         val fakeRefreshTokenTable: MutableMap<Long, OAuth2RefreshTokenEntity> = HashMap()
-        val fakeAuthHolderTable: MutableMap<Long, AuthenticationHolderEntity> = HashMap()
+        val fakeAuthHolderTable: MutableMap<Long, KtorAuthenticationHolder> = HashMap()
         whenever(tokenRepository.saveRefreshToken(isA<OAuth2RefreshTokenEntity>()))
             .thenAnswer(object : Answer<OAuth2RefreshTokenEntity> {
                 var id: Long = 343L
@@ -881,14 +882,14 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
 //				when(_client.getClientId()).thenReturn(_clientId);
             _client
         }
-        whenever(authHolderRepository.save(isA<AuthenticationHolderEntity>()))
-            .thenAnswer(object : Answer<AuthenticationHolderEntity> {
+        whenever(authHolderRepository.save(isA<KtorAuthenticationHolder>()))
+            .thenAnswer(object : Answer<KtorAuthenticationHolder> {
                 var id: Long = 356L
 
                 @Throws(Throwable::class)
-                override fun answer(invocation: InvocationOnMock): AuthenticationHolderEntity {
-                    val _holder = invocation.arguments[0] as AuthenticationHolderEntity
-                    val id = _holder.id ?: (id++).also { _holder.id = it }
+                override fun answer(invocation: InvocationOnMock): KtorAuthenticationHolder {
+                    val _holder = invocation.arguments[0] as KtorAuthenticationHolder
+                    val id = _holder.id ?: (id++)
                     val holderCpy = _holder.copy(id)
                     fakeAuthHolderTable[id] = holderCpy
                     return holderCpy

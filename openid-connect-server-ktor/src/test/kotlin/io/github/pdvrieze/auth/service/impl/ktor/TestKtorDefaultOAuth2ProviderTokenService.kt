@@ -11,8 +11,8 @@ import org.mitre.oauth2.exception.InvalidClientException
 import org.mitre.oauth2.exception.InvalidScopeException
 import org.mitre.oauth2.exception.InvalidTokenException
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
-import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
+import org.mitre.oauth2.model.KtorAuthenticationHolder
 import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
@@ -66,7 +66,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
     // for use when refreshing access tokens
     private lateinit var storedAuthRequest: AuthorizationRequest
     private lateinit var storedAuthentication: AuthenticatedAuthorizationRequest
-    private lateinit var storedAuthHolder: AuthenticationHolderEntity
+    private lateinit var storedAuthHolder: KtorAuthenticationHolder
     private lateinit var storedScope: Set<String>
 
     @Mock
@@ -143,7 +143,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
 
         storedAuthentication = authentication
         storedAuthRequest = clientAuth
-        storedAuthHolder = mock<AuthenticationHolderEntity>()
+        storedAuthHolder = mock<KtorAuthenticationHolder>()
         storedScope = scope.toHashSet()
 
         whenever(refreshToken.authenticationHolder) doReturn (storedAuthHolder)
@@ -234,7 +234,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
         val token = service.createAccessToken(authentication, true)
 
         verify(clientDetailsService).loadClientByClientId(ArgumentMatchers.anyString())
-        verify(authenticationHolderRepository).save(isA<AuthenticationHolderEntity>())
+        verify(authenticationHolderRepository).save(isA<KtorAuthenticationHolder>())
         verify(tokenEnhancer).enhance(isA<OAuth2AccessTokenEntity.Builder>(), eq(authentication))
         verify(tokenRepository).saveAccessToken(isA<OAuth2AccessTokenEntity>())
         verify(scopeService, atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
@@ -334,15 +334,15 @@ class TestKtorDefaultOAuth2ProviderTokenService {
 
     @Test
     fun createAccessToken_checkAttachedAuthentication(): Unit = runBlocking {
-        val authHolder = mock<AuthenticationHolderEntity>()
+        val authHolder = mock<KtorAuthenticationHolder>()
         whenever(authHolder.authenticatedAuthorizationRequest) doReturn (authentication)
 
-        whenever(authenticationHolderRepository.save(isA<AuthenticationHolderEntity>())) doReturn (authHolder)
+        whenever(authenticationHolderRepository.save(isA<KtorAuthenticationHolder>())) doReturn (authHolder)
 
         val token = service.createAccessToken(authentication, true)
 
         Assertions.assertEquals(authentication, token.authenticationHolder.authenticatedAuthorizationRequest)
-        verify(authenticationHolderRepository).save(isA<AuthenticationHolderEntity>())
+        verify(authenticationHolderRepository).save(isA<KtorAuthenticationHolder>())
         verify(scopeService, atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
     }
 

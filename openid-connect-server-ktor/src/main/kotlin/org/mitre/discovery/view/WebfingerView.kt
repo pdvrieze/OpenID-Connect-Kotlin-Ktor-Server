@@ -8,7 +8,7 @@ import kotlinx.serialization.json.addJsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
-import org.mitre.openid.connect.service.MITREidDataService
+import org.mitre.openid.connect.service.KtorIdDataService
 import org.mitre.util.getLogger
 import java.io.IOException
 
@@ -35,7 +35,7 @@ object WebfingerViews {
                     }
                 }
             }
-            call.respondText(MITREidDataService.json.encodeToString(obj), CT_JRD, code)
+            call.respondText(KtorIdDataService.json.encodeToString(obj), CT_JRD, code)
         } catch (e: IOException) {
             logger.error("IOException in JsonEntityView.java: ", e)
             throw e

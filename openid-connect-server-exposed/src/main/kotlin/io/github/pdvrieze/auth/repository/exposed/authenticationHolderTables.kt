@@ -11,25 +11,32 @@ object AuthenticationHolders : LongIdTable("authentication_holder") {
 //    val approvalTime = timestamp("approval_time").nullable()
 
     val redirectUri = varchar("redirect_uri", 2048).nullable()
-    val clientId = varchar("client_id", 256).nullable()
+    val clientId = varchar("client_id", 256) // references clientDetails table
     val requestTime = timestamp("request_time").nullable()
+
+    init {
+        index(false, userAuthId, clientId)
+    }
 }
 
 object AuthenticationHolderAuthorities : Table("authentication_holder_authority") {
     val ownerId = long("owner_id").references(AuthenticationHolders.id) // TODO add foreign key
     val authority = varchar("authority", 256)
+
     override val primaryKey = PrimaryKey(ownerId, authority)
 }
 
 object AuthenticationHolderResourceIds : Table("authentication_holder_resource_id") {
     val ownerId = long("owner_id").references(AuthenticationHolders.id)
     val resourceId = varchar("resource_id", 2048)
+
     override val primaryKey = PrimaryKey(ownerId, resourceId)
 }
 
 object AuthenticationHolderResponseTypes : Table("authentication_holder_response_type") {
     val ownerId = long("owner_id").references(AuthenticationHolders.id)
     val responseType = varchar("response_type", 2048)
+
     override val primaryKey = PrimaryKey(ownerId, responseType)
 }
 
