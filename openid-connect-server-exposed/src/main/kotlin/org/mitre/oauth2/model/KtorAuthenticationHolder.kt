@@ -9,75 +9,42 @@ import org.mitre.oauth2.model.convert.SimpleGrantedAuthorityStringConverter
 import org.mitre.oauth2.model.request.AuthorizationRequest
 import org.mitre.oauth2.model.request.OpenIdAuthorizationRequest
 import org.mitre.oauth2.model.request.PlainAuthorizationRequest
-import org.mitre.openid.connect.model.convert.ISOInstant
-import java.time.Instant
 
 class KtorAuthenticationHolder private constructor(
     override val id: Long?,
     override val userAuth: SavedUserAuthentication?,
-    override val authorities: Collection<GrantedAuthority>?,
-    override val resourceIds: Set<String>?,
-    override val isApproved: Boolean,
-    override val redirectUri: String?,
-    override val responseTypes: Set<String>?,
-    override val extensions: Map<String, String>?,
-    override val clientId: String,
-    override val scope: Set<String>?,
-    override val requestParameters: Map<String, String>?,
-    override val requestTime: ISOInstant?,
+    override val authorizationRequest: AuthorizationRequest,
 ) : AuthenticationHolder {
 
     constructor(
         authentication: AuthenticatedAuthorizationRequest,
         id: Long? = null,
     ): this(
-        authentication.userAuthentication,
-        authentication.authorizationRequest,
         id,
+        authentication.userAuthentication?.let(SavedUserAuthentication.Companion::from),
+        authentication.authorizationRequest,
     )
 
     constructor(
         authentication: Authentication?,
-        o2Request: AuthorizationRequest,
+        authorizationRequest: AuthorizationRequest,
         id: Long? = null
     ): this(
         id = id,
         userAuth = authentication?.let(SavedUserAuthentication.Companion::from),
-        authorities = o2Request.authorities.toHashSet(),
-        resourceIds = o2Request.resourceIds?.toHashSet(),
-        isApproved = o2Request.isApproved,
-        redirectUri = o2Request.redirectUri,
-        responseTypes = o2Request.responseTypes?.toHashSet(),
-        extensions = o2Request.authHolderExtensions,
-        clientId = o2Request.clientId,
-        scope = o2Request.scope.toHashSet(),
-        requestParameters = o2Request.requestParameters.toMap(),
-        requestTime = o2Request.requestTime,
+        authorizationRequest = authorizationRequest,
     )
 
-    override val authenticatedAuthorizationRequest: AuthenticatedAuthorizationRequest
-        get() = AuthenticatedAuthorizationRequest(createAuthorizationRequest(), userAuth)
-
-    private fun createAuthorizationRequest(): AuthorizationRequest {
-        return PlainAuthorizationRequest.Builder(clientId!!).also { b ->
-            b.setFromExtensions(extensions?.let { m -> m.mapValues { (_, v) -> v } } ?: emptyMap())
-
-            b.requestParameters = requestParameters ?: emptyMap()
-            b.clientId = clientId!!
-            b.authorities = authorities?.toSet() ?: emptySet()
-            if (isApproved && b.approval == null) {
-                b.approval =
-                    AuthorizationRequest.Approval(Instant.EPOCH) // mark long ago //setFromExtensions should handle this
-            }
-
-            b.scope = scope ?: emptySet()
-            b.resourceIds = resourceIds
-            b.redirectUri = redirectUri
-            b.responseTypes = responseTypes
-            b.requestTime = requestTime
-//            extensionStrings = extensions?.let { m -> m.mapValues { (_, v) -> v } },
-        }.build()
-    }
+    override val authorities: Set<GrantedAuthority>
+        get() = authorizationRequest.authorities
+    override val extensions: Map<String, String>
+        get() = authorizationRequest.authHolderExtensions
+    override val clientId: String
+        get() = authorizationRequest.clientId
+    override val scope: Set<String>
+        get() = authorizationRequest.scope
+    override val requestParameters: Map<String, String>
+        get() = authorizationRequest.requestParameters
 
     override fun copy(id: Long?): KtorAuthenticationHolder {
         return copy(id, this.userAuth)
@@ -86,30 +53,12 @@ class KtorAuthenticationHolder private constructor(
     fun copy(
         id: Long? = this.id,
         userAuth: SavedUserAuthentication? = this.userAuth,
-        authorities: Collection<GrantedAuthority>? = this.authorities,
-        resourceIds: Set<String>? = this.resourceIds,
-        isApproved: Boolean = this.isApproved,
-        redirectUri: String? = this.redirectUri,
-        responseTypes: Set<String>? = this.responseTypes,
-        extensions: Map<String, String>? = this.extensions,
-        clientId: String = this.clientId,
-        scope: Set<String>? = this.scope,
-        requestParameters: Map<String, String>? = this.requestParameters,
-        requestTime: Instant? = this.requestTime,
+        authorizationRequest: AuthorizationRequest = this.authorizationRequest,
     ): KtorAuthenticationHolder {
         return KtorAuthenticationHolder(
             id = id,
             userAuth = userAuth,
-            authorities = authorities?.toList(),
-            resourceIds = resourceIds?.toHashSet(),
-            isApproved = isApproved,
-            redirectUri = redirectUri,
-            responseTypes = responseTypes?.toSet(),
-            extensions = extensions,
-            clientId = clientId,
-            scope = scope?.toHashSet(),
-            requestParameters = requestParameters?.toMap(HashMap()),
-            requestTime = requestTime,
+            authorizationRequest = authorizationRequest,
         )
     }
 
@@ -261,7 +210,7 @@ class KtorAuthenticationHolder private constructor(
 
             return KtorAuthenticationHolder(
                 authentication = userAuth,
-                o2Request = authRequest,
+                authorizationRequest = authRequest,
                 id = currentId
             )
         }

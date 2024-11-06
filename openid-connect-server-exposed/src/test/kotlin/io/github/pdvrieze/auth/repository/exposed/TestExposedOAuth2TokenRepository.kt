@@ -95,7 +95,7 @@ class TestExposedOAuth2TokenRepository {
             val authHolder =
                 KtorAuthenticationHolder(
                     authentication = userAuth,
-                    o2Request = PlainAuthorizationRequest(clientId = "anyClient", requestTime = requestTime),
+                    authorizationRequest = PlainAuthorizationRequest(clientId = "anyClient", requestTime = requestTime),
                     id = authHolderId.value
                 )
 
@@ -126,7 +126,7 @@ class TestExposedOAuth2TokenRepository {
             }
             val authHolder = KtorAuthenticationHolder(
                 authentication = userAuth,
-                o2Request = PlainAuthorizationRequest(clientId = "foo", requestTime = requestTime)
+                authorizationRequest = PlainAuthorizationRequest(clientId = "foo", requestTime = requestTime)
             )
 
             val refreshTokenId = RefreshTokens.insertAndGetId {

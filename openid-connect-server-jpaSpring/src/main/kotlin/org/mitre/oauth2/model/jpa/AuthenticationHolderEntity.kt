@@ -36,7 +36,7 @@ import java.time.Instant
 class AuthenticationHolderEntity(
     override var id: Long? = null,
     override var userAuth: SavedUserAuthentication? = null,
-    override var authorities: Collection<GrantedAuthority>? = null,
+    override var authorities: Set<GrantedAuthority>? = null,
     override var resourceIds: Set<String>? = null,
     override var isApproved: Boolean = false,
     override var redirectUri: String? = null,
@@ -76,8 +76,8 @@ class AuthenticationHolderEntity(
         requestTime = o2Request.requestTime,
     )
 
-    override val authenticatedAuthorizationRequest: AuthenticatedAuthorizationRequest
-        get() = AuthenticatedAuthorizationRequest(createAuthorizationRequest(), userAuth)
+    override val authorizationRequest: AuthorizationRequest
+        get() = createAuthorizationRequest()
 
     private fun createAuthorizationRequest(): AuthorizationRequest {
         return PlainAuthorizationRequest.Builder(clientId!!).also { b ->
@@ -121,7 +121,7 @@ class AuthenticationHolderEntity(
         return AuthenticationHolderEntity(
             id = id,
             userAuth = userAuth,
-            authorities = authorities?.toList(),
+            authorities = authorities?.toHashSet(),
             resourceIds = resourceIds?.toHashSet(),
             isApproved = isApproved,
             redirectUri = redirectUri,
@@ -181,7 +181,7 @@ class AuthenticationHolderEntity(
         @SerialName("resourceIds")
         @EncodeDefault val resourceIds: Set<String>? = null,
         @SerialName("authorities")
-        @EncodeDefault val authorities: Collection<@Serializable(SimpleGrantedAuthorityStringConverter::class) GrantedAuthority> = emptyList(),
+        @EncodeDefault val authorities: Set<@Serializable(SimpleGrantedAuthorityStringConverter::class) GrantedAuthority> = emptySet(),
         @SerialName("approved")
         @EncodeDefault val isApproved: Boolean = false,
         @SerialName("redirectUri")
@@ -201,7 +201,7 @@ class AuthenticationHolderEntity(
             clientId = e.clientId,
             scope = e.scope,
             resourceIds = e.resourceIds,
-            authorities = e.authorities ?: emptyList(),
+            authorities = e.authorities ?: emptySet(),
             isApproved = e.isApproved,
             redirectUri = e.redirectUri,
             responseTypes = e.responseTypes ?: emptySet(),
