@@ -11,10 +11,10 @@ base {
 dependencies {
     api(projects.openidConnectCommon)
     api(projects.openidConnectServer)
+    api(projects.openidConnectServerExposed)
 
     implementation(libs.kotlinx.serialization.json)
 
-    implementation(projects.openidConnectServerExposed)
     implementation(libs.caffeine) // for caching code
     implementation(libs.ktor.http)
     implementation(libs.ktor.client.core)

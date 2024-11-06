@@ -21,7 +21,7 @@ import com.nimbusds.jwt.JWT
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.long
-import org.mitre.oauth2.model.AuthenticationHolderEntity
+import org.mitre.oauth2.model.AuthenticationHolder
 import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.util.asString
 import java.time.Instant
@@ -45,8 +45,7 @@ class OAuth2AccessTokenImpl(introspectionResponse: JsonObject, tokenString: Stri
 
     override val client: Nothing? get() = null
     // TODO this should probably not be present at all
-    override val authenticationHolder: AuthenticationHolderEntity =
-        AuthenticationHolderEntity(requestTime = Instant.MIN)
+    override val authenticationHolder get() = AuthenticationHolder.DUMMY
 
     override fun builder(): OAuth2AccessToken.Builder {
         return Builder(this)

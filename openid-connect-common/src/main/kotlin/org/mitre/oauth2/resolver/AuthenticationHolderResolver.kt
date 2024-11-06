@@ -1,7 +1,7 @@
 package org.mitre.oauth2.resolver
 
-import org.mitre.oauth2.model.AuthenticationHolderEntity
+import org.mitre.oauth2.model.AuthenticationHolder
 
 interface AuthenticationHolderResolver {
-    fun getById(id: Long): AuthenticationHolderEntity?
+    fun getById(id: Long): AuthenticationHolder?
 }

@@ -90,7 +90,8 @@ class TestExposedOAuth2TokenRepository {
                 it[this.userAuthId] = userAuthId.value
                 it[this.requestTime] = requestTime
             }
-            val authHolder = AuthenticationHolderEntity(id = authHolderId.value, userAuth = userAuth, requestTime = requestTime)
+            val authHolder =
+                AuthenticationHolderEntity(id = authHolderId.value, userAuth = userAuth, requestTime = requestTime)
 
             val accessTokenId = AccessTokens.insertAndGetId {
                 it[this.authHolderId] = authHolderId.value
@@ -116,7 +117,8 @@ class TestExposedOAuth2TokenRepository {
                 it[this.userAuthId] = userAuthId.value
                 it[this.requestTime] = requestTime
             }
-            val authHolder = AuthenticationHolderEntity(userAuth = userAuth, requestTime = requestTime)
+            val authHolder =
+                AuthenticationHolderEntity(userAuth = userAuth, requestTime = requestTime)
 
             val refreshTokenId = RefreshTokens.insertAndGetId {
                 it[this.authHolderId] = authHolderId.value

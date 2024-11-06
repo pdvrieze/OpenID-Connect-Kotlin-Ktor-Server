@@ -19,6 +19,7 @@ package org.mitre.oauth2.repository.impl
 
 import org.mitre.data.DefaultPageCriteria
 import org.mitre.data.PageCriteria
+import org.mitre.oauth2.model.AuthenticationHolder
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.util.jpa.JpaUtil.getResultPage
@@ -46,26 +47,26 @@ class JpaAuthenticationHolderRepository : AuthenticationHolderRepository {
     }
 
     @Transactional(value = "defaultTransactionManager")
-    override fun remove(a: AuthenticationHolderEntity) {
+    override fun remove(a: AuthenticationHolder) {
         val found = getById(checkNotNull(a.id) { "Missing id for authentication holder" } )
         requireNotNull(found) { "AuthenticationHolderEntity not found: $a" }
         manager.remove(found)
     }
 
     @Transactional(value = "defaultTransactionManager")
-    override fun save(a: AuthenticationHolderEntity): AuthenticationHolderEntity {
+    override fun save(a: AuthenticationHolder): AuthenticationHolder {
         return saveOrUpdate(a.id, manager, a)
     }
 
     @get:Transactional(value = "defaultTransactionManager")
-    override val orphanedAuthenticationHolders: List<AuthenticationHolderEntity>
+    override val orphanedAuthenticationHolders: List<AuthenticationHolder>
         get() {
             val pageCriteria = DefaultPageCriteria(0, MAXEXPIREDRESULTS)
             return getOrphanedAuthenticationHolders(pageCriteria)
         }
 
     @Transactional(value = "defaultTransactionManager")
-    override fun getOrphanedAuthenticationHolders(pageCriteria: PageCriteria): List<AuthenticationHolderEntity> {
+    override fun getOrphanedAuthenticationHolders(pageCriteria: PageCriteria): List<AuthenticationHolder> {
         val query =
             manager.createNamedQuery(AuthenticationHolderEntity.QUERY_GET_UNUSED, AuthenticationHolderEntity::class.java)
         return getResultPage(query, pageCriteria)

@@ -34,7 +34,7 @@ class DeviceCode(
     var clientId: String? = null, // TODO: make this not nullable
     var requestParameters: Map<String, String>? = null,
     var isApproved: Boolean? = false,
-    var authenticationHolder: AuthenticationHolderEntity? = null,
+    var authenticationHolder: AuthenticationHolder? = null,
 ) {
 
     constructor(
@@ -45,7 +45,7 @@ class DeviceCode(
         scope: Set<String>? = null,
         clientId: String? = null,
         approved: Boolean? = null,
-        authenticationHolder: AuthenticationHolderEntity? = null,
+        authenticationHolder: AuthenticationHolder? = null,
         params: Map<String, String>? = null,
     ) : this(
         id = id,
@@ -76,7 +76,7 @@ class DeviceCode(
         scope: Set<String>? = this.scope,
         clientId: String? = this.clientId,
         approved: Boolean? = this.isApproved,
-        authenticationHolder: AuthenticationHolderEntity? = this.authenticationHolder,
+        authenticationHolder: AuthenticationHolder? = this.authenticationHolder,
         params: Map<String, String>? = this.requestParameters,
     ): DeviceCode {
         return DeviceCode(id, deviceCode, userCode, expiration, scope, clientId, approved, authenticationHolder, params)

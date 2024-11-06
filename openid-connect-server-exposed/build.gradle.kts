@@ -1,6 +1,7 @@
 plugins {
     `java-library`
     alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.plugins.serialization)
 //    id("ro.isdc.wro4j.gradle") version "1.8.0.Beta5"
 }
 
@@ -14,6 +15,8 @@ dependencies {
     implementation(libs.exposed.core)
     implementation(libs.exposed.jdbc)
     implementation(libs.exposed.javatime)
+    implementation(libs.kotlinx.serialization.core)
+    implementation(libs.kotlinx.serialization.json)
 /*
     implementation(libs.spring.core) {
         exclude("commons-logging:commons-logging")

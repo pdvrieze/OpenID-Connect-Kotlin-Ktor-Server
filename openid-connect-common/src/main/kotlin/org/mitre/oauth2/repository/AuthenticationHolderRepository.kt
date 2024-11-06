@@ -1,17 +1,17 @@
 package org.mitre.oauth2.repository
 
 import org.mitre.data.PageCriteria
-import org.mitre.oauth2.model.AuthenticationHolderEntity
+import org.mitre.oauth2.model.AuthenticationHolder
 import org.mitre.oauth2.resolver.AuthenticationHolderResolver
 
 interface AuthenticationHolderRepository : AuthenticationHolderResolver {
-	val all: List<AuthenticationHolderEntity>
+	val all: List<AuthenticationHolder>
 
-    fun remove(a: AuthenticationHolderEntity)
+    fun remove(a: AuthenticationHolder)
 
-    fun save(a: AuthenticationHolderEntity): AuthenticationHolderEntity
+    fun save(a: AuthenticationHolder): AuthenticationHolder
 
-    val orphanedAuthenticationHolders: List<AuthenticationHolderEntity>
+    val orphanedAuthenticationHolders: List<AuthenticationHolder>
 
-    fun getOrphanedAuthenticationHolders(pageCriteria: PageCriteria): List<AuthenticationHolderEntity>
+    fun getOrphanedAuthenticationHolders(pageCriteria: PageCriteria): List<AuthenticationHolder>
 }

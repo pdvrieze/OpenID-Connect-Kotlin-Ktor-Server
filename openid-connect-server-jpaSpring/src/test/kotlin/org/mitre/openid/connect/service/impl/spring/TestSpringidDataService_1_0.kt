@@ -741,7 +741,7 @@ class TestSpringidDataService_1_0 {
         System.err.println(configJson)
 
         val fakeDb: MutableMap<Long?, AuthenticationHolderEntity> = HashMap()
-        whenever<AuthenticationHolderEntity>(authHolderRepository.save(isA<AuthenticationHolderEntity>()))
+        whenever(authHolderRepository.save(isA<AuthenticationHolderEntity>()))
             .thenAnswer(object : Answer<AuthenticationHolderEntity> {
                 var id: Long = 356L
 
@@ -961,7 +961,7 @@ class TestSpringidDataService_1_0 {
 //				when(_client.getClientId()).thenReturn(_clientId);
             _client
         }
-        whenever<AuthenticationHolderEntity>(authHolderRepository.save(isA<AuthenticationHolderEntity>()))
+        whenever(authHolderRepository.save(isA<AuthenticationHolderEntity>()))
             .thenAnswer(object : Answer<AuthenticationHolderEntity> {
                 var id: Long = 356L
 

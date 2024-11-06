@@ -20,7 +20,6 @@ import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
-import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.service.ClientDetailsEntityService
@@ -49,7 +48,7 @@ class DefaultUmaTokenService(
         policy: Policy
     ): OAuth2AccessTokenEntity {
         val tokenBuilder = OAuth2AccessTokenEntity.Builder()
-        val authHolder = authenticationHolderRepository.save(AuthenticationHolderEntity(authorizationRequest))
+        val authHolder = authenticationHolderRepository.save(org.mitre.oauth2.model.AuthenticationHolderEntity(authorizationRequest))
 
         tokenBuilder.setAuthenticationHolder(authHolder)
 

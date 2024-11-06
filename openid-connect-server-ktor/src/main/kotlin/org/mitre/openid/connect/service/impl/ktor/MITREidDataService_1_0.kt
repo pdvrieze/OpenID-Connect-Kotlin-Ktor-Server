@@ -17,7 +17,7 @@
  */
 package org.mitre.openid.connect.service.impl.ktor
 
-import org.mitre.oauth2.model.AuthenticationHolderEntity
+import org.mitre.oauth2.model.AuthenticationHolder
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2ClientRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
@@ -88,7 +88,7 @@ class MITREidDataService_1_0(
         super.importClient(context, client)
     }
 
-    override fun importAuthenticationHolder(context: DataServiceContext, ahe: AuthenticationHolderEntity) {
+    override fun importAuthenticationHolder(context: DataServiceContext, ahe: AuthenticationHolder) {
         val r = ahe.authenticatedAuthorizationRequest.authorizationRequest
         r.authHolderExtensions.warnIgnored("authentication/userAuthentication/extensions")
 

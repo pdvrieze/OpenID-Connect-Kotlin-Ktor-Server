@@ -24,6 +24,7 @@ import org.mitre.data.AbstractPageOperationTemplate
 import org.mitre.data.DefaultPageCriteria
 import org.mitre.oauth2.TokenEnhancer
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
+import org.mitre.oauth2.model.AuthenticationHolder
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
@@ -230,7 +231,7 @@ class SpringOAuth2ProviderTokenService : OAuth2TokenEntityService {
 
     private fun createRefreshToken(
         client: OAuthClientDetails,
-        authHolder: AuthenticationHolderEntity
+        authHolder: AuthenticationHolder
     ): OAuth2RefreshTokenEntity {
         val refreshToken = OAuth2RefreshTokenEntity() //refreshTokenFactory.createNewRefreshToken();
         val refreshClaims = JWTClaimsSet.Builder()
@@ -453,12 +454,12 @@ class SpringOAuth2ProviderTokenService : OAuth2TokenEntityService {
             }
         }.execute()
 
-        object : AbstractPageOperationTemplate<AuthenticationHolderEntity>("clearExpiredAuthenticationHolders") {
-            override fun fetchPage(): Collection<AuthenticationHolderEntity> {
+        object : AbstractPageOperationTemplate<AuthenticationHolder>("clearExpiredAuthenticationHolders") {
+            override fun fetchPage(): Collection<AuthenticationHolder> {
                 return authenticationHolderRepository.getOrphanedAuthenticationHolders(DefaultPageCriteria())
             }
 
-            override fun doOperation(item: AuthenticationHolderEntity) {
+            override fun doOperation(item: AuthenticationHolder) {
                 authenticationHolderRepository.remove(item)
             }
         }.execute()

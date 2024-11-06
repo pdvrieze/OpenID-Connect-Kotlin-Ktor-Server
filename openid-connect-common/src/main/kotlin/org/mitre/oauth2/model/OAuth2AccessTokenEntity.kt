@@ -38,7 +38,7 @@ import java.util.*
 class OAuth2AccessTokenEntity(
     var id: Long? = null,
     override var client: OAuthClientDetails? = null,
-    override var authenticationHolder: AuthenticationHolderEntity,
+    override var authenticationHolder: AuthenticationHolder,
     override var jwt: JWT, // JWT-encoded access token value
     override val expirationInstant: Instant,
     override val tokenType: String = OAuth2AccessToken.BEARER_TYPE,
@@ -65,7 +65,7 @@ class OAuth2AccessTokenEntity(
         expiration: Date,
         jwt: JWT,
         client: OAuthClientDetails? = null,
-        authenticationHolder: AuthenticationHolderEntity,
+        authenticationHolder: AuthenticationHolder,
         refreshToken: OAuth2RefreshTokenEntity? = null,
         scope: Set<String>? = null,
         tokenType: String = OAuth2AccessToken.BEARER_TYPE,
@@ -109,7 +109,7 @@ class OAuth2AccessTokenEntity(
     fun copy(
         id: Long? = this.id,
         client: OAuthClientDetails? = this.client,
-        authenticationHolder: AuthenticationHolderEntity = this.authenticationHolder,
+        authenticationHolder: AuthenticationHolder = this.authenticationHolder,
         jwt: JWT = this.jwt,
         expirationInstant: Instant = this.expirationInstant,
         tokenType: String = this.tokenType,
@@ -181,7 +181,7 @@ class OAuth2AccessTokenEntity(
                 field = value
             }
 
-        private var authenticationHolder: AuthenticationHolderEntity? = null
+        private var authenticationHolder: AuthenticationHolder? = null
 
         private val additionalInformation: MutableMap<String, JsonElement> =
             HashMap() // ephemeral map of items to be added to the OAuth token response
@@ -230,7 +230,7 @@ class OAuth2AccessTokenEntity(
             clientId = client.clientId
         }
 
-        fun setAuthenticationHolder(authenticationHolder: AuthenticationHolderEntity?) {
+        fun setAuthenticationHolder(authenticationHolder: AuthenticationHolder?) {
             this.authenticationHolder = authenticationHolder
             this.authenticationHolderId = authenticationHolder?.id
         }
@@ -270,7 +270,7 @@ class OAuth2AccessTokenEntity(
                 expirationInstant = (expiration?.toInstant() ?: Instant.MIN),
                 jwt = jwt ?: PlainJWT(JWTClaimsSet.Builder().build()),
                 client = client,
-                authenticationHolder = authenticationHolder ?: AuthenticationHolderEntity(requestTime = Instant.now()),
+                authenticationHolder = authenticationHolder ?: AuthenticationHolder.DUMMY,
                 refreshToken = refreshToken,
                 scope = scope ?: emptySet(),
                 tokenType = tokenType,

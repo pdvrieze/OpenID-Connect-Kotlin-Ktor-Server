@@ -43,7 +43,7 @@ class OAuth2RefreshTokenEntity : OAuth2RefreshToken {
     /**
      * The authentication in place when the original access token was created
      */
-    lateinit var authenticationHolder: AuthenticationHolderEntity
+    lateinit var authenticationHolder: AuthenticationHolder
 
     var client: OAuthClientDetails? = null
 
@@ -65,7 +65,7 @@ class OAuth2RefreshTokenEntity : OAuth2RefreshToken {
 
     constructor(
         id: Long? = null,
-        authenticationHolder: AuthenticationHolderEntity,
+        authenticationHolder: AuthenticationHolder,
         client: ClientDetailsEntity? = null,
         jwt: JWT = PlainJWT(JWTClaimsSet.Builder().build()),
         expiration: ISODate?,
@@ -79,7 +79,7 @@ class OAuth2RefreshTokenEntity : OAuth2RefreshToken {
 
     constructor(
         id: Long? = null,
-        authenticationHolder: AuthenticationHolderEntity,
+        authenticationHolder: AuthenticationHolder,
         client: ClientDetailsEntity? = null,
         jwt: JWT = PlainJWT(JWTClaimsSet.Builder().build()),
         expirationInstant: Instant? = null,

@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
+import org.mitre.oauth2.model.AuthenticationHolder
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
@@ -946,8 +947,8 @@ class TestSpringMITREidDataService_1_1 {
 //				when(_client.getClientId()).thenReturn(_clientId);
             _client
         }
-        whenever<AuthenticationHolderEntity>(authHolderRepository.save(isA<AuthenticationHolderEntity>()))
-            .thenAnswer(object : Answer<AuthenticationHolderEntity> {
+        whenever(authHolderRepository.save(isA<AuthenticationHolderEntity>()))
+            .thenAnswer(object : Answer<AuthenticationHolder> {
                 var id: Long = 356L
 
                 @Throws(Throwable::class)

@@ -23,7 +23,7 @@ interface OAuth2AccessToken {
 
     val jwt: JWT get() = JWTParser.parse(value)
 
-    val authenticationHolder: AuthenticationHolderEntity
+    val authenticationHolder: AuthenticationHolder
     val client: OAuthClientDetails?
 
     val issuer get() = jwt.jwtClaimsSet.issuer

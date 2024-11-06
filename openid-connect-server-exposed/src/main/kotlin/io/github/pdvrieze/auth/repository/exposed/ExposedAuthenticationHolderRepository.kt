@@ -12,6 +12,7 @@ import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.mitre.data.DefaultPageCriteria
 import org.mitre.data.PageCriteria
+import org.mitre.oauth2.model.AuthenticationHolder
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.LocalGrantedAuthority
 import org.mitre.oauth2.model.SavedUserAuthentication
@@ -29,23 +30,23 @@ class ExposedAuthenticationHolderRepository(database: Database) :
         AuthenticationHolderRequestParameters,
     ), AuthenticationHolderRepository {
 
-    override val all: List<AuthenticationHolderEntity>
+    override val all: List<AuthenticationHolder>
         get() = transaction {
             AuthenticationHolders.selectAll().map {
                 it.toAuthenticationHolder()
             }
         }
 
-    override fun getById(id: Long): AuthenticationHolderEntity? = transaction {
+    override fun getById(id: Long): AuthenticationHolder? = transaction {
         AuthenticationHolders.selectAll().where { AuthenticationHolders.id eq id }.map {
             it.toAuthenticationHolder()
         }.singleOrNull()
     }
 
-    override val orphanedAuthenticationHolders: List<AuthenticationHolderEntity>
+    override val orphanedAuthenticationHolders: List<AuthenticationHolder>
         get() = getOrphanedAuthenticationHolders(DefaultPageCriteria(pageSize = 1000))
 
-    override fun getOrphanedAuthenticationHolders(pageCriteria: PageCriteria): List<AuthenticationHolderEntity> {
+    override fun getOrphanedAuthenticationHolders(pageCriteria: PageCriteria): List<AuthenticationHolder> {
         /*
         "select a from AuthenticationHolderEntity a where " +
                 "a.id not in (select t.authenticationHolder.id from OAuth2AccessTokenEntity t) and " +
@@ -66,7 +67,7 @@ class ExposedAuthenticationHolderRepository(database: Database) :
         }
     }
 
-    override fun save(a: AuthenticationHolderEntity): AuthenticationHolderEntity = transaction {
+    override fun save(a: AuthenticationHolder): AuthenticationHolder = transaction {
         val oldId = a.id
 
         val inputUserAuth = a.userAuth
@@ -144,10 +145,10 @@ class ExposedAuthenticationHolderRepository(database: Database) :
             }
         }
 
-        a.copy(id=id)
+        a.copy(id =id)
     }
 
-    override fun remove(a: AuthenticationHolderEntity) {
+    override fun remove(a: AuthenticationHolder) {
         val entityId = a.id ?: return
 
         transaction(database) {
@@ -164,7 +165,7 @@ class ExposedAuthenticationHolderRepository(database: Database) :
     }
 }
 
-private fun ResultRow.toAuthenticationHolder(): AuthenticationHolderEntity {
+private fun ResultRow.toAuthenticationHolder(): AuthenticationHolder {
     val r = this
 
     val authHolderId = r[AuthenticationHolders.id].value

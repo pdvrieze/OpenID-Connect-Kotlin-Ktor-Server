@@ -22,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
+import org.mitre.oauth2.model.AuthenticationHolder
 import org.mitre.oauth2.model.AuthenticationHolderEntity
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
@@ -118,7 +119,7 @@ class TestSpringMITREidDataService_1_2 {
     private lateinit var capturedApprovedSites: ArgumentCaptor<ApprovedSite>
 
     @Captor
-    private lateinit var capturedAuthHolders: ArgumentCaptor<AuthenticationHolderEntity>
+    private lateinit var capturedAuthHolders: ArgumentCaptor<AuthenticationHolder>
 
     @Captor
     private lateinit var capturedScope: ArgumentCaptor<SystemScope>
@@ -755,7 +756,7 @@ class TestSpringMITREidDataService_1_2 {
         logger.debug(configJson)
 
         val fakeDb: MutableMap<Long?, AuthenticationHolderEntity> = HashMap()
-        whenever<AuthenticationHolderEntity>(authHolderRepository.save(isA<AuthenticationHolderEntity>()))
+        whenever(authHolderRepository.save(isA<AuthenticationHolder>()))
             .thenAnswer(object : Answer<AuthenticationHolderEntity> {
                 var id: Long = 243L
 
@@ -950,7 +951,7 @@ class TestSpringMITREidDataService_1_2 {
 //				when(_client.getClientId()).thenReturn(_clientId);
             _client
         }
-        whenever<AuthenticationHolderEntity>(authHolderRepository.save(isA<AuthenticationHolderEntity>()))
+        whenever(authHolderRepository.save(isA<AuthenticationHolderEntity>()))
             .thenAnswer(object : Answer<AuthenticationHolderEntity> {
                 var id: Long = 356L
 

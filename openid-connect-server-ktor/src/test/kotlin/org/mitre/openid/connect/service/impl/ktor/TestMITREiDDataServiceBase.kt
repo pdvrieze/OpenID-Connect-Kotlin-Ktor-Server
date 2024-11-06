@@ -881,7 +881,7 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
 //				when(_client.getClientId()).thenReturn(_clientId);
             _client
         }
-        whenever<AuthenticationHolderEntity>(authHolderRepository.save(isA<AuthenticationHolderEntity>()))
+        whenever(authHolderRepository.save(isA<AuthenticationHolderEntity>()))
             .thenAnswer(object : Answer<AuthenticationHolderEntity> {
                 var id: Long = 356L
 
@@ -889,13 +889,14 @@ abstract class TestMITREiDDataServiceBase<DS : MITREidDataService> {
                 override fun answer(invocation: InvocationOnMock): AuthenticationHolderEntity {
                     val _holder = invocation.arguments[0] as AuthenticationHolderEntity
                     val id = _holder.id ?: (id++).also { _holder.id = it }
-                    fakeAuthHolderTable[id] = _holder
-                    return _holder
+                    val holderCpy = _holder.copy(id)
+                    fakeAuthHolderTable[id] = holderCpy
+                    return holderCpy
                 }
             })
         whenever(authHolderRepository.getById(anyLong())).thenAnswer { invocation ->
-            val _id = invocation.arguments[0] as Long
-            fakeAuthHolderTable[_id]
+            val _id = invocation.getArgument<Long>(0)
+            fakeAuthHolderTable[_id].also { assertEquals(_id, it?.id) }
         }
 
         dataService.importData(configJson)

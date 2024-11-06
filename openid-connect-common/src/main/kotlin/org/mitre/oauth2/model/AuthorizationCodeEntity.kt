@@ -31,7 +31,7 @@ class AuthorizationCodeEntity {
     /**
      * The authentication in place when this token was created.
      */
-    var authenticationHolder: AuthenticationHolderEntity? = null
+    var authenticationHolder: AuthenticationHolder? = null
 
     var expiration: Date? = null
 
@@ -47,7 +47,7 @@ class AuthorizationCodeEntity {
     constructor(
         id: Long? = null,
         code: String? = null,
-        authenticationHolder: AuthenticationHolderEntity? = null,
+        authenticationHolder: AuthenticationHolder? = null,
         expiration: Date? = null,
     ) {
         this.id = id
@@ -59,7 +59,7 @@ class AuthorizationCodeEntity {
     fun copy(
         id: Long? = this.id,
         code: String? = this.code,
-        authenticationHolder: AuthenticationHolderEntity? = this.authenticationHolder,
+        authenticationHolder: AuthenticationHolder? = this.authenticationHolder,
         expiration: Date? = this.expiration
     ): AuthorizationCodeEntity {
         return AuthorizationCodeEntity(id, code, authenticationHolder, expiration)

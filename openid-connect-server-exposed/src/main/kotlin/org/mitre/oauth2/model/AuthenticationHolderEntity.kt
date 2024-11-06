@@ -1,30 +1,8 @@
-/*******************************************************************************
- * Copyright 2018 The MIT Internet Trust Consortium
- *
- * Portions copyright 2011-2013 The MITRE Corporation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package org.mitre.oauth2.model
 
 import kotlinx.serialization.EncodeDefault
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonElement
 import org.mitre.oauth2.model.convert.AuthenticationSerializer
 import org.mitre.oauth2.model.convert.SimpleGrantedAuthorityStringConverter
@@ -32,7 +10,6 @@ import org.mitre.oauth2.model.request.AuthorizationRequest
 import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mitre.openid.connect.model.convert.ISOInstant
 import java.time.Instant
-import kotlinx.serialization.Serializable as KXS_Serializable
 
 /*
 @Entity
@@ -47,19 +24,19 @@ import kotlinx.serialization.Serializable as KXS_Serializable
 )
 */
 class AuthenticationHolderEntity(
-    var id: Long? = null,
-    var userAuth: SavedUserAuthentication? = null,
-    var authorities: Collection<GrantedAuthority>? = null,
-    var resourceIds: Set<String>? = null,
-    var isApproved: Boolean = false,
-    var redirectUri: String? = null,
-    var responseTypes: Set<String>? = null,
-    var extensions: Map<String, String>? = null,
-    var clientId: String? = null,
-    var scope: Set<String>? = null,
-    var requestParameters: Map<String, String>? = null,
-    val requestTime: ISOInstant?,
-) {
+    override var id: Long? = null,
+    override var userAuth: SavedUserAuthentication? = null,
+    override var authorities: Collection<GrantedAuthority>? = null,
+    override var resourceIds: Set<String>? = null,
+    override var isApproved: Boolean = false,
+    override var redirectUri: String? = null,
+    override var responseTypes: Set<String>? = null,
+    override var extensions: Map<String, String>? = null,
+    override var clientId: String? = null,
+    override var scope: Set<String>? = null,
+    override var requestParameters: Map<String, String>? = null,
+    override val requestTime: ISOInstant?,
+) : AuthenticationHolder {
 
     constructor(
         authentication: AuthenticatedAuthorizationRequest,
@@ -76,7 +53,7 @@ class AuthenticationHolderEntity(
         id: Long? = null
     ): this(
         id = id,
-        userAuth = authentication?.let(SavedUserAuthentication::from),
+        userAuth = authentication?.let(SavedUserAuthentication.Companion::from),
         authorities = o2Request.authorities.toHashSet(),
         resourceIds = o2Request.resourceIds?.toHashSet(),
         isApproved = o2Request.isApproved,
@@ -89,7 +66,7 @@ class AuthenticationHolderEntity(
         requestTime = o2Request.requestTime,
     )
 
-    val authenticatedAuthorizationRequest: AuthenticatedAuthorizationRequest
+    override val authenticatedAuthorizationRequest: AuthenticatedAuthorizationRequest
         get() = AuthenticatedAuthorizationRequest(createAuthorizationRequest(), userAuth)
 
     private fun createAuthorizationRequest(): AuthorizationRequest {
@@ -100,7 +77,8 @@ class AuthenticationHolderEntity(
             b.clientId = clientId!!
             b.authorities = authorities?.toSet() ?: emptySet()
             if (isApproved && b.approval == null) {
-                b.approval = AuthorizationRequest.Approval(Instant.EPOCH) // mark long ago //setFromExtensions should handle this
+                b.approval =
+                    AuthorizationRequest.Approval(Instant.EPOCH) // mark long ago //setFromExtensions should handle this
             }
 
             b.scope = scope ?: emptySet()
@@ -110,6 +88,10 @@ class AuthenticationHolderEntity(
             b.requestTime = requestTime
 //            extensionStrings = extensions?.let { m -> m.mapValues { (_, v) -> v } },
         }.build()
+    }
+
+    override fun copy(id: Long?): AuthenticationHolderEntity {
+        return copy(id, this.userAuth)
     }
 
     fun copy(
@@ -153,7 +135,7 @@ class AuthenticationHolderEntity(
         fun toAuthenticationHolder(): AuthenticationHolderEntity
     }
 
-    @KXS_Serializable
+    @Serializable
     class SerialDelegate10(
         @SerialName("id")
         val currentId: Long? = null,
@@ -162,7 +144,7 @@ class AuthenticationHolderEntity(
         @SerialName("authentication")
         val _authentication: AuthenticatedAuthorizationRequest/*? = null*/,
     ) : SerialDelegate {
-        constructor(e: AuthenticationHolderEntity) : this(
+        constructor(e: AuthenticationHolder) : this(
             currentId = e.id,
             _authentication = e.authenticatedAuthorizationRequest
         )
@@ -175,8 +157,8 @@ class AuthenticationHolderEntity(
         }
     }
 
-    @OptIn(ExperimentalSerializationApi::class)
-    @KXS_Serializable
+    @OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
+    @Serializable
     class SerialDelegate12(
         @SerialName("id")
         val currentId: Long,
@@ -203,7 +185,7 @@ class AuthenticationHolderEntity(
         @SerialName("savedUserAuthentication")
         val userAuth: @Serializable(AuthenticationSerializer::class) Authentication? = null,
     ) : SerialDelegate {
-        constructor(e: AuthenticationHolderEntity) : this(
+        constructor(e: AuthenticationHolder) : this(
             currentId = e.id!!,
             requestParameters = e.requestParameters ?: emptyMap(),
             clientId = e.clientId,
@@ -235,19 +217,20 @@ class AuthenticationHolderEntity(
         }
     }
 
-    @OptIn(ExperimentalSerializationApi::class)
-    abstract class SerializerBase<T: SerialDelegate>(version: String, private val delegate: KSerializer<T>): KSerializer<AuthenticationHolderEntity> {
+    @OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
+    abstract class SerializerBase<T: SerialDelegate>(version: String, private val delegate: kotlinx.serialization.KSerializer<T>):
+        kotlinx.serialization.KSerializer<AuthenticationHolderEntity> {
 
-        override val descriptor: SerialDescriptor =
-            SerialDescriptor("org.mitre.oauth2.model.AuthenticationHolderEntity.$version", delegate.descriptor)
+        override val descriptor: kotlinx.serialization.descriptors.SerialDescriptor =
+            kotlinx.serialization.descriptors.SerialDescriptor("org.mitre.oauth2.model.AuthenticationHolderEntity.$version", delegate.descriptor)
 
-        override fun deserialize(decoder: Decoder): AuthenticationHolderEntity {
+        override fun deserialize(decoder: kotlinx.serialization.encoding.Decoder): AuthenticationHolderEntity {
             return delegate.deserialize(decoder).toAuthenticationHolder()
         }
 
         abstract fun AuthenticationHolderEntity.toDelegate(): T
 
-        override fun serialize(encoder: Encoder, value: AuthenticationHolderEntity) {
+        override fun serialize(encoder: kotlinx.serialization.encoding.Encoder, value: AuthenticationHolderEntity) {
             delegate.serialize(encoder, value.toDelegate())
         }
 
