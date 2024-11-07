@@ -1,5 +1,8 @@
 package org.mitre.oauth2.model.request
 
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
 import org.mitre.openid.connect.request.Prompt
 
 interface OpenIdAuthorizationRequest : AuthorizationRequest {
@@ -12,6 +15,8 @@ interface OpenIdAuthorizationRequest : AuthorizationRequest {
     val prompts: Set<Prompt>?
     val idToken: String? //idtoken
     val nonce: String?
+    val display: String?
+    val requestedClaims: JsonObject?
 
     override fun builder(): Builder
 
@@ -27,6 +32,8 @@ interface OpenIdAuthorizationRequest : AuthorizationRequest {
         var prompts: Set<Prompt>? = null
         var idToken: String? = null //idtoken
         var nonce: String? = null
+        var requestedClaims: JsonObject? = null
+        var display: String? = null
         var extensions: Map<String, String>? = null
             private set
 
@@ -40,6 +47,8 @@ interface OpenIdAuthorizationRequest : AuthorizationRequest {
                 prompts = orig.prompts
                 idToken = orig.idToken
                 nonce = orig.nonce
+                display = orig.display
+                requestedClaims = orig.requestedClaims
             }
         }
 
@@ -57,6 +66,8 @@ interface OpenIdAuthorizationRequest : AuthorizationRequest {
             extCpy.remove("prompt")?.let { prompts = Prompt.parseSet(it) }
             extCpy.remove("idtoken")?.let { idToken = it }
             extCpy.remove("nonce")?.let { nonce = it }
+            extCpy.remove("display")?.let { display = it }
+            extCpy.remove("claims")?.let { requestedClaims = Json.parseToJsonElement(it).jsonObject }
             this.extensions = extCpy.takeIf { it.isNotEmpty() }
         }
     }

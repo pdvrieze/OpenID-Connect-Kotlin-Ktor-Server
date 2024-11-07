@@ -13,7 +13,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limStringitations under the License.
  */
 package org.mitre.openid.connect.request
 
@@ -43,7 +43,6 @@ import org.mitre.openid.connect.request.ConnectRequestParameters.MAX_AGE
 import org.mitre.openid.connect.request.ConnectRequestParameters.REQUEST
 import org.mitre.openid.connect.service.KtorIdDataService
 import org.mitre.util.getLogger
-import java.text.ParseException
 
 
 // TODO Spring specific
@@ -55,76 +54,53 @@ class KtorConnectOAuth2RequestFactory(
     clientDetailsService,
 ) {
     override suspend fun createAuthorizationRequest(inputParams: Parameters): AuthorizationRequest {
-        val baseRequest = super.createAuthorizationRequest(inputParams)
+        val reqBuilder = OpenIdAuthorizationRequest.Builder(super.createAuthorizationRequest(inputParams)).apply {
+            val jwt = inputParams[REQUEST]?.let { parseToJwt(it, this) }
 
-        val jwt = inputParams[REQUEST]?.let { parseToJwt(it, baseRequest) }
+            // TODO this should not be optional
+            if (this.clientId.isBlank()) {
+                this.clientId =
+                    requireNotNull(jwt?.run { jwtClaimsSet.getStringClaim(CLIENT_ID).takeIf { it.isNotBlank() } }) {
+                        "Missing client id"
+                    }
+            }
 
-        val finalClientId = baseRequest.clientId.takeIf { it.isNotBlank() }
-            ?: jwt?.run { jwtClaimsSet.getStringClaim(CLIENT_ID).takeIf { it.isNotBlank() } }
+            val client = clientDetailsService.loadClientByClientId(this.clientId)
 
-        val client = finalClientId?.let { clientDetailsService.loadClientByClientId(it) }
+            this.codeChallenge = inputParams[CODE_CHALLENGE]?.let { codeChallenge ->
+                val challengeMethod = inputParams[ConnectRequestParameters.CODE_CHALLENGE_METHOD]
+                CodeChallenge(codeChallenge, challengeMethod ?: PKCEAlgorithm.plain.name)
+            }
 
-        val codeChallenge = inputParams[CODE_CHALLENGE]?.let { codeChallenge ->
-            val challengeMethod = inputParams[ConnectRequestParameters.CODE_CHALLENGE_METHOD]
-            CodeChallenge(codeChallenge, challengeMethod ?: PKCEAlgorithm.plain.name)
+            this.audience = inputParams[AUD]
+            this.maxAge = inputParams[MAX_AGE]?.toLong() ?: client?.defaultMaxAge
+
+            this.prompts = inputParams[ConnectRequestParameters.PROMPT]?.let { Prompt.parseSet(it) }
+            this.nonce = inputParams[ConnectRequestParameters.NONCE]
+
+            this.requestedClaims = parseClaimRequest(inputParams[ConnectRequestParameters.CLAIMS])
+            this.maxAge = inputParams[MAX_AGE]?.toLong()
+            this.loginHint = inputParams[LOGIN_HINT]
+            this.audience = inputParams[AUD]
+
+            if (jwt != null) { // TODO whether this is not just duplicate
+                processRequestObject(jwt.jwtClaimsSet, this)
+                processResponseTypes(jwt.jwtClaimsSet, this)
+                processRedirectUri(jwt.jwtClaimsSet, this)
+                processState(jwt.jwtClaimsSet, this)
+            }
+
+            scope = jwt?.let { processScope(it.jwtClaimsSet, this) }
+                ?: scope.takeIf { it.isNotEmpty() }
+                        ?: client?.scope
+                        ?: emptySet()
         }
-
-        val audience = inputParams[AUD]
-        val maxAge = inputParams[MAX_AGE]?.toLong() ?: client?.defaultMaxAge
-
-        val extensions = buildMap {
-
-            inputParams[ConnectRequestParameters.PROMPT]?.let { put(ConnectRequestParameters.PROMPT, it) }
-            inputParams[ConnectRequestParameters.NONCE]?.let { put(ConnectRequestParameters.NONCE, it) }
-            parseClaimRequest(inputParams[ConnectRequestParameters.CLAIMS])?.let {
-                put(ConnectRequestParameters.CLAIMS, it.toString())
-            }
-            inputParams[MAX_AGE]?.let { put(MAX_AGE, it) }
-            inputParams[LOGIN_HINT]?.let { put(LOGIN_HINT, it) }
-            inputParams[AUD]?.let { put(AUD, it) }
-
-            /*
-                        inputParams[CODE_CHALLENGE]?.let { codeChallenge ->
-                            put(CODE_CHALLENGE, codeChallenge)
-                            val challengeMethod = inputParams[ConnectRequestParameters.CODE_CHALLENGE_METHOD]
-                            put(ConnectRequestParameters.CODE_CHALLENGE_METHOD, challengeMethod ?: PKCEAlgorithm.plain.name)
-                        }
-            */
-
-            if (jwt != null) {
-                processRequestObject(jwt.jwtClaimsSet, baseRequest)
-            }
-
-            if (maxAge != null) {
-                put(MAX_AGE, maxAge.toString())
-            }
-        }
-        val newResponseTypes =
-            jwt?.let { processResponseTypes(it.jwtClaimsSet, baseRequest) } ?: baseRequest.responseTypes
-        val newRedirectUri = jwt?.let { processRedirectUri(it.jwtClaimsSet, baseRequest) } ?: baseRequest.redirectUri
-        val newState = jwt?.let { processState(it.jwtClaimsSet, baseRequest) } ?: baseRequest.state
-        val newScope = jwt?.let { processScope(it.jwtClaimsSet, baseRequest) }
-            ?: baseRequest.scope.takeIf { it.isNotEmpty() }
-            ?: client?.scope
-            ?: emptySet()
 
         //Add extension parameters to the 'extensions' map
-
-
-        return OpenIdAuthorizationRequest.Builder(baseRequest).also { b ->
-            b.setFromExtensions(extensions)
-            b.clientId = finalClientId ?: ""
-            b.scope = newScope
-            b.redirectUri = newRedirectUri
-            b.responseTypes = newResponseTypes
-            b.state = newState
-            b.codeChallenge = codeChallenge
-            b.audience = audience
-            b.maxAge = maxAge
-        }.build()
+        return reqBuilder.build()
     }
 
-    private suspend fun parseToJwt(jwtString: String, request: AuthorizationRequest): JWT {
+    private suspend fun parseToJwt(jwtString: String, request: OpenIdAuthorizationRequest.Builder): JWT {
         when (val jwt = JWTParser.parse(jwtString)) {
             is SignedJWT -> {
                 // it's a signed JWT, check the signature
@@ -208,7 +184,7 @@ class KtorConnectOAuth2RequestFactory(
         error("Unexpected JWT type (Neither plain, signed or encrypted)")
     }
 
-    private fun processResponseTypes(claims: JWTClaimsSet, request: AuthorizationRequest): Set<String>? {
+    private fun processResponseTypes(claims: JWTClaimsSet, request: OpenIdAuthorizationRequest.Builder) {
         val responseTypes = claims.getStringClaim(ConnectRequestParameters.RESPONSE_TYPE)
             ?.splitToSequence(' ')?.filterNotTo(HashSet()) { it.isBlank() }
 
@@ -217,90 +193,82 @@ class KtorConnectOAuth2RequestFactory(
             if (responseTypes != request.responseTypes) {
                 logger.info("Mismatch between request object and regular parameter for response_type, using request object")
             }
-            return responseTypes
+            request.responseTypes=responseTypes
         }
-        return request.responseTypes
     }
 
-    private fun processRedirectUri(claims: JWTClaimsSet, request: AuthorizationRequest): String? {
+    private fun processRedirectUri(claims: JWTClaimsSet, request: OpenIdAuthorizationRequest.Builder) {
         val redirectUri = claims.getStringClaim(ConnectRequestParameters.REDIRECT_URI)
         if (redirectUri != null) {
             if (redirectUri != request.redirectUri) {
                 logger.info("Mismatch between request object and regular parameter for redirect_uri, using request object")
             }
-            return redirectUri
+            request.redirectUri = redirectUri
         }
-        return request.redirectUri
     }
 
-    private fun MutableMap<String, String>.processRequestObject(
+    private fun processRequestObject(
         claims: JWTClaimsSet,
-        request: AuthorizationRequest,
+        request: OpenIdAuthorizationRequest.Builder,
     ) {
-        val extensions = this
         // parse the request object
 
-        try {
-
-            val nonce = claims.getStringClaim(ConnectRequestParameters.NONCE)
-            if (nonce != null) {
-                if (nonce != extensions[ConnectRequestParameters.NONCE]) {
-                    logger.info("Mismatch between request object and regular parameter for nonce, using request object")
-                }
-                extensions[ConnectRequestParameters.NONCE] = nonce
+        val nonce = claims.getStringClaim(ConnectRequestParameters.NONCE)
+        if (nonce != null) {
+            if (nonce != request.nonce) {
+                logger.info("Mismatch between request object and regular parameter for nonce, using request object")
             }
+            request.nonce = nonce
+        }
 
-            val display = claims.getStringClaim(ConnectRequestParameters.DISPLAY)
-            if (display != null) {
-                if (display != extensions[ConnectRequestParameters.DISPLAY]) {
-                    logger.info("Mismatch between request object and regular parameter for display, using request object")
-                }
-                extensions[ConnectRequestParameters.DISPLAY] = display
+        val display = claims.getStringClaim(ConnectRequestParameters.DISPLAY)
+        if (display != null) {
+            if (display != request.display) {
+                logger.info("Mismatch between request object and regular parameter for display, using request object")
             }
+            request.display = display
+        }
 
-            val prompt = claims.getStringClaim(ConnectRequestParameters.PROMPT)
-            if (prompt != null) {
-                if (prompt != extensions[ConnectRequestParameters.PROMPT]) {
-                    logger.info("Mismatch between request object and regular parameter for prompt, using request object")
-                }
-                extensions[ConnectRequestParameters.PROMPT] = prompt
+        val prompt = claims.getStringClaim(ConnectRequestParameters.PROMPT)
+        if (prompt != null) {
+            val prompts = Prompt.parseSet(prompt)
+            if (prompts != request.prompts) {
+                logger.info("Mismatch between request object and regular parameter for prompt, using request object")
             }
+            request.prompts = prompts
+        }
 
-            val claimRequest = parseClaimRequest(claims.getStringClaim(ConnectRequestParameters.CLAIMS))
-            if (claimRequest != null) {
-                val claimExtension = extensions[ConnectRequestParameters.CLAIMS]
-                if (claimExtension == null || claimRequest != parseClaimRequest(claimExtension.toString())) {
-                    logger.info("Mismatch between request object and regular parameter for claims, using request object")
-                }
-                // we save the string because the object might not be a Java Serializable, and we can parse it easily enough anyway
-                extensions[ConnectRequestParameters.CLAIMS] = claimRequest.toString()
+        val claimRequest = parseClaimRequest(claims.getStringClaim(ConnectRequestParameters.CLAIMS))
+        if (claimRequest != null) {
+            val claimExtension = request.requestedClaims
+            if (claimRequest != claimExtension) {
+                logger.info("Mismatch between request object and regular parameter for claims, using request object")
             }
+            // we save the string because the object might not be a Java Serializable, and we can parse it easily enough anyway
+            request.requestedClaims = claimRequest
+        }
 
-            val loginHint = claims.getStringClaim(LOGIN_HINT)
-            if (loginHint != null) {
-                if (loginHint != extensions[LOGIN_HINT]) {
-                    logger.info("Mistmatch between request object and regular parameter for login_hint, using requst object")
-                }
-                extensions[LOGIN_HINT] = loginHint
+        val loginHint = claims.getStringClaim(LOGIN_HINT)
+        if (loginHint != null) {
+            if (loginHint != request.loginHint) {
+                logger.info("Mistmatch between request object and regular parameter for login_hint, using requst object")
             }
-        } catch (e: ParseException) {
-            logger.error("ParseException while parsing RequestObject:", e)
+            request.loginHint = loginHint
         }
     }
 
-    private fun processState(claims: JWTClaimsSet, request: AuthorizationRequest): String? {
+    private fun processState(claims: JWTClaimsSet, request: OpenIdAuthorizationRequest.Builder) {
         val state = claims.getStringClaim(ConnectRequestParameters.STATE)
         if (state != null) {
             if (state != request.state) {
                 logger.info("Mismatch between request object and regular parameter for state, using request object")
             }
-            return state
+            request.state = state
         }
-        return request.state
     }
 
-    private fun processScope(claims: JWTClaimsSet, request: AuthorizationRequest): Set<String> {
-        val scope = claims.getStringClaim(ConnectRequestParameters.SCOPE).splitToSequence(' ')
+    private fun processScope(claims: JWTClaimsSet, request: OpenIdAuthorizationRequest.Builder): Set<String>? {
+        val scope = claims.getStringClaim("scope").splitToSequence(' ')
             .filterNotTo(HashSet()) { it.isBlank() }
         if (scope.isNotEmpty()) {
             if (scope != request.scope) {
@@ -308,7 +276,7 @@ class KtorConnectOAuth2RequestFactory(
             }
             return scope
         }
-        return request.scope
+        return null
     }
 
 

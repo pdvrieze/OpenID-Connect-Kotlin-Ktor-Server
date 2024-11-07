@@ -23,6 +23,7 @@ import io.ktor.server.routing.*
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
 import org.mitre.oauth2.model.GrantedAuthority
+import org.mitre.oauth2.model.request.OpenIdAuthorizationRequest
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.openid.connect.view.CT_JWT
 import org.mitre.openid.connect.view.userInfoJWTView
@@ -111,6 +112,7 @@ object UserInfoEndpoint: KtorEndpoint {
             )
 
         } else {
+            val oidRequest = auth.authorizationRequest as? OpenIdAuthorizationRequest
             return userInfoView(
                 jwtService = signService,
                 config = openIdContext.config,
@@ -120,7 +122,7 @@ object UserInfoEndpoint: KtorEndpoint {
                 userInfo = userInfo,
                 scope = auth.authorizationRequest.scope,
                 client = client,
-                authorizedClaims = auth.authorizationRequest.authHolderExtensions["claims"],
+                authorizedClaims = oidRequest?.requestedClaims?.toString(),
                 requestedClaims = claimsRequestJsonString,
             )
         }

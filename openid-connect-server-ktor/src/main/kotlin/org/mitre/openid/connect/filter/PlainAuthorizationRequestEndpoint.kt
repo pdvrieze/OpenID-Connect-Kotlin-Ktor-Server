@@ -152,7 +152,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
                     userApprovalHandler.updateAfterApproval(authRequest, auth, paramMap)
                 }
 
-                else -> userApprovalHandler.checkForPreApproval(authRequest, auth, prompts)
+                else -> userApprovalHandler.checkForPreApproval(authRequest, auth)
             }
 
             when {
@@ -371,7 +371,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
                         userApprovalHandler.isApproved(authRequest, auth, paramMap) ->
                     userApprovalHandler.updateAfterApproval(authRequest, auth, paramMap)
 
-                else -> userApprovalHandler.checkForPreApproval(authRequest, auth, oldSession.pendingPrompts)
+                else -> userApprovalHandler.checkForPreApproval(authRequest, auth)
             }
 
 

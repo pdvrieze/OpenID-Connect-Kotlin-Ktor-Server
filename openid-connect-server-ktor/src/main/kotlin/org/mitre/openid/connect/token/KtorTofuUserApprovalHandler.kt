@@ -17,13 +17,12 @@
  */
 package org.mitre.openid.connect.token
 
-import kotlinx.serialization.json.buildJsonObject
 import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.request.AuthorizationRequest
+import org.mitre.oauth2.model.request.OpenIdAuthorizationRequest
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.openid.connect.model.ApprovedSite
-import org.mitre.openid.connect.request.ConnectRequestParameters
 import org.mitre.openid.connect.request.Prompt
 import org.mitre.openid.connect.service.ApprovedSiteService
 import org.mitre.openid.connect.service.WhitelistedSiteService
@@ -93,21 +92,18 @@ class KtorTofuUserApprovalHandler(
      */
     override fun checkForPreApproval(
         authorizationRequest: AuthorizationRequest,
-        userAuthentication: Authentication,
-        prompts: Set<Any>?
+        userAuthentication: Authentication
     ): AuthorizationRequest {
         val requestBuilder = authorizationRequest.builder() // create a builder to update for
 
         //First, check database to see if the user identified by the userAuthentication has stored an approval decision
-        // TODO (extensions shouldn't be used directly, but programmed in)
-        val newExtensions: MutableMap<String, String> = HashMap<String, String>(authorizationRequest.authHolderExtensions)
-
         val userId = userAuthentication.name
         val clientId = authorizationRequest.clientId
 
         //lookup ApprovedSites by userId and clientId
         var alreadyApproved = false
 
+        val prompts = (authorizationRequest as? OpenIdAuthorizationRequest)?.prompts
         if (prompts == null || Prompt.CONSENT !in prompts) {
             // if the prompt parameter is set to "consent" then we can't use approved sites or whitelisted sites
             // otherwise, we need to check them below
@@ -115,6 +111,7 @@ class KtorTofuUserApprovalHandler(
             val aps = checkNotNull(approvedSiteService.getByClientIdAndUserId(clientId, userId)) {
                 "Missing approved site service for client:$clientId and user:$userId"
             }
+            val now = Instant.now()
             for (ap in aps) {
                 if (!ap.isExpired) {
                     // if we find one that fits...
@@ -122,13 +119,13 @@ class KtorTofuUserApprovalHandler(
                     if (systemScopes.scopesMatch(ap.allowedScopes, authorizationRequest.scope)) {
                         //We have a match; update the access date on the AP entry and return true.
 
-                        ap.accessDate = Instant.now()
-                        approvedSiteService.save(ap)
+                        ap.accessDate = now
+                        val savedAP = approvedSiteService.save(ap)
 
-                        val apId = ap.id.toString()
-                        newExtensions[ConnectRequestParameters.APPROVED_SITE] = apId
+//                        val apId = savedAP.id.toString()
+//                        newExtensions[ConnectRequestParameters.APPROVED_SITE] = apId
 
-                        requestBuilder.approval = AuthorizationRequest.Approval(Instant.now()) // rather than using extensions
+                        requestBuilder.approval = AuthorizationRequest.Approval(savedAP, now) // rather than using extensions
 
                         alreadyApproved = true
                     }
@@ -138,7 +135,7 @@ class KtorTofuUserApprovalHandler(
             if (!alreadyApproved) {
                 val ws = whitelistedSiteService.getByClientId(clientId)
                 if (ws != null && systemScopes.scopesMatch(ws.allowedScopes, authorizationRequest.scope)) {
-                    requestBuilder.approval = AuthorizationRequest.Approval(Instant.now())
+                    requestBuilder.approval = AuthorizationRequest.Approval(now)
                 }
             }
         }
@@ -157,59 +154,50 @@ class KtorTofuUserApprovalHandler(
         val client = clientDetailsService.loadClientByClientId(clientId)!!
         val requestBuilder = authorizationRequest.builder()
 
-        val newExtensions = HashMap(authorizationRequest.authHolderExtensions)
+        if (postParams["user_oauth_approval"] == "true") {
 
-        val newApprovalParameters = when(val oldApprovalParameters = postParams) {
-            null -> null
+            //This is a scope parameter from the approval page. The value sent back should
+            //be the scope string. Check to make sure it is contained in the client's
+            //registered allowed scopes.
+            val allowedScopes = postParams.asSequence()
+                .filter { it.key.startsWith("scope_") }
+                .map { setOf(it.value) }
+                //Make sure this scope is allowed for the given client
+                .filter { scopes -> systemScopes.scopesMatch(client.scope, scopes) }
+                .flatMapTo(HashSet()) { it }
 
-            else -> buildJsonObject {
-                // This must be re-parsed here because SECOAUTH forces us to call things in a strange order
-                if (oldApprovalParameters["user_oauth_approval"] == "true") {
+            // inject the user-allowed scopes into the auth request
+            requestBuilder.scope = allowedScopes
 
-                    //This is a scope parameter from the approval page. The value sent back should
-                    //be the scope string. Check to make sure it is contained in the client's
-                    //registered allowed scopes.
-                    val allowedScopes = oldApprovalParameters.asSequence()
-                        .filter { it.key.startsWith("scope_")  }
-                        .map { setOf(it.value) }
-                        //Make sure this scope is allowed for the given client
-                        .filter { scopes -> systemScopes.scopesMatch(client.scope, scopes) }
-                        .flatMapTo(HashSet()) { it }
+            var approvedSite: ApprovedSite?
 
-                    // inject the user-allowed scopes into the auth request
-                    requestBuilder.scope = allowedScopes
+            //Only store an ApprovedSite if the user has checked "remember this decision":
+            when (postParams["remember"]) {
+                "one-hour" -> {
+                    val timeout: Date? = Date.from(Instant.now() + Duration.ofHours(1))
 
-                    var approvedSite: ApprovedSite?
+                    approvedSite = approvedSiteService.createApprovedSite(clientId, userId, timeout, allowedScopes)
+                }
 
-                    //Only store an ApprovedSite if the user has checked "remember this decision":
-                    when(postParams["remember"]) {
-                        "one-hour" -> {
-                            val timeout: Date? = Date.from(Instant.now()+Duration.ofHours(1))
+                "until-revoked" ->
+                    approvedSite =
+                        approvedSiteService.createApprovedSite(clientId, userId, timeoutDate = null as Date?, allowedScopes = allowedScopes)
 
-                            approvedSite = approvedSiteService.createApprovedSite(clientId, userId, timeout, allowedScopes)
-                        }
-
-                        "until-revoked" ->
-                            approvedSite = approvedSiteService.createApprovedSite(clientId, userId, timeoutDate = null as Date?, allowedScopes = allowedScopes)
-
-                        else -> { // default to not remembering
-                            approvedSite = null
-                        }
-                    }
-                    val remember = oldApprovalParameters["remember"]
-                    if (!remember.isNullOrEmpty() && remember != "none") {
-                        var timeout: Date? = null
-                        if (remember == "one-hour") {
-                            // set the timeout to one hour from now
-                            timeout = Date.from(Instant.now()+Duration.ofHours(1))
-                        }
-
-                        approvedSite = approvedSiteService.createApprovedSite(clientId, userId, timeout, allowedScopes)
-                    }
-                    requestBuilder.approval = AuthorizationRequest.Approval(approvedSite, Instant.now())
+                else -> { // default to not remembering
+                    approvedSite = null
                 }
             }
+            val remember = postParams["remember"]
+            if (!remember.isNullOrEmpty() && remember != "none") {
+                var timeout: Date? = null
+                if (remember == "one-hour") {
+                    // set the timeout to one hour from now
+                    timeout = Date.from(Instant.now() + Duration.ofHours(1))
+                }
 
+                approvedSite = approvedSiteService.createApprovedSite(clientId, userId, timeout, allowedScopes)
+            }
+            requestBuilder.approval = AuthorizationRequest.Approval(approvedSite, Instant.now())
         }
 
         return requestBuilder.build()

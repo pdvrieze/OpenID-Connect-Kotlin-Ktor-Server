@@ -54,7 +54,7 @@ interface ApprovedSiteService {
      *
      * the ApprovedSite to be saved
      */
-    fun save(approvedSite: ApprovedSite): ApprovedSite?
+    fun save(approvedSite: ApprovedSite): ApprovedSite
 
     /**
      * Get ApprovedSite for id

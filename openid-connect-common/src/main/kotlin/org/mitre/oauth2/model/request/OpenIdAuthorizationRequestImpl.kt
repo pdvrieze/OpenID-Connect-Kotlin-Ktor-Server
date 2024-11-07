@@ -1,5 +1,6 @@
 package org.mitre.oauth2.model.request
 
+import kotlinx.serialization.json.JsonObject
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.openid.connect.model.convert.ISOInstant
 import org.mitre.openid.connect.request.Prompt
@@ -26,6 +27,8 @@ class OpenIdAuthorizationRequestImpl internal constructor(
     override val prompts: Set<Prompt>? = builder.prompts
     override val idToken: String? = builder.idToken
     override val nonce: String? = builder.nonce
+    override val display: String? = builder.display
+    override val requestedClaims: JsonObject? = builder.requestedClaims
 
     val extensions: Map<String, String>? = builder.extensions?.toMap()
 
@@ -36,6 +39,19 @@ class OpenIdAuthorizationRequestImpl internal constructor(
                 put("AUTHZ_TIMESTAMP", it.approvalTime.epochSecond.toString())
                 it.approvedSiteId?.let { s -> put("approved_site", s.toString()) }
             }
+            codeChallenge?.let {
+                put("code_challenge", it.challenge)
+                put("code_challenge_Method", it.method)
+            }
+            audience?.let { put("aud", it) }
+            maxAge?.let { put("max_age", it.toString()) }
+            approvedSiteId?.let { put("approved_site", it.toString()) }
+            loginHint?.let { put("login_hint", it) }
+            prompts?.let { put("prompt", it.joinToString(" ") { it.value }) }
+            idToken?.let { put("idtoken", it) }
+            nonce?.let { put("nonce", it) }
+            display?.let { put("display", it) }
+            requestedClaims?.let { s -> put("claims", s.toString()) }
         }
     }
 
