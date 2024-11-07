@@ -35,8 +35,8 @@ import java.time.Instant
 */
 class AuthenticationHolderEntity(
     override var id: Long? = null,
-    override var userAuth: SavedUserAuthentication? = null,
-    var authorities: Set<GrantedAuthority>? = null,
+    override var userAuthentication: SavedUserAuthentication? = null,
+    override var authorities: Set<GrantedAuthority> = emptySet(),
     var resourceIds: Set<String>? = null,
     var isApproved: Boolean = false,
     var redirectUri: String? = null,
@@ -63,7 +63,7 @@ class AuthenticationHolderEntity(
         id: Long? = null
     ): this(
         id = id,
-        userAuth = authentication?.let(SavedUserAuthentication.Companion::from),
+        userAuthentication = authentication?.let(SavedUserAuthentication.Companion::from),
         authorities = o2Request.authorities.toHashSet(),
         resourceIds = o2Request.resourceIds?.toHashSet(),
         isApproved = o2Request.isApproved,
@@ -101,17 +101,17 @@ class AuthenticationHolderEntity(
     }
 
     override fun copy(id: Long?): AuthenticationHolder {
-        return copy(id, this.userAuth)
+        return copy(id, this.userAuthentication)
     }
 
     fun copy(
         id: Long? = this.id,
-        userAuth: SavedUserAuthentication? = this.userAuth,
+        userAuth: SavedUserAuthentication? = this.userAuthentication,
     ): AuthenticationHolderEntity {
         return AuthenticationHolderEntity(
             id = id,
-            userAuth = userAuth,
-            authorities = authorities?.toHashSet(),
+            userAuthentication = userAuth,
+            authorities = authorities.toHashSet(),
             resourceIds = resourceIds?.toHashSet(),
             isApproved = isApproved,
             redirectUri = redirectUri,
@@ -146,7 +146,7 @@ class AuthenticationHolderEntity(
     ) : SerialDelegate {
         constructor(e: AuthenticationHolder) : this(
             currentId = e.id,
-            _authentication = e.authenticatedAuthorizationRequest
+            _authentication = e
         )
 
         override fun toAuthenticationHolder(): AuthenticationHolderEntity {
@@ -196,13 +196,13 @@ class AuthenticationHolderEntity(
             redirectUri = e.redirectUri,
             responseTypes = e.responseTypes ?: emptySet(),
             extensions = e.extensions?.asSequence()?.mapNotNull { (k, v) -> (v as? String)?.let { k to it } }?.associate { it } ?: emptyMap(),
-            userAuth = e.userAuth,
+            userAuth = e.userAuthentication,
         )
 
         override fun toAuthenticationHolder(): AuthenticationHolderEntity {
             return AuthenticationHolderEntity(
                 id = currentId,
-                userAuth = userAuth?.let { it as? SavedUserAuthentication ?: SavedUserAuthentication(it) },
+                userAuthentication = userAuth?.let { it as? SavedUserAuthentication ?: SavedUserAuthentication(it) },
                 authorities = authorities,
                 resourceIds = resourceIds,
                 isApproved = isApproved,

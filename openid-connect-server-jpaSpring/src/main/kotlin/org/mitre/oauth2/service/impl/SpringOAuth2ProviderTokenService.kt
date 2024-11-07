@@ -204,7 +204,7 @@ class SpringOAuth2ProviderTokenService : OAuth2TokenEntityService {
         }
 
         //Add approved site reference, if any
-        val originalAuthRequest = authHolder.authenticatedAuthorizationRequest.authorizationRequest
+        val originalAuthRequest = authHolder.authorizationRequest
 
         if (originalAuthRequest.extensions.containsKey("approved_site") == true) {
             val apId = (originalAuthRequest.extensions["approved_site"] as String).toLong()
@@ -303,7 +303,7 @@ class SpringOAuth2ProviderTokenService : OAuth2TokenEntityService {
 
         // get the stored scopes from the authentication holder's authorization request; these are the scopes associated with the refresh token
         val refreshScopesRequested: Set<String> =
-            HashSet(refreshToken.authenticationHolder.authenticatedAuthorizationRequest.authorizationRequest.scope)
+            HashSet(refreshToken.authenticationHolder.authorizationRequest.scope)
         val refreshScopes: Set<SystemScope>? = scopeService.fromStrings(refreshScopesRequested)?.let {
             // remove any of the special system scopes
             scopeService.removeReservedScopes(it)
@@ -353,7 +353,7 @@ class SpringOAuth2ProviderTokenService : OAuth2TokenEntityService {
 
         tokenBuilder.setAuthenticationHolder(authHolder)
 
-        tokenEnhancer.enhance(tokenBuilder, authHolder.authenticatedAuthorizationRequest)
+        tokenEnhancer.enhance(tokenBuilder, authHolder)
 
         val token = tokenBuilder.build(clientDetailsService, authenticationHolderRepository, tokenRepository)
 
@@ -369,7 +369,7 @@ class SpringOAuth2ProviderTokenService : OAuth2TokenEntityService {
         if (accessToken == null) {
             throw InvalidTokenException("Invalid access token: $accessTokenValue")
         } else {
-            return accessToken.authenticationHolder.authenticatedAuthorizationRequest
+            return accessToken.authenticationHolder
         }
     }
 

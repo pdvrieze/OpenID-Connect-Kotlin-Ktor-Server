@@ -47,7 +47,7 @@ class OIDCAuthenticationToken(
     val refreshTokenValue: String,
 ) : Authentication {
 
-    override val authorities: Collection<GrantedAuthority> = authorities?.requireNoNulls()?.toHashSet() ?: emptySet()
+    override val authorities: Set<GrantedAuthority> = authorities?.requireNoNulls()?.toHashSet() ?: emptySet()
     /**
      * Constructs a Principal out of the subject and issuer.
      */

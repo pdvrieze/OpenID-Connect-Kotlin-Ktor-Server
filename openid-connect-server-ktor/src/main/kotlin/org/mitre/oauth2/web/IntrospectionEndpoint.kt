@@ -130,7 +130,7 @@ object IntrospectionEndpoint: KtorEndpoint {
             tokenClient = accessToken.client
 
             // get the user information of the user that authorized this token in the first place
-            val userName = accessToken.authenticationHolder.authenticatedAuthorizationRequest.name
+            val userName = accessToken.authenticationHolder.name
             user = openIdContext.userInfoService.getByUsernameAndClientId(userName, tokenClient!!.clientId)
         } catch (e: InvalidTokenException) {
             logger.info("Invalid access token. Checking refresh token.")
@@ -142,7 +142,7 @@ object IntrospectionEndpoint: KtorEndpoint {
                 tokenClient = refreshToken.client
 
                 // get the user information of the user that authorized this token in the first place
-                val userName = refreshToken.authenticationHolder.authenticatedAuthorizationRequest.name
+                val userName = refreshToken.authenticationHolder.name
                 user = userInfoService.getByUsernameAndClientId(userName, tokenClient!!.clientId)
             } catch (e2: InvalidTokenException) {
                 logger.error("Invalid refresh token")

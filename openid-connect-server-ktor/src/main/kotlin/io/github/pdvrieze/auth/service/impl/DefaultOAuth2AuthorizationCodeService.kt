@@ -81,7 +81,7 @@ class DefaultOAuth2AuthorizationCodeService(
         val result = authcodeRepository.getByCode(code)
             ?: throw InvalidGrantException("JpaAuthorizationCodeRepository: no authorization code found for value $code")
 
-        val auth = result.authenticationHolder!!.authenticatedAuthorizationRequest
+        val auth = result.authenticationHolder!!
 
         authcodeRepository.remove(result)
 

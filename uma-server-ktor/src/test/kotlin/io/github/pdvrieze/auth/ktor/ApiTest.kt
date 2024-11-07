@@ -392,12 +392,12 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
     }
 
     class TestContext(configurator: OpenIdConfigurator, private val clientId: String): OpenIdConfigurator.DefaultContext(configurator) {
-        override fun resolveAuthServiceAuthorities(name: String): Collection<GrantedAuthority> {
+        override fun resolveAuthServiceAuthorities(name: String): Set<GrantedAuthority> {
             return when (name) {
-                "admin" -> listOf(GrantedAuthority.ROLE_ADMIN, GrantedAuthority.ROLE_USER, GrantedAuthority.ROLE_CLIENT)
-                "user" -> listOf(GrantedAuthority.ROLE_USER)
-                clientId -> listOf(GrantedAuthority.ROLE_CLIENT)
-                else -> emptyList()
+                "admin" -> setOf(GrantedAuthority.ROLE_ADMIN, GrantedAuthority.ROLE_USER, GrantedAuthority.ROLE_CLIENT)
+                "user" -> setOf(GrantedAuthority.ROLE_USER)
+                clientId -> setOf(GrantedAuthority.ROLE_CLIENT)
+                else -> emptySet()
             }
         }
     }

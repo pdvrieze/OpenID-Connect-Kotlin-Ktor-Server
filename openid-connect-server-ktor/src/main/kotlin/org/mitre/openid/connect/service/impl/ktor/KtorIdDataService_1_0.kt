@@ -89,7 +89,7 @@ class KtorIdDataService_1_0(
     }
 
     override fun importAuthenticationHolder(context: DataServiceContext, ahe: AuthenticationHolder) {
-        val r = ahe.authenticatedAuthorizationRequest.authorizationRequest
+        val r = ahe.authorizationRequest
         r.authHolderExtensions.warnIgnored("authentication/userAuthentication/extensions")
 
         super.importAuthenticationHolder(context, ahe)

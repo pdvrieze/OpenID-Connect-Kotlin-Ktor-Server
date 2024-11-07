@@ -849,7 +849,7 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<KtorIdDataService_
                 assertEquals(creq.clientId, holder["clientId"].asString())
                 assertEquals(creq.isApproved, holder["approved"].asBoolean())
                 assertEquals(creq.redirectUri, holder["redirectUri"].asString())
-                val cAuth = compare.userAuth
+                val cAuth = compare.userAuthentication
                 if (cAuth != null) {
                     assertIs<JsonObject>(holder["savedUserAuthentication"])
                     val savedAuth = holder["savedUserAuthentication"]!!.jsonObject

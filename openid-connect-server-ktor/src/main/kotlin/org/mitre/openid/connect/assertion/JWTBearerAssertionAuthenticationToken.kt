@@ -9,7 +9,7 @@ import org.mitre.oauth2.model.GrantedAuthority
  */
 class JWTBearerAssertionAuthenticationToken(
     jwt: JWT,
-    override val authorities: Collection<GrantedAuthority> = emptySet()
+    override val authorities: Set<GrantedAuthority> = emptySet()
 ) : Authentication {
     private var _jwt: JWT? = jwt
 

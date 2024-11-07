@@ -11,6 +11,7 @@ import org.mitre.oauth2.exception.InvalidClientException
 import org.mitre.oauth2.exception.InvalidScopeException
 import org.mitre.oauth2.exception.InvalidTokenException
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
+import org.mitre.oauth2.model.AuthenticationHolder
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.KtorAuthenticationHolder
 import org.mitre.oauth2.model.OAuth2AccessToken
@@ -105,35 +106,33 @@ class TestKtorDefaultOAuth2ProviderTokenService {
             approvedSiteService = approvedSiteService,
         )
 
-        authentication = mock<AuthenticatedAuthorizationRequest>()
-        val clientAuth = PlainAuthorizationRequest.Builder(clientId = clientId).also { b ->
+        storedAuthRequest = PlainAuthorizationRequest.Builder(clientId = clientId).also { b ->
             b.approval = AuthorizationRequest.Approval(Instant.now())
             b.scope = scope
             b.requestTime = Instant.now()
         }.build()
-        whenever(authentication.authorizationRequest) doReturn (clientAuth)
 
-        client = mock<ClientDetailsEntity>()
-        whenever(client.clientId) doReturn (clientId)
+        authentication = mock<AuthenticatedAuthorizationRequest> {
+            whenever(mock.authorizationRequest) doReturn (storedAuthRequest)
+        }
+
+        client = mock<ClientDetailsEntity> {
+            whenever(mock.clientId) doReturn (clientId)
+            whenever(mock.isReuseRefreshToken) doReturn (true)
+
+
+            // by default in tests, allow refresh tokens
+            whenever(mock.isAllowRefresh) doReturn (true)
+
+            // by default, clear access tokens on refresh
+            whenever(mock.isClearAccessTokensOnRefresh) doReturn (true)
+        }
         whenever(clientDetailsService.loadClientByClientId(clientId)) doReturn (client)
-        whenever(client.isReuseRefreshToken) doReturn (true)
 
-        // by default in tests, allow refresh tokens
-        whenever(client.isAllowRefresh) doReturn (true)
-
-        // by default, clear access tokens on refresh
-        whenever(client.isClearAccessTokensOnRefresh) doReturn (true)
-
-        badClient = mock<ClientDetailsEntity>()
-        whenever(badClient.clientId) doReturn (badClientId)
+        badClient = mock<ClientDetailsEntity> {
+            whenever(mock.clientId) doReturn (badClientId)
+        }
         whenever(clientDetailsService.loadClientByClientId(badClientId)) doReturn (badClient)
-
-        refreshToken = mock<OAuth2RefreshTokenEntity>()
-        whenever(tokenRepository.getRefreshTokenByValue(refreshTokenValue)) doReturn (refreshToken)
-        whenever(tokenRepository.getRefreshTokenById(43)) doReturn (refreshToken)
-        whenever(refreshToken.client) doReturn (client)
-        whenever(refreshToken.isExpired) doReturn (false)
-        whenever(refreshToken.id) doReturn 43
 
         accessToken = mock<OAuth2AccessTokenEntity>()
 
@@ -142,25 +141,40 @@ class TestKtorDefaultOAuth2ProviderTokenService {
         }.build()
 
         storedAuthentication = authentication
-        storedAuthRequest = clientAuth
-        storedAuthHolder = mock<KtorAuthenticationHolder>()
+        storedAuthHolder = KtorAuthenticationHolder(storedAuthentication, 33)
+
+/*        // don't mock it, just create it.
+        mock<KtorAuthenticationHolder>() {
+            whenever(mock.authenticatedAuthorizationRequest) doReturn (storedAuthentication)
+            whenever(mock.authorizationRequest) doReturn (storedAuthRequest)
+            whenever(mock.userAuthentication) doReturn (authentication.userAuthentication)
+            whenever(mock.id) doReturn (33)
+        }
+*/
         storedScope = scope.toHashSet()
 
-        whenever(refreshToken.authenticationHolder) doReturn (storedAuthHolder)
-        whenever(storedAuthHolder.authenticatedAuthorizationRequest) doReturn (storedAuthentication)
-        whenever(storedAuthHolder.id) doReturn (33)
+        refreshToken = mock<OAuth2RefreshTokenEntity> {
+            whenever(mock.client) doReturn (client)
+            whenever(mock.isExpired) doReturn (false)
+            whenever(mock.id) doReturn 43
+            whenever(mock.authenticationHolder) doReturn (storedAuthHolder)
+        }
+        whenever(tokenRepository.getRefreshTokenByValue(refreshTokenValue)) doReturn (refreshToken)
+        whenever(tokenRepository.getRefreshTokenById(43)) doReturn (refreshToken)
+
+
         whenever(storedAuthentication.authorizationRequest) doReturn (storedAuthRequest)
 
         whenever(authenticationHolderRepository.save(isA())) doReturn (storedAuthHolder)
         whenever(authenticationHolderRepository.getById(33)) doReturn (storedAuthHolder)
 
         whenever(scopeService.fromStrings(ArgumentMatchers.anySet())).thenAnswer { invocation ->
-            val input = invocation.arguments[0] as Set<String>
+            val input = invocation.getArgument<Set<String>>(0)
             input.mapTo(HashSet()) { SystemScope(it) }
         }
 
         whenever(scopeService.toStrings(ArgumentMatchers.anySet())).thenAnswer { invocation ->
-            val input = invocation.arguments[0] as Set<SystemScope>
+            val input = invocation.getArgument<Set<SystemScope>>(0)
             input.mapTo(HashSet()) { it.value }
         }
 
@@ -173,7 +187,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
         whenever(tokenEnhancer.enhance(isA<OAuth2AccessTokenEntity.Builder>(), isA<AuthenticatedAuthorizationRequest>()))
             .thenAnswer { invocation ->
                 //                val args = invocation.arguments
-//                args[0] as OAuth2AccessTokenEntity
+                invocation.getArgument<OAuth2AccessTokenEntity>(0)
             }
 
         whenever(tokenRepository.saveAccessToken(isA<OAuth2AccessTokenEntity>())).thenAnswer { invocation ->
@@ -334,14 +348,13 @@ class TestKtorDefaultOAuth2ProviderTokenService {
 
     @Test
     fun createAccessToken_checkAttachedAuthentication(): Unit = runBlocking {
-        val authHolder = mock<KtorAuthenticationHolder>()
-        whenever(authHolder.authenticatedAuthorizationRequest) doReturn (authentication)
+        val authHolder = KtorAuthenticationHolder(authentication)
 
         whenever(authenticationHolderRepository.save(isA<KtorAuthenticationHolder>())) doReturn (authHolder)
 
         val token = service.createAccessToken(authentication, true)
 
-        Assertions.assertEquals(authentication, token.authenticationHolder.authenticatedAuthorizationRequest)
+        Assertions.assertEquals(authHolder, token.authenticationHolder)
         verify(authenticationHolderRepository).save(isA<KtorAuthenticationHolder>())
         verify(scopeService, atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
     }
@@ -394,7 +407,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
         Assertions.assertEquals(refreshToken, token.refreshToken)
         Assertions.assertEquals(storedAuthHolder, token.authenticationHolder)
 
-        verify(tokenEnhancer).enhance(any(), eq(storedAuthentication))
+        verify(tokenEnhancer).enhance(any(), eq(storedAuthHolder))
         verify(tokenRepository).saveAccessToken(token as OAuth2AccessTokenEntity)
         verify(scopeService, atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
     }
@@ -411,7 +424,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
         Assertions.assertNotEquals(refreshToken, token.refreshToken)
         Assertions.assertEquals(storedAuthHolder, token.authenticationHolder)
 
-        verify(tokenEnhancer).enhance(any(), eq(storedAuthentication))
+        verify(tokenEnhancer).enhance(any(), eq(storedAuthHolder))
         verify(tokenRepository).saveAccessToken(token as OAuth2AccessTokenEntity)
         verify(tokenRepository).removeRefreshToken(refreshToken)
         verify(scopeService, atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
@@ -429,7 +442,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
         Assertions.assertEquals(refreshToken, token.refreshToken)
         Assertions.assertEquals(storedAuthHolder, token.authenticationHolder)
 
-        verify(tokenEnhancer).enhance(any(), eq(storedAuthentication))
+        verify(tokenEnhancer).enhance(any(), eq(storedAuthHolder))
         verify(tokenRepository).saveAccessToken(token as OAuth2AccessTokenEntity)
         verify(scopeService, atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
     }

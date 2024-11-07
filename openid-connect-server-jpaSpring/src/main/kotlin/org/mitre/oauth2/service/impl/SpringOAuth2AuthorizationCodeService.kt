@@ -90,7 +90,7 @@ class SpringOAuth2AuthorizationCodeService : AuthorizationCodeServices {
         val result = repository.getByCode(code)
             ?: throw InvalidGrantException("JpaAuthorizationCodeRepository: no authorization code found for value $code")
 
-        val auth = result.authenticationHolder!!.authenticatedAuthorizationRequest
+        val auth = result.authenticationHolder!!
 
         repository.remove(result)
 

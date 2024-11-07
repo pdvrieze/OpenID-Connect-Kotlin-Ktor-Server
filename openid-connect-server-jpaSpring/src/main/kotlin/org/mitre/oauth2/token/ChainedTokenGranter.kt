@@ -77,7 +77,10 @@ class ChainedTokenGranter @Autowired constructor(// keep down-cast versions so w
 
             // create a new access token
             val authentication =
-                AuthenticatedAuthorizationRequest(requestFactory.createOAuth2Request(client, tokenRequest).fromSpring(), incomingToken.authenticationHolder.authenticatedAuthorizationRequest.userAuthentication)
+                AuthenticatedAuthorizationRequest(
+                    requestFactory.createOAuth2Request(client, tokenRequest)
+                        .fromSpring(), incomingToken.authenticationHolder.userAuthentication
+                )
 
             return authentication.toSpring()
         } else {

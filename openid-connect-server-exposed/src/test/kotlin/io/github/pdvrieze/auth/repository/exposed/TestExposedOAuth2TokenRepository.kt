@@ -57,14 +57,14 @@ class TestExposedOAuth2TokenRepository {
     fun testGetAccessTokensByUserName() {
         val tokens = repository.getAccessTokensByUserName("user1")
         Assertions.assertEquals(2, tokens.size.toLong())
-        Assertions.assertEquals("user1", tokens.iterator().next().authenticationHolder.userAuth!!.name)
+        Assertions.assertEquals("user1", tokens.iterator().next().authenticationHolder.userAuthentication!!.name)
     }
 
     @Test
     fun testGetRefreshTokensByUserName() {
         val tokens = repository.getRefreshTokensByUserName("user2")
         Assertions.assertEquals(3, tokens.size.toLong())
-        Assertions.assertEquals("user2", tokens.iterator().next().authenticationHolder.userAuth!!.name)
+        Assertions.assertEquals("user2", tokens.iterator().next().authenticationHolder.userAuthentication!!.name)
     }
 
     @Test

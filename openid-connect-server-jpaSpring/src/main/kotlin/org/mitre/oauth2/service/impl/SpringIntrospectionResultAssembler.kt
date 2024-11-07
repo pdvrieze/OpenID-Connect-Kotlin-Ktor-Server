@@ -35,7 +35,7 @@ class SpringIntrospectionResultAssembler : IntrospectionResultAssembler {
         authScopes: Set<String>
     ): Map<String, Any> {
         val result: MutableMap<String, Any> = mutableMapOf()
-        val authentication = accessToken.authenticationHolder.authenticatedAuthorizationRequest
+        val authentication = accessToken.authenticationHolder
 
         result[IntrospectionResultAssembler.ACTIVE] = true
 
@@ -50,7 +50,8 @@ class SpringIntrospectionResultAssembler : IntrospectionResultAssembler {
         } else {
             val scopes = accessToken.scope.let { authScopes.intersect(it) }
 
-            result[IntrospectionResultAssembler.SCOPE] = scopes.joinToString(IntrospectionResultAssembler.SCOPE_SEPARATOR)
+            result[IntrospectionResultAssembler.SCOPE] =
+                scopes.joinToString(IntrospectionResultAssembler.SCOPE_SEPARATOR)
         }
 
         val expiration = accessToken.expirationInstant
@@ -89,7 +90,7 @@ class SpringIntrospectionResultAssembler : IntrospectionResultAssembler {
         authScopes: Set<String>
     ): Map<String, Any> {
         val result: MutableMap<String, Any> = mutableMapOf()
-        val authentication = refreshToken.authenticationHolder.authenticatedAuthorizationRequest
+        val authentication = refreshToken.authenticationHolder
 
         result[IntrospectionResultAssembler.ACTIVE] = true
 

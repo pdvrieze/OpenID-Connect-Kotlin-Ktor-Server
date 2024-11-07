@@ -12,7 +12,7 @@ import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 
 class KtorAuthenticationHolder private constructor(
     override val id: Long?,
-    override val userAuth: SavedUserAuthentication?,
+    override val userAuthentication: SavedUserAuthentication?,
     override val authorizationRequest: AuthorizationRequest,
 ) : AuthenticationHolder {
 
@@ -31,22 +31,22 @@ class KtorAuthenticationHolder private constructor(
         id: Long? = null
     ): this(
         id = id,
-        userAuth = authentication?.let(SavedUserAuthentication.Companion::from),
+        userAuthentication = authentication?.let(SavedUserAuthentication.Companion::from),
         authorizationRequest = authorizationRequest,
     )
 
     override fun copy(id: Long?): KtorAuthenticationHolder {
-        return copy(id, this.userAuth)
+        return copy(id, this.userAuthentication)
     }
 
     fun copy(
         id: Long? = this.id,
-        userAuth: SavedUserAuthentication? = this.userAuth,
+        userAuth: SavedUserAuthentication? = this.userAuthentication,
         authorizationRequest: AuthorizationRequest = this.authorizationRequest,
     ): KtorAuthenticationHolder {
         return KtorAuthenticationHolder(
             id = id,
-            userAuth = userAuth,
+            userAuthentication = userAuth,
             authorizationRequest = authorizationRequest,
         )
     }
@@ -73,7 +73,7 @@ class KtorAuthenticationHolder private constructor(
     ) : SerialDelegate {
         constructor(e: AuthenticationHolder) : this(
             currentId = e.id,
-            _authentication = e.authenticatedAuthorizationRequest
+            _authentication = e
         )
 
         override fun toAuthenticationHolder(): KtorAuthenticationHolder {
@@ -156,7 +156,7 @@ class KtorAuthenticationHolder private constructor(
             redirectUri = e.authorizationRequest.redirectUri,
             responseTypes = e.authorizationRequest.responseTypes ?: emptySet(),
             extensions = e.authorizationRequest.authHolderExtensions.asSequence()?.mapNotNull { (k, v) -> (v as? String)?.let { k to it } }?.associate { it } ?: emptyMap(),
-            userAuth = e.userAuth,
+            userAuth = e.userAuthentication,
         )
 
         override fun toAuthenticationHolder(): KtorAuthenticationHolder {
@@ -225,8 +225,10 @@ class KtorAuthenticationHolder private constructor(
     }
 
     companion object {
-        const val QUERY_GET_UNUSED: String = "AuthenticationHolderEntity.getUnusedAuthenticationHolders"
-        const val QUERY_ALL: String = "AuthenticationHolderEntity.getAll"
+        operator fun invoke(orig: AuthenticatedAuthorizationRequest): KtorAuthenticationHolder = when(orig){
+            is KtorAuthenticationHolder -> KtorAuthenticationHolder(orig, orig.id)
+            else -> KtorAuthenticationHolder(orig)
+        }
     }
 
     object Serializer10 : SerializerBase<SerialDelegate10>("1.0", SerialDelegate10.serializer()) {

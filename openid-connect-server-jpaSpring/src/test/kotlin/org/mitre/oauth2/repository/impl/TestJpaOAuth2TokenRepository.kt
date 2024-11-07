@@ -45,7 +45,7 @@ class TestJpaOAuth2TokenRepository {
     fun testGetAccessTokensByUserName() {
         val tokens = repository.getAccessTokensByUserName("user1")
         assertEquals(2, tokens.size.toLong())
-        assertEquals("user1", tokens.iterator().next().authenticationHolder.userAuth!!.name)
+        assertEquals("user1", tokens.iterator().next().authenticationHolder.userAuthentication!!.name)
     }
 
     @Test
@@ -53,7 +53,7 @@ class TestJpaOAuth2TokenRepository {
     fun testGetRefreshTokensByUserName() {
         val tokens = repository.getRefreshTokensByUserName("user2")
         assertEquals(3, tokens.size.toLong())
-        assertEquals("user2", tokens.iterator().next().authenticationHolder.userAuth!!.name)
+        assertEquals("user2", tokens.iterator().next().authenticationHolder.userAuthentication!!.name)
     }
 
     @Test
@@ -80,7 +80,7 @@ class TestJpaOAuth2TokenRepository {
         }
 
         val authHolder = AuthenticationHolderEntity(requestTime = Instant.now()).let {
-            it.userAuth = userAuth
+            it.userAuthentication = userAuth
             entityManager.merge(it)
         }
 
@@ -100,7 +100,7 @@ class TestJpaOAuth2TokenRepository {
         }
 
         val authHolder = AuthenticationHolderEntity(requestTime = Instant.now()).let {
-            it.userAuth = userAuth
+            it.userAuthentication = userAuth
             entityManager.merge(it)
         }
 

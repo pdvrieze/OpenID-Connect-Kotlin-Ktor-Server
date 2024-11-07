@@ -30,6 +30,7 @@ import org.mitre.oauth2.introspectingfilter.service.IntrospectionAuthorityGrante
 import org.mitre.oauth2.introspectingfilter.service.IntrospectionConfigurationService
 import org.mitre.oauth2.introspectingfilter.service.impl.SimpleIntrospectionAuthorityGranter
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
+import org.mitre.oauth2.model.AuthenticatedAuthorizationRequestImpl
 import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.LocalGrantedAuthority
@@ -130,7 +131,8 @@ class IntrospectingTokenService(
     private fun createUserAuthentication(token: JsonObject): Authentication? {
         val userId = (token["user_id"] ?: token["sub"] ?: return null).jsonPrimitive
         if (!userId.isString) return null
-        val authorities = introspectionAuthorityGranter.getAuthorities(token).map { LocalGrantedAuthority(it.authority) }
+        val authorities = introspectionAuthorityGranter.getAuthorities(token)
+            .mapTo(HashSet()) { LocalGrantedAuthority(it.authority) }
         return PreAuthenticatedAuthenticationToken(userId.content, token, authorities)
     }
 
@@ -206,7 +208,7 @@ class IntrospectingTokenService(
         val userAuth = createUserAuthentication(tokenResponse)?.let {
             it as? SavedUserAuthentication ?: SavedUserAuthentication(it)
         }
-        val auth = AuthenticatedAuthorizationRequest(createStoredRequest(tokenResponse), userAuth)
+        val auth = AuthenticatedAuthorizationRequestImpl(createStoredRequest(tokenResponse), userAuth)
         // create an OAuth2AccessToken
         val token = createAccessToken(tokenResponse, accessToken)
 
@@ -252,7 +254,7 @@ class IntrospectingTokenService(
     class PreAuthenticatedAuthenticationToken(
         override val name: String,
         val credentials: Any,
-        override val authorities: Collection<GrantedAuthority>,
+        override val authorities: Set<GrantedAuthority>,
     ) : Authentication {
         override val isAuthenticated: Boolean get() = true
     }

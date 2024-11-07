@@ -1427,16 +1427,16 @@ class TestSpringMITREidDataService_1_3 {
                 assertEquals(compare.clientId, holder["clientId"].asString())
                 assertEquals(compare.isApproved, holder["approved"].asBoolean())
                 assertEquals(compare.redirectUri, holder["redirectUri"].asString())
-                if (compare.userAuth != null) {
+                if (compare.userAuthentication != null) {
                     assertIs<JsonObject>(holder["savedUserAuthentication"])
                     val savedAuth = holder["savedUserAuthentication"]!!.jsonObject
-                    assertEquals(compare.userAuth!!.name, savedAuth["name"].asString())
+                    assertEquals(compare.userAuthentication!!.name, savedAuth["name"].asString())
                     val actualAuthenticated = when (val a = savedAuth["authenticated"]) {
                         is JsonNull -> null
                         else -> a.asBoolean()
                     }
-                    assertEquals(compare.userAuth!!.isAuthenticated, actualAuthenticated)
-                    assertEquals(compare.userAuth!!.sourceClass, savedAuth["sourceClass"]?.asString())
+                    assertEquals(compare.userAuthentication!!.isAuthenticated, actualAuthenticated)
+                    assertEquals(compare.userAuthentication!!.sourceClass, savedAuth["sourceClass"]?.asString())
                 }
                 checked.add(compare)
             }
@@ -1508,8 +1508,8 @@ class TestSpringMITREidDataService_1_3 {
         val savedAuthHolders = capturedAuthHolders.allValues
 
         assertEquals(2, savedAuthHolders.size)
-        assertEquals(holder1.authenticatedAuthorizationRequest.authorizationRequest.clientId, savedAuthHolders[0].authenticatedAuthorizationRequest.authorizationRequest.clientId)
-        assertEquals(holder2.authenticatedAuthorizationRequest.authorizationRequest.clientId, savedAuthHolders[1].authenticatedAuthorizationRequest.authorizationRequest.clientId)
+        assertEquals(holder1.authorizationRequest.clientId, savedAuthHolders[0].authorizationRequest.clientId)
+        assertEquals(holder2.authorizationRequest.clientId, savedAuthHolders[1].authorizationRequest.clientId)
     }
 
     @Test

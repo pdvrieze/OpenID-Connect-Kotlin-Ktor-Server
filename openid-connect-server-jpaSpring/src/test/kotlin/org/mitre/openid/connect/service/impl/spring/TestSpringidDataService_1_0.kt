@@ -763,8 +763,8 @@ class TestSpringidDataService_1_0 {
         val savedAuthHolders = capturedAuthHolders.allValues
 
         assertEquals(2, savedAuthHolders.size)
-        assertEquals(holder1.authenticatedAuthorizationRequest.authorizationRequest.clientId, savedAuthHolders[0].authenticatedAuthorizationRequest.authorizationRequest.clientId)
-        assertEquals(holder2.authenticatedAuthorizationRequest.authorizationRequest.clientId, savedAuthHolders[1].authenticatedAuthorizationRequest.authorizationRequest.clientId)
+        assertEquals(holder1.authorizationRequest.clientId, savedAuthHolders[0].authorizationRequest.clientId)
+        assertEquals(holder2.authorizationRequest.clientId, savedAuthHolders[1].authorizationRequest.clientId)
     }
 
     @Test

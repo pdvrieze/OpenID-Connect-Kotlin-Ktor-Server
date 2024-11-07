@@ -11,7 +11,9 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.Authentication
+import org.mitre.oauth2.model.AuthenticationHolder
 import org.mitre.oauth2.model.GrantedAuthority
+import org.mitre.oauth2.model.KtorAuthenticationHolder
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.SavedUserAuthentication
@@ -20,6 +22,9 @@ import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mitre.oauth2.service.IntrospectionResultAssembler
 import org.mitre.openid.connect.model.UserInfo
 import org.mitre.uma.model.Permission
+import org.mockito.Mockito
+import org.mockito.kotlin.given
+import org.mockito.kotlin.mock
 import java.text.ParseException
 import java.time.Instant
 import java.time.ZoneOffset
@@ -314,8 +319,8 @@ class TestKtorDefaultIntrospectionResultAssembler {
 
 
     private fun userInfo(sub: String): UserInfo {
-        val userInfo = org.mockito.kotlin.mock<UserInfo>()
-        org.mockito.kotlin.given(userInfo.subject).willReturn(sub)
+        val userInfo = mock<UserInfo>()
+        given(userInfo.subject).willReturn(sub)
         return userInfo
     }
 
@@ -326,28 +331,27 @@ class TestKtorDefaultIntrospectionResultAssembler {
         tokenType: String,
         authentication: AuthenticatedAuthorizationRequest
     ): OAuth2AccessTokenEntity {
-        return org.mockito.kotlin.mock<OAuth2AccessTokenEntity>(defaultAnswer = org.mockito.Mockito.RETURNS_DEEP_STUBS).also {
-            org.mockito.kotlin.given(it.expirationInstant).willReturn(exp ?: Instant.MIN)
-            org.mockito.kotlin.given(it.scope).willReturn(scopes)
-            org.mockito.kotlin.given(it.permissions).willReturn(permissions)
-            org.mockito.kotlin.given(it.tokenType).willReturn(tokenType)
-            org.mockito.kotlin.given(it.authenticationHolder.authenticatedAuthorizationRequest).willReturn(authentication)
+        return mock<OAuth2AccessTokenEntity>(defaultAnswer = Mockito.RETURNS_DEEP_STUBS).also {
+            given(it.expirationInstant).willReturn(exp ?: Instant.MIN)
+            given(it.scope).willReturn(scopes)
+            given(it.permissions).willReturn(permissions)
+            given(it.tokenType).willReturn(tokenType)
+            given(it.authenticationHolder).willReturn(authentication as? AuthenticationHolder ?: KtorAuthenticationHolder(authentication))
         }
     }
 
     private fun refreshToken(exp: Instant?, authentication: AuthenticatedAuthorizationRequest): OAuth2RefreshTokenEntity {
-        org.mockito.kotlin.mock<OAuth2AccessTokenEntity>(defaultAnswer = org.mockito.Mockito.RETURNS_DEEP_STUBS)
-        return org.mockito.kotlin.mock<OAuth2RefreshTokenEntity>(defaultAnswer = org.mockito.Mockito.RETURNS_DEEP_STUBS)
-            .apply {
-            org.mockito.kotlin.given(expirationInstant).willReturn(exp ?: Instant.MIN)
-            org.mockito.kotlin.given(authenticationHolder.authenticatedAuthorizationRequest).willReturn(authentication)
+        mock<OAuth2AccessTokenEntity>(defaultAnswer = Mockito.RETURNS_DEEP_STUBS)
+        return mock<OAuth2RefreshTokenEntity>(defaultAnswer = Mockito.RETURNS_DEEP_STUBS) {
+            given(mock.expirationInstant).willReturn(exp ?: Instant.MIN)
+            given(mock.authenticationHolder).willReturn(KtorAuthenticationHolder(authentication)) // just return the wrapper
         }
     }
 
     private fun oauth2AuthenticationWithUser(request: AuthorizationRequest, username: String): AuthenticatedAuthorizationRequest {
         val userAuthentication = object : Authentication {
             override val name: String get() = username
-            override val authorities: Collection<GrantedAuthority> get() = emptySet()
+            override val authorities: Set<GrantedAuthority> get() = emptySet()
             override val isAuthenticated: Boolean get() = true
         }
         return oauth2Authentication(request, userAuthentication)
@@ -378,9 +382,9 @@ class TestKtorDefaultIntrospectionResultAssembler {
     }
 
     private fun permission(resourceSetId: Long, vararg scopes: String): Permission {
-        val permission = org.mockito.kotlin.mock<Permission>(defaultAnswer = org.mockito.Mockito.RETURNS_DEEP_STUBS)
-        org.mockito.kotlin.given(permission.resourceSet.id).willReturn(resourceSetId)
-        org.mockito.kotlin.given(permission.scopes).willReturn(scopes(*scopes))
+        val permission = mock<Permission>(defaultAnswer = Mockito.RETURNS_DEEP_STUBS)
+        given(permission.resourceSet.id).willReturn(resourceSetId)
+        given(permission.scopes).willReturn(scopes(*scopes))
         return permission
     }
 

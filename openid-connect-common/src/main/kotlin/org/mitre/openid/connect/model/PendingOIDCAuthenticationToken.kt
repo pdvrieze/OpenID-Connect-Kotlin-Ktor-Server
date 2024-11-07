@@ -55,7 +55,7 @@ class PendingOIDCAuthenticationToken(//
     private val principal: Map<String, String> =
         mapOf("sub" to sub, "iss" to issuer)
 
-    override val authorities: Collection<GrantedAuthority>
+    override val authorities: Set<GrantedAuthority>
         get() = emptySet()
 
     override val isAuthenticated: Boolean

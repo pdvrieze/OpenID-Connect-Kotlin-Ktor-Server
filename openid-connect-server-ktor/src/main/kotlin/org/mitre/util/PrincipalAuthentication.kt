@@ -7,7 +7,7 @@ import org.mitre.oauth2.service.OAuth2TokenEntityService
 
 // TODO this entire code path needs more. It requires looking up users and providing further information.
 fun Any?.toAuth(tokenEntityService: OAuth2TokenEntityService): Authentication = when (this) {
-    is UserIdPrincipal -> UserIdPrincipalAuthentication(this, listOf(GrantedAuthority.ROLE_USER))
+    is UserIdPrincipal -> UserIdPrincipalAuthentication(this, setOf(GrantedAuthority.ROLE_USER))
 //    is OAuthAccessTokenResponse.OAuth2 -> tokenEntityService.loadAuthentication(this.accessToken)
     else -> throw UnsupportedOperationException("Unsupported principal: $this")
 }
@@ -18,7 +18,7 @@ interface PrincipalAuthentication<P>: Authentication {
 
 class UserIdPrincipalAuthentication(
     override val principal: UserIdPrincipal,
-    override val authorities: Collection<GrantedAuthority> = emptyList(),
+    override val authorities: Set<GrantedAuthority> = emptySet(),
 ) : PrincipalAuthentication<UserIdPrincipal> {
     override val name: String get() = principal.name
 

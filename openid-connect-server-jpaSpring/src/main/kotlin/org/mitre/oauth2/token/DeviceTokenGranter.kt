@@ -78,7 +78,7 @@ class DeviceTokenGranter protected constructor(
                 // inherit the (approved) scopes from the original request
                 tokenRequest.setScope(dc.scope)
 
-                val userAuth = dc.authenticationHolder?.userAuth?.let { a -> SavedUserAuthentication.from(a) }
+                val userAuth = dc.authenticationHolder?.userAuthentication?.let { a -> SavedUserAuthentication.from(a) }
                 val auth =
                     AuthenticatedAuthorizationRequest(requestFactory.createOAuth2Request(client, tokenRequest).fromSpring(), userAuth)
 

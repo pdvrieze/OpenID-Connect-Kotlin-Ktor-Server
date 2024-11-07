@@ -42,52 +42,52 @@ class DefaultIntrospectionResultAssembler : JsonIntrospectionResultAssembler {
     ): JsonObject {
         val result = buildJsonObject {
             val result = this
-            val authentication = accessToken.authenticationHolder.authenticatedAuthorizationRequest
+            val authentication = accessToken.authenticationHolder
 
 
-        put(IntrospectionResultAssembler.ACTIVE, true)
+            put(IntrospectionResultAssembler.ACTIVE, true)
 
-        val accessPermissions = accessToken.permissions
-        if (!accessPermissions.isNullOrEmpty()) {
-            putJsonArray("permissions") {
-                for (perm in accessPermissions) {
-                    addJsonObject {
-                        put("resource_set_id", perm.resourceSet.id.toString())
-                        putJsonArray("scopes") { addAll(perm.scopes) }
+            val accessPermissions = accessToken.permissions
+            if (!accessPermissions.isNullOrEmpty()) {
+                putJsonArray("permissions") {
+                    for (perm in accessPermissions) {
+                        addJsonObject {
+                            put("resource_set_id", perm.resourceSet.id.toString())
+                            putJsonArray("scopes") { addAll(perm.scopes) }
+                        }
                     }
                 }
+            } else {
+                val scopes = authScopes.intersect(accessToken.scope)
+
+                put(IntrospectionResultAssembler.SCOPE, scopes.joinToString(IntrospectionResultAssembler.SCOPE_SEPARATOR))
             }
-        } else {
-            val scopes = authScopes.intersect(accessToken.scope)
 
-            put(IntrospectionResultAssembler.SCOPE, scopes.joinToString(IntrospectionResultAssembler.SCOPE_SEPARATOR))
-        }
-
-        val expiration = accessToken.expirationInstant
-        if (expiration > Instant.MIN) {
-            try {
-                put(IntrospectionResultAssembler.EXPIRES_AT, IntrospectionResultAssembler.dateFormat.format(expiration))
-                put(IntrospectionResultAssembler.EXP, expiration.epochSecond)
-            } catch (e: ParseException) {
-                logger.error("Parse exception in token introspection", e)
+            val expiration = accessToken.expirationInstant
+            if (expiration > Instant.MIN) {
+                try {
+                    put(IntrospectionResultAssembler.EXPIRES_AT, IntrospectionResultAssembler.dateFormat.format(expiration))
+                    put(IntrospectionResultAssembler.EXP, expiration.epochSecond)
+                } catch (e: ParseException) {
+                    logger.error("Parse exception in token introspection", e)
+                }
             }
-        }
 
-        if (userInfo != null) {
-            // if we have a UserInfo, use that for the subject
-            put(IntrospectionResultAssembler.SUB, userInfo.subject)
-        } else {
-            // otherwise, use the authentication's username
-            put(IntrospectionResultAssembler.SUB, authentication.name)
-        }
+            if (userInfo != null) {
+                // if we have a UserInfo, use that for the subject
+                put(IntrospectionResultAssembler.SUB, userInfo.subject)
+            } else {
+                // otherwise, use the authentication's username
+                put(IntrospectionResultAssembler.SUB, authentication.name)
+            }
 
-        authentication.userAuthentication?.let {
-            put(IntrospectionResultAssembler.USER_ID, it.name)
-        }
+            authentication.userAuthentication?.let {
+                put(IntrospectionResultAssembler.USER_ID, it.name)
+            }
 
-        put(IntrospectionResultAssembler.CLIENT_ID, authentication.authorizationRequest.clientId)
+            put(IntrospectionResultAssembler.CLIENT_ID, authentication.authorizationRequest.clientId)
 
-        put(IntrospectionResultAssembler.TOKEN_TYPE, accessToken.tokenType)
+            put(IntrospectionResultAssembler.TOKEN_TYPE, accessToken.tokenType)
         }
 
         return result
@@ -99,7 +99,7 @@ class DefaultIntrospectionResultAssembler : JsonIntrospectionResultAssembler {
         authScopes: Set<String>
     ): JsonObject {
         val result = buildJsonObject {
-            val authentication = refreshToken.authenticationHolder.authenticatedAuthorizationRequest
+            val authentication = refreshToken.authenticationHolder
 
             put(IntrospectionResultAssembler.ACTIVE, true)
 
@@ -108,7 +108,7 @@ class DefaultIntrospectionResultAssembler : JsonIntrospectionResultAssembler {
             put(IntrospectionResultAssembler.SCOPE, scopes.joinToString(IntrospectionResultAssembler.SCOPE_SEPARATOR))
 
             val expiration = refreshToken.expirationInstant
-            if (expiration> Instant.MIN) {
+            if (expiration > Instant.MIN) {
                 try {
                     val d = Date.from(expiration)
                     put(IntrospectionResultAssembler.EXPIRES_AT, IntrospectionResultAssembler.dateFormat.format(expiration))

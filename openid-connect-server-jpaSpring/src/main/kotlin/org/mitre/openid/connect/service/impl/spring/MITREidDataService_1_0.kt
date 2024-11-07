@@ -107,7 +107,7 @@ class MITREidDataService_1_0 : MITREidDataService {
     }
 
     override fun importAuthenticationHolder(context: DataServiceContext, ahe: AuthenticationHolder) {
-        val r = ahe.authenticatedAuthorizationRequest.authorizationRequest
+        val r = ahe.authorizationRequest
         r.extensions.warnIgnored("authentication/userAuthentication/extensions")
 
         super.importAuthenticationHolder(context, ahe)

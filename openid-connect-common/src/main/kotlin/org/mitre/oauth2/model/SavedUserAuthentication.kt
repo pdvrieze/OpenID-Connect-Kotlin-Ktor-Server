@@ -32,7 +32,7 @@ class SavedUserAuthentication(
     override var name: String = name
         private set
 
-    override var authorities: Collection<GrantedAuthority> = authorities.toHashSet()
+    override var authorities: Set<GrantedAuthority> = authorities.toHashSet()
         private set
 
     override var isAuthenticated = authenticated
