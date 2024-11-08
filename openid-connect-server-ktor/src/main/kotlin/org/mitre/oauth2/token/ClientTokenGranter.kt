@@ -30,23 +30,26 @@ class RefreshTokenGranter(
         grantType: String,
         request: AuthorizationRequest,
         authenticatedClient: OAuthClientDetails,
+        requestParameters: Map<String, String>,
     ): OAuth2AccessToken {
-        return super.grant(grantType, request, authenticatedClient)
+        return super.grant(grantType, request, authenticatedClient, requestParameters)
     }
 
     override suspend fun getOAuth2Authentication(
         client: OAuthClientDetails,
         request: AuthorizationRequest,
+        requestParameters: Map<String, String>,
     ): AuthenticatedAuthorizationRequest {
-        return super.getOAuth2Authentication(client, request)
+        return super.getOAuth2Authentication(client, request, requestParameters)
     }
 
     override suspend fun getAccessToken(
         client: OAuthClientDetails,
         tokenRequest: AuthenticatedAuthorizationRequest,
         isAllowRefresh: Boolean,
+        requestParameters: Map<String, String>,
     ): OAuth2AccessToken {
-        val refreshToken = tokenRequest.authorizationRequest.requestParameters["refresh_token"] ?:
+        val refreshToken = requestParameters["refresh_token"] ?:
             throw OAuth2Exception(OAuthErrorCodes.INVALID_REQUEST)
         return tokenServices.refreshAccessToken(refreshToken, tokenRequest.authorizationRequest)
     }

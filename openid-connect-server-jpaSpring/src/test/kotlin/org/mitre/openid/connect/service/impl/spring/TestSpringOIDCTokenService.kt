@@ -47,7 +47,7 @@ class TestSpringOIDCTokenService {
         b.requestTime = Instant.now()
     }.build()
     private val accessToken = OAuth2AccessTokenEntity(
-        authenticationHolder = AuthenticationHolderEntity(requestTime = request.requestTime),
+        authenticationHolder = AuthenticationHolderEntity(null, request),
         expirationInstant = Instant.now().plusSeconds(120),
         jwt = PlainJWT(JWTClaimsSet.Builder().build()),
     )

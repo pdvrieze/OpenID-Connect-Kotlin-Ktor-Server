@@ -276,14 +276,14 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
         val requestTime = Instant.now()
         val req = AuthenticatedAuthorizationRequest(
             PlainAuthorizationRequest.Builder(clientId).also { b ->
-                b.requestParameters = tokenParams
+//                b.requestParameters = tokenParams
                 b.requestTime = requestTime
                 b.scope = setOf("offline_access")
                 b.requestTime = requestTime
             }.build(),
             SavedUserAuthentication("user")
  )
-        val origToken = testContext.tokenService.createAccessToken(req, true)
+        val origToken = testContext.tokenService.createAccessToken(req, true, emptyMap())
         val refreshToken = assertNotNull(origToken.refreshToken)
         val r = submitClient(
             url = "/token",

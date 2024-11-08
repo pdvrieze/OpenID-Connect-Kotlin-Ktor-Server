@@ -12,8 +12,9 @@ import java.time.Instant
  * This request does not have authentication information present.
  */
 @Serializable
-class PlainAuthorizationRequest(
+class PlainAuthorizationRequest @InternalForStorage constructor(
     @SerialName("authorizationParameters")
+    @property:InternalForStorage
     override val requestParameters: Map<String, String> = emptyMap(),
     override val clientId: String,
     override val authorities: Set<GrantedAuthority> = emptySet(),
@@ -25,11 +26,26 @@ class PlainAuthorizationRequest(
     override val responseTypes: Set<String>? = null,
     override val state: String? = null,
     override val requestTime: ISOInstant? = null,
+    @property:InternalForStorage
     val extensions: Map<String, String> = emptyMap(),
 ) : AuthorizationRequest {
 
     val isOpenId get() = SystemScopeService.OPENID_SCOPE in scope
 
+    @OptIn(InternalForStorage::class)
+    constructor(
+        clientId: String,
+        authorities: Set<GrantedAuthority> = emptySet(),
+        approval: AuthorizationRequest.Approval? = null,
+        scope: Set<String> = emptySet(),
+        resourceIds: Set<String>? = null,
+        redirectUri: String? = null,
+        responseTypes: Set<String>? = null,
+        state: String? = null,
+        requestTime: ISOInstant? = null,
+    ) : this(emptyMap(), clientId, authorities, approval, scope, resourceIds, redirectUri, responseTypes, state, requestTime)
+
+    @InternalForStorage
     override val authHolderExtensions: Map<String, String> = buildMap {
         approval?.let {
             put("AUTHZ_TIMESTAMP", it.approvalTime.epochSecond.toString())
@@ -43,6 +59,7 @@ class PlainAuthorizationRequest(
     }
 
     class Builder(clientId: String): AuthorizationRequest.Builder(clientId) {
+        @OptIn(InternalForStorage::class)
         constructor(orig: PlainAuthorizationRequest) : this(orig.clientId) {
             requestParameters = orig.requestParameters
             authorities = orig.authorities
@@ -55,10 +72,12 @@ class PlainAuthorizationRequest(
             requestTime = orig.requestTime
         }
 
+        @OptIn(InternalForStorage::class)
         override fun build(): PlainAuthorizationRequest {
             return PlainAuthorizationRequest(requestParameters, clientId, authorities, approval, scope, resourceIds, redirectUri, responseTypes, state, requestTime)
         }
 
+        @InternalForStorage
         override fun setFromExtensions(extensions: Map<String, String>) {
             if (extensions.isNotEmpty()) {
                 val extCpy = HashMap(extensions)

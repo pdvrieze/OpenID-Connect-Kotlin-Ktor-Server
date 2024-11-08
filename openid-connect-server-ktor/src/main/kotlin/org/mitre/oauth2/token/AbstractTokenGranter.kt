@@ -22,11 +22,17 @@ abstract class AbstractTokenGranter(
         client: OAuthClientDetails,
         tokenRequest: AuthenticatedAuthorizationRequest,
         isAllowRefresh: Boolean,
+        requestParameters: Map<String, String>,
     ): OAuth2AccessToken {
-        return tokenServices.createAccessToken(tokenRequest, isAllowRefresh)
+        return tokenServices.createAccessToken(tokenRequest, isAllowRefresh, requestParameters)
     }
 
-    override suspend fun grant(grantType: String, request: AuthorizationRequest, authenticatedClient: OAuthClientDetails): OAuth2AccessToken {
+    override suspend fun grant(
+        grantType: String,
+        request: AuthorizationRequest,
+        authenticatedClient: OAuthClientDetails,
+        requestParameters: Map<String, String>
+    ): OAuth2AccessToken {
         check(grantType == this.grantType) { "This granter (${this.grantType}) does not support the requested grant type ($grantType)" }
 
         val clientId = request.clientId
@@ -36,9 +42,9 @@ abstract class AbstractTokenGranter(
 
         validateGrantType(grantType, clientDetails)
 
-        val authRequest = getOAuth2Authentication(clientDetails, request)
+        val authRequest = getOAuth2Authentication(clientDetails, request, requestParameters)
         
-        return getAccessToken(clientDetails, authRequest, clientDetails.isAllowRefresh && isGrantAllowsRefresh)
+        return getAccessToken(clientDetails, authRequest, clientDetails.isAllowRefresh && isGrantAllowsRefresh, requestParameters)
     }
 
     protected open fun validateGrantType(grantType: String, clientDetails: OAuthClientDetails) {

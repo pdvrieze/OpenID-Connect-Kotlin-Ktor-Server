@@ -38,6 +38,7 @@ import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.request.AuthorizationRequest
+import org.mitre.oauth2.model.request.InternalForStorage
 import org.mitre.oauth2.model.request.OpenIdAuthorizationRequest
 import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
@@ -203,11 +204,11 @@ class KtorOIDCTokenService(
         }
 
         // create a new token
-        val authorizationParameters: Map<String, String> = hashMapOf()
         val now = Instant.now()
         val clientAuth =
-            PlainAuthorizationRequest.Builder(clientId = client.clientId).also<PlainAuthorizationRequest.Builder> { b ->
-                b.requestParameters = authorizationParameters
+            PlainAuthorizationRequest.Builder(clientId = client.clientId).also { b ->
+                @OptIn(InternalForStorage::class)
+                b.requestParameters = emptyMap()
                 b.requestTime = now
                 b.authorities = hashSetOf(LocalGrantedAuthority("ROLE_CLIENT"))
                 b.approval = AuthorizationRequest.Approval(now)

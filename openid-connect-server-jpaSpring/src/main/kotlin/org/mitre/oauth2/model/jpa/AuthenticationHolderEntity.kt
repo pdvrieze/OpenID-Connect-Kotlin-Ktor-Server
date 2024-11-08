@@ -17,6 +17,7 @@ import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.convert.AuthenticationSerializer
 import org.mitre.oauth2.model.convert.SimpleGrantedAuthorityStringConverter
 import org.mitre.oauth2.model.request.AuthorizationRequest
+import org.mitre.oauth2.model.request.InternalForStorage
 import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mitre.openid.connect.model.convert.ISOInstant
 import java.time.Instant
@@ -33,7 +34,7 @@ import java.time.Instant
     )
 )
 */
-class AuthenticationHolderEntity(
+class AuthenticationHolderEntity @InternalForStorage constructor(
     override var id: Long? = null,
     override var userAuthentication: SavedUserAuthentication? = null,
     override var authorities: Set<GrantedAuthority> = emptySet(),
@@ -44,6 +45,7 @@ class AuthenticationHolderEntity(
     var extensions: Map<String, String>? = null,
     var clientId: String? = null,
     var scope: Set<String>? = null,
+    @property:InternalForStorage
     var requestParameters: Map<String, String>? = null,
     val requestTime: ISOInstant?,
 ) : AuthenticationHolder {
@@ -57,6 +59,7 @@ class AuthenticationHolderEntity(
         id,
     )
 
+    @OptIn(InternalForStorage::class)
     constructor(
         authentication: Authentication?,
         o2Request: AuthorizationRequest,
@@ -81,11 +84,13 @@ class AuthenticationHolderEntity(
 
     private fun createAuthorizationRequest(): AuthorizationRequest {
         return PlainAuthorizationRequest.Builder(clientId!!).also { b ->
+            @OptIn(InternalForStorage::class)
             b.setFromExtensions(extensions?.let { m -> m.mapValues { (_, v) -> v } } ?: emptyMap())
 
+            @OptIn(InternalForStorage::class)
             b.requestParameters = requestParameters ?: emptyMap()
             b.clientId = clientId!!
-            b.authorities = authorities?.toSet() ?: emptySet()
+            b.authorities = authorities.toSet()
             if (isApproved && b.approval == null) {
                 b.approval =
                     AuthorizationRequest.Approval(Instant.EPOCH) // mark long ago //setFromExtensions should handle this
@@ -104,6 +109,7 @@ class AuthenticationHolderEntity(
         return copy(id, this.userAuthentication)
     }
 
+    @OptIn(InternalForStorage::class)
     fun copy(
         id: Long? = this.id,
         userAuth: SavedUserAuthentication? = this.userAuthentication,
@@ -185,6 +191,7 @@ class AuthenticationHolderEntity(
         @SerialName("savedUserAuthentication")
         val userAuth: @Serializable(AuthenticationSerializer::class) Authentication? = null,
     ) : SerialDelegate {
+        @OptIn(InternalForStorage::class)
         constructor(e: AuthenticationHolderEntity) : this(
             currentId = e.id!!,
             requestParameters = e.requestParameters ?: emptyMap(),
@@ -199,6 +206,7 @@ class AuthenticationHolderEntity(
             userAuth = e.userAuthentication,
         )
 
+        @OptIn(InternalForStorage::class)
         override fun toAuthenticationHolder(): AuthenticationHolderEntity {
             return AuthenticationHolderEntity(
                 id = currentId,

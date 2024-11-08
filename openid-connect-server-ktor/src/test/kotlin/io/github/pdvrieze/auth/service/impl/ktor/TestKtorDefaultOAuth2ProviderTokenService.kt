@@ -11,7 +11,6 @@ import org.mitre.oauth2.exception.InvalidClientException
 import org.mitre.oauth2.exception.InvalidScopeException
 import org.mitre.oauth2.exception.InvalidTokenException
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
-import org.mitre.oauth2.model.AuthenticationHolder
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.KtorAuthenticationHolder
 import org.mitre.oauth2.model.OAuth2AccessToken
@@ -107,7 +106,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
         )
 
         storedAuthRequest = PlainAuthorizationRequest.Builder(clientId = clientId).also { b ->
-            b.approval = AuthorizationRequest.Approval(Instant.now())
+            b.approval = Approval(Instant.now())
             b.scope = scope
             b.requestTime = Instant.now()
         }.build()
@@ -230,11 +229,11 @@ class TestKtorDefaultOAuth2ProviderTokenService {
         whenever(clientDetailsService.loadClientByClientId(ArgumentMatchers.anyString())) doReturn (null)
 
         assertThrows<InvalidClientException> {
-            service.createAccessToken(authentication, false)
+            service.createAccessToken(authentication, false, emptyMap())
         }
 
         assertThrows<InvalidClientException> {
-            service.createAccessToken(authentication, true)
+            service.createAccessToken(authentication, true, emptyMap())
         }
     }
 
@@ -245,7 +244,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
     fun createAccessToken_noRefresh(): Unit = runBlocking {
         whenever(client.isAllowRefresh) doReturn (false)
 
-        val token = service.createAccessToken(authentication, true)
+        val token = service.createAccessToken(authentication, true, emptyMap())
 
         verify(clientDetailsService).loadClientByClientId(ArgumentMatchers.anyString())
         verify(authenticationHolderRepository).save(isA<KtorAuthenticationHolder>())
@@ -283,7 +282,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
             refreshToken
         }
 
-        val token = service.createAccessToken(authentication, true)
+        val token = service.createAccessToken(authentication, true, emptyMap())
 
         verify(tokenRepository, atMost(1)).getRefreshTokenById(ArgumentMatchers.anyLong())
 
@@ -307,7 +306,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
         whenever(client.refreshTokenValiditySeconds) doReturn (refreshTokenValiditySeconds)
 
         val start = System.currentTimeMillis()
-        val token = service.createAccessToken(authentication, true)
+        val token = service.createAccessToken(authentication, true, emptyMap())
         val end = System.currentTimeMillis()
 
         // Accounting for some delta for time skew on either side.
@@ -330,7 +329,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
 
     @Test
     fun createAccessToken_checkClient(): Unit = runBlocking {
-        val token: OAuth2AccessToken = service.createAccessToken(authentication, true)
+        val token: OAuth2AccessToken = service.createAccessToken(authentication, true, emptyMap())
 
         verify(scopeService, atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
 
@@ -339,7 +338,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
 
     @Test
     fun createAccessToken_checkScopes(): Unit = runBlocking {
-        val token = service.createAccessToken(authentication, true)
+        val token = service.createAccessToken(authentication, true, emptyMap())
 
         verify(scopeService, atLeastOnce()).removeReservedScopes(ArgumentMatchers.anySet())
 
@@ -352,7 +351,7 @@ class TestKtorDefaultOAuth2ProviderTokenService {
 
         whenever(authenticationHolderRepository.save(isA<KtorAuthenticationHolder>())) doReturn (authHolder)
 
-        val token = service.createAccessToken(authentication, true)
+        val token = service.createAccessToken(authentication, true, emptyMap())
 
         Assertions.assertEquals(authHolder, token.authenticationHolder)
         verify(authenticationHolderRepository).save(isA<KtorAuthenticationHolder>())

@@ -44,7 +44,6 @@ import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.OAuth2TokenEntityService
 import org.mitre.oauth2.service.SystemScopeService
-import org.mitre.openid.connect.request.ConnectRequestParameters
 import org.mitre.openid.connect.service.ApprovedSiteService
 import org.mitre.util.getLogger
 import java.nio.charset.StandardCharsets
@@ -119,7 +118,11 @@ class DefaultOAuth2ProviderTokenService(
     }
 
 
-    override suspend fun createAccessToken(authentication: AuthenticatedAuthorizationRequest, isAllowRefresh: Boolean): OAuth2AccessToken {
+    override suspend fun createAccessToken(
+        authentication: AuthenticatedAuthorizationRequest,
+        isAllowRefresh: Boolean,
+        requestParameters: Map<String, String>
+    ): OAuth2AccessToken {
         // look up our client
         val request = authentication.authorizationRequest
 
@@ -127,23 +130,24 @@ class DefaultOAuth2ProviderTokenService(
             ?: throw InvalidClientException("Client not found: " + request.clientId)
 
         val codeChallenge = (request as? OpenIdAuthorizationRequest)?.codeChallenge
+
         // handle the PKCE code challenge if present
         if (codeChallenge != null) {
+            val codeVerifier = requestParameters["code_verifier"]
+            requireNotNull(codeVerifier) { "Missing code verifier" }
             val challenge = codeChallenge.challenge
             val alg = parse(codeChallenge.method)
 
-            val verifier = request.requestParameters[ConnectRequestParameters.CODE_VERIFIER]
-
             if (alg == PKCEAlgorithm.plain) {
                 // do a direct string comparison
-                if (challenge != verifier) {
+                if (challenge != codeVerifier) {
                     throw InvalidRequestException("Code challenge and verifier do not match")
                 }
             } else if (alg == PKCEAlgorithm.S256) {
                 // hash the verifier
                 try {
                     val digest = MessageDigest.getInstance("SHA-256")
-                    val hash = Base64URL.encode(digest.digest(verifier!!.toByteArray(StandardCharsets.US_ASCII)))
+                    val hash = Base64URL.encode(digest.digest(codeVerifier!!.toByteArray(StandardCharsets.US_ASCII)))
                         .toString()
                     if (challenge != hash) {
                         throw InvalidRequestException("Code challenge and verifier do not match")

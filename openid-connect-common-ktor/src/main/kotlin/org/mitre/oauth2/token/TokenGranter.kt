@@ -13,6 +13,7 @@ interface TokenGranter {
     suspend fun getOAuth2Authentication(
         client: OAuthClientDetails,
         request: AuthorizationRequest,
+        requestParameters: Map<String, String>,
     ): AuthenticatedAuthorizationRequest {
         return AuthenticatedAuthorizationRequest(request, null)
     }
@@ -21,8 +22,14 @@ interface TokenGranter {
         client: OAuthClientDetails,
         tokenRequest: AuthenticatedAuthorizationRequest,
         isAllowRefresh: Boolean = isGrantAllowsRefresh,
+        requestParameters: Map<String, String>,
     ): OAuth2AccessToken
 
-    suspend fun grant(grantType: String, request: AuthorizationRequest, authenticatedClient: OAuthClientDetails): OAuth2AccessToken
+    suspend fun grant(
+        grantType: String,
+        request: AuthorizationRequest,
+        authenticatedClient: OAuthClientDetails,
+        requestParameters: Map<String, String>
+    ): OAuth2AccessToken
 }
 

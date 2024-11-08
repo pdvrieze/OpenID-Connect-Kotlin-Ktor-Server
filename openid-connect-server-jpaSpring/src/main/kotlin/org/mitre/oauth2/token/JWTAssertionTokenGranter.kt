@@ -76,7 +76,7 @@ class JWTAssertionTokenGranter @Autowired constructor(
 
     override fun getAccessToken(client: ClientDetails, tokenRequest: TokenRequest): SpringOAuth2AccessToken {
         val auth: AuthenticatedAuthorizationRequest = getOAuth2Authentication(client, tokenRequest)!!.fromSpring()
-        return runBlocking { tokenServices.createAccessToken(auth, true).toSpring() }
+        return runBlocking { tokenServices.createAccessToken(auth, true, tokenRequest.requestParameters).toSpring() }
     }
 
 

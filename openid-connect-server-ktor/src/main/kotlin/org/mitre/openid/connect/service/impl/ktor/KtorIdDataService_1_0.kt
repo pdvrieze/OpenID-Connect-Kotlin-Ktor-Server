@@ -18,6 +18,7 @@
 package org.mitre.openid.connect.service.impl.ktor
 
 import org.mitre.oauth2.model.AuthenticationHolder
+import org.mitre.oauth2.model.request.InternalForStorage
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2ClientRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
@@ -88,6 +89,7 @@ class KtorIdDataService_1_0(
         super.importClient(context, client)
     }
 
+    @OptIn(InternalForStorage::class)
     override fun importAuthenticationHolder(context: DataServiceContext, ahe: AuthenticationHolder) {
         val r = ahe.authorizationRequest
         r.authHolderExtensions.warnIgnored("authentication/userAuthentication/extensions")

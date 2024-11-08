@@ -360,17 +360,7 @@ class OIDCAuthenticationProvider internal constructor(config: Config) : Authenti
 
 
         if (AuthMethod.SECRET_BASIC == clientConfig.tokenEndpointAuthMethod) {
-            val f = String.format(
-                "Basic %s", Base64.encode(
-                    String.format(
-                        "%s:%s",
-                        url { appendEncodedPathSegments(clientConfig.clientId!!) },
-                        url { appendEncodedPathSegments(clientConfig.clientSecret!!) }
-                    )
-                )
-            )
-
-            rb.header(HttpHeaders.Authorization, f)
+            rb.basicAuth(clientConfig.clientId, clientConfig.clientSecret!!)
 
             // use BASIC auth if configured to do so
         } else {

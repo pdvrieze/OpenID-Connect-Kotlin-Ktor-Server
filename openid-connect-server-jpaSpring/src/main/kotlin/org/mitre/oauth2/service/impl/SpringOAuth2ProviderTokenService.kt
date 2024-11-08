@@ -34,6 +34,7 @@ import org.mitre.oauth2.model.PKCEAlgorithm.Companion.parse
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.jpa.AuthenticationHolderEntity
 import org.mitre.oauth2.model.request.AuthorizationRequest
+import org.mitre.oauth2.model.request.InternalForStorage
 import org.mitre.oauth2.model.request.jpa.extensions
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
@@ -134,7 +135,11 @@ class SpringOAuth2ProviderTokenService : OAuth2TokenEntityService {
 
     @Transactional(value = "defaultTransactionManager")
     @Throws(AuthenticationException::class, InvalidClientException::class)
-    override suspend fun createAccessToken(authentication: AuthenticatedAuthorizationRequest, isAllowRefresh: Boolean): OAuth2AccessToken {
+    override suspend fun createAccessToken(
+        authentication: AuthenticatedAuthorizationRequest,
+        isAllowRefresh: Boolean,
+        requestParameters: Map<String, String>
+    ): OAuth2AccessToken {
 
         // look up our client
         val request = authentication.authorizationRequest
@@ -147,6 +152,7 @@ class SpringOAuth2ProviderTokenService : OAuth2TokenEntityService {
             val challenge = request.extensions[ConnectRequestParameters.CODE_CHALLENGE]
             val alg = parse(request.extensions[ConnectRequestParameters.CODE_CHALLENGE_METHOD]!!)
 
+            @OptIn(InternalForStorage::class)
             val verifier = request.requestParameters[ConnectRequestParameters.CODE_VERIFIER]
 
             if (alg == PKCEAlgorithm.plain) {

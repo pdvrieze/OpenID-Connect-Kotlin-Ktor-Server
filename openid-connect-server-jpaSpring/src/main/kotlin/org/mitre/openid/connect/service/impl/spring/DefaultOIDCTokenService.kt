@@ -38,6 +38,7 @@ import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.jpa.AuthenticationHolderEntity
 import org.mitre.oauth2.model.request.AuthorizationRequest
+import org.mitre.oauth2.model.request.InternalForStorage
 import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mitre.oauth2.model.request.jpa.extensions
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
@@ -223,6 +224,8 @@ class DefaultOIDCTokenService : OIDCTokenService {
 
         // create a new token
         val authorizationParameters: Map<String, String> = hashMapOf()
+
+        @OptIn(InternalForStorage::class)
         val clientAuth = PlainAuthorizationRequest.Builder(client.clientId).also { b ->
             b.requestParameters = authorizationParameters
             b.clientId = client.clientId

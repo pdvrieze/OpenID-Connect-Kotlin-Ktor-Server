@@ -25,7 +25,6 @@ import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.JWTParser
 import com.nimbusds.jwt.PlainJWT
 import com.nimbusds.jwt.SignedJWT
-import io.ktor.http.*
 import kotlinx.serialization.json.JsonObject
 import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
 import org.mitre.jwt.signer.service.ClientKeyCacheService
@@ -53,7 +52,7 @@ class KtorConnectOAuth2RequestFactory(
 ) : KtorOAuth2RequestFactory(
     clientDetailsService,
 ) {
-    override suspend fun createAuthorizationRequest(inputParams: Parameters): AuthorizationRequest {
+    override suspend fun createAuthorizationRequest(inputParams: Map<String, String>): AuthorizationRequest {
         val reqBuilder = OpenIdAuthorizationRequest.Builder(super.createAuthorizationRequest(inputParams)).apply {
             val jwt = inputParams[REQUEST]?.let { parseToJwt(it, this) }
 

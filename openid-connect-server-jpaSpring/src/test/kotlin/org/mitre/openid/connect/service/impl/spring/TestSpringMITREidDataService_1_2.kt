@@ -30,6 +30,7 @@ import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.jpa.AuthenticationHolderEntity
 import org.mitre.oauth2.model.request.AuthorizationRequest.Approval
+import org.mitre.oauth2.model.request.InternalForStorage
 import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2ClientRepository
@@ -728,6 +729,7 @@ class TestSpringMITREidDataService_1_2 {
 
         val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
 
+        @OptIn(InternalForStorage::class)
         val holder2 = AuthenticationHolderEntity(
             id = 2L,
             clientId = "client2",

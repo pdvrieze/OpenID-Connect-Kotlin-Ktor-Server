@@ -23,6 +23,7 @@ import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.request.AuthorizationRequest
 import org.mitre.oauth2.model.request.OpenIdAuthorizationRequest
+import org.mitre.oauth2.model.request.OpenIdAuthorizationRequest.ResponseMode
 import org.mitre.oauth2.service.ClientLoadingResult
 import org.mitre.oauth2.token.TokenGranter
 import org.mitre.oauth2.view.respondJson
@@ -79,10 +80,11 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
 
 //    override fun doFilter(req: ServletRequest, res: ServletResponse, chain: FilterChain) {
 
-    private suspend fun RoutingContext.startAuthorizationFlow(params: Parameters) {
-        for ((_, values) in params.entries()) {
-            // Any repeated parameter is invalid per RFC 6749/ 4.1
-            if (values.size != 1) return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
+    private suspend fun RoutingContext.startAuthorizationFlow(rawParams: Parameters) {
+        val params = try {
+            rawParams.entries().associate { (k, v) -> k to v.single() }
+        } catch (e: Exception) {
+            return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
         }
 
         // we have to create our own auth request in order to get at all the parmeters appropriately
@@ -145,11 +147,10 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         // TODO check scopes
 
         if (auth != null) { // If we are still authenticated
-            val paramMap = params.flattenEntries().associate { it }
             val approvedAuthRequest = when {
-                userApprovalHandler.isApproved(authRequest, auth, paramMap) -> {
+                userApprovalHandler.isApproved(authRequest, auth, params) -> {
                     if (!hasSession) return call.response.status(HttpStatusCode.Forbidden) // CSRF error
-                    userApprovalHandler.updateAfterApproval(authRequest, auth, paramMap)
+                    userApprovalHandler.updateAfterApproval(authRequest, auth, params)
                 }
 
                 else -> userApprovalHandler.checkForPreApproval(authRequest, auth)
@@ -163,7 +164,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
 
                 responseType.isAuthCodeFlow -> return respondWithAuthCode(approvedAuthRequest, auth, redirectUri, state)
 
-                responseType.isImplicitFlow -> return respondImplicitFlow(responseType, client, approvedAuthRequest, auth, redirectUri, state)
+                responseType.isImplicitFlow -> return respondImplicitFlow(responseType, client, approvedAuthRequest, auth, redirectUri, state, params)
 
                 responseType.isHybridFlow -> return respondHybridFlow(responseType, client, approvedAuthRequest, auth, redirectUri, state)
 
@@ -187,7 +188,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         return call.respondRedirect {
             takeFrom(effectiveRedirectUri)
             when {
-                authRequest is OpenIdAuthorizationRequest && authRequest.requestParameters["response_mode"] == "fragment" ->
+                authRequest is OpenIdAuthorizationRequest && authRequest.responseMode == ResponseMode.FRAGMENT ->
                     fragment = code
 
                 else -> parameters.append("code", code)
@@ -204,24 +205,25 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         auth: Authentication,
         effectiveRedirectUri: String,
         state: String?,
+        requestParameters: Map<String, String>,
     ) {
         val r = AuthenticatedAuthorizationRequest(authRequest, SavedUserAuthentication.from(auth))
         val accessToken = if(responseType.token) {
             val granter = getGranter("token") ?: return jsonErrorView(OAuthErrorCodes.UNSUPPORTED_GRANT_TYPE)
 
-            granter.getAccessToken(client, r).jwt.serialize()
+            granter.getAccessToken(client, r, requestParameters = requestParameters).jwt.serialize()
         } else null
 
         val idToken = if(responseType.idToken) {
             val granter = getGranter("id_token") ?: return jsonErrorView(OAuthErrorCodes.UNSUPPORTED_GRANT_TYPE)
-            granter.getAccessToken(client, r,).jwt.serialize() // should use separate function using DefaultOIDCTokenService
+            granter.getAccessToken(client, r, requestParameters = requestParameters,).jwt.serialize() // should use separate function using DefaultOIDCTokenService
         } else null
 
         return call.respondRedirect {
             takeFrom(effectiveRedirectUri)
 
             val p = when {
-                authRequest is OpenIdAuthorizationRequest && authRequest.requestParameters["response_mode"] == "query" -> parameters
+                authRequest is OpenIdAuthorizationRequest && authRequest.responseMode == ResponseMode.QUERY -> parameters
                 else -> ParametersBuilder()
             }
 
@@ -249,7 +251,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         return call.respondRedirect {
             takeFrom(effectiveRedirectUri)
             val p = when {
-                authRequest is OpenIdAuthorizationRequest && authRequest.requestParameters["response_mode"] == "fragment" -> ParametersBuilder()
+                authRequest is OpenIdAuthorizationRequest && authRequest.responseMode == ResponseMode.FRAGMENT -> ParametersBuilder()
                 else -> parameters
             }
 
@@ -410,12 +412,14 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         return htmlLoginView(config.issuerUrl("authorize/login"), formParams["username"], error, formParams["redirect"], HttpStatusCode.Unauthorized)
     }
 
-    private suspend fun RoutingContext.processApproval(params: Parameters) {
+    private suspend fun RoutingContext.processApproval(rawParams: Parameters) {
         if (! call.queryParameters.isEmpty()) {
             return htmlErrorView(OAuthErrorCodes.INVALID_REQUEST, "Unexpected query parameters")
         }
 
-        if (params.getAll("user_oauth_approval")?.singleOrNull() != "true") {
+        val params = rawParams.entries().associate { (k, v) -> k to v.single() }
+
+        if (params["user_oauth_approval"] != "true") {
             return htmlErrorView(OAuthErrorCodes.INVALID_REQUEST, "Missing form data")
         }
         val oldSession = call.sessions.get<OpenIdSessionStorage>() ?: return htmlErrorView(OAuthErrorCodes.INVALID_REQUEST, "Missing session")
@@ -428,11 +432,9 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         val auth = openIdContext.principalToAuthentication(principal)
             ?: return htmlErrorView(OAuthErrorCodes.SERVER_ERROR, "Invalid user")
 
-        val paramMap = params.flattenEntries().associate { it }
-
         val approvedAuthRequest = when {
-            userApprovalHandler.isApproved(authRequest, auth, paramMap) -> {
-                userApprovalHandler.updateAfterApproval(authRequest, auth, paramMap)
+            userApprovalHandler.isApproved(authRequest, auth, params) -> {
+                userApprovalHandler.updateAfterApproval(authRequest, auth, params)
             }
 
             else -> authRequest
@@ -454,7 +456,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
 
             responseType.isAuthCodeFlow -> return respondWithAuthCode(approvedAuthRequest, auth, redirectUri, state)
 
-            responseType.isImplicitFlow -> return respondImplicitFlow(responseType, client, approvedAuthRequest, auth, redirectUri, state)
+            responseType.isImplicitFlow -> return respondImplicitFlow(responseType, client, approvedAuthRequest, auth, redirectUri, state, params)
 
             responseType.isHybridFlow -> return respondHybridFlow(responseType, client, approvedAuthRequest, auth, redirectUri, state)
 
@@ -468,7 +470,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         return openIdContext.tokenGranters[grantType]
     }
 
-    fun RoutingContext.getAuthenticatedClient(postParams: Parameters): ClientLoadingResult {
+    fun RoutingContext.getAuthenticatedClient(postParams: Map<String, String>): ClientLoadingResult {
         val requestClientId: String? = call.request.queryParameters["client_id"]
 
         val creds : UserPasswordCredential
@@ -483,9 +485,8 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
                     else -> return ClientLoadingResult(OAuthErrorCodes.INVALID_REQUEST)
                 }
 
-                postParams.getAll("client_id")?.run {
-                    if(size > 1) return ClientLoadingResult(OAuthErrorCodes.INVALID_REQUEST)
-                    if (requestClientId!= null && requestClientId != get(0)) {
+                postParams.get("client_id")?.let { postClientId ->
+                    if (requestClientId!= null && requestClientId != postClientId) {
                         //mismatch between client ids
                         return ClientLoadingResult(OAuthErrorCodes.INVALID_CLIENT)
                     }
@@ -498,8 +499,8 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
             }
 
             else -> {
-                val cid = postParams.getAll("client_id")?.singleOrNull()
-                val clientSecret = postParams.getAll("client_secret")?.singleOrNull()
+                val cid = postParams["client_id"]
+                val clientSecret = postParams["client_secret"]
                 if (cid == null || clientSecret == null) return ClientLoadingResult(OAuthErrorCodes.INVALID_CLIENT, HttpStatusCode.Unauthorized.value)
 
                 creds = UserPasswordCredential(cid, clientSecret)
@@ -512,13 +513,11 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
     @OptIn(ExperimentalEncodingApi::class)
     private suspend fun RoutingContext.getAccessToken() {
 
-        val postParams = call.receiveParameters()
+        val postParams = runCatching { call.receiveParameters().entries().associate { (k, v) -> k to v.single() } }
+            .onFailure { return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST, it.message) }
+            .getOrThrow()
 
-        if (postParams.entries().any { it.value.size != 1 }) {
-            return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
-        }
-
-        logger.info("Query parameters: ${postParams.entries().joinToString { (k, v) -> "$k=\"${v.single()}\"" }}")
+        logger.info("Query parameters: ${postParams.entries.joinToString { (k, v) -> "$k=\"$v\"" }}")
 
         val grantType = (postParams["grant_type"] ?: return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST))
 
@@ -533,7 +532,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
             is ClientLoadingResult.Found -> c.client
         }
 
-        val accessToken = granter.grant(grantType, authRequestFactory.createAuthorizationRequest(postParams, client), client)
+        val accessToken = granter.grant(grantType, authRequestFactory.createAuthorizationRequest(postParams, client), client, postParams)
 
         val response = AuthTokenResponse (
             accessToken.value,

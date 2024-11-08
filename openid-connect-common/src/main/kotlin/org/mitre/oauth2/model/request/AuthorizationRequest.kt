@@ -16,6 +16,7 @@ import java.time.Instant
 @Serializable(AuthorizationRequest.Companion::class)
 interface AuthorizationRequest {
     @SerialName("authorizationParameters")
+    @InternalForStorage
     val requestParameters: Map<String, String>
     val clientId: String
     val authorities: Set<GrantedAuthority>
@@ -34,6 +35,7 @@ interface AuthorizationRequest {
     val denied: Boolean get() = ! isApproved
 
     // Extensions string function as to store in an auth holder
+    @InternalForStorage
     val authHolderExtensions: Map<String, String>
 
     fun builder(): Builder
@@ -45,7 +47,7 @@ interface AuthorizationRequest {
     }
 
     @Serializable
-    private class SerialDelegate(
+    private class SerialDelegate private constructor(
         @SerialName("authorizationParameters")
         val requestParameters: Map<String, String> = emptyMap(),
         val clientId: String,
@@ -59,26 +61,19 @@ interface AuthorizationRequest {
         val state: String? = null,
         val requestTime: ISOInstant? = null,
         @SerialName("extensionStrings")
+        @property:InternalForStorage
         val extensions: Map<String, String>? = null,
     ) {
 
+        @OptIn(InternalForStorage::class)
         fun toAuthRequest(): AuthorizationRequest {
             val builder: Builder = when {
                 "openid" in scope -> OpenIdAuthorizationRequest.Builder(clientId)
                 else -> PlainAuthorizationRequest.Builder(clientId)
             }.also { b ->
+                extensions?.let { b.setFromExtensions( it ) }
                 b.requestParameters = requestParameters
                 b.authorities = authorities
-                if(extensions != null) {
-                    extensions["AUTHZ_TIMESTAMP"]?.let { timestamp ->
-                        b.approval = Approval(
-                            extensions.get("approved_site")?.toLong(),
-                            Instant.ofEpochSecond(timestamp.toLong())
-                        )
-
-                    }
-                }
-
                 b.scope = scope
                 b.resourceIds = resourceIds
                 b.redirectUri = redirectUri
@@ -86,10 +81,12 @@ interface AuthorizationRequest {
                 b.state = state
                 b.requestTime = requestTime
             }
+            @OptIn(InternalForStorage::class)
             (builder as? OpenIdAuthorizationRequest.Builder)?.setFromExtensions(extensions ?: emptyMap())
             return builder.build()
         }
 
+        @OptIn(InternalForStorage::class)
         constructor(plainRequest: PlainAuthorizationRequest): this(
             requestParameters = plainRequest.requestParameters,
             clientId = plainRequest.clientId,
@@ -104,6 +101,7 @@ interface AuthorizationRequest {
             extensions = plainRequest.authHolderExtensions,
         )
 
+        @OptIn(InternalForStorage::class)
         constructor(oidRequest: OpenIdAuthorizationRequest): this(
             requestParameters = oidRequest.requestParameters,
             clientId = oidRequest.clientId,
@@ -120,6 +118,7 @@ interface AuthorizationRequest {
     }
 
     abstract class Builder(var clientId: String) {
+        @InternalForStorage
         var requestParameters: Map<String, String> = emptyMap()
         var authorities: Set<GrantedAuthority> = emptySet()
         var approval: Approval? = null
@@ -130,6 +129,7 @@ interface AuthorizationRequest {
         var state: String? = null
         var requestTime: ISOInstant? = null
 
+        @OptIn(InternalForStorage::class)
         constructor(orig: AuthorizationRequest): this(orig.clientId) {
             requestParameters = orig.requestParameters
             authorities = orig.authorities
@@ -143,6 +143,8 @@ interface AuthorizationRequest {
         }
 
         abstract fun build(): AuthorizationRequest
+
+        @InternalForStorage
         abstract fun setFromExtensions(extensions: Map<String, String>)
     }
 
@@ -176,3 +178,6 @@ inline fun <T: OpenIdAuthorizationRequest> T.updateOID(block: OpenIdAuthorizatio
     @Suppress("UNCHECKED_CAST")
     return builder().apply(block).build() as T
 }
+
+@RequiresOptIn(message = "This function is internal for use in storage", level = RequiresOptIn.Level.ERROR)
+annotation class InternalForStorage

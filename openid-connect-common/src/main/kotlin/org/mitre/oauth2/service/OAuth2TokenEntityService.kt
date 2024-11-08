@@ -35,7 +35,11 @@ interface OAuth2TokenEntityService : OAuth2TokenResolver {
     //endregion
 
     //region Authorization Server
-    suspend fun createAccessToken(authentication: AuthenticatedAuthorizationRequest, isAllowRefresh: Boolean): OAuth2AccessToken
+    suspend fun createAccessToken(
+        authentication: AuthenticatedAuthorizationRequest,
+        isAllowRefresh: Boolean,
+        requestParameters: Map<String, String>
+    ): OAuth2AccessToken
 
     suspend fun refreshAccessToken(refreshTokenValue: String, tokenRequest: AuthorizationRequest /*TokenRequest*/): OAuth2AccessToken
 

@@ -89,7 +89,7 @@ class ChainedTokenGranter @Autowired constructor(// keep down-cast versions so w
     }
 
     override fun getAccessToken(client: ClientDetails, tokenRequest: TokenRequest): SpringOAuth2AccessToken = runBlocking {
-        tokenServices.createAccessToken(getOAuth2Authentication(client, tokenRequest).fromSpring(), true).toSpring()
+        tokenServices.createAccessToken(getOAuth2Authentication(client, tokenRequest).fromSpring(), true, tokenRequest.requestParameters).toSpring()
     }
 
     companion object {

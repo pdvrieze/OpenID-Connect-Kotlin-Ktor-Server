@@ -7,6 +7,7 @@ import kotlinx.serialization.json.JsonElement
 import org.mitre.oauth2.model.convert.AuthenticationSerializer
 import org.mitre.oauth2.model.convert.SimpleGrantedAuthorityStringConverter
 import org.mitre.oauth2.model.request.AuthorizationRequest
+import org.mitre.oauth2.model.request.InternalForStorage
 import org.mitre.oauth2.model.request.OpenIdAuthorizationRequest
 import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 
@@ -145,6 +146,7 @@ class KtorAuthenticationHolder private constructor(
         @SerialName("savedUserAuthentication")
         val userAuth: @Serializable(AuthenticationSerializer::class) Authentication? = null,
     ) : SerialDelegate {
+        @OptIn(InternalForStorage::class)
         constructor(e: AuthenticationHolder) : this(
             currentId = e.id!!,
             requestParameters = e.authorizationRequest.requestParameters ?: emptyMap(),
@@ -155,10 +157,13 @@ class KtorAuthenticationHolder private constructor(
             isApproved = e.authorizationRequest.isApproved,
             redirectUri = e.authorizationRequest.redirectUri,
             responseTypes = e.authorizationRequest.responseTypes ?: emptySet(),
-            extensions = e.authorizationRequest.authHolderExtensions.asSequence()?.mapNotNull { (k, v) -> (v as? String)?.let { k to it } }?.associate { it } ?: emptyMap(),
+            extensions = e.authorizationRequest.authHolderExtensions.asSequence()
+                .mapNotNull { (k, v) -> (v as? String)?.let { k to it } }
+                .associate { it },
             userAuth = e.userAuthentication,
         )
 
+        @OptIn(InternalForStorage::class)
         override fun toAuthenticationHolder(): KtorAuthenticationHolder {
             val userAuth = userAuth?.let { it as? SavedUserAuthentication ?: SavedUserAuthentication(it) }
 

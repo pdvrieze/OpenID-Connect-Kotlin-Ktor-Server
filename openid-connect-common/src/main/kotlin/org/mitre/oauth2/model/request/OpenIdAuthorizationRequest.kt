@@ -15,8 +15,9 @@ interface OpenIdAuthorizationRequest : AuthorizationRequest {
     val prompts: Set<Prompt>?
     val idToken: String? //idtoken
     val nonce: String?
-    val display: String?
     val requestedClaims: JsonObject?
+    val display: String?
+    val responseMode: ResponseMode
 
     override fun builder(): Builder
 
@@ -34,6 +35,7 @@ interface OpenIdAuthorizationRequest : AuthorizationRequest {
         var nonce: String? = null
         var requestedClaims: JsonObject? = null
         var display: String? = null
+        var responseMode: ResponseMode = ResponseMode.DEFAULT
         var extensions: Map<String, String>? = null
             private set
 
@@ -49,6 +51,7 @@ interface OpenIdAuthorizationRequest : AuthorizationRequest {
                 nonce = orig.nonce
                 display = orig.display
                 requestedClaims = orig.requestedClaims
+                responseMode = orig.responseMode
             }
         }
 
@@ -56,6 +59,7 @@ interface OpenIdAuthorizationRequest : AuthorizationRequest {
             return OpenIdAuthorizationRequestImpl(this)
         }
 
+        @InternalForStorage
         override fun setFromExtensions(extensions: Map<String, String>) {
             val extCpy = HashMap(extensions)
             extCpy.remove("code_challenge")?.let { codeChallenge = CodeChallenge(it, extensions["code_challenge_method"]!!) }
@@ -68,7 +72,23 @@ interface OpenIdAuthorizationRequest : AuthorizationRequest {
             extCpy.remove("nonce")?.let { nonce = it }
             extCpy.remove("display")?.let { display = it }
             extCpy.remove("claims")?.let { requestedClaims = Json.parseToJsonElement(it).jsonObject }
+            extCpy.remove("response_mode").let { responseMode = ResponseMode.from(it) }
             this.extensions = extCpy.takeIf { it.isNotEmpty() }
+        }
+    }
+
+    enum class ResponseMode(val value: String?) {
+        DEFAULT(null),
+        QUERY("query"),
+        FRAGMENT("fragment");
+
+        companion object {
+            fun from(value: String?): ResponseMode = when (value) {
+                null -> DEFAULT
+                "query" -> QUERY
+                "fragment" -> FRAGMENT
+                else -> throw IllegalArgumentException("Unexpexted response mode: '$value'")
+            }
         }
     }
 

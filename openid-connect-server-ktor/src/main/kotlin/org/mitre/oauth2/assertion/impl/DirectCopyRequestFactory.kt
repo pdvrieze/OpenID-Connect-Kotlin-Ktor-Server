@@ -5,6 +5,7 @@ import io.ktor.util.*
 import org.mitre.oauth2.assertion.AssertionOAuth2RequestFactory
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.request.AuthorizationRequest
+import org.mitre.oauth2.model.request.InternalForStorage
 import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mitre.oauth2.token.TokenRequest
 import java.text.ParseException
@@ -32,6 +33,8 @@ class DirectCopyRequestFactory : AssertionOAuth2RequestFactory {
             val resources = claims.audience.toSet()
 
             val now = Instant.now()
+
+            @OptIn(InternalForStorage::class)
             return PlainAuthorizationRequest.Builder(clientId = client.clientId).also { b ->
                 b.requestParameters = tokenRequest.requestParameters.toMap().mapValues { it.value.first() }
                 b.requestTime = now

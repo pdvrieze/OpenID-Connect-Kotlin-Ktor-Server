@@ -22,8 +22,10 @@ class AuthorizationCodeTokenGranter(
     override suspend fun getOAuth2Authentication(
         client: OAuthClientDetails,
         request: AuthorizationRequest,
+        requestParameters: Map<String, String>,
     ): AuthenticatedAuthorizationRequest {
-        val code = request.requestParameters["code"] ?: throw OAuth2Exception(OAuthErrorCodes.INVALID_REQUEST)
+        val code = requestParameters["code"] ?: throw OAuth2Exception(OAuthErrorCodes.INVALID_REQUEST)
+
         val authenticatedRequest = authorizationCodeService.consumeAuthorizationCode(code)
         if (authenticatedRequest.authorizationRequest.redirectUri != request.redirectUri)
             throw OAuth2Exception(OAuthErrorCodes.INVALID_REQUEST)

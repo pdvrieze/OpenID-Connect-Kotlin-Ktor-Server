@@ -203,13 +203,4 @@ class KtorTofuUserApprovalHandler(
         return requestBuilder.build()
     }
 
-    fun getUserApprovalRequest(
-        authorizationRequest: AuthorizationRequest,
-        userAuthentication: Authentication
-    ): Map<String, Any> {
-        val model: MutableMap<String, Any> = HashMap()
-        // In case of a redirect we might want the request parameters to be included
-        model.putAll(authorizationRequest.requestParameters)
-        return model
-    }
 }

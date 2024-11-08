@@ -16,6 +16,7 @@ import org.mitre.oauth2.model.AuthenticationHolder
 import org.mitre.oauth2.model.KtorAuthenticationHolder
 import org.mitre.oauth2.model.LocalGrantedAuthority
 import org.mitre.oauth2.model.SavedUserAuthentication
+import org.mitre.oauth2.model.request.InternalForStorage
 import org.mitre.oauth2.model.request.OpenIdAuthorizationRequest
 import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
@@ -130,6 +131,7 @@ class ExposedAuthenticationHolderRepository(database: Database) :
         }
 
         AuthenticationHolderExtensions.let { t ->
+            @OptIn(InternalForStorage::class)
             r.authHolderExtensions.takeIf { it.isNotEmpty() }?.let { m ->
                 t.batchInsert(m.entries) { (k, v) ->
                     this[t.ownerId] = id
@@ -139,6 +141,7 @@ class ExposedAuthenticationHolderRepository(database: Database) :
             }
         }
 
+        @OptIn(InternalForStorage::class)
         AuthenticationHolderRequestParameters.let { t ->
             r.requestParameters.takeIf { it.isNotEmpty() }?.let { m ->
                 t.batchInsert(m.entries) { (k, v) ->
@@ -219,6 +222,7 @@ private fun ResultRow.toAuthenticationHolder(): AuthenticationHolder {
 
 
 
+    @OptIn(InternalForStorage::class)
     return with(AuthenticationHolders) {
         val clientId = r[clientId]
         val authReq = when {

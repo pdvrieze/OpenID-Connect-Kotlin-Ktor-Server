@@ -11,6 +11,7 @@ import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.jpa.AuthenticationHolderEntity
+import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
@@ -79,7 +80,7 @@ class TestJpaOAuth2TokenRepository {
             entityManager.merge(it)
         }
 
-        val authHolder = AuthenticationHolderEntity(requestTime = Instant.now()).let {
+        val authHolder = AuthenticationHolderEntity(null, PlainAuthorizationRequest(clientId = "foo", requestTime = Instant.now())).let {
             it.userAuthentication = userAuth
             entityManager.merge(it)
         }
@@ -99,7 +100,7 @@ class TestJpaOAuth2TokenRepository {
             entityManager.merge(it)
         }
 
-        val authHolder = AuthenticationHolderEntity(requestTime = Instant.now()).let {
+        val authHolder = AuthenticationHolderEntity(userAuth, PlainAuthorizationRequest(clientId = "foo", requestTime = Instant.now())).let {
             it.userAuthentication = userAuth
             entityManager.merge(it)
         }

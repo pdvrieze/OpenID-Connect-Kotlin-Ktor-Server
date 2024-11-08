@@ -6,6 +6,7 @@ import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2RefreshToken
 import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.request.AuthorizationRequest
+import org.mitre.oauth2.model.request.InternalForStorage
 import org.mitre.oauth2.model.request.OpenIdAuthorizationRequest
 import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mitre.openid.connect.model.OIDCAuthenticationToken
@@ -88,6 +89,7 @@ fun SavedUserAuthentication.toSpring(): SpringAuthentication {
 fun AuthenticatedAuthorizationRequest.toSpring(): SpringOAuth2Authentication =
     SpringOAuth2Authentication(authorizationRequest.toSpring(), userAuthentication?.toSpring())
 
+@OptIn(InternalForStorage::class)
 fun AuthorizationRequest.toSpring(): SpringOAuth2Request =
     SpringOAuth2Request(
         requestParameters,
@@ -180,6 +182,7 @@ fun Authentication.fromSpring(): SavedUserAuthentication {
     )
 }
 
+@OptIn(InternalForStorage::class)
 fun SpringOAuth2Request.fromSpring(): AuthorizationRequest = when {
     "openid" in scope -> OpenIdAuthorizationRequest.Builder(clientId).also { b ->
         extensions?.mapValues { it.toString() }?.let { b.setFromExtensions(it) }
