@@ -26,7 +26,6 @@ import java.time.Instant
 
 interface OpenIdAuthorizationRequest : AuthorizationRequest {
 
-    val codeChallenge: CodeChallenge?
     val audience: String?
     val maxAge: Long?
     val approvedSiteId: Long?
@@ -44,7 +43,6 @@ interface OpenIdAuthorizationRequest : AuthorizationRequest {
     class Builder : AuthorizationRequest.Builder {
         constructor(clientId: String) : super(clientId)
 
-        var codeChallenge: CodeChallenge? = null
         var audience: String? = null
         var maxAge: Long? = null
         var approvedSiteId: Long? = null
@@ -81,7 +79,7 @@ interface OpenIdAuthorizationRequest : AuthorizationRequest {
         @InternalForStorage
         override fun setFromExtensions(extensions: Map<String, String>) {
             val extCpy = HashMap(extensions)
-            extCpy.remove("code_challenge")?.let { codeChallenge = CodeChallenge(it, extensions["code_challenge_method"]!!) }
+            extCpy.remove("code_challenge")?.let { codeChallenge = CodeChallenge(it, extCpy.remove("code_challenge_method")) }
             extCpy.remove("aud")?.let { audience = it }
             extCpy.remove("max_age")?.let { maxAge = it.toLong() }
             extCpy.remove("approved_site")?.let { approvedSiteId = it.toLong() }

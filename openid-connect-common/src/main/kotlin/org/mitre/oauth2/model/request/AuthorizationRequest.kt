@@ -30,6 +30,8 @@ interface AuthorizationRequest {
     val responseTypes: Set<String>?
     val state: String?
     val requestTime: ISOInstant?
+    /** Code challenge from PKCE (RFC7636) */
+    val codeChallenge: CodeChallenge?
 
     @SerialName("extensionStrings")
     val denied: Boolean get() = ! isApproved
@@ -128,6 +130,8 @@ interface AuthorizationRequest {
         var responseTypes: Set<String>? = null
         var state: String? = null
         var requestTime: ISOInstant? = null
+        var codeChallenge: CodeChallenge? = null
+
 
         @OptIn(InternalForStorage::class)
         constructor(orig: AuthorizationRequest): this(orig.clientId) {
@@ -140,6 +144,7 @@ interface AuthorizationRequest {
             responseTypes = orig.responseTypes
             state = orig.state
             requestTime = orig.requestTime
+            codeChallenge = orig.codeChallenge
         }
 
         abstract fun build(): AuthorizationRequest

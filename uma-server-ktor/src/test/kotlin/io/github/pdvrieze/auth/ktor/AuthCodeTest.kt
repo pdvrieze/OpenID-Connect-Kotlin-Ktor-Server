@@ -1,5 +1,6 @@
 package io.github.pdvrieze.auth.ktor
 
+import com.nimbusds.jose.util.Base64URL
 import com.nimbusds.jwt.SignedJWT
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -10,6 +11,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.testing.*
+import io.ktor.util.*
 import kotlinx.serialization.json.Json
 import org.junit.Before
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
@@ -22,6 +24,8 @@ import org.mitre.openid.connect.filter.PlainAuthorizationRequestEndpoint
 import org.mitre.util.oidJson
 import org.mitre.web.FormAuthEndpoint
 import org.mitre.web.OpenIdSessionStorage
+import java.nio.charset.StandardCharsets
+import java.security.MessageDigest
 import java.time.Duration
 import java.time.Instant
 import java.util.*
@@ -499,6 +503,66 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
             formParameters = parameters {
                 append("grant_type", "authorization_code")
                 append("code", code)
+            }
+        ) {
+            basicAuth(clientId, clientSecret)
+        }
+        assertContains(r2.cacheControl().map { it.value }, "no-store")
+
+        assertEquals(HttpStatusCode.OK, r2.status)
+        val accessTokenResponse = r2.body<AuthTokenResponse>()// oidJson.parseToJsonElement(r2.bodyAsText()).jsonObject
+        assertEquals("bearer", accessTokenResponse.tokenType.lowercase())
+        val accessToken = SignedJWT.parse(accessTokenResponse.accessToken)
+
+
+        assertTrue(accessToken.verify(JWT_VERIFIER))
+
+        val cs = accessToken.jwtClaimsSet
+
+        assertEquals("https://example.com/", cs.issuer)
+        assertEquals("user", cs.subject)
+        assertEquals("at+jwt", accessToken.header.type.type) // required by RFC9068 for plain access tokens
+
+        val exp = assertNotNull(cs.expirationTime, "Missing expiration time").toInstant()
+        val n = Instant.now()
+        assertTrue(n.isBefore(exp))
+        assertTrue((n + Duration.ofMinutes(5)).isAfter(exp))
+
+        // iat (issued at) may be present (in seconds from epoch)
+        // expect audience (aud) to include auth server: RFC7523 (ch 3, bullet 3)
+        // expect exp (expiration)
+        // opt expect amr = [ "password" ] - authentication methods used
+        // opt expect authorized party - the client id that received the token
+
+        // TODO("exchange code for token")
+    }
+
+    @Test
+    fun testPKCEFlowNoStatePreAuthorized() = testEndpoint {
+        preAuthorizeAccess()
+
+        val digest = MessageDigest.getInstance("SHA-256")
+
+        val codeVerifier = generateNonce()
+        val codeChallenge = Base64URL.encode(digest.digest(codeVerifier.toByteArray(StandardCharsets.US_ASCII)))
+            .toString()
+
+        val r = getUser("/authorize?response_type=code&client_id=$clientId&code_challenge=$codeChallenge&code_challenge_method=S256", HttpStatusCode.Found, client = nonRedirectingClient)
+        assertEquals(HttpStatusCode.Found, r.status)
+        val respUri = parseUrl(assertNotNull(r.headers[HttpHeaders.Location]))!!
+        val actualBase = URLBuilder(respUri.protocolWithAuthority).apply {
+            pathSegments = respUri.segments
+        }.buildString()
+
+        assertEquals(REDIRECT_URI, actualBase)
+        val code = assertNotNull(respUri.parameters["code"])
+
+        val r2 = nonRedirectingClient.submitForm(
+            "/token",
+            formParameters = parameters {
+                append("grant_type", "authorization_code")
+                append("code", code)
+                append("code_verifier", codeVerifier)
             }
         ) {
             basicAuth(clientId, clientSecret)

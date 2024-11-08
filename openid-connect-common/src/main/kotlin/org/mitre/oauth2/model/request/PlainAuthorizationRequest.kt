@@ -26,6 +26,7 @@ class PlainAuthorizationRequest @InternalForStorage constructor(
     override val responseTypes: Set<String>? = null,
     override val state: String? = null,
     override val requestTime: ISOInstant? = null,
+    override val codeChallenge: CodeChallenge? = null,
     @property:InternalForStorage
     val extensions: Map<String, String> = emptyMap(),
 ) : AuthorizationRequest {
@@ -43,13 +44,18 @@ class PlainAuthorizationRequest @InternalForStorage constructor(
         responseTypes: Set<String>? = null,
         state: String? = null,
         requestTime: ISOInstant? = null,
-    ) : this(emptyMap(), clientId, authorities, approval, scope, resourceIds, redirectUri, responseTypes, state, requestTime)
+        codeChallenge: CodeChallenge? = null,
+    ) : this(emptyMap(), clientId, authorities, approval, scope, resourceIds, redirectUri, responseTypes, state, requestTime, codeChallenge)
 
     @InternalForStorage
     override val authHolderExtensions: Map<String, String> = buildMap {
         approval?.let {
             put("AUTHZ_TIMESTAMP", it.approvalTime.epochSecond.toString())
             it.approvedSiteId?.let { s -> put("approved_site", s.toString()) }
+        }
+        codeChallenge?.let { ch ->
+            put("code_challenge", ch.challenge)
+            ch.method?.let { m -> put("code_challenge_method", m) }
         }
     }
 
@@ -70,11 +76,12 @@ class PlainAuthorizationRequest @InternalForStorage constructor(
             responseTypes = orig.responseTypes
             state = orig.state
             requestTime = orig.requestTime
+            codeChallenge = orig.codeChallenge
         }
 
         @OptIn(InternalForStorage::class)
         override fun build(): PlainAuthorizationRequest {
-            return PlainAuthorizationRequest(requestParameters, clientId, authorities, approval, scope, resourceIds, redirectUri, responseTypes, state, requestTime)
+            return PlainAuthorizationRequest(requestParameters, clientId, authorities, approval, scope, resourceIds, redirectUri, responseTypes, state, requestTime, codeChallenge)
         }
 
         @InternalForStorage
@@ -87,8 +94,11 @@ class PlainAuthorizationRequest @InternalForStorage constructor(
                         Instant.ofEpochSecond(it.toLong()),
                     )
                 }
+                extCpy.remove("code_challenge")
+                    ?.let { codeChallenge = CodeChallenge(it, extCpy.remove("code_challenge_method")) }
 
-                require(extCpy.isEmpty()) { "No extensions expected" }
+
+                require(extCpy.isEmpty()) { "No extensions expected: ${extCpy.entries.joinToString { "${it.key}: ${it.value}" }}" }
             }
 
         }

@@ -1,7 +1,6 @@
 package org.mitre.oauth2.model.request
 
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.request.OpenIdAuthorizationRequest.ClaimsRequest
 import org.mitre.oauth2.model.request.OpenIdAuthorizationRequest.ResponseMode
@@ -48,7 +47,7 @@ class OpenIdAuthorizationRequestImpl internal constructor(
             }
             codeChallenge?.let {
                 put("code_challenge", it.challenge)
-                put("code_challenge_Method", it.method)
+                it.method?.let { put("code_challenge_method", it) }
             }
             audience?.let { put("aud", it) }
             maxAge?.let { put("max_age", it.toString()) }

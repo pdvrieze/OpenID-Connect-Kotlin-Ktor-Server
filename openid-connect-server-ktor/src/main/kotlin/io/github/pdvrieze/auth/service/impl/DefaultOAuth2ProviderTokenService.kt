@@ -136,24 +136,27 @@ class DefaultOAuth2ProviderTokenService(
             val codeVerifier = requestParameters["code_verifier"]
             requireNotNull(codeVerifier) { "Missing code verifier" }
             val challenge = codeChallenge.challenge
-            val alg = parse(codeChallenge.method)
+            val alg = codeChallenge.method?.let(::parse)
 
-            if (alg == PKCEAlgorithm.plain) {
-                // do a direct string comparison
-                if (challenge != codeVerifier) {
-                    throw InvalidRequestException("Code challenge and verifier do not match")
+            when (alg) {
+                PKCEAlgorithm.S256 -> {
+                    // hash the verifier
+                    try {
+                        val digest = MessageDigest.getInstance("SHA-256")
+                        val hash = Base64URL.encode(digest.digest(codeVerifier.toByteArray(StandardCharsets.US_ASCII)))
+                            .toString()
+                        if (challenge != hash) {
+                            throw InvalidRequestException("Code challenge and verifier do not match")
+                        }
+                    } catch (e: NoSuchAlgorithmException) {
+                        logger.error("Unknown algorithm for PKCE digest", e)
+                    }
                 }
-            } else if (alg == PKCEAlgorithm.S256) {
-                // hash the verifier
-                try {
-                    val digest = MessageDigest.getInstance("SHA-256")
-                    val hash = Base64URL.encode(digest.digest(codeVerifier!!.toByteArray(StandardCharsets.US_ASCII)))
-                        .toString()
-                    if (challenge != hash) {
+                else -> { // The default is plain.
+                    // do a direct string comparison
+                    if (challenge != codeVerifier) {
                         throw InvalidRequestException("Code challenge and verifier do not match")
                     }
-                } catch (e: NoSuchAlgorithmException) {
-                    logger.error("Unknown algorithm for PKCE digest", e)
                 }
             }
         }
