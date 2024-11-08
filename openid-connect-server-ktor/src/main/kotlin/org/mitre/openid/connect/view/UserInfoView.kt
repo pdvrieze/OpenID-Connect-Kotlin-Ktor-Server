@@ -2,19 +2,25 @@ package org.mitre.openid.connect.view
 
 import io.ktor.http.*
 import io.ktor.server.routing.*
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.jsonObject
 import org.mitre.jwt.signer.service.ClientKeyCacheService
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.jwt.signer.service.impl.SymmetricKeyJWTValidatorCacheService
 import org.mitre.oauth2.model.OAuthClientDetails
+import org.mitre.oauth2.model.request.OpenIdAuthorizationRequest.ClaimsRequest
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.model.UserInfo
 import org.mitre.openid.connect.service.ScopeClaimTranslationService
 import org.mitre.util.getLogger
 import org.mitre.util.oidJson
 
+/**
+ * @param authorizedByClaims the claims authorized by the client or user
+ * @param requestedByClaims the claims requested in the RequestObject
+ */
 suspend fun RoutingContext.userInfoView(
     jwtService: JWTSigningAndValidationService,
     config: ConfigurationPropertiesBean,
@@ -24,14 +30,12 @@ suspend fun RoutingContext.userInfoView(
     userInfo: UserInfo,
     scope: Set<String>,
     client: OAuthClientDetails,
-    authorizedClaims: String? = null,
-    requestedClaims: String? = null,
+    authorizedByClaims: ClaimsRequest? = null,
+    requestedByClaims: ClaimsRequest? = null,
     code: HttpStatusCode = HttpStatusCode.OK,
 ) {
-    val authorizedClaims: JsonObject? = authorizedClaims?.let { oidJson.parseToJsonElement(it) as? JsonObject }
-    val requestedClaims: JsonObject? = requestedClaims?.let { oidJson.parseToJsonElement(it) as? JsonObject }
 
-    val json = UserInfoView.toJsonFromRequestObj(userInfo, scope, authorizedClaims, requestedClaims, translator)
+    val json = UserInfoView.toJsonFromRequestObj(userInfo, scope, authorizedByClaims, requestedByClaims, translator)
     userInfoJWTView(encrypters, symmetricCacheService, json, client, code)
 }
 
@@ -39,20 +43,20 @@ object UserInfoView {
     /**
      * Build a JSON response according to the request object received.
      *
-     * Claims requested in requestObj.userinfo.claims are added to any
-     * claims corresponding to requested scopes, if any.
+     * Claims requested in requestObj.userinfo.claims are added to any claims
+     * corresponding to requested scopes, if any.
      *
      * @param ui the UserInfo to filter
      * @param scope the allowed scopes to filter by
-     * @param authorizedClaims the claims authorized by the client or user
-     * @param requestedClaims the claims requested in the RequestObject
+     * @param authorizedByClaims the claims authorized by the client or user
+     * @param requestedByClaims the claims requested in the RequestObject
      * @return the filtered JsonObject result
      */
     internal fun toJsonFromRequestObj(
         ui: UserInfo?,
         scope: Set<String>,
-        authorizedClaims: JsonObject?,
-        requestedClaims: JsonObject?,
+        authorizedByClaims: ClaimsRequest?,
+        requestedByClaims: ClaimsRequest?,
         translator: ScopeClaimTranslationService,
     ): JsonObject {
         // get the base object
@@ -60,8 +64,8 @@ object UserInfoView {
         val obj = ui!!.toJson()
 
         val allowedByScope = translator.getClaimsForScopeSet(scope)
-        val authorizedByClaims = extractUserInfoClaimsIntoSet(authorizedClaims)
-        val requestedByClaims = extractUserInfoClaimsIntoSet(requestedClaims)
+        val authorizedByClaims = extractUserInfoClaimsIntoSet(authorizedByClaims)
+        val requestedByClaims = extractUserInfoClaimsIntoSet(requestedByClaims)
 
         // Filter claims by performing a manual intersection of claims that are allowed by the given scope, requested, and authorized.
         // We cannot use Sets.intersection() or similar because Entry<> objects will evaluate to being unequal if their values are
@@ -88,17 +92,11 @@ object UserInfoView {
      * Returns an empty set if the input is null.
      * @param claims the claims request to process
      */
-    private fun extractUserInfoClaimsIntoSet(claims: JsonObject?): Set<String> {
-        val target: MutableSet<String> = HashSet()
-        if (claims != null) {
-            val userinfoAuthorized = claims["userinfo"] as? JsonObject
-            if (userinfoAuthorized != null) {
-                for (key in userinfoAuthorized.keys) {
-                    target.add(key)
-                }
-            }
+    private fun extractUserInfoClaimsIntoSet(claims: ClaimsRequest?): Set<String> {
+        val userinfoAuthorized = claims?.userInfo ?: return emptySet()
+        return buildSet {
+            addAll(userinfoAuthorized.claimRequests.keys.asSequence().map { it.name })
         }
-        return target
     }
 
     const val REQUESTED_CLAIMS: String = "requestedClaims"

@@ -62,7 +62,9 @@ object UserInfoEndpoint: KtorEndpoint {
             return
         }
 
-        val claimsRequestJsonString = call.request.queryParameters["claims"]?.takeIf { it.isNotEmpty() }
+        val claimsRequest = call.request.queryParameters["claims"]
+            ?.takeIf { it.isNotEmpty() }
+            ?.let { oidJson.decodeFromString<OpenIdAuthorizationRequest.ClaimsRequest>(it) }
 
         val username = auth.name
         val userInfo = userInfoService.getByUsernameAndClientId(username, auth.authorizationRequest.clientId) ?: run {
@@ -123,8 +125,8 @@ object UserInfoEndpoint: KtorEndpoint {
                 userInfo = userInfo,
                 scope = auth.authorizationRequest.scope,
                 client = client,
-                authorizedClaims = oidRequest?.requestedClaims?.toString(),
-                requestedClaims = claimsRequestJsonString,
+                authorizedByClaims = oidRequest?.requestedClaims,
+                requestedByClaims = claimsRequest,
             )
         }
     }

@@ -1,7 +1,6 @@
 package org.mitre.oauth2.model.request
 
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
@@ -16,14 +15,14 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
-import kotlinx.serialization.json.jsonPrimitive
+import org.mitre.oauth2.model.Claim
 import org.mitre.oauth2.model.request.OpenIdAuthorizationRequest.ClaimRequest
-import org.mitre.openid.connect.model.Address
 import org.mitre.openid.connect.model.DefaultAddress
 import org.mitre.openid.connect.request.Prompt
 import org.mitre.util.asBoolean
 import org.mitre.util.asString
 import org.mitre.util.oidJson
+import java.time.Instant
 
 interface OpenIdAuthorizationRequest : AuthorizationRequest {
 
@@ -118,169 +117,104 @@ interface OpenIdAuthorizationRequest : AuthorizationRequest {
         val idToken: IdTokenRequest?
     )
 
+    @OptIn(InternalForStorage::class)
     abstract class ClaimGroupRequest(
-        val sub: ClaimRequest<String>?,
-        val name: ClaimRequest<String>?,
-        @SerialName("given_name") val givenName: ClaimRequest<String>?,
-        @SerialName("family_name") val familyName: ClaimRequest<String>?,
-        @SerialName("middle_name") val middleName: ClaimRequest<String>?,
-        val nickname: ClaimRequest<String>?,
-        @SerialName("preferred_username") val preferredUsername: ClaimRequest<String>?,
-        val profile: ClaimRequest<String>?,
-        val picture: ClaimRequest<String>?,
-        val website: ClaimRequest<String>?,
-        val email: ClaimRequest<String>?,
-        @SerialName("email_verified") val emailVerified: ClaimRequest<Boolean>?,
-        val gender: ClaimRequest<String>?,
-        val birthdate: ClaimRequest<String>?,
-        val zoneinfo: ClaimRequest<String>?,
-        val locale: ClaimRequest<String>?,
-        @SerialName("phone_number") val phoneNumber: ClaimRequest<String>?,
-        @SerialName("phone_number_verified") val phoneNumberVerified: ClaimRequest<Boolean>?,
-        val address: ClaimRequest<DefaultAddress>?,
-        @SerialName("updated_at") val updatedAt: ClaimRequest<String>?,
+        claimRequests: Map<String, ClaimRequest<*>>,
+        stringToKey: (String) -> Claim.Key<*>?,
     ) {
 
-        abstract val otherClaimRequests: Map<String, ClaimRequest<JsonElement>>
+        val claimRequests: Map<Claim.Key<*>, ClaimRequest<*>> = claimRequests.mapKeys { (key, _) ->
+            stringToKey(key)  ?: Claim.JsonKey(key)
+        }
 
-        constructor(claimRequests: MutableMap<String, ClaimRequest<JsonElement>>): this(
-            claimRequests.remove("sub")?.asString(),
-            claimRequests.remove("name")?.asString(),
-            claimRequests.remove("given_name")?.asString(),
-            claimRequests.remove("family_name")?.asString(),
-            claimRequests.remove("middle_name")?.asString(),
-            claimRequests.remove("nickname")?.asString(),
-            claimRequests.remove("preferred_username")?.asString(),
-            claimRequests.remove("profile")?.asString(),
-            claimRequests.remove("picture")?.asString(),
-            claimRequests.remove("website")?.asString(),
-            claimRequests.remove("email")?.asString(),
-            claimRequests.remove("email_verified")?.asBoolean(),
-            claimRequests.remove("gender")?.asString(),
-            claimRequests.remove("birthdate")?.asString(),
-            claimRequests.remove("zoneinfo")?.asString(),
-            claimRequests.remove("locale")?.asString(),
-            claimRequests.remove("phone_number")?.asString(),
-            claimRequests.remove("phone_number_verified")?.asBoolean(),
-            claimRequests.remove("address")?.asAddress(),
-            claimRequests.remove("updated_at")?.asString(),
-        )
+
+        val sub: ClaimRequest<String>? get() = claimRequests.getClaim(Claim.SUB)
+        val name: ClaimRequest<String>? get() = claimRequests.getClaim(Claim.NAME)
+        val givenName: ClaimRequest<String>? get() = claimRequests.getClaim(Claim.GIVEN_NAME)
+        val familyName: ClaimRequest<String>? get() = claimRequests.getClaim(Claim.FAMILY_NAME)
+        val middleName: ClaimRequest<String>? get() = claimRequests.getClaim(Claim.MIDDLE_NAME)
+        val nickname: ClaimRequest<String>? get() = claimRequests.getClaim(Claim.NICKNAME)
+        val preferredUsername: ClaimRequest<String>? get() = claimRequests.getClaim(Claim.PREFERRED_USERNAME)
+        val profile: ClaimRequest<String>? get() = claimRequests.getClaim(Claim.PROFILE)
+        val picture: ClaimRequest<String>? get() = claimRequests.getClaim(Claim.PICTURE)
+        val website: ClaimRequest<String>? get() = claimRequests.getClaim(Claim.WEBSITE)
+        val email: ClaimRequest<String>? get() = claimRequests.getClaim(Claim.EMAIL)
+        val emailVerified: ClaimRequest<Boolean>? get() = claimRequests.getClaim(Claim.EMAIL_VERIFIED)
+        val gender: ClaimRequest<String>? get() = claimRequests.getClaim(Claim.GENDER)
+        val birthdate: ClaimRequest<String>? get() = claimRequests.getClaim(Claim.BIRTHDATE)
+        val zoneinfo: ClaimRequest<String>? get() = claimRequests.getClaim(Claim.ZONEINFO)
+        val locale: ClaimRequest<String>? get() = claimRequests.getClaim(Claim.LOCALE)
+        val phoneNumber: ClaimRequest<String>? get() = claimRequests.getClaim(Claim.PHONE_NUMBER)
+        val phoneNumberVerified: ClaimRequest<Boolean>? get() = claimRequests.getClaim(Claim.PHONE_NUMBER_VERIFIED)
+        val address: ClaimRequest<DefaultAddress>? get() = claimRequests.getClaim(Claim.ADDRESS)
+        val updatedAt: ClaimRequest<Instant>? get() = claimRequests.getClaim(Claim.UPDATED_AT)
 
         internal open fun toMap(): Map<String, ClaimRequest<JsonElement>> {
             return buildMap {
-                if (sub != null) put("sub", sub.asJson())
-                if (name != null) put("name", name.asJson())
-                if (givenName != null) put("given_name", givenName.asJson())
-                if (familyName != null) put("family_name", familyName.asJson())
-                if (middleName != null) put("middle_name", middleName.asJson())
-                if (nickname != null) put("nickname", nickname.asJson())
-                if (preferredUsername != null) put("preferred_username", preferredUsername.asJson())
-                if (profile != null) put("profile", profile.asJson())
-                if (picture != null) put("picture", picture.asJson())
-                if (website != null) put("website", website.asJson())
-                if (email != null) put("email", email.asJson())
-                if (emailVerified != null) put("email_verified", emailVerified.asJson())
-                if (gender != null) put("gender", gender.asJson())
-                if (birthdate != null) put("birthdate", birthdate.asJson())
-                if (zoneinfo != null) put("zoneinfo", zoneinfo.asJson())
-                if (locale != null) put("locale", locale.asJson())
-                if (phoneNumber != null) put("phone_number", phoneNumber.asJson())
-                if (phoneNumberVerified != null) put("phone_number_verified", phoneNumberVerified.asJson())
-                if (address != null) put("address", address.asJson())
-                if (updatedAt != null) put("updated_at", updatedAt.asJson())
-
-                putAll(otherClaimRequests)
+                for ((key, value) in claimRequests) {
+                    put(key.name, key.jsonClaim(value))
+                }
             }
         }
 
     }
 
-    class UserInfoRequest : ClaimGroupRequest {
-        override val otherClaimRequests: Map<String, ClaimRequest<JsonElement>>
+    class UserInfoRequest(claimRequests: Map<String, ClaimRequest<*>>) :
+        ClaimGroupRequest(claimRequests, { k -> Claim.standardOidInfoClaims[k]})
 
-        constructor(
-            sub: ClaimRequest<String>?,
-            name: ClaimRequest<String>?,
-            givenName: ClaimRequest<String>?,
-            familyName: ClaimRequest<String>?,
-            middleName: ClaimRequest<String>?,
-            nickname: ClaimRequest<String>?,
-            preferredUsername: ClaimRequest<String>?,
-            profile: ClaimRequest<String>?,
-            picture: ClaimRequest<String>?,
-            website: ClaimRequest<String>?,
-            email: ClaimRequest<String>?,
-            emailVerified: ClaimRequest<Boolean>?,
-            gender: ClaimRequest<String>?,
-            birthdate: ClaimRequest<String>?,
-            zoneinfo: ClaimRequest<String>?,
-            locale: ClaimRequest<String>?,
-            phoneNumber: ClaimRequest<String>?,
-            phoneNumberVerified: ClaimRequest<Boolean>?,
-            address: ClaimRequest<DefaultAddress>?,
-            updatedAt: ClaimRequest<String>?,
-            otherClaimRequests: Map<String, ClaimRequest<JsonElement>>
-        ) : super(sub, name, givenName, familyName, middleName, nickname, preferredUsername, profile, picture, website, email, emailVerified, gender, birthdate, zoneinfo, locale, phoneNumber, phoneNumberVerified, address, updatedAt) {
-            this.otherClaimRequests = otherClaimRequests
-        }
+    @OptIn(InternalForStorage::class)
+    class IdTokenRequest(claimRequests: Map<String, ClaimRequest<*>>) : ClaimGroupRequest(
+        claimRequests,
+        { s -> when (s) {
+            "acr" -> Claim.AUTH_CONTEXT_CLASS
+            "amr" -> Claim.AUTH_METHOD_REFS
+            else -> Claim.standardOidTokenClaims[s] ?: Claim.standardOidInfoClaims[s]
+        } }
+    ) {
 
-        constructor(requests: MutableMap<String, ClaimRequest<JsonElement>>) : super(requests) {
-            this.otherClaimRequests = requests.toMap()
-        }
-    }
-
-    class IdTokenRequest : ClaimGroupRequest {
-
-        val acr: ClaimRequest<String>?
-        val amr: ClaimRequest<JsonElement>?
-
-        override val otherClaimRequests: Map<String, ClaimRequest<JsonElement>>
-
-        constructor(
-            sub: ClaimRequest<String>?,
-            name: ClaimRequest<String>?,
-            givenName: ClaimRequest<String>?,
-            familyName: ClaimRequest<String>?,
-            middleName: ClaimRequest<String>?,
-            nickname: ClaimRequest<String>?,
-            preferredUsername: ClaimRequest<String>?,
-            profile: ClaimRequest<String>?,
-            picture: ClaimRequest<String>?,
-            website: ClaimRequest<String>?,
-            email: ClaimRequest<String>?,
-            emailVerified: ClaimRequest<Boolean>?,
-            gender: ClaimRequest<String>?,
-            birthdate: ClaimRequest<String>?,
-            zoneinfo: ClaimRequest<String>?,
-            locale: ClaimRequest<String>?,
-            phoneNumber: ClaimRequest<String>?,
-            phoneNumberVerified: ClaimRequest<Boolean>?,
-            address: ClaimRequest<DefaultAddress>?,
-            updatedAt: ClaimRequest<String>?,
-            acr: ClaimRequest<String>?,
-            amr: ClaimRequest<JsonElement>?,
-            otherClaimRequests: Map<String, ClaimRequest<JsonElement>>
-        ) : super(sub, name, givenName, familyName, middleName, nickname, preferredUsername, profile, picture, website, email, emailVerified, gender, birthdate, zoneinfo, locale, phoneNumber, phoneNumberVerified, address, updatedAt) {
-            this.otherClaimRequests = otherClaimRequests
-            this.acr = acr
-            this.amr = amr
-        }
-
-        constructor(requests: MutableMap<String, ClaimRequest<JsonElement>>) : super(requests) {
-            acr = requests.remove("acr")?.asString()
-            amr = requests.remove("amr")
-            this.otherClaimRequests = requests.toMap()
-        }
-
+        val acr: ClaimRequest<String>? get() = claimRequests.getClaim(Claim.AUTH_CONTEXT_CLASS)
+        val amr: ClaimRequest<List<String>>? get() = claimRequests.getClaim(Claim.AUTH_METHOD_REFS)
     }
 
     @Serializable
-    class ClaimRequest<T>(
+    class ClaimRequest<out T>(
         val essential: Boolean = false,
         val value: T? = null,
         val values: List<T>? = null
     )
 
+}
+
+internal fun <T> MutableMap<String, ClaimRequest<JsonElement>>.removeValue(key: Claim.Key<T>): ClaimRequest<T>? {
+    return remove(key.name)?.let { v ->
+        ClaimRequest(
+            v.essential,
+            v.value?.let { key.fromJson(it) },
+            v.values?.map { key.fromJson(it) }
+        )
+    }
+}
+
+internal fun <T> Claim.Key<T>.jsonClaim(value: ClaimRequest<*>): ClaimRequest<JsonElement> {
+    val v = value as ClaimRequest<T>
+    return ClaimRequest(
+        v.essential,
+        v.value?.let { toJson(it) },
+        v.values?.map { toJson(it) }
+    )
+}
+
+internal fun <T> Map<Claim.Key<*>, ClaimRequest<*>>.jsonClaim(key: Claim.Key<T>): ClaimRequest<JsonElement>? {
+    val v = get(key) as ClaimRequest<T>? ?: return null
+    return ClaimRequest(
+        v.essential,
+        v.value?.let { key.toJson(it) },
+        v.values?.map { key.toJson(it) }
+    )
+}
+
+internal fun <T> Map<Claim.Key<*>, ClaimRequest<*>>.getClaim(key: Claim.Key<T>): ClaimRequest<T>? {
+    return get(key) as ClaimRequest<T>?
 }
 
 internal fun ClaimRequest<JsonElement>.asString(): ClaimRequest<String> {
@@ -362,8 +296,8 @@ internal object ClaimsRequestSerializer: KSerializer<OpenIdAuthorizationRequest.
             while(true) {
                 when(val nextIdx = decodeElementIndex(descriptor)) {
                     CompositeDecoder.DECODE_DONE -> break
-                    0 -> userInfo = OpenIdAuthorizationRequest.UserInfoRequest(delegate.deserialize(decoder) as MutableMap)
-                    1 -> idTokens = OpenIdAuthorizationRequest.IdTokenRequest(delegate.deserialize(decoder) as MutableMap)
+                    0 -> userInfo = OpenIdAuthorizationRequest.UserInfoRequest(delegate.deserialize(decoder))
+                    1 -> idTokens = OpenIdAuthorizationRequest.IdTokenRequest(delegate.deserialize(decoder))
                     else -> error("Unexpected content in claims request")
                 }
             }
