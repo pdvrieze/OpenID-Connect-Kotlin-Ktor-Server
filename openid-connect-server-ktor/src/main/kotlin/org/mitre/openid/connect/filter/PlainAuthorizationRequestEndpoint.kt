@@ -219,6 +219,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
             granter.getAccessToken(client, r, requestParameters = requestParameters,).jwt.serialize() // should use separate function using DefaultOIDCTokenService
         } else null
 
+        call.response.cacheControl(CacheControl.NoStore(null))
         return call.respondRedirect {
             takeFrom(effectiveRedirectUri)
 
@@ -248,6 +249,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         state: String?,
     ) {
         val code = authcodeService.createAuthorizationCode(authRequest, auth)
+
         return call.respondRedirect {
             takeFrom(effectiveRedirectUri)
             val p = when {
@@ -541,6 +543,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
             accessToken.refreshToken?.value
         )
 
+        call.response.cacheControl(CacheControl.NoStore(null))
         return call.respondJson(response)
     }
 

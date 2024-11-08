@@ -176,6 +176,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
     fun testImplicitFlowNoState() = testEndpoint {
         preAuthorizeAccess()
         val r = getUser("/authorize?response_type=token&scope=offline_access%20scope2&client_id=$clientId", HttpStatusCode.Found, client = nonRedirectingClient)
+        assertContains(r.cacheControl().map { it.value }, "no-store")
         assertEquals(HttpStatusCode.Found, r.status)
         val respUri = parseUrl(assertNotNull(r.headers[HttpHeaders.Location]))!!
 
@@ -216,6 +217,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
         preAuthorizeAccess()
         val r = getUser("/authorize?response_type=token&state=dsf890l&scope=scope1&client_id=$clientId", HttpStatusCode.Found, client = nonRedirectingClient)
         assertEquals(HttpStatusCode.Found, r.status)
+        assertContains(r.cacheControl().map { it.value }, "no-store")
         val respUri = parseUrl(assertNotNull(r.headers[HttpHeaders.Location]))!!
 
         assertEquals("dsf890l", respUri.parameters["state"])
@@ -261,6 +263,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
             basicAuth(clientId, clientSecret)
         }
         assertEquals(HttpStatusCode.OK, r.status)
+        assertContains(r.cacheControl().map { it.value }, "no-store")
         val accessTokenResponse = r.body<AuthTokenResponse>()// oidJson.parseToJsonElement(r2.bodyAsText()).jsonObject
         assertEquals("bearer", accessTokenResponse.tokenType.lowercase())
         val accessToken = SignedJWT.parse(accessTokenResponse.accessToken)
@@ -293,6 +296,8 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
                 append("refresh_token", refreshToken.value)
             }
         )
+        assertContains(r.cacheControl().map { it.value }, "no-store")
+
         val b = r.bodyAsText()
         val refreshedTokenResponse = oidJson.decodeFromString<AuthTokenResponse>(b)
         val accessToken = SignedJWT.parse(refreshedTokenResponse.accessToken)
@@ -443,6 +448,8 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
             ) {
                 basicAuth(clientId, clientSecret)
             }
+            assertContains(r2.cacheControl().map { it.value }, "no-store")
+
             assertEquals(HttpStatusCode.OK, r2.status)
             val accessTokenResponse = r2.body<AuthTokenResponse>()// oidJson.parseToJsonElement(r2.bodyAsText()).jsonObject
             assertEquals("bearer", accessTokenResponse.tokenType.lowercase())
@@ -496,6 +503,8 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
         ) {
             basicAuth(clientId, clientSecret)
         }
+        assertContains(r2.cacheControl().map { it.value }, "no-store")
+
         assertEquals(HttpStatusCode.OK, r2.status)
         val accessTokenResponse = r2.body<AuthTokenResponse>()// oidJson.parseToJsonElement(r2.bodyAsText()).jsonObject
         assertEquals("bearer", accessTokenResponse.tokenType.lowercase())
