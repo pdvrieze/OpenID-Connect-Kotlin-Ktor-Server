@@ -17,6 +17,7 @@ import org.mitre.discovery.util.WebfingerURLNormalizer
 import org.mitre.discovery.view.webfingerView
 import org.mitre.oauth2.model.PKCEAlgorithm
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.config
 import org.mitre.web.util.encryptionService
@@ -330,7 +331,7 @@ object DiscoveryEndpoint : KtorEndpoint {
         }
 
         // force json
-        call.respondText(Json.encodeToString(result), ContentType.Application.Json)
+        call.respondText(oidJson.encodeToString(result), ContentType.Application.Json)
     }
 
     const val WELL_KNOWN_URL: String = ".well-known"

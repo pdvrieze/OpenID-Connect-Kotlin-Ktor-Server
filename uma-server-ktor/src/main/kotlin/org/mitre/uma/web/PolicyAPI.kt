@@ -26,6 +26,7 @@ import org.mitre.oauth2.view.respondJson
 import org.mitre.openid.connect.web.RootController
 import org.mitre.uma.model.Policy
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.requireRole
 import org.mitre.web.util.resourceSetService
@@ -138,7 +139,7 @@ object PolicyAPI: KtorEndpoint {
             return call.respond(HttpStatusCode.Forbidden)
         }
 
-        val p = Json.decodeFromString<Policy>(call.receiveText())
+        val p = oidJson.decodeFromString<Policy>(call.receiveText())
 
         if (p.id != null) {
             logger.warn("Tried to add a policy with a non-null ID: ${p.id}")
@@ -208,7 +209,7 @@ object PolicyAPI: KtorEndpoint {
             return call.respond(HttpStatusCode.Forbidden)
         }
 
-        val p = Json.decodeFromString<Policy>(call.receiveText())
+        val p = oidJson.decodeFromString<Policy>(call.receiveText())
 
         if (pid != p.id) {
             logger.warn("Policy ID mismatch, expected $pid got ${p.id}")

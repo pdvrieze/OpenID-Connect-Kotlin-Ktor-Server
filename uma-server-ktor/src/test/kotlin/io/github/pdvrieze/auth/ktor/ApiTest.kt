@@ -27,6 +27,7 @@ import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.service.ClientLoadingResult
 import org.mitre.openid.connect.view.OAuthError
+import org.mitre.util.oidJson
 import org.mitre.web.OpenIdSessionStorage
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.OpenIdContextPlugin
@@ -384,7 +385,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
         append(status)
         if (!status.isSuccess() && contentType() == ContentType.Application.Json) {
             val body = bodyAsText()
-            val error = runCatching { Json.decodeFromString<OAuthError>(body).toString() }.getOrDefault(body)
+            val error = runCatching { oidJson.decodeFromString<OAuthError>(body).toString() }.getOrDefault(body)
             if (error.isNotBlank()) {
                 append(' ').append(error)
             }

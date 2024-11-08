@@ -23,6 +23,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class DefaultAddress(
+    @Transient
     override var id: Long? = null,
     override var formatted: String? = null,
 

@@ -11,6 +11,7 @@ import org.jetbrains.exposed.sql.Table
 import org.junit.Before
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.web.ScopeAPI
+import org.mitre.util.oidJson
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -120,7 +121,7 @@ class ScopeTest: ApiTest(ScopeAPI) {
         val r = getClient("/api/scopes")
         assertEquals(ContentType.Application.Json, r.contentType())
 
-        val scopes: List<SystemScope> = Json.decodeFromString(r.bodyAsText())
+        val scopes: List<SystemScope> = oidJson.decodeFromString(r.bodyAsText())
 
         assertEquals(2, scopes.size)
 
@@ -133,13 +134,13 @@ class ScopeTest: ApiTest(ScopeAPI) {
 
     @Test
     fun testGetScope1() = testEndpoint {
-        val scope1: SystemScope = Json.decodeFromString(getClient("/api/scopes/${scope1Id}").bodyAsText())
+        val scope1: SystemScope = oidJson.decodeFromString(getClient("/api/scopes/${scope1Id}").bodyAsText())
         assertEquals(SystemScope(scope1Id, "test", "Test Scope Description"), scope1)
     }
 
     @Test
     fun testGetScope2() = testEndpoint {
-        val scope2: SystemScope = Json.decodeFromString(getClient("/api/scopes/${scope2Id}").bodyAsText())
+        val scope2: SystemScope = oidJson.decodeFromString(getClient("/api/scopes/${scope2Id}").bodyAsText())
         assertEquals(SystemScope(scope2Id, "test2", "Other Scope Description"), scope2)
     }
 
@@ -148,7 +149,7 @@ class ScopeTest: ApiTest(ScopeAPI) {
         val r = putAdmin("/api/scopes/${scope2Id}", HttpStatusCode.OK) {
             setBody("""{ "id":"$scope2Id", "value":"otherScope", "description":"Updated desc" }""")
         }
-        val scope = Json.decodeFromString<SystemScope>(r.bodyAsText())
+        val scope = oidJson.decodeFromString<SystemScope>(r.bodyAsText())
         assertEquals(SystemScope(scope2Id, "otherScope", "Updated desc"), scope)
 
         val serviceScope = testContext.scopeService.getById(scope2Id)
@@ -162,7 +163,7 @@ class ScopeTest: ApiTest(ScopeAPI) {
         val r = putAdmin("/api/scopes/${scope2Id}", HttpStatusCode.BadRequest) {
             setBody("""{ "id":"$scope1Id", "value":"otherScope", "description":"Updated desc" }""")
         }
-        val resp = Json.parseToJsonElement(r.bodyAsText())
+        val resp = oidJson.parseToJsonElement(r.bodyAsText())
         val expected = buildJsonObject {
             put("error", JsonPrimitive("invalid_request"))
             put("error_description", JsonPrimitive("Could not update scope. Scope ids to not match: got ${scope2Id} and ${scope1Id}"))
@@ -176,7 +177,7 @@ class ScopeTest: ApiTest(ScopeAPI) {
             setBody("""{ "value":"foo", "description":"Created description" }""")
         }
         val t = r.bodyAsText()
-        val scope = Json.decodeFromString<SystemScope>(t)
+        val scope = oidJson.decodeFromString<SystemScope>(t)
         assertEquals("foo", scope.value)
         assertEquals("Created description", scope.description)
         assertEquals(false, scope.isRestricted)

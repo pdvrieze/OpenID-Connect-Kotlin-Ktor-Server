@@ -39,6 +39,7 @@ import org.mitre.uma.view.resourceSetEntityAbbreviatedView
 import org.mitre.util.asString
 import org.mitre.util.asStringSet
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.config
 import org.mitre.web.util.requireRole
@@ -190,7 +191,7 @@ object ResourceSetRegistrationEndpoint: KtorEndpoint {
 
     private fun parseResourceSet(jsonString: String): ResourceSet? {
         try {
-            val o = (Json.parseToJsonElement(jsonString) as? JsonObject) ?: return null
+            val o = (oidJson.parseToJsonElement(jsonString) as? JsonObject) ?: return null
 
             return ResourceSet(
                 id = o["id"]?.jsonPrimitive?.long,

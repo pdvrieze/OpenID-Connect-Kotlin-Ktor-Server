@@ -83,6 +83,7 @@ import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.util.asBoolean
 import org.mitre.util.asBooleanOrNull
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.assertionValidator
 import org.mitre.web.util.clientDetailsService
@@ -140,8 +141,8 @@ object ClientAPI: KtorEndpoint {
         val rawJson: JsonObject
 
         try {
-            rawJson = json.parseToJsonElement(call.receiveText()).jsonObject
-            clientBuilder = json.decodeFromJsonElement<ClientDetailsEntity>(rawJson).builder()
+            rawJson = oidJson.parseToJsonElement(call.receiveText()).jsonObject
+            clientBuilder = oidJson.decodeFromJsonElement<ClientDetailsEntity>(rawJson).builder()
         } catch (e: SerializationException) {
             logger.error("apiAddClient failed due to SerializationException", e)
             return jsonErrorView(INVALID_REQUEST, "Could not save new client. The server encountered a JSON syntax exception. Contact a system administrator for assistance.")
@@ -222,9 +223,9 @@ object ClientAPI: KtorEndpoint {
         val rawJson:  JsonObject
 
         try {
-            rawJson = json.parseToJsonElement(call.receiveText()).jsonObject
+            rawJson = oidJson.parseToJsonElement(call.receiveText()).jsonObject
             // parse the client passed in (from JSON) and fetch the old client from the store
-            clientBuilder = json.decodeFromJsonElement<ClientDetailsEntity>(rawJson).builder()
+            clientBuilder = oidJson.decodeFromJsonElement<ClientDetailsEntity>(rawJson).builder()
             validateSoftwareStatement(assertionValidator, clientBuilder)
         } catch (e: SerializationException) {
             logger.error("apiUpdateClient failed due to SerializationException", e)

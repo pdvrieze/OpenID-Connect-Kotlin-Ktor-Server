@@ -17,6 +17,7 @@ import org.mitre.jwt.signer.service.ClientKeyCacheService
 import org.mitre.jwt.signer.service.impl.SymmetricKeyJWTValidatorCacheService
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import org.mitre.web.util.openIdContext
 import java.util.*
 
@@ -32,7 +33,7 @@ suspend fun RoutingContext.userInfoJWTView(
     val signService = openIdContext.signService
     val config = openIdContext.config
 
-    val encodedJson = Json.encodeToString(userInfo)
+    val encodedJson = oidJson.encodeToString(userInfo)
 
     val claims = JWTClaimsSet.Builder(JWTClaimsSet.parse(encodedJson))
         .audience(listOf(client.clientId))

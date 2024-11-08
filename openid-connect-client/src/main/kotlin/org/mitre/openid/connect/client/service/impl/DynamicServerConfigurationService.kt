@@ -36,6 +36,7 @@ import org.mitre.util.asString
 import org.mitre.util.asStringList
 import org.mitre.util.asStringOrNull
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import java.util.concurrent.ExecutionException
 
 /**
@@ -82,7 +83,7 @@ class DynamicServerConfigurationService(
         val resp = httpClient.get(url).onError { throw IllegalStateException("Could not get server information; $it") }
 
 
-        val o = (Json.parseToJsonElement(resp.bodyAsText()) as? JsonObject)
+        val o = (oidJson.parseToJsonElement(resp.bodyAsText()) as? JsonObject)
             ?: throw IllegalStateException("Couldn't parse server discovery results for $url")
 
         val parsedIssuer = o["issuer"]?.asString()

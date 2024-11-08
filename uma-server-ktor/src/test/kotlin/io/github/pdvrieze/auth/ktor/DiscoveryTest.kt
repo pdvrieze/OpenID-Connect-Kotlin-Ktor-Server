@@ -13,6 +13,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.Before
 import org.mitre.discovery.view.WebfingerViews
 import org.mitre.discovery.web.DiscoveryEndpoint
+import org.mitre.util.oidJson
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -39,7 +40,7 @@ class DiscoveryTest : ApiTest(DiscoveryEndpoint) {
         getUnAuth("/.well-known/webfinger?resource=user%40example.com").apply {
             assertTrue(status.isSuccess(), "Unexpected response : $status" )
             assertEquals(WebfingerViews.CT_JRD, contentType())
-            val json = assertIs<JsonObject>(Json.parseToJsonElement(bodyAsText()))
+            val json = assertIs<JsonObject>(oidJson.parseToJsonElement(bodyAsText()))
 
             val subj = assertIs<JsonPrimitive>(json["subject"])
             assertTrue(subj.isString)
@@ -75,7 +76,7 @@ class DiscoveryTest : ApiTest(DiscoveryEndpoint) {
             assertEquals(200, status.value)
             assertEquals(ContentType.Application.Json, contentType())
 
-            val actual = assertIs<JsonObject>(Json.parseToJsonElement(bodyAsText()))
+            val actual = assertIs<JsonObject>(oidJson.parseToJsonElement(bodyAsText()))
             for (key in arrayOf("issuer", "authorization_endpoint", "token_endpoint", "token_endpoint_auth_methods_supported",
                                 "token_endpoint_auth_signing_alg_values_supported", "userinfo_endpoint", /*"check_session_iframe",*/
                                 "end_session_endpoint", "jwks_uri", "registration_endpoint", "scopes_supported",

@@ -65,6 +65,7 @@ import org.mitre.openid.connect.model.OIDCAuthenticationToken
 import org.mitre.openid.connect.model.PendingOIDCAuthenticationToken
 import org.mitre.util.asString
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import java.io.IOException
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
@@ -445,7 +446,7 @@ class OIDCAuthenticationProvider internal constructor(config: Config) : Authenti
 
         logger.debug("from TokenEndpoint jsonString = $jsonString")
 
-        val tokenResponse = Json.parseToJsonElement(jsonString)
+        val tokenResponse = oidJson.parseToJsonElement(jsonString)
         if (tokenResponse !is JsonObject) {
             throw AuthenticationException("Token Endpoint did not return a JSON object: $tokenResponse")
         }

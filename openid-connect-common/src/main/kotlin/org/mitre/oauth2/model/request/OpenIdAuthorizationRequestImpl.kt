@@ -1,9 +1,13 @@
 package org.mitre.oauth2.model.request
 
-import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.mitre.oauth2.model.GrantedAuthority
+import org.mitre.oauth2.model.request.OpenIdAuthorizationRequest.ClaimsRequest
+import org.mitre.oauth2.model.request.OpenIdAuthorizationRequest.ResponseMode
 import org.mitre.openid.connect.model.convert.ISOInstant
 import org.mitre.openid.connect.request.Prompt
+import org.mitre.util.oidJson
 
 class OpenIdAuthorizationRequestImpl internal constructor(
     builder: OpenIdAuthorizationRequest.Builder,
@@ -29,8 +33,8 @@ class OpenIdAuthorizationRequestImpl internal constructor(
     override val idToken: String? = builder.idToken
     override val nonce: String? = builder.nonce
     override val display: String? = builder.display
-    override val responseMode: OpenIdAuthorizationRequest.ResponseMode = builder.responseMode
-    override val requestedClaims: JsonObject? = builder.requestedClaims
+    override val responseMode: ResponseMode = builder.responseMode
+    override val requestedClaims: ClaimsRequest? = builder.requestedClaims
 
     val extensions: Map<String, String>? = builder.extensions?.toMap()
 
@@ -54,7 +58,7 @@ class OpenIdAuthorizationRequestImpl internal constructor(
             idToken?.let { put("idtoken", it) }
             nonce?.let { put("nonce", it) }
             display?.let { put("display", it) }
-            requestedClaims?.let { s -> put("claims", s.toString()) }
+            requestedClaims?.let { c -> put("claims", oidJson.encodeToString(c)) }
             responseMode.value?.let { put("response_mode", it) }
         }
     }

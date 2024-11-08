@@ -46,6 +46,7 @@ import org.mitre.openid.connect.model.BlacklistedSite
 import org.mitre.openid.connect.model.WhitelistedSite
 import org.mitre.openid.connect.model.convert.ISODate
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import java.text.ParseException
 import java.time.Instant
 import java.time.format.DateTimeFormatter
@@ -854,11 +855,6 @@ interface KtorIdDataService {
          * Logger for this class
          */
         private val logger = getLogger<KtorIdDataService>()
-        val json: Json = Json {
-            ignoreUnknownKeys = true
-            prettyPrint = true
-            prettyPrintIndent = "  "
-        }
 
 
         /**

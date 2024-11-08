@@ -31,6 +31,7 @@ import org.mitre.uma.service.PermissionService
 import org.mitre.uma.service.ResourceSetService
 import org.mitre.util.asStringSet
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
@@ -65,7 +66,7 @@ class PermissionRegistrationEndpoint {
         try {
             // parse the permission request
 
-            val obj = Json.parseToJsonElement(jsonString)
+            val obj = oidJson.parseToJsonElement(jsonString)
 
             if (obj !is JsonObject) {
                 // malformed request

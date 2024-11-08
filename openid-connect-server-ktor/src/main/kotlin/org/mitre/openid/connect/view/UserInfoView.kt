@@ -13,6 +13,7 @@ import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.model.UserInfo
 import org.mitre.openid.connect.service.ScopeClaimTranslationService
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 
 suspend fun RoutingContext.userInfoView(
     jwtService: JWTSigningAndValidationService,
@@ -27,8 +28,8 @@ suspend fun RoutingContext.userInfoView(
     requestedClaims: String? = null,
     code: HttpStatusCode = HttpStatusCode.OK,
 ) {
-    val authorizedClaims: JsonObject? = authorizedClaims?.let { Json.parseToJsonElement(it) as? JsonObject }
-    val requestedClaims: JsonObject? = requestedClaims?.let { Json.parseToJsonElement(it) as? JsonObject }
+    val authorizedClaims: JsonObject? = authorizedClaims?.let { oidJson.parseToJsonElement(it) as? JsonObject }
+    val requestedClaims: JsonObject? = requestedClaims?.let { oidJson.parseToJsonElement(it) as? JsonObject }
 
     val json = UserInfoView.toJsonFromRequestObj(userInfo, scope, authorizedClaims, requestedClaims, translator)
     userInfoJWTView(encrypters, symmetricCacheService, json, client, code)

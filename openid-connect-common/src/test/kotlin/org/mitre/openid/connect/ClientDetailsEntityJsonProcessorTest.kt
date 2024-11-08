@@ -33,6 +33,7 @@ import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.openid.connect.ClientDetailsEntityJsonProcessor.parse
 import org.mitre.openid.connect.ClientDetailsEntityJsonProcessor.parseRegistered
+import org.mitre.util.oidJson
 import java.util.*
 
 /**
@@ -176,7 +177,7 @@ class ClientDetailsEntityJsonProcessorTest {
         )
 
 
-        val j = Json.encodeToJsonElement(c) as JsonObject
+        val j = oidJson.encodeToJsonElement(c) as JsonObject
 
         assertEquals("s6BhdRkqt3", j["client_id"].asString)
         assertEquals("ZJYCqe3GGRvdrudKyZS0XhGv_Z45DuKhCUk0gBR1vZk", j["client_secret"].asString)

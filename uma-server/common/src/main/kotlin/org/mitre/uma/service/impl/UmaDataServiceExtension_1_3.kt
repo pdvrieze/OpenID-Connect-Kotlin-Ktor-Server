@@ -36,6 +36,7 @@ import org.mitre.uma.repository.ResourceSetRepository
 import org.mitre.uma.service.SavedRegisteredClientService
 import org.mitre.util.asString
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import java.io.IOException
 
 /**
@@ -230,7 +231,7 @@ class UmaDataServiceExtension_1_3(
                 savedPerm
             }
             val claimsSupplied = ticketObj[CLAIMS_SUPPLIED]?.let {
-                Json.decodeFromJsonElement(SetSerializer(Claim.serializer()), it)
+                oidJson.decodeFromJsonElement<Set<Claim>>(it)
             }
             val ticket = PermissionTicket(
                 permission = permission,

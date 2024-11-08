@@ -38,6 +38,7 @@ import org.mitre.openid.connect.client.model.IssuerServiceResponse
 import org.mitre.openid.connect.client.service.IssuerService
 import org.mitre.util.asString
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import java.util.concurrent.ExecutionException
 
 /**
@@ -147,7 +148,7 @@ class WebfingerIssuerService(
 
             val webfingerResponse = httpClient.get(url).onError { throw IOException("Could not load $url, $it") }
 
-            val json = Json.parseToJsonElement(webfingerResponse.bodyAsText())
+            val json = oidJson.parseToJsonElement(webfingerResponse.bodyAsText())
 
             if (json is JsonObject) {
                 // find the issuer

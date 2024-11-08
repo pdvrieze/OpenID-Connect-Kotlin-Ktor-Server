@@ -19,6 +19,7 @@ import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mitre.oauth2.web.TokenAPI
 import org.mitre.openid.connect.filter.AuthTokenResponse
 import org.mitre.openid.connect.filter.PlainAuthorizationRequestEndpoint
+import org.mitre.util.oidJson
 import org.mitre.web.FormAuthEndpoint
 import org.mitre.web.OpenIdSessionStorage
 import java.time.Duration
@@ -260,7 +261,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
             basicAuth(clientId, clientSecret)
         }
         assertEquals(HttpStatusCode.OK, r.status)
-        val accessTokenResponse = r.body<AuthTokenResponse>()// Json.parseToJsonElement(r2.bodyAsText()).jsonObject
+        val accessTokenResponse = r.body<AuthTokenResponse>()// oidJson.parseToJsonElement(r2.bodyAsText()).jsonObject
         assertEquals("bearer", accessTokenResponse.tokenType.lowercase())
         val accessToken = SignedJWT.parse(accessTokenResponse.accessToken)
         assertTrue(accessToken.verify(JWT_VERIFIER))
@@ -293,7 +294,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
             }
         )
         val b = r.bodyAsText()
-        val refreshedTokenResponse = Json.decodeFromString<AuthTokenResponse>(b)
+        val refreshedTokenResponse = oidJson.decodeFromString<AuthTokenResponse>(b)
         val accessToken = SignedJWT.parse(refreshedTokenResponse.accessToken)
         assertTrue(accessToken.verify(JWT_VERIFIER))
 
@@ -443,7 +444,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
                 basicAuth(clientId, clientSecret)
             }
             assertEquals(HttpStatusCode.OK, r2.status)
-            val accessTokenResponse = r2.body<AuthTokenResponse>()// Json.parseToJsonElement(r2.bodyAsText()).jsonObject
+            val accessTokenResponse = r2.body<AuthTokenResponse>()// oidJson.parseToJsonElement(r2.bodyAsText()).jsonObject
             assertEquals("bearer", accessTokenResponse.tokenType.lowercase())
             val accessToken = SignedJWT.parse(accessTokenResponse.accessToken)
 
@@ -496,7 +497,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
             basicAuth(clientId, clientSecret)
         }
         assertEquals(HttpStatusCode.OK, r2.status)
-        val accessTokenResponse = r2.body<AuthTokenResponse>()// Json.parseToJsonElement(r2.bodyAsText()).jsonObject
+        val accessTokenResponse = r2.body<AuthTokenResponse>()// oidJson.parseToJsonElement(r2.bodyAsText()).jsonObject
         assertEquals("bearer", accessTokenResponse.tokenType.lowercase())
         val accessToken = SignedJWT.parse(accessTokenResponse.accessToken)
 

@@ -23,6 +23,7 @@ import kotlinx.serialization.json.encodeToStream
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.openid.connect.client.service.RegisteredClientService
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -84,7 +85,7 @@ class JsonFileRegisteredClientService(filename: String) : RegisteredClientServic
                 return
             }
             FileInputStream(file).use { reader ->
-                clients = Json.decodeFromStream(reader)
+                clients = oidJson.decodeFromStream(reader)
             }
         } catch (e: IOException) {
             logger.error("Could not read from input file", e)

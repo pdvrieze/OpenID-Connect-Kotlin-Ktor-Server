@@ -25,6 +25,7 @@ import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.view.JsonEntityView
 import org.mitre.uma.model.ResourceSet
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
@@ -63,7 +64,7 @@ class ResourceSetEntityView : AbstractView() {
             val out: OutputStream = response.outputStream
             val rs = model["entity"] as ResourceSet?
 
-            Json.encodeToStream(buildJsonObject {
+            oidJson.encodeToStream(buildJsonObject {
                 put("_id", rs!!.id.toString())
                 put("user_access_policy_uri", config.issuer + "manage/resource/" + rs.id)
                 put("name", rs.name)

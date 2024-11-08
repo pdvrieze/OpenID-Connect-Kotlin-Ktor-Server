@@ -31,6 +31,7 @@ import org.mitre.openid.connect.model.DefaultUserInfo
 import org.mitre.openid.connect.model.PendingOIDCAuthenticationToken
 import org.mitre.openid.connect.model.UserInfo
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
@@ -95,7 +96,7 @@ class UserInfoFetcher(
             throw IllegalArgumentException("Unable to load user info")
         }
 
-        return Json.decodeFromString<DefaultUserInfo>(userInfoString)
+        return oidJson.decodeFromString<DefaultUserInfo>(userInfoString)
     }
 
     companion object {

@@ -35,6 +35,7 @@ import org.mitre.openid.connect.client.service.ClientConfigurationService
 import org.mitre.openid.connect.client.service.RegisteredClientService
 import org.mitre.openid.connect.config.ServerConfiguration
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import java.util.concurrent.ExecutionException
 
 /**
@@ -96,7 +97,7 @@ class DynamicRegistrationClientConfigurationService(
         if (knownClient == null) {
             // dynamically register this client
 
-            val serializedClient = Json.encodeToString(template!!)
+            val serializedClient = oidJson.encodeToString(template!!)
 
             val response = httpClient.post(serverConfig.registrationEndpointUri!!) {
                 contentType(ContentType.Application.Json)

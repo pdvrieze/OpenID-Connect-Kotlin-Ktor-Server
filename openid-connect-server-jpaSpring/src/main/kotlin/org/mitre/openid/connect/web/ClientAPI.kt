@@ -84,6 +84,7 @@ import org.mitre.openid.connect.view.JsonErrorView
 import org.mitre.util.asBoolean
 import org.mitre.util.asBooleanOrNull
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.HttpHeaders
@@ -242,9 +243,9 @@ class ClientAPI {
         val clientBuilder: Builder
 
         try {
-            json = Json.parseToJsonElement(jsonString).jsonObject
+            json = oidJson.parseToJsonElement(jsonString).jsonObject
             // parse the client passed in (from JSON) and fetch the old client from the store
-            clientBuilder = Json.decodeFromJsonElement<ClientDetailsEntity>(json).builder()
+            clientBuilder = oidJson.decodeFromJsonElement<ClientDetailsEntity>(json).builder()
             validateSoftwareStatement(clientBuilder)
         } catch (e: SerializationException) {
             logger.error("apiUpdateClient failed due to SerializationException", e)

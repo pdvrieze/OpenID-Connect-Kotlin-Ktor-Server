@@ -22,6 +22,7 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.encodeToStream
 import kotlinx.serialization.json.put
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
@@ -62,7 +63,7 @@ class JsonErrorView : AbstractView() {
                 put("error_description", errorMessage)
 
             }
-            Json.encodeToStream(obj, response.outputStream)
+            oidJson.encodeToStream(obj, response.outputStream)
         } catch (e: IOException) {
             Companion.logger.error("IOException in JsonErrorView.java: ", e)
         }

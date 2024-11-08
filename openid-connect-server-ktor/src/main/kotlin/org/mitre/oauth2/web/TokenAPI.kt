@@ -28,6 +28,7 @@ import org.mitre.oauth2.view.respondJson
 import org.mitre.oauth2.view.tokenApiView
 import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.clientDetailsService
 import org.mitre.web.util.oidcTokenService
@@ -81,7 +82,7 @@ object TokenAPI : KtorEndpoint {
             logger.error("getToken failed; token does not belong to principal " + p.name)
             return jsonErrorView(ACCESS_DENIED, "You do not have permission to view this token")
         } else {
-            return tokenApiView(json.encodeToJsonElement(token))
+            return tokenApiView(oidJson.encodeToJsonElement(token))
         }
     }
 
@@ -112,7 +113,7 @@ object TokenAPI : KtorEndpoint {
             ?: return jsonErrorView(INVALID_REQUEST, HttpStatusCode.NotFound, "The requested client with id $clientId could not be found.")
 
         val tokens = tokenService.getAccessTokensForClient(client)
-        return tokenApiView(json.encodeToJsonElement(tokens))
+        return tokenApiView(oidJson.encodeToJsonElement(tokens))
     }
 
     //    @PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -142,14 +143,14 @@ object TokenAPI : KtorEndpoint {
             ?.let { tokenService.saveAccessToken(it) }
             ?: jsonErrorView(INVALID_REQUEST, HttpStatusCode.NotFound, "No registration token could be found.")
 
-        return tokenApiView(json.encodeToJsonElement(token))
+        return tokenApiView(oidJson.encodeToJsonElement(token))
     }
 
     //    @RequestMapping(value = ["/refresh"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.getAllRefreshTokens() {
         val p = requireRole(GrantedAuthority.ROLE_USER) { return }
         val allTokens = tokenService.getAllRefreshTokensForUser(p.name).map { it.serialDelegate() }
-        return tokenApiView(json.encodeToJsonElement(allTokens))
+        return tokenApiView(oidJson.encodeToJsonElement(allTokens))
     }
 
     //    @RequestMapping(value = ["/refresh/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -167,7 +168,7 @@ object TokenAPI : KtorEndpoint {
             return jsonErrorView(ACCESS_DENIED, "You do not have permission to view this token")
         }
 
-        return tokenApiView(json.encodeToJsonElement(token))
+        return tokenApiView(oidJson.encodeToJsonElement(token))
     }
 
     //    @RequestMapping(value = ["/refresh/{id}"], method = [RequestMethod.DELETE], produces = [MediaType.APPLICATION_JSON_VALUE])

@@ -20,6 +20,7 @@ package org.mitre.openid.connect.config
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import java.time.Duration
 import java.util.*
 
@@ -118,7 +119,7 @@ class ConfigurationPropertiesBean {
      * The list of namespaces as a JSON string, for injection into the JavaScript UI
      */
     val languageNamespacesString: String
-        get() = Json.encodeToString(languageNamespaces)
+        get() = oidJson.encodeToString(languageNamespaces)
 
     /**
      * Get the default namespace (first in the nonempty list)

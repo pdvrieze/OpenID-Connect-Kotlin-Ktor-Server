@@ -12,6 +12,7 @@ import org.mitre.openid.connect.model.DefaultAddress
 import org.mitre.openid.connect.model.DefaultUserInfo
 import org.mitre.openid.connect.model.UserInfo
 import org.mitre.openid.connect.repository.UserInfoRepository
+import org.mitre.util.oidJson
 
 class ExposedUserInfoRepository(database: Database) :
     RepositoryBase(database, UserInfos), UserInfoRepository {
@@ -79,7 +80,7 @@ internal fun ResultRow.toUserInfo(address: Address?): UserInfo {
             _address = address?.let { DefaultAddress.from(it) },
             updatedTime = r[updatedTime],
             birthdate = r[birthdate],
-            source = r[src]?.let { Json.parseToJsonElement(it).jsonObject },
+            source = r[src]?.let { oidJson.parseToJsonElement(it).jsonObject },
         )
     }
 

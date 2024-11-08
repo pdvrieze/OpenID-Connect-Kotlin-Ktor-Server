@@ -17,6 +17,7 @@ import org.mitre.uma.model.Claim
 import org.mitre.uma.model.Policy
 import org.mitre.uma.model.ResourceSet
 import org.mitre.uma.repository.ResourceSetRepository
+import org.mitre.util.oidJson
 
 class ExposedResourceSetRepository(database: Database): RepositoryBase(
     database,
@@ -211,7 +212,7 @@ internal fun ResultRow.toClaim(): Claim {
             name = r[name],
             friendlyName = r[friendlyName],
             claimType = r[claimType],
-            value = r[claimValue]?.let { Json.parseToJsonElement(it) },
+            value = r[claimValue]?.let { oidJson.parseToJsonElement(it) },
             claimTokenFormat = tokenFormats,
             issuer = issuers,
         )

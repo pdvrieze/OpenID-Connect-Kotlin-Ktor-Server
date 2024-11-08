@@ -18,6 +18,7 @@ import org.mitre.openid.connect.view.JsonErrorView
 import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.util.asString
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.claimsProcessingService
 import org.mitre.web.util.permissionService
@@ -57,7 +58,7 @@ object UmaAuthorizationRequestEndpoint : KtorEndpoint {
     private suspend fun RoutingContext.authorizationRequest() {
         val auth = requireScope(SystemScopeService.UMA_AUTHORIZATION_SCOPE) { return }
 
-        val obj = Json.parseToJsonElement(call.receiveText())
+        val obj = oidJson.parseToJsonElement(call.receiveText())
         if (obj !is JsonObject) {
             return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST, "Malformed JSON request.")
         }

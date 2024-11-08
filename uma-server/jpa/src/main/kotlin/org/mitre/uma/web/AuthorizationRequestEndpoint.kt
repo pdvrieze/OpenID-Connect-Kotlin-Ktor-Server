@@ -35,6 +35,7 @@ import org.mitre.uma.service.PermissionService
 import org.mitre.uma.service.UmaTokenService
 import org.mitre.util.asString
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication
@@ -68,7 +69,7 @@ class AuthorizationRequestEndpoint {
     fun authorizationRequest(@RequestBody jsonString: String, m: Model, auth: Authentication?): String {
         ensureOAuthScope(auth, SystemScopeService.UMA_AUTHORIZATION_SCOPE)
 
-        val obj = Json.parseToJsonElement(jsonString)
+        val obj = oidJson.parseToJsonElement(jsonString)
         if (obj !is JsonObject) {
             m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
             m.addAttribute(JsonErrorView.ERROR_MESSAGE, "Malformed JSON request.")

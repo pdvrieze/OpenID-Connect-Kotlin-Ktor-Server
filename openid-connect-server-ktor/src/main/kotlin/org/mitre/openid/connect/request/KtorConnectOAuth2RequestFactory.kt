@@ -25,7 +25,6 @@ import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.JWTParser
 import com.nimbusds.jwt.PlainJWT
 import com.nimbusds.jwt.SignedJWT
-import kotlinx.serialization.json.JsonObject
 import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
 import org.mitre.jwt.signer.service.ClientKeyCacheService
 import org.mitre.oauth2.exception.InvalidClientException
@@ -40,8 +39,8 @@ import org.mitre.openid.connect.request.ConnectRequestParameters.CODE_CHALLENGE
 import org.mitre.openid.connect.request.ConnectRequestParameters.LOGIN_HINT
 import org.mitre.openid.connect.request.ConnectRequestParameters.MAX_AGE
 import org.mitre.openid.connect.request.ConnectRequestParameters.REQUEST
-import org.mitre.openid.connect.service.KtorIdDataService
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 
 
 // TODO Spring specific
@@ -279,12 +278,12 @@ class KtorConnectOAuth2RequestFactory(
     }
 
 
-    private fun parseClaimRequest(claimRequestString: String?): JsonObject? {
+    private fun parseClaimRequest(claimRequestString: String?): OpenIdAuthorizationRequest.ClaimsRequest? {
         if (claimRequestString.isNullOrEmpty()) {
             return null
         }
 
-        return KtorIdDataService.json.parseToJsonElement(claimRequestString) as? JsonObject
+        return oidJson.decodeFromString(claimRequestString)
     }
 
     companion object {

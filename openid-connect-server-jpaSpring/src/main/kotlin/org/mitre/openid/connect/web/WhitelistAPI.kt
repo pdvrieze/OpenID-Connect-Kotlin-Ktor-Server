@@ -28,6 +28,7 @@ import org.mitre.openid.connect.view.HttpCodeView
 import org.mitre.openid.connect.view.JsonEntityView
 import org.mitre.openid.connect.view.JsonErrorView
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -72,8 +73,8 @@ class WhitelistAPI {
 
         val whitelist: WhitelistedSite
         try {
-            json = Json.parseToJsonElement(jsonString).jsonObject
-            whitelist = Json.decodeFromJsonElement(json)
+            json = oidJson.parseToJsonElement(jsonString).jsonObject
+            whitelist = oidJson.decodeFromJsonElement(json)
         } catch (e: SerializationException) {
             logger.error("addNewWhitelistedSite failed due to SerializationException", e)
             m.addAttribute(HttpCodeView.CODE, HttpStatus.BAD_REQUEST)
@@ -111,8 +112,8 @@ class WhitelistAPI {
 
         val whitelist: WhitelistedSite
         try {
-            json = Json.parseToJsonElement(jsonString).jsonObject
-            whitelist = Json.decodeFromJsonElement(json)
+            json = oidJson.parseToJsonElement(jsonString).jsonObject
+            whitelist = oidJson.decodeFromJsonElement(json)
         } catch (e: SerializationException) {
             logger.error("updateWhitelistedSite failed due to SerializationException", e)
             m[HttpCodeView.CODE] = HttpStatus.BAD_REQUEST

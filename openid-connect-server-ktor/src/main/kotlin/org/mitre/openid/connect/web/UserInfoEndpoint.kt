@@ -29,6 +29,7 @@ import org.mitre.openid.connect.view.CT_JWT
 import org.mitre.openid.connect.view.userInfoJWTView
 import org.mitre.openid.connect.view.userInfoView
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.clientDetailsService
 import org.mitre.web.util.encryptersService
@@ -107,7 +108,7 @@ object UserInfoEndpoint: KtorEndpoint {
             return userInfoJWTView(
                 encrypters = encryptersService,
                 symmetricCacheService = symetricCacheService,
-                userInfo = json.encodeToJsonElement(userInfo).jsonObject,
+                userInfo = oidJson.encodeToJsonElement(userInfo).jsonObject,
                 client = client,
             )
 

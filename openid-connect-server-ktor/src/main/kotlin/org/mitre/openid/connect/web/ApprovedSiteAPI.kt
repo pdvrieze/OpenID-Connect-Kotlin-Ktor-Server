@@ -27,6 +27,7 @@ import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.openid.connect.view.jsonApprovedSiteView
 import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.approvedSiteService
 import org.mitre.web.util.requireRole
@@ -55,7 +56,7 @@ object ApprovedSiteAPI : KtorEndpoint {
 
         val all = approvedSiteService.getByUserId(p.name)
 
-        return jsonApprovedSiteView(json.encodeToJsonElement(all))
+        return jsonApprovedSiteView(oidJson.encodeToJsonElement(all))
     }
 
     /**
@@ -103,7 +104,7 @@ object ApprovedSiteAPI : KtorEndpoint {
             return jsonErrorView(ACCESS_DENIED, "You do not have permission to view this approved site.")
         }
 
-        return jsonApprovedSiteView(json.encodeToJsonElement(approvedSite))
+        return jsonApprovedSiteView(oidJson.encodeToJsonElement(approvedSite))
     }
 
     const val URL: String = "api/approved"

@@ -25,6 +25,7 @@ import org.mitre.openid.connect.view.HttpCodeView
 import org.mitre.openid.connect.view.JsonEntityView
 import org.mitre.uma.model.ResourceSet
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
@@ -86,7 +87,7 @@ class ResourceSetEntityAbbreviatedView : AbstractView() {
                 put("user_access_policy_uri", "${config.issuer}manage/user/policy/${rs.id}")
             }
 
-            Json.encodeToStream<JsonObject>(o, out)
+            oidJson.encodeToStream<JsonObject>(o, out)
         } catch (e: IOException) {
             Companion.logger.error("IOException in ResourceSetEntityView.java: ", e)
         }

@@ -29,6 +29,7 @@ import org.mitre.oauth2.view.respondJson
 import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.openid.connect.web.RootController
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.requireRole
 import org.mitre.web.util.scopeService
@@ -85,7 +86,7 @@ object ScopeAPI : KtorEndpoint {
         val jsonText = call.receiveText().takeIf { it.isNotEmpty() }
 
         val existing = scopeService.getById(id)
-        val scope: SystemScope? = jsonText?.let { json.decodeFromString(it) }
+        val scope: SystemScope? = jsonText?.let { oidJson.decodeFromString(it) }
 
         when {
             existing == null || scope == null -> {
@@ -118,7 +119,7 @@ object ScopeAPI : KtorEndpoint {
 
         val jsonText = call.receiveText()
 
-        val inputScope = jsonText.let { json.decodeFromString<SystemScope>(it) }
+        val inputScope = jsonText.let { oidJson.decodeFromString<SystemScope>(it) }
 
         val alreadyExists = scopeService.getByValue(inputScope.value!!)
         if (alreadyExists != null) {
@@ -136,7 +137,7 @@ object ScopeAPI : KtorEndpoint {
         if (savedScope?.id != null) {
             return call.respondJson(savedScope)
         } else {
-            logger.error("createScope failed; JSON was invalid: $json")
+            logger.error("createScope failed; JSON was invalid: $oidJson")
             return jsonErrorView(
                 OAuthErrorCodes.SERVER_ERROR,
                 HttpStatusCode.BadRequest,

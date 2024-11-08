@@ -12,6 +12,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.serializer
+import org.mitre.util.oidJson
 
 /**
  *
@@ -40,7 +41,7 @@ suspend fun <T> RoutingContext.clientEntitityViewForUsers(
     entity: T,
     code: HttpStatusCode = HttpStatusCode.OK,
 ) {
-    val filtered = when(val jsonElement = Json.encodeToJsonElement(serializer, entity)) {
+    val filtered = when(val jsonElement = oidJson.encodeToJsonElement(serializer, entity)) {
         is JsonArray -> JsonArray(jsonElement.map(::filterObject))
         else -> filterObject(jsonElement)
     }

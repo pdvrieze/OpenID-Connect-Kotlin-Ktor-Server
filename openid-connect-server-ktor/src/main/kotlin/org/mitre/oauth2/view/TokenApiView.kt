@@ -8,6 +8,7 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.serializer
+import org.mitre.util.oidJson
 
 suspend inline fun <reified T> RoutingContext.tokenApiView(
     jsonEntity: T,
@@ -29,6 +30,6 @@ suspend fun <T> ApplicationCall.respondJson(
     jsonEntity: T,
     code:HttpStatusCode = HttpStatusCode.OK,
 ) {
-    val textData = Json.encodeToString(serializer, jsonEntity)
+    val textData = oidJson.encodeToString(serializer, jsonEntity)
     respondText(textData, ContentType.Application.Json, code)
 }

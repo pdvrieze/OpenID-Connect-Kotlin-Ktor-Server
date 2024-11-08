@@ -3,7 +3,6 @@ package org.mitre.uma.service.impl.ktor
 import io.github.pdvrieze.auth.exposed.RepositoryBase
 import io.github.pdvrieze.auth.uma.repository.exposed.SavedRegisteredClients
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.selectAll
@@ -12,14 +11,13 @@ import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.openid.connect.client.service.RegisteredClientService
 import org.mitre.uma.model.SavedRegisteredClient
 import org.mitre.uma.service.SavedRegisteredClientService
+import org.mitre.util.oidJson
 
 /**
  * @author jricher
  */
 open class KtorRegisteredClientService(database: Database) :
     RepositoryBase(database, SavedRegisteredClients), RegisteredClientService, SavedRegisteredClientService {
-
-        val json = Json
 
     /* (non-Javadoc)
 	 * @see org.mitre.openid.connect.client.service.RegisteredClientService#getByIssuer(java.lang.String)
@@ -41,7 +39,7 @@ open class KtorRegisteredClientService(database: Database) :
         transaction(database) {
             val newId = SavedRegisteredClients.save(oldId) { b ->
                 b[this.issuer] = issuer
-                b[registeredClient] = json.encodeToString(client)
+                b[registeredClient] = oidJson.encodeToString(client)
             }
         }
     }
@@ -66,7 +64,7 @@ open class KtorRegisteredClientService(database: Database) :
         return SavedRegisteredClient(
             id = get(SavedRegisteredClients.id).value,
             issuer = get(SavedRegisteredClients.issuer),
-            registeredClient = json.decodeFromString<RegisteredClient>(get(SavedRegisteredClients.registeredClient))
+            registeredClient = oidJson.decodeFromString<RegisteredClient>(get(SavedRegisteredClients.registeredClient))
         )
     }
 }

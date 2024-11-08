@@ -33,6 +33,7 @@ import org.mitre.openid.connect.service.KtorIdDataService.Companion.warnIgnored
 import org.mitre.openid.connect.service.MITREidDataServiceExtension
 import org.mitre.openid.connect.service.MITREidDataServiceMaps
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 
 /**
  *
@@ -68,7 +69,7 @@ class KtorIdDataService_1_0(
     }
 
     override fun importData(configJson: String) {
-        importData(KtorIdDataService.json.decodeFromString<ExtendedConfiguration10>(configJson))
+        importData(oidJson.decodeFromString<ExtendedConfiguration10>(configJson))
     }
 
     override fun importClient(context: DataServiceContext, client: ClientDetailsConfiguration) {

@@ -28,6 +28,7 @@ import org.mitre.openid.connect.view.HttpCodeView
 import org.mitre.openid.connect.view.JsonEntityView
 import org.mitre.openid.connect.view.JsonErrorView
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -69,7 +70,7 @@ class BlacklistAPI {
     fun addNewBlacklistedSite(@RequestBody jsonString: String, m: ModelMap, p: Principal?): String {
 
         try {
-            val blacklist = Json.decodeFromString<BlacklistedSite>(jsonString)
+            val blacklist = oidJson.decodeFromString<BlacklistedSite>(jsonString)
             val newBlacklist = blacklistService.saveNew(blacklist)
             m[JsonEntityView.ENTITY] = newBlacklist
         } catch (e: SerializationException) {
@@ -104,8 +105,8 @@ class BlacklistAPI {
         val blacklist: BlacklistedSite
 
         try {
-            json = Json.parseToJsonElement(jsonString).jsonObject
-            blacklist = Json.decodeFromJsonElement(json)
+            json = oidJson.parseToJsonElement(jsonString).jsonObject
+            blacklist = oidJson.decodeFromJsonElement(json)
         } catch (e: SerializationException) {
             logger.error("updateBlacklistedSite failed due to SerializationException", e)
             m[HttpCodeView.CODE] = HttpStatus.BAD_REQUEST

@@ -32,6 +32,7 @@ import org.mitre.jwt.signer.service.impl.SymmetricKeyJWTValidatorCacheService
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
@@ -69,7 +70,7 @@ class UserInfoJWTView : UserInfoView() {
             val client = model[CLIENT] as ClientDetailsEntity
 
             // use the parser to import the user claims into the object
-            val encodedJson = Json.encodeToString(json)
+            val encodedJson = oidJson.encodeToString(json)
 
             response.contentType = JOSE_MEDIA_TYPE_VALUE
 

@@ -31,11 +31,11 @@ import org.mitre.openid.connect.repository.BlacklistedSiteRepository
 import org.mitre.openid.connect.repository.WhitelistedSiteRepository
 import org.mitre.openid.connect.service.DataServiceContext
 import org.mitre.openid.connect.service.KtorIdDataService
-import org.mitre.openid.connect.service.KtorIdDataService.Companion.json
 import org.mitre.openid.connect.service.KtorIdDataService.Companion.warnIgnored
 import org.mitre.openid.connect.service.MITREidDataServiceExtension
 import org.mitre.openid.connect.service.MITREidDataServiceMaps
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 
 /**
  *
@@ -62,7 +62,7 @@ class KtorIdDataService_1_3(
     }
 
     override fun exportData(): String {
-        return json.encodeToString(mapOf(THIS_VERSION to toSerialConfig()))
+        return oidJson.encodeToString(mapOf(THIS_VERSION to toSerialConfig()))
     }
 
     fun toSerialConfig(): KtorIdDataService.ExtendedConfiguration12 {
@@ -90,7 +90,7 @@ class KtorIdDataService_1_3(
     }
 
     override fun importData(configJson: String) {
-        val conf = json.decodeFromString<KtorIdDataService.ExtendedConfiguration12>(configJson)
+        val conf = oidJson.decodeFromString<KtorIdDataService.ExtendedConfiguration12>(configJson)
         importData(conf)
     }
 

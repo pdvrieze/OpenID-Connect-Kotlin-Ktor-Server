@@ -15,6 +15,7 @@ import org.mitre.oauth2.resolver.OAuth2TokenResolver
 import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.openid.connect.model.convert.ISOInstant
 import org.mitre.uma.model.Permission
+import org.mitre.util.oidJson
 import java.time.Instant
 import java.util.*
 
@@ -100,7 +101,7 @@ class OAuth2AccessTokenEntity(
      */
     fun setIdToken(idToken: JWT?) {
         if (idToken != null) {
-            additionalInformation[ID_TOKEN_FIELD_NAME] = Json.parseToJsonElement(idToken.serialize())
+            additionalInformation[ID_TOKEN_FIELD_NAME] = oidJson.parseToJsonElement(idToken.serialize())
         }
     }
 
@@ -241,7 +242,7 @@ class OAuth2AccessTokenEntity(
 
         override fun setIdToken(idToken: JWT?) {
             if (idToken != null) {
-                additionalInformation[ID_TOKEN_FIELD_NAME] = Json.parseToJsonElement(idToken.serialize())
+                additionalInformation[ID_TOKEN_FIELD_NAME] = oidJson.parseToJsonElement(idToken.serialize())
             }
         }
 

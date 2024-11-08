@@ -26,6 +26,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
+import org.mitre.util.oidJson
 import java.io.IOException
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
@@ -113,7 +114,7 @@ class DefaultUserInfo(
 
     override fun toJson(): JsonObject {
         source?.let { return it }
-        return Json.encodeToJsonElement<DefaultUserInfo>(this).jsonObject
+        return oidJson.encodeToJsonElement<DefaultUserInfo>(this).jsonObject
     }
 
 
@@ -135,7 +136,7 @@ class DefaultUserInfo(
         input.defaultReadObject()
         val o = input.readObject() as String?
         if (o != null) {
-            source = Json.encodeToJsonElement(o).jsonObject
+            source = oidJson.encodeToJsonElement(o).jsonObject
         }
     }
 
@@ -205,7 +206,7 @@ class DefaultUserInfo(
          */
         @JvmStatic
         fun fromJson(obj: JsonObject): UserInfo {
-            return Json.decodeFromJsonElement<DefaultUserInfo>(obj)
+            return oidJson.decodeFromJsonElement<DefaultUserInfo>(obj)
         }
 
         private fun nullSafeGetString(obj: JsonObject, field: String): String? {

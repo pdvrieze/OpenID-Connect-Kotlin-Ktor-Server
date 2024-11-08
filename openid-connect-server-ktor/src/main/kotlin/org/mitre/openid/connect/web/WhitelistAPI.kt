@@ -33,6 +33,7 @@ import org.mitre.oauth2.view.respondJson
 import org.mitre.openid.connect.model.WhitelistedSite
 import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.requireRole
 import org.mitre.web.util.whitelistedSiteService
@@ -81,8 +82,7 @@ object WhitelistAPI : KtorEndpoint {
 
         val whitelist: WhitelistedSite
         try {
-            json = Json.parseToJsonElement(call.receiveText()).jsonObject
-            whitelist = Json.decodeFromJsonElement(json)
+            whitelist = oidJson.decodeFromString(call.receiveText())
         } catch (e: SerializationException) {
             logger.error("addNewWhitelistedSite failed due to SerializationException", e)
             return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST, "Could not save new whitelisted site. The server encountered a JSON syntax exception. Contact a system administrator for assistance.")
@@ -114,8 +114,7 @@ object WhitelistAPI : KtorEndpoint {
 
         val whitelist: WhitelistedSite
         try {
-            json = Json.parseToJsonElement(call.receiveText()).jsonObject
-            whitelist = Json.decodeFromJsonElement(json)
+            whitelist = oidJson.decodeFromString(call.receiveText())
         } catch (e: SerializationException) {
             logger.error("updateWhitelistedSite failed due to SerializationException", e)
             return jsonErrorView(

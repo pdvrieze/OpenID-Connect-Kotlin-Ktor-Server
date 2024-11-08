@@ -16,7 +16,6 @@
 package org.mitre.openid.connect.service.impl.spring
 
 import com.nimbusds.jwt.JWTParser
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
@@ -63,6 +62,7 @@ import org.mitre.openid.connect.service.MITREidDataServiceMaps
 import org.mitre.util.asBoolean
 import org.mitre.util.asString
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.eq
@@ -208,7 +208,7 @@ class TestSpringMITREidDataService_1_3 {
         val data = dataService.exportData()
 
         // parse the output as a JSON object for testing
-        val elem = Json.parseToJsonElement(data)
+        val elem = oidJson.parseToJsonElement(data)
         val root = elem.jsonObject
 
         // make sure the root is there
@@ -448,7 +448,7 @@ class TestSpringMITREidDataService_1_3 {
         val data = dataService.exportData()
 
         // parse the output as a JSON object for testing
-        val elem = Json.parseToJsonElement(data) as JsonObject
+        val elem = oidJson.parseToJsonElement(data) as JsonObject
         val root = elem
 
         // make sure the root is there
@@ -689,7 +689,7 @@ class TestSpringMITREidDataService_1_3 {
         val data = dataService.exportData()
 
         // parse the output as a JSON object for testing
-        val root = Json.parseToJsonElement(data).jsonObject
+        val root = oidJson.parseToJsonElement(data).jsonObject
 
         // make sure the root is there
         assertTrue(MITREidDataService.MITREID_CONNECT_1_3 in root)
@@ -859,7 +859,7 @@ class TestSpringMITREidDataService_1_3 {
         val data = dataService.exportData()
 
         // parse the output as a JSON object for testing
-        val root = Json.parseToJsonElement(data).jsonObject
+        val root = oidJson.parseToJsonElement(data).jsonObject
 
         // make sure the root is there
         assertTrue(MITREidDataService.MITREID_CONNECT_1_3 in root)
@@ -986,7 +986,7 @@ class TestSpringMITREidDataService_1_3 {
         val data = dataService.exportData()
 
         // parse the output as a JSON object for testing
-        val root = Json.parseToJsonElement(data).jsonObject
+        val root = oidJson.parseToJsonElement(data).jsonObject
 
         // make sure the root is there
         assertTrue(root.contains(MITREidDataService.MITREID_CONNECT_1_3))
@@ -1155,7 +1155,7 @@ class TestSpringMITREidDataService_1_3 {
         val data = dataService.exportData()
 
         // parse the output as a JSON object for testing
-        val root = Json.parseToJsonElement(data).jsonObject
+        val root = oidJson.parseToJsonElement(data).jsonObject
 
         // make sure the root is there
         assertTrue(root.contains(MITREidDataService.MITREID_CONNECT_1_3))
@@ -1375,7 +1375,7 @@ class TestSpringMITREidDataService_1_3 {
         val data = dataService.exportData()
 
         // parse the output as a JSON object for testing
-        val elem = Json.parseToJsonElement(data)
+        val elem = oidJson.parseToJsonElement(data)
         val root = elem.jsonObject
 
         // make sure the root is there
@@ -1557,7 +1557,7 @@ class TestSpringMITREidDataService_1_3 {
         val data = dataService.exportData()
 
         // parse the output as a JSON object for testing
-        val elem = Json.parseToJsonElement(data)
+        val elem = oidJson.parseToJsonElement(data)
         val root = elem.jsonObject
 
         // make sure the root is there

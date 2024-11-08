@@ -20,6 +20,7 @@ package org.mitre.util
 import com.nimbusds.jose.EncryptionMethod
 import com.nimbusds.jose.JWEAlgorithm
 import com.nimbusds.jose.JWSAlgorithm
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -119,4 +120,10 @@ fun JsonElement?.asEncryptionMethodList(): List<EncryptionMethod>? {
         is JsonArray -> map { EncryptionMethod.parse(asString()) }
         else -> null
     }
+}
+
+val oidJson: Json = Json {
+    ignoreUnknownKeys = true
+    prettyPrint = true
+    prettyPrintIndent = "  "
 }

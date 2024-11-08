@@ -33,6 +33,7 @@ import org.mitre.oauth2.view.respondJson
 import org.mitre.openid.connect.service.KtorIdDataService
 import org.mitre.openid.connect.service.impl.ktor.KtorIdDataService_1_3
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.openIdContext
 import org.mitre.web.util.requireRole
@@ -164,7 +165,7 @@ class DataAPI(
                 put("exported-at", dateFormat.format(Date()))
                 put("exported-from", openIdContext.config.issuer,)
                 put("exported-by", prin.name,)
-                put(KtorIdDataService.MITREID_CONNECT_1_3, json.encodeToJsonElement(exporter.toSerialConfig()))
+                put(KtorIdDataService.MITREID_CONNECT_1_3, oidJson.encodeToJsonElement(exporter.toSerialConfig()))
             }
             return call.respondJson(conf)
 

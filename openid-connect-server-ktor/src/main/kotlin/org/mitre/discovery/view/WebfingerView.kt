@@ -8,8 +8,8 @@ import kotlinx.serialization.json.addJsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
-import org.mitre.openid.connect.service.KtorIdDataService
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import java.io.IOException
 
 suspend fun RoutingContext.webfingerView(
@@ -35,7 +35,7 @@ object WebfingerViews {
                     }
                 }
             }
-            call.respondText(KtorIdDataService.json.encodeToString(obj), CT_JRD, code)
+            call.respondText(oidJson.encodeToString(obj), CT_JRD, code)
         } catch (e: IOException) {
             logger.error("IOException in JsonEntityView.java: ", e)
             throw e

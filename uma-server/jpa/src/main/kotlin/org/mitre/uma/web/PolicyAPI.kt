@@ -23,6 +23,7 @@ import org.mitre.openid.connect.web.RootController
 import org.mitre.uma.model.Policy
 import org.mitre.uma.service.ResourceSetService
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
@@ -160,7 +161,7 @@ class PolicyAPI {
             return HttpCodeView.VIEWNAME
         }
 
-        val p = Json.decodeFromString<Policy>(jsonString)
+        val p = oidJson.decodeFromString<Policy>(jsonString)
 
         if (p.id != null) {
             logger.warn("Tried to add a policy with a non-null ID: " + p.id)
@@ -258,7 +259,7 @@ class PolicyAPI {
             return HttpCodeView.VIEWNAME
         }
 
-        val p = Json.decodeFromString<Policy>(jsonString)
+        val p = oidJson.decodeFromString<Policy>(jsonString)
 
         if (pid != p.id) {
             logger.warn("Policy ID mismatch, expected " + pid + " got " + p.id)

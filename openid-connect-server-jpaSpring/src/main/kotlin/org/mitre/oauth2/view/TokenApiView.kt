@@ -22,6 +22,7 @@ import kotlinx.serialization.serializer
 import org.mitre.openid.connect.view.HttpCodeView
 import org.mitre.openid.connect.view.JsonEntityView
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
@@ -50,7 +51,7 @@ class TokenApiView : AbstractView() {
             val obj = model[JsonEntityView.ENTITY]
             @OptIn(InternalSerializationApi::class)
             val ser = obj!!.javaClass.kotlin.serializer()
-            Json.encodeToStream(ser, obj, response.outputStream)
+            oidJson.encodeToStream(ser, obj, response.outputStream)
         } catch (e: IOException) {
             Companion.logger.error("IOException in JsonEntityView.java: ", e)
         }

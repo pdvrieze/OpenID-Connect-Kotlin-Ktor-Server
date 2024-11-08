@@ -33,6 +33,7 @@ import org.mitre.oauth2.view.respondJson
 import org.mitre.openid.connect.model.BlacklistedSite
 import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.blacklistedSiteService
 import org.mitre.web.util.requireRole
@@ -75,7 +76,7 @@ object BlacklistAPI : KtorEndpoint {
         val p = requireRole(GrantedAuthority.ROLE_ADMIN) { return }
 
         try {
-            val blacklist = Json.decodeFromString<BlacklistedSite>(call.receiveText())
+            val blacklist = oidJson.decodeFromString<BlacklistedSite>(call.receiveText())
             val newBlacklist = blacklistedSiteService.saveNew(blacklist)
             return call.respondJson(newBlacklist)
 
@@ -105,7 +106,7 @@ object BlacklistAPI : KtorEndpoint {
         val blacklist: BlacklistedSite
 
         try {
-            blacklist = Json.decodeFromJsonElement(Json.parseToJsonElement(call.receiveText()).jsonObject)
+            blacklist = oidJson.decodeFromString(call.receiveText())
         } catch (e: SerializationException) {
             logger.error("updateBlacklistedSite failed due to SerializationException", e)
             return jsonErrorView(

@@ -34,6 +34,7 @@ import org.mitre.oauth2.view.respondJson
 import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.util.asStringSet
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.permissionService
 import org.mitre.web.util.requireRole
@@ -62,7 +63,7 @@ object PermissionRegistrationEndpoint: KtorEndpoint {
         try {
             // parse the permission request
 
-            val obj = Json.parseToJsonElement(call.receiveText()) as? JsonObject
+            val obj = oidJson.parseToJsonElement(call.receiveText()) as? JsonObject
                 ?: return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST, "Malformed JSON request.")
 
             val rsid = obj["resource_set_id"]?.jsonPrimitive?.long

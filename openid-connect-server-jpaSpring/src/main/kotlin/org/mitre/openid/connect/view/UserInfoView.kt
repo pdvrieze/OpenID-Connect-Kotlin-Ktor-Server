@@ -18,19 +18,18 @@
 package org.mitre.openid.connect.view
 
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.encodeToStream
 import org.mitre.openid.connect.model.UserInfo
 import org.mitre.openid.connect.service.ScopeClaimTranslationService
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.servlet.view.AbstractView
 import java.io.IOException
-import java.io.OutputStream
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
@@ -64,11 +63,11 @@ class UserInfoView : AbstractView() {
         var requestedClaims: JsonObject? = null
         if (model[AUTHORIZED_CLAIMS] != null) {
             authorizedClaims = (model[AUTHORIZED_CLAIMS] as String?)
-                ?.let { Json.parseToJsonElement(it) as? JsonObject }
+                ?.let { oidJson.parseToJsonElement(it) as? JsonObject }
         }
         if (model[REQUESTED_CLAIMS] != null) {
             requestedClaims = (model[REQUESTED_CLAIMS] as String?)
-                ?.let { Json.parseToJsonElement(it) as? JsonObject }
+                ?.let { oidJson.parseToJsonElement(it) as? JsonObject }
         }
         val json = toJsonFromRequestObj(userInfo, scope, authorizedClaims, requestedClaims)
 
@@ -83,8 +82,7 @@ class UserInfoView : AbstractView() {
         response: HttpServletResponse
     ) {
         try {
-            val out: OutputStream = response.outputStream
-            Json.encodeToStream(JsonElement.serializer(), json, out)
+            oidJson.encodeToStream(JsonElement.serializer(), json, response.outputStream)
         } catch (e: IOException) {
             Companion.logger.error("IOException in UserInfoView.java: ", e)
         }

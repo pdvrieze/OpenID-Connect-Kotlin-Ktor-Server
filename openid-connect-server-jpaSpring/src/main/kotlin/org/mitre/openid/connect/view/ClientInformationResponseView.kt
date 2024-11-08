@@ -23,6 +23,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToStream
 import org.mitre.oauth2.model.RegisteredClient
 import org.mitre.util.getLogger
+import org.mitre.util.oidJson
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
@@ -61,7 +62,7 @@ class ClientInformationResponseView : AbstractView() {
         response.setStatus(code.value())
 
         try {
-            Json.encodeToStream(c, response.outputStream)
+            oidJson.encodeToStream(c, response.outputStream)
 //            val out: Writer = response.writer
 //            gson.toJson(o, out)
         } catch (e: SerializationException) {
