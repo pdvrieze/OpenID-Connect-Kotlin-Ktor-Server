@@ -27,6 +27,8 @@ import org.mitre.oauth2.exception.InvalidClientException
 import org.mitre.oauth2.exception.InvalidRequestException
 import org.mitre.oauth2.exception.InvalidScopeException
 import org.mitre.oauth2.exception.InvalidTokenException
+import org.mitre.oauth2.exception.OAuth2Exception
+import org.mitre.oauth2.exception.OAuthErrorCodes
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.AuthenticationHolder
 import org.mitre.oauth2.model.KtorAuthenticationHolder
@@ -129,11 +131,11 @@ class DefaultOAuth2ProviderTokenService(
         val client: OAuthClientDetails = clientDetailsService.loadClientByClientId(request.clientId)
             ?: throw InvalidClientException("Client not found: " + request.clientId)
 
-        val codeChallenge = (request as? OpenIdAuthorizationRequest)?.codeChallenge
+        val codeChallenge = request.codeChallenge
 
+        val codeVerifier = requestParameters["code_verifier"]
         // handle the PKCE code challenge if present
         if (codeChallenge != null) {
-            val codeVerifier = requestParameters["code_verifier"]
             requireNotNull(codeVerifier) { "Missing code verifier" }
             val challenge = codeChallenge.challenge
             val alg = codeChallenge.method?.let(::parse)
@@ -159,7 +161,7 @@ class DefaultOAuth2ProviderTokenService(
                     }
                 }
             }
-        }
+        } else if(codeVerifier != null) throw InvalidRequestException("Code verifier set, but not present in request")
 
         val tokenBuilder = OAuth2AccessTokenEntity.Builder() //accessTokenFactory.createNewAccessToken();
 

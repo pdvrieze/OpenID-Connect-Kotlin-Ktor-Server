@@ -15,6 +15,7 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import org.mitre.oauth2.exception.OAuth2Exception
 import org.mitre.oauth2.exception.OAuthErrorCodes
 import org.mitre.oauth2.exception.httpCode
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
@@ -72,7 +73,14 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         }
         post("/authorize/login") { doLogin() }
         post("/token") {
-            getAccessToken()
+            try {
+                getAccessToken()
+            } catch (e: OAuth2Exception) {
+                logger.info("Token endpoint error", e)
+                call.response.cacheControl(CacheControl.NoStore(null))
+                call.response.header(HttpHeaders.Pragma, "no-cache")
+                jsonErrorView(e.oauth2ErrorCode)
+            }
         }
     }
 
@@ -220,6 +228,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         } else null
 
         call.response.cacheControl(CacheControl.NoStore(null))
+        call.response.header(HttpHeaders.Pragma, "no-cache")
         return call.respondRedirect {
             takeFrom(effectiveRedirectUri)
 
@@ -544,6 +553,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         )
 
         call.response.cacheControl(CacheControl.NoStore(null))
+        call.response.header(HttpHeaders.Pragma, "no-cache")
         return call.respondJson(response)
     }
 

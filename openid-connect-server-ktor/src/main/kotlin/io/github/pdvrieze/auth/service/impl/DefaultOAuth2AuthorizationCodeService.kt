@@ -78,8 +78,9 @@ class DefaultOAuth2AuthorizationCodeService(
      * @throws            InvalidGrantException, if an AuthorizationCodeEntity is not found with the given value
      */
     override fun consumeAuthorizationCode(code: String): AuthenticatedAuthorizationRequest {
+        // XXX when a past code is used, this should revoke existing authorization codes.
         val result = authcodeRepository.getByCode(code)
-            ?: throw InvalidGrantException("JpaAuthorizationCodeRepository: no authorization code found for value $code")
+            ?: throw InvalidGrantException("AuthorizationCodeRepository: no authorization code found for value $code")
 
         val auth = result.authenticationHolder!!
 

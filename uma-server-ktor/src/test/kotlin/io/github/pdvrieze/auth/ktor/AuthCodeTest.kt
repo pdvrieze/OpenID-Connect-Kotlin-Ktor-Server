@@ -21,6 +21,7 @@ import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mitre.oauth2.web.TokenAPI
 import org.mitre.openid.connect.filter.AuthTokenResponse
 import org.mitre.openid.connect.filter.PlainAuthorizationRequestEndpoint
+import org.mitre.openid.connect.view.OAuthError
 import org.mitre.util.oidJson
 import org.mitre.web.FormAuthEndpoint
 import org.mitre.web.OpenIdSessionStorage
@@ -181,6 +182,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
         preAuthorizeAccess()
         val r = getUser("/authorize?response_type=token&scope=offline_access%20scope2&client_id=$clientId", HttpStatusCode.Found, client = nonRedirectingClient)
         assertContains(r.cacheControl().map { it.value }, "no-store")
+        assertContains(r.headers.getAll(HttpHeaders.Pragma) ?: emptyList(), "no-cache")
         assertEquals(HttpStatusCode.Found, r.status)
         val respUri = parseUrl(assertNotNull(r.headers[HttpHeaders.Location]))!!
 
@@ -222,6 +224,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
         val r = getUser("/authorize?response_type=token&state=dsf890l&scope=scope1&client_id=$clientId", HttpStatusCode.Found, client = nonRedirectingClient)
         assertEquals(HttpStatusCode.Found, r.status)
         assertContains(r.cacheControl().map { it.value }, "no-store")
+        assertContains(r.headers.getAll(HttpHeaders.Pragma) ?: emptyList(), "no-cache")
         val respUri = parseUrl(assertNotNull(r.headers[HttpHeaders.Location]))!!
 
         assertEquals("dsf890l", respUri.parameters["state"])
@@ -268,6 +271,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
         }
         assertEquals(HttpStatusCode.OK, r.status)
         assertContains(r.cacheControl().map { it.value }, "no-store")
+        assertContains(r.headers.getAll(HttpHeaders.Pragma) ?: emptyList(), "no-cache")
         val accessTokenResponse = r.body<AuthTokenResponse>()// oidJson.parseToJsonElement(r2.bodyAsText()).jsonObject
         assertEquals("bearer", accessTokenResponse.tokenType.lowercase())
         val accessToken = SignedJWT.parse(accessTokenResponse.accessToken)
@@ -301,6 +305,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
             }
         )
         assertContains(r.cacheControl().map { it.value }, "no-store")
+        assertContains(r.headers.getAll(HttpHeaders.Pragma) ?: emptyList(), "no-cache")
 
         val b = r.bodyAsText()
         val refreshedTokenResponse = oidJson.decodeFromString<AuthTokenResponse>(b)
@@ -453,6 +458,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
                 basicAuth(clientId, clientSecret)
             }
             assertContains(r2.cacheControl().map { it.value }, "no-store")
+            assertContains(r2.headers.getAll(HttpHeaders.Pragma) ?: emptyList(), "no-cache")
 
             assertEquals(HttpStatusCode.OK, r2.status)
             val accessTokenResponse = r2.body<AuthTokenResponse>()// oidJson.parseToJsonElement(r2.bodyAsText()).jsonObject
@@ -508,6 +514,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
             basicAuth(clientId, clientSecret)
         }
         assertContains(r2.cacheControl().map { it.value }, "no-store")
+        assertContains(r2.headers.getAll(HttpHeaders.Pragma) ?: emptyList(), "no-cache")
 
         assertEquals(HttpStatusCode.OK, r2.status)
         val accessTokenResponse = r2.body<AuthTokenResponse>()// oidJson.parseToJsonElement(r2.bodyAsText()).jsonObject
@@ -548,7 +555,6 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
             .toString()
 
         val r = getUser("/authorize?response_type=code&client_id=$clientId&code_challenge=$codeChallenge&code_challenge_method=S256", HttpStatusCode.Found, client = nonRedirectingClient)
-        assertEquals(HttpStatusCode.Found, r.status)
         val respUri = parseUrl(assertNotNull(r.headers[HttpHeaders.Location]))!!
         val actualBase = URLBuilder(respUri.protocolWithAuthority).apply {
             pathSegments = respUri.segments
@@ -568,6 +574,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
             basicAuth(clientId, clientSecret)
         }
         assertContains(r2.cacheControl().map { it.value }, "no-store")
+        assertContains(r2.headers.getAll(HttpHeaders.Pragma) ?: emptyList(), "no-cache")
 
         assertEquals(HttpStatusCode.OK, r2.status)
         val accessTokenResponse = r2.body<AuthTokenResponse>()// oidJson.parseToJsonElement(r2.bodyAsText()).jsonObject
@@ -582,19 +589,51 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
         assertEquals("https://example.com/", cs.issuer)
         assertEquals("user", cs.subject)
         assertEquals("at+jwt", accessToken.header.type.type) // required by RFC9068 for plain access tokens
+    }
 
-        val exp = assertNotNull(cs.expirationTime, "Missing expiration time").toInstant()
-        val n = Instant.now()
-        assertTrue(n.isBefore(exp))
-        assertTrue((n + Duration.ofMinutes(5)).isAfter(exp))
+    @Test
+    fun testPKCEFlowChallengeAsVerifier() = testEndpoint {
+        preAuthorizeAccess()
 
-        // iat (issued at) may be present (in seconds from epoch)
-        // expect audience (aud) to include auth server: RFC7523 (ch 3, bullet 3)
-        // expect exp (expiration)
-        // opt expect amr = [ "password" ] - authentication methods used
-        // opt expect authorized party - the client id that received the token
+        val digest = MessageDigest.getInstance("SHA-256")
 
-        // TODO("exchange code for token")
+        val codeVerifier = generateNonce()
+        val codeChallenge = Base64URL.encode(digest.digest(codeVerifier.toByteArray(StandardCharsets.US_ASCII)))
+            .toString()
+
+        val r = getUser("/authorize?response_type=code&client_id=$clientId&code_challenge=$codeChallenge&code_challenge_method=S256", HttpStatusCode.Found, client = nonRedirectingClient)
+        val respUri = parseUrl(assertNotNull(r.headers[HttpHeaders.Location]))!!
+        val code = assertNotNull(respUri.parameters["code"])
+
+        run {
+            val e = nonRedirectingClient.submitForm(
+                "/token",
+                formParameters = parameters {
+                    append("grant_type", "authorization_code")
+                    append("code", code)
+                    append("code_verifier", codeChallenge) // using hash so codeChallenge is invalid
+                }
+            ) {
+                basicAuth(clientId, clientSecret)
+            }
+            assertEquals(HttpStatusCode.BadRequest, e.status)
+            assertEquals("invalid_request", e.body<OAuthError>().errorCode)
+        }
+
+        // the code should now be invalid, and no longer able to be exchanged
+        val e2 = nonRedirectingClient.submitForm(
+            "/token",
+            formParameters = parameters {
+                append("grant_type", "authorization_code")
+                append("code", code)
+                append("code_verifier", codeVerifier)
+            }
+        ) {
+            basicAuth(clientId, clientSecret)
+        }
+
+        assertEquals(HttpStatusCode.BadRequest, e2.status)
+        assertEquals("invalid_grant", e2.body<OAuthError>().errorCode)
     }
 
     override fun configureApplication(testBuilder: ApplicationTestBuilder) {
