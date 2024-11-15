@@ -49,6 +49,7 @@ class ExposedApprovedSiteRepository(database: Database): RepositoryBase(database
     override fun remove(approvedSite: ApprovedSite) {
         val siteId = requireNotNull(approvedSite.id)
         transaction {
+            ApprovedSiteScopes.deleteWhere { ownerId eq siteId }
             ApprovedSites.deleteWhere { id eq siteId }
         }
     }

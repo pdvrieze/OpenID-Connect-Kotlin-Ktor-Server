@@ -18,12 +18,14 @@
 package org.mitre.openid.connect.web
 
 import io.ktor.http.*
+import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.json.encodeToJsonElement
 import org.mitre.oauth2.exception.OAuthErrorCodes.ACCESS_DENIED
 import org.mitre.oauth2.exception.OAuthErrorCodes.INVALID_REQUEST
 import org.mitre.oauth2.model.GrantedAuthority
+import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.openid.connect.view.jsonApprovedSiteView
 import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.util.getLogger
@@ -41,9 +43,11 @@ object ApprovedSiteAPI : KtorEndpoint {
 
     override fun Route.addRoutes() {
         route("/api/approved") {
-            get { getAllApprovedSites() }
-            delete("/{id}") { deleteApprovedSite() }
-            get("/{id}") { getApprovedSite() }
+            authenticate {
+                get { getAllApprovedSites() }
+                delete("/{id}") { deleteApprovedSite() }
+                get("/{id}") { getApprovedSite() }
+            }
         }
     }
 
@@ -54,7 +58,10 @@ object ApprovedSiteAPI : KtorEndpoint {
     suspend fun RoutingContext.getAllApprovedSites() {
         val p = requireRole(GrantedAuthority.ROLE_USER) { return }
 
-        val all = approvedSiteService.getByUserId(p.name)
+        val all = approvedSiteService.getByUserId(p.name).map {
+            val approvedAccessTokens = approvedSiteService.getApprovedAccessTokens(it).mapTo(HashSet()) { t -> t.id!! }
+            ApprovedSite.SerialDelegate(it, approvedAccessTokens)
+        }
 
         return jsonApprovedSiteView(oidJson.encodeToJsonElement(all))
     }
@@ -81,7 +88,7 @@ object ApprovedSiteAPI : KtorEndpoint {
         }
 
         approvedSiteService.remove(approvedSite)
-        return call.respond(HttpStatusCode.OK)
+        return call.respond(HttpStatusCode.NoContent)
     }
 
     /**
@@ -104,7 +111,10 @@ object ApprovedSiteAPI : KtorEndpoint {
             return jsonErrorView(ACCESS_DENIED, "You do not have permission to view this approved site.")
         }
 
-        return jsonApprovedSiteView(oidJson.encodeToJsonElement(approvedSite))
+        val approvedAccessTokens = approvedSiteService.getApprovedAccessTokens(approvedSite).mapTo(HashSet()) { it.id!! }
+
+        val d = ApprovedSite.SerialDelegate(approvedSite, approvedAccessTokens )
+        return jsonApprovedSiteView(oidJson.encodeToJsonElement(d))
     }
 
     const val URL: String = "api/approved"

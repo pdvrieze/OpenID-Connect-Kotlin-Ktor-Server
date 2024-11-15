@@ -120,7 +120,7 @@ class SpringApprovedSiteService : ApprovedSiteService {
     /**
      * @see org.mitre.openid.connect.repository.ApprovedSiteRepository.getByUserId
      */
-    override fun getByUserId(userId: String): Collection<ApprovedSite>? {
+    override fun getByUserId(userId: String): Collection<ApprovedSite> {
         return approvedSiteRepository.getByUserId(userId)
     }
 

@@ -32,7 +32,6 @@ import org.mitre.openid.connect.request.Prompt
 import org.mitre.util.getLogger
 import org.mitre.web.OpenIdSessionStorage
 import org.mitre.web.htmlApproveView
-import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.clientDetailsService
 import org.mitre.web.util.requireRole
 import org.mitre.web.util.scopeClaimTranslationService
@@ -46,13 +45,15 @@ import java.time.temporal.ChronoUnit
  * @author jricher
  */
 //@SessionAttributes("authorizationRequest")
-object OAuthConfirmationController: KtorEndpoint {
+object OAuthConfirmationController/*: KtorEndpoint*/ {
 
+/*
     override fun Route.addRoutes() {
         authenticate {
             get("/oauth/confirm_access") { confirmAccess() }
         }
     }
+*/
 
     internal suspend fun RoutingContext.confirmAccess() {
         val authentication = requireRole(GrantedAuthority.ROLE_USER) { return }

@@ -74,7 +74,7 @@ interface ApprovedSiteService {
     /**
      * Get all sites approved by this user
      */
-    fun getByUserId(userId: String): Collection<ApprovedSite>?
+    fun getByUserId(userId: String): Collection<ApprovedSite>
 
     /**
      * Get all sites associated with this client

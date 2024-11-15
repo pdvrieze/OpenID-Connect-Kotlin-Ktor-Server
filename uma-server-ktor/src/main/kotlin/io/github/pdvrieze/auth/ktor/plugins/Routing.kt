@@ -8,7 +8,6 @@ import io.ktor.server.routing.*
 import org.mitre.discovery.web.DiscoveryEndpoint
 import org.mitre.oauth2.web.DeviceEndpoint
 import org.mitre.oauth2.web.IntrospectionEndpoint
-import org.mitre.oauth2.web.OAuthConfirmationController
 import org.mitre.oauth2.web.RevocationEndpoint
 import org.mitre.oauth2.web.ScopeAPI
 import org.mitre.oauth2.web.TokenAPI
@@ -59,7 +58,7 @@ private val endpoints: List<KtorEndpoint> = listOf(
     FormAuthEndpoint,
     ScopeAPI,
     PlainAuthorizationRequestEndpoint,
-    OAuthConfirmationController,
+//    OAuthConfirmationController, //(in PlainAuthorizationRequestEndpoint by ref)
     DeviceEndpoint,
     RevocationEndpoint,
     TokenAPI,
