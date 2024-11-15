@@ -15,6 +15,7 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import org.mitre.oauth2.exception.InvalidRequestException
 import org.mitre.oauth2.exception.OAuth2Exception
 import org.mitre.oauth2.exception.OAuthErrorCodes
 import org.mitre.oauth2.exception.httpCode
@@ -61,7 +62,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
     override fun Route.addRoutes() {
         authenticate(optional = true) {
             get("/authorize") { startAuthorizationFlow(call.request.queryParameters) }
-            post("/authorize") {
+            post("/authorize") { // use post parameter user_oauth_approval to distinguish approval from authorize request.
                 val postParams = call.receiveParameters()
                 if ((postParams.getAll("user_oauth_approval")?.singleOrNull()) == "true") {
                     processApproval(postParams)
@@ -84,16 +85,20 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         }
     }
 
+    private fun RoutingContext.toMap(params: Parameters): Map<String, String> {
+        try {
+            return params.entries().associate { (k, v) -> k to v.single() }
+        } catch (e: Exception) {
+            throw InvalidRequestException("Duplicate parameters")
+        }
+    }
+
     //    var requestMatcher: RequestMatcher = AntPathRequestMatcher("/authorize")
 
 //    override fun doFilter(req: ServletRequest, res: ServletResponse, chain: FilterChain) {
 
     private suspend fun RoutingContext.startAuthorizationFlow(rawParams: Parameters) {
-        val params = try {
-            rawParams.entries().associate { (k, v) -> k to v.single() }
-        } catch (e: Exception) {
-            return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST)
-        }
+        val params = toMap(rawParams)
 
         // we have to create our own auth request in order to get at all the parmeters appropriately
         val authRequest: AuthorizationRequest = openIdContext.authRequestFactory.createAuthorizationRequest(params)
@@ -378,7 +383,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
             val client = clientDetailsService.loadClientByClientId(authRequest.clientId)
                 ?: return htmlErrorView(OAuthErrorCodes.SERVER_ERROR, "Missing client")
 
-            val paramMap = formParams.flattenEntries().associate { it }
+            val paramMap = toMap(formParams)
             val approvedAuthRequest = when {
                 Prompt.CONSENT !in (oldSession.pendingPrompts ?: emptySet()) &&
                         userApprovalHandler.isApproved(authRequest, auth, paramMap) ->
@@ -428,7 +433,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
             return htmlErrorView(OAuthErrorCodes.INVALID_REQUEST, "Unexpected query parameters")
         }
 
-        val params = rawParams.entries().associate { (k, v) -> k to v.single() }
+        val params = toMap(rawParams)
 
         if (params["user_oauth_approval"] != "true") {
             return htmlErrorView(OAuthErrorCodes.INVALID_REQUEST, "Missing form data")

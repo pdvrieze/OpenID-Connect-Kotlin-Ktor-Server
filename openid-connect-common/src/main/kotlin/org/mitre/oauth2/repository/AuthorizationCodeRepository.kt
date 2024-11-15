@@ -42,3 +42,4 @@ interface AuthorizationCodeRepository {
      */
     fun getExpiredCodes(pageCriteria: PageCriteria): Collection<AuthorizationCodeEntity>
 }
+

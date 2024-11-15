@@ -4,6 +4,7 @@ import io.github.pdvrieze.auth.exposed.RepositoryBase
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.lessEq
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -11,11 +12,12 @@ import org.mitre.data.PageCriteria
 import org.mitre.oauth2.model.AuthorizationCodeEntity
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.AuthorizationCodeRepository
+import org.mitre.oauth2.repository.ktor.KtorAuthorizationCodeRepository
 import org.mitre.oauth2.util.requireId
 import java.time.Instant
 
 class ExposedAuthorizationCodeRepository(database: Database, private val authHolders: AuthenticationHolderRepository) :
-    RepositoryBase(database, AuthorizationCodes), AuthorizationCodeRepository {
+    RepositoryBase(database, AuthorizationCodes), KtorAuthorizationCodeRepository {
 
     override fun save(authorizationCode: AuthorizationCodeEntity): AuthorizationCodeEntity {
         val oldId = authorizationCode.id
@@ -61,6 +63,15 @@ class ExposedAuthorizationCodeRepository(database: Database, private val authHol
                 .map { it.toAuthorizationCode() }
         }
 
+    override fun clearExpiredCodes() {
+        val now = Instant.now()
+        transaction(database) {
+            AuthorizationCodes.deleteWhere {
+                expiration lessEq now
+            }
+        }
+
+    }
 
     override fun getExpiredCodes(pageCriteria: PageCriteria): Collection<AuthorizationCodeEntity> {
         val now = Instant.now()

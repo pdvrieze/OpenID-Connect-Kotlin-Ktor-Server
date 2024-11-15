@@ -24,6 +24,7 @@ import org.mitre.oauth2.model.AuthorizationCodeEntity
 import org.mitre.oauth2.model.KtorAuthenticationHolder
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.AuthorizationCodeRepository
+import org.mitre.oauth2.repository.ktor.KtorAuthorizationCodeRepository
 import org.mitre.oauth2.service.OAuth2AuthorizationCodeService
 import org.mitre.oauth2.util.RandomStringGenerator
 import org.mitre.util.getLogger
@@ -37,7 +38,7 @@ import java.util.*
  * @author aanganes
  */
 class DefaultOAuth2AuthorizationCodeService(
-    private val authcodeRepository: AuthorizationCodeRepository,
+    private val authcodeRepository: KtorAuthorizationCodeRepository,
     private val authenticationHolderRepository: AuthenticationHolderRepository,
     private val authCodeExpirationSeconds: Duration = Duration.ofMinutes(5) // expire in 5 minutes by default
 ) : OAuth2AuthorizationCodeService {
@@ -93,6 +94,7 @@ class DefaultOAuth2AuthorizationCodeService(
      * Find and remove all expired auth codes.
      */
     override fun clearExpiredAuthorizationCodes() {
+        authcodeRepository.clearExpiredCodes()
         object : AbstractPageOperationTemplate<AuthorizationCodeEntity>("clearExpiredAuthorizationCodes") {
             override fun fetchPage(): Collection<AuthorizationCodeEntity> {
                 return authcodeRepository.expiredCodes

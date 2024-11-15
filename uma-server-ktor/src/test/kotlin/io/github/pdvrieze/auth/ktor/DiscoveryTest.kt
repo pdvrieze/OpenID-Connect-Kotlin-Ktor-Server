@@ -97,6 +97,8 @@ class DiscoveryTest : ApiTest(DiscoveryEndpoint) {
             assertEquals(JsonPrimitive("https://example.com/endsession"), actual["end_session_endpoint"])
             assertEquals(JsonPrimitive("https://example.com/userinfo"), actual["userinfo_endpoint"])
             assertEquals(buildJsonArray { add(JsonPrimitive("code")); add(JsonPrimitive("token"))}, actual["response_types_supported"])
+
+            assertEquals(JsonPrimitive("https://example.com/jwk"), actual["jwks_uri"])
         }
     }
 }

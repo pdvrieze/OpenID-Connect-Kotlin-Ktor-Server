@@ -43,6 +43,7 @@ import org.mitre.oauth2.repository.AuthorizationCodeRepository
 import org.mitre.oauth2.repository.OAuth2ClientRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.oauth2.repository.SystemScopeRepository
+import org.mitre.oauth2.repository.ktor.KtorAuthorizationCodeRepository
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.DeviceCodeService
 import org.mitre.oauth2.service.JsonIntrospectionResultAssembler
@@ -264,7 +265,7 @@ data class OpenIdConfigurator(
         override val scopeClaimTranslationService: ScopeClaimTranslationService =
             DefaultScopeClaimTranslationService()
 
-        val authorizationCodeRepository: AuthorizationCodeRepository =
+        val authorizationCodeRepository: KtorAuthorizationCodeRepository =
             ExposedAuthorizationCodeRepository(configurator.database, authenticationHolderRepository)
 
         override val authcodeService: OAuth2AuthorizationCodeService = DefaultOAuth2AuthorizationCodeService(
