@@ -24,14 +24,13 @@ import org.mitre.oauth2.repository.DeviceCodeRepository
 import org.mitre.oauth2.service.DeviceCodeService
 import org.mitre.oauth2.util.RandomStringGenerator
 import org.mitre.oauth2.util.requireId
+import java.time.Instant
 import java.util.*
 
 /**
  * @author jricher
  */
-class DefaultDeviceCodeService : DeviceCodeService {
-    private lateinit var repository: DeviceCodeRepository
-
+class DefaultDeviceCodeService(private var repository: DeviceCodeRepository) : DeviceCodeService {
     private val randomGenerator: RandomStringGenerator = RandomStringGenerator()
 
     /* (non-Javadoc)
@@ -40,7 +39,8 @@ class DefaultDeviceCodeService : DeviceCodeService {
     override fun createNewDeviceCode(
         requestedScopes: Set<String>,
         client: OAuthClientDetails,
-        parameters: Map<String, String>?
+        expires: Instant,
+        parameters: Map<String, String>?,
     ): DeviceCode {
         // create a device code, should be big and random
 
@@ -54,12 +54,10 @@ class DefaultDeviceCodeService : DeviceCodeService {
             userCode = userCode,
             scope = requestedScopes,
             clientId = client.clientId,
-            params = parameters
+            params = parameters,
         )
 
-        if (client.deviceCodeValiditySeconds != null) {
-            dc.expiration = Date(System.currentTimeMillis() + client.deviceCodeValiditySeconds!! * 1000L)
-        }
+        dc.expiration = Date.from(expires)
 
         dc.isApproved = false
 

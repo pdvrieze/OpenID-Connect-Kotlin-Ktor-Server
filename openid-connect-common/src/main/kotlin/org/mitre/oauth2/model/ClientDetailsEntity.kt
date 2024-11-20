@@ -205,7 +205,7 @@ open class ClientDetailsEntity private constructor(
     override var isClearAccessTokensOnRefresh: Boolean = true, // do we clear access tokens on refresh?
 
     @KXS_Transient
-    override var deviceCodeValiditySeconds: Int? = null, // timeout for device codes
+    override var deviceCodeValiditySeconds: Long? = null, // timeout for device codes
 
     /** fields for UMA  */
     @SerialName(CLAIMS_REDIRECT_URIS)
@@ -276,7 +276,7 @@ open class ClientDetailsEntity private constructor(
         idTokenValiditySeconds: Int = DEFAULT_ID_TOKEN_VALIDITY_SECONDS, //timeout for id tokens
         createdAt: Date? = null, // time the client was created
         isClearAccessTokensOnRefresh: Boolean = true, // do we clear access tokens on refresh?
-        deviceCodeValiditySeconds: Int? = null, // timeout for device codes
+        deviceCodeValiditySeconds: Long? = null, // timeout for device codes
         claimsRedirectUris: Set<String>? = null,
         softwareStatement: JWT? = null,
         codeChallengeMethod: PKCEAlgorithm? = null,
@@ -442,7 +442,7 @@ open class ClientDetailsEntity private constructor(
         idTokenValiditySeconds: Int?,
         createdAt: Date?,
         isClearAccessTokensOnRefresh: Boolean,
-        deviceCodeValiditySeconds: Int?,
+        deviceCodeValiditySeconds: Long?,
         claimsRedirectUris: Set<String>?,
         softwareStatement: JWT?,
         codeChallengeMethod: PKCEAlgorithm?,
@@ -619,7 +619,7 @@ open class ClientDetailsEntity private constructor(
         override var idTokenValiditySeconds: Int? = null,
         override var createdAt: Date? = null,
         override var isClearAccessTokensOnRefresh: Boolean = true,
-        override var deviceCodeValiditySeconds: Int? = null,
+        override var deviceCodeValiditySeconds: Long? = null,
         claimsRedirectUris: Set<String>? = null,
         override var softwareStatement: JWT? = null,
         override var codeChallengeMethod: PKCEAlgorithm? = null,

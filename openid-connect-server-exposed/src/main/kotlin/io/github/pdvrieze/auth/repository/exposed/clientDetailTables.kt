@@ -11,7 +11,7 @@ object ClientDetails : LongIdTable("client_details") {
     val dynamicallyRegistered = bool("dynamically_registered").default(false)
     val allowIntrospection = bool("allow_introspection").default(false)
     val idTokenValiditySeconds = integer("id_token_validity_seconds").default(600)
-    val deviceCodeValiditySeconds = integer("device_code_validity_seconds").nullable()
+    val deviceCodeValiditySeconds = long("device_code_validity_seconds").nullable()
 
     val clientId = varchar("client_id", 256).uniqueIndex()
     val clientSecret = varchar("client_secret", 2048).nullable()

@@ -114,7 +114,7 @@ class DeviceEndpoint {
 
         // if we got here the request is legit
         try {
-            val dc = deviceCodeService.createNewDeviceCode(requestedScopes, client, parameters)
+            val dc = deviceCodeService.createNewDeviceCode(requestedScopes, client,, parameters)
 
             val response: MutableMap<String, Any?> = HashMap()
             response["device_code"] = dc.deviceCode

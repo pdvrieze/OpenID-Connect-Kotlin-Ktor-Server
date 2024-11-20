@@ -6,7 +6,6 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
-import io.ktor.util.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -34,6 +33,7 @@ import org.mitre.openid.connect.request.ConnectRequestParameters
 import org.mitre.openid.connect.request.Prompt
 import org.mitre.openid.connect.service.LoginHintExtracter
 import org.mitre.openid.connect.service.impl.RemoveLoginHintsWithHTTP
+import org.mitre.openid.connect.view.OAuthError
 import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.util.getLogger
 import org.mitre.web.OpenIdSessionStorage
@@ -548,7 +548,11 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
             is ClientLoadingResult.Found -> c.client
         }
 
-        val accessToken = granter.grant(grantType, authRequestFactory.createAuthorizationRequest(postParams, client), client, postParams)
+        val accessToken = try {
+                granter.grant(grantType, authRequestFactory.createAuthorizationRequest(postParams, client), client, postParams)
+        } catch (e: OAuth2Exception) {
+            return call.respondJson(OAuthError(e.oauth2ErrorCode, e.message), e.oauth2ErrorCode.httpCode ?: HttpStatusCode.BadRequest)
+        }
 
         val response = AuthTokenResponse (
             accessToken.value,

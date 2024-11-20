@@ -255,7 +255,7 @@ class RegisteredClient(
     val codeChallengeMethod: PKCEAlgorithm?
         get() = client.codeChallengeMethod
 
-    val deviceCodeValiditySeconds: Int?
+    val deviceCodeValiditySeconds: Long?
         get() = client.deviceCodeValiditySeconds
 
     val softwareId: String?

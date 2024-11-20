@@ -16,6 +16,7 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.sessions.*
 import io.ktor.server.testing.*
 import kotlinx.serialization.json.Json
@@ -23,9 +24,11 @@ import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.Before
+import org.mitre.oauth2.exception.OAuth2Exception
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.service.ClientLoadingResult
+import org.mitre.oauth2.view.respondJson
 import org.mitre.openid.connect.view.OAuthError
 import org.mitre.util.oidJson
 import org.mitre.web.OpenIdSessionStorage
@@ -71,7 +74,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
             redirectUris = mutableSetOf(REDIRECT_URI),
             scope = mutableSetOf("scope1", "scope2", "offline_access"),
             accessTokenValiditySeconds = 60*5, // 5 minutes
-            authorizedGrantTypes = mutableSetOf("refresh_token", "token", "authorization_code", "client_credentials"),
+            authorizedGrantTypes = mutableSetOf("refresh_token", "token", "authorization_code", "client_credentials", "urn:ietf:params:oauth:grant-type:device_code"),
             refreshTokenValiditySeconds = 60*5,
         )
 
@@ -98,16 +101,17 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
 
 
     protected open fun configureApplication(testBuilder: ApplicationTestBuilder) {
-        testBuilder.client.config {
-            install(ContentNegotiation) {
-                json(Json { prettyPrint = true })
-            }
-        }
         testBuilder.application {
             install(Sessions) {
                 cookie<OpenIdSessionStorage>(OpenIdSessionStorage.COOKIE_NAME, SessionStorageMemory())
             }
             install(OpenIdContextPlugin) { this.context = this@ApiTest.testContext }
+            install(StatusPages) {
+                exception<OAuth2Exception> { call, cause ->
+                    call.respondJson(OAuthError(cause.oauth2ErrorCode, cause.message))
+                }
+            }
+
             authentication {
                 basic {
                     validate { cred ->
@@ -140,7 +144,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
     suspend fun ApplicationTestBuilder.getUnAuth(
         url: String,
         statusCode: HttpStatusCode = HttpStatusCode.OK,
-        client: HttpClient = this.client,
+        client: HttpClient = this.serialClient,
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         val r = client.get(url, block)
@@ -152,7 +156,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
     suspend fun ApplicationTestBuilder.getUser(
         url: String,
         statusCode: HttpStatusCode = HttpStatusCode.OK,
-        client: HttpClient = this.client,
+        client: HttpClient = this.serialClient,
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         return getUnAuth(url, statusCode, client) {
@@ -164,7 +168,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
     suspend fun ApplicationTestBuilder.getClient(
         url: String,
         statusCode: HttpStatusCode = HttpStatusCode.OK,
-        client: HttpClient = this.client,
+        client: HttpClient = this.serialClient,
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         return getUnAuth(url, statusCode, client) {
@@ -176,7 +180,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
     suspend fun ApplicationTestBuilder.getAdmin(
         url: String,
         statusCode: HttpStatusCode = HttpStatusCode.OK,
-        client: HttpClient = this.client,
+        client: HttpClient = this.serialClient,
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         return getUnAuth(url, statusCode, client) {
@@ -188,7 +192,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
     suspend fun ApplicationTestBuilder.putUnAuth(
         url: String,
         statusCode: HttpStatusCode = HttpStatusCode.OK,
-        client: HttpClient = this.client,
+        client: HttpClient = serialClient,
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         val r = client.put(url, block)
@@ -200,7 +204,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
     suspend fun ApplicationTestBuilder.putUser(
         url: String,
         statusCode: HttpStatusCode = HttpStatusCode.OK,
-        client: HttpClient = this.client,
+        client: HttpClient = this.serialClient,
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         return putUnAuth(url, statusCode, client) {
@@ -212,7 +216,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
     suspend fun ApplicationTestBuilder.putClient(
         url: String,
         statusCode: HttpStatusCode = HttpStatusCode.OK,
-        client: HttpClient = this.client,
+        client: HttpClient = this.serialClient,
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         return putUnAuth(url, statusCode, client) {
@@ -224,7 +228,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
     suspend fun ApplicationTestBuilder.putAdmin(
         url: String,
         statusCode: HttpStatusCode = HttpStatusCode.OK,
-        client: HttpClient = this.client,
+        client: HttpClient = this.serialClient,
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         return putUnAuth(url, statusCode, client) {
@@ -236,7 +240,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
     suspend fun ApplicationTestBuilder.postUnAuth(
         url: String,
         statusCode: HttpStatusCode = HttpStatusCode.OK,
-        client: HttpClient = this.client,
+        client: HttpClient = this.serialClient,
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         val r = client.post(url, block)
@@ -248,7 +252,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
     suspend fun ApplicationTestBuilder.postUser(
         url: String,
         statusCode: HttpStatusCode = HttpStatusCode.OK,
-        client: HttpClient = this.client,
+        client: HttpClient = this.serialClient,
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         return postUnAuth(url, statusCode, client) {
@@ -260,7 +264,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
     suspend fun ApplicationTestBuilder.postClient(
         url: String,
         statusCode: HttpStatusCode = HttpStatusCode.OK,
-        client: HttpClient = this.client,
+        client: HttpClient = this.serialClient,
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         return postUnAuth(url, statusCode, client) {
@@ -272,7 +276,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
     suspend fun ApplicationTestBuilder.postAdmin(
         url: String,
         statusCode: HttpStatusCode = HttpStatusCode.OK,
-        client: HttpClient = this.client,
+        client: HttpClient = this.serialClient,
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         return postUnAuth(url, statusCode, client) {
@@ -285,7 +289,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
         url: String,
         formParameters: Parameters,
         statusCode: HttpStatusCode = HttpStatusCode.OK,
-        client: HttpClient = this.client,
+        client: HttpClient = this.serialClient,
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         val r = client.submitForm(url, formParameters, false, block)
@@ -298,7 +302,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
         url: String,
         formParameters: Parameters,
         statusCode: HttpStatusCode = HttpStatusCode.OK,
-        client: HttpClient = this.client,
+        client: HttpClient = this.serialClient,
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         return submitUnAuth(url, formParameters, statusCode, client) {
@@ -311,7 +315,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
         url: String,
         formParameters: Parameters,
         statusCode: HttpStatusCode = HttpStatusCode.OK,
-        client: HttpClient = this.client,
+        client: HttpClient = this.serialClient,
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         return submitUnAuth(url, formParameters, statusCode, client) {
@@ -324,7 +328,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
         url: String,
         formParameters: Parameters,
         statusCode: HttpStatusCode = HttpStatusCode.OK,
-        client: HttpClient = this.client,
+        client: HttpClient = this.serialClient,
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         return submitUnAuth(url, formParameters, statusCode, client) {
@@ -336,7 +340,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
     suspend fun ApplicationTestBuilder.deleteUnAuth(
         url: String,
         statusCode: HttpStatusCode = HttpStatusCode.NoContent,
-        client: HttpClient = this.client,
+        client: HttpClient = this.serialClient,
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         val r = client.delete(url, block)
@@ -348,7 +352,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
     suspend fun ApplicationTestBuilder.deleteUser(
         url: String,
         statusCode: HttpStatusCode = HttpStatusCode.NoContent,
-        client: HttpClient = this.client,
+        client: HttpClient = this.serialClient,
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         return deleteUnAuth(url, statusCode, client) {
@@ -360,7 +364,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
     suspend fun ApplicationTestBuilder.deleteClient(
         url: String,
         statusCode: HttpStatusCode = HttpStatusCode.NoContent,
-        client: HttpClient = this.client,
+        client: HttpClient = this.serialClient,
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         return deleteUnAuth(url, statusCode, client) {
@@ -372,7 +376,7 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
     suspend fun ApplicationTestBuilder.deleteAdmin(
         url: String,
         statusCode: HttpStatusCode = HttpStatusCode.NoContent,
-        client: HttpClient = this.client,
+        client: HttpClient = this.serialClient,
         block: HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         return deleteUnAuth(url, statusCode, client) {
@@ -391,6 +395,13 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
             }
         }
     }
+
+    val ApplicationTestBuilder.serialClient
+        get() = client.config {
+                install(ContentNegotiation) {
+                    json(Json { prettyPrint = true })
+                }
+            }
 
     class TestContext(configurator: OpenIdConfigurator, private val clientId: String): OpenIdConfigurator.DefaultContext(configurator) {
         override fun resolveAuthServiceAuthorities(name: String): Set<GrantedAuthority> {

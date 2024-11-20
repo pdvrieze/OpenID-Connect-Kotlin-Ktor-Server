@@ -10,37 +10,45 @@ import org.jetbrains.exposed.sql.batchInsert
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.selectAll
 import org.mitre.oauth2.model.DeviceCode
+import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.DeviceCodeRepository
+import org.mitre.oauth2.repository.OAuth2ClientRepository
 import java.time.Instant
 import java.util.*
 
 class ExposedDeviceCodeRepository(
     dataSource: Database,
-    private val clientDetails: ExposedOauth2ClientRepository,
-    private val authenticationHolders: ExposedAuthenticationHolderRepository,
+    private val clientDetails: OAuth2ClientRepository,
+    private val authenticationHolders: AuthenticationHolderRepository,
 ) : RepositoryBase(dataSource, DeviceCodes, DeviceCodeScopes, DeviceCodeRequestParameters),
     DeviceCodeRepository {
     override fun getById(id: Long): DeviceCode? {
-        return DeviceCodes.selectAll()
-            .where { DeviceCodes.id eq id }
-            .map { it.toDeviceCode() }
-            .singleOrNull()
+        return transaction {
+            DeviceCodes.selectAll()
+                .where { DeviceCodes.id eq id }
+                .map { it.toDeviceCode() }
+                .singleOrNull()
+        }
     }
 
     override fun getByUserCode(value: String): DeviceCode? {
-        return DeviceCodes.selectAll()
-            .where { DeviceCodes.userCode eq value }
-            .map { it.toDeviceCode() }
-            .singleOrNull()
+        return transaction {
+            DeviceCodes.selectAll()
+                .where { DeviceCodes.userCode eq value }
+                .map { it.toDeviceCode() }
+                .singleOrNull()
+        }
     }
 
     /* (non-Javadoc)
      */
     override fun getByDeviceCode(value: String): DeviceCode? {
-        return DeviceCodes.selectAll()
-            .where { DeviceCodes.deviceCode eq value }
-            .map { it.toDeviceCode() }
-            .singleOrNull()
+        return transaction {
+            DeviceCodes.selectAll()
+                .where { DeviceCodes.deviceCode eq value }
+                .map { it.toDeviceCode() }
+                .singleOrNull()
+        }
     }
 
     /* (non-Javadoc)
@@ -133,7 +141,7 @@ class ExposedDeviceCodeRepository(
             .where { DeviceCodeRequestParameters.ownerId eq id }
             .associate { it[DeviceCodeRequestParameters.param] to it[DeviceCodeRequestParameters.value] }
 
-        val authHolder = authenticationHolders.getById(get(DeviceCodes.authHolderId)!!)
+        val authHolder = get(DeviceCodes.authHolderId)?.let { authenticationHolders.getById(it) }
 
         return DeviceCode(
             id = get(DeviceCodes.id).value,

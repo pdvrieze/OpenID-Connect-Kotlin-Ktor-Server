@@ -39,6 +39,7 @@ dependencies {
     implementation(libs.ktor.server.resources)
     implementation(libs.ktor.server.compression)
     implementation(libs.ktor.server.content.negotiation)
+    implementation(libs.ktor.server.statuspages)
     implementation(libs.ktor.serialization.json)
     implementation(libs.ktor.server.html.builder)
     implementation(libs.ktor.server.netty)

@@ -18,7 +18,6 @@
 package org.mitre.openid.connect.config
 
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.mitre.util.getLogger
 import org.mitre.util.oidJson
 import java.time.Duration
@@ -33,6 +32,7 @@ import java.util.*
  */
 class ConfigurationPropertiesBean {
     var authCodeExpirationSeconds: Duration = Duration.ofMinutes(5)
+    var defaultDeviceCodeValiditySeconds: Duration = Duration.ofMinutes(5)
     var jsFiles: Set<String> = emptySet()
     val projectVersion: String = "0.1 - BETA" // TODO("make this more dynamic")
 

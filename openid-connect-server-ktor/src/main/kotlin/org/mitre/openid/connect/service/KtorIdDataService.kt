@@ -17,7 +17,6 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonDecoder
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonEncoder
@@ -46,7 +45,6 @@ import org.mitre.openid.connect.model.BlacklistedSite
 import org.mitre.openid.connect.model.WhitelistedSite
 import org.mitre.openid.connect.model.convert.ISODate
 import org.mitre.util.getLogger
-import org.mitre.util.oidJson
 import java.text.ParseException
 import java.time.Instant
 import java.time.format.DateTimeFormatter
@@ -323,7 +321,7 @@ interface KtorIdDataService {
         @EncodeDefault @SerialName("accessTokenValiditySeconds") val accessTokenValiditySeconds: Int? = null,
         @EncodeDefault @SerialName("refreshTokenValiditySeconds") val refreshTokenValiditySeconds: Int? = null,
         @EncodeDefault @SerialName("idTokenValiditySeconds") val idTokenValiditySeconds: Int? = null,
-        @EncodeDefault @SerialName("deviceTokenValiditySeconds") val deviceCodeValiditySeconds: Int? = null,
+        @EncodeDefault @SerialName("deviceTokenValiditySeconds") val deviceCodeValiditySeconds: Long? = null,
         @EncodeDefault @SerialName("redirectUris") val redirectUris: Set<String> = hashSetOf(),
         @EncodeDefault @SerialName("claimsRedirectUris") var claimsRedirectUris: Set<String>? = null,
         @EncodeDefault @SerialName("name") val clientName: String? = null,

@@ -176,7 +176,7 @@ interface OAuthClientDetails {
     val isClearAccessTokensOnRefresh: Boolean
 
     @KXS_Transient
-    val deviceCodeValiditySeconds: Int?
+    val deviceCodeValiditySeconds: Long?
 
     /** fields for UMA  */
     @SerialName(CLAIMS_REDIRECT_URIS)
@@ -259,7 +259,7 @@ interface OAuthClientDetails {
         idTokenValiditySeconds: Int? = this.idTokenValiditySeconds,
         createdAt: Date? = this.createdAt,
         isClearAccessTokensOnRefresh: Boolean = this.isClearAccessTokensOnRefresh,
-        deviceCodeValiditySeconds: Int? = this.deviceCodeValiditySeconds,
+        deviceCodeValiditySeconds: Long? = this.deviceCodeValiditySeconds,
         claimsRedirectUris: Set<String>? = this.claimsRedirectUris,
         softwareStatement: JWT? = this.softwareStatement,
         codeChallengeMethod: PKCEAlgorithm? = this.codeChallengeMethod,
@@ -318,7 +318,7 @@ interface OAuthClientDetails {
         var idTokenValiditySeconds: Int?
         var createdAt: Date?
         var isClearAccessTokensOnRefresh: Boolean
-        var deviceCodeValiditySeconds: Int?
+        var deviceCodeValiditySeconds: Long?
         var claimsRedirectUris: MutableSet<String>?
         var softwareStatement: JWT?
         var codeChallengeMethod: PKCEAlgorithm?

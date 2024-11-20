@@ -9,10 +9,14 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
+import org.mitre.oauth2.exception.OAuth2Exception
+import org.mitre.oauth2.view.respondJson
+import org.mitre.openid.connect.view.OAuthError
 import org.mitre.web.OpenIdSessionStorage
 import org.mitre.web.util.OpenIdContextPlugin
 import org.mitre.web.util.openIdContext
@@ -24,7 +28,7 @@ fun main() {
 
 fun Application.module() {
     val configuration = OpenIdConfigurator("http://localhost:8080") { cred ->
-        cred is UserPasswordCredential && when(cred.name) {
+        cred is UserPasswordCredential && when (cred.name) {
             "admin" -> cred.password == "secret"
             else -> false
         }
@@ -35,12 +39,17 @@ fun Application.module() {
         cookie<OpenIdSessionStorage>(OpenIdSessionStorage.COOKIE_NAME, SessionStorageMemory()) {
             cookie.apply {
                 httpOnly = true
-                secure = ! this@module.developmentMode // secure except in development mode
+                secure = !this@module.developmentMode // secure except in development mode
                 maxAge = null
                 sameSite = SameSite.Strict
             }
         }
 
+    }
+    install(StatusPages) {
+        exception<OAuth2Exception> { call, cause ->
+            call.respondJson(OAuthError(cause.oauth2ErrorCode, cause.message))
+        }
     }
     install(OpenIdContextPlugin) {
         context = configuration.resolveDefault()

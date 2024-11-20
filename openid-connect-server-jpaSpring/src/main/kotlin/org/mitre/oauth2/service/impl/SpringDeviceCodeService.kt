@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.oauth2.common.util.RandomValueStringGenerator
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.Instant
 import java.util.*
 
 /**
@@ -45,6 +46,7 @@ class SpringDeviceCodeService : DeviceCodeService {
     override fun createNewDeviceCode(
         requestedScopes: Set<String>,
         client: OAuthClientDetails,
+        expires: Instant,
         parameters: Map<String, String>?
     ): DeviceCode {
         // create a device code, should be big and random
@@ -59,12 +61,10 @@ class SpringDeviceCodeService : DeviceCodeService {
             userCode = userCode,
             scope = requestedScopes,
             clientId = client.clientId,
-            params = parameters
+            params = parameters,
         )
 
-        if (client.deviceCodeValiditySeconds != null) {
-            dc.expiration = Date(System.currentTimeMillis() + client.deviceCodeValiditySeconds!! * 1000L)
-        }
+        dc.expiration = Date.from(expires)
 
         dc.isApproved = false
 

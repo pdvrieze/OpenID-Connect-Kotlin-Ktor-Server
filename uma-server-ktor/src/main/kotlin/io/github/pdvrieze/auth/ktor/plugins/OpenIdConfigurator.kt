@@ -3,6 +3,7 @@ package io.github.pdvrieze.auth.ktor.plugins
 import com.nimbusds.jose.jwk.JWK
 import io.github.pdvrieze.auth.repository.exposed.ExposedAuthenticationHolderRepository
 import io.github.pdvrieze.auth.repository.exposed.ExposedAuthorizationCodeRepository
+import io.github.pdvrieze.auth.repository.exposed.ExposedDeviceCodeRepository
 import io.github.pdvrieze.auth.repository.exposed.ExposedOauth2ClientRepository
 import io.github.pdvrieze.auth.repository.exposed.ExposedOauth2TokenRepository
 import io.github.pdvrieze.auth.repository.exposed.ExposedOpenIdContext
@@ -39,7 +40,6 @@ import org.mitre.oauth2.assertion.impl.DirectCopyRequestFactory
 import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
-import org.mitre.oauth2.repository.AuthorizationCodeRepository
 import org.mitre.oauth2.repository.OAuth2ClientRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
 import org.mitre.oauth2.repository.SystemScopeRepository
@@ -58,6 +58,7 @@ import org.mitre.oauth2.service.impl.DefaultOAuth2ProviderTokenService
 import org.mitre.oauth2.service.impl.DefaultSystemScopeService
 import org.mitre.oauth2.token.AuthorizationCodeTokenGranter
 import org.mitre.oauth2.token.ClientTokenGranter
+import org.mitre.oauth2.token.DeviceTokenGranter
 import org.mitre.oauth2.token.ImplicitTokenGranter
 import org.mitre.oauth2.token.RefreshTokenGranter
 import org.mitre.oauth2.token.TokenGranter
@@ -243,7 +244,9 @@ data class OpenIdConfigurator(
             userInfoRepository, clientDetailsService, pairwiseIdentifierService
         )
 
-        override val deviceCodeService: DeviceCodeService = DefaultDeviceCodeService()
+        val deviceCodeRepository = ExposedDeviceCodeRepository(configurator.database, clientRepository, authenticationHolderRepository)
+
+        override val deviceCodeService: DeviceCodeService = DefaultDeviceCodeService(deviceCodeRepository)
 
         override val tokenEnhancer: TokenEnhancer =
             ConnectTokenEnhancerImpl(clientDetailsService, config, signService, userInfoService, { oidcTokenService })
@@ -312,6 +315,7 @@ data class OpenIdConfigurator(
                 ImplicitTokenGranter(tokenService, clientDetailsService, authRequestFactory),
                 ClientTokenGranter(tokenService, clientDetailsService, authRequestFactory),
                 RefreshTokenGranter(tokenService, clientDetailsService, authRequestFactory),
+                DeviceTokenGranter(tokenService, clientDetailsService, authRequestFactory, deviceCodeService),
             ).associateBy { it.grantType }
 
         override val htmlViews: HtmlViews = DefaultHtmlViews()

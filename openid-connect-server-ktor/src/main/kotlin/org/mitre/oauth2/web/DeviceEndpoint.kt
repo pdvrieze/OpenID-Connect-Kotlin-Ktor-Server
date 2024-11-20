@@ -41,6 +41,8 @@ import org.mitre.web.util.openIdContext
 import org.mitre.web.util.requireRole
 import org.mitre.web.util.scopeService
 import java.net.URISyntaxException
+import java.time.Duration
+import java.time.Instant
 import java.util.*
 
 /**
@@ -61,7 +63,7 @@ object DeviceEndpoint : KtorEndpoint {
             get("/device") {
                 requestUserCode()
             }
-            post("/$USER_URL/verify") {
+            post("/device/verify") {
                 readUserCode()
             }
             post("/device/approve") {
@@ -72,8 +74,8 @@ object DeviceEndpoint : KtorEndpoint {
 
     private suspend fun RoutingContext.requestDeviceCode() {
         val config = openIdContext.config
-        require(call.request.contentType() == ContentType.Application.FormUrlEncoded) {
-            "Only Form url-encoded is supported"
+        require(call.request.contentType().withoutParameters() == ContentType.Application.FormUrlEncoded) {
+            "Only Form url-encoded is supported (was: ${call.request.contentType()})"
         }
         val parameters = call.receiveParameters()
         val clientId = parameters["client_id"] ?: return call.respond(HttpStatusCode.BadRequest)
@@ -116,15 +118,16 @@ object DeviceEndpoint : KtorEndpoint {
             // TODO this looks bonkers and is a big security gap
             val requestParamMap: Map<String, String> =
                 parameters.entries().associate { it.key to it.value.joinToString(" ") }
-            val dc = deviceCodeService.createNewDeviceCode(requestedScopes, client, requestParamMap)
+
+            val validitySeconds = client.deviceCodeValiditySeconds?.let(Duration::ofSeconds) ?: config.defaultDeviceCodeValiditySeconds
+
+            val dc = deviceCodeService.createNewDeviceCode(requestedScopes, client, Instant.now() + validitySeconds, requestParamMap)
 
             val response = buildJsonObject {
                 put("device_code", dc.deviceCode)
                 put("user_code", dc.userCode)
                 put("verification_uri", "${config.issuer}device")
-                if (client.deviceCodeValiditySeconds != null) {
-                    put("expires_in", client.deviceCodeValiditySeconds)
-                }
+                put("expires_in", validitySeconds.seconds)
 
                 if (config.isAllowCompleteDeviceCodeUri) {
                     val verificationUriComplete = URLBuilder("${config.issuer}device")

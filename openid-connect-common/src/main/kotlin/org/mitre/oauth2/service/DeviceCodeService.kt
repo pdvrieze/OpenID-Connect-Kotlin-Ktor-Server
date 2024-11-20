@@ -4,6 +4,7 @@ import org.mitre.oauth2.exception.DeviceCodeCreationException
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.DeviceCode
 import org.mitre.oauth2.model.OAuthClientDetails
+import java.time.Instant
 
 /**
  * @author jricher
@@ -22,6 +23,7 @@ interface DeviceCodeService {
     fun createNewDeviceCode(
         requestedScopes: Set<String>,
         client: OAuthClientDetails,
+        expires: Instant,
         parameters: Map<String, String>?
     ): DeviceCode
 
