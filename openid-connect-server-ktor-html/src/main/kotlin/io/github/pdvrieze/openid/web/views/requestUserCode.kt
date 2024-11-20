@@ -5,12 +5,12 @@ import io.github.pdvrieze.openid.web.tags.formattedPage
 import io.github.pdvrieze.openid.web.tags.topBar
 import kotlinx.html.FormMethod
 import kotlinx.html.HTML
-import kotlinx.html.InputType
 import kotlinx.html.div
 import kotlinx.html.form
 import kotlinx.html.h1
-import kotlinx.html.input
 import kotlinx.html.style
+import kotlinx.html.submitInput
+import kotlinx.html.textInput
 
 fun HTML.requestUserCode(
     context: WebContext,
@@ -47,7 +47,7 @@ fun HTML.requestUserCode(
                                 val authorize_label = messageText("device.request_code.submit")
                                 div {
                                     div("input-block-level input-xlarge") {
-                                        input(InputType.text, name="user_code"       ) {
+                                        textInput(name="user_code") {
                                             placeholder = "code"
                                             attributes["autocorrect"] = "off"
                                             attributes["autocapitalize"] = "off"
@@ -59,7 +59,7 @@ fun HTML.requestUserCode(
                                 }
                                 _csrf.requireSession()
                                 /*input(InputType.hidden, name= _csrf.parameterName ) { value= _csrf.token }*/
-                                input(InputType.submit, name = "approve", classes = "btn btn-info btn-large") {
+                                submitInput(name = "approve", classes = "btn btn-info btn-large") {
                                     value = authorize_label
                                 }
                             }

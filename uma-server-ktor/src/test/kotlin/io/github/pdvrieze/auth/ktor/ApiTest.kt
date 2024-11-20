@@ -35,6 +35,8 @@ import org.mitre.web.OpenIdSessionStorage
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.OpenIdContextPlugin
 import org.mitre.web.util.openIdContext
+import org.mitre.web.util.update
+import java.time.Instant
 import kotlin.test.assertEquals
 
 abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, private val includeAuthzFilter: Boolean) {
@@ -119,7 +121,11 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
                             cred.name == clientId -> UserIdPrincipal(cred.name).takeIf {
                                 openIdContext.clientDetailsService.loadClientAuthenticated(cred.name, cred.password) is ClientLoadingResult.Found
                             }
-                            isValidPassword(cred.name, cred.password) -> UserIdPrincipal(cred.name)
+                            isValidPassword(cred.name, cred.password) -> {
+                                val p = UserIdPrincipal(cred.name)
+                                sessions.update<OpenIdSessionStorage> { it?.copy(principal = p) ?: OpenIdSessionStorage(principal = p, authTime = Instant.now()) }
+                                p
+                            }
                             else -> null
                         }
                     }
@@ -134,11 +140,13 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
         }
     }
 
-    protected fun testEndpoint(block: suspend ApplicationTestBuilder.() -> Unit) {
+    protected fun <R> testEndpoint(block: suspend ApplicationTestBuilder.() -> R): R {
+        var r: R? = null
         testApplication {
             configureApplication(this)
-            block()
+            r = block()
         }
+        return r!!
     }
 
     suspend fun ApplicationTestBuilder.getUnAuth(
@@ -402,6 +410,39 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
                     json(Json { prettyPrint = true })
                 }
             }
+
+    data class FormInfo(
+        val action: String,
+        val method: String,
+        val inputs: List<FormInput>,
+    ) {
+        fun input(name: String): FormInput? {
+            return inputs.singleOrNull { it.name == name }
+        }
+
+        companion object {
+            operator fun invoke(content: String): List<FormInfo> {
+                return Regex("(<form\\b[^>]*>)((?:[^<]*|<(?!:/?form>))*)(</form>)").findAll(content).map { f ->
+                    val tagAttrs = f.groups[1]?.value ?: ""
+                    val action = Regex("\\baction=(['\"])([^'\"]*)\\1").findAll(tagAttrs).single().groupValues[2]
+                    val method = Regex("\\bmethod=(['\"])([^'\"]*)\\1").findAll(tagAttrs).single().groupValues[2]
+                    val formContent = f.groups[2]?.value ?: ""
+                    val inputs = Regex("<input\\b[^>]*>").findAll(formContent).map { i ->
+                        val name = Regex("\\bname=(['\"])([^'\"]*)\\1").findAll(i.value).single().groupValues[2]
+                        val type = Regex("\\btype=(['\"])([^'\"]*)\\1").findAll(i.value).single().groupValues[2]
+                        FormInput(name, type, i.value)
+                    }.toList()
+                    FormInfo(action, method, inputs)
+                }.toList()
+            }
+        }
+    }
+
+    data class FormInput(
+        val name: String?,
+        val type: String?,
+        val value: String?
+    )
 
     class TestContext(configurator: OpenIdConfigurator, private val clientId: String): OpenIdConfigurator.DefaultContext(configurator) {
         override fun resolveAuthServiceAuthorities(name: String): Set<GrantedAuthority> {
