@@ -10,6 +10,9 @@ import io.ktor.http.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.Table
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.mitre.oauth2.model.DeviceCode
 import org.mitre.oauth2.web.DeviceEndpoint
 import org.mitre.openid.connect.filter.AuthTokenResponse
 import org.mitre.openid.connect.filter.PlainAuthorizationRequestEndpoint
@@ -113,7 +116,14 @@ class DeviceTest: ApiTest(DeviceEndpoint, PlainAuthorizationRequestEndpoint) {
             val sessionCookie = getUser("/device").setCookie()
                 .single { it.name == OpenIdSessionStorage.COOKIE_NAME }
 
-            val submitResp = submitUnAuth("/device/verify", parameters {
+
+            val deviceCode1: DeviceCode = assertNotNull(
+                testContext.deviceCodeService.lookUpByUserCode(deviceReq.userCode),
+                "Missing device code for user code ${deviceReq.userCode}"
+            )
+            assertFalse(deviceCode1.isApproved ?: false)
+
+            val submitResp = submitUser("/device/verify", parameters {
                 append("user_code", deviceReq.userCode)
                 append("approve", "Approve")
             }) {
@@ -121,6 +131,42 @@ class DeviceTest: ApiTest(DeviceEndpoint, PlainAuthorizationRequestEndpoint) {
                     append(HttpHeaders.Cookie, renderCookieHeader(sessionCookie))
                 }
             }
+
+
+            val deviceCode2: DeviceCode = assertNotNull(
+                testContext.deviceCodeService.lookUpByUserCode(deviceReq.userCode),
+                "Missing device code for user code ${deviceReq.userCode}"
+            )
+            assertFalse(deviceCode2.isApproved ?: false)
+
+
+
+            val verifyForm = FormInfo(submitResp.bodyAsText()).single { "device/approve" in it.action }
+            assertEquals("post", verifyForm.method)
+            val approvalIn = assertNotNull(verifyForm.input("user_oauth_approval"))
+            assertEquals("true", approvalIn.value)
+            assertEquals(deviceCode2.userCode, verifyForm.input("user_code")?.value)
+            assertNotNull(verifyForm.input("authorize"))
+            assertNotNull(verifyForm.input("deny"))
+
+
+            val verifyResp = submitUser("/device/approve", parameters {
+                append("user_code", deviceReq.userCode)
+                append("user_oauth_approval", "true")
+            }) {
+                headers {
+                    append(HttpHeaders.Cookie, renderCookieHeader(sessionCookie))
+                }
+            }
+
+
+            val deviceCode3: DeviceCode = assertNotNull(
+                testContext.deviceCodeService.lookUpByUserCode(deviceReq.userCode),
+                "Missing device code for user code ${deviceReq.userCode}"
+            )
+
+
+            assertTrue("The code should be approved but isn't", assertNotNull(deviceCode3.isApproved))
 
             val exchangeResp = submitClient("/token", parameters {
                 append("grant_type", "urn:ietf:params:oauth:grant-type:device_code")
@@ -131,6 +177,7 @@ class DeviceTest: ApiTest(DeviceEndpoint, PlainAuthorizationRequestEndpoint) {
             val accessTokenResponse = exchangeResp.body<AuthTokenResponse>()
             assertNotNull(accessTokenResponse)
             assertNotNull(accessTokenResponse.accessToken)
+
         }
     }
 

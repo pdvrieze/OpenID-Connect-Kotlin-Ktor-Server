@@ -20,26 +20,36 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.sessions.*
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import org.mitre.oauth2.exception.DeviceCodeCreationException
 import org.mitre.oauth2.exception.InvalidClientException
+import org.mitre.oauth2.exception.OAuthErrorCodes
+import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuthClientDetails
+import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.token.DeviceTokenGranter
 import org.mitre.oauth2.view.respondJson
 import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.util.getLogger
+import org.mitre.web.OpenIdSessionStorage
 import org.mitre.web.htmlApproveDeviceView
+import org.mitre.web.htmlDeviceApprovedView
+import org.mitre.web.htmlErrorView
 import org.mitre.web.htmlRequestUserCodeView
 import org.mitre.web.util.KtorEndpoint
+import org.mitre.web.util.authRequestFactory
 import org.mitre.web.util.clientDetailsService
 import org.mitre.web.util.deviceCodeService
 import org.mitre.web.util.openIdContext
 import org.mitre.web.util.requireRole
+import org.mitre.web.util.resolveAuthenticatedUser
 import org.mitre.web.util.scopeService
+import org.mitre.web.util.update
 import java.net.URISyntaxException
 import java.time.Duration
 import java.time.Instant
@@ -216,11 +226,15 @@ object DeviceEndpoint : KtorEndpoint {
 
         val paramTransform: Map<String, List<String>>? = dc.requestParameters?.let { it.mapValues { (_, v) -> listOf(v) } }
 
+        val authorizationRequest = authRequestFactory.createAuthorizationRequest(dc.requestParameters ?: emptyMap())
+        call.sessions.update<OpenIdSessionStorage> { it?.copy(authorizationRequest = authorizationRequest) ?: OpenIdSessionStorage(authorizationRequest) }
+
 //        val p = dc.requestParameters?.let { parametersOf(it.mapValues { (_, v) -> listOf(v) }) }
 //        val authorizationRequest = openIdContext.authRequestFactory.createAuthorizationRequest(p ?: parametersOf())
         return htmlApproveDeviceView(
             client = client,
             scopes = sortedScopes,
+            deviceCode = dc,
         )
 
         //        model["scopes"] = sortedScopes
@@ -238,74 +252,66 @@ object DeviceEndpoint : KtorEndpoint {
     }
 
     private suspend fun RoutingContext.approveDevice() {
-            val userCode: String = call.request.queryParameters["user_code"]
-                ?: call.receiveParameters()["user_code"]
-                ?: return call.respond(HttpStatusCode.BadRequest)
+        val auth = SavedUserAuthentication.from(resolveAuthenticatedUser()!!)
 
-            val approve = call.request.queryParameters["user_oauth_approval"]
-                ?: call.receiveParameters()["user_oauth_approval"]
+        val requestParams = call.request.queryParameters
+        val receiveParameters = call.receiveParameters()
+
+        val userCode: String = requestParams["user_code"]
+            ?: receiveParameters["user_code"]
+            ?: return call.respond(HttpStatusCode.BadRequest)
+
+        val approve = requestParams["user_oauth_approval"]
+            ?: receiveParameters["user_oauth_approval"]
+
+        val session = call.sessions.get<OpenIdSessionStorage>()
+            ?: return call.respond(HttpStatusCode.BadRequest)
+
+        val authorizationRequest = session.authorizationRequest
+            ?: return htmlErrorView(OAuthErrorCodes.INVALID_REQUEST, "Unknown request")
+        val unapprovedDc = deviceCodeService.lookUpByUserCode(userCode) ?: return htmlRequestUserCodeView(error="unknownUserCode")
+
+        // make sure the form that was submitted is the one that we were expecting
+        if (unapprovedDc.userCode != userCode) {
+            return htmlRequestUserCodeView(error="userCodeMismatch")
+        }
+
+        // make sure the code hasn't expired yet
+        if (unapprovedDc.expiration?.before(Date()) == true ) {
+            return htmlRequestUserCodeView(error="expiredUserCode")
+        }
+
+        val client = clientDetailsService.loadClientByClientId(unapprovedDc.clientId!!)
+            ?: return htmlErrorView(OAuthErrorCodes.INVALID_CLIENT, "Missing client")
+
+        // user did not approve
+        if (approve == null) {
+            return htmlDeviceApprovedView(client, false)
+        }
+
+        // create an OAuth request for storage
+        val o2Auth = AuthenticatedAuthorizationRequest(authorizationRequest, auth)
+
+        val savedCode = deviceCodeService.approveDeviceCode(unapprovedDc, o2Auth)
 
 
+        // pre-process the scopes
+        val scopes: Set<SystemScope> = scopeService.fromStrings(savedCode.scope!!) ?: emptySet()
 
-            TODO("Implement this")
+        val sortedScopes: MutableSet<SystemScope> = LinkedHashSet(scopes.size)
+        val systemScopes: Set<SystemScope> = scopeService.all
 
-            /*
-            val authorizationRequest = session.getAttribute("authorizationRequest") as AuthorizationRequest
-            val dc = session.getAttribute("deviceCode") as DeviceCode
-
-            // make sure the form that was submitted is the one that we were expecting
-            if (dc.userCode != userCode) {
-                model.addAttribute("error", "userCodeMismatch")
-                return "requestUserCode"
+        // sort scopes for display based on the inherent order of system scopes
+        for (s in systemScopes) {
+            if (scopes.contains(s)) {
+                sortedScopes.add(s)
             }
+        }
 
-            // make sure the code hasn't expired yet
-            if (dc.expiration != null && dc.expiration!!.before(Date())) {
-                model.addAttribute("error", "expiredUserCode")
-                return "requestUserCode"
-            }
+        // add in any scopes that aren't system scopes to the end of the list
+        sortedScopes.addAll(scopes - systemScopes)
 
-            val client = clientService.loadClientByClientId(dc.clientId!!)
-
-            model["client"] = client
-
-            // user did not approve
-            if (!approve!!) {
-                model.addAttribute("approved", false)
-                return "deviceApproved"
-            }
-
-            // create an OAuth request for storage
-            val o2req = oAuth2RequestFactory.createOAuth2Request(authorizationRequest).fromSpring()
-            val o2Auth = OAuth2Authentication(o2req, auth?.fromSpring())
-
-            val approvedCode = deviceCodeService.approveDeviceCode(dc, o2Auth)
-
-
-            // pre-process the scopes
-            val scopes: Set<SystemScope> = scopeService.fromStrings(dc.scope!!)?: emptySet()
-
-            val sortedScopes: MutableSet<SystemScope> = LinkedHashSet(scopes.size)
-            val systemScopes: Set<SystemScope> = scopeService.all
-
-            // sort scopes for display based on the inherent order of system scopes
-            for (s in systemScopes) {
-                if (scopes.contains(s)) {
-                    sortedScopes.add(s)
-                }
-            }
-
-            // add in any scopes that aren't system scopes to the end of the list
-            sortedScopes.addAll(Sets.difference(scopes, systemScopes))
-
-            model["scopes"] = sortedScopes
-            model["approved"] = true
-
-            return "deviceApproved"
-*/
-
-
-
+        return htmlApproveDeviceView(client, sortedScopes, savedCode)
     }
 
     // TODO for errors create a mapping form requestUserCode.jsp (use enums?)

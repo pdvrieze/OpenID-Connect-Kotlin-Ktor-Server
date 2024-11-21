@@ -8,9 +8,9 @@ import org.mitre.jwt.encryption.service.JWTEncryptionAndDecryptionService
 import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.oauth2.model.PKCEAlgorithm
 import org.mitre.oauth2.service.SystemScopeService
-import org.mitre.oauth2.web.DeviceEndpoint
 import org.mitre.oauth2.web.IntrospectionEndpoint
 import org.mitre.oauth2.web.RevocationEndpoint
+import org.mitre.oauth2.web.spring.SpringDeviceEndpoint
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.service.UserInfoService
 import org.mitre.openid.connect.view.HttpCodeView
@@ -353,7 +353,7 @@ class DiscoveryEndpoint {
 
         m["code_challenge_methods_supported"] = listOf(PKCEAlgorithm.plain.name, PKCEAlgorithm.S256.name)
 
-        m["device_authorization_endpoint"] = baseUrl + DeviceEndpoint.URL
+        m["device_authorization_endpoint"] = baseUrl + SpringDeviceEndpoint.URL
 
         model.addAttribute(JsonEntityView.ENTITY, m)
 

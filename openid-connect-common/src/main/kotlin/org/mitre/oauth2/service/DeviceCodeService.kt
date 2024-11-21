@@ -12,7 +12,7 @@ import java.time.Instant
 interface DeviceCodeService {
     fun lookUpByUserCode(userCode: String): DeviceCode?
 
-    fun approveDeviceCode(dc: DeviceCode, o2Auth: AuthenticatedAuthorizationRequest): DeviceCode?
+    fun approveDeviceCode(dc: DeviceCode, o2Auth: AuthenticatedAuthorizationRequest): DeviceCode
 
     fun findDeviceCode(deviceCode: String, client: OAuthClientDetails): DeviceCode?
 

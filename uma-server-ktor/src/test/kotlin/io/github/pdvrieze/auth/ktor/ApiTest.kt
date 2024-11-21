@@ -430,7 +430,8 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
                     val inputs = Regex("<input\\b[^>]*>").findAll(formContent).map { i ->
                         val name = Regex("\\bname=(['\"])([^'\"]*)\\1").findAll(i.value).single().groupValues[2]
                         val type = Regex("\\btype=(['\"])([^'\"]*)\\1").findAll(i.value).single().groupValues[2]
-                        FormInput(name, type, i.value)
+                        val value = Regex("\\bvalue=(['\"])([^'\"]*)\\1").findAll(i.value).singleOrNull()?.groupValues?.get(2)
+                        FormInput(name, type, value,  i.value)
                     }.toList()
                     FormInfo(action, method, inputs)
                 }.toList()
@@ -441,7 +442,8 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
     data class FormInput(
         val name: String?,
         val type: String?,
-        val value: String?
+        val value: String?,
+        val rawText: String?
     )
 
     class TestContext(configurator: OpenIdConfigurator, private val clientId: String): OpenIdConfigurator.DefaultContext(configurator) {

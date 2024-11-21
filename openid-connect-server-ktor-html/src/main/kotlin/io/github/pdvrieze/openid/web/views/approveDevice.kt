@@ -5,6 +5,7 @@ import io.github.pdvrieze.openid.web.tags.formattedPage
 import io.github.pdvrieze.openid.web.tags.topBar
 import kotlinx.html.*
 import org.mitre.oauth2.exception.OAuth2Exception
+import org.mitre.oauth2.model.DeviceCode
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.OAuthClientDetails.SubjectType
 import org.mitre.oauth2.model.SystemScope
@@ -14,6 +15,7 @@ fun HTML.approveDevice(
     context: WebContext,
     client: OAuthClientDetails,
     scopes: Set<SystemScope>,
+    deviceCode: DeviceCode,
     claims:  Map<String?, Map<String, String>>,
     exception: OAuth2Exception?,
     count:Int = 0,
@@ -263,7 +265,7 @@ fun HTML.approveDevice(
                                 value = "true"
                             }
                             input(InputType.hidden, name = "user_code") {
-                                value = "\${ dc.userCode }" // TODO dc.userCode is not defined
+                                value = deviceCode.userCode
                             }
                             _csrf.requireSession()
                             /*input(InputType.hidden, name = _csrf.parameterName) { value = _csrf.token }*/

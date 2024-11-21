@@ -30,29 +30,31 @@ class AuthTest : ApiTest(FormAuthEndpoint) {
     }
 
     @Test
-    fun testFormLoginForm() = testEndpoint {
+    fun testFormLoginForm() {
+        testEndpoint {
 
-        client.get("/login").apply {
-            assertTrue(status.isSuccess(), "Unexpected response: $status")
+            client.get("/login").apply {
+                assertTrue(status.isSuccess(), "Unexpected response: $status")
 
-            val resp = bodyAsText()
+                val resp = bodyAsText()
 
-            val userNameInput = Regex("<input\\b[^>]*\\bname=(['\"])username\\1[^>]*>").findAll(resp).toList()
-            assertNotEquals(0, userNameInput.size, "No username input")
-            for (input in userNameInput) {
-                assertContains(input.value, Regex("type=(['\"])text\\1"), message = "Incorrect username input")
-            }
+                val userNameInput = Regex("<input\\b[^>]*\\bname=(['\"])username\\1[^>]*>").findAll(resp).toList()
+                assertNotEquals(0, userNameInput.size, "No username input")
+                for (input in userNameInput) {
+                    assertContains(input.value, Regex("type=(['\"])text\\1"), message = "Incorrect username input")
+                }
 
-            val passwordInput = Regex("<input\\b[^>]*\\bname=(['\"])password\\1[^>]*").findAll(resp).toList()
-            assertNotEquals(0, passwordInput.size, "No password input")
-            for (input in passwordInput) {
-                assertContains(input.value, Regex("type=(['\"])password\\1"), message = "Incorrect password input")
+                val passwordInput = Regex("<input\\b[^>]*\\bname=(['\"])password\\1[^>]*").findAll(resp).toList()
+                assertNotEquals(0, passwordInput.size, "No password input")
+                for (input in passwordInput) {
+                    assertContains(input.value, Regex("type=(['\"])password\\1"), message = "Incorrect password input")
+                }
             }
         }
     }
 
     @Test
-    fun testFormLoginFormRedirect() = testEndpoint {
+    fun testFormLoginFormRedirect() = testEndpoint<Unit> {
 
         client.get("/login?redirect_uri=/user").apply {
             assertTrue(status.isSuccess(), "Unexpected response: $status")

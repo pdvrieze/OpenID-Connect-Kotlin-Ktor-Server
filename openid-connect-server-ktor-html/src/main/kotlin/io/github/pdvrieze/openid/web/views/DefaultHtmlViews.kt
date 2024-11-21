@@ -14,6 +14,7 @@ import kotlinx.serialization.json.buildJsonArray
 import org.mitre.oauth2.exception.OAuth2Exception
 import org.mitre.oauth2.exception.OAuthErrorCode
 import org.mitre.oauth2.model.Authentication
+import org.mitre.oauth2.model.DeviceCode
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.request.AuthorizationRequest
@@ -70,6 +71,7 @@ class DefaultHtmlViews : HtmlViews {
     override suspend fun RoutingContext.approveDevice(
         client: OAuthClientDetails,
         scopes: Set<SystemScope>,
+        deviceCode: DeviceCode,
         claims: Map<String?, Map<String, String>>,
         exception: OAuth2Exception?,
         count: Int,
@@ -77,7 +79,7 @@ class DefaultHtmlViews : HtmlViews {
         contacts: String?,
     ) {
         call.respondHtml {
-            approveDevice(createContext(), client, scopes, claims, exception, count, isGras, contacts)
+            approveDevice(createContext(), client, scopes, deviceCode, claims, exception, count, isGras, contacts)
         }
     }
 

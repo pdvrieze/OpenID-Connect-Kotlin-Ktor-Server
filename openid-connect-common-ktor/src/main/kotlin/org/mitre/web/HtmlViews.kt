@@ -4,6 +4,7 @@ import io.ktor.http.*
 import io.ktor.server.routing.*
 import org.mitre.oauth2.exception.OAuth2Exception
 import org.mitre.oauth2.exception.OAuthErrorCode
+import org.mitre.oauth2.model.DeviceCode
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.request.AuthorizationRequest
@@ -26,6 +27,7 @@ interface HtmlViews {
     suspend fun RoutingContext.approveDevice(
         client: OAuthClientDetails,
         scopes: Set<SystemScope>,
+        deviceCode: DeviceCode,
         claims: Map<String?, Map<String, String>>,
         exception: OAuth2Exception? = null,
         count: Int = 0,

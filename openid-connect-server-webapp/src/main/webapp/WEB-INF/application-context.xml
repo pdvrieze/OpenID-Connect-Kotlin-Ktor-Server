@@ -17,18 +17,17 @@
     limitations under the License.
  -->
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:mvc="http://www.springframework.org/schema/mvc"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:tx="http://www.springframework.org/schema/tx"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:security="http://www.springframework.org/schema/security"
-	xmlns:oauth="http://www.springframework.org/schema/security/oauth2"
-	xmlns:util="http://www.springframework.org/schema/util"
-	xsi:schemaLocation="http://www.springframework.org/schema/security/oauth2 http://www.springframework.org/schema/security/spring-security-oauth2-2.0.xsd
+	   xmlns:mvc="http://www.springframework.org/schema/mvc"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:tx="http://www.springframework.org/schema/tx"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:security="http://www.springframework.org/schema/security"
+	   xmlns:oauth="http://www.springframework.org/schema/security/oauth2"
+	   xsi:schemaLocation="http://www.springframework.org/schema/security/oauth2 http://www.springframework.org/schema/security/spring-security-oauth2-2.0.xsd
 		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
 		http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+
 		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
@@ -56,7 +55,7 @@
 			<mvc:exclude-mapping path="/#{T(org.mitre.openid.connect.web.ProtectedResourceRegistrationEndpoint).URL}/**" />
 			<mvc:exclude-mapping path="/#{T(org.mitre.openid.connect.web.UserInfoEndpoint).URL}**" />
 			<mvc:exclude-mapping path="/#{T(org.mitre.openid.connect.web.RootController).API_URL}/**" />
-			<mvc:exclude-mapping path="/#{T(org.mitre.oauth2.web.DeviceEndpoint).URL}/**" />
+			<mvc:exclude-mapping path="/#{T(org.mitre.oauth2.web.spring.SpringDeviceEndpoint).URL}/**" />
 			<mvc:exclude-mapping path="/#{T(org.mitre.oauth2.web.IntrospectionEndpoint).URL}**" />
 			<mvc:exclude-mapping path="/#{T(org.mitre.oauth2.web.RevocationEndpoint).URL}**" />
 					 
@@ -74,7 +73,7 @@
 			<mvc:exclude-mapping path="/#{T(org.mitre.openid.connect.web.ProtectedResourceRegistrationEndpoint).URL}/**" />
 			<mvc:exclude-mapping path="/#{T(org.mitre.openid.connect.web.UserInfoEndpoint).URL}**" />
 			<mvc:exclude-mapping path="/#{T(org.mitre.openid.connect.web.RootController).API_URL}/**" />
-			<mvc:exclude-mapping path="/#{T(org.mitre.oauth2.web.DeviceEndpoint).URL}/**" />
+			<mvc:exclude-mapping path="/#{T(org.mitre.oauth2.web.spring.SpringDeviceEndpoint).URL}/**" />
 			<mvc:exclude-mapping path="/#{T(org.mitre.oauth2.web.IntrospectionEndpoint).URL}**" />
 			<mvc:exclude-mapping path="/#{T(org.mitre.oauth2.web.RevocationEndpoint).URL}**" />
 			<!-- Inject the server configuration into the response -->
@@ -170,7 +169,7 @@
 		<security:csrf disabled="true"/>
 	</security:http>
 	
- 	<security:http pattern="/#{T(org.mitre.oauth2.web.DeviceEndpoint).URL}/**" 
+ 	<security:http pattern="/#{T(org.mitre.oauth2.web.spring.SpringDeviceEndpoint).URL}/**"
  		use-expressions="true" 
  		entry-point-ref="oauthAuthenticationEntryPoint" 
  		create-session="stateless"

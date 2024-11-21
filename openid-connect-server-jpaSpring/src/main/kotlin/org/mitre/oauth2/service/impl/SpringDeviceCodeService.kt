@@ -80,7 +80,7 @@ class SpringDeviceCodeService : DeviceCodeService {
     }
 
 
-    override fun approveDeviceCode(dc: DeviceCode, o2Auth: AuthenticatedAuthorizationRequest): DeviceCode? {
+    override fun approveDeviceCode(dc: DeviceCode, o2Auth: AuthenticatedAuthorizationRequest): DeviceCode {
         val found = requireNotNull(repository.getById(dc.id.requireId())) { "No device code found"}
 
         found.isApproved = true

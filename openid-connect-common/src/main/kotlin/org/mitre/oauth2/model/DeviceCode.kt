@@ -27,8 +27,8 @@ import java.util.*
 //              NamedQuery(name = DeviceCode.QUERY_EXPIRED_BY_DATE, query = "select d from DeviceCode d where d.expiration <= :" + DeviceCode.PARAM_DATE))
 class DeviceCode(
     var id: Long? = null,
-    var deviceCode: String? = null,
-    var userCode: String? = null,
+    var deviceCode: String,
+    var userCode: String,
     var scope: Set<String>? = null,
     var expiration: Date? = null,
     var clientId: String? = null, // TODO: make this not nullable
@@ -39,8 +39,8 @@ class DeviceCode(
 
     constructor(
         id: Long? = null,
-        deviceCode: String? = null,
-        userCode: String? = null,
+        deviceCode: String,
+        userCode: String,
         expiration: Date? = null,
         scope: Set<String>? = null,
         clientId: String? = null,
@@ -70,8 +70,8 @@ class DeviceCode(
 
     fun copy(
         id: Long? = this.id,
-        deviceCode: String? = this.deviceCode,
-        userCode: String? = this.userCode,
+        deviceCode: String = this.deviceCode,
+        userCode: String = this.userCode,
         expiration: Date? = this.expiration,
         scope: Set<String>? = this.scope,
         clientId: String? = this.clientId,

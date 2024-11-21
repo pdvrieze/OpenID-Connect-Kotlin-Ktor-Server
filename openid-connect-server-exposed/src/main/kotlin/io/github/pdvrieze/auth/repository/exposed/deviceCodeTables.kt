@@ -5,8 +5,8 @@ import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.timestamp
 
 object DeviceCodes : LongIdTable("device_code") {
-    val deviceCode = varchar("device_code", 1024).nullable()
-    val userCode = varchar("user_code", 1024).nullable()
+    val deviceCode = varchar("device_code", 1024)
+    val userCode = varchar("user_code", 60) //user enterable, 60 is already too much
     val expiration = timestamp("expiration").nullable().default(null)
     val clientId = varchar("client_id", 256).references(ClientDetails.clientId).nullable()
     val approved = bool("approved").nullable()
