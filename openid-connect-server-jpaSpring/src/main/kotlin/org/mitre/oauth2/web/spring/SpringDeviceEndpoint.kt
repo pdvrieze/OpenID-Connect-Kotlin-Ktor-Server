@@ -29,6 +29,8 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
 import java.net.URISyntaxException
+import java.time.Duration
+import java.time.Instant
 import java.util.*
 import javax.servlet.http.HttpSession
 
@@ -99,15 +101,15 @@ class SpringDeviceEndpoint {
 
         // if we got here the request is legit
         try {
-            val dc = deviceCodeService.createNewDeviceCode(requestedScopes, client,, parameters)
+            val validity = client.deviceCodeValiditySeconds?.let { Duration.ofSeconds(it) } ?: config.defaultDeviceCodeValiditySeconds
+            val expiration = Instant.now()+validity
+            val dc = deviceCodeService.createNewDeviceCode(requestedScopes, client, expiration, parameters)
 
             val response: MutableMap<String, Any?> = HashMap()
             response["device_code"] = dc.deviceCode
             response["user_code"] = dc.userCode
             response["verification_uri"] = config.issuer + USER_URL
-            if (client.deviceCodeValiditySeconds != null) {
-                response["expires_in"] = client.deviceCodeValiditySeconds
-            }
+            response["expires_in"] = validity
 
             if (config.isAllowCompleteDeviceCodeUri) {
                 val verificationUriComplete = URIBuilder(config.issuer + USER_URL)
