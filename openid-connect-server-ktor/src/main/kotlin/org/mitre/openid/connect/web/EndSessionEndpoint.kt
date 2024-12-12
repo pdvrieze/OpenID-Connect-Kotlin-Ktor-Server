@@ -17,6 +17,7 @@ package org.mitre.openid.connect.web
 
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.JWTParser
+import io.github.pdvrieze.auth.UserAuthentication
 import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
@@ -71,10 +72,10 @@ object EndSessionEndpoint: KtorEndpoint {
         var client: OAuthClientDetails? = null // pulled from ID token's audience field
 
         if (!postLogoutRedirectUri.isNullOrEmpty()) {
-            call.sessions.update<OpenIdSessionStorage> { it?.copy(redirectUri = postLogoutRedirectUri) ?: OpenIdSessionStorage(redirectUri = postLogoutRedirectUri, authTime = null) }
+            call.sessions.update<OpenIdSessionStorage> { it?.copy(redirectUri = postLogoutRedirectUri) ?: OpenIdSessionStorage(redirectUri = postLogoutRedirectUri) }
         }
         if (!state.isNullOrEmpty()) {
-            call.sessions.update<OpenIdSessionStorage> { it?.copy(state = state) ?: OpenIdSessionStorage(state = state, authTime = null) }
+            call.sessions.update<OpenIdSessionStorage> { it?.copy(state = state) ?: OpenIdSessionStorage(state = state) }
         }
 
 
@@ -109,15 +110,15 @@ object EndSessionEndpoint: KtorEndpoint {
 
 
         // are we logged in or not?
-        if (auth == null || GrantedAuthority.ROLE_USER !in auth.authorities) {
-            // we're not logged in anyway, process the final redirect bits if needed
+        if (auth !is UserAuthentication) {
+            // we're not logged in, or not a user, process the final redirect bits if needed
             return processLogout(null, client)
         } else {
             // we are logged in, need to prompt the user before we log out
 
             // see who the current user is
 
-            val ui = userInfoService.getByUsername(auth.name)
+            val ui = userInfoService.getByUsername(auth.userId)
 
             if (idTokenClaims != null) {
                 val subject = idTokenClaims.subject

@@ -17,14 +17,13 @@
  */
 package org.mitre.oauth2.web
 
+import io.github.pdvrieze.auth.UserAuthentication
 import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import kotlinx.serialization.json.JsonPrimitive
-import org.mitre.oauth2.model.Authentication
-import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.request.AuthorizationRequest
@@ -33,7 +32,7 @@ import org.mitre.util.getLogger
 import org.mitre.web.OpenIdSessionStorage
 import org.mitre.web.htmlApproveView
 import org.mitre.web.util.clientDetailsService
-import org.mitre.web.util.requireRole
+import org.mitre.web.util.requireUserRole
 import org.mitre.web.util.scopeClaimTranslationService
 import org.mitre.web.util.scopeService
 import org.mitre.web.util.statsService
@@ -56,7 +55,7 @@ object OAuthConfirmationController/*: KtorEndpoint*/ {
 */
 
     internal suspend fun RoutingContext.confirmAccess() {
-        val authentication = requireRole(GrantedAuthority.ROLE_USER) { return }
+        val authentication = requireUserRole()
 
         val pendingSession = call.sessions.get<OpenIdSessionStorage>()?.let{
             it.copy(pendingPrompts = Prompt.CONSENT.removeFrom(it.pendingPrompts))
@@ -92,7 +91,7 @@ object OAuthConfirmationController/*: KtorEndpoint*/ {
     }
 
     internal suspend fun RoutingContext.confirmAccess(
-        authentication: Authentication,
+        authentication: UserAuthentication,
         authRequest: AuthorizationRequest,
         prompts: Set<Prompt>,
         client: OAuthClientDetails,
@@ -120,7 +119,7 @@ object OAuthConfirmationController/*: KtorEndpoint*/ {
         sortedScopes.addAll(scopes - systemScopes)
 
         // get the userinfo claims for each scope
-        val user = userInfoService.getByUsername(authentication.name)
+        val user = userInfoService.getByUsername(authentication.userId)
         val claimsForScopes: MutableMap<String?, Map<String, String>> = HashMap()
         if (user != null) {
             val userJson = user.toJson()

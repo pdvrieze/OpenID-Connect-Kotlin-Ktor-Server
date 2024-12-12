@@ -1,5 +1,8 @@
 package org.mitre.openid.connect.filter
 
+import io.github.pdvrieze.auth.AuthFactor
+import io.github.pdvrieze.auth.Authentication
+import io.github.pdvrieze.auth.UserAuthentication
 import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
@@ -19,9 +22,7 @@ import org.mitre.oauth2.exception.OAuth2Exception
 import org.mitre.oauth2.exception.OAuthErrorCodes
 import org.mitre.oauth2.exception.httpCode
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
-import org.mitre.oauth2.model.Authentication
 import org.mitre.oauth2.model.OAuthClientDetails
-import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.request.AuthorizationRequest
 import org.mitre.oauth2.model.request.OpenIdAuthorizationRequest
 import org.mitre.oauth2.model.request.OpenIdAuthorizationRequest.ResponseMode
@@ -126,7 +127,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         var pendingSession = when (val s = call.sessions.get<OpenIdSessionStorage>()) {
             null -> {
                 hasSession = false
-                OpenIdSessionStorage(loginHint = loginHint, responseType = responseType, authTime = null)
+                OpenIdSessionStorage(loginHint = loginHint, responseType = responseType)
             }
             else -> {
                 hasSession = false
@@ -148,7 +149,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
 
                 val now = Instant.now()
                 if(now.isAfter(authTime.plusSeconds(max))) {
-                    pendingSession = pendingSession.copy(principal = null, authTime = null)
+                    pendingSession = pendingSession.copy(principal = null)
                     auth = null
                 }
             }
@@ -220,7 +221,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         state: String?,
         requestParameters: Map<String, String>,
     ) {
-        val r = AuthenticatedAuthorizationRequest(authRequest, SavedUserAuthentication.from(auth))
+        val r = AuthenticatedAuthorizationRequest(authRequest, auth)
         val accessToken = if(responseType.token) {
             val granter = getGranter("token") ?: return jsonErrorView(OAuthErrorCodes.UNSUPPORTED_GRANT_TYPE)
 
@@ -282,7 +283,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
 
     private suspend fun RoutingContext.respondWithApprovalRequest(
         authRequest: AuthorizationRequest,
-        auth: Authentication,
+        auth: UserAuthentication,
         prompts: Set<Prompt>?,
         client: OAuthClientDetails,
         redirectUri: String?,
@@ -294,7 +295,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         prompts: Set<Prompt>,
         authRequest: AuthorizationRequest,
         client: OAuthClientDetails,
-        auth: Authentication?,
+        auth: UserAuthentication?,
         pendingSession: OpenIdSessionStorage,
     ): OpenIdSessionStorage? {
         @Suppress("NAME_SHADOWING")
@@ -346,7 +347,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         // select account is not quite supported by the UI/system
         if (Prompt.LOGIN in prompts || Prompt.SELECT_ACCOUNT in prompts) {
             // first see if the user's already been prompted in this session
-            return pendingSession.copy(principal = null, authTime = null) // this
+            return pendingSession.copy(principal = null) // this
         }
 
         if (auth != null && Prompt.CONSENT in prompts) {
@@ -366,9 +367,10 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         val password = formParams["password"]
 
         if (!userName.isNullOrBlank() && !password.isNullOrBlank() &&
-            openIdContext.checkCredential(UserPasswordCredential(userName, password))) {
+            openIdContext.userService.verifyCredentials(userName, password)) {
 
-            val principal = UserIdPrincipal(userName)
+            val auth = openIdContext.userService.createUserDirectAuthentication(userName, AuthFactor.PASSWORD)
+
             val oldSession = call.sessions.get<OpenIdSessionStorage>() ?:
                 return htmlErrorView(OAuthErrorCodes.INVALID_REQUEST, "Missing session")
 
@@ -377,8 +379,8 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
             val authRequest = oldSession.authorizationRequest
                 ?: return htmlErrorView(OAuthErrorCodes.INVALID_REQUEST, "Missing authorization request", HttpStatusCode.BadRequest)
 
-            val auth = openIdContext.principalToAuthentication(principal)
-                ?: return htmlErrorView(OAuthErrorCodes.SERVER_ERROR, "Invalid user")
+//            val auth = openIdContext.principalToAuthentication(principal)
+//                ?: return htmlErrorView(OAuthErrorCodes.SERVER_ERROR, "Invalid user")
 
             val client = clientDetailsService.loadClientByClientId(authRequest.clientId)
                 ?: return htmlErrorView(OAuthErrorCodes.SERVER_ERROR, "Missing client")
@@ -396,13 +398,13 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
 
             if (!approvedAuthRequest.isApproved) {
 
-                call.sessions.set(oldSession.copy(principal = principal, authTime = Instant.now()))
+                call.sessions.set(oldSession.copy(principal = auth))
                 respondWithApprovalRequest(authRequest, auth, prompts, client, authRequest.redirectUri)
 //            call.respondRedirect("/oauth/confirm_access")
                 return
 
             } else {
-                call.sessions.set(oldSession.copy(principal = principal, authTime = Instant.now()))
+                call.sessions.set(oldSession.copy(principal = auth))
                 with(PlainAuthorizationRequestEndpoint) {
                     val redirect = oldSession.redirectUri ?: return jsonErrorView(OAuthErrorCodes.SERVER_ERROR)
 
@@ -443,10 +445,10 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
 
         val pendingSession = oldSession.copy(pendingPrompts = null)
 
-        val principal = oldSession.principal ?: return htmlErrorView(OAuthErrorCodes.INVALID_REQUEST, "Missing user")
+        val auth = oldSession.principal ?: return htmlErrorView(OAuthErrorCodes.INVALID_REQUEST, "Missing user")
 
-        val auth = openIdContext.principalToAuthentication(principal)
-            ?: return htmlErrorView(OAuthErrorCodes.SERVER_ERROR, "Invalid user")
+//        val auth = openIdContext.principalToAuthentication(principal)
+//            ?: return htmlErrorView(OAuthErrorCodes.SERVER_ERROR, "Invalid user")
 
         val approvedAuthRequest = when {
             userApprovalHandler.isApproved(authRequest, auth, params) -> {

@@ -16,6 +16,7 @@
 package org.mitre.openid.connect.service.impl.spring
 
 import com.nimbusds.jwt.JWTParser
+import io.github.pdvrieze.auth.SavedAuthentication
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
@@ -33,7 +34,7 @@ import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.PKCEAlgorithm
 import org.mitre.oauth2.model.PKCEAlgorithm.Companion.parse
-import org.mitre.oauth2.model.SavedUserAuthentication
+import org.mitre.oauth2.model.OldSavedUserAuthentication
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.jpa.AuthenticationHolderEntity
 import org.mitre.oauth2.model.request.AuthorizationRequest.Approval
@@ -1345,7 +1346,7 @@ class TestSpringMITREidDataService_1_3 {
             b.redirectUri = "http://foo.com"
             b.requestTime = now.minusSeconds(2)
         }.build()
-        val mockAuth1: SavedUserAuthentication = SavedUserAuthentication(name = "mockAuth1")
+        val mockAuth1 = SavedAuthentication(principalName = "mockAuth1", authTime = now)
 //            UsernamePasswordAuthenticationToken("user1", "pass1", AuthorityUtils.commaSeparatedStringToAuthorityList("ROLE_USER"))
         val auth1 = AuthenticatedAuthorizationRequest(req1, mockAuth1)
 
@@ -1430,12 +1431,12 @@ class TestSpringMITREidDataService_1_3 {
                 if (compare.userAuthentication != null) {
                     assertIs<JsonObject>(holder["savedUserAuthentication"])
                     val savedAuth = holder["savedUserAuthentication"]!!.jsonObject
-                    assertEquals(compare.userAuthentication!!.name, savedAuth["name"].asString())
+                    assertEquals(compare.userAuthentication!!.principalName, savedAuth["name"].asString())
                     val actualAuthenticated = when (val a = savedAuth["authenticated"]) {
                         is JsonNull -> null
                         else -> a.asBoolean()
                     }
-                    assertEquals(compare.userAuthentication!!.isAuthenticated, actualAuthenticated)
+                    assertEquals(compare.userAuthentication?.authTime?.isAfter(Instant.EPOCH), actualAuthenticated)
                     assertEquals(compare.userAuthentication!!.sourceClass, savedAuth["sourceClass"]?.asString())
                 }
                 checked.add(compare)
@@ -1454,7 +1455,7 @@ class TestSpringMITREidDataService_1_3 {
             b.redirectUri = "http://foo.com"
             b.requestTime = now.minusSeconds(2)
         }.build()
-        val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
+        val mockAuth1 = SavedAuthentication(principalName = "mockAuth1", authTime = now)
         val auth1 = AuthenticatedAuthorizationRequest(req1, mockAuth1)
 
         val holder1 = AuthenticationHolderEntity(auth1, 1L)
@@ -1464,7 +1465,7 @@ class TestSpringMITREidDataService_1_3 {
             b.redirectUri = "http://bar.com"
             b.requestTime = now
         }.build()
-        val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
+        val mockAuth2 = SavedAuthentication(principalName = "mockAuth2", authTime = now)
         val auth2 = AuthenticatedAuthorizationRequest(req2, mockAuth2)
 
         val holder2 = AuthenticationHolderEntity(auth2, 2L)
@@ -1708,7 +1709,7 @@ class TestSpringMITREidDataService_1_3 {
             b.redirectUri = "http://foo.com"
             b.requestTime = now.minusSeconds(2)
         }.build()
-        val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
+        val mockAuth1 = SavedAuthentication(principalName = "mockAuth1", authTime = now)
         val auth1 = AuthenticatedAuthorizationRequest(req1, mockAuth1)
 
         val holder1 = AuthenticationHolderEntity(auth1, 1L)
@@ -1732,7 +1733,7 @@ class TestSpringMITREidDataService_1_3 {
             b.redirectUri = "http://bar.com"
             b.requestTime = now
         }.build()
-        val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
+        val mockAuth2 = SavedAuthentication(principalName = "mockAuth2", authTime = now)
         val auth2 = AuthenticatedAuthorizationRequest(req2, mockAuth2)
 
         val holder2 = AuthenticationHolderEntity(auth2, 2L)

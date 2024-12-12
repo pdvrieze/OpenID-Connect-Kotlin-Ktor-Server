@@ -1,6 +1,7 @@
 package org.mitre.oauth2.model
 
-interface Authentication {
+@Deprecated("")
+interface OldAuthentication {
     val authorities: Set<GrantedAuthority>
     val isAuthenticated: Boolean
     val name: String

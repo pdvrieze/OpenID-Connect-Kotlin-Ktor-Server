@@ -21,18 +21,14 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.long
 import org.mitre.oauth2.exception.OAuthErrorCodes
 import org.mitre.oauth2.exception.OAuthErrorCodes.INVALID_REQUEST
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
-import org.mitre.oauth2.model.Authentication
-import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.oauth2.view.respondJson
-import org.mitre.oauth2.web.AuthenticationUtilities.ensureOAuthScope
 import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.uma.model.ResourceSet
 import org.mitre.uma.view.resourceSetEntityAbbreviatedView
@@ -42,7 +38,7 @@ import org.mitre.util.getLogger
 import org.mitre.util.oidJson
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.config
-import org.mitre.web.util.requireRole
+import org.mitre.web.util.requireUserScope
 import org.mitre.web.util.resourceSetService
 import org.mitre.web.util.scopeService
 
@@ -64,9 +60,8 @@ object ResourceSetRegistrationEndpoint: KtorEndpoint {
 
 //    @RequestMapping(method = [RequestMethod.POST], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE], consumes = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.createResourceSet() {
-        val auth: Authentication = requireRole(GrantedAuthority.ROLE_USER) { return }
+        val auth = requireUserScope(SystemScopeService.UMA_PROTECTION_SCOPE)
         val jsonString = call.receiveText()
-        ensureOAuthScope(auth, SystemScopeService.UMA_PROTECTION_SCOPE)
 
         var rs = parseResourceSet(jsonString) ?: run {
             logger.warn("Resource set registration missing body.")
@@ -96,7 +91,7 @@ object ResourceSetRegistrationEndpoint: KtorEndpoint {
 
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.readResourceSet() {
-        val auth = requireRole(GrantedAuthority.ROLE_USER, SystemScopeService.UMA_PROTECTION_SCOPE) { return }
+        val auth = requireUserScope(SystemScopeService.UMA_PROTECTION_SCOPE)
         val id = call.request.queryParameters["id"]!!.toLong()
 
         var rs = resourceSetService.getById(id)
@@ -114,7 +109,7 @@ object ResourceSetRegistrationEndpoint: KtorEndpoint {
 
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.PUT], consumes = [MimeTypeUtils.APPLICATION_JSON_VALUE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.updateResourceSet() {
-        val auth = requireRole(GrantedAuthority.ROLE_USER, SystemScopeService.UMA_PROTECTION_SCOPE) { return }
+        val auth = requireUserScope(SystemScopeService.UMA_PROTECTION_SCOPE)
         val id = call.request.queryParameters["id"]!!.toLong()
 
         val newRs = parseResourceSet(call.receiveText())
@@ -142,7 +137,7 @@ object ResourceSetRegistrationEndpoint: KtorEndpoint {
 
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.DELETE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.deleteResourceSet() {
-        val auth = requireRole(GrantedAuthority.ROLE_USER, SystemScopeService.UMA_PROTECTION_SCOPE) { return }
+        val auth = requireUserScope(SystemScopeService.UMA_PROTECTION_SCOPE)
         val id = call.request.queryParameters["id"]!!.toLong()
 
         val rs = resourceSetService.getById(id)
@@ -167,7 +162,7 @@ object ResourceSetRegistrationEndpoint: KtorEndpoint {
 
 //    @RequestMapping(method = [RequestMethod.GET], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.listResourceSets() {
-        val auth = requireRole(GrantedAuthority.ROLE_USER,  SystemScopeService.UMA_PROTECTION_SCOPE) { return }
+        val auth = requireUserScope(SystemScopeService.UMA_PROTECTION_SCOPE)
 
         val owner = auth.name
 

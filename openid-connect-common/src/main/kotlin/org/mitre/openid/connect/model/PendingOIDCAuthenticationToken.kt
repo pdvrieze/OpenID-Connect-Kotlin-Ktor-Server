@@ -17,7 +17,7 @@ package org.mitre.openid.connect.model
 
 import com.nimbusds.jwt.JWT
 import com.nimbusds.jwt.JWTParser
-import org.mitre.oauth2.model.Authentication
+import org.mitre.oauth2.model.OldAuthentication
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.openid.connect.config.ServerConfiguration
 import java.io.IOException
@@ -51,7 +51,7 @@ class PendingOIDCAuthenticationToken(//
 
     val accessTokenValue: String,
     val refreshTokenValue: String,
-) : Authentication {
+) : OldAuthentication {
     private val principal: Map<String, String> =
         mapOf("sub" to sub, "iss" to issuer)
 

@@ -1,6 +1,8 @@
 package org.mitre.openid.connect.service.impl.ktor
 
 import com.nimbusds.jwt.JWTParser
+import io.github.pdvrieze.auth.SavedAuthentication
+import io.github.pdvrieze.auth.service.impl.ktor.mockAuth
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.platform.commons.util.ReflectionUtils
@@ -9,7 +11,7 @@ import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.KtorAuthenticationHolder
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
-import org.mitre.oauth2.model.SavedUserAuthentication
+import org.mitre.oauth2.model.OldSavedUserAuthentication
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.request.AuthorizationRequest.Approval
 import org.mitre.oauth2.model.request.PlainAuthorizationRequest
@@ -622,7 +624,7 @@ abstract class TestMITREiDDataServiceBase<DS : KtorIdDataService> {
             b.redirectUri = "http://foo.com"
             b.requestTime = now.minusSeconds(2)
         }.build()
-        val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
+        val mockAuth1 = mockAuth("mockAuth1")
         val auth1 = AuthenticatedAuthorizationRequest(req1, mockAuth1)
 
         val holder1 = KtorAuthenticationHolder(auth1, id = 1L)
@@ -632,7 +634,7 @@ abstract class TestMITREiDDataServiceBase<DS : KtorIdDataService> {
             b.redirectUri = "http://bar.com"
             b.requestTime = now
         }.build()
-        val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
+        val mockAuth2 = mockAuth("mockAuth2")
         val auth2 = AuthenticatedAuthorizationRequest(req2, mockAuth2)
 
         val holder2 = KtorAuthenticationHolder(auth2, id = 2L)
@@ -793,7 +795,7 @@ abstract class TestMITREiDDataServiceBase<DS : KtorIdDataService> {
             b.redirectUri = "http://foo.com"
             b.requestTime = now.minusSeconds(2)
         }.build()
-        val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
+        val mockAuth1 = mockAuth("mockAuth1")
         val auth1 = AuthenticatedAuthorizationRequest(req1, mockAuth1)
 
         val holder1 = KtorAuthenticationHolder(auth1, id = 1L)
@@ -818,7 +820,7 @@ abstract class TestMITREiDDataServiceBase<DS : KtorIdDataService> {
             b.requestTime = now
         }.build()
 
-        val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
+        val mockAuth2 = mockAuth("mockAuth2")
         val auth2 = AuthenticatedAuthorizationRequest(req2, mockAuth2)
 
         val holder2 = KtorAuthenticationHolder(auth2, id = 2L)

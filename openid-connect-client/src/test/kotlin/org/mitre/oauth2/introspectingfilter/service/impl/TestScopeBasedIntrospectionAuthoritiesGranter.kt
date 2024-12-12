@@ -5,6 +5,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mitre.oauth2.introspectingfilter.IntrospectionResponse
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.ScopeAuthority
 
@@ -12,7 +13,7 @@ import org.mitre.oauth2.model.ScopeAuthority
  * @author jricher
  */
 class TestScopeBasedIntrospectionAuthoritiesGranter {
-    private lateinit var introspectionResponse: JsonObject
+    private lateinit var introspectionResponse: IntrospectionResponse
 
     private val granter = ScopeBasedIntrospectionAuthoritiesGranter()
 
@@ -22,7 +23,7 @@ class TestScopeBasedIntrospectionAuthoritiesGranter {
     @BeforeEach
     @Throws(Exception::class)
     fun setUp() {
-        introspectionResponse = JsonObject(emptyMap())
+        introspectionResponse = IntrospectionResponse(false)
     }
 
     /**
@@ -30,7 +31,7 @@ class TestScopeBasedIntrospectionAuthoritiesGranter {
      */
     @Test
     fun testGetAuthoritiesJsonObject_withScopes() {
-        introspectionResponse = JsonObject(mapOf("scope" to JsonPrimitive("foo bar baz batman")))
+        introspectionResponse = IntrospectionResponse(false, scopeString = "foo bar baz batman")
 
         val expected = listOf(
             GrantedAuthority.ROLE_API,
@@ -51,8 +52,7 @@ class TestScopeBasedIntrospectionAuthoritiesGranter {
      */
     @Test
     fun testGetAuthoritiesJsonObject_withoutScopes() {
-        val expected: MutableList<GrantedAuthority> = ArrayList()
-        expected.add(GrantedAuthority.ROLE_API)
+        val expected = listOf(GrantedAuthority.ROLE_API)
 
         val authorities = granter.getAuthorities(introspectionResponse)
 

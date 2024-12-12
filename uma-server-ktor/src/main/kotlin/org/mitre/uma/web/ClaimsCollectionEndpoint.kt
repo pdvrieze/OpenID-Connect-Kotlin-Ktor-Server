@@ -29,7 +29,7 @@ import org.mitre.util.getLogger
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.clientDetailsService
 import org.mitre.web.util.permissionService
-import org.mitre.web.util.requireRole
+import org.mitre.web.util.requireUserRole
 
 /**
  *
@@ -49,7 +49,7 @@ object ClaimsCollectionEndpoint : KtorEndpoint {
     }
 
     private suspend fun RoutingContext.collectClaims() {
-        val auth = requireRole(GrantedAuthority.ROLE_EXTERNAL_USER) { return }
+        val auth = requireUserRole(GrantedAuthority.ROLE_EXTERNAL_USER)
         val clientId = call.request.queryParameters["client_id"] ?: return call.respond(HttpStatusCode.BadRequest)
         var redirectUri = call.request.queryParameters["redirect_uri"]
         val ticketValue = call.request.queryParameters["ticket"] ?: return call.respond(HttpStatusCode.BadRequest)

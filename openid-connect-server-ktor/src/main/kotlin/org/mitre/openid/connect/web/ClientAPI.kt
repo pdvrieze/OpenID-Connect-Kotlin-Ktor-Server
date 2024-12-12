@@ -88,7 +88,7 @@ import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.assertionValidator
 import org.mitre.web.util.clientDetailsService
 import org.mitre.web.util.clientLogoLoadingService
-import org.mitre.web.util.requireRole
+import org.mitre.web.util.requireUserRole
 import java.text.ParseException
 
 /**
@@ -119,7 +119,7 @@ object ClientAPI: KtorEndpoint {
      */
 //    @RequestMapping(method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.apiGetAllClients() {
-        val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
+        val auth = requireUserRole()
         val clients = clientDetailsService.allClients
 
         if (GrantedAuthority.ROLE_ADMIN in auth.authorities) {
@@ -135,7 +135,7 @@ object ClientAPI: KtorEndpoint {
 //    @PreAuthorize("hasRole('ROLE_ADMIN')")
 //    @RequestMapping(method = [RequestMethod.POST], consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.apiAddClient() {
-        val auth = requireRole(GrantedAuthority.ROLE_ADMIN) { return }
+        val auth = requireUserRole(GrantedAuthority.ROLE_ADMIN)
         val clientBuilder: OAuthClientDetails.Builder
 
         val rawJson: JsonObject
@@ -215,7 +215,7 @@ object ClientAPI: KtorEndpoint {
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.PUT], consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.apiUpdateClient(
     ) {
-        val auth = requireRole(GrantedAuthority.ROLE_ADMIN) { return }
+        val auth = requireUserRole(GrantedAuthority.ROLE_ADMIN)
         val id = call.parameters["id"]!!.toLong()
 
         val clientBuilder: Builder
@@ -306,7 +306,7 @@ object ClientAPI: KtorEndpoint {
 //    @PreAuthorize("hasRole('ROLE_ADMIN')")
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.DELETE])
     suspend fun RoutingContext.apiDeleteClient(id: Long) {
-        val auth = requireRole(GrantedAuthority.ROLE_ADMIN) { return }
+        val auth = requireUserRole(GrantedAuthority.ROLE_ADMIN)
         val id = call.parameters["id"]!!.toLong()
 
         val client = clientDetailsService.getClientById(id) ?: run {
@@ -328,7 +328,7 @@ object ClientAPI: KtorEndpoint {
      */
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.apiShowClient() {
-        val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
+        val auth = requireUserRole()
         val id = call.parameters["id"]!!.toLong()
         val client = clientDetailsService.getClientById(id) ?: run {
             logger.error("apiShowClient failed; client with id $id could not be found.")
@@ -350,7 +350,7 @@ object ClientAPI: KtorEndpoint {
      */
 //    @RequestMapping(value = ["/{id}/logo"], method = [RequestMethod.GET], produces = [MediaType.IMAGE_GIF_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE])
     suspend fun RoutingContext.getClientLogo() {
-        val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
+        val auth = requireUserRole()
         val id = call.parameters["id"]!!.toLong()
         val client = clientDetailsService.getClientById(id) ?: return call.respond(HttpStatusCode.NotFound)
         val logoUri = client.logoUri?.takeUnless { it.isBlank() } ?: return call.respond(HttpStatusCode.NotFound)

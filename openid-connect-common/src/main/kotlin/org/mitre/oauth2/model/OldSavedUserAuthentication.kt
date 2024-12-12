@@ -20,13 +20,13 @@ package org.mitre.oauth2.model
  *
  * @author jricher
  */
-class SavedUserAuthentication(
+class OldSavedUserAuthentication(
     name: String,
     id: Long? = null,
     authorities: Collection<GrantedAuthority> = emptyList(),
     authenticated: Boolean = false,
     sourceClass: String? = null,
-) : Authentication {
+) : OldAuthentication {
     var id: Long? = id
 
     override var name: String = name
@@ -43,14 +43,14 @@ class SavedUserAuthentication(
     /**
      * Create a Saved Auth from an existing Auth token
      */
-    constructor(src: Authentication) : this(
+    constructor(src: OldAuthentication) : this(
         name = src.name,
         id = null,
         authorities = src.authorities,
         authenticated = src.isAuthenticated,
         // if we're copying in a saved auth, carry over the original class name
         sourceClass = when (src) {
-            is SavedUserAuthentication -> src.sourceClass
+            is OldSavedUserAuthentication -> src.sourceClass
             else -> src.javaClass.name
         },
     )
@@ -58,8 +58,8 @@ class SavedUserAuthentication(
     companion object {
         private const val serialVersionUID = -1804249963940323488L
 
-        fun from(src: Authentication): SavedUserAuthentication {
-            return src as? SavedUserAuthentication ?: SavedUserAuthentication(src)
+        fun from(src: OldAuthentication): OldSavedUserAuthentication {
+            return src as? OldSavedUserAuthentication ?: OldSavedUserAuthentication(src)
         }
     }
 }

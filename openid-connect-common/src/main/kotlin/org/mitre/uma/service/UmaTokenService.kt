@@ -1,6 +1,7 @@
 package org.mitre.uma.service
 
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
+import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.uma.model.PermissionTicket
 import org.mitre.uma.model.Policy
 
@@ -17,5 +18,5 @@ interface UmaTokenService {
         o2auth: AuthenticatedAuthorizationRequest,
         ticket: PermissionTicket,
         policy: Policy
-    ): org.mitre.oauth2.model.OAuth2AccessTokenEntity
+    ): OAuth2AccessTokenEntity
 }

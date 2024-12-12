@@ -59,7 +59,7 @@ abstract class ConnectTokenEnhancer: TokenEnhancer {
             .issuer(configBean.issuer)
             .issueTime(Date())
             .expirationTime(accessToken.expiration)
-            .subject(authentication.name)
+            .subject(authentication.principalName)
             .jwtID(UUID.randomUUID().toString()) // set a random NONCE in the middle of it
 
         if (!hasOpenIdScope) {
@@ -102,7 +102,7 @@ abstract class ConnectTokenEnhancer: TokenEnhancer {
          * OIDC and not OAuth, so we check for that as well.
          */
         if (hasOpenIdScope && !authentication.isClientOnly) {
-            val username = authentication.name
+            val username = authentication.principalName
             val userInfo = userInfoService.getByUsernameAndClientId(username, clientId)
 
             if (userInfo != null) {

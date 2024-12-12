@@ -78,11 +78,11 @@ class DefaultIntrospectionResultAssembler : JsonIntrospectionResultAssembler {
                 put(IntrospectionResultAssembler.SUB, userInfo.subject)
             } else {
                 // otherwise, use the authentication's username
-                put(IntrospectionResultAssembler.SUB, authentication.name)
+                put(IntrospectionResultAssembler.SUB, authentication.principalName)
             }
 
             authentication.userAuthentication?.let {
-                put(IntrospectionResultAssembler.USER_ID, it.name)
+                put(IntrospectionResultAssembler.USER_ID, it.principalName)
             }
 
             put(IntrospectionResultAssembler.CLIENT_ID, authentication.authorizationRequest.clientId)
@@ -124,11 +124,11 @@ class DefaultIntrospectionResultAssembler : JsonIntrospectionResultAssembler {
                 put(IntrospectionResultAssembler.SUB, userInfo.subject)
             } else {
                 // otherwise, use the authentication's username
-                put(IntrospectionResultAssembler.SUB, authentication.name)
+                put(IntrospectionResultAssembler.SUB, authentication.principalName)
             }
 
             authentication.userAuthentication?.let {
-                put(IntrospectionResultAssembler.USER_ID, it.name)
+                put(IntrospectionResultAssembler.USER_ID, it.principalName)
             }
 
             put(IntrospectionResultAssembler.CLIENT_ID, authentication.authorizationRequest.clientId)

@@ -1,5 +1,7 @@
 package org.mitre.oauth2.model.jpa
 
+import io.github.pdvrieze.auth.Authentication
+import io.github.pdvrieze.auth.SavedAuthentication
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
@@ -10,10 +12,10 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonElement
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
-import org.mitre.oauth2.model.Authentication
+import org.mitre.oauth2.model.OldAuthentication
 import org.mitre.oauth2.model.AuthenticationHolder
 import org.mitre.oauth2.model.GrantedAuthority
-import org.mitre.oauth2.model.SavedUserAuthentication
+import org.mitre.oauth2.model.OldSavedUserAuthentication
 import org.mitre.oauth2.model.convert.AuthenticationSerializer
 import org.mitre.oauth2.model.convert.SimpleGrantedAuthorityStringConverter
 import org.mitre.oauth2.model.request.AuthorizationRequest
@@ -36,7 +38,7 @@ import java.time.Instant
 */
 class AuthenticationHolderEntity @InternalForStorage constructor(
     override var id: Long? = null,
-    override var userAuthentication: SavedUserAuthentication? = null,
+    override var userAuthentication: SavedAuthentication? = null,
     override var authorities: Set<GrantedAuthority> = emptySet(),
     var resourceIds: Set<String>? = null,
     var isApproved: Boolean = false,
@@ -66,7 +68,7 @@ class AuthenticationHolderEntity @InternalForStorage constructor(
         id: Long? = null
     ): this(
         id = id,
-        userAuthentication = authentication?.let(SavedUserAuthentication.Companion::from),
+        userAuthentication = authentication?.let(SavedAuthentication.Companion::from),
         authorities = o2Request.authorities.toHashSet(),
         resourceIds = o2Request.resourceIds?.toHashSet(),
         isApproved = o2Request.isApproved,
@@ -112,7 +114,7 @@ class AuthenticationHolderEntity @InternalForStorage constructor(
     @OptIn(InternalForStorage::class)
     fun copy(
         id: Long? = this.id,
-        userAuth: SavedUserAuthentication? = this.userAuthentication,
+        userAuth: SavedAuthentication? = this.userAuthentication,
     ): AuthenticationHolderEntity {
         return AuthenticationHolderEntity(
             id = id,
@@ -210,7 +212,7 @@ class AuthenticationHolderEntity @InternalForStorage constructor(
         override fun toAuthenticationHolder(): AuthenticationHolderEntity {
             return AuthenticationHolderEntity(
                 id = currentId,
-                userAuthentication = userAuth?.let { it as? SavedUserAuthentication ?: SavedUserAuthentication(it) },
+                userAuthentication = userAuth?.let { SavedAuthentication.from(it) },
                 authorities = authorities,
                 resourceIds = resourceIds,
                 isApproved = isApproved,

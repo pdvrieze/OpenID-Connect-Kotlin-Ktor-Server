@@ -15,6 +15,7 @@
  */
 package org.mitre.oauth2.web
 
+import io.github.pdvrieze.auth.Authentication
 import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
@@ -27,10 +28,7 @@ import org.mitre.oauth2.exception.DeviceCodeCreationException
 import org.mitre.oauth2.exception.InvalidClientException
 import org.mitre.oauth2.exception.OAuthErrorCodes
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
-import org.mitre.oauth2.model.Authentication
-import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuthClientDetails
-import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.token.DeviceTokenGranter
 import org.mitre.oauth2.view.respondJson
@@ -46,7 +44,7 @@ import org.mitre.web.util.authRequestFactory
 import org.mitre.web.util.clientDetailsService
 import org.mitre.web.util.deviceCodeService
 import org.mitre.web.util.openIdContext
-import org.mitre.web.util.requireRole
+import org.mitre.web.util.requireUserRole
 import org.mitre.web.util.resolveAuthenticatedUser
 import org.mitre.web.util.scopeService
 import org.mitre.web.util.update
@@ -161,7 +159,7 @@ object DeviceEndpoint : KtorEndpoint {
     }
 
     private suspend fun RoutingContext.requestUserCode() {
-        val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
+        val auth = requireUserRole()
 
         val userCode = call.parameters["user_code"]
         if (!openIdContext.config.isAllowCompleteDeviceCodeUri || userCode == null) {
@@ -182,7 +180,7 @@ object DeviceEndpoint : KtorEndpoint {
 
 
     private suspend fun RoutingContext.readUserCode() {
-        val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
+        val auth = requireUserRole()
 
         val userCode = call.receiveParameters()["user_code"]
             ?: return call.respond(HttpStatusCode.BadRequest)
@@ -252,7 +250,7 @@ object DeviceEndpoint : KtorEndpoint {
     }
 
     private suspend fun RoutingContext.approveDevice() {
-        val auth = SavedUserAuthentication.from(resolveAuthenticatedUser()!!)
+        val rawAuth = resolveAuthenticatedUser() ?: return call.respond(HttpStatusCode.Unauthorized)
 
         val requestParams = call.request.queryParameters
         val receiveParameters = call.receiveParameters()
@@ -290,7 +288,7 @@ object DeviceEndpoint : KtorEndpoint {
         }
 
         // create an OAuth request for storage
-        val o2Auth = AuthenticatedAuthorizationRequest(authorizationRequest, auth)
+        val o2Auth = AuthenticatedAuthorizationRequest(authorizationRequest, rawAuth)
 
         val savedCode = deviceCodeService.approveDeviceCode(unapprovedDc, o2Auth)
 

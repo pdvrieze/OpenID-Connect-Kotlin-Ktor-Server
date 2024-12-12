@@ -27,13 +27,13 @@ import java.util.*
 class TestOAuth2AccessTokenImpl {
     @Test
     fun testFullToken() {
-        val tokenObj = buildJsonObject {
-            put("active", true)
-            put("scope", scopeString)
-            put("exp", expVal)
-            put("sub", "subject")
-            put("client_id", "123-456-789")
-        }
+        val tokenObj = IntrospectionResponse (
+            active = true,
+            scopeString= scopeString,
+            expiration = Instant.ofEpochSecond(expVal),
+            subject = "subject",
+            clientId= "123-456-789",
+        )
 
 
         val tok = OAuth2AccessTokenImpl(tokenObj, tokenString)
@@ -44,12 +44,13 @@ class TestOAuth2AccessTokenImpl {
 
     @Test
     fun testMinExp() {
-        val tokenObj = buildJsonObject {
-            put("active", true)
-            put("scope", scopeString)
-            put("sub", "subject")
-            put("client_id", "123-456-789")
-        }
+
+        val tokenObj = IntrospectionResponse (
+            active = true,
+            scopeString= scopeString,
+            subject = "subject",
+            clientId= "123-456-789",
+        )
 
         val tok = OAuth2AccessTokenImpl(tokenObj, tokenString)
 
@@ -59,13 +60,12 @@ class TestOAuth2AccessTokenImpl {
 
     @Test
     fun testNullScopes() {
-        val tokenObj = JsonObject(mapOf(
-            "active" to JsonPrimitive(true),
-            "exp" to JsonPrimitive(expVal),
-            "sub" to JsonPrimitive("subject"),
-            "client_id" to JsonPrimitive("123-456-789"),
-        ))
-
+        val tokenObj = IntrospectionResponse (
+            active = true,
+            expiration = Instant.ofEpochSecond(expVal),
+            subject = "subject",
+            clientId= "123-456-789",
+        )
         val tok = OAuth2AccessTokenImpl(tokenObj, tokenString)
 
         assertEquals(Collections.EMPTY_SET, tok.scope)
@@ -74,11 +74,11 @@ class TestOAuth2AccessTokenImpl {
 
     @Test
     fun testNullScopesMinExp() {
-        val tokenObj = buildJsonObject {
-            put("active", true)
-            put("sub", "subject")
-            put("client_id", "123-456-789")
-        }
+        val tokenObj = IntrospectionResponse (
+            active = true,
+            subject = "subject",
+            clientId= "123-456-789",
+        )
 
         val tok = OAuth2AccessTokenImpl(tokenObj, tokenString)
 

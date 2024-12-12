@@ -18,28 +18,29 @@
 package org.mitre.oauth2.introspectingfilter
 
 import com.nimbusds.jose.util.Base64
+import io.github.pdvrieze.auth.Authentication
+import io.github.pdvrieze.auth.SavedAuthentication
+import io.github.pdvrieze.auth.UserIntrospectionAuthentication
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.encodeToJsonElement
 import org.mitre.oauth2.introspectingfilter.service.IntrospectionAuthorityGranter
 import org.mitre.oauth2.introspectingfilter.service.IntrospectionConfigurationService
 import org.mitre.oauth2.introspectingfilter.service.impl.SimpleIntrospectionAuthorityGranter
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequestImpl
-import org.mitre.oauth2.model.Authentication
+import org.mitre.oauth2.model.ErrorResponse
+import org.mitre.oauth2.model.OldAuthentication
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.LocalGrantedAuthority
 import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.model.RegisteredClient
-import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.request.AuthorizationRequest
-import org.mitre.util.asBoolean
 import org.mitre.util.getLogger
 import java.time.Instant
 import kotlin.time.Duration.Companion.minutes
@@ -124,20 +125,22 @@ class IntrospectingTokenService(
         return null
     }
 
-    private fun createStoredRequest(token: JsonObject): AuthorizationRequest {
-        return json.decodeFromJsonElement(AuthorizationRequest.serializer(), token)
+    private fun createStoredRequest(token: IntrospectionResponse): AuthorizationRequest {
+        // TODO: this is braindead and invalid, but seems to be what the system does
+        return json.decodeFromJsonElement(AuthorizationRequest.serializer(), json.encodeToJsonElement(token))
     }
 
-    private fun createUserAuthentication(token: JsonObject): Authentication? {
-        val userId = (token["user_id"] ?: token["sub"] ?: return null).jsonPrimitive
-        if (!userId.isString) return null
-        val authorities = introspectionAuthorityGranter.getAuthorities(token)
+    private fun createUserAuthentication(rawToken: String, introspectionResponse: IntrospectionResponse): Authentication? {
+        if (introspectionResponse.subject == null) return null
+
+        val authorities = introspectionAuthorityGranter.getAuthorities(introspectionResponse)
             .mapTo(HashSet()) { LocalGrantedAuthority(it.authority) }
-        return PreAuthenticatedAuthenticationToken(userId.content, token, authorities)
+
+        return UserIntrospectionAuthentication(rawToken, introspectionResponse, authorities)
     }
 
-    private fun createAccessToken(token: JsonObject, tokenString: String): OAuth2AccessToken {
-        val accessToken: OAuth2AccessToken = OAuth2AccessTokenImpl(token, tokenString)
+    private fun createAccessToken(introspectionResponse: IntrospectionResponse, tokenString: String): OAuth2AccessToken {
+        val accessToken: OAuth2AccessToken = OAuth2AccessTokenImpl(introspectionResponse, tokenString)
         return accessToken
     }
 
@@ -184,37 +187,45 @@ class IntrospectingTokenService(
 
         val response = httpClient.request(requestBuilder)
         if (! response.status.isSuccess()) {
-            logger.error("Could not look up the token")
+            val error = runCatching { json.decodeFromString<ErrorResponse>(response.bodyAsText()) }.getOrNull()
+            when (error) {
+                null -> logger.error("Could not look up the token")
+                else -> logger.error("Got an error back: ${error.error}, ${error.errorDescription}")
+            }
             return null
         }
 
         val validatedToken = response.bodyAsText()
 
         // parse the json
-        val tokenResponse = (json.parseToJsonElement(validatedToken) as? JsonObject) ?: return null
+        val introspectionResponse = kotlin.runCatching { json.decodeFromString<IntrospectionResponse>(validatedToken) }
+            .getOrElse {
+                val error = runCatching { json.decodeFromString<ErrorResponse>(response.bodyAsText()) }.getOrNull()
+                when (error) {
+                    null -> logger.error("Could not parse the token")
+                    else -> logger.error("Got an error without error status: ${error.error}, ${error.errorDescription}")
+                }
+                return null
+            }
 
-        if (tokenResponse["error"] != null) {
-            // report an error?
-            logger.error("Got an error back: ${tokenResponse["error"]}, ${tokenResponse["error_description"]}")
-            return null
-        }
 
-        if (!tokenResponse["active"].asBoolean()) {
+
+        if (!introspectionResponse.active) {
             // non-valid token
             logger.info("Server returned non-active token")
             return null
         }
         // create an OAuth2Authentication
-        val userAuth = createUserAuthentication(tokenResponse)?.let {
-            it as? SavedUserAuthentication ?: SavedUserAuthentication(it)
+        val userAuth = createUserAuthentication(accessToken, introspectionResponse)?.let {
+            SavedAuthentication.from(it)
         }
-        val auth = AuthenticatedAuthorizationRequestImpl(createStoredRequest(tokenResponse), userAuth)
+        val authReq = AuthenticatedAuthorizationRequestImpl(createStoredRequest(introspectionResponse), userAuth)
         // create an OAuth2AccessToken
-        val token = createAccessToken(tokenResponse, accessToken)
+        val token = createAccessToken(introspectionResponse, accessToken)
 
         if (token.expirationInstant.isAfter(Instant.now())) {
             // Store them in the cache
-            val tco = TokenCacheObject(token, auth)
+            val tco = TokenCacheObject(token, authReq)
             if (isCacheTokens && (isCacheNonExpiringTokens || token.expirationInstant.isAfter(Instant.MIN))) {
                 authCache[accessToken] = tco
             }
@@ -255,7 +266,7 @@ class IntrospectingTokenService(
         override val name: String,
         val credentials: Any,
         override val authorities: Set<GrantedAuthority>,
-    ) : Authentication {
+    ) : OldAuthentication {
         override val isAuthenticated: Boolean get() = true
     }
 

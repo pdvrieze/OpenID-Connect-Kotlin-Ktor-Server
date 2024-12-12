@@ -22,6 +22,7 @@ import com.nimbusds.jose.JWEAlgorithm
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jose.util.JSONObjectUtils
+import io.github.pdvrieze.auth.ClientJwtAuthentication
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -31,9 +32,7 @@ import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
 import kotlinx.serialization.SerializationException
 import org.mitre.oauth2.exception.OAuthErrorCodes.*
-import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.ClientDetailsEntity
-import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
@@ -89,7 +88,7 @@ import org.mitre.web.util.blacklistedSiteService
 import org.mitre.web.util.clientDetailsService
 import org.mitre.web.util.oidcTokenService
 import org.mitre.web.util.openIdContext
-import org.mitre.web.util.requireRole
+import org.mitre.web.util.requireClientTokenScope
 import org.mitre.web.util.scopeService
 import org.mitre.web.util.tokenService
 import java.text.ParseException
@@ -220,19 +219,19 @@ object DynamicClientRegistrationEndpoint: KtorEndpoint {
 //    @PreAuthorize("hasRole('ROLE_CLIENT') and #oauth2.hasScope('" + SystemScopeService.REGISTRATION_TOKEN_SCOPE + "')")
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.readClientConfiguration() {
-        val auth = requireRole(GrantedAuthority.ROLE_CLIENT, SystemScopeService.REGISTRATION_TOKEN_SCOPE) { return }
+        val auth = requireClientTokenScope(SystemScopeService.REGISTRATION_TOKEN_SCOPE)
         val clientId = call.parameters["id"]!!
 
         val client = clientDetailsService.loadClientByClientId(clientId)
 
-        if (client != null && client.clientId == auth.authorizationRequest.clientId) {
+        if (client != null && client.clientId == auth.clientId) {
             val token = rotateRegistrationTokenIfNecessary(auth, client)
             val registered = RegisteredClient(client, token.value, clientRegistrationUri(client))
 
             return clientInformationResponseView(registered, HttpStatusCode.OK)
         } else {
             // client mismatch
-            logger.error("readClientConfiguration failed, client ID mismatch: $clientId and ${auth.authorizationRequest.clientId} do not match.")
+            logger.error("readClientConfiguration failed, client ID mismatch: $clientId and ${auth.clientId} do not match.")
             return call.respond(HttpStatusCode.Forbidden)
         }
     }
@@ -243,7 +242,7 @@ object DynamicClientRegistrationEndpoint: KtorEndpoint {
 //    @PreAuthorize("hasRole('ROLE_CLIENT') and #oauth2.hasScope('" + SystemScopeService.REGISTRATION_TOKEN_SCOPE + "')")
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.PUT], produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.updateClient() {
-        val auth = requireRole(GrantedAuthority.ROLE_CLIENT, SystemScopeService.REGISTRATION_TOKEN_SCOPE) { return }
+        val auth = requireClientTokenScope(SystemScopeService.REGISTRATION_TOKEN_SCOPE)
         val clientId = call.parameters["id"]!!
 
         val newClient: ClientDetailsEntity.Builder?
@@ -258,10 +257,10 @@ object DynamicClientRegistrationEndpoint: KtorEndpoint {
 
         val oldClient = clientDetailsService.loadClientByClientId(clientId)
 
-        if (newClient == null || oldClient == null || oldClient.clientId != auth.authorizationRequest.clientId || oldClient.clientId != newClient.clientId
+        if (oldClient == null || oldClient.clientId != auth.clientId || oldClient.clientId != newClient.clientId
         ) {
             // client mismatch
-            logger.error("updateClient failed, client ID mismatch: $clientId and ${auth.authorizationRequest.clientId} do not match.")
+            logger.error("updateClient failed, client ID mismatch: $clientId and ${auth.clientId} do not match.")
             return call.respond(HttpStatusCode.Forbidden)
         }
 
@@ -318,16 +317,16 @@ object DynamicClientRegistrationEndpoint: KtorEndpoint {
 //    @PreAuthorize("hasRole('ROLE_CLIENT') and #oauth2.hasScope('" + SystemScopeService.REGISTRATION_TOKEN_SCOPE + "')")
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.DELETE], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.deleteClient() {
-        val auth = requireRole(GrantedAuthority.ROLE_CLIENT, SystemScopeService.REGISTRATION_TOKEN_SCOPE) { return }
+        val auth = requireClientTokenScope(SystemScopeService.REGISTRATION_TOKEN_SCOPE)
         val clientId = call.parameters["id"]!!
         val client = clientDetailsService.loadClientByClientId(clientId)
 
-        if (client != null && client.clientId == auth.authorizationRequest.clientId) {
+        if (client != null && client.clientId == auth.clientId) {
             clientDetailsService.deleteClient(client)
             return call.respond(HttpStatusCode.NoContent)
         } else {
             // client mismatch
-            logger.error("readClientConfiguration failed, client ID mismatch: $clientId and ${auth.authorizationRequest.clientId} do not match.")
+            logger.error("readClientConfiguration failed, client ID mismatch: $clientId and ${auth.clientId} do not match.")
             return call.respond(HttpStatusCode.Forbidden)
         }
     }
@@ -618,33 +617,28 @@ object DynamicClientRegistrationEndpoint: KtorEndpoint {
 	 * Rotates the registration token if it's expired, otherwise returns it
 	 */
     private fun RoutingContext.rotateRegistrationTokenIfNecessary(
-        auth: AuthenticatedAuthorizationRequest,
+        auth: ClientJwtAuthentication,
         client: OAuthClientDetails
     ): OAuth2AccessTokenEntity {
-        val details = auth.authorizationRequest
-        val token = tokenService.readAccessToken(/*details.tokenValue*/TODO("Fix token handling"))
+        val token = tokenService.readAccessToken(auth.token)
         val config = openIdContext.config
 
-        if (config.regTokenLifeTime != null) {
-            try {
-                // Re-issue the token if it has been issued before [currentTime - validity]
-                val validToDate = Date(System.currentTimeMillis() - config.regTokenLifeTime!! * 1000)
-                if (token.jwt.jwtClaimsSet.issueTime.before(validToDate)) {
-                    logger.info("Rotating the registration access token for " + client.clientId)
-                    tokenService.revokeAccessToken(token)
-                    val newToken = oidcTokenService.createRegistrationAccessToken(client)
-                    tokenService.saveAccessToken(newToken!!)
-                    return newToken
-                } else {
-                    // it's not expired, keep going
-                    return token
-                }
-            } catch (e: ParseException) {
-                logger.error("Couldn't parse a known-valid token?", e)
+        val regTokenLifeTime = config.regTokenLifeTime ?: return token
+        try {
+            // Re-issue the token if it has been issued before [currentTime - validity]
+            val validToDate = Date(System.currentTimeMillis() - regTokenLifeTime * 1000)
+            if (token.jwt.jwtClaimsSet.issueTime.before(validToDate)) {
+                logger.info("Rotating the registration access token for " + client.clientId)
+                tokenService.revokeAccessToken(token)
+                val newToken = oidcTokenService.createRegistrationAccessToken(client)
+                tokenService.saveAccessToken(newToken!!)
+                return newToken
+            } else {
+                // it's not expired, keep going
                 return token
             }
-        } else {
-            // tokens don't expire, just return it
+        } catch (e: ParseException) {
+            logger.error("Couldn't parse a known-valid token?", e)
             return token
         }
     }

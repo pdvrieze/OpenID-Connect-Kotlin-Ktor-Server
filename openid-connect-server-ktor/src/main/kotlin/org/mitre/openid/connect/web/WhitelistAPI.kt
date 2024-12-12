@@ -23,10 +23,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.decodeFromJsonElement
-import kotlinx.serialization.json.jsonObject
 import org.mitre.oauth2.exception.OAuthErrorCodes
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.view.respondJson
@@ -35,7 +32,7 @@ import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.util.getLogger
 import org.mitre.util.oidJson
 import org.mitre.web.util.KtorEndpoint
-import org.mitre.web.util.requireRole
+import org.mitre.web.util.requireUserRole
 import org.mitre.web.util.whitelistedSiteService
 
 /**
@@ -66,7 +63,7 @@ object WhitelistAPI : KtorEndpoint {
      */
 //    @RequestMapping(method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.getAllWhitelistedSites() {
-        requireRole(GrantedAuthority.ROLE_USER) { return }
+        requireUserRole()
 
         return call.respondJson(whitelistedSiteService.all)
     }
@@ -77,7 +74,7 @@ object WhitelistAPI : KtorEndpoint {
 //    @PreAuthorize("hasRole('ROLE_ADMIN')")
 //    @RequestMapping(method = [RequestMethod.POST], consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.addNewWhitelistedSite() {
-        val p = requireRole(GrantedAuthority.ROLE_ADMIN) { return }
+        val p = requireUserRole(GrantedAuthority.ROLE_ADMIN)
         val json: JsonObject
 
         val whitelist: WhitelistedSite
@@ -108,7 +105,7 @@ object WhitelistAPI : KtorEndpoint {
 //    @PreAuthorize("hasRole('ROLE_ADMIN')")
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.PUT], consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.updateWhitelistedSite() {
-        val p = requireRole(GrantedAuthority.ROLE_ADMIN) { return }
+        val p = requireUserRole(GrantedAuthority.ROLE_ADMIN)
         val id = call.parameters["id"]!!.toLong()
         val json: JsonObject
 
@@ -145,7 +142,7 @@ object WhitelistAPI : KtorEndpoint {
 //    @PreAuthorize("hasRole('ROLE_ADMIN')")
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.DELETE])
     suspend fun RoutingContext.deleteWhitelistedSite() {
-        val p = requireRole(GrantedAuthority.ROLE_ADMIN) { return }
+        val p = requireUserRole(GrantedAuthority.ROLE_ADMIN)
         val id = call.parameters["id"]!!.toLong()
         val whitelistService = whitelistedSiteService
 

@@ -15,12 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mitre.oauth2.web
+package org.mitre.oauth2.web.spring
 
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.service.ClientDetailsEntityService
 import org.mitre.oauth2.service.OAuth2TokenEntityService
 import org.mitre.oauth2.service.SystemScopeService
+import org.mitre.oauth2.web.AuthenticationUtilities
 import org.mitre.openid.connect.view.HttpCodeView
 import org.mitre.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
@@ -35,7 +36,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 
 @Controller
-class RevocationEndpoint {
+class SpringRevocationEndpoint {
     @Autowired
     private lateinit var clientService: ClientDetailsEntityService
 
@@ -133,7 +134,7 @@ class RevocationEndpoint {
         /**
          * Logger for this class
          */
-        private val logger = getLogger<RevocationEndpoint>()
+        private val logger = getLogger<SpringRevocationEndpoint>()
 
         const val URL: String = "revoke"
     }

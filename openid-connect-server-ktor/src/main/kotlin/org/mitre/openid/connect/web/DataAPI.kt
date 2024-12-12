@@ -36,7 +36,7 @@ import org.mitre.util.getLogger
 import org.mitre.util.oidJson
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.openIdContext
-import org.mitre.web.util.requireRole
+import org.mitre.web.util.requireUserRole
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
@@ -77,7 +77,7 @@ class DataAPI(
 
 //    @RequestMapping(method = [RequestMethod.POST], consumes = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.importData() {
-        requireRole(GrantedAuthority.ROLE_ADMIN) { return }
+        requireUserRole(GrantedAuthority.ROLE_ADMIN)
         val data = call.receive<RawData>()
 
         val config: KtorIdDataService.ExtendedConfiguration
@@ -158,7 +158,7 @@ class DataAPI(
     @OptIn(ExperimentalSerializationApi::class)
 //    @RequestMapping(method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.exportData() {
-        val prin = requireRole(GrantedAuthority.ROLE_ADMIN) { return }
+        val prin = requireUserRole(GrantedAuthority.ROLE_ADMIN)
 
         try {
             val conf = buildJsonObject {

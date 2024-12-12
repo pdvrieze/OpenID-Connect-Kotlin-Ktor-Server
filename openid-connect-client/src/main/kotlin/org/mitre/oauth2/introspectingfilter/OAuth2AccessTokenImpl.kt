@@ -27,14 +27,11 @@ import org.mitre.util.asString
 import java.time.Instant
 import java.util.*
 
-class OAuth2AccessTokenImpl(introspectionResponse: JsonObject, tokenString: String) : OAuth2AccessToken {
+class OAuth2AccessTokenImpl(introspectionResponse: IntrospectionResponse, tokenString: String) : OAuth2AccessToken {
     override val value: String = tokenString
-    override val scope: Set<String> = introspectionResponse["scope"]
-        ?.run { asString().splitToSequence(' ').toHashSet() }
-        ?: emptySet()
+    override val scope: Set<String> = introspectionResponse.scopes
 
-    override val expirationInstant: Instant =
-        introspectionResponse["exp"]?.run { Instant.ofEpochSecond(jsonPrimitive.long) } ?: Instant.MIN
+    override val expirationInstant: Instant = introspectionResponse.expiration ?: Instant.MIN
 
     override val refreshToken: Nothing? get() = null
 

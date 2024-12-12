@@ -19,11 +19,10 @@ package org.mitre.openid.connect.web
 
 import io.ktor.server.auth.*
 import io.ktor.server.routing.*
-import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.view.respondJson
 import org.mitre.util.getLogger
 import org.mitre.web.util.KtorEndpoint
-import org.mitre.web.util.requireRole
+import org.mitre.web.util.requireUserRole
 import org.mitre.web.util.statsService
 
 object StatsAPI: KtorEndpoint {
@@ -58,7 +57,7 @@ object StatsAPI: KtorEndpoint {
 //    @PreAuthorize("hasRole('ROLE_USER')")
 //    @RequestMapping(value = ["byclientid/{id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.statsByClientId() {
-        requireRole(GrantedAuthority.ROLE_USER) { return }
+        requireUserRole()
         val clientId = call.parameters["id"]!!
         return call.respondJson(statsService.getCountForClientId(clientId))
     }

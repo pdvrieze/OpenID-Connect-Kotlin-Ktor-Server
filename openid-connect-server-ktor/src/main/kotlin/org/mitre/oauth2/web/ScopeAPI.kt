@@ -31,7 +31,8 @@ import org.mitre.openid.connect.web.RootController
 import org.mitre.util.getLogger
 import org.mitre.util.oidJson
 import org.mitre.web.util.KtorEndpoint
-import org.mitre.web.util.requireRole
+import org.mitre.web.util.requireClientRole
+import org.mitre.web.util.requireUserRole
 import org.mitre.web.util.scopeService
 
 /**
@@ -57,14 +58,14 @@ object ScopeAPI : KtorEndpoint {
 
     //    @RequestMapping(value = [""], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.getAll() {
-        requireRole(GrantedAuthority.ROLE_CLIENT) { return@getAll }
+        requireClientRole()
 
         return call.respondJson(scopeService.all)
     }
 
     //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.getScope() {
-        requireRole(GrantedAuthority.ROLE_CLIENT) { return@getScope }
+        requireClientRole()
         val id = call.parameters["id"]!!.toLong()
 
         val scope = scopeService.getById(id)
@@ -80,7 +81,7 @@ object ScopeAPI : KtorEndpoint {
     //    @PreAuthorize("hasRole('ROLE_ADMIN')")
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.PUT], produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.updateScope() {
-        requireRole(GrantedAuthority.ROLE_ADMIN) { return@updateScope }
+        val auth = requireUserRole(GrantedAuthority.ROLE_ADMIN)
 
         val id = call.parameters["id"]!!.toLong()
         val jsonText = call.receiveText().takeIf { it.isNotEmpty() }
@@ -115,7 +116,7 @@ object ScopeAPI : KtorEndpoint {
     //    @PreAuthorize("hasRole('ROLE_ADMIN')")
 //    @RequestMapping(value = [""], method = [RequestMethod.POST], produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.createScope() {
-        requireRole(GrantedAuthority.ROLE_ADMIN) { return }
+        val auth = requireUserRole(GrantedAuthority.ROLE_ADMIN)
 
         val jsonText = call.receiveText()
 
@@ -149,7 +150,7 @@ object ScopeAPI : KtorEndpoint {
     //    @PreAuthorize("hasRole('ROLE_ADMIN')")
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.DELETE])
     private suspend fun RoutingContext.deleteScope() {
-        requireRole(GrantedAuthority.ROLE_ADMIN) { return }
+        val auth = requireUserRole(GrantedAuthority.ROLE_ADMIN)
         val id = call.parameters["id"]!!.toLong()
 
         val existing = scopeService.getById(id)

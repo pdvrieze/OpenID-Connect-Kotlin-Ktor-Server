@@ -2,10 +2,11 @@ package io.github.pdvrieze.auth.repository.exposed
 
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.javatime.timestamp
 
 object SavedUserAuths : LongIdTable("saved_user_auth") {
     val name = varchar("name", 1024).nullable()
-    val authenticated = bool("authenticated").default(false)
+    val authTime = timestamp("auth_time").nullable().default(null)
     val sourceClass = varchar("source_class", 2048).nullable()
 }
 

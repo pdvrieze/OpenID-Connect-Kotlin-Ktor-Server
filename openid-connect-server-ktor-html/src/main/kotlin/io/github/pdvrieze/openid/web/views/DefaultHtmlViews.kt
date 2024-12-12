@@ -1,5 +1,7 @@
 package io.github.pdvrieze.openid.web.views
 
+import io.github.pdvrieze.auth.Authentication
+import io.github.pdvrieze.auth.UserAuthentication
 import io.github.pdvrieze.openid.web.Intl
 import io.github.pdvrieze.openid.web.WebContext
 import io.ktor.http.*
@@ -13,7 +15,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
 import org.mitre.oauth2.exception.OAuth2Exception
 import org.mitre.oauth2.exception.OAuthErrorCode
-import org.mitre.oauth2.model.Authentication
+import org.mitre.oauth2.model.OldAuthentication
 import org.mitre.oauth2.model.DeviceCode
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.SystemScope
@@ -201,10 +203,10 @@ class DefaultHtmlViews : HtmlViews {
             }
         }
 
-        override val authentication: Authentication? by lazy { openIdContext.resolveAuthenticatedUser(applicationCall) }
+        override val authentication: UserAuthentication? by lazy { openIdContext.resolveAuthenticatedUser(applicationCall) }
 
         override val userInfo: UserInfo? by lazy {
-            authentication?.let { DefaultUserInfo(it.name) }
+            authentication?.let { DefaultUserInfo(it.userId) }
         }
 
         override val userAuthorities: String?

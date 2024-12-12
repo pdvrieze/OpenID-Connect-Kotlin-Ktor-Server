@@ -24,14 +24,13 @@ import kotlinx.serialization.json.addJsonObject
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
-import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.view.respondJson
 import org.mitre.openid.connect.client.service.getIssuer
 import org.mitre.openid.connect.client.service.impl.WebfingerIssuerService
 import org.mitre.openid.connect.web.RootController
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.config
-import org.mitre.web.util.requireRole
+import org.mitre.web.util.requireUserRole
 import org.mitre.web.util.userInfoService
 
 /**
@@ -54,7 +53,7 @@ object UserClaimSearchHelper: KtorEndpoint {
 
     //    @RequestMapping(method = [RequestMethod.GET], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.search() {
-        val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
+        val auth = requireUserRole()
         // check locally first
         val email = call.request.queryParameters["email"] ?: return call.respond(HttpStatusCode.BadRequest)
 

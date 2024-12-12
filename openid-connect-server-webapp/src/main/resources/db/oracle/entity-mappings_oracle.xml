@@ -146,7 +146,7 @@
         </attributes>
     </entity>
 
-    <entity class="org.mitre.oauth2.model.SavedUserAuthentication" name="SavedUserAuthentication">
+    <entity class="org.mitre.oauth2.model.OldSavedUserAuthentication" name="SavedUserAuthentication">
         <attributes>
             <!-- changing generated value to sequence strategy (Oracle doesn't support identity) -->
             <id name="id">

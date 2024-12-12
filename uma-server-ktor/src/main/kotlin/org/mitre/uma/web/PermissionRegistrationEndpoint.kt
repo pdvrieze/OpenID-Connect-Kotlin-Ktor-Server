@@ -20,14 +20,12 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.long
 import kotlinx.serialization.json.put
 import org.mitre.oauth2.exception.OAuthErrorCodes
-import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.oauth2.view.respondJson
@@ -37,7 +35,7 @@ import org.mitre.util.getLogger
 import org.mitre.util.oidJson
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.permissionService
-import org.mitre.web.util.requireRole
+import org.mitre.web.util.requireUserScope
 import org.mitre.web.util.resourceSetService
 import org.mitre.web.util.scopeService
 
@@ -58,7 +56,7 @@ object PermissionRegistrationEndpoint: KtorEndpoint {
 
 //    @RequestMapping(method = [RequestMethod.POST], consumes = [MimeTypeUtils.APPLICATION_JSON_VALUE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.getPermissionTicket() {
-        val auth = requireRole(GrantedAuthority.ROLE_USER, SystemScopeService.UMA_PROTECTION_SCOPE) { return }
+        val auth = requireUserScope(SystemScopeService.UMA_PROTECTION_SCOPE)
 
         try {
             // parse the permission request

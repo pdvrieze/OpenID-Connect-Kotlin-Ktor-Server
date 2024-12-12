@@ -70,11 +70,11 @@ class SpringIntrospectionResultAssembler : IntrospectionResultAssembler {
             result[IntrospectionResultAssembler.SUB] = userInfo.subject
         } else {
             // otherwise, use the authentication's username
-            result[IntrospectionResultAssembler.SUB] = authentication.name
+            result[IntrospectionResultAssembler.SUB] = authentication.principalName
         }
 
         authentication.userAuthentication?.let {
-            result[IntrospectionResultAssembler.USER_ID] = it.name
+            result[IntrospectionResultAssembler.USER_ID] = it.principalName
         }
 
         result[IntrospectionResultAssembler.CLIENT_ID] = authentication.authorizationRequest.clientId
@@ -116,11 +116,11 @@ class SpringIntrospectionResultAssembler : IntrospectionResultAssembler {
             result[IntrospectionResultAssembler.SUB] = userInfo.subject
         } else {
             // otherwise, use the authentication's username
-            result[IntrospectionResultAssembler.SUB] = authentication.name
+            result[IntrospectionResultAssembler.SUB] = authentication.principalName
         }
 
         authentication.userAuthentication?.let {
-            result[IntrospectionResultAssembler.USER_ID] = it.name
+            result[IntrospectionResultAssembler.USER_ID] = it.principalName
         }
 
         result[IntrospectionResultAssembler.CLIENT_ID] = authentication.authorizationRequest.clientId

@@ -1,93 +1,104 @@
 package org.mitre.web.util
 
+import io.github.pdvrieze.auth.Authentication
+import io.github.pdvrieze.auth.ClientAuthentication
+import io.github.pdvrieze.auth.ClientJwtAuthentication
+import io.github.pdvrieze.auth.UserAuthentication
 import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
-import org.mitre.oauth2.model.Authentication
+import org.mitre.oauth2.exception.AuthenticationException
 import org.mitre.oauth2.model.GrantedAuthority
 
-suspend inline fun RoutingContext.requireRole(requiredRole: GrantedAuthority, onMissing: (Authentication?) -> Nothing): Authentication {
-    val authentication = resolveAuthenticatedUser() ?: run {
+private suspend fun RoutingContext.getAuthOrRespondUnauthorized(): Authentication {
+    return resolveAuthenticatedUser() ?: run {
         call.respond(HttpStatusCode.Unauthorized)
-        return onMissing(null)
+        throw AuthenticationException("Should be unreachable")
     }
-    if (requiredRole !in authentication.authorities) {
+}
+
+suspend fun RoutingContext.requireRole(requiredRole: GrantedAuthority): Authentication {
+    val authentication = getAuthOrRespondUnauthorized()
+    if (requiredRole !is UserAuthentication) {
         call.respond(HttpStatusCode.Forbidden)
-        return onMissing(authentication)
+        throw AuthenticationException("Should be unreachable")
     }
     return authentication
 }
 
-suspend inline fun RoutingContext.requireScope(
+suspend fun RoutingContext.requireUserRole(requiredRole: GrantedAuthority): UserAuthentication {
+    val authentication = getAuthOrRespondUnauthorized()
+    if (authentication !is UserAuthentication || requiredRole !in authentication.authorities) {
+        call.respond(HttpStatusCode.Forbidden)
+        throw AuthenticationException("Should be unreachable")
+    }
+    return authentication
+}
+
+suspend fun RoutingContext.requireUserRole(): UserAuthentication {
+    val authentication = getAuthOrRespondUnauthorized()
+    if (authentication !is UserAuthentication) {
+        call.respond(HttpStatusCode.Forbidden)
+        throw AuthenticationException("Should be unreachable")
+    }
+    return authentication
+}
+
+suspend fun RoutingContext.requireUserScope(a: GrantedAuthority, vararg scopes: String, action: () -> Nothing): UserAuthentication {
+    return requireUserScope(*scopes)
+}
+
+suspend fun RoutingContext.requireUserScope(vararg scopes: String): UserAuthentication {
+    val authentication = getAuthOrRespondUnauthorized()
+    if (authentication !is UserAuthentication || scopes.any { ! authentication.hasScope(it) }) {
+        call.respond(HttpStatusCode.Forbidden)
+        throw AuthenticationException("Should be unreachable")
+    }
+
+
+    return authentication
+}
+
+suspend fun RoutingContext.requireClientRole(): ClientAuthentication {
+    val authentication = getAuthOrRespondUnauthorized()
+    if (authentication !is ClientAuthentication) {
+        call.respond(HttpStatusCode.Forbidden)
+        throw AuthenticationException("Should be unreachable")
+    }
+    return authentication
+}
+
+suspend fun RoutingContext.requireClientTokenScope(vararg scopes: String): ClientJwtAuthentication {
+    val authentication = getAuthOrRespondUnauthorized()
+    if (authentication  !is ClientJwtAuthentication || scopes.any { ! authentication.hasScope(it) }) {
+        call.respond(HttpStatusCode.Forbidden)
+        throw AuthenticationException("Should be unreachable")
+    }
+    return authentication
+}
+
+suspend fun RoutingContext.requireScope(
     scope: String,
-    onMissing: (Authentication?) -> Nothing,
-): AuthenticatedAuthorizationRequest {
-    val authentication = resolveAuthenticatedUser() ?: run {
-        call.respond(HttpStatusCode.Unauthorized)
-        return onMissing(null)
-    }
-    TODO()
-/*
-    if (authentication !is OAuth2RequestAuthentication)  {
-        call.respond(HttpStatusCode.Unauthorized)
-        return onMissing(null)
-    }
-    if (scope !in authentication.authorizationRequest.scope) {
-        call.respond(HttpStatusCode.Forbidden)
-        return onMissing(authentication)
-    }
-    return authentication
-*/
-}
+): Authentication {
 
-/**
- * Variant that also requires scopes to be present
- */
-suspend inline fun RoutingContext.requireRole(requiredRole: GrantedAuthority, vararg scopes: String, onMissing: (Authentication?) -> Nothing): AuthenticatedAuthorizationRequest {
-    val authentication = resolveAuthenticatedUser() ?: run {
-        call.respond(HttpStatusCode.Unauthorized)
-        return onMissing(null)
-    }
-    TODO()
-/*
-    if (authentication !is OAuth2RequestAuthentication) {
-        call.respond(HttpStatusCode.Unauthorized)
-        return onMissing(authentication)
-    }
-    if (requiredRole!in authentication.authorities) {
+    val authentication = getAuthOrRespondUnauthorized()
+    if (! authentication.hasScope(scope)) {
         call.respond(HttpStatusCode.Forbidden)
-        return onMissing(authentication)
-    }
-    if (scopes.any { it !in authentication.authorizationRequest.scope }) {
-        call.respond(HttpStatusCode.Forbidden)
-        return onMissing(authentication)
-    }
-
-    return authentication
-*/
-}
-
-suspend inline fun RoutingContext.requireRoleOf(requiredRole1: GrantedAuthority, requiredRole2: GrantedAuthority, onMissing: (Authentication?) -> Nothing): Authentication {
-    val authentication = resolveAuthenticatedUser() ?: run {
-        call.respond(HttpStatusCode.Unauthorized)
-        return onMissing(null)
-    }
-    if (!(requiredRole1 in authentication.authorities || requiredRole2 in authentication.authorities)) {
-        call.respond(HttpStatusCode.Forbidden)
-        return onMissing(authentication)
+        throw AuthenticationException("Should be unreachable")
     }
     return authentication
 }
 
-suspend inline fun RoutingContext.requireRoleOf(requiredRoles: List<GrantedAuthority>, onMissing: (Authentication?) -> Nothing): Authentication {
+suspend fun RoutingContext.requireClientOrAdminRole(): Authentication {
     val authentication = resolveAuthenticatedUser() ?: run {
         call.respond(HttpStatusCode.Unauthorized)
-        return onMissing(null)
+        throw AuthenticationException("Should be unreachable")
     }
-    if (requiredRoles.none { it in authentication.authorities }) {
+    if (authentication !is ClientAuthentication &&
+        (authentication !is UserAuthentication || GrantedAuthority.ROLE_ADMIN !in authentication.authorities)) {
         call.respond(HttpStatusCode.Forbidden)
-        return onMissing(authentication)
+        throw AuthenticationException("Should be unreachable")
     }
     return authentication
 }
+

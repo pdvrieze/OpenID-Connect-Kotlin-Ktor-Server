@@ -1,8 +1,8 @@
 package org.mitre.oauth2.service
 
+import io.github.pdvrieze.auth.Authentication
+import io.github.pdvrieze.auth.SavedAuthentication
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
-import org.mitre.oauth2.model.Authentication
-import org.mitre.oauth2.model.SavedUserAuthentication
 import org.mitre.oauth2.model.request.AuthorizationRequest
 
 interface OAuth2AuthorizationCodeService {
@@ -17,7 +17,7 @@ interface OAuth2AuthorizationCodeService {
     fun createAuthorizationCode(authentication: AuthenticatedAuthorizationRequest): String
 
     fun createAuthorizationCode(request: AuthorizationRequest, auth: Authentication): String {
-        val authentication = AuthenticatedAuthorizationRequest(request, SavedUserAuthentication.from(auth))
+        val authentication = AuthenticatedAuthorizationRequest(request, SavedAuthentication.from(auth))
         return createAuthorizationCode(authentication)
     }
 

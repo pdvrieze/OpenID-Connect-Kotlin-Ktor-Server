@@ -15,13 +15,14 @@
  */
 package org.mitre.oauth2.token
 
+import io.github.pdvrieze.auth.SavedAuthentication
 import io.github.pdvrieze.openid.spring.fromSpring
 import io.github.pdvrieze.openid.spring.toSpring
 import org.mitre.oauth2.exception.AuthorizationPendingException
 import org.mitre.oauth2.exception.DeviceCodeExpiredException
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.OAuthClientDetails
-import org.mitre.oauth2.model.SavedUserAuthentication
+import org.mitre.oauth2.model.OldSavedUserAuthentication
 import org.mitre.oauth2.service.DeviceCodeService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.oauth2.common.exceptions.InvalidGrantException
@@ -78,7 +79,7 @@ class DeviceTokenGranter protected constructor(
                 // inherit the (approved) scopes from the original request
                 tokenRequest.setScope(dc.scope)
 
-                val userAuth = dc.authenticationHolder?.userAuthentication?.let { a -> SavedUserAuthentication.from(a) }
+                val userAuth = dc.authenticationHolder?.userAuthentication?.let { a -> SavedAuthentication.from(a) }
                 val auth =
                     AuthenticatedAuthorizationRequest(requestFactory.createOAuth2Request(client, tokenRequest).fromSpring(), userAuth)
 

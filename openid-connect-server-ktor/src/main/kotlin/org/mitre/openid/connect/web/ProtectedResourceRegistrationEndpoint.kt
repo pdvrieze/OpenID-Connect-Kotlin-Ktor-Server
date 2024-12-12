@@ -15,6 +15,8 @@
  */
 package org.mitre.openid.connect.web
 
+import io.github.pdvrieze.auth.ClientAuthentication
+import io.github.pdvrieze.auth.ClientJwtAuthentication
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -24,9 +26,7 @@ import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
 import kotlinx.serialization.SerializationException
 import org.mitre.oauth2.exception.OAuthErrorCodes
-import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.ClientDetailsEntity
-import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
@@ -42,7 +42,7 @@ import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.clientDetailsService
 import org.mitre.web.util.oidcTokenService
 import org.mitre.web.util.openIdContext
-import org.mitre.web.util.requireRole
+import org.mitre.web.util.requireClientTokenScope
 import org.mitre.web.util.scopeService
 import org.mitre.web.util.tokenService
 import java.text.ParseException
@@ -170,12 +170,12 @@ object ProtectedResourceRegistrationEndpoint: KtorEndpoint {
 //    @PreAuthorize("hasRole('ROLE_CLIENT') and #oauth2.hasScope('" + SystemScopeService.RESOURCE_TOKEN_SCOPE + "')")
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.readResourceConfiguration() {
-        val auth = requireRole(GrantedAuthority.ROLE_CLIENT, SystemScopeService.RESOURCE_TOKEN_SCOPE) { return }
+        val auth = requireClientTokenScope(SystemScopeService.RESOURCE_TOKEN_SCOPE)
         val client = clientDetailsService.loadClientByClientId(call.parameters["id"]!!)
 
-        if (client == null || client.clientId != auth.authorizationRequest.clientId) {
+        if (client == null || client.clientId != auth.clientId) {
             // client mismatch
-            logger.error("readResourceConfiguration failed, client ID mismatch: ${call.parameters["id"]} and ${auth.authorizationRequest.clientId} do not match.")
+            logger.error("readResourceConfiguration failed, client ID mismatch: ${call.parameters["id"]} and ${auth.clientId} do not match.")
 
             return call.respond(HttpStatusCode.Forbidden)
         }
@@ -193,7 +193,7 @@ object ProtectedResourceRegistrationEndpoint: KtorEndpoint {
 //    @PreAuthorize("hasRole('ROLE_CLIENT') and #oauth2.hasScope('" + SystemScopeService.RESOURCE_TOKEN_SCOPE + "')")
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.PUT], produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.updateProtectedResource() {
-        val auth = requireRole(GrantedAuthority.ROLE_CLIENT, SystemScopeService.RESOURCE_TOKEN_SCOPE) { return }
+        val auth = requireClientTokenScope(SystemScopeService.RESOURCE_TOKEN_SCOPE)
         val clientId = call.parameters["id"]!!
 
         val newClient: ClientDetailsEntity.Builder?
@@ -208,9 +208,9 @@ object ProtectedResourceRegistrationEndpoint: KtorEndpoint {
 
         val oldClient = clientDetailsService.loadClientByClientId(clientId)
 
-        if (oldClient?.clientId != auth.authorizationRequest.clientId || oldClient.clientId != newClient.clientId) {
+        if (oldClient?.clientId != auth.clientId || oldClient.clientId != newClient.clientId) {
             // client mismatch
-            logger.error("updateProtectedResource failed, client ID mismatch: $clientId and ${auth.authorizationRequest.clientId} do not match.")
+            logger.error("updateProtectedResource failed, client ID mismatch: $clientId and ${auth.clientId} do not match.")
             return call.respond(HttpStatusCode.Forbidden)
         }
 
@@ -285,19 +285,19 @@ object ProtectedResourceRegistrationEndpoint: KtorEndpoint {
 //    @PreAuthorize("hasRole('ROLE_CLIENT') and #oauth2.hasScope('" + SystemScopeService.RESOURCE_TOKEN_SCOPE + "')")
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.DELETE], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.deleteResource() {
-        val auth = requireRole(GrantedAuthority.ROLE_CLIENT, SystemScopeService.RESOURCE_TOKEN_SCOPE) { return }
+        val auth = requireClientTokenScope(SystemScopeService.RESOURCE_TOKEN_SCOPE)
         val clientId = call.parameters["id"]!!
         val client = clientDetailsService.loadClientByClientId(clientId)
 
         if (client == null) {
             // client mismatch
-            logger.error("readClientConfiguration failed, client ID mismatch: $clientId and ${auth.authorizationRequest.clientId} do not match.")
+            logger.error("readClientConfiguration failed, client ID mismatch: $clientId and ${auth.clientId} do not match.")
             return call.respond(HttpStatusCode.Forbidden)
         }
 
-        if (client.clientId != auth.authorizationRequest.clientId) {
+        if (client.clientId != auth.clientId) {
             // client mismatch
-            logger.error("readClientConfiguration failed, client ID mismatch: $clientId and ${auth.authorizationRequest.clientId} do not match.")
+            logger.error("readClientConfiguration failed, client ID mismatch: $clientId and ${auth.clientId} do not match.")
             return call.respond(HttpStatusCode.Forbidden)
         }
 
@@ -335,12 +335,12 @@ object ProtectedResourceRegistrationEndpoint: KtorEndpoint {
     }
 
     private suspend fun RoutingContext.fetchValidRegistrationToken(
-        auth: AuthenticatedAuthorizationRequest,
+        auth: ClientAuthentication,
         client: OAuthClientDetails
     ): OAuth2AccessTokenEntity {
         val config = openIdContext.config
-        val details = auth.authorizationRequest// as OAuth2AuthenticationDetails
-        val token = tokenService.readAccessToken(TODO("details.tokenValue"))
+        if (auth !is ClientJwtAuthentication) { call.respond(HttpStatusCode.Unauthorized); error("unreachable") }
+        val token = tokenService.readAccessToken(auth.token)
 
         val regTokenLifeTime = config.regTokenLifeTime
         if (regTokenLifeTime != null) {

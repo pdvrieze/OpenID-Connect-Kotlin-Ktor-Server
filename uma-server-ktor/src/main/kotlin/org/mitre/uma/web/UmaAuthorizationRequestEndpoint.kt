@@ -1,9 +1,9 @@
 package org.mitre.uma.web
 
+import io.github.pdvrieze.auth.TokenAuthentication
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.addAll
 import kotlinx.serialization.json.addJsonObject
@@ -56,7 +56,8 @@ object UmaAuthorizationRequestEndpoint : KtorEndpoint {
 
     //    @RequestMapping(method = [RequestMethod.POST], consumes = [MimeTypeUtils.APPLICATION_JSON_VALUE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.authorizationRequest() {
-        val auth = requireScope(SystemScopeService.UMA_AUTHORIZATION_SCOPE) { return }
+        val auth: TokenAuthentication = (requireScope(SystemScopeService.UMA_AUTHORIZATION_SCOPE) as? TokenAuthentication)
+            ?: return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST, "Invalid authentication")
 
         val obj = oidJson.parseToJsonElement(call.receiveText())
         if (obj !is JsonObject) {
@@ -90,9 +91,7 @@ object UmaAuthorizationRequestEndpoint : KtorEndpoint {
 
         if (result.isSatisfied) {
             // the service found what it was looking for, issue a token
-
             // we need to downscope this based on the required set that was matched if it was matched
-
             val token = umaTokenService.createRequestingPartyToken(auth, ticket, result.matched!!)
 
             // if we have an inbound RPT, throw it out because we're replacing it

@@ -22,7 +22,7 @@ import com.nimbusds.jwt.SignedJWT
 import org.mitre.jwt.signer.service.ClientKeyCacheService
 import org.mitre.oauth2.exception.AuthenticationException
 import org.mitre.oauth2.exception.InvalidClientException
-import org.mitre.oauth2.model.Authentication
+import org.mitre.oauth2.model.OldAuthentication
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuthClientDetails.AuthMethod
 import org.mitre.oauth2.service.ClientDetailsEntityService
@@ -47,7 +47,7 @@ class JWTBearerAuthenticationProvider(
     /**
      * Try to validate the client credentials by parsing and validating the JWT.
      */
-    suspend fun authenticate(authentication: Authentication): Authentication {
+    suspend fun authenticate(authentication: OldAuthentication): OldAuthentication {
         val jwtAuth = authentication as JWTBearerAssertionAuthenticationToken
 
 

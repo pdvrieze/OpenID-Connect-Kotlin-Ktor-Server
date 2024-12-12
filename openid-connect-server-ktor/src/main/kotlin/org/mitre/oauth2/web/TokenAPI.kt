@@ -32,7 +32,7 @@ import org.mitre.util.oidJson
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.clientDetailsService
 import org.mitre.web.util.oidcTokenService
-import org.mitre.web.util.requireRole
+import org.mitre.web.util.requireUserRole
 import org.mitre.web.util.tokenService
 
 /**
@@ -63,14 +63,14 @@ object TokenAPI : KtorEndpoint {
 
     //    @RequestMapping(value = ["/access"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.getAllAccessTokens() {
-        val p = requireRole(GrantedAuthority.ROLE_USER) { return }
+        val p = requireUserRole()
 
-        return call.respondJson(tokenService.getAllAccessTokensForUser(p.name).map { it.serialDelegate() })
+        return call.respondJson(tokenService.getAllAccessTokensForUser(p.userId).map { it.serialDelegate() })
     }
 
     //    @RequestMapping(value = ["/access/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.getAccessTokenById() {
-        val p = requireRole(GrantedAuthority.ROLE_USER) { return }
+        val p = requireUserRole()
 
         val id = call.parameters["id"]!!.toLong()
         val token = tokenService.getAccessTokenById(id)
@@ -78,7 +78,7 @@ object TokenAPI : KtorEndpoint {
         if (token == null) {
             logger.error("getToken failed; token not found: $id")
             return jsonErrorView(INVALID_TOKEN, HttpStatusCode.NotFound, "The requested token with id $id could not be found.")
-        } else if (token.authenticationHolder.name != p.name) {
+        } else if (token.authenticationHolder.principalName != p.name) {
             logger.error("getToken failed; token does not belong to principal " + p.name)
             return jsonErrorView(ACCESS_DENIED, "You do not have permission to view this token")
         } else {
@@ -88,14 +88,14 @@ object TokenAPI : KtorEndpoint {
 
     //    @RequestMapping(value = ["/access/{id}"], method = [RequestMethod.DELETE], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.deleteAccessTokenById() {
-        val p = requireRole(GrantedAuthority.ROLE_USER) { return }
+        val p = requireUserRole()
         val id = call.parameters["id"]!!.toLong()
         val token = tokenService.getAccessTokenById(id)
 
         if (token == null) {
             logger.error("getToken failed; token not found: $id")
             return jsonErrorView(INVALID_TOKEN, HttpStatusCode.NotFound, "The requested token with id $id could not be found.")
-        } else if (token.authenticationHolder.name != p.name) {
+        } else if (token.authenticationHolder.principalName != p.name) {
             logger.error("getToken failed; token does not belong to principal " + p.name)
             return jsonErrorView(ACCESS_DENIED, "You do not have permission to delete this token")
         } else {
@@ -107,7 +107,7 @@ object TokenAPI : KtorEndpoint {
     //    @PreAuthorize("hasRole('ROLE_ADMIN')")
 //    @RequestMapping(value = ["/client/{clientId}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.getAccessTokensByClientId() {
-        requireRole(GrantedAuthority.ROLE_ADMIN) { return }
+        requireUserRole(GrantedAuthority.ROLE_ADMIN)
         val clientId = call.parameters["clientId"]!!
         val client = clientDetailsService.loadClientByClientId(clientId)
             ?: return jsonErrorView(INVALID_REQUEST, HttpStatusCode.NotFound, "The requested client with id $clientId could not be found.")
@@ -119,7 +119,7 @@ object TokenAPI : KtorEndpoint {
     //    @PreAuthorize("hasRole('ROLE_ADMIN')")
 //    @RequestMapping(value = ["/registration/{clientId}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.getRegistrationTokenByClientId() {
-        requireRole(GrantedAuthority.ROLE_USER) { return }
+        val auth = requireUserRole()
         val clientId = call.parameters["clientId"]!!
         val client = clientDetailsService.loadClientByClientId(clientId)
             ?: return jsonErrorView(INVALID_REQUEST, HttpStatusCode.NotFound, "The requested client with id $clientId could not be found.")
@@ -133,7 +133,7 @@ object TokenAPI : KtorEndpoint {
     //    @PreAuthorize("hasRole('ROLE_ADMIN')")
 //    @RequestMapping(value = ["/registration/{clientId}"], method = [RequestMethod.PUT], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.rotateRegistrationTokenByClientId() {
-        val p = requireRole(GrantedAuthority.ROLE_ADMIN) { return }
+        val p = requireUserRole(GrantedAuthority.ROLE_ADMIN)
         val clientId = call.parameters["clientId"]!!
 
         val client = clientDetailsService.loadClientByClientId(clientId)
@@ -148,14 +148,14 @@ object TokenAPI : KtorEndpoint {
 
     //    @RequestMapping(value = ["/refresh"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.getAllRefreshTokens() {
-        val p = requireRole(GrantedAuthority.ROLE_USER) { return }
+        val p = requireUserRole()
         val allTokens = tokenService.getAllRefreshTokensForUser(p.name).map { it.serialDelegate() }
         return tokenApiView(oidJson.encodeToJsonElement(allTokens))
     }
 
     //    @RequestMapping(value = ["/refresh/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.getRefreshTokenById() {
-        val p = requireRole(GrantedAuthority.ROLE_USER) { return }
+        val p = requireUserRole()
         val id = call.parameters["id"]!!.toLong()
         val token = tokenService.getRefreshTokenById(id)
             ?: run {
@@ -163,7 +163,7 @@ object TokenAPI : KtorEndpoint {
                 return jsonErrorView(INVALID_TOKEN, HttpStatusCode.NotFound, "The requested token with id $id could not be found.")
             }
 
-        if (token.authenticationHolder.name != p.name) {
+        if (token.authenticationHolder.principalName != p.name) {
             logger.error("refresh token $id does not belong to principal ${p.name}")
             return jsonErrorView(ACCESS_DENIED, "You do not have permission to view this token")
         }
@@ -173,7 +173,7 @@ object TokenAPI : KtorEndpoint {
 
     //    @RequestMapping(value = ["/refresh/{id}"], method = [RequestMethod.DELETE], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.deleteRefreshTokenById() {
-        val p = requireRole(GrantedAuthority.ROLE_USER) { return }
+        val p = requireUserRole()
 
         val id = call.parameters["id"]!!.toLong()
         val token = tokenService.getRefreshTokenById(id)
@@ -182,7 +182,7 @@ object TokenAPI : KtorEndpoint {
                 return jsonErrorView(INVALID_TOKEN, HttpStatusCode.NotFound, "The requested token with id $id could not be found.")
             }
 
-        if (token.authenticationHolder.name != p.name) {
+        if (token.authenticationHolder.principalName != p.name) {
             logger.error("refresh token $id does not belong to principal ${p.name}")
             return jsonErrorView(ACCESS_DENIED, "You do not have permission to view this token")
         }

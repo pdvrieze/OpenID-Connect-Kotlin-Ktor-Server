@@ -1,6 +1,8 @@
 package io.github.pdvrieze.openid.web
 
-import org.mitre.oauth2.model.Authentication
+import io.github.pdvrieze.auth.Authentication
+import io.github.pdvrieze.auth.UserAuthentication
+import org.mitre.oauth2.model.OldAuthentication
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.config.UIConfiguration
 import org.mitre.openid.connect.model.UserInfo
@@ -10,7 +12,7 @@ interface WebContext {
 
     val csrf: ICsrf
     val userInfo: UserInfo?
-    val authentication: Authentication?
+    val authentication: UserAuthentication?
     val userAuthorities: String?
     val userInfoJson: String? get() = userInfo?.toJson()?.toString()
     val lang: String

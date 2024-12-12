@@ -3,6 +3,7 @@ package io.github.pdvrieze.auth.ktor
 import com.nimbusds.jose.crypto.RSASSAVerifier
 import com.nimbusds.jose.jwk.JWK
 import com.nimbusds.jose.jwk.RSAKey
+import io.github.pdvrieze.auth.DirectUserAuthentication
 import io.github.pdvrieze.auth.ktor.AuthCodeTest.Companion.REDIRECT_URI
 import io.github.pdvrieze.auth.ktor.plugins.OpenIdConfigurator
 import io.github.pdvrieze.auth.ktor.plugins.configureRouting
@@ -122,8 +123,8 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
                                 openIdContext.clientDetailsService.loadClientAuthenticated(cred.name, cred.password) is ClientLoadingResult.Found
                             }
                             isValidPassword(cred.name, cred.password) -> {
-                                val p = UserIdPrincipal(cred.name)
-                                sessions.update<OpenIdSessionStorage> { it?.copy(principal = p) ?: OpenIdSessionStorage(principal = p, authTime = Instant.now()) }
+                                val p = DirectUserAuthentication(cred.name, Instant.now(), emptyList())
+                                sessions.update<OpenIdSessionStorage> { it?.copy(principal = p) ?: OpenIdSessionStorage(principal = p) }
                                 p
                             }
                             else -> null

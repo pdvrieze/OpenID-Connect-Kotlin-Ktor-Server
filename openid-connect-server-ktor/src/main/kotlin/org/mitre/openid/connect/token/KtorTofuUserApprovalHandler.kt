@@ -17,7 +17,8 @@
  */
 package org.mitre.openid.connect.token
 
-import org.mitre.oauth2.model.Authentication
+import io.github.pdvrieze.auth.Authentication
+import io.github.pdvrieze.auth.UserAuthentication
 import org.mitre.oauth2.model.request.AuthorizationRequest
 import org.mitre.oauth2.model.request.OpenIdAuthorizationRequest
 import org.mitre.oauth2.service.ClientDetailsEntityService
@@ -92,7 +93,7 @@ class KtorTofuUserApprovalHandler(
      */
     override fun checkForPreApproval(
         authorizationRequest: AuthorizationRequest,
-        userAuthentication: Authentication
+        userAuthentication: UserAuthentication
     ): AuthorizationRequest {
         val requestBuilder = authorizationRequest.builder() // create a builder to update for
 
@@ -146,10 +147,10 @@ class KtorTofuUserApprovalHandler(
 
     override fun updateAfterApproval(
         authorizationRequest: AuthorizationRequest,
-        userAuthentication: Authentication,
+        userAuthentication: UserAuthentication,
         postParams: Map<String, String>
     ): AuthorizationRequest {
-        val userId = userAuthentication.name
+        val userId = userAuthentication.userId
         val clientId = authorizationRequest.clientId
         val client = clientDetailsService.loadClientByClientId(clientId)!!
         val requestBuilder = authorizationRequest.builder()

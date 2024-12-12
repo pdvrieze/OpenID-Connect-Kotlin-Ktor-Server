@@ -1,5 +1,7 @@
 package org.mitre.web
 
+import io.github.pdvrieze.auth.AuthFactor
+import io.github.pdvrieze.auth.DirectUserAuthentication
 import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
@@ -7,6 +9,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import org.mitre.oauth2.exception.OAuthErrorCodes
+import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.openid.connect.filter.PlainAuthorizationRequestEndpoint
 import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.web.util.KtorEndpoint
@@ -35,9 +38,13 @@ object FormAuthEndpoint: KtorEndpoint {
         if (!userName.isNullOrBlank() && !password.isNullOrBlank() &&
             openIdContext.checkCredential(UserPasswordCredential(userName, password))) {
 
-            val principal = UserIdPrincipal(userName)
             val oldSession = call.sessions.get<OpenIdSessionStorage>()
-            call.sessions.set(OpenIdSessionStorage(principal = principal, authTime = Instant.now()))
+            val newFactors = (oldSession?.principal as? DirectUserAuthentication)
+                ?.authMethods
+                ?.let { it + listOf(AuthFactor.PASSWORD) } ?: listOf(AuthFactor.PASSWORD)
+
+            val principal = DirectUserAuthentication(userName, Instant.now(), newFactors)
+            call.sessions.set(OpenIdSessionStorage(principal = principal))
 
             when(val authorizationRequest = oldSession?.authorizationRequest) {
                 null -> {
@@ -47,8 +54,7 @@ object FormAuthEndpoint: KtorEndpoint {
 
                 else -> with (PlainAuthorizationRequestEndpoint) {
                     val redirect = oldSession.redirectUri ?: return jsonErrorView(OAuthErrorCodes.SERVER_ERROR)
-                    val auth = openIdContext.principalToAuthentication(principal) ?: return jsonErrorView(OAuthErrorCodes.SERVER_ERROR)
-                    return respondWithAuthCode(authorizationRequest, auth, redirect, oldSession.state)
+                    return respondWithAuthCode(authorizationRequest, principal, redirect, oldSession.state)
                 }
             }
         }

@@ -17,19 +17,20 @@
  */
 package org.mitre.oauth2.web
 
+import io.github.pdvrieze.auth.ClientSecretAuthentication
+import io.github.pdvrieze.auth.TokenAuthentication
 import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.mitre.oauth2.exception.InvalidTokenException
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
-import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.util.getLogger
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.clientDetailsService
-import org.mitre.web.util.requireRoleOf
+import org.mitre.web.util.requireClientOrAdminRole
 import org.mitre.web.util.tokenService
 
 object RevocationEndpoint : KtorEndpoint {
@@ -41,7 +42,7 @@ object RevocationEndpoint : KtorEndpoint {
     private fun Route.revoke() {
         authenticate {
             get("/revoke") {
-                val auth = requireRoleOf(GrantedAuthority.ROLE_ADMIN, GrantedAuthority.ROLE_CLIENT) { return@get }
+                val auth = requireClientOrAdminRole()
 
                 val tokenValue = call.request.queryParameters["token"]
                     ?: return@get call.respond(HttpStatusCode.BadRequest)
@@ -51,7 +52,7 @@ object RevocationEndpoint : KtorEndpoint {
 
                 val clientService = clientDetailsService
 
-                if (auth is AuthenticatedAuthorizationRequest) {
+                if (auth is TokenAuthentication) {
                     // the client authenticated with OAuth, do our UMA checks
                     AuthenticationUtilities.ensureOAuthScope(auth, SystemScopeService.UMA_PROTECTION_SCOPE)
                     // get out the client that was issued the access token (not the token being revoked)
@@ -62,12 +63,13 @@ object RevocationEndpoint : KtorEndpoint {
                         ?: return@get call.respond(HttpStatusCode.BadRequest)
 
                     // the owner is the user who authorized the token in the first place
-                    val ownerId = o2a.userAuthentication?.name
+                    val ownerId = o2a.principalName
                 } else {
                     // the client authenticated directly, make sure it's got the right access
+                    if (auth !is ClientSecretAuthentication) return@get call.respond(HttpStatusCode.BadRequest)
 
                     // direct authentication puts the client_id into the authentication's name field
-                    val authClientId = auth.name
+                    val authClientId = auth.clientId
                     authClient = clientService.loadClientByClientId(authClientId)
                         ?: return@get call.respond(HttpStatusCode.BadRequest)
 

@@ -1,5 +1,6 @@
 package io.github.pdvrieze.auth.repository.exposed
 
+import io.github.pdvrieze.auth.SavedAuthentication
 import io.github.pdvrieze.auth.exposed.RepositoryBase
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ResultRow
@@ -15,11 +16,12 @@ import org.mitre.data.PageCriteria
 import org.mitre.oauth2.model.AuthenticationHolder
 import org.mitre.oauth2.model.KtorAuthenticationHolder
 import org.mitre.oauth2.model.LocalGrantedAuthority
-import org.mitre.oauth2.model.SavedUserAuthentication
+import org.mitre.oauth2.model.OldSavedUserAuthentication
 import org.mitre.oauth2.model.request.InternalForStorage
 import org.mitre.oauth2.model.request.OpenIdAuthorizationRequest
 import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
+import java.time.Instant
 
 class ExposedAuthenticationHolderRepository(database: Database) :
     RepositoryBase(
@@ -74,22 +76,31 @@ class ExposedAuthenticationHolderRepository(database: Database) :
         val oldId = a.id
 
         val inputUserAuth = a.userAuthentication
-        val userName = inputUserAuth?.name
+        val userName = inputUserAuth?.principalName
 
-        val userAuth: SavedUserAuthentication?
+        val userAuth: OldSavedUserAuthentication?
         if (userName != null) {
+            val isAuth = inputUserAuth.authTime.isAfter(Instant.EPOCH)
             val userAuthId =
                 SavedUserAuths.select(SavedUserAuths.id)
                     .where {
                         (SavedUserAuths.name eq userName)
-                            .and { SavedUserAuths.authenticated eq inputUserAuth.isAuthenticated }
+                            .and {
+                                when {
+                                    isAuth -> SavedUserAuths.authTime.isNotNull()
+                                    else -> SavedUserAuths.authTime.isNull()
+                                }
+                            }
                     }.singleOrNull()
                     ?.get(SavedUserAuths.id)
                     ?: SavedUserAuths.insertAndGetId {
                         it[this.name] = userName
-                        it[this.authenticated] = inputUserAuth.isAuthenticated
+                        it[this.authTime] = when {
+                            isAuth -> inputUserAuth.authTime
+                            else -> null
+                        }
                     }
-            userAuth = SavedUserAuthentication(name = userName, id = userAuthId.value)
+            userAuth = OldSavedUserAuthentication(name = userName, id = userAuthId.value)
         } else {
             userAuth = null
         }
@@ -241,10 +252,11 @@ private fun ResultRow.toAuthenticationHolder(): AuthenticationHolder {
         }.build()
 
         KtorAuthenticationHolder(userAuth, authReq, authHolderId)
+        TODO()
     }
 }
 
-private fun ResultRow.toUserAuth(): SavedUserAuthentication {
+private fun ResultRow.toUserAuth(): SavedAuthentication {
     val r = this
     val savedUserId = r[SavedUserAuths.id].value
 
@@ -253,12 +265,13 @@ private fun ResultRow.toUserAuth(): SavedUserAuthentication {
         .map { LocalGrantedAuthority(it[authority]!!) } }
 
     return with(SavedUserAuths) {
-        SavedUserAuthentication(
-            name = r[name]!!,
+        SavedAuthentication(
+            principalName = r[name]!!,
             id = savedUserId,
+            authTime = r[authTime] ?: Instant.EPOCH,
             authorities = authorities,
-            authenticated = r[authenticated],
-            sourceClass = r[sourceClass]
+            scope = emptySet(),
+            sourceClass = r[sourceClass],
         )
     }
 

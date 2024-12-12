@@ -18,11 +18,12 @@
 package org.mitre.oauth2.introspectingfilter.service
 
 import kotlinx.serialization.json.JsonObject
+import org.mitre.oauth2.introspectingfilter.IntrospectionResponse
 import org.mitre.oauth2.model.GrantedAuthority
 
 /**
  * @author jricher
  */
 interface IntrospectionAuthorityGranter {
-    fun getAuthorities(introspectionResponse: JsonObject): List<GrantedAuthority>
+    fun getAuthorities(introspectionResponse: IntrospectionResponse): List<GrantedAuthority>
 }

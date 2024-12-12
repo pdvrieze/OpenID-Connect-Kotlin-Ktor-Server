@@ -1,5 +1,8 @@
 package org.mitre.web.util
 
+import io.github.pdvrieze.auth.Authentication
+import io.github.pdvrieze.auth.UserAuthentication
+import io.github.pdvrieze.auth.ktor.KtorOpenIdContext
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.routing.*
@@ -11,7 +14,7 @@ import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.jwt.signer.service.impl.SymmetricKeyJWTValidatorCacheService
 import org.mitre.oauth2.TokenEnhancer
 import org.mitre.oauth2.assertion.AssertionOAuth2RequestFactory
-import org.mitre.oauth2.model.Authentication
+import org.mitre.oauth2.model.OldAuthentication
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2ClientRepository
 import org.mitre.oauth2.repository.OAuth2TokenRepository
@@ -51,8 +54,7 @@ import org.mitre.uma.service.UmaTokenService
 import org.mitre.web.HtmlViews
 
 interface OpenIdContext {
-    fun resolveAuthenticatedUser(authenticationContext: ApplicationCall): Authentication?
-    fun principalToAuthentication(principal: UserIdPrincipal): Authentication?
+    fun resolveAuthenticatedUser(authenticationContext: ApplicationCall): UserAuthentication?
 
     fun checkCredential(credential: UserPasswordCredential): Boolean
 
@@ -121,10 +123,10 @@ interface OpenIdContext {
 
 
 //  PipelineContext<Unit, ApplicationCall>
-val RoutingContext.openIdContext: OpenIdContext
+val RoutingContext.openIdContext: KtorOpenIdContext
     get() = call.application.plugin(OpenIdContextPlugin).context
 
-val ApplicationCall.openIdContext: OpenIdContext
+val ApplicationCall.openIdContext: KtorOpenIdContext
     get() = application.plugin(OpenIdContextPlugin).context
 
 fun RoutingContext.resolveAuthenticatedUser(): Authentication? {
@@ -228,7 +230,7 @@ val RoutingContext.whitelistedSiteRepository: WhitelistedSiteRepository
     get() = openIdContext.whitelistedSiteRepository
 //endregion
 
-class OpenIdContextPlugin(val context: OpenIdContext) {
+class OpenIdContextPlugin(val context: KtorOpenIdContext) {
 
     private val configuration: ConfigurationImpl = ConfigurationImpl()
 
@@ -252,10 +254,10 @@ class OpenIdContextPlugin(val context: OpenIdContext) {
     }
 
     interface Configuration {
-        var context: OpenIdContext?
+        var context: KtorOpenIdContext?
     }
 
     private class ConfigurationImpl : Configuration {
-        override var context: OpenIdContext? = null
+        override var context: KtorOpenIdContext? = null
     }
 }

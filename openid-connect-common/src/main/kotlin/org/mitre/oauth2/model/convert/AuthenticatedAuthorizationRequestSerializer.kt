@@ -1,5 +1,7 @@
 package org.mitre.oauth2.model.convert
 
+import io.github.pdvrieze.auth.Authentication
+import io.github.pdvrieze.auth.SavedAuthentication
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -10,8 +12,8 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.decodeStructure
 import kotlinx.serialization.encoding.encodeStructure
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
-import org.mitre.oauth2.model.Authentication
-import org.mitre.oauth2.model.SavedUserAuthentication
+import org.mitre.oauth2.model.OldAuthentication
+import org.mitre.oauth2.model.OldSavedUserAuthentication
 import org.mitre.oauth2.model.request.AuthorizationRequest
 
 
@@ -34,13 +36,13 @@ object AuthenticatedAuthorizationRequestSerializer : KSerializer<AuthenticatedAu
     override fun deserialize(decoder: Decoder): AuthenticatedAuthorizationRequest {
         return decoder.decodeStructure(descriptor) {
             var storedRequest: AuthorizationRequest? = null
-            var userAuthentication: SavedUserAuthentication? = null
+            var userAuthentication: SavedAuthentication? = null
             while (true) {
                 when (val i = decodeElementIndex(descriptor)) {
                     0 -> storedRequest = decodeSerializableElement(descriptor, i, authorizationRequestSerializer, storedRequest)
 
                     1 -> userAuthentication =
-                        decodeSerializableElement(descriptor, i, savedUserAuthenticationSerializer, userAuthentication) as SavedUserAuthentication
+                        decodeSerializableElement(descriptor, i, savedUserAuthenticationSerializer, userAuthentication) as SavedAuthentication
                     CompositeDecoder.DECODE_DONE -> break
 
                     else -> error("Can not deserialize value")

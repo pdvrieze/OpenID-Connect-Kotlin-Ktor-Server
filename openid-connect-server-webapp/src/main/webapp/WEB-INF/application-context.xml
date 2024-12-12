@@ -57,7 +57,7 @@
 			<mvc:exclude-mapping path="/#{T(org.mitre.openid.connect.web.RootController).API_URL}/**" />
 			<mvc:exclude-mapping path="/#{T(org.mitre.oauth2.web.spring.SpringDeviceEndpoint).URL}/**" />
 			<mvc:exclude-mapping path="/#{T(org.mitre.oauth2.web.IntrospectionEndpoint).URL}**" />
-			<mvc:exclude-mapping path="/#{T(org.mitre.oauth2.web.RevocationEndpoint).URL}**" />
+			<mvc:exclude-mapping path="/#{T(org.mitre.oauth2.web.spring.SpringRevocationEndpoint).URL}**" />
 					 
 			<!-- Inject the UserInfo into the response -->
 			<bean id="userInfoInterceptor" class="org.mitre.openid.connect.web.UserInfoInterceptor" />
@@ -75,7 +75,7 @@
 			<mvc:exclude-mapping path="/#{T(org.mitre.openid.connect.web.RootController).API_URL}/**" />
 			<mvc:exclude-mapping path="/#{T(org.mitre.oauth2.web.spring.SpringDeviceEndpoint).URL}/**" />
 			<mvc:exclude-mapping path="/#{T(org.mitre.oauth2.web.IntrospectionEndpoint).URL}**" />
-			<mvc:exclude-mapping path="/#{T(org.mitre.oauth2.web.RevocationEndpoint).URL}**" />
+			<mvc:exclude-mapping path="/#{T(org.mitre.oauth2.web.spring.SpringRevocationEndpoint).URL}**" />
 			<!-- Inject the server configuration into the response -->
 			<bean id="serverConfigInterceptor" class="org.mitre.openid.connect.web.ServerConfigInterceptor" />
 		</mvc:interceptor>
@@ -196,7 +196,7 @@
 		<security:csrf disabled="true"/>
 	</security:http>
 
-	<security:http pattern="/#{T(org.mitre.oauth2.web.RevocationEndpoint).URL}**"
+	<security:http pattern="/#{T(org.mitre.oauth2.web.spring.SpringRevocationEndpoint).URL}**"
 			use-expressions="true" 
 			entry-point-ref="oauthAuthenticationEntryPoint" 
 			create-session="stateless"

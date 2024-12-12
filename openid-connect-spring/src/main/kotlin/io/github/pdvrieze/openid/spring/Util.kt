@@ -1,17 +1,21 @@
 package io.github.pdvrieze.openid.spring
 
+import io.github.pdvrieze.auth.Authentication
+import io.github.pdvrieze.auth.ClientAuthentication
+import io.github.pdvrieze.auth.SavedAuthentication
+import io.github.pdvrieze.auth.TokenAuthentication
+import io.github.pdvrieze.auth.UserAuthentication
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.LocalGrantedAuthority
 import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2RefreshToken
-import org.mitre.oauth2.model.SavedUserAuthentication
+import org.mitre.oauth2.model.OldSavedUserAuthentication
 import org.mitre.oauth2.model.request.AuthorizationRequest
 import org.mitre.oauth2.model.request.InternalForStorage
 import org.mitre.oauth2.model.request.OpenIdAuthorizationRequest
 import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mitre.openid.connect.model.OIDCAuthenticationToken
 import org.mitre.openid.connect.model.PendingOIDCAuthenticationToken
-import org.springframework.security.core.Authentication
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import java.time.Instant
 import java.util.*
@@ -60,9 +64,9 @@ fun OAuth2RefreshToken.toSpring(): SpringOAuth2RefreshToken {
 
 }
 
-fun SavedUserAuthentication.toSpring(): SpringAuthentication {
-    return object: SpringAuthentication, SpringFacade<SavedUserAuthentication> {
-        override val original: SavedUserAuthentication = this@toSpring
+fun OldSavedUserAuthentication.toSpring(): SpringAuthentication {
+    return object: SpringAuthentication, SpringFacade<OldSavedUserAuthentication> {
+        override val original: OldSavedUserAuthentication = this@toSpring
         override fun getName(): String = original.name
 
         override fun getAuthorities(): Collection<SpringGrantedAuthority> {
@@ -85,6 +89,35 @@ fun SavedUserAuthentication.toSpring(): SpringAuthentication {
     }
 }
 
+fun Authentication.toSpring(): SpringAuthentication {
+    return object: SpringAuthentication, SpringFacade<Authentication> {
+        override val original: Authentication = this@toSpring
+        override fun getName(): String = when (val o = original) {
+            is UserAuthentication -> o.userId
+            is ClientAuthentication -> o.clientId
+            is SavedAuthentication -> o.principalName
+            is TokenAuthentication -> o.principalName
+        }
+
+        override fun getAuthorities(): Collection<SpringGrantedAuthority> {
+            return original.authorities.orEmpty().map { SimpleGrantedAuthority(it.authority) }.toMutableList()
+        }
+
+        override fun getCredentials(): Any? = null
+
+        override fun getDetails(): Any? = null
+
+        override fun getPrincipal(): Any {
+            return name
+        }
+
+        override fun isAuthenticated(): Boolean = original.authTime.isAfter(Instant.EPOCH)
+
+        override fun setAuthenticated(isAuthenticated: Boolean) {
+            throw UnsupportedOperationException("Setting authentication is not available on the wrapped type")
+        }
+    }
+}
 
 fun AuthenticatedAuthorizationRequest.toSpring(): SpringOAuth2Authentication =
     SpringOAuth2Authentication(authorizationRequest.toSpring(), userAuthentication?.toSpring())
@@ -172,13 +205,14 @@ fun SpringOAuth2Authentication.fromSpring(): AuthenticatedAuthorizationRequest {
     )
 }
 
-fun Authentication.fromSpring(): SavedUserAuthentication {
-    return SavedUserAuthentication(
-        name = name,
+fun SpringAuthentication.fromSpring(): SavedAuthentication {
+    return SavedAuthentication(
+        principalName = name,
         id = null,
+        authTime = if (isAuthenticated) Instant.ofEpochSecond(1L) else Instant.EPOCH,
         authorities = authorities.map { LocalGrantedAuthority(it.authority) },
-        authenticated = isAuthenticated,
-        sourceClass = this.javaClass.name
+        scope = emptySet(),
+        sourceClass = this.javaClass.name // no known scopes
     )
 }
 

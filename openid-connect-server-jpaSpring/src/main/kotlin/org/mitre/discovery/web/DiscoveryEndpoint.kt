@@ -9,7 +9,7 @@ import org.mitre.jwt.signer.service.JWTSigningAndValidationService
 import org.mitre.oauth2.model.PKCEAlgorithm
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.oauth2.web.IntrospectionEndpoint
-import org.mitre.oauth2.web.RevocationEndpoint
+import org.mitre.oauth2.web.spring.SpringRevocationEndpoint
 import org.mitre.oauth2.web.spring.SpringDeviceEndpoint
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.service.UserInfoService
@@ -349,7 +349,7 @@ class DiscoveryEndpoint {
 
         m["introspection_endpoint"] =
             baseUrl + IntrospectionEndpoint.URL // token introspection endpoint for verifying tokens
-        m["revocation_endpoint"] = baseUrl + RevocationEndpoint.URL // token revocation endpoint
+        m["revocation_endpoint"] = baseUrl + SpringRevocationEndpoint.URL // token revocation endpoint
 
         m["code_challenge_methods_supported"] = listOf(PKCEAlgorithm.plain.name, PKCEAlgorithm.S256.name)
 

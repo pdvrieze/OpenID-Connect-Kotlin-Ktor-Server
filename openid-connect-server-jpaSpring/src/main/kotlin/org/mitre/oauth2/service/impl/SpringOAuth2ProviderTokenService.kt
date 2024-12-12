@@ -18,6 +18,7 @@
 package org.mitre.oauth2.service.impl
 
 import com.nimbusds.jose.util.Base64URL
+import com.nimbusds.jwt.JWT
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.PlainJWT
 import org.mitre.data.AbstractPageOperationTemplate
@@ -389,6 +390,10 @@ class SpringOAuth2ProviderTokenService : OAuth2TokenEntityService {
             ?: throw InvalidTokenException("Access token for value $accessTokenValue was not found")
 
         return accessToken
+    }
+
+    override fun readAccessToken(token: JWT): OAuth2AccessTokenEntity {
+        TODO("not implemented")
     }
 
     /**

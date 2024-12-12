@@ -2,6 +2,7 @@ package io.github.pdvrieze.auth.ktor
 
 import com.nimbusds.jose.util.Base64URL
 import com.nimbusds.jwt.SignedJWT
+import io.github.pdvrieze.auth.DirectUserAuthentication
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -15,7 +16,7 @@ import io.ktor.util.*
 import kotlinx.serialization.json.Json
 import org.junit.Before
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
-import org.mitre.oauth2.model.SavedUserAuthentication
+import org.mitre.oauth2.model.OldSavedUserAuthentication
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mitre.oauth2.web.TokenAPI
@@ -81,8 +82,8 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
         val storedHolder = assertNotNull(storedCode.authenticationHolder)
         val storedUser = assertNotNull(storedHolder.userAuthentication, "Missing user auth in authorization code acquisition")
         assertEquals(setOf("offline_access", "scope1", "scope2"), storedHolder.authorizationRequest.scope)
-        assertEquals("user", storedUser.name)
-        assertTrue(storedUser.isAuthenticated)
+        assertEquals("user", storedUser.principalName)
+        assertTrue(storedUser.authTime.isAfter(Instant.EPOCH))
 
         assertNull(respUri.parameters["state"])
         assertNull(respUri.parameters["scope"])
@@ -105,8 +106,8 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
         val storedHolder = assertNotNull(storedCode.authenticationHolder)
         val storedUser = assertNotNull(storedHolder.userAuthentication, "Missing user auth in authorization code acquisition")
         assertEquals(setOf("scope2"), storedHolder.authorizationRequest.scope)
-        assertEquals("user", storedUser.name)
-        assertTrue(storedUser.isAuthenticated)
+        assertEquals("user", storedUser.principalName)
+        assertTrue(storedUser.authTime.isAfter(Instant.EPOCH))
     }
 
     @Test
@@ -293,8 +294,8 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
                 b.scope = setOf("offline_access")
                 b.requestTime = requestTime
             }.build(),
-            SavedUserAuthentication("user")
- )
+            DirectUserAuthentication("user", Instant.now(), emptyList())
+        )
         val origToken = testContext.tokenService.createAccessToken(req, true, emptyMap())
         val refreshToken = assertNotNull(origToken.refreshToken)
         val r = submitClient(

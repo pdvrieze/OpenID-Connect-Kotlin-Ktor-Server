@@ -19,7 +19,7 @@ package org.mitre.openid.connect.model
 
 import com.nimbusds.jwt.JWT
 import com.nimbusds.jwt.JWTParser
-import org.mitre.oauth2.model.Authentication
+import org.mitre.oauth2.model.OldAuthentication
 import org.mitre.oauth2.model.GrantedAuthority
 import java.io.IOException
 import java.io.ObjectInputStream
@@ -45,7 +45,7 @@ class OIDCAuthenticationToken(
     @field:Transient var idToken: JWT?,
     val accessTokenValue: String,
     val refreshTokenValue: String,
-) : Authentication {
+) : OldAuthentication {
 
     override val authorities: Set<GrantedAuthority> = authorities?.requireNoNulls()?.toHashSet() ?: emptySet()
     /**

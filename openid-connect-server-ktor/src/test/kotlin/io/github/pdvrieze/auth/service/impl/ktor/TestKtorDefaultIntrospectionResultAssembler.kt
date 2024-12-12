@@ -1,5 +1,8 @@
 package io.github.pdvrieze.auth.service.impl.ktor
 
+import io.github.pdvrieze.auth.AuthFactor
+import io.github.pdvrieze.auth.Authentication
+import io.github.pdvrieze.auth.DirectUserAuthentication
 import io.github.pdvrieze.auth.service.impl.DefaultIntrospectionResultAssembler
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.add
@@ -10,13 +13,13 @@ import kotlinx.serialization.json.putJsonArray
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
-import org.mitre.oauth2.model.Authentication
+import org.mitre.oauth2.model.OldAuthentication
 import org.mitre.oauth2.model.AuthenticationHolder
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.KtorAuthenticationHolder
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
-import org.mitre.oauth2.model.SavedUserAuthentication
+import org.mitre.oauth2.model.OldSavedUserAuthentication
 import org.mitre.oauth2.model.request.AuthorizationRequest
 import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mitre.oauth2.service.IntrospectionResultAssembler
@@ -349,11 +352,7 @@ class TestKtorDefaultIntrospectionResultAssembler {
     }
 
     private fun oauth2AuthenticationWithUser(request: AuthorizationRequest, username: String): AuthenticatedAuthorizationRequest {
-        val userAuthentication = object : Authentication {
-            override val name: String get() = username
-            override val authorities: Set<GrantedAuthority> get() = emptySet()
-            override val isAuthenticated: Boolean get() = true
-        }
+        val userAuthentication = mockAuth(username)
         return oauth2Authentication(request, userAuthentication)
     }
 
@@ -361,7 +360,7 @@ class TestKtorDefaultIntrospectionResultAssembler {
         request: AuthorizationRequest,
         userAuthentication: Authentication?
     ): AuthenticatedAuthorizationRequest {
-        return AuthenticatedAuthorizationRequest(request, userAuthentication?.let { SavedUserAuthentication.from(it) })
+        return AuthenticatedAuthorizationRequest(request, userAuthentication)
     }
 
     private fun oauth2Request(clientId: String, scopes: Set<String>? = null): AuthorizationRequest {
@@ -391,5 +390,12 @@ class TestKtorDefaultIntrospectionResultAssembler {
     companion object {
         val dateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ")
             .withZone(ZoneOffset.UTC)
+
     }
 }
+
+fun mockAuth(name: String) = DirectUserAuthentication(
+    name,
+    Instant.now(),
+    emptyList(),
+)

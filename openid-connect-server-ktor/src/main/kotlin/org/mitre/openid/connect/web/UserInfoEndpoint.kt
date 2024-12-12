@@ -17,12 +17,13 @@
  */
 package org.mitre.openid.connect.web
 
+import io.github.pdvrieze.auth.OpenIdAuthentication
+import io.github.pdvrieze.auth.TokenAuthentication
 import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
-import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.request.OpenIdAuthorizationRequest
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.openid.connect.view.CT_JWT
@@ -34,7 +35,7 @@ import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.clientDetailsService
 import org.mitre.web.util.encryptersService
 import org.mitre.web.util.openIdContext
-import org.mitre.web.util.requireRole
+import org.mitre.web.util.requireUserScope
 import org.mitre.web.util.scopeClaimTranslationService
 import org.mitre.web.util.signService
 import org.mitre.web.util.symetricCacheService
@@ -57,17 +58,16 @@ object UserInfoEndpoint: KtorEndpoint {
      * Get information about the user as specified in the accessToken included in this request
      */
     suspend fun RoutingContext.getInfo() {
-        val auth = requireRole(GrantedAuthority.ROLE_USER, SystemScopeService.OPENID_SCOPE) {
-            logger.error("getInfo failed; no principal. Requester is not authorized.")
-            return
-        }
+        val auth = requireUserScope(SystemScopeService.OPENID_SCOPE)
+        val clientId = (auth as? TokenAuthentication)?.clientId ?:
+            return call.respond(HttpStatusCode.Forbidden)
 
         val claimsRequest = call.request.queryParameters["claims"]
             ?.takeIf { it.isNotEmpty() }
             ?.let { oidJson.decodeFromString<OpenIdAuthorizationRequest.ClaimsRequest>(it) }
 
         val username = auth.name
-        val userInfo = userInfoService.getByUsernameAndClientId(username, auth.authorizationRequest.clientId) ?: run {
+        val userInfo = userInfoService.getByUsernameAndClientId(username, clientId) ?: run {
             logger.error("getInfo failed; user not found: $username")
             return call.respond(HttpStatusCode.NotFound)
         }
@@ -75,7 +75,7 @@ object UserInfoEndpoint: KtorEndpoint {
         // content negotiation
 
         // start off by seeing if the client has registered for a signed/encrypted JWT from here
-        val client = checkNotNull(clientDetailsService.loadClientByClientId(auth.authorizationRequest.clientId))
+        val client = checkNotNull(clientDetailsService.loadClientByClientId(clientId))
 
         val acceptedResponses = getSortedAcceptHeader()
 
@@ -115,7 +115,7 @@ object UserInfoEndpoint: KtorEndpoint {
             )
 
         } else {
-            val oidRequest = auth.authorizationRequest as? OpenIdAuthorizationRequest
+            val oidRequest = auth as? OpenIdAuthentication
             return userInfoView(
                 jwtService = signService,
                 config = openIdContext.config,
@@ -123,7 +123,7 @@ object UserInfoEndpoint: KtorEndpoint {
                 symmetricCacheService = symetricCacheService,
                 translator = scopeClaimTranslationService,
                 userInfo = userInfo,
-                scope = auth.authorizationRequest.scope,
+                scope = oidRequest?.scopes ?: emptySet(),
                 client = client,
                 authorizedByClaims = oidRequest?.requestedClaims,
                 requestedByClaims = claimsRequest,

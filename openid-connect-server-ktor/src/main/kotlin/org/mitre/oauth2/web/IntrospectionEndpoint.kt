@@ -17,6 +17,9 @@
  */
 package org.mitre.oauth2.web
 
+import io.github.pdvrieze.auth.ClientSecretAuthentication
+import io.github.pdvrieze.auth.OpenIdAuthentication
+import io.github.pdvrieze.auth.TokenAuthentication
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -67,18 +70,18 @@ object IntrospectionEndpoint: KtorEndpoint {
         val authClient: OAuthClientDetails
         val authScopes: MutableSet<String> = HashSet()
 
-        if (auth is AuthenticatedAuthorizationRequest) {
+        if (auth is TokenAuthentication) {
             // the client authenticated with OAuth, do our UMA checks
             AuthenticationUtilities.ensureOAuthScope(auth, SystemScopeService.UMA_PROTECTION_SCOPE)
 
             // get out the client that was issued the access token (not the token being introspected)
             val o2a = auth
 
-            val authClientId = o2a.authorizationRequest.clientId
+            val authClientId = o2a.clientId
             authClient = checkNotNull(clientDetailsService.loadClientByClientId(authClientId))
 
             // the owner is the user who authorized the token in the first place
-            val ownerId = checkNotNull(o2a.userAuthentication).name
+            val ownerId = o2a.principalName
 
             authClient.scope?.let { authScopes.addAll(it) }
 
@@ -90,10 +93,13 @@ object IntrospectionEndpoint: KtorEndpoint {
                 authScopes.addAll(rs.scopes)
             }
         } else {
+            if (auth !is ClientSecretAuthentication) {
+                return call.respond(HttpStatusCode.BadRequest)
+            }
             // the client authenticated directly, make sure it's got the right access
 
             val authClientId =
-                auth.name // direct authentication puts the client_id into the authentication's name field
+                auth.clientId // direct authentication puts the client_id into the authentication's name field
             authClient = checkNotNull(clientDetailsService.loadClientByClientId(authClientId))
 
             // directly authenticated clients get a subset of any scopes that they've registered for
@@ -130,7 +136,7 @@ object IntrospectionEndpoint: KtorEndpoint {
             tokenClient = accessToken.client
 
             // get the user information of the user that authorized this token in the first place
-            val userName = accessToken.authenticationHolder.name
+            val userName = accessToken.authenticationHolder.principalName
             user = openIdContext.userInfoService.getByUsernameAndClientId(userName, tokenClient!!.clientId)
         } catch (e: InvalidTokenException) {
             logger.info("Invalid access token. Checking refresh token.")
@@ -142,7 +148,7 @@ object IntrospectionEndpoint: KtorEndpoint {
                 tokenClient = refreshToken.client
 
                 // get the user information of the user that authorized this token in the first place
-                val userName = refreshToken.authenticationHolder.name
+                val userName = refreshToken.authenticationHolder.principalName
                 user = userInfoService.getByUsernameAndClientId(userName, tokenClient!!.clientId)
             } catch (e2: InvalidTokenException) {
                 logger.error("Invalid refresh token")

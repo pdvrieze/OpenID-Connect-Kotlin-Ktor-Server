@@ -322,7 +322,7 @@ interface MITREidDataService {
         @EncodeDefault @SerialName("accessTokenValiditySeconds") val accessTokenValiditySeconds: Int? = null,
         @EncodeDefault @SerialName("refreshTokenValiditySeconds") val refreshTokenValiditySeconds: Int? = null,
         @EncodeDefault @SerialName("idTokenValiditySeconds") val idTokenValiditySeconds: Int? = null,
-        @EncodeDefault @SerialName("deviceTokenValiditySeconds") val deviceCodeValiditySeconds: Int? = null,
+        @EncodeDefault @SerialName("deviceTokenValiditySeconds") val deviceCodeValiditySeconds: Long? = null,
         @EncodeDefault @SerialName("redirectUris") val redirectUris: Set<String> = hashSetOf(),
         @EncodeDefault @SerialName("claimsRedirectUris") var claimsRedirectUris: Set<String>? = null,
         @EncodeDefault @SerialName("name") val clientName: String? = null,

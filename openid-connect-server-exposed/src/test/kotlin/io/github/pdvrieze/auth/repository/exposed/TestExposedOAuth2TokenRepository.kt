@@ -2,6 +2,7 @@ package io.github.pdvrieze.auth.repository.exposed
 
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.PlainJWT
+import io.github.pdvrieze.auth.SavedAuthentication
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.insertAndGetId
@@ -12,7 +13,7 @@ import org.junit.jupiter.api.Test
 import org.mitre.oauth2.model.KtorAuthenticationHolder
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
-import org.mitre.oauth2.model.SavedUserAuthentication
+import org.mitre.oauth2.model.OldSavedUserAuthentication
 import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2ClientRepository
@@ -57,14 +58,14 @@ class TestExposedOAuth2TokenRepository {
     fun testGetAccessTokensByUserName() {
         val tokens = repository.getAccessTokensByUserName("user1")
         Assertions.assertEquals(2, tokens.size.toLong())
-        Assertions.assertEquals("user1", tokens.iterator().next().authenticationHolder.userAuthentication!!.name)
+        Assertions.assertEquals("user1", tokens.iterator().next().authenticationHolder.userAuthentication!!.principalName)
     }
 
     @Test
     fun testGetRefreshTokensByUserName() {
         val tokens = repository.getRefreshTokensByUserName("user2")
         Assertions.assertEquals(3, tokens.size.toLong())
-        Assertions.assertEquals("user2", tokens.iterator().next().authenticationHolder.userAuthentication!!.name)
+        Assertions.assertEquals("user2", tokens.iterator().next().authenticationHolder.userAuthentication!!.principalName)
     }
 
     @Test
@@ -85,7 +86,7 @@ class TestExposedOAuth2TokenRepository {
 
             val userAuthId = SavedUserAuths.select(SavedUserAuths.id).where { SavedUserAuths.name eq name }.singleOrNull()?.get(SavedUserAuths.id)
                 ?: SavedUserAuths.insertAndGetId { it[this.name] = name }
-            val userAuth = SavedUserAuthentication(name = name, id = userAuthId.value)
+            val userAuth = SavedAuthentication(name, userAuthId.value, requestTime, emptyList(), emptySet())
 
             val authHolderId = AuthenticationHolders.insertAndGetId {
                 it[clientId] = "fooClient"
@@ -117,7 +118,7 @@ class TestExposedOAuth2TokenRepository {
             val requestTime = Instant.now()
             val userAuthId = SavedUserAuths.select(SavedUserAuths.id).where { SavedUserAuths.name eq name }.singleOrNull()?.get(SavedUserAuths.id)
                 ?: SavedUserAuths.insertAndGetId { it[this.name] = name }
-            val userAuth = SavedUserAuthentication(name = name, id = userAuthId.value)
+            val userAuth = SavedAuthentication(name, userAuthId.value, requestTime)
 
             val authHolderId = AuthenticationHolders.insertAndGetId {
                 it[clientId] = "myClientId"

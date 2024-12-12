@@ -1,10 +1,13 @@
 package org.mitre.oauth2.service
 
+import com.nimbusds.jwt.JWT
+import kotlinx.serialization.Serializable
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.OAuth2AccessToken
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.OAuthClientDetails
+import org.mitre.oauth2.model.convert.JWTStringConverter
 import org.mitre.oauth2.model.request.AuthorizationRequest
 import org.mitre.oauth2.resolver.OAuth2TokenResolver
 
@@ -48,6 +51,7 @@ interface OAuth2TokenEntityService : OAuth2TokenResolver {
 
     //region Resource server
     fun readAccessToken(accessTokenValue: String): OAuth2AccessTokenEntity
+    fun readAccessToken(token: JWT): OAuth2AccessTokenEntity
 
     fun loadAuthentication(accessToken: String): AuthenticatedAuthorizationRequest
     //endregion

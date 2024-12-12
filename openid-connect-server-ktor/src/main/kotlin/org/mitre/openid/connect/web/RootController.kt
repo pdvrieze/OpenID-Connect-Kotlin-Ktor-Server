@@ -19,14 +19,13 @@ package org.mitre.openid.connect.web
 
 import io.ktor.server.auth.*
 import io.ktor.server.routing.*
-import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.web.htmlAboutView
 import org.mitre.web.htmlContactView
 import org.mitre.web.htmlHomeView
 import org.mitre.web.htmlManageView
 import org.mitre.web.htmlStatsView
 import org.mitre.web.util.KtorEndpoint
-import org.mitre.web.util.requireRole
+import org.mitre.web.util.requireUserRole
 import org.mitre.web.util.statsService
 
 /**
@@ -64,7 +63,7 @@ object RootController: KtorEndpoint {
     }
 
     suspend fun RoutingContext.showClientManager() {
-        requireRole(GrantedAuthority.ROLE_USER) { return }
+        requireUserRole()
         return htmlManageView()
     }
 

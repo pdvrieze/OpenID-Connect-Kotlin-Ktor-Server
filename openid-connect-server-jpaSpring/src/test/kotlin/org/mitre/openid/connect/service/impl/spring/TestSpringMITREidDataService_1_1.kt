@@ -18,6 +18,7 @@
 package org.mitre.openid.connect.service.impl.spring
 
 import com.nimbusds.jwt.JWTParser
+import io.github.pdvrieze.auth.SavedAuthentication
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -28,7 +29,7 @@ import org.mitre.oauth2.model.AuthenticationHolder
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
-import org.mitre.oauth2.model.SavedUserAuthentication
+import org.mitre.oauth2.model.OldSavedUserAuthentication
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.jpa.AuthenticationHolderEntity
 import org.mitre.oauth2.model.request.AuthorizationRequest.Approval
@@ -714,7 +715,7 @@ class TestSpringMITREidDataService_1_1 {
             b.redirectUri = "http://foo.com"
             b.requestTime = now.minusSeconds(2)
         }.build()
-        val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
+        val mockAuth1 = SavedAuthentication(principalName = "mockAuth1", authTime = Instant.now())
         val auth1 = AuthenticatedAuthorizationRequest(req1, mockAuth1)
 
         val holder1 = AuthenticationHolderEntity(auth1, 1L)
@@ -724,7 +725,7 @@ class TestSpringMITREidDataService_1_1 {
             b.redirectUri = "http://bar.com"
             b.requestTime = now
         }.build()
-        val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
+        val mockAuth2 = SavedAuthentication(principalName = "mockAuth2", authTime = now)
         val auth2 = AuthenticatedAuthorizationRequest(req2, mockAuth2)
 
         val holder2 = AuthenticationHolderEntity(auth2, 2L)
@@ -861,7 +862,7 @@ class TestSpringMITREidDataService_1_1 {
             b.redirectUri = "http://foo.com"
             b.requestTime = now.minusSeconds(2)
         }.build()
-        val mockAuth1 = SavedUserAuthentication(name = "mockAuth1")
+        val mockAuth1 = SavedAuthentication(principalName = "mockAuth1", authTime = now)
         val auth1 = AuthenticatedAuthorizationRequest(req1, mockAuth1)
 
         val holder1 = AuthenticationHolderEntity(auth1, 1L)
@@ -887,7 +888,7 @@ class TestSpringMITREidDataService_1_1 {
             b.requestTime = now
         }.build()
 
-        val mockAuth2 = SavedUserAuthentication(name = "mockAuth2")
+        val mockAuth2 = SavedAuthentication(principalName = "mockAuth2", authTime = now)
         val auth2 = AuthenticatedAuthorizationRequest(req2, mockAuth2)
 
         val holder2 = AuthenticationHolderEntity(auth2, 2L)

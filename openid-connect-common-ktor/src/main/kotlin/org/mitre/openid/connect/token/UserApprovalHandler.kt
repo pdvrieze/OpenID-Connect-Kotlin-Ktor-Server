@@ -1,6 +1,7 @@
 package org.mitre.openid.connect.token
 
-import org.mitre.oauth2.model.Authentication
+import io.github.pdvrieze.auth.Authentication
+import io.github.pdvrieze.auth.UserAuthentication
 import org.mitre.oauth2.model.request.AuthorizationRequest
 
 interface UserApprovalHandler {
@@ -34,12 +35,12 @@ interface UserApprovalHandler {
      */
     fun checkForPreApproval(
         authorizationRequest: AuthorizationRequest,
-        userAuthentication: Authentication
+        userAuthentication: UserAuthentication,
     ): AuthorizationRequest
 
     fun updateAfterApproval(
         authorizationRequest: AuthorizationRequest,
-        userAuthentication: Authentication,
+        userAuthentication: UserAuthentication,
         postParams: Map<String, String>
     ): AuthorizationRequest
 

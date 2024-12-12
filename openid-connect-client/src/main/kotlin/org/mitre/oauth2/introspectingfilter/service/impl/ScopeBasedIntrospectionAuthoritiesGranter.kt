@@ -17,6 +17,7 @@ package org.mitre.oauth2.introspectingfilter.service.impl
 
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import org.mitre.oauth2.introspectingfilter.IntrospectionResponse
 import org.mitre.oauth2.introspectingfilter.service.IntrospectionAuthorityGranter
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.ScopeAuthority
@@ -28,13 +29,11 @@ import org.mitre.util.asString
 class ScopeBasedIntrospectionAuthoritiesGranter : IntrospectionAuthorityGranter {
     var authorities: List<GrantedAuthority> = listOf(GrantedAuthority.ROLE_API)
 
-    override fun getAuthorities(introspectionResponse: JsonObject): List<GrantedAuthority> {
-        return when (val scope = introspectionResponse["scope"]) {
-            is JsonPrimitive -> scope.asString().splitToSequence(' ')
-                .filterNot { it.isEmpty() }
-                .mapTo(authorities.toMutableList()) { ScopeAuthority(it) }
-
-            else -> authorities.toList()
+    override fun getAuthorities(introspectionResponse: IntrospectionResponse): List<GrantedAuthority> {
+        val scope = introspectionResponse.scopes
+        return when  {
+            scope.isEmpty() -> authorities.toList()
+            else -> scope.mapTo(authorities.toMutableList()) { ScopeAuthority(it) }
         }
 
     }

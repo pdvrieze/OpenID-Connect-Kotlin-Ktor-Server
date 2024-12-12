@@ -24,7 +24,6 @@ import io.ktor.server.routing.*
 import kotlinx.serialization.json.encodeToJsonElement
 import org.mitre.oauth2.exception.OAuthErrorCodes.ACCESS_DENIED
 import org.mitre.oauth2.exception.OAuthErrorCodes.INVALID_REQUEST
-import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.openid.connect.model.ApprovedSite
 import org.mitre.openid.connect.view.jsonApprovedSiteView
 import org.mitre.openid.connect.view.jsonErrorView
@@ -32,7 +31,7 @@ import org.mitre.util.getLogger
 import org.mitre.util.oidJson
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.approvedSiteService
-import org.mitre.web.util.requireRole
+import org.mitre.web.util.requireUserRole
 
 /**
  * @author jricher
@@ -56,7 +55,7 @@ object ApprovedSiteAPI : KtorEndpoint {
      */
 //    @RequestMapping(method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.getAllApprovedSites() {
-        val p = requireRole(GrantedAuthority.ROLE_USER) { return }
+        val p = requireUserRole()
 
         val all = approvedSiteService.getByUserId(p.name).map {
             val approvedAccessTokens = approvedSiteService.getApprovedAccessTokens(it).mapTo(HashSet()) { t -> t.id!! }
@@ -71,7 +70,7 @@ object ApprovedSiteAPI : KtorEndpoint {
      */
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.DELETE])
     suspend fun RoutingContext.deleteApprovedSite() {
-        val p = requireRole(GrantedAuthority.ROLE_USER) { return }
+        val p = requireUserRole()
         val id = call.parameters["id"]!!.toLong()
 
         val approvedSite = approvedSiteService.getById(id)
@@ -96,7 +95,7 @@ object ApprovedSiteAPI : KtorEndpoint {
      */
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.getApprovedSite() {
-        val p = requireRole(GrantedAuthority.ROLE_USER) { return }
+        val p = requireUserRole()
         val id = call.parameters["id"]!!.toLong()
 
         val approvedSite = approvedSiteService.getById(id)

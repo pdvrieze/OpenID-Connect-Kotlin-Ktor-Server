@@ -23,9 +23,6 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.decodeFromJsonElement
-import kotlinx.serialization.json.jsonObject
 import org.mitre.oauth2.exception.OAuthErrorCodes.INVALID_REQUEST
 import org.mitre.oauth2.exception.OAuthErrorCodes.SERVER_ERROR
 import org.mitre.oauth2.model.GrantedAuthority
@@ -36,7 +33,7 @@ import org.mitre.util.getLogger
 import org.mitre.util.oidJson
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.blacklistedSiteService
-import org.mitre.web.util.requireRole
+import org.mitre.web.util.requireUserRole
 
 /**
  * @author jricher
@@ -63,7 +60,7 @@ object BlacklistAPI : KtorEndpoint {
      */
 //    @RequestMapping(method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.getAllBlacklistedSites() {
-        val p = requireRole(GrantedAuthority.ROLE_ADMIN) { return }
+        val p = requireUserRole(GrantedAuthority.ROLE_ADMIN)
 
         return call.respondJson(blacklistedSiteService.all)
     }
@@ -73,7 +70,7 @@ object BlacklistAPI : KtorEndpoint {
      */
 //    @RequestMapping(method = [RequestMethod.POST], consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.addNewBlacklistedSite() {
-        val p = requireRole(GrantedAuthority.ROLE_ADMIN) { return }
+        val p = requireUserRole(GrantedAuthority.ROLE_ADMIN)
 
         try {
             val blacklist = oidJson.decodeFromString<BlacklistedSite>(call.receiveText())
@@ -100,7 +97,7 @@ object BlacklistAPI : KtorEndpoint {
      */
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.PUT], consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.updateBlacklistedSite() {
-        val p = requireRole(GrantedAuthority.ROLE_ADMIN) { return }
+        val p = requireUserRole(GrantedAuthority.ROLE_ADMIN)
         val id = call.parameters["id"]!!.toLong()
 
         val blacklist: BlacklistedSite
@@ -140,7 +137,7 @@ object BlacklistAPI : KtorEndpoint {
      */
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.DELETE])
     private suspend fun RoutingContext.deleteBlacklistedSite() {
-        val p = requireRole(GrantedAuthority.ROLE_ADMIN) { return }
+        val p = requireUserRole(GrantedAuthority.ROLE_ADMIN)
         val id = call.parameters["id"]!!.toLong()
 
         val blacklistService = blacklistedSiteService
@@ -159,7 +156,7 @@ object BlacklistAPI : KtorEndpoint {
      */
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.getBlacklistedSite() {
-        val p = requireRole(GrantedAuthority.ROLE_ADMIN) { return }
+        val p = requireUserRole(GrantedAuthority.ROLE_ADMIN)
         val id = call.parameters["id"]!!.toLong()
 
         val blacklistService = blacklistedSiteService

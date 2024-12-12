@@ -2,6 +2,7 @@ package org.mitre.oauth2.repository.impl
 
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.PlainJWT
+import io.github.pdvrieze.auth.SavedAuthentication
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
@@ -9,7 +10,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
-import org.mitre.oauth2.model.SavedUserAuthentication
+import org.mitre.oauth2.model.OldSavedUserAuthentication
 import org.mitre.oauth2.model.jpa.AuthenticationHolderEntity
 import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mockito.InjectMocks
@@ -46,7 +47,7 @@ class TestJpaOAuth2TokenRepository {
     fun testGetAccessTokensByUserName() {
         val tokens = repository.getAccessTokensByUserName("user1")
         assertEquals(2, tokens.size.toLong())
-        assertEquals("user1", tokens.iterator().next().authenticationHolder.userAuthentication!!.name)
+        assertEquals("user1", tokens.iterator().next().authenticationHolder.userAuthentication!!.principalName)
     }
 
     @Test
@@ -54,7 +55,7 @@ class TestJpaOAuth2TokenRepository {
     fun testGetRefreshTokensByUserName() {
         val tokens = repository.getRefreshTokensByUserName("user2")
         assertEquals(3, tokens.size.toLong())
-        assertEquals("user2", tokens.iterator().next().authenticationHolder.userAuthentication!!.name)
+        assertEquals("user2", tokens.iterator().next().authenticationHolder.userAuthentication!!.principalName)
     }
 
     @Test
@@ -74,8 +75,9 @@ class TestJpaOAuth2TokenRepository {
     private fun createAccessToken(name: String): OAuth2AccessTokenEntity {
         assert(entityManager != null)
 
-        val userAuth = SavedUserAuthentication(
-            name = name,
+        val userAuth = SavedAuthentication(
+            principalName = name,
+            authTime = Instant.now(),
         ).let {
             entityManager.merge(it)
         }
@@ -96,7 +98,7 @@ class TestJpaOAuth2TokenRepository {
     }
 
     private fun createRefreshToken(name: String): OAuth2RefreshTokenEntity {
-        val userAuth = SavedUserAuthentication(name = name).let {
+        val userAuth = SavedAuthentication(principalName = name, authTime = Instant.now()).let {
             entityManager.merge(it)
         }
 

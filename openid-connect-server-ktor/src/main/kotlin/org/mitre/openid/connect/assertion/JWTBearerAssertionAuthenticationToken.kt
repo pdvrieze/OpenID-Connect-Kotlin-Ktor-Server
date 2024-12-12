@@ -1,7 +1,7 @@
 package org.mitre.openid.connect.assertion
 
 import com.nimbusds.jwt.JWT
-import org.mitre.oauth2.model.Authentication
+import org.mitre.oauth2.model.OldAuthentication
 import org.mitre.oauth2.model.GrantedAuthority
 
 /**
@@ -10,7 +10,7 @@ import org.mitre.oauth2.model.GrantedAuthority
 class JWTBearerAssertionAuthenticationToken(
     jwt: JWT,
     override val authorities: Set<GrantedAuthority> = emptySet()
-) : Authentication {
+) : OldAuthentication {
     private var _jwt: JWT? = jwt
 
     val jwt: JWT? get() = _jwt!!

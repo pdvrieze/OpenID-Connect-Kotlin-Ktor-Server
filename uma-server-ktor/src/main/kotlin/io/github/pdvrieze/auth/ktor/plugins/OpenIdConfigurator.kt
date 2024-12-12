@@ -1,6 +1,10 @@
 package io.github.pdvrieze.auth.ktor.plugins
 
 import com.nimbusds.jose.jwk.JWK
+import io.github.pdvrieze.auth.UserAuthentication
+import io.github.pdvrieze.auth.UserService
+import io.github.pdvrieze.auth.impl.UserServiceImpl
+import io.github.pdvrieze.auth.ktor.KtorOpenIdContext
 import io.github.pdvrieze.auth.repository.exposed.ExposedAuthenticationHolderRepository
 import io.github.pdvrieze.auth.repository.exposed.ExposedAuthorizationCodeRepository
 import io.github.pdvrieze.auth.repository.exposed.ExposedDeviceCodeRepository
@@ -37,7 +41,7 @@ import org.mitre.jwt.signer.service.impl.ktor.KtorJWKSetCacheService
 import org.mitre.oauth2.TokenEnhancer
 import org.mitre.oauth2.assertion.AssertionOAuth2RequestFactory
 import org.mitre.oauth2.assertion.impl.DirectCopyRequestFactory
-import org.mitre.oauth2.model.Authentication
+import org.mitre.oauth2.model.OldAuthentication
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2ClientRepository
@@ -140,9 +144,9 @@ data class OpenIdConfigurator(
             field = value
         }
 
-    fun resolveDefault(): OpenIdContext = DefaultContext(this)
+    fun resolveDefault(): KtorOpenIdContext = DefaultContext(this)
 
-    open class DefaultContext(configurator: OpenIdConfigurator) : ExposedOpenIdContext {
+    open class DefaultContext(configurator: OpenIdConfigurator) : KtorOpenIdContext, ExposedOpenIdContext {
         @Deprecated("Hopefully not needed. Use configurator.database")
         override val database = configurator.database
         private val credentialVerifier = configurator.verifyCredential
@@ -296,6 +300,8 @@ data class OpenIdConfigurator(
         override val umaTokenService: UmaTokenService =
             DefaultUmaTokenService(authenticationHolderRepository, tokenService, clientDetailsService, config, signService)
 
+        override val userService: UserService =
+            UserServiceImpl { u, p -> configurator.verifyCredential(UserPasswordCredential(u, p)) }
         override val clientLogoLoadingService: ClientLogoLoadingService =
             KtorInMemoryClientLogoLoadingService()
 
@@ -322,20 +328,14 @@ data class OpenIdConfigurator(
 
         override val messageSource: JsonMessageSource = JsonMessageSource("/js/locale/", config)
 
-        override fun resolveAuthenticatedUser(applicationCall: ApplicationCall): Authentication? {
+        override fun resolveAuthenticatedUser(applicationCall: ApplicationCall): UserAuthentication? {
             applicationCall.attributes.getOrNull(KEY_AUTHENTICATION)?.let { return it }
 
-            val result = applicationCall.principal<UserIdPrincipal>()
-                ?.let { principalToAuthentication(it) }
-                ?: return null
+            val result = applicationCall.principal<Authentication>() as? UserAuthentication ?: return null
 
             applicationCall.attributes.put(KEY_AUTHENTICATION, result)
 
             return result
-        }
-
-        override fun principalToAuthentication(principal: UserIdPrincipal): Authentication? {
-            return UserIdPrincipalAuthentication(principal, resolveAuthServiceAuthorities(principal.name))
         }
 
         override fun checkCredential(credential: UserPasswordCredential): Boolean {
@@ -350,6 +350,6 @@ data class OpenIdConfigurator(
     }
 
     companion object {
-        private val KEY_AUTHENTICATION: AttributeKey<Authentication> = AttributeKey("authentication")
+        private val KEY_AUTHENTICATION: AttributeKey<UserAuthentication> = AttributeKey("authentication")
     }
 }

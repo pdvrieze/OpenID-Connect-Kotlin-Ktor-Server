@@ -1,5 +1,6 @@
 package org.mitre.oauth2.model
 
+import io.github.pdvrieze.auth.SavedAuthentication
 import org.mitre.oauth2.model.request.AuthorizationRequest
 
 /**
@@ -12,7 +13,7 @@ interface AuthenticationHolder: AuthenticatedAuthorizationRequest {
         get() = this
 
     val id: Long?
-    override val userAuthentication: SavedUserAuthentication?
+    override val userAuthentication: SavedAuthentication?
     override val authorizationRequest: AuthorizationRequest
 
     object DUMMY: AuthenticationHolder {

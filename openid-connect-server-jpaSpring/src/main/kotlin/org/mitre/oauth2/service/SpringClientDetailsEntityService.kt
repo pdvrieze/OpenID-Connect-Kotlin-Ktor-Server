@@ -108,7 +108,7 @@ class SpringClientDetailsEntity(private val base: OAuthClientDetails.Builder) : 
         get() = TODO("not implemented")
     override val isClearAccessTokensOnRefresh: Boolean
         get() = TODO("not implemented")
-    override val deviceCodeValiditySeconds: Int
+    override val deviceCodeValiditySeconds: Long
         get() = TODO("not implemented")
     override val claimsRedirectUris: Set<String>
         get() = TODO("not implemented")
@@ -174,7 +174,7 @@ class SpringClientDetailsEntity(private val base: OAuthClientDetails.Builder) : 
         idTokenValiditySeconds: Int?,
         createdAt: Date?,
         isClearAccessTokensOnRefresh: Boolean,
-        deviceCodeValiditySeconds: Int?,
+        deviceCodeValiditySeconds: Long?,
         claimsRedirectUris: Set<String>?,
         softwareStatement: JWT?,
         codeChallengeMethod: PKCEAlgorithm?,

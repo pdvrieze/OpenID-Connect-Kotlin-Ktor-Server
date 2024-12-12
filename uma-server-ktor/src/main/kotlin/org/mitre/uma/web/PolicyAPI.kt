@@ -20,15 +20,13 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.serialization.json.Json
-import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.view.respondJson
 import org.mitre.openid.connect.web.RootController
 import org.mitre.uma.model.Policy
 import org.mitre.util.getLogger
 import org.mitre.util.oidJson
 import org.mitre.web.util.KtorEndpoint
-import org.mitre.web.util.requireRole
+import org.mitre.web.util.requireUserRole
 import org.mitre.web.util.resourceSetService
 
 /**
@@ -60,7 +58,7 @@ object PolicyAPI: KtorEndpoint {
      */
 //    @RequestMapping(value = [""], method = [RequestMethod.GET], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.getResourceSetsForCurrentUser() {
-        val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
+        val auth = requireUserRole()
 
         return call.respondJson(resourceSetService.getAllForOwner(auth.name))
     }
@@ -70,7 +68,7 @@ object PolicyAPI: KtorEndpoint {
      */
 //    @RequestMapping(value = ["/{rsid}"], method = [RequestMethod.GET], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.getResourceSet() {
-        val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
+        val auth = requireUserRole()
         val rsid = call.parameters["rsid"]!!.toLong()
 
         val rs = resourceSetService.getById(rsid) ?: return call.respond(HttpStatusCode.NotFound)
@@ -89,7 +87,7 @@ object PolicyAPI: KtorEndpoint {
      */
 //    @RequestMapping(value = ["/{rsid}"], method = [RequestMethod.DELETE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.deleteResourceSet() {
-        val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
+        val auth = requireUserRole()
         val rsid = call.parameters["rsid"]!!.toLong()
 
         val rs = resourceSetService.getById(rsid) ?: return call.respond(HttpStatusCode.NotFound)
@@ -109,7 +107,7 @@ object PolicyAPI: KtorEndpoint {
      */
 //    @RequestMapping(value = ["/{rsid}" + POLICYURL], method = [RequestMethod.GET], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.getPoliciesForResourceSet() {
-        val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
+        val auth = requireUserRole()
         val rsid = call.parameters["rsid"]!!.toLong()
 
         val rs = resourceSetService.getById(rsid)
@@ -128,7 +126,7 @@ object PolicyAPI: KtorEndpoint {
      */
 //    @RequestMapping(value = ["/{rsid}" + POLICYURL], method = [RequestMethod.POST], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.createNewPolicyForResourceSet() {
-        val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
+        val auth = requireUserRole()
         val rsid = call.parameters["rsid"]!!.toLong()
 
         val rs = resourceSetService.getById(rsid) ?: return call.respond(HttpStatusCode.NotFound)
@@ -174,7 +172,7 @@ object PolicyAPI: KtorEndpoint {
      */
 //    @RequestMapping(value = ["/{rsid}" + POLICYURL + "/{pid}"], method = [RequestMethod.GET], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.getPolicy() {
-        val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
+        val auth = requireUserRole()
         val rsid = call.parameters["rsid"]!!.toLong()
         val pid = call.parameters["pid"]!!.toLong()
 
@@ -197,7 +195,7 @@ object PolicyAPI: KtorEndpoint {
      */
 //    @RequestMapping(value = ["/{rsid}" + POLICYURL + "/{pid}"], method = [RequestMethod.PUT], consumes = [MimeTypeUtils.APPLICATION_JSON_VALUE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.setClaimsForResourceSet() {
-        val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
+        val auth = requireUserRole()
         val rsid = call.parameters["rsid"]!!.toLong()
         val pid = call.parameters["pid"]!!.toLong()
 
@@ -255,7 +253,7 @@ object PolicyAPI: KtorEndpoint {
      */
 //    @RequestMapping(value = ["/{rsid}" + POLICYURL + "/{pid}"], method = [RequestMethod.DELETE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.deleteResourceSetPolicy() {
-        val auth = requireRole(GrantedAuthority.ROLE_USER) { return }
+        val auth = requireUserRole()
         val rsid = call.parameters["rsid"]!!.toLong()
         val pid = call.parameters["pid"]!!.toLong()
 

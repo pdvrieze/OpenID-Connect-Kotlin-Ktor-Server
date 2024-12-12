@@ -16,6 +16,7 @@
 package org.mitre.openid.connect.service.impl.ktor
 
 import com.nimbusds.jwt.JWTParser
+import io.github.pdvrieze.auth.service.impl.ktor.mockAuth
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
@@ -35,7 +36,7 @@ import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.PKCEAlgorithm
 import org.mitre.oauth2.model.PKCEAlgorithm.Companion.parse
-import org.mitre.oauth2.model.SavedUserAuthentication
+import org.mitre.oauth2.model.OldSavedUserAuthentication
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.request.AuthorizationRequest.Approval
 import org.mitre.oauth2.model.request.PlainAuthorizationRequest
@@ -766,7 +767,7 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<KtorIdDataService_
             b.redirectUri = "http://foo.com"
             b.requestTime = now.minusSeconds(2)
         }.build()
-        val mockAuth1: SavedUserAuthentication = SavedUserAuthentication(name = "mockAuth1")
+        val mockAuth1 = mockAuth("mockAuth1")
 //            UsernamePasswordAuthenticationToken("user1", "pass1", AuthorityUtils.commaSeparatedStringToAuthorityList("ROLE_USER"))
         val auth1 = AuthenticatedAuthorizationRequest(req1, mockAuth1)
 
@@ -853,12 +854,12 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<KtorIdDataService_
                 if (cAuth != null) {
                     assertIs<JsonObject>(holder["savedUserAuthentication"])
                     val savedAuth = holder["savedUserAuthentication"]!!.jsonObject
-                    assertEquals(cAuth.name, savedAuth["name"].asString())
+                    assertEquals(cAuth.principalName, savedAuth["name"].asString())
                     val actualAuthenticated = when (val a = savedAuth["authenticated"]) {
                         is JsonNull -> null
                         else -> a.asBoolean()
                     }
-                    assertEquals(cAuth.isAuthenticated, actualAuthenticated)
+                    assertEquals(cAuth.authTime.isAfter(Instant.EPOCH), actualAuthenticated)
                     assertEquals(cAuth.sourceClass, savedAuth["sourceClass"]?.asString())
                 }
                 checked.add(compare)

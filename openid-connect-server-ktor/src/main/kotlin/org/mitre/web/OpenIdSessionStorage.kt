@@ -1,5 +1,7 @@
 package org.mitre.web
 
+import io.github.pdvrieze.auth.Authentication
+import io.github.pdvrieze.auth.UserAuthentication
 import io.ktor.server.auth.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -10,18 +12,17 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import org.mitre.oauth2.model.request.AuthorizationRequest
 import org.mitre.openid.connect.filter.NormalizedResponseType
-import org.mitre.openid.connect.model.convert.ISOInstant
 import org.mitre.openid.connect.request.Prompt
+import java.time.Instant
 
 @Serializable
 data class OpenIdSessionStorage(
     val authorizationRequest: AuthorizationRequest? = null,
-    val principal: @Serializable(with = UserIdPrincipalSerializer::class) UserIdPrincipal? = null,
+    val principal: UserAuthentication? = null,
     val redirectUri: String? = null,
     val state: String? = null,
     val loginHint: String? = null,
     val responseType: NormalizedResponseType? = null,
-    val authTime: ISOInstant? = null,
     val pendingPrompts: Set<Prompt>? = null,
 ) {
 
@@ -34,6 +35,8 @@ data class OpenIdSessionStorage(
             require(authTime == null) { "Authorization time set, but no principal" }
         }
     }
+
+    val authTime: Instant? get() = principal?.authTime
 
     companion object {
         val COOKIE_NAME: String = "_openid_session"
