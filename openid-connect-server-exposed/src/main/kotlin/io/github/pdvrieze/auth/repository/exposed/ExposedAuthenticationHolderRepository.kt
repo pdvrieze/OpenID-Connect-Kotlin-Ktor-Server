@@ -252,7 +252,6 @@ private fun ResultRow.toAuthenticationHolder(): AuthenticationHolder {
         }.build()
 
         KtorAuthenticationHolder(userAuth, authReq, authHolderId)
-        TODO()
     }
 }
 

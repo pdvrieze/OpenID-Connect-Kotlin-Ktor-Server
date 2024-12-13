@@ -60,7 +60,7 @@ object ResourceSetRegistrationEndpoint: KtorEndpoint {
 
 //    @RequestMapping(method = [RequestMethod.POST], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE], consumes = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.createResourceSet() {
-        val auth = requireUserScope(SystemScopeService.UMA_PROTECTION_SCOPE)
+        val auth = requireUserScope(SystemScopeService.UMA_PROTECTION_SCOPE).getOrElse { return }
         val jsonString = call.receiveText()
 
         var rs = parseResourceSet(jsonString) ?: run {
@@ -74,7 +74,7 @@ object ResourceSetRegistrationEndpoint: KtorEndpoint {
 
         // if it's an OAuth mediated call, it's on behalf of a client, so store that
         rs.clientId = auth.authorizationRequest.clientId
-        rs.owner = auth.name // the username is going to be in the auth object
+        rs.owner = auth.userId // the username is going to be in the auth object
 
         rs = validateScopes(scopeService, rs)
 
@@ -91,7 +91,7 @@ object ResourceSetRegistrationEndpoint: KtorEndpoint {
 
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.readResourceSet() {
-        val auth = requireUserScope(SystemScopeService.UMA_PROTECTION_SCOPE)
+        val auth = requireUserScope(SystemScopeService.UMA_PROTECTION_SCOPE).getOrElse { return }
         val id = call.request.queryParameters["id"]!!.toLong()
 
         var rs = resourceSetService.getById(id)
@@ -99,8 +99,8 @@ object ResourceSetRegistrationEndpoint: KtorEndpoint {
 
     rs = validateScopes(scopeService, rs)
 
-    if (auth.name != rs.owner) {
-        logger.warn("Unauthorized resource set request from wrong user; expected " + rs.owner + " got " + auth.name)
+    if (auth.userId != rs.owner) {
+        logger.warn("Unauthorized resource set request from wrong user; expected ${rs.owner} got ${auth.userId}")
         return jsonErrorView(OAuthErrorCodes.ACCESS_DENIED)
     } else {
         return call.respondJson(rs)
@@ -109,7 +109,7 @@ object ResourceSetRegistrationEndpoint: KtorEndpoint {
 
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.PUT], consumes = [MimeTypeUtils.APPLICATION_JSON_VALUE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.updateResourceSet() {
-        val auth = requireUserScope(SystemScopeService.UMA_PROTECTION_SCOPE)
+        val auth = requireUserScope(SystemScopeService.UMA_PROTECTION_SCOPE).getOrElse { return }
         val id = call.request.queryParameters["id"]!!.toLong()
 
         val newRs = parseResourceSet(call.receiveText())
@@ -125,7 +125,7 @@ object ResourceSetRegistrationEndpoint: KtorEndpoint {
         val rs = resourceSetService.getById(id) ?: return jsonErrorView(INVALID_REQUEST, HttpStatusCode.NotFound)
 
         if (auth.name != rs.owner) {
-            logger.warn("Unauthorized resource set request from bad user; expected " + rs.owner + " got " + auth.name)
+            logger.warn("Unauthorized resource set request from bad user; expected ${rs.owner} got ${auth.userId}")
             return jsonErrorView(OAuthErrorCodes.ACCESS_DENIED)
         }
 
@@ -137,14 +137,14 @@ object ResourceSetRegistrationEndpoint: KtorEndpoint {
 
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.DELETE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.deleteResourceSet() {
-        val auth = requireUserScope(SystemScopeService.UMA_PROTECTION_SCOPE)
+        val auth = requireUserScope(SystemScopeService.UMA_PROTECTION_SCOPE).getOrElse { return }
         val id = call.request.queryParameters["id"]!!.toLong()
 
         val rs = resourceSetService.getById(id)
             ?: return jsonErrorView(INVALID_REQUEST, HttpStatusCode.NotFound, "Resource not found")
 
-    if (auth.name != rs.owner) {
-        logger.warn("Unauthorized resource set request from bad user; expected ${rs.owner} got ${auth.name}")
+    if (auth.userId != rs.owner) {
+        logger.warn("Unauthorized resource set request from bad user; expected ${rs.owner} got ${auth.userId}")
         return jsonErrorView(OAuthErrorCodes.ACCESS_DENIED)
     }
 
@@ -162,9 +162,9 @@ object ResourceSetRegistrationEndpoint: KtorEndpoint {
 
 //    @RequestMapping(method = [RequestMethod.GET], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.listResourceSets() {
-        val auth = requireUserScope(SystemScopeService.UMA_PROTECTION_SCOPE)
+        val auth = requireUserScope(SystemScopeService.UMA_PROTECTION_SCOPE).getOrElse { return }
 
-        val owner = auth.name
+        val owner = auth.userId
 
         val resourceSets: Collection<ResourceSet>
         if (auth is AuthenticatedAuthorizationRequest) {

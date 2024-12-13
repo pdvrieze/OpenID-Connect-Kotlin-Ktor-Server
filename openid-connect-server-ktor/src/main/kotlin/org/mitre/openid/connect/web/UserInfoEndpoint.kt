@@ -58,7 +58,7 @@ object UserInfoEndpoint: KtorEndpoint {
      * Get information about the user as specified in the accessToken included in this request
      */
     suspend fun RoutingContext.getInfo() {
-        val auth = requireUserScope(SystemScopeService.OPENID_SCOPE)
+        val auth = requireUserScope(SystemScopeService.OPENID_SCOPE).getOrElse { return }
         val clientId = (auth as? TokenAuthentication)?.clientId ?:
             return call.respond(HttpStatusCode.Forbidden)
 
@@ -66,7 +66,7 @@ object UserInfoEndpoint: KtorEndpoint {
             ?.takeIf { it.isNotEmpty() }
             ?.let { oidJson.decodeFromString<OpenIdAuthorizationRequest.ClaimsRequest>(it) }
 
-        val username = auth.name
+        val username = auth.principalName
         val userInfo = userInfoService.getByUsernameAndClientId(username, clientId) ?: run {
             logger.error("getInfo failed; user not found: $username")
             return call.respond(HttpStatusCode.NotFound)

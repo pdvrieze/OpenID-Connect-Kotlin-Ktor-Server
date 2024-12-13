@@ -77,7 +77,7 @@ class DataAPI(
 
 //    @RequestMapping(method = [RequestMethod.POST], consumes = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.importData() {
-        requireUserRole(GrantedAuthority.ROLE_ADMIN)
+        requireUserRole(GrantedAuthority.ROLE_ADMIN).getOrElse { return }
         val data = call.receive<RawData>()
 
         val config: KtorIdDataService.ExtendedConfiguration
@@ -158,7 +158,7 @@ class DataAPI(
     @OptIn(ExperimentalSerializationApi::class)
 //    @RequestMapping(method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.exportData() {
-        val prin = requireUserRole(GrantedAuthority.ROLE_ADMIN)
+        val prin = requireUserRole(GrantedAuthority.ROLE_ADMIN).getOrElse { return }
 
         try {
             val conf = buildJsonObject {

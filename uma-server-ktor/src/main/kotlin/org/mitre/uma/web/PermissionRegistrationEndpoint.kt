@@ -56,7 +56,7 @@ object PermissionRegistrationEndpoint: KtorEndpoint {
 
 //    @RequestMapping(method = [RequestMethod.POST], consumes = [MimeTypeUtils.APPLICATION_JSON_VALUE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.getPermissionTicket() {
-        val auth = requireUserScope(SystemScopeService.UMA_PROTECTION_SCOPE)
+        val auth = requireUserScope(SystemScopeService.UMA_PROTECTION_SCOPE).getOrElse { return }
 
         try {
             // parse the permission request

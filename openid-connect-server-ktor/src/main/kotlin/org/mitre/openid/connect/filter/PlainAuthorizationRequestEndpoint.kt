@@ -46,6 +46,8 @@ import org.mitre.web.util.authcodeService
 import org.mitre.web.util.clientDetailsService
 import org.mitre.web.util.config
 import org.mitre.web.util.openIdContext
+import org.mitre.web.util.requireUserRole
+import org.mitre.web.util.resolveAuthenticatedUser
 import org.mitre.web.util.scopeService
 import org.mitre.web.util.userApprovalHandler
 import java.net.URISyntaxException
@@ -108,7 +110,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         val client = clientDetailsService.loadClientByClientId(authRequest.clientId)
             ?: return jsonErrorView(OAuthErrorCodes.INVALID_CLIENT)
 
-        var auth = openIdContext.resolveAuthenticatedUser(call)
+        var auth: UserAuthentication? = resolveAuthenticatedUser()?.let { it as? UserAuthentication ?: return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST) }
         val state = params["state"]
 
         // TODO check redirect uri validity (if in the auth request)

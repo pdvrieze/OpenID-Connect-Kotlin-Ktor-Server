@@ -49,7 +49,7 @@ object ClaimsCollectionEndpoint : KtorEndpoint {
     }
 
     private suspend fun RoutingContext.collectClaims() {
-        val auth = requireUserRole(GrantedAuthority.ROLE_EXTERNAL_USER)
+        val auth = requireUserRole(GrantedAuthority.ROLE_EXTERNAL_USER).getOrElse { return }
         val clientId = call.request.queryParameters["client_id"] ?: return call.respond(HttpStatusCode.BadRequest)
         var redirectUri = call.request.queryParameters["redirect_uri"]
         val ticketValue = call.request.queryParameters["ticket"] ?: return call.respond(HttpStatusCode.BadRequest)

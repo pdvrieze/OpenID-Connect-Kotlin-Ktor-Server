@@ -54,7 +54,7 @@ import org.mitre.uma.service.UmaTokenService
 import org.mitre.web.HtmlViews
 
 interface OpenIdContext {
-    fun resolveAuthenticatedUser(authenticationContext: ApplicationCall): UserAuthentication?
+    fun resolveAuthenticatedUser(authenticationContext: ApplicationCall): Authentication?
 
     fun checkCredential(credential: UserPasswordCredential): Boolean
 

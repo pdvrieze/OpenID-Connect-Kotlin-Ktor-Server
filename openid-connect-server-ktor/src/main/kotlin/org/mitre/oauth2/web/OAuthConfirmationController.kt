@@ -55,7 +55,7 @@ object OAuthConfirmationController/*: KtorEndpoint*/ {
 */
 
     internal suspend fun RoutingContext.confirmAccess() {
-        val authentication = requireUserRole()
+        val authentication = requireUserRole().getOrElse { return }
 
         val pendingSession = call.sessions.get<OpenIdSessionStorage>()?.let{
             it.copy(pendingPrompts = Prompt.CONSENT.removeFrom(it.pendingPrompts))

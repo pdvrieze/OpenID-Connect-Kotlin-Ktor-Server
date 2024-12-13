@@ -63,7 +63,7 @@ object WhitelistAPI : KtorEndpoint {
      */
 //    @RequestMapping(method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.getAllWhitelistedSites() {
-        requireUserRole()
+        requireUserRole().getOrElse { return }
 
         return call.respondJson(whitelistedSiteService.all)
     }
@@ -74,7 +74,7 @@ object WhitelistAPI : KtorEndpoint {
 //    @PreAuthorize("hasRole('ROLE_ADMIN')")
 //    @RequestMapping(method = [RequestMethod.POST], consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.addNewWhitelistedSite() {
-        val p = requireUserRole(GrantedAuthority.ROLE_ADMIN)
+        val p = requireUserRole(GrantedAuthority.ROLE_ADMIN).getOrElse { return }
         val json: JsonObject
 
         val whitelist: WhitelistedSite
@@ -105,7 +105,7 @@ object WhitelistAPI : KtorEndpoint {
 //    @PreAuthorize("hasRole('ROLE_ADMIN')")
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.PUT], consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.updateWhitelistedSite() {
-        val p = requireUserRole(GrantedAuthority.ROLE_ADMIN)
+        val p = requireUserRole(GrantedAuthority.ROLE_ADMIN).getOrElse { return }
         val id = call.parameters["id"]!!.toLong()
         val json: JsonObject
 
@@ -142,7 +142,7 @@ object WhitelistAPI : KtorEndpoint {
 //    @PreAuthorize("hasRole('ROLE_ADMIN')")
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.DELETE])
     suspend fun RoutingContext.deleteWhitelistedSite() {
-        val p = requireUserRole(GrantedAuthority.ROLE_ADMIN)
+        val p = requireUserRole(GrantedAuthority.ROLE_ADMIN).getOrElse { return }
         val id = call.parameters["id"]!!.toLong()
         val whitelistService = whitelistedSiteService
 

@@ -58,7 +58,7 @@ object PolicyAPI: KtorEndpoint {
      */
 //    @RequestMapping(value = [""], method = [RequestMethod.GET], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.getResourceSetsForCurrentUser() {
-        val auth = requireUserRole()
+        val auth = requireUserRole().getOrElse { return }
 
         return call.respondJson(resourceSetService.getAllForOwner(auth.name))
     }
@@ -68,7 +68,7 @@ object PolicyAPI: KtorEndpoint {
      */
 //    @RequestMapping(value = ["/{rsid}"], method = [RequestMethod.GET], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.getResourceSet() {
-        val auth = requireUserRole()
+        val auth = requireUserRole().getOrElse { return }
         val rsid = call.parameters["rsid"]!!.toLong()
 
         val rs = resourceSetService.getById(rsid) ?: return call.respond(HttpStatusCode.NotFound)
@@ -87,7 +87,7 @@ object PolicyAPI: KtorEndpoint {
      */
 //    @RequestMapping(value = ["/{rsid}"], method = [RequestMethod.DELETE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.deleteResourceSet() {
-        val auth = requireUserRole()
+        val auth = requireUserRole().getOrElse { return }
         val rsid = call.parameters["rsid"]!!.toLong()
 
         val rs = resourceSetService.getById(rsid) ?: return call.respond(HttpStatusCode.NotFound)
@@ -107,7 +107,7 @@ object PolicyAPI: KtorEndpoint {
      */
 //    @RequestMapping(value = ["/{rsid}" + POLICYURL], method = [RequestMethod.GET], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.getPoliciesForResourceSet() {
-        val auth = requireUserRole()
+        val auth = requireUserRole().getOrElse { return }
         val rsid = call.parameters["rsid"]!!.toLong()
 
         val rs = resourceSetService.getById(rsid)
@@ -126,7 +126,7 @@ object PolicyAPI: KtorEndpoint {
      */
 //    @RequestMapping(value = ["/{rsid}" + POLICYURL], method = [RequestMethod.POST], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.createNewPolicyForResourceSet() {
-        val auth = requireUserRole()
+        val auth = requireUserRole().getOrElse { return }
         val rsid = call.parameters["rsid"]!!.toLong()
 
         val rs = resourceSetService.getById(rsid) ?: return call.respond(HttpStatusCode.NotFound)
@@ -172,7 +172,7 @@ object PolicyAPI: KtorEndpoint {
      */
 //    @RequestMapping(value = ["/{rsid}" + POLICYURL + "/{pid}"], method = [RequestMethod.GET], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.getPolicy() {
-        val auth = requireUserRole()
+        val auth = requireUserRole().getOrElse { return }
         val rsid = call.parameters["rsid"]!!.toLong()
         val pid = call.parameters["pid"]!!.toLong()
 
@@ -195,7 +195,7 @@ object PolicyAPI: KtorEndpoint {
      */
 //    @RequestMapping(value = ["/{rsid}" + POLICYURL + "/{pid}"], method = [RequestMethod.PUT], consumes = [MimeTypeUtils.APPLICATION_JSON_VALUE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.setClaimsForResourceSet() {
-        val auth = requireUserRole()
+        val auth = requireUserRole().getOrElse { return }
         val rsid = call.parameters["rsid"]!!.toLong()
         val pid = call.parameters["pid"]!!.toLong()
 
@@ -253,7 +253,7 @@ object PolicyAPI: KtorEndpoint {
      */
 //    @RequestMapping(value = ["/{rsid}" + POLICYURL + "/{pid}"], method = [RequestMethod.DELETE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.deleteResourceSetPolicy() {
-        val auth = requireUserRole()
+        val auth = requireUserRole().getOrElse { return }
         val rsid = call.parameters["rsid"]!!.toLong()
         val pid = call.parameters["pid"]!!.toLong()
 

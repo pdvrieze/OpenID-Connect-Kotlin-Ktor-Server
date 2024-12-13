@@ -170,7 +170,7 @@ object ProtectedResourceRegistrationEndpoint: KtorEndpoint {
 //    @PreAuthorize("hasRole('ROLE_CLIENT') and #oauth2.hasScope('" + SystemScopeService.RESOURCE_TOKEN_SCOPE + "')")
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.readResourceConfiguration() {
-        val auth = requireClientTokenScope(SystemScopeService.RESOURCE_TOKEN_SCOPE)
+        val auth = requireClientTokenScope(SystemScopeService.RESOURCE_TOKEN_SCOPE).getOrElse { return }
         val client = clientDetailsService.loadClientByClientId(call.parameters["id"]!!)
 
         if (client == null || client.clientId != auth.clientId) {
@@ -193,7 +193,7 @@ object ProtectedResourceRegistrationEndpoint: KtorEndpoint {
 //    @PreAuthorize("hasRole('ROLE_CLIENT') and #oauth2.hasScope('" + SystemScopeService.RESOURCE_TOKEN_SCOPE + "')")
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.PUT], produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.updateProtectedResource() {
-        val auth = requireClientTokenScope(SystemScopeService.RESOURCE_TOKEN_SCOPE)
+        val auth = requireClientTokenScope(SystemScopeService.RESOURCE_TOKEN_SCOPE).getOrElse { return }
         val clientId = call.parameters["id"]!!
 
         val newClient: ClientDetailsEntity.Builder?
@@ -285,7 +285,7 @@ object ProtectedResourceRegistrationEndpoint: KtorEndpoint {
 //    @PreAuthorize("hasRole('ROLE_CLIENT') and #oauth2.hasScope('" + SystemScopeService.RESOURCE_TOKEN_SCOPE + "')")
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.DELETE], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.deleteResource() {
-        val auth = requireClientTokenScope(SystemScopeService.RESOURCE_TOKEN_SCOPE)
+        val auth = requireClientTokenScope(SystemScopeService.RESOURCE_TOKEN_SCOPE).getOrElse { return }
         val clientId = call.parameters["id"]!!
         val client = clientDetailsService.loadClientByClientId(clientId)
 

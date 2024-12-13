@@ -55,9 +55,9 @@ object ApprovedSiteAPI : KtorEndpoint {
      */
 //    @RequestMapping(method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.getAllApprovedSites() {
-        val p = requireUserRole()
+        val p = requireUserRole().getOrElse { return }
 
-        val all = approvedSiteService.getByUserId(p.name).map {
+        val all = approvedSiteService.getByUserId(p.userId).map {
             val approvedAccessTokens = approvedSiteService.getApprovedAccessTokens(it).mapTo(HashSet()) { t -> t.id!! }
             ApprovedSite.SerialDelegate(it, approvedAccessTokens)
         }
@@ -70,7 +70,7 @@ object ApprovedSiteAPI : KtorEndpoint {
      */
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.DELETE])
     suspend fun RoutingContext.deleteApprovedSite() {
-        val p = requireUserRole()
+        val p = requireUserRole().getOrElse { return }
         val id = call.parameters["id"]!!.toLong()
 
         val approvedSite = approvedSiteService.getById(id)
@@ -81,8 +81,8 @@ object ApprovedSiteAPI : KtorEndpoint {
                 )
             }
 
-        if (approvedSite.userId != p.name) {
-            logger.error("deleteApprovedSite failed; principal ${p.name} does not own approved site$id")
+        if (approvedSite.userId != p.userId) {
+            logger.error("deleteApprovedSite failed; principal ${p.userId} does not own approved site $id")
             return jsonErrorView(ACCESS_DENIED, "You do not have permission to delete this approved site. The approved site decision will not be deleted.")
         }
 
@@ -95,7 +95,7 @@ object ApprovedSiteAPI : KtorEndpoint {
      */
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.getApprovedSite() {
-        val p = requireUserRole()
+        val p = requireUserRole().getOrElse { return }
         val id = call.parameters["id"]!!.toLong()
 
         val approvedSite = approvedSiteService.getById(id)
@@ -105,8 +105,8 @@ object ApprovedSiteAPI : KtorEndpoint {
                                      "Could not delete approved site. The requested approved site with id: $id could not be found."
                 )
             }
-        if (approvedSite.userId != p.name) {
-            logger.error("getApprovedSite failed; principal ${p.name} does not own approved site$id")
+        if (approvedSite.userId != p.userId) {
+            logger.error("getApprovedSite failed; principal ${p.userId} does not own approved site$id")
             return jsonErrorView(ACCESS_DENIED, "You do not have permission to view this approved site.")
         }
 

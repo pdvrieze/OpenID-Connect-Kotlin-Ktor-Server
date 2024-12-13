@@ -1,6 +1,7 @@
 package io.github.pdvrieze.auth.ktor.plugins
 
 import com.nimbusds.jose.jwk.JWK
+import io.github.pdvrieze.auth.Authentication
 import io.github.pdvrieze.auth.UserAuthentication
 import io.github.pdvrieze.auth.UserService
 import io.github.pdvrieze.auth.impl.UserServiceImpl
@@ -108,6 +109,7 @@ import org.mitre.uma.service.impl.ktor.KtorRegisteredClientService
 import org.mitre.util.UserIdPrincipalAuthentication
 import org.mitre.web.HtmlViews
 import org.mitre.web.util.OpenIdContext
+import io.ktor.server.auth.Authentication as KtorAuthentication
 
 data class OpenIdConfigurator(
     var issuer: String,
@@ -328,10 +330,10 @@ data class OpenIdConfigurator(
 
         override val messageSource: JsonMessageSource = JsonMessageSource("/js/locale/", config)
 
-        override fun resolveAuthenticatedUser(applicationCall: ApplicationCall): UserAuthentication? {
+        override fun resolveAuthenticatedUser(applicationCall: ApplicationCall): Authentication? {
             applicationCall.attributes.getOrNull(KEY_AUTHENTICATION)?.let { return it }
 
-            val result = applicationCall.principal<Authentication>() as? UserAuthentication ?: return null
+            val result = applicationCall.principal<Authentication>() ?: return null
 
             applicationCall.attributes.put(KEY_AUTHENTICATION, result)
 
@@ -350,6 +352,6 @@ data class OpenIdConfigurator(
     }
 
     companion object {
-        private val KEY_AUTHENTICATION: AttributeKey<UserAuthentication> = AttributeKey("authentication")
+        private val KEY_AUTHENTICATION: AttributeKey<Authentication> = AttributeKey("authentication")
     }
 }

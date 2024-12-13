@@ -159,7 +159,7 @@ object DeviceEndpoint : KtorEndpoint {
     }
 
     private suspend fun RoutingContext.requestUserCode() {
-        val auth = requireUserRole()
+        val auth = requireUserRole().getOrElse { return }
 
         val userCode = call.parameters["user_code"]
         if (!openIdContext.config.isAllowCompleteDeviceCodeUri || userCode == null) {
@@ -180,7 +180,7 @@ object DeviceEndpoint : KtorEndpoint {
 
 
     private suspend fun RoutingContext.readUserCode() {
-        val auth = requireUserRole()
+        val auth = requireUserRole().getOrElse { return }
 
         val userCode = call.receiveParameters()["user_code"]
             ?: return call.respond(HttpStatusCode.BadRequest)

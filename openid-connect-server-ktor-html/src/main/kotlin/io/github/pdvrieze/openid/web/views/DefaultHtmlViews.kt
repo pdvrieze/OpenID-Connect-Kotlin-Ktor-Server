@@ -15,6 +15,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
 import org.mitre.oauth2.exception.OAuth2Exception
 import org.mitre.oauth2.exception.OAuthErrorCode
+import org.mitre.oauth2.exception.OAuthErrorCodes
 import org.mitre.oauth2.model.OldAuthentication
 import org.mitre.oauth2.model.DeviceCode
 import org.mitre.oauth2.model.OAuthClientDetails
@@ -24,10 +25,12 @@ import org.mitre.openid.connect.config.ConfigurationPropertiesBean
 import org.mitre.openid.connect.config.UIConfiguration
 import org.mitre.openid.connect.model.DefaultUserInfo
 import org.mitre.openid.connect.model.UserInfo
+import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.web.HtmlViews
 import org.mitre.web.OpenIdSessionStorage
 import org.mitre.web.util.OpenIdContext
 import org.mitre.web.util.openIdContext
+import org.mitre.web.util.resolveAuthenticatedUser
 import java.util.*
 
 class DefaultHtmlViews : HtmlViews {
@@ -203,7 +206,9 @@ class DefaultHtmlViews : HtmlViews {
             }
         }
 
-        override val authentication: UserAuthentication? by lazy { openIdContext.resolveAuthenticatedUser(applicationCall) }
+        override val authentication: UserAuthentication? by lazy {
+            openIdContext.resolveAuthenticatedUser(applicationCall) as? UserAuthentication
+        }
 
         override val userInfo: UserInfo? by lazy {
             authentication?.let { DefaultUserInfo(it.userId) }
