@@ -36,7 +36,7 @@ class DiscoveryTest : ApiTest(DiscoveryEndpoint) {
     }
 
     @Test
-    fun testWebFinger() = testEndpoint {
+    fun testWebFinger() = testEndpoint<Unit> {
         getUnAuth("/.well-known/webfinger?resource=user%40example.com").apply {
             assertTrue(status.isSuccess(), "Unexpected response : $status" )
             assertEquals(WebfingerViews.CT_JRD, contentType())
@@ -61,17 +61,17 @@ class DiscoveryTest : ApiTest(DiscoveryEndpoint) {
     }
 
     @Test
-    fun testMissingResource() = testEndpoint {
+    fun testMissingResource() = testEndpoint<Unit> {
         getUnAuth("/.well-known/webfinger", HttpStatusCode.BadRequest)
     }
 
     @Test
-    fun testMissingUser() = testEndpoint {
+    fun testMissingUser() = testEndpoint<Unit> {
         getUnAuth("/.well-known/webfinger?resource=joe%40example.com", HttpStatusCode.NotFound)
     }
 
     @Test
-    fun testGetConfiguration() = testEndpoint {
+    fun testGetConfiguration() = testEndpoint<Unit> {
         getUnAuth("/.well-known/openid-configuration").apply {
             assertEquals(200, status.value)
             assertEquals(ContentType.Application.Json, contentType())

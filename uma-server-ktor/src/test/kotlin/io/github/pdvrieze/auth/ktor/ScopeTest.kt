@@ -36,29 +36,29 @@ class ScopeTest: ApiTest(ScopeAPI) {
 
     //region Unauthorized accesses
     @Test
-    fun testGetAllUnauth() = testEndpoint {
+    fun testGetAllUnauth() = testEndpoint<Unit> {
         getUnAuth("/api/scopes", HttpStatusCode.Unauthorized)
     }
 
      @Test
-    fun testGetScopeUnauth() = testEndpoint {
+    fun testGetScopeUnauth() = testEndpoint<Unit> {
         getUnAuth("/api/scopes/${scope1Id}", HttpStatusCode.Unauthorized)
         getUnAuth("/api/scopes/${nonexistingScopeId}", HttpStatusCode.Unauthorized)
     }
 
      @Test
-    fun testUpdateScopeUnauth() = testEndpoint {
+    fun testUpdateScopeUnauth() = testEndpoint<Unit> {
         putUnAuth("/api/scopes/${scope1Id}", HttpStatusCode.Unauthorized)
         putUnAuth("/api/scopes/${nonexistingScopeId}", HttpStatusCode.Unauthorized)
     }
 
      @Test
-    fun testCreateScopeUnauth() = testEndpoint {
+    fun testCreateScopeUnauth() = testEndpoint<Unit> {
         postUnAuth("/api/scopes", HttpStatusCode.Unauthorized)
     }
 
      @Test
-    fun testDeleteScopeUnauth() = testEndpoint {
+    fun testDeleteScopeUnauth() = testEndpoint<Unit> {
         deleteUnAuth("/api/scopes/${scope1Id}", HttpStatusCode.Unauthorized)
         deleteUnAuth("/api/scopes/${nonexistingScopeId}", HttpStatusCode.Unauthorized)
     }
@@ -66,29 +66,29 @@ class ScopeTest: ApiTest(ScopeAPI) {
 
     //region Test insufficient authority access
     @Test
-    fun testGetAllForbidden() = testEndpoint {
+    fun testGetAllForbidden() = testEndpoint<Unit> {
         getUser("/api/scopes", HttpStatusCode.Forbidden)
     }
 
     @Test
-    fun testGetScopeForbidden() = testEndpoint {
+    fun testGetScopeForbidden() = testEndpoint<Unit> {
         getUser("/api/scopes/${scope1Id}", HttpStatusCode.Forbidden)
         getUser("/api/scopes/${nonexistingScopeId}", HttpStatusCode.Forbidden)
     }
 
     @Test
-    fun testUpdateScopeForbidden() = testEndpoint {
+    fun testUpdateScopeForbidden() = testEndpoint<Unit> {
         putClient("/api/scopes/${scope1Id}", HttpStatusCode.Forbidden)
         putClient("/api/scopes/${nonexistingScopeId}", HttpStatusCode.Forbidden)
     }
 
     @Test
-    fun testCreateScopeForbidden() = testEndpoint {
+    fun testCreateScopeForbidden() = testEndpoint<Unit> {
         postClient("/api/scopes", HttpStatusCode.Forbidden)
     }
 
     @Test
-    fun testDeleteScopeForbidden() = testEndpoint {
+    fun testDeleteScopeForbidden() = testEndpoint<Unit> {
         deleteClient("/api/scopes/${scope1Id}", HttpStatusCode.Forbidden)
         deleteClient("/api/scopes/${nonexistingScopeId}", HttpStatusCode.Forbidden)
     }
@@ -97,19 +97,19 @@ class ScopeTest: ApiTest(ScopeAPI) {
     //region test invalid scopes
 
     @Test
-    fun testGetMissingScope() = testEndpoint {
+    fun testGetMissingScope() = testEndpoint<Unit> {
         getClient("/api/scopes/${nonexistingScopeId}", HttpStatusCode.NotFound)
     }
 
     @Test
-    fun testUpdateMissingScope() = testEndpoint {
+    fun testUpdateMissingScope() = testEndpoint<Unit> {
         putAdmin("/api/scopes/${nonexistingScopeId}", HttpStatusCode.NotFound) {
             setBody("""{ "id":"$nonexistingScopeId", "value":"otherScope", "description":"Updated desc" }""")
         }
     }
 
     @Test
-    fun testDeleteMissingScope() = testEndpoint {
+    fun testDeleteMissingScope() = testEndpoint<Unit> {
         deleteAdmin("/api/scopes/${nonexistingScopeId}", HttpStatusCode.NotFound)
     }
 
@@ -117,7 +117,7 @@ class ScopeTest: ApiTest(ScopeAPI) {
 
     //region test normal functionality
     @Test
-    fun testGetAllScopes() = testEndpoint {
+    fun testGetAllScopes() = testEndpoint<Unit> {
         val r = getClient("/api/scopes")
         assertEquals(ContentType.Application.Json, r.contentType())
 
@@ -133,19 +133,19 @@ class ScopeTest: ApiTest(ScopeAPI) {
     }
 
     @Test
-    fun testGetScope1() = testEndpoint {
+    fun testGetScope1() = testEndpoint<Unit> {
         val scope1: SystemScope = oidJson.decodeFromString(getClient("/api/scopes/${scope1Id}").bodyAsText())
         assertEquals(SystemScope(scope1Id, "test", "Test Scope Description"), scope1)
     }
 
     @Test
-    fun testGetScope2() = testEndpoint {
+    fun testGetScope2() = testEndpoint<Unit> {
         val scope2: SystemScope = oidJson.decodeFromString(getClient("/api/scopes/${scope2Id}").bodyAsText())
         assertEquals(SystemScope(scope2Id, "test2", "Other Scope Description"), scope2)
     }
 
     @Test
-    fun testUpdateScope2() = testEndpoint {
+    fun testUpdateScope2() = testEndpoint<Unit> {
         val r = putAdmin("/api/scopes/${scope2Id}", HttpStatusCode.OK) {
             setBody("""{ "id":"$scope2Id", "value":"otherScope", "description":"Updated desc" }""")
         }
@@ -159,7 +159,7 @@ class ScopeTest: ApiTest(ScopeAPI) {
     }
 
     @Test
-    fun testUpdateInconsistentScope() = testEndpoint {
+    fun testUpdateInconsistentScope() = testEndpoint<Unit> {
         val r = putAdmin("/api/scopes/${scope2Id}", HttpStatusCode.BadRequest) {
             setBody("""{ "id":"$scope1Id", "value":"otherScope", "description":"Updated desc" }""")
         }
@@ -172,7 +172,7 @@ class ScopeTest: ApiTest(ScopeAPI) {
     }
 
     @Test
-    fun testCreateScope() = testEndpoint {
+    fun testCreateScope() = testEndpoint<Unit> {
         val r = postAdmin("/api/scopes") {
             setBody("""{ "value":"foo", "description":"Created description" }""")
         }
@@ -190,7 +190,7 @@ class ScopeTest: ApiTest(ScopeAPI) {
     }
 
     @Test
-    fun testDeleteScope() = testEndpoint {
+    fun testDeleteScope() = testEndpoint<Unit> {
         assertNotNull(testContext.scopeService.getById(scope1Id))
 
         val r = deleteAdmin("/api/scopes/$scope1Id", HttpStatusCode.OK)

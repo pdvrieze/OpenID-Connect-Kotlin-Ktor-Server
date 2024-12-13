@@ -17,7 +17,7 @@ import kotlin.test.assertTrue
 class RootTest : ApiTest(RootController) {
 
     @Test
-    fun testRoot() = testEndpoint {
+    fun testRoot() = testEndpoint<Unit> {
 
         val recv1 = client.get("/").apply {
             assertTrue(status.isSuccess(), "Unexpected response : $status" )
@@ -39,7 +39,7 @@ class RootTest : ApiTest(RootController) {
     }
 
     @Test
-    fun testAbout() = testEndpoint {
+    fun testAbout() = testEndpoint<Unit> {
         val recv = client.get("/").apply {
             assertTrue(status.isSuccess(), "Unexpected response : $status" )
         }.bodyAsText()
@@ -47,28 +47,28 @@ class RootTest : ApiTest(RootController) {
     }
 
     @Test
-    fun testStats() = testEndpoint {
+    fun testStats() = testEndpoint<Unit> {
         client.get("/").apply {
             assertTrue(status.isSuccess(), "Unexpected response : $status" )
         }
     }
 
     @Test
-    fun testContacts() = testEndpoint {
+    fun testContacts() = testEndpoint<Unit> {
         client.get("/").apply {
             assertTrue(status.isSuccess(), "Unexpected response : $status" )
         }
     }
 
     @Test
-    fun testManage() = testEndpoint {
+    fun testManage() = testEndpoint<Unit> {
         getAdmin("/manage").apply {
             assertTrue(status.isSuccess(), "Unexpected response : $status" )
         }
     }
 
     @Test
-    fun testManageUnAuth() = testEndpoint {
+    fun testManageUnAuth() = testEndpoint<Unit> {
         client.get("/manage").apply {
             assertEquals(HttpStatusCode.Unauthorized, status, "Unexpected response : $status" )
         }
