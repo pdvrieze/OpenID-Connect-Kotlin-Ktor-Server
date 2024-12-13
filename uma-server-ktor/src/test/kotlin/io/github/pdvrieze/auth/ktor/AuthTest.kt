@@ -1,5 +1,7 @@
 package io.github.pdvrieze.auth.ktor
 
+import io.github.pdvrieze.auth.Authentication
+import io.github.pdvrieze.auth.UserAuthentication
 import io.github.pdvrieze.auth.ktor.plugins.configureRouting
 import io.ktor.client.plugins.cookies.*
 import io.ktor.client.request.*
@@ -124,7 +126,7 @@ class AuthTest : ApiTest(FormAuthEndpoint) {
         customConfigure()
 
         val client = createClient {
-            followRedirects = true
+            followRedirects = false
             install(HttpCookies)
         }
 
@@ -200,10 +202,10 @@ class AuthTest : ApiTest(FormAuthEndpoint) {
                 with(FormAuthEndpoint) { addRoutes() }
                 authenticate {
                     get("/user") {
-                        val user = call.authentication.principal<UserIdPrincipal>()
+                        val user = (call.authentication.principal<Authentication>() as? UserAuthentication)
                             ?: return@get call.respond(HttpStatusCode.Unauthorized)
 
-                        call.respondText(user.name)
+                        call.respondText(user.userId)
                     }
                 }
 
