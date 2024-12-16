@@ -56,7 +56,7 @@ object UmaAuthorizationRequestEndpoint : KtorEndpoint {
 
     //    @RequestMapping(method = [RequestMethod.POST], consumes = [MimeTypeUtils.APPLICATION_JSON_VALUE], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.authorizationRequest() {
-        val auth: TokenAuthentication = (requireScope(SystemScopeService.UMA_AUTHORIZATION_SCOPE) as? TokenAuthentication)
+        val auth: TokenAuthentication = (requireScope(SystemScopeService.UMA_AUTHORIZATION_SCOPE).getOrElse { return } as? TokenAuthentication)
             ?: return jsonErrorView(OAuthErrorCodes.INVALID_REQUEST, "Invalid authentication")
 
         val obj = oidJson.parseToJsonElement(call.receiveText())

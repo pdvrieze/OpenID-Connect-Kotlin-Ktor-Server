@@ -9,14 +9,12 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import org.mitre.oauth2.exception.OAuthErrorCodes
-import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.openid.connect.filter.PlainAuthorizationRequestEndpoint
 import org.mitre.openid.connect.view.jsonErrorView
 import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.config
 import org.mitre.web.util.openIdContext
 import java.net.URI
-import java.time.Instant
 import java.util.*
 
 object FormAuthEndpoint: KtorEndpoint {
@@ -41,9 +39,9 @@ object FormAuthEndpoint: KtorEndpoint {
             val oldSession = call.sessions.get<OpenIdSessionStorage>()
             val newFactors = (oldSession?.principal as? DirectUserAuthentication)
                 ?.authMethods
-                ?.let { it + listOf(AuthFactor.PASSWORD) } ?: listOf(AuthFactor.PASSWORD)
+                ?.let { it + setOf(AuthFactor.PASSWORD) } ?: setOf(AuthFactor.PASSWORD)
 
-            val principal = DirectUserAuthentication(userName, Instant.now(), newFactors)
+            val principal = openIdContext.userService.createUserDirectAuthentication(userName, newFactors)
             call.sessions.set(OpenIdSessionStorage(principal = principal))
 
             when(val authorizationRequest = oldSession?.authorizationRequest) {

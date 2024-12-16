@@ -63,7 +63,7 @@ object RootController: KtorEndpoint {
     }
 
     suspend fun RoutingContext.showClientManager() {
-        requireUserRole()
+        requireUserRole().getOrElse { return }
         return htmlManageView()
     }
 

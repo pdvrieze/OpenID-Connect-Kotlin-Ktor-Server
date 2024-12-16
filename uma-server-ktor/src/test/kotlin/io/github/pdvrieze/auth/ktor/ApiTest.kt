@@ -3,7 +3,6 @@ package io.github.pdvrieze.auth.ktor
 import com.nimbusds.jose.crypto.RSASSAVerifier
 import com.nimbusds.jose.jwk.JWK
 import com.nimbusds.jose.jwk.RSAKey
-import io.github.pdvrieze.auth.DirectUserAuthentication
 import io.github.pdvrieze.auth.ktor.AuthCodeTest.Companion.REDIRECT_URI
 import io.github.pdvrieze.auth.ktor.plugins.OpenIdConfigurator
 import io.github.pdvrieze.auth.ktor.plugins.configureRouting
@@ -37,7 +36,6 @@ import org.mitre.web.util.KtorEndpoint
 import org.mitre.web.util.OpenIdContextPlugin
 import org.mitre.web.util.openIdContext
 import org.mitre.web.util.update
-import java.time.Instant
 import kotlin.test.assertEquals
 
 abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, private val includeAuthzFilter: Boolean) {
@@ -119,11 +117,12 @@ abstract class ApiTest private constructor(endpoints: Array<out KtorEndpoint>, p
                 basic {
                     validate { cred ->
                         when {
-                            cred.name == clientId -> UserIdPrincipal(cred.name).takeIf {
-                                openIdContext.clientDetailsService.loadClientAuthenticated(cred.name, cred.password) is ClientLoadingResult.Found
+                            cred.name == clientId -> {
+                                (openIdContext.clientDetailsService.loadClientAuthenticated(cred.name, cred.password) as? ClientLoadingResult.Found)
+                                    ?.auth
                             }
                             isValidPassword(cred.name, cred.password) -> {
-                                val p = DirectUserAuthentication(cred.name, Instant.now(), emptyList())
+                                val p = openIdContext.userService.createUserDirectAuthentication(cred.name)
                                 sessions.update<OpenIdSessionStorage> { it?.copy(principal = p) ?: OpenIdSessionStorage(principal = p) }
                                 p
                             }

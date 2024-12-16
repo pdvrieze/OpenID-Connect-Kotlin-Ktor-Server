@@ -2,7 +2,7 @@ package io.github.pdvrieze.auth.ktor
 
 import com.nimbusds.jose.util.Base64URL
 import com.nimbusds.jwt.SignedJWT
-import io.github.pdvrieze.auth.DirectUserAuthentication
+import io.github.pdvrieze.auth.SavedAuthentication
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -286,6 +286,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
     fun testRefreshAccessToken() = testEndpoint {
         val tokenParams = mapOf("client_id" to clientId, "scope" to "offline_access")
         val requestTime = Instant.now()
+
         val req = AuthenticatedAuthorizationRequest(
             PlainAuthorizationRequest.Builder(clientId).also { b ->
 //                b.requestParameters = tokenParams
@@ -293,7 +294,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
                 b.scope = setOf("offline_access")
                 b.requestTime = requestTime
             }.build(),
-            DirectUserAuthentication("user", Instant.now(), emptyList())
+            SavedAuthentication("user", authTime = Instant.now())
         )
         val origToken = testContext.tokenService.createAccessToken(req, true, emptyMap())
         val refreshToken = assertNotNull(origToken.refreshToken)

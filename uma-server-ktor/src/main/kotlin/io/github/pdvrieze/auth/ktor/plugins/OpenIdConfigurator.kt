@@ -2,7 +2,6 @@ package io.github.pdvrieze.auth.ktor.plugins
 
 import com.nimbusds.jose.jwk.JWK
 import io.github.pdvrieze.auth.Authentication
-import io.github.pdvrieze.auth.UserAuthentication
 import io.github.pdvrieze.auth.UserService
 import io.github.pdvrieze.auth.impl.UserServiceImpl
 import io.github.pdvrieze.auth.ktor.KtorOpenIdContext
@@ -42,7 +41,6 @@ import org.mitre.jwt.signer.service.impl.ktor.KtorJWKSetCacheService
 import org.mitre.oauth2.TokenEnhancer
 import org.mitre.oauth2.assertion.AssertionOAuth2RequestFactory
 import org.mitre.oauth2.assertion.impl.DirectCopyRequestFactory
-import org.mitre.oauth2.model.OldAuthentication
 import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2ClientRepository
@@ -106,10 +104,7 @@ import org.mitre.uma.service.impl.DefaultResourceSetService
 import org.mitre.uma.service.impl.DefaultUmaTokenService
 import org.mitre.uma.service.impl.MatchAllClaimsOnAnyPolicy
 import org.mitre.uma.service.impl.ktor.KtorRegisteredClientService
-import org.mitre.util.UserIdPrincipalAuthentication
 import org.mitre.web.HtmlViews
-import org.mitre.web.util.OpenIdContext
-import io.ktor.server.auth.Authentication as KtorAuthentication
 
 data class OpenIdConfigurator(
     var issuer: String,
@@ -303,7 +298,11 @@ data class OpenIdConfigurator(
             DefaultUmaTokenService(authenticationHolderRepository, tokenService, clientDetailsService, config, signService)
 
         override val userService: UserService =
-            UserServiceImpl { u, p -> configurator.verifyCredential(UserPasswordCredential(u, p)) }
+            UserServiceImpl(
+                authorityProvider = ::resolveAuthServiceAuthorities,
+                passwordVerifier = { u, p -> configurator.verifyCredential(UserPasswordCredential(u, p)) }
+            )
+
         override val clientLogoLoadingService: ClientLogoLoadingService =
             KtorInMemoryClientLogoLoadingService()
 

@@ -57,7 +57,7 @@ object StatsAPI: KtorEndpoint {
 //    @PreAuthorize("hasRole('ROLE_USER')")
 //    @RequestMapping(value = ["byclientid/{id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.statsByClientId() {
-        requireUserRole()
+        requireUserRole().getOrElse { return }
         val clientId = call.parameters["id"]!!
         return call.respondJson(statsService.getCountForClientId(clientId))
     }

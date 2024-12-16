@@ -53,7 +53,7 @@ object UserClaimSearchHelper: KtorEndpoint {
 
     //    @RequestMapping(method = [RequestMethod.GET], produces = [MimeTypeUtils.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.search() {
-        val auth = requireUserRole()
+        val auth = requireUserRole().getOrElse { return }
         // check locally first
         val email = call.request.queryParameters["email"] ?: return call.respond(HttpStatusCode.BadRequest)
 

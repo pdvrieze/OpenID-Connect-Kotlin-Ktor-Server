@@ -60,7 +60,7 @@ object BlacklistAPI : KtorEndpoint {
      */
 //    @RequestMapping(method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.getAllBlacklistedSites() {
-        val p = requireUserRole(GrantedAuthority.ROLE_ADMIN)
+        val p = requireUserRole(GrantedAuthority.ROLE_ADMIN).getOrElse { return }
 
         return call.respondJson(blacklistedSiteService.all)
     }
@@ -70,7 +70,7 @@ object BlacklistAPI : KtorEndpoint {
      */
 //    @RequestMapping(method = [RequestMethod.POST], consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.addNewBlacklistedSite() {
-        val p = requireUserRole(GrantedAuthority.ROLE_ADMIN)
+        val p = requireUserRole(GrantedAuthority.ROLE_ADMIN).getOrElse { return }
 
         try {
             val blacklist = oidJson.decodeFromString<BlacklistedSite>(call.receiveText())
@@ -97,7 +97,7 @@ object BlacklistAPI : KtorEndpoint {
      */
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.PUT], consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.updateBlacklistedSite() {
-        val p = requireUserRole(GrantedAuthority.ROLE_ADMIN)
+        val p = requireUserRole(GrantedAuthority.ROLE_ADMIN).getOrElse { return }
         val id = call.parameters["id"]!!.toLong()
 
         val blacklist: BlacklistedSite
@@ -137,7 +137,7 @@ object BlacklistAPI : KtorEndpoint {
      */
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.DELETE])
     private suspend fun RoutingContext.deleteBlacklistedSite() {
-        val p = requireUserRole(GrantedAuthority.ROLE_ADMIN)
+        val p = requireUserRole(GrantedAuthority.ROLE_ADMIN).getOrElse { return }
         val id = call.parameters["id"]!!.toLong()
 
         val blacklistService = blacklistedSiteService
@@ -156,7 +156,7 @@ object BlacklistAPI : KtorEndpoint {
      */
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.getBlacklistedSite() {
-        val p = requireUserRole(GrantedAuthority.ROLE_ADMIN)
+        val p = requireUserRole(GrantedAuthority.ROLE_ADMIN).getOrElse { return }
         val id = call.parameters["id"]!!.toLong()
 
         val blacklistService = blacklistedSiteService

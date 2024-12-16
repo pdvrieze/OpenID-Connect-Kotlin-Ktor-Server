@@ -350,7 +350,7 @@ object ClientAPI: KtorEndpoint {
      */
 //    @RequestMapping(value = ["/{id}/logo"], method = [RequestMethod.GET], produces = [MediaType.IMAGE_GIF_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE])
     suspend fun RoutingContext.getClientLogo() {
-        val auth = requireUserRole()
+        val auth = requireUserRole().getOrElse { return }
         val id = call.parameters["id"]!!.toLong()
         val client = clientDetailsService.getClientById(id) ?: return call.respond(HttpStatusCode.NotFound)
         val logoUri = client.logoUri?.takeUnless { it.isBlank() } ?: return call.respond(HttpStatusCode.NotFound)

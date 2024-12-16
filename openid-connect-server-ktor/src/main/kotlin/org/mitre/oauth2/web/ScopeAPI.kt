@@ -58,14 +58,14 @@ object ScopeAPI : KtorEndpoint {
 
     //    @RequestMapping(value = [""], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     suspend fun RoutingContext.getAll() {
-        requireClientRole()
+        requireClientRole().getOrElse { return }
 
         return call.respondJson(scopeService.all)
     }
 
     //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.GET], produces = [MediaType.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.getScope() {
-        requireClientRole()
+        requireClientRole().getOrElse { return }
         val id = call.parameters["id"]!!.toLong()
 
         val scope = scopeService.getById(id)
@@ -81,7 +81,7 @@ object ScopeAPI : KtorEndpoint {
     //    @PreAuthorize("hasRole('ROLE_ADMIN')")
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.PUT], produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.updateScope() {
-        val auth = requireUserRole(GrantedAuthority.ROLE_ADMIN)
+        val auth = requireUserRole(GrantedAuthority.ROLE_ADMIN).getOrElse { return }
 
         val id = call.parameters["id"]!!.toLong()
         val jsonText = call.receiveText().takeIf { it.isNotEmpty() }
@@ -116,7 +116,7 @@ object ScopeAPI : KtorEndpoint {
     //    @PreAuthorize("hasRole('ROLE_ADMIN')")
 //    @RequestMapping(value = [""], method = [RequestMethod.POST], produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])
     private suspend fun RoutingContext.createScope() {
-        val auth = requireUserRole(GrantedAuthority.ROLE_ADMIN)
+        val auth = requireUserRole(GrantedAuthority.ROLE_ADMIN).getOrElse { return }
 
         val jsonText = call.receiveText()
 
@@ -150,7 +150,7 @@ object ScopeAPI : KtorEndpoint {
     //    @PreAuthorize("hasRole('ROLE_ADMIN')")
 //    @RequestMapping(value = ["/{id}"], method = [RequestMethod.DELETE])
     private suspend fun RoutingContext.deleteScope() {
-        val auth = requireUserRole(GrantedAuthority.ROLE_ADMIN)
+        val auth = requireUserRole(GrantedAuthority.ROLE_ADMIN).getOrElse { return }
         val id = call.parameters["id"]!!.toLong()
 
         val existing = scopeService.getById(id)

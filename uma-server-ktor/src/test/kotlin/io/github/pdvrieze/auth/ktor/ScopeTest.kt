@@ -4,7 +4,6 @@ import io.github.pdvrieze.auth.repository.exposed.SystemScopes
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import org.jetbrains.exposed.sql.Table
@@ -84,7 +83,10 @@ class ScopeTest: ApiTest(ScopeAPI) {
 
     @Test
     fun testCreateScopeForbidden() = testEndpoint<Unit> {
-        postClient("/api/scopes", HttpStatusCode.Forbidden)
+        postClient("/api/scopes", HttpStatusCode.Forbidden) {
+//            contentType(ContentType.Application.Json)
+//            setBody(oidJson.encodeToString<SystemScope>(SystemScope(null, "")))
+        }
     }
 
     @Test

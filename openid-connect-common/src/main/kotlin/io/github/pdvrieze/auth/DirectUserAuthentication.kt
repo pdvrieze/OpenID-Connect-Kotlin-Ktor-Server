@@ -9,7 +9,7 @@ import org.mitre.openid.connect.model.convert.ISOInstant
 data class DirectUserAuthentication(
     override val userId: String,
     override val authTime: ISOInstant,
-    val authMethods: List<AuthFactor>,
+    val authMethods: Set<AuthFactor>,
     override val authorities: Set<GrantedAuthority> = setOf(GrantedAuthority.ROLE_USER),
 ) : UserAuthentication {
     override fun hasScope(scope: String): Boolean {

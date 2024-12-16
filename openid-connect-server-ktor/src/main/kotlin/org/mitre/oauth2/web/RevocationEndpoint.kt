@@ -24,7 +24,6 @@ import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.mitre.oauth2.exception.InvalidTokenException
-import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.OAuthClientDetails
 import org.mitre.oauth2.service.SystemScopeService
 import org.mitre.util.getLogger
@@ -42,7 +41,7 @@ object RevocationEndpoint : KtorEndpoint {
     private fun Route.revoke() {
         authenticate {
             get("/revoke") {
-                val auth = requireClientOrAdminRole()
+                val auth = requireClientOrAdminRole().getOrElse { return@get }
 
                 val tokenValue = call.request.queryParameters["token"]
                     ?: return@get call.respond(HttpStatusCode.BadRequest)

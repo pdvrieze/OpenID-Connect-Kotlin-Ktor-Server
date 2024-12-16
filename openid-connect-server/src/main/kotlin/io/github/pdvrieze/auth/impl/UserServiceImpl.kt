@@ -12,16 +12,21 @@ import org.mitre.oauth2.model.GrantedAuthority
 import org.mitre.oauth2.model.request.OpenIdAuthorizationRequest
 import java.time.Instant
 
-class UserServiceImpl(private val passwordVerifier: (String, String) -> Boolean): UserService {
-    override fun createUserDirectAuthentication(userId: String, vararg factor: AuthFactor): DirectUserAuthentication {
-        return DirectUserAuthentication(userId, Instant.now(), factor.toList())
+class UserServiceImpl(
+    private val authorityProvider: (String) -> Set<GrantedAuthority>,
+    private val passwordVerifier: (String, String) -> Boolean
+): UserService {
+    override fun createUserDirectAuthentication(userId: String, factors: Set<AuthFactor>): DirectUserAuthentication {
+        return DirectUserAuthentication(userId, Instant.now(), factors, authorityProvider(userId))
     }
 
     override fun createUserOpenIdAuthentication(
         token: SignedJWT,
         requestedClaims: OpenIdAuthorizationRequest.ClaimsRequest?
     ): OpenIdAuthentication {
-        return OpenIdAuthentication(token, Instant.now(), requestedClaims, setOf(GrantedAuthority.ROLE_EXTERNAL_USER), )
+        val auths = authorityProvider(token.jwtClaimsSet.subject).toMutableSet()
+        auths.add(GrantedAuthority.ROLE_EXTERNAL_USER)
+        return OpenIdAuthentication(token, Instant.now(), requestedClaims, auths)
     }
 
     override fun createTokenAuthentication(token: SignedJWT): TokenAuthentication {

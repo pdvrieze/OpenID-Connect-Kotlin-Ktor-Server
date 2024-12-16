@@ -7,7 +7,9 @@ interface UserService {
     /**
      * Create an authentication object that represents a user directly identifying (username/password)
      */
-    fun createUserDirectAuthentication(userId: String, vararg factor: AuthFactor): DirectUserAuthentication
+    fun createUserDirectAuthentication(userId: String, factors: Set<AuthFactor>): DirectUserAuthentication
+    fun createUserDirectAuthentication(userId: String, vararg factor: AuthFactor): DirectUserAuthentication =
+        createUserDirectAuthentication(userId, factor.toHashSet())
     fun createUserOpenIdAuthentication(
         token: SignedJWT,
         requestedClaims: OpenIdAuthorizationRequest.ClaimsRequest? = null
