@@ -1,5 +1,6 @@
 package org.mitre.oauth2.token
 
+import io.github.pdvrieze.auth.ClientAuthentication
 import org.mitre.oauth2.exception.InvalidClientException
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.OAuth2AccessToken
@@ -30,6 +31,7 @@ abstract class AbstractTokenGranter(
     override suspend fun grant(
         grantType: String,
         request: AuthorizationRequest,
+        clientAuth: ClientAuthentication,
         authenticatedClient: OAuthClientDetails,
         requestParameters: Map<String, String>
     ): OAuth2AccessToken {
@@ -42,7 +44,7 @@ abstract class AbstractTokenGranter(
 
         validateGrantType(grantType, clientDetails)
 
-        val authRequest = getOAuth2Authentication(clientDetails, request, requestParameters)
+        val authRequest = getOAuth2Authentication(clientDetails, clientAuth, request, requestParameters)
         
         return getAccessToken(clientDetails, authRequest, clientDetails.isAllowRefresh && isGrantAllowsRefresh, requestParameters)
     }

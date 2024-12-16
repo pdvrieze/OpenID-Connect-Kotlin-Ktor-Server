@@ -73,7 +73,7 @@ class SpringIntrospectionResultAssembler : IntrospectionResultAssembler {
             result[IntrospectionResultAssembler.SUB] = authentication.principalName
         }
 
-        authentication.userAuthentication?.let {
+        authentication.subjectAuth?.let {
             result[IntrospectionResultAssembler.USER_ID] = it.principalName
         }
 
@@ -119,7 +119,7 @@ class SpringIntrospectionResultAssembler : IntrospectionResultAssembler {
             result[IntrospectionResultAssembler.SUB] = authentication.principalName
         }
 
-        authentication.userAuthentication?.let {
+        authentication.subjectAuth?.let {
             result[IntrospectionResultAssembler.USER_ID] = it.principalName
         }
 

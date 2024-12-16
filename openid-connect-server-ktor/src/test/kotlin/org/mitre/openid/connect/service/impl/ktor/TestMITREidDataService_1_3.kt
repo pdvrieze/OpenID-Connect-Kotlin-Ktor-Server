@@ -36,7 +36,6 @@ import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.PKCEAlgorithm
 import org.mitre.oauth2.model.PKCEAlgorithm.Companion.parse
-import org.mitre.oauth2.model.OldSavedUserAuthentication
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.request.AuthorizationRequest.Approval
 import org.mitre.oauth2.model.request.PlainAuthorizationRequest
@@ -850,7 +849,7 @@ class TestMITREidDataService_1_3 : TestMITREiDDataServiceBase<KtorIdDataService_
                 assertEquals(creq.clientId, holder["clientId"].asString())
                 assertEquals(creq.isApproved, holder["approved"].asBoolean())
                 assertEquals(creq.redirectUri, holder["redirectUri"].asString())
-                val cAuth = compare.userAuthentication
+                val cAuth = compare.subjectAuth
                 if (cAuth != null) {
                     assertIs<JsonObject>(holder["savedUserAuthentication"])
                     val savedAuth = holder["savedUserAuthentication"]!!.jsonObject

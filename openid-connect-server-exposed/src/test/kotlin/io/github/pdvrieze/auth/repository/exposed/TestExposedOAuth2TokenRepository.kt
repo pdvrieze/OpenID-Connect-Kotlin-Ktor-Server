@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Test
 import org.mitre.oauth2.model.KtorAuthenticationHolder
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
-import org.mitre.oauth2.model.OldSavedUserAuthentication
 import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mitre.oauth2.repository.AuthenticationHolderRepository
 import org.mitre.oauth2.repository.OAuth2ClientRepository
@@ -58,14 +57,14 @@ class TestExposedOAuth2TokenRepository {
     fun testGetAccessTokensByUserName() {
         val tokens = repository.getAccessTokensByUserName("user1")
         Assertions.assertEquals(2, tokens.size.toLong())
-        Assertions.assertEquals("user1", tokens.iterator().next().authenticationHolder.userAuthentication!!.principalName)
+        Assertions.assertEquals("user1", tokens.iterator().next().authenticationHolder.subjectAuth!!.principalName)
     }
 
     @Test
     fun testGetRefreshTokensByUserName() {
         val tokens = repository.getRefreshTokensByUserName("user2")
         Assertions.assertEquals(3, tokens.size.toLong())
-        Assertions.assertEquals("user2", tokens.iterator().next().authenticationHolder.userAuthentication!!.principalName)
+        Assertions.assertEquals("user2", tokens.iterator().next().authenticationHolder.subjectAuth!!.principalName)
     }
 
     @Test

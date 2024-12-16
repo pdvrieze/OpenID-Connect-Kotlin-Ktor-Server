@@ -12,10 +12,8 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonElement
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
-import org.mitre.oauth2.model.OldAuthentication
 import org.mitre.oauth2.model.AuthenticationHolder
 import org.mitre.oauth2.model.GrantedAuthority
-import org.mitre.oauth2.model.OldSavedUserAuthentication
 import org.mitre.oauth2.model.convert.AuthenticationSerializer
 import org.mitre.oauth2.model.convert.SimpleGrantedAuthorityStringConverter
 import org.mitre.oauth2.model.request.AuthorizationRequest
@@ -38,7 +36,7 @@ import java.time.Instant
 */
 class AuthenticationHolderEntity @InternalForStorage constructor(
     override var id: Long? = null,
-    override var userAuthentication: SavedAuthentication? = null,
+    override var subjectAuth: SavedAuthentication? = null,
     override var authorities: Set<GrantedAuthority> = emptySet(),
     var resourceIds: Set<String>? = null,
     var isApproved: Boolean = false,
@@ -56,7 +54,7 @@ class AuthenticationHolderEntity @InternalForStorage constructor(
         authentication: AuthenticatedAuthorizationRequest,
         id: Long? = null,
     ): this(
-        authentication.userAuthentication,
+        authentication.subjectAuth,
         authentication.authorizationRequest,
         id,
     )
@@ -68,7 +66,7 @@ class AuthenticationHolderEntity @InternalForStorage constructor(
         id: Long? = null
     ): this(
         id = id,
-        userAuthentication = authentication?.let(SavedAuthentication.Companion::from),
+        subjectAuth = authentication?.let(SavedAuthentication.Companion::from),
         authorities = o2Request.authorities.toHashSet(),
         resourceIds = o2Request.resourceIds?.toHashSet(),
         isApproved = o2Request.isApproved,
@@ -108,17 +106,17 @@ class AuthenticationHolderEntity @InternalForStorage constructor(
     }
 
     override fun copy(id: Long?): AuthenticationHolder {
-        return copy(id, this.userAuthentication)
+        return copy(id, this.subjectAuth)
     }
 
     @OptIn(InternalForStorage::class)
     fun copy(
         id: Long? = this.id,
-        userAuth: SavedAuthentication? = this.userAuthentication,
+        userAuth: SavedAuthentication? = this.subjectAuth,
     ): AuthenticationHolderEntity {
         return AuthenticationHolderEntity(
             id = id,
-            userAuthentication = userAuth,
+            subjectAuth = userAuth,
             authorities = authorities.toHashSet(),
             resourceIds = resourceIds?.toHashSet(),
             isApproved = isApproved,
@@ -205,14 +203,14 @@ class AuthenticationHolderEntity @InternalForStorage constructor(
             redirectUri = e.redirectUri,
             responseTypes = e.responseTypes ?: emptySet(),
             extensions = e.extensions?.asSequence()?.mapNotNull { (k, v) -> (v as? String)?.let { k to it } }?.associate { it } ?: emptyMap(),
-            userAuth = e.userAuthentication,
+            userAuth = e.subjectAuth,
         )
 
         @OptIn(InternalForStorage::class)
         override fun toAuthenticationHolder(): AuthenticationHolderEntity {
             return AuthenticationHolderEntity(
                 id = currentId,
-                userAuthentication = userAuth?.let { SavedAuthentication.from(it) },
+                subjectAuth = userAuth?.let { SavedAuthentication.from(it) },
                 authorities = authorities,
                 resourceIds = resourceIds,
                 isApproved = isApproved,

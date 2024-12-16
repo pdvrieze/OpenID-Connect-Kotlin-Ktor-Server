@@ -13,12 +13,12 @@ interface AuthenticationHolder: AuthenticatedAuthorizationRequest {
         get() = this
 
     val id: Long?
-    override val userAuthentication: SavedAuthentication?
+    override val subjectAuth: SavedAuthentication?
     override val authorizationRequest: AuthorizationRequest
 
     object DUMMY: AuthenticationHolder {
         override val id: Nothing? get() = null
-        override val userAuthentication: Nothing? get() = null
+        override val subjectAuth: Nothing? get() = null
         override val authorizationRequest: AuthorizationRequest
             get() = throw UnsupportedOperationException()
         override fun copy(id: Long?): DUMMY = DUMMY

@@ -15,7 +15,7 @@ import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 
 class KtorAuthenticationHolder private constructor(
     override val id: Long?,
-    override val userAuthentication: SavedAuthentication?,
+    override val subjectAuth: SavedAuthentication?,
     override val authorizationRequest: AuthorizationRequest,
 ) : AuthenticationHolder {
 
@@ -24,7 +24,7 @@ class KtorAuthenticationHolder private constructor(
         id: Long? = null,
     ): this(
         id,
-        authentication.userAuthentication?.let(SavedAuthentication.Companion::from),
+        authentication.subjectAuth?.let(SavedAuthentication.Companion::from),
         authentication.authorizationRequest,
     )
 
@@ -34,22 +34,22 @@ class KtorAuthenticationHolder private constructor(
         id: Long? = null
     ): this(
         id = id,
-        userAuthentication = authentication?.let(SavedAuthentication.Companion::from),
+        subjectAuth = authentication?.let(SavedAuthentication.Companion::from),
         authorizationRequest = authorizationRequest,
     )
 
     override fun copy(id: Long?): KtorAuthenticationHolder {
-        return copy(id, this.userAuthentication)
+        return copy(id, this.subjectAuth)
     }
 
     fun copy(
         id: Long? = this.id,
-        userAuth: SavedAuthentication? = this.userAuthentication,
+        userAuth: SavedAuthentication? = this.subjectAuth,
         authorizationRequest: AuthorizationRequest = this.authorizationRequest,
     ): KtorAuthenticationHolder {
         return KtorAuthenticationHolder(
             id = id,
-            userAuthentication = userAuth,
+            subjectAuth = userAuth,
             authorizationRequest = authorizationRequest,
         )
     }
@@ -92,7 +92,7 @@ class KtorAuthenticationHolder private constructor(
         @SerialName("authorizationRequest")
         val authorizationRequest: AuthorizationRequest12,
         @SerialName("savedUserAuthentication")
-        val userAuth: @Serializable(AuthenticationSerializer::class) OldAuthentication? = null,
+        val userAuth: @Serializable(AuthenticationSerializer::class) Authentication? = null,
     )
 
     @Serializable
@@ -162,7 +162,7 @@ class KtorAuthenticationHolder private constructor(
             extensions = e.authorizationRequest.authHolderExtensions.asSequence()
                 .mapNotNull { (k, v) -> (v as? String)?.let { k to it } }
                 .associate { it },
-            userAuth = e.userAuthentication,
+            userAuth = e.subjectAuth,
         )
 
         @OptIn(InternalForStorage::class)
@@ -205,7 +205,7 @@ class KtorAuthenticationHolder private constructor(
             }.build()
 
             return KtorAuthenticationHolder(
-                authentication = userAuth,
+                subjectAuth = userAuth,
                 authorizationRequest = authRequest,
                 id = currentId
             )

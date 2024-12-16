@@ -12,8 +12,6 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.decodeStructure
 import kotlinx.serialization.encoding.encodeStructure
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
-import org.mitre.oauth2.model.OldAuthentication
-import org.mitre.oauth2.model.OldSavedUserAuthentication
 import org.mitre.oauth2.model.request.AuthorizationRequest
 
 
@@ -29,7 +27,7 @@ object AuthenticatedAuthorizationRequestSerializer : KSerializer<AuthenticatedAu
     override fun serialize(encoder: Encoder, value: AuthenticatedAuthorizationRequest) {
         encoder.encodeStructure(descriptor) {
             encodeSerializableElement(descriptor, 0, authorizationRequestSerializer.nullable, value.authorizationRequest)
-            encodeSerializableElement(descriptor, 1, savedUserAuthenticationSerializer.nullable, value.userAuthentication)
+            encodeSerializableElement(descriptor, 1, savedUserAuthenticationSerializer.nullable, value.subjectAuth)
         }
     }
 

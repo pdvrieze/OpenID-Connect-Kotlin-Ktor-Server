@@ -34,7 +34,6 @@ import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
 import org.mitre.oauth2.model.PKCEAlgorithm
 import org.mitre.oauth2.model.PKCEAlgorithm.Companion.parse
-import org.mitre.oauth2.model.OldSavedUserAuthentication
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.jpa.AuthenticationHolderEntity
 import org.mitre.oauth2.model.request.AuthorizationRequest.Approval
@@ -1428,16 +1427,16 @@ class TestSpringMITREidDataService_1_3 {
                 assertEquals(compare.clientId, holder["clientId"].asString())
                 assertEquals(compare.isApproved, holder["approved"].asBoolean())
                 assertEquals(compare.redirectUri, holder["redirectUri"].asString())
-                if (compare.userAuthentication != null) {
+                if (compare.subjectAuth != null) {
                     assertIs<JsonObject>(holder["savedUserAuthentication"])
                     val savedAuth = holder["savedUserAuthentication"]!!.jsonObject
-                    assertEquals(compare.userAuthentication!!.principalName, savedAuth["name"].asString())
+                    assertEquals(compare.subjectAuth!!.principalName, savedAuth["name"].asString())
                     val actualAuthenticated = when (val a = savedAuth["authenticated"]) {
                         is JsonNull -> null
                         else -> a.asBoolean()
                     }
-                    assertEquals(compare.userAuthentication?.authTime?.isAfter(Instant.EPOCH), actualAuthenticated)
-                    assertEquals(compare.userAuthentication!!.sourceClass, savedAuth["sourceClass"]?.asString())
+                    assertEquals(compare.subjectAuth?.authTime?.isAfter(Instant.EPOCH), actualAuthenticated)
+                    assertEquals(compare.subjectAuth!!.sourceClass, savedAuth["sourceClass"]?.asString())
                 }
                 checked.add(compare)
             }

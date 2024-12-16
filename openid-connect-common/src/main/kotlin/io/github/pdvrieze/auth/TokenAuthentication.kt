@@ -11,14 +11,16 @@ import org.mitre.oauth2.model.request.AuthorizationRequest
 @Serializable
 abstract class TokenAuthentication: Authentication, ScopedAuthentication, AuthenticatedAuthorizationRequest, AuthorizationRequest {
     val token: @Serializable(JWTStringConverter::class) JWT
-
     override val clientId: String get(): String = token.jwtClaimsSet.getStringClaim("client_id")
 
     constructor(token: JWT) { this.token = token }
 
+    override val principalName: String
+        get() = token.jwtClaimsSet.subject
+
     override val authorizationRequest: AuthorizationRequest
         get() = this
-    override val userAuthentication: SavedAuthentication
+    override val subjectAuth: SavedAuthentication
         get() = SavedAuthentication.from(this)
     override val authorities: Set<GrantedAuthority>
         get() = when { // Check this

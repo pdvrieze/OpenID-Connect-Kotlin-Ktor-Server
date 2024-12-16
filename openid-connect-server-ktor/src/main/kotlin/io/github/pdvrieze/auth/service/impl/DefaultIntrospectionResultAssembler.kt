@@ -81,7 +81,7 @@ class DefaultIntrospectionResultAssembler : JsonIntrospectionResultAssembler {
                 put(IntrospectionResultAssembler.SUB, authentication.principalName)
             }
 
-            authentication.userAuthentication?.let {
+            authentication.subjectAuth?.let {
                 put(IntrospectionResultAssembler.USER_ID, it.principalName)
             }
 
@@ -127,7 +127,7 @@ class DefaultIntrospectionResultAssembler : JsonIntrospectionResultAssembler {
                 put(IntrospectionResultAssembler.SUB, authentication.principalName)
             }
 
-            authentication.userAuthentication?.let {
+            authentication.subjectAuth?.let {
                 put(IntrospectionResultAssembler.USER_ID, it.principalName)
             }
 

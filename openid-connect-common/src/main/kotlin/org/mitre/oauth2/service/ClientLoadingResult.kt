@@ -1,5 +1,6 @@
 package org.mitre.oauth2.service
 
+import io.github.pdvrieze.auth.ClientAuthentication
 import org.mitre.oauth2.exception.OAuthErrorCode
 import org.mitre.oauth2.model.OAuthClientDetails
 
@@ -16,8 +17,10 @@ sealed interface ClientLoadingResult {
         override fun get(): Nothing? = null
     }
 
-    class Found(val client: OAuthClientDetails): ClientLoadingResult {
+    class Found(val auth: ClientAuthentication, val client: OAuthClientDetails): ClientLoadingResult {
         override fun get(): OAuthClientDetails = client
+        operator fun component1(): ClientAuthentication = auth
+        operator fun component2(): OAuthClientDetails = client
     }
 
     fun get(): OAuthClientDetails?
@@ -26,7 +29,7 @@ sealed interface ClientLoadingResult {
         operator fun invoke(errorCode: OAuthErrorCode, status: Int? = null): Error =
             Error(errorCode, status)
 
-        operator fun invoke(client: OAuthClientDetails): Found =
-            Found(client)
+        operator fun invoke(auth: ClientAuthentication, client: OAuthClientDetails): Found =
+            Found(auth, client)
     }
 }

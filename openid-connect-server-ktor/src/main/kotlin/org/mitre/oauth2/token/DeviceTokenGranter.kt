@@ -1,5 +1,6 @@
 package org.mitre.oauth2.token
 
+import io.github.pdvrieze.auth.ClientAuthentication
 import org.mitre.oauth2.exception.AuthorizationPendingException
 import org.mitre.oauth2.exception.DeviceCodeExpiredException
 import org.mitre.oauth2.exception.InvalidGrantException
@@ -69,17 +70,16 @@ class DeviceTokenGranter constructor(
             throw InvalidGrantException("Invalid device code: $deviceCode")
         }
 
-
-        return super.getAccessToken(client, tokenRequest, isAllowRefresh, requestParameters)
+        return super.getAccessToken(client, dc.authenticationHolder!!, isAllowRefresh, requestParameters)
     }
 
-    override suspend fun grant(
-        grantType: String,
+    override suspend fun getOAuth2Authentication(
+        client: OAuthClientDetails,
+        clientAuth: ClientAuthentication,
         request: AuthorizationRequest,
-        authenticatedClient: OAuthClientDetails,
         requestParameters: Map<String, String>,
-    ): OAuth2AccessToken {
-        return super.grant(grantType, request, authenticatedClient, requestParameters)
+    ): AuthenticatedAuthorizationRequest {
+        return AuthenticatedAuthorizationRequest(request, null)
     }
 
     companion object {

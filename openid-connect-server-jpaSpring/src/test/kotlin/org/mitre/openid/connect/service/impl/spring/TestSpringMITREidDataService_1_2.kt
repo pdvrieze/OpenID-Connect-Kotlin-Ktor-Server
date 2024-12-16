@@ -27,7 +27,6 @@ import org.mitre.oauth2.model.AuthenticationHolder
 import org.mitre.oauth2.model.ClientDetailsEntity
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
-import org.mitre.oauth2.model.OldSavedUserAuthentication
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.jpa.AuthenticationHolderEntity
 import org.mitre.oauth2.model.request.AuthorizationRequest.Approval
@@ -736,7 +735,7 @@ class TestSpringMITREidDataService_1_2 {
             clientId = "client2",
             isApproved = true,
             redirectUri = "http://bar.com",
-            userAuthentication = mockAuth2,
+            subjectAuth = mockAuth2,
             requestTime = now,
         )
 

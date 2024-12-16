@@ -46,7 +46,6 @@ import org.mitre.web.util.authcodeService
 import org.mitre.web.util.clientDetailsService
 import org.mitre.web.util.config
 import org.mitre.web.util.openIdContext
-import org.mitre.web.util.requireUserRole
 import org.mitre.web.util.resolveAuthenticatedUser
 import org.mitre.web.util.scopeService
 import org.mitre.web.util.userApprovalHandler
@@ -499,9 +498,7 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
             call.request.authorization() != null -> {
                 val authorizationHeader = call.request.parseAuthorizationHeader()
                 when (authorizationHeader?.authScheme) {
-                    "Basic" -> {
-                        creds = call.request.basicAuthenticationCredentials()!!
-                    }
+                    "Basic" -> creds = call.request.basicAuthenticationCredentials()!!
                     else -> return ClientLoadingResult(OAuthErrorCodes.INVALID_REQUEST)
                 }
 
@@ -544,18 +541,21 @@ object PlainAuthorizationRequestEndpoint : KtorEndpoint {
         val granter = getGranter(grantType)
             ?: return jsonErrorView(OAuthErrorCodes.UNSUPPORTED_GRANT_TYPE)
 
-        val client = when (val c = getAuthenticatedClient(postParams)) {
+        val (clientAuth, client) = when (val c = getAuthenticatedClient(postParams)) {
             is ClientLoadingResult.Unauthorized,
             is ClientLoadingResult.Missing -> return jsonErrorView(OAuthErrorCodes.INVALID_CLIENT, HttpStatusCode.Unauthorized)
             is ClientLoadingResult.Error -> return jsonErrorView(c.errorCode, c.status?.let{HttpStatusCode.fromValue(it) } ?: c.errorCode.httpCode ?: HttpStatusCode.BadRequest)
 
-            is ClientLoadingResult.Found -> c.client
+            is ClientLoadingResult.Found -> c
         }
 
         val accessToken = try {
-                granter.grant(grantType, authRequestFactory.createAuthorizationRequest(postParams, client), client, postParams)
+            val req = authRequestFactory.createAuthorizationRequest(postParams, client)
+            granter.grant(grantType, req, clientAuth, client, postParams)
         } catch (e: OAuth2Exception) {
-            return call.respondJson(OAuthError(e.oauth2ErrorCode, e.message), e.oauth2ErrorCode.httpCode ?: HttpStatusCode.BadRequest)
+            return call.respondJson(
+                OAuthError(e.oauth2ErrorCode, e.message), e.oauth2ErrorCode.httpCode ?: HttpStatusCode.BadRequest
+            )
         }
 
         val response = AuthTokenResponse (

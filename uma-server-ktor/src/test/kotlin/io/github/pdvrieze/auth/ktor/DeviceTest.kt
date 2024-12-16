@@ -10,8 +10,7 @@ import io.ktor.http.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.Table
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import org.junit.Assert.*
 import org.mitre.oauth2.model.DeviceCode
 import org.mitre.oauth2.web.DeviceEndpoint
 import org.mitre.openid.connect.filter.AuthTokenResponse
@@ -149,6 +148,7 @@ class DeviceTest: ApiTest(DeviceEndpoint, PlainAuthorizationRequestEndpoint) {
             assertNotNull(verifyForm.input("authorize"))
             assertNotNull(verifyForm.input("deny"))
 
+            assertNull(deviceCode2.authenticationHolder)
 
             val verifyResp = submitUser("/device/approve", parameters {
                 append("user_code", deviceReq.userCode)
@@ -164,7 +164,7 @@ class DeviceTest: ApiTest(DeviceEndpoint, PlainAuthorizationRequestEndpoint) {
                 testContext.deviceCodeService.lookUpByUserCode(deviceReq.userCode),
                 "Missing device code for user code ${deviceReq.userCode}"
             )
-
+            assertNotNull(deviceCode3.authenticationHolder)
 
             assertTrue("The code should be approved but isn't", assertNotNull(deviceCode3.isApproved))
 

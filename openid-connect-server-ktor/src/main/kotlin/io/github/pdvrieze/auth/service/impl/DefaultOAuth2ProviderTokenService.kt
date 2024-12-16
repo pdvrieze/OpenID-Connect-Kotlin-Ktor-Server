@@ -28,8 +28,6 @@ import org.mitre.oauth2.exception.InvalidClientException
 import org.mitre.oauth2.exception.InvalidRequestException
 import org.mitre.oauth2.exception.InvalidScopeException
 import org.mitre.oauth2.exception.InvalidTokenException
-import org.mitre.oauth2.exception.OAuth2Exception
-import org.mitre.oauth2.exception.OAuthErrorCodes
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
 import org.mitre.oauth2.model.AuthenticationHolder
 import org.mitre.oauth2.model.KtorAuthenticationHolder
@@ -122,12 +120,14 @@ class DefaultOAuth2ProviderTokenService(
 
 
     override suspend fun createAccessToken(
-        authentication: AuthenticatedAuthorizationRequest,
+        authenticatedRequest: AuthenticatedAuthorizationRequest,
         isAllowRefresh: Boolean,
         requestParameters: Map<String, String>
     ): OAuth2AccessToken {
         // look up our client
-        val request = authentication.authorizationRequest
+        val request = authenticatedRequest.authorizationRequest
+
+        checkNotNull(authenticatedRequest.subjectAuth) { "Request not actually authorized" }
 
         val client: OAuthClientDetails = clientDetailsService.loadClientByClientId(request.clientId)
             ?: throw InvalidClientException("Client not found: " + request.clientId)
@@ -187,7 +187,7 @@ class DefaultOAuth2ProviderTokenService(
         }
 
         // attach the authorization so that we can look it up later
-        val authHolder = authenticationHolderRepository.save(KtorAuthenticationHolder(authentication))
+        val authHolder = authenticationHolderRepository.save(KtorAuthenticationHolder(authenticatedRequest))
 
         tokenBuilder.setAuthenticationHolder(authHolder)
 
@@ -208,7 +208,7 @@ class DefaultOAuth2ProviderTokenService(
             tokenBuilder.approvedSite = approvedSiteService.getById(approvedSiteId)
         }
 
-        tokenEnhancer.enhance(tokenBuilder, authentication)
+        tokenEnhancer.enhance(tokenBuilder, authenticatedRequest)
 
         val token = tokenBuilder.build(clientDetailsService, authenticationHolderRepository, tokenRepository)
 

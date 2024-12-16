@@ -219,7 +219,7 @@ class IntrospectingTokenService(
         val userAuth = createUserAuthentication(accessToken, introspectionResponse)?.let {
             SavedAuthentication.from(it)
         }
-        val authReq = AuthenticatedAuthorizationRequestImpl(createStoredRequest(introspectionResponse), userAuth)
+        val authReq = AuthenticatedAuthorizationRequest(createStoredRequest(introspectionResponse), userAuth)
         // create an OAuth2AccessToken
         val token = createAccessToken(introspectionResponse, accessToken)
 

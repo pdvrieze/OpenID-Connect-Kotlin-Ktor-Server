@@ -16,7 +16,6 @@ import io.ktor.util.*
 import kotlinx.serialization.json.Json
 import org.junit.Before
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
-import org.mitre.oauth2.model.OldSavedUserAuthentication
 import org.mitre.oauth2.model.SystemScope
 import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mitre.oauth2.web.TokenAPI
@@ -80,7 +79,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
 
         val storedCode = assertNotNull(testContext.authorizationCodeRepository.getByCode(code))
         val storedHolder = assertNotNull(storedCode.authenticationHolder)
-        val storedUser = assertNotNull(storedHolder.userAuthentication, "Missing user auth in authorization code acquisition")
+        val storedUser = assertNotNull(storedHolder.subjectAuth, "Missing user auth in authorization code acquisition")
         assertEquals(setOf("offline_access", "scope1", "scope2"), storedHolder.authorizationRequest.scope)
         assertEquals("user", storedUser.principalName)
         assertTrue(storedUser.authTime.isAfter(Instant.EPOCH))
@@ -104,7 +103,7 @@ class AuthCodeTest: ApiTest(TokenAPI, PlainAuthorizationRequestEndpoint, FormAut
 
         val storedCode = assertNotNull(testContext.authorizationCodeRepository.getByCode(code))
         val storedHolder = assertNotNull(storedCode.authenticationHolder)
-        val storedUser = assertNotNull(storedHolder.userAuthentication, "Missing user auth in authorization code acquisition")
+        val storedUser = assertNotNull(storedHolder.subjectAuth, "Missing user auth in authorization code acquisition")
         assertEquals(setOf("scope2"), storedHolder.authorizationRequest.scope)
         assertEquals("user", storedUser.principalName)
         assertTrue(storedUser.authTime.isAfter(Instant.EPOCH))

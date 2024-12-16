@@ -1,5 +1,6 @@
 package org.mitre.oauth2.token
 
+import io.github.pdvrieze.auth.ClientAuthentication
 import org.mitre.oauth2.exception.OAuth2Exception
 import org.mitre.oauth2.exception.OAuthErrorCodes
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
@@ -17,6 +18,31 @@ class ClientTokenGranter(
     grantType: String = "client_credentials"
 ) : AbstractTokenGranter(tokenService, clientResolver, requestFactory, grantType) {
     override val isGrantAllowsRefresh: Boolean get() = false
+
+    override suspend fun grant(
+        grantType: String,
+        request: AuthorizationRequest,
+        clientAuth: ClientAuthentication,
+        authenticatedClient: OAuthClientDetails,
+        requestParameters: Map<String, String>,
+    ): OAuth2AccessToken {
+        check(grantType == grantType) { "This granter (${super.grantType}) does not support the requested grant type ($grantType)" }
+
+        val clientDetails = authenticatedClient
+
+        super.validateGrantType(grantType, clientDetails)
+        val authRequest = getOAuth2Authentication(clientDetails, clientAuth, request, requestParameters)
+        return getAccessToken(clientDetails, authRequest, clientDetails.isAllowRefresh && isGrantAllowsRefresh, requestParameters)
+    }
+
+    override suspend fun getOAuth2Authentication(
+        client: OAuthClientDetails,
+        clientAuth: ClientAuthentication,
+        request: AuthorizationRequest,
+        requestParameters: Map<String, String>,
+    ): AuthenticatedAuthorizationRequest {
+        return AuthenticatedAuthorizationRequest(request, clientAuth)
+    }
 }
 
 class RefreshTokenGranter(
@@ -29,18 +55,20 @@ class RefreshTokenGranter(
     override suspend fun grant(
         grantType: String,
         request: AuthorizationRequest,
+        clientAuth: ClientAuthentication,
         authenticatedClient: OAuthClientDetails,
         requestParameters: Map<String, String>,
     ): OAuth2AccessToken {
-        return super.grant(grantType, request, authenticatedClient, requestParameters)
+        return super.grant(grantType, request, clientAuth, authenticatedClient, requestParameters)
     }
 
     override suspend fun getOAuth2Authentication(
         client: OAuthClientDetails,
+        clientAuth: ClientAuthentication,
         request: AuthorizationRequest,
         requestParameters: Map<String, String>,
     ): AuthenticatedAuthorizationRequest {
-        return super.getOAuth2Authentication(client, request, requestParameters)
+        return AuthenticatedAuthorizationRequest(request, clientAuth)
     }
 
     override suspend fun getAccessToken(

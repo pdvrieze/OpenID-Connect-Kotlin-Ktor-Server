@@ -20,6 +20,7 @@ package org.mitre.oauth2.service.impl
 import com.github.benmanes.caffeine.cache.CacheLoader
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.benmanes.caffeine.cache.LoadingCache
+import io.github.pdvrieze.auth.ClientSecretAuthentication
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
@@ -52,6 +53,7 @@ import org.mitre.util.getLogger
 import java.math.BigInteger
 import java.net.URI
 import java.security.SecureRandom
+import java.time.Instant
 import java.util.*
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
@@ -292,7 +294,9 @@ class DefaultOAuth2ClientDetailsEntityService(
             if (!expectedDigest.contentEquals(actualDigest)) {return ClientLoadingResult.Unauthorized}
         } else if (clientSecret != clientPublicSecret) return ClientLoadingResult.Unauthorized
 
-        return ClientLoadingResult.Found(client)
+        val auth = ClientSecretAuthentication(clientId, Instant.now())
+
+        return ClientLoadingResult.Found(auth, client)
     }
 
     /**

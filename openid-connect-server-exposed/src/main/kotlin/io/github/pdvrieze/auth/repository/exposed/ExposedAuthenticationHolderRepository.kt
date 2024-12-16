@@ -75,7 +75,7 @@ class ExposedAuthenticationHolderRepository(database: Database) :
     override fun save(a: AuthenticationHolder): AuthenticationHolder = transaction {
         val oldId = a.id
 
-        val inputUserAuth = a.userAuthentication
+        val inputUserAuth = a.subjectAuth
         val userName = inputUserAuth?.principalName
 
         val userAuth: OldSavedUserAuthentication?

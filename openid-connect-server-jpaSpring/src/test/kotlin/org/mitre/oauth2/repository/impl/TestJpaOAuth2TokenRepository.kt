@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity
 import org.mitre.oauth2.model.OAuth2RefreshTokenEntity
-import org.mitre.oauth2.model.OldSavedUserAuthentication
 import org.mitre.oauth2.model.jpa.AuthenticationHolderEntity
 import org.mitre.oauth2.model.request.PlainAuthorizationRequest
 import org.mockito.InjectMocks
@@ -47,7 +46,7 @@ class TestJpaOAuth2TokenRepository {
     fun testGetAccessTokensByUserName() {
         val tokens = repository.getAccessTokensByUserName("user1")
         assertEquals(2, tokens.size.toLong())
-        assertEquals("user1", tokens.iterator().next().authenticationHolder.userAuthentication!!.principalName)
+        assertEquals("user1", tokens.iterator().next().authenticationHolder.subjectAuth!!.principalName)
     }
 
     @Test
@@ -55,7 +54,7 @@ class TestJpaOAuth2TokenRepository {
     fun testGetRefreshTokensByUserName() {
         val tokens = repository.getRefreshTokensByUserName("user2")
         assertEquals(3, tokens.size.toLong())
-        assertEquals("user2", tokens.iterator().next().authenticationHolder.userAuthentication!!.principalName)
+        assertEquals("user2", tokens.iterator().next().authenticationHolder.subjectAuth!!.principalName)
     }
 
     @Test
@@ -83,7 +82,7 @@ class TestJpaOAuth2TokenRepository {
         }
 
         val authHolder = AuthenticationHolderEntity(null, PlainAuthorizationRequest(clientId = "foo", requestTime = Instant.now())).let {
-            it.userAuthentication = userAuth
+            it.subjectAuth = userAuth
             entityManager.merge(it)
         }
 
@@ -103,7 +102,7 @@ class TestJpaOAuth2TokenRepository {
         }
 
         val authHolder = AuthenticationHolderEntity(userAuth, PlainAuthorizationRequest(clientId = "foo", requestTime = Instant.now())).let {
-            it.userAuthentication = userAuth
+            it.subjectAuth = userAuth
             entityManager.merge(it)
         }
 

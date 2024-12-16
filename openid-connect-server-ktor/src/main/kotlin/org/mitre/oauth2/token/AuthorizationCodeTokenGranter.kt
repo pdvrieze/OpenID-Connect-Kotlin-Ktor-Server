@@ -1,5 +1,6 @@
 package org.mitre.oauth2.token
 
+import io.github.pdvrieze.auth.ClientAuthentication
 import org.mitre.oauth2.exception.OAuth2Exception
 import org.mitre.oauth2.exception.OAuthErrorCodes
 import org.mitre.oauth2.model.AuthenticatedAuthorizationRequest
@@ -21,6 +22,7 @@ class AuthorizationCodeTokenGranter(
 
     override suspend fun getOAuth2Authentication(
         client: OAuthClientDetails,
+        clientAuth: ClientAuthentication,
         request: AuthorizationRequest,
         requestParameters: Map<String, String>,
     ): AuthenticatedAuthorizationRequest {

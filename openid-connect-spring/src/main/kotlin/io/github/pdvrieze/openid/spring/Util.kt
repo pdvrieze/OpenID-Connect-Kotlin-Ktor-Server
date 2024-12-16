@@ -120,7 +120,7 @@ fun Authentication.toSpring(): SpringAuthentication {
 }
 
 fun AuthenticatedAuthorizationRequest.toSpring(): SpringOAuth2Authentication =
-    SpringOAuth2Authentication(authorizationRequest.toSpring(), userAuthentication?.toSpring())
+    SpringOAuth2Authentication(authorizationRequest.toSpring(), subjectAuth?.toSpring())
 
 @OptIn(InternalForStorage::class)
 fun AuthorizationRequest.toSpring(): SpringOAuth2Request =

@@ -69,13 +69,20 @@ class ExposedDeviceCodeRepository(
         val oldId = code.id
         var newId: Long
         transaction {
+            val a = code.authenticationHolder
+            val authHolder = when {
+                a == null -> null
+                a.id == null -> authenticationHolders.save(a)
+                else -> a
+            }
+
             newId = DeviceCodes.save(oldId) { b ->
                 b[deviceCode] = code.deviceCode
                 b[userCode] = code.userCode
                 b[expiration] = code.expiration?.toInstant()
                 b[clientId] = code.clientId
                 b[approved] = code.isApproved
-                b[authHolderId] = code.authenticationHolder?.id
+                if (authHolder!= null) b[authHolderId] = checkNotNull(authHolder.id) { "Auth holder has no id" }
             }
 
             val scopesToAdd: Set<String>
